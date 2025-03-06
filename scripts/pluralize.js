@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 const pluralizationMap = {
-  Sample: "Samples",
+  CartesianChart: "CartesianCharts",
+  PieChart: "PieCharts",
 };
 
 function pluralizeComponentName(componentName) {

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import fs from "fs";
 import path from "path";
-import { describe, expect, test } from "vitest";
 
 describe("Generate test utils ElementWrapper", () => {
   const importPaths = [
