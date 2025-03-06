@@ -41,14 +41,14 @@
     ".": "./index.js",
     "./test-utils/dom": "./test-utils/dom/index.js",
     "./test-utils/selectors": "./test-utils/selectors/index.js",
-    "./internal/api-docs/*.js": "./internal/api-docs/*.js",
-    "./internal_do_not_use/index.js": "./internal_do_not_use/index.js"
+    "./internal/api-docs/*.js": "./internal/api-docs/*.js"
   },
   "dependencies": {
     "@cloudscape-design/component-toolkit": "^1.0.0-beta",
     "@cloudscape-design/test-utils-core": "^1.0.0",
     "clsx": "^1.2.1",
-    "highcharts-react-official": "^3.2.1"
+    "highcharts-react-official": "^3.2.1",
+    "react-transition-group": "^4.4.5"
   },
   "peerDependencies": {
     "@cloudscape-design/components": "^3",
@@ -69,9 +69,11 @@
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@types/jest-image-snapshot": "^6.1.0",
+    "@types/lodash": "^4.17.16",
     "@types/node": "^18.19.4",
     "@types/react": "^18.0.26",
     "@types/react-dom": "^18.0.10",
+    "@types/react-transition-group": "^4.4.12",
     "@typescript-eslint/eslint-plugin": "^8.24.1",
     "@typescript-eslint/parser": "^8.24.1",
     "@vitejs/plugin-react": "^4.2.1",

@@ -1,0 +1,14 @@
+/*
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+*/
+
+@use "../../styles" as styles;
+@use "../../../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
+
+.dimmed {
+  // @include styles.with-motion {
+  //   transition: opacity awsui.$motion-duration-transition-quick awsui.$motion-easing-transition-quick;
+  //   transition-delay: awsui.$motion-duration-transition-quick;
+  // }
+}

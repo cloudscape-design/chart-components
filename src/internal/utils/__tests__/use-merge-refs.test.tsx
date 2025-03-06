@@ -3,7 +3,7 @@
 // eslint-disable-next-line no-restricted-imports
 import React from "react";
 import { render } from "@testing-library/react";
-import { describe, expect, test, vi } from "vitest";
+import { vi } from "vitest";
 
 import { useMergeRefs } from "../use-merge-refs";
 

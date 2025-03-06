@@ -1,7 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { cleanup, fireEvent, render } from "@testing-library/react";
-import { afterEach, describe, expect, test, vi } from "vitest";
 
 import useFocusVisible from "../../../../lib/components/internal/utils/focus-visible";
 

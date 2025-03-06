@@ -11,7 +11,14 @@ const definitionsDir = path.resolve(__dirname, "../../lib/components/internal/ap
 export function getAllComponents(): string[] {
   return fs
     .readdirSync(componentsDir)
-    .filter((name) => name !== "internal" && name !== "test-utils" && !name.includes(".") && !name.includes("LICENSE"));
+    .filter(
+      (name) =>
+        name !== "core" &&
+        name !== "internal" &&
+        name !== "test-utils" &&
+        !name.includes(".") &&
+        !name.includes("LICENSE"),
+    );
 }
 
 export function requireComponentDefinition(componentName: string) {

@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import process from "node:process";
+
 import { defineConfig } from "vite";
+
 import base from "./vite.config.mjs";
 
 // https://vitejs.dev/config/
@@ -20,5 +22,6 @@ export default defineConfig({
       include: ["src/**", "lib/components/**"],
       exclude: ["**/debug-tools/**", "**/__tests__/**", "**/*.d.ts"],
     },
+    globals: true,
   },
 });
