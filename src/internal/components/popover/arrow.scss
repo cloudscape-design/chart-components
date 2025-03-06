@@ -18,7 +18,7 @@
   // Based on $awsui-box-shadow-inner shadow, but rotated based on x and y multipliers.
   @mixin awsui-box-shadow-inner-rotated($x, $y) {
     $box-shadow-size: 0.71px; // Box shadow is actually 1px, but rotating the arrow changes this to sqrt(1/2)
-    box-shadow: ($box-shadow-size * $x) ($box-shadow-size * $y) 4px -2px rgba(0, 28, 36, 0.5); // TODO: use design token
+    box-shadow: ($box-shadow-size * $x) ($box-shadow-size * $y) 4px -2px cs.$color-shadow-default;
   }
 
   $arrow-edge-length: 14px;
@@ -65,7 +65,7 @@
 
   &-outer {
     &::after {
-      background-color: #545b64; // TODO: use design token
+      background-color: cs.$color-border-popover;
     }
   }
 

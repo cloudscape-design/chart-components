@@ -162,7 +162,6 @@ function ExpandableSeries({
           <ChartSeriesMarker type={markerType} status={markerStatus} color={color} />
         </div>
       )}
-      {/* TODO: custom expandable section? */}
       <div className={styles["full-width"]}>
         <ExpandableSection
           headerText={itemKey}
