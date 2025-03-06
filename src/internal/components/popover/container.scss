@@ -22,9 +22,9 @@
   border-end-start-radius: cs.$border-radius-popover;
   border-end-end-radius: cs.$border-radius-popover;
   background-color: cs.$color-background-popover;
-  box-shadow: 0px 4px 20px 1px rgba(0, 4, 12, 1); // TODO: use design token
-  border-block: cs.$border-width-popover solid #545b64; // TODO: use design token
-  border-inline: cs.$border-width-popover solid #545b64; // TODO: use design token
+  box-shadow: cs.$shadow-popover;
+  border-block: cs.$border-width-popover solid cs.$color-border-popover;
+  border-inline: cs.$border-width-popover solid cs.$color-border-popover;
 }
 
 .container-body-variant-annotation {

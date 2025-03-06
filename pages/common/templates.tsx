@@ -1,9 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useState } from "react";
-
-import AppLayout from "@cloudscape-design/components/app-layout";
+import AppLayout, { AppLayoutProps } from "@cloudscape-design/components/app-layout";
 import Box from "@cloudscape-design/components/box";
 import Drawer from "@cloudscape-design/components/drawer";
 import Header from "@cloudscape-design/components/header";
@@ -19,14 +17,22 @@ export function Page({
   settings?: React.ReactNode;
   children: React.ReactNode;
 }) {
-  const [toolsOpen, setToolsOpen] = useState(!!settings);
+  const drawers: AppLayoutProps.Drawer[] = [];
+  if (settings) {
+    drawers.push({
+      id: "settings",
+      content: <Drawer header={<Header variant="h2">Page settings</Header>}>{settings}</Drawer>,
+      trigger: { iconName: "ellipsis" },
+      ariaLabels: { drawerName: "Page settings", triggerButton: "Open page settings" },
+    });
+  }
   return (
     <AppLayout
+      headerSelector="#h"
       navigationHide={true}
       tools={settings && <Drawer header={<Header variant="h2">Page settings</Header>}>{settings}</Drawer>}
-      toolsOpen={toolsOpen}
       toolsHide={!settings}
-      onToolsChange={({ detail: { open } }) => setToolsOpen(open)}
+      drawers={drawers}
       content={
         <Box>
           <h1>{title}</h1>
