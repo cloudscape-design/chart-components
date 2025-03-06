@@ -9,46 +9,77 @@ import { appendSelector } from '@cloudscape-design/test-utils-core/utils';
 
 export { ElementWrapper };
 
-import SampleWrapper from './sample';
+import CartesianChartWrapper from './cartesian-chart';
+import PieChartWrapper from './pie-chart';
 
 
-export { SampleWrapper };
+export { CartesianChartWrapper };
+export { PieChartWrapper };
 
 declare module '@cloudscape-design/test-utils-core/dist/dom' {
    interface ElementWrapper {
     
 /**
- * Returns the wrapper of the first Sample that matches the specified CSS selector.
- * If no CSS selector is specified, returns the wrapper of the first Sample.
- * If no matching Sample is found, returns \`null\`.
+ * Returns the wrapper of the first CartesianChart that matches the specified CSS selector.
+ * If no CSS selector is specified, returns the wrapper of the first CartesianChart.
+ * If no matching CartesianChart is found, returns \`null\`.
  *
  * @param {string} [selector] CSS Selector
- * @returns {SampleWrapper | null}
+ * @returns {CartesianChartWrapper | null}
  */
-findSample(selector?: string): SampleWrapper | null;
+findCartesianChart(selector?: string): CartesianChartWrapper | null;
 
 /**
- * Returns an array of Sample wrapper that matches the specified CSS selector.
- * If no CSS selector is specified, returns all of the Samples inside the current wrapper.
- * If no matching Sample is found, returns an empty array.
+ * Returns an array of CartesianChart wrapper that matches the specified CSS selector.
+ * If no CSS selector is specified, returns all of the CartesianCharts inside the current wrapper.
+ * If no matching CartesianChart is found, returns an empty array.
  *
  * @param {string} [selector] CSS Selector
- * @returns {Array<SampleWrapper>}
+ * @returns {Array<CartesianChartWrapper>}
  */
-findAllSamples(selector?: string): Array<SampleWrapper>;
+findAllCartesianCharts(selector?: string): Array<CartesianChartWrapper>;
+/**
+ * Returns the wrapper of the first PieChart that matches the specified CSS selector.
+ * If no CSS selector is specified, returns the wrapper of the first PieChart.
+ * If no matching PieChart is found, returns \`null\`.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {PieChartWrapper | null}
+ */
+findPieChart(selector?: string): PieChartWrapper | null;
+
+/**
+ * Returns an array of PieChart wrapper that matches the specified CSS selector.
+ * If no CSS selector is specified, returns all of the PieCharts inside the current wrapper.
+ * If no matching PieChart is found, returns an empty array.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {Array<PieChartWrapper>}
+ */
+findAllPieCharts(selector?: string): Array<PieChartWrapper>;
    }
 }
 
 
-ElementWrapper.prototype.findSample = function(selector) {
-  const rootSelector = \`.\${SampleWrapper.rootSelector}\`;
+ElementWrapper.prototype.findCartesianChart = function(selector) {
+  const rootSelector = \`.\${CartesianChartWrapper.rootSelector}\`;
   // casting to 'any' is needed to avoid this issue with generics
   // https://github.com/microsoft/TypeScript/issues/29132
-  return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, SampleWrapper);
+  return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, CartesianChartWrapper);
 };
 
-ElementWrapper.prototype.findAllSamples = function(selector) {
-  return this.findAllComponents(SampleWrapper, selector);
+ElementWrapper.prototype.findAllCartesianCharts = function(selector) {
+  return this.findAllComponents(CartesianChartWrapper, selector);
+};
+ElementWrapper.prototype.findPieChart = function(selector) {
+  const rootSelector = \`.\${PieChartWrapper.rootSelector}\`;
+  // casting to 'any' is needed to avoid this issue with generics
+  // https://github.com/microsoft/TypeScript/issues/29132
+  return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, PieChartWrapper);
+};
+
+ElementWrapper.prototype.findAllPieCharts = function(selector) {
+  return this.findAllComponents(PieChartWrapper, selector);
 };
 
 
@@ -70,44 +101,73 @@ import { appendSelector } from '@cloudscape-design/test-utils-core/utils';
 
 export { ElementWrapper };
 
-import SampleWrapper from './sample';
+import CartesianChartWrapper from './cartesian-chart';
+import PieChartWrapper from './pie-chart';
 
 
-export { SampleWrapper };
+export { CartesianChartWrapper };
+export { PieChartWrapper };
 
 declare module '@cloudscape-design/test-utils-core/dist/selectors' {
    interface ElementWrapper {
     
 /**
- * Returns a wrapper that matches the Samples with the specified CSS selector.
- * If no CSS selector is specified, returns a wrapper that matches Samples.
+ * Returns a wrapper that matches the CartesianCharts with the specified CSS selector.
+ * If no CSS selector is specified, returns a wrapper that matches CartesianCharts.
  *
  * @param {string} [selector] CSS Selector
- * @returns {SampleWrapper}
+ * @returns {CartesianChartWrapper}
  */
-findSample(selector?: string): SampleWrapper;
+findCartesianChart(selector?: string): CartesianChartWrapper;
 
 /**
- * Returns a multi-element wrapper that matches Samples with the specified CSS selector.
- * If no CSS selector is specified, returns a multi-element wrapper that matches Samples.
+ * Returns a multi-element wrapper that matches CartesianCharts with the specified CSS selector.
+ * If no CSS selector is specified, returns a multi-element wrapper that matches CartesianCharts.
  *
  * @param {string} [selector] CSS Selector
- * @returns {MultiElementWrapper<SampleWrapper>}
+ * @returns {MultiElementWrapper<CartesianChartWrapper>}
  */
-findAllSamples(selector?: string): MultiElementWrapper<SampleWrapper>;
+findAllCartesianCharts(selector?: string): MultiElementWrapper<CartesianChartWrapper>;
+/**
+ * Returns a wrapper that matches the PieCharts with the specified CSS selector.
+ * If no CSS selector is specified, returns a wrapper that matches PieCharts.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {PieChartWrapper}
+ */
+findPieChart(selector?: string): PieChartWrapper;
+
+/**
+ * Returns a multi-element wrapper that matches PieCharts with the specified CSS selector.
+ * If no CSS selector is specified, returns a multi-element wrapper that matches PieCharts.
+ *
+ * @param {string} [selector] CSS Selector
+ * @returns {MultiElementWrapper<PieChartWrapper>}
+ */
+findAllPieCharts(selector?: string): MultiElementWrapper<PieChartWrapper>;
    }
 }
 
 
-ElementWrapper.prototype.findSample = function(selector) {
-  const rootSelector = \`.\${SampleWrapper.rootSelector}\`;
+ElementWrapper.prototype.findCartesianChart = function(selector) {
+  const rootSelector = \`.\${CartesianChartWrapper.rootSelector}\`;
   // casting to 'any' is needed to avoid this issue with generics
   // https://github.com/microsoft/TypeScript/issues/29132
-  return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, SampleWrapper);
+  return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, CartesianChartWrapper);
 };
 
-ElementWrapper.prototype.findAllSamples = function(selector) {
-  return this.findAllComponents(SampleWrapper, selector);
+ElementWrapper.prototype.findAllCartesianCharts = function(selector) {
+  return this.findAllComponents(CartesianChartWrapper, selector);
+};
+ElementWrapper.prototype.findPieChart = function(selector) {
+  const rootSelector = \`.\${PieChartWrapper.rootSelector}\`;
+  // casting to 'any' is needed to avoid this issue with generics
+  // https://github.com/microsoft/TypeScript/issues/29132
+  return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, PieChartWrapper);
+};
+
+ElementWrapper.prototype.findAllPieCharts = function(selector) {
+  return this.findAllComponents(PieChartWrapper, selector);
 };
 
 

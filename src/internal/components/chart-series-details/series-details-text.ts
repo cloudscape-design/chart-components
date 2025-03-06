@@ -1,0 +1,21 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
+import styles from "./styles.css.js";
+
+// TODO: fix expandable section text selector
+export default function getSeriesDetailsText(element: HTMLElement) {
+  const elementsWithText = Array.from(element.querySelectorAll(`.${styles.announced}`));
+  return elementsWithText
+    .map((element) => {
+      if (element instanceof HTMLElement) {
+        return element.innerText
+          ?.split("\n")
+          .map((s) => s.trim())
+          .join(" ")
+          .trim();
+      }
+    })
+    .filter(Boolean)
+    .join(", ");
+}

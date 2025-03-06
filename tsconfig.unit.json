@@ -2,7 +2,8 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": true,
-    "tsBuildInfoFile": "./.cache/unit-tests.tsbuildinfo"
+    "tsBuildInfoFile": "./.cache/unit-tests.tsbuildinfo",
+    "types": ["vitest/globals", "@testing-library/jest-dom"]
   },
   "include": ["types", "**/__tests__"],
   "exclude": []

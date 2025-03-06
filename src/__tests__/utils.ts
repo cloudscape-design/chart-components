@@ -12,6 +12,7 @@ export function getAllComponents(): string[] {
     .readdirSync(componentsDir)
     .filter(
       (name) =>
+        name !== "core" &&
         name !== "internal" &&
         name !== "test-utils" &&
         !name.includes(".") &&

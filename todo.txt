@@ -1,0 +1,8 @@
+Primary:
+* Basic unit- and integration tests
+* Test for all React state updates
+* Support for reduced motion
+* Support for RTL
+* Support for dark mode
+* Test utils
+* I18n

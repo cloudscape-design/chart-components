@@ -1,0 +1,10 @@
+/*
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+*/
+
+@use "../../styles" as styles;
+@use "../../../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
+
+$marker-width: 1.4 * styles.$base-size;
+$marker-margin-right: cs.$space-static-xxs;

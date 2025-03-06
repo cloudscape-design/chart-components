@@ -24,6 +24,7 @@ jobs:
     with:
       artifact-path: dist
       artifact-name: dev-pages
+      skip-codeql: true
   deploy:
     needs: build
     uses: cloudscape-design/actions/.github/workflows/deploy.yml@main
