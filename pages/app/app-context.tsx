@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { createContext } from "react";
+import { createContext, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import mapValues from "lodash/mapValues";
 
@@ -49,22 +49,36 @@ function parseQuery(urlParams: URLSearchParams) {
   });
 }
 
+function formatQuery(params: AppUrlParams) {
+  const query: Record<string, string> = {};
+  for (const [key, value] of Object.entries(params)) {
+    if (value === appContextDefaults.urlParams[key as keyof AppUrlParams]) {
+      continue;
+    }
+    query[key as keyof AppUrlParams] = String(value);
+  }
+  return query;
+}
+
 export function AppContextProvider({ children }: { children: React.ReactNode }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlParams = parseQuery(searchParams) as AppUrlParams;
 
   function setUrlParams(newParams: Partial<AppUrlParams>) {
-    if (newParams.mode !== urlParams.mode) {
-      applyMode(newParams.mode ?? appContextDefaults.urlParams.mode, document.documentElement);
-    }
-    if (newParams.density !== urlParams.density) {
-      applyDensity(newParams.density ?? appContextDefaults.urlParams.density, document.documentElement);
-    }
-    if (newParams.direction !== urlParams.direction) {
-      document.documentElement.setAttribute("dir", newParams.direction ?? appContextDefaults.urlParams.direction);
-    }
-    setSearchParams({ ...searchParams, ...newParams });
+    setSearchParams(formatQuery({ ...urlParams, ...newParams }));
   }
+
+  useEffect(() => {
+    applyMode(urlParams.mode);
+  }, [urlParams.mode]);
+
+  useEffect(() => {
+    applyDensity(urlParams.density);
+  }, [urlParams.density]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("dir", urlParams.direction);
+  }, [urlParams.direction]);
 
   return <AppContext.Provider value={{ urlParams, setUrlParams: setUrlParams }}>{children}</AppContext.Provider>;
 }

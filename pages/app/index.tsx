@@ -19,6 +19,14 @@ import AppContext, { AppContextProvider } from "./app-context";
 
 import "@cloudscape-design/global-styles/index.css";
 
+const awsuiVisualRefreshFlag = Symbol.for("awsui-visual-refresh-flag");
+window[awsuiVisualRefreshFlag] = () => true;
+
+interface ExtendedWindow extends Window {
+  [awsuiVisualRefreshFlag]?: () => boolean;
+}
+declare const window: ExtendedWindow;
+
 export default function App() {
   return (
     <I18nProvider locale="en" messages={[enMessages]}>
@@ -50,10 +58,7 @@ function Navigation() {
   const isCompactMode = urlParams.density === Density.Compact;
   const isRtl = urlParams.direction === "rtl";
   return (
-    <header
-      id="h"
-      style={{ position: "sticky", insetBlockStart: 0, insetInlineStart: 0, insetInlineEnd: 0, zIndex: 1002 }}
-    >
+    <header id="h" style={{ position: "sticky", insetBlockStart: 0, zIndex: 1002 }}>
       <TopNavigation
         identity={{
           title: "Chart components - dev pages",
@@ -98,6 +103,7 @@ function IndexPage() {
   const tree = createPagesTree(pages);
   return (
     <AppLayout
+      headerSelector="#h"
       navigationHide={true}
       toolsHide={true}
       content={
