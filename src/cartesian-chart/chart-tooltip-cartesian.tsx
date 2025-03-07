@@ -4,9 +4,8 @@
 import { useState } from "react";
 
 import { TooltipContentGetter } from "../core/interfaces-core";
-import ChartPopoverFooter from "../internal/components/chart-popover-footer";
-import ChartSeriesDetails, { ChartSeriesDetailItem } from "../internal/components/chart-series-details";
-import { ChartSeriesMarkerStatus, ChartSeriesMarkerType } from "../internal/components/chart-series-marker";
+import ChartSeriesDetails, { ChartSeriesDetailItem } from "../internal/components/series-details";
+import { ChartSeriesMarkerStatus, ChartSeriesMarkerType } from "../internal/components/series-marker";
 import { getDefaultFormatter } from "./default-formatters";
 import { CartesianChartProps, InternalCartesianChartOptions, InternalSeriesOptions } from "./interfaces-cartesian";
 import { getDataExtremes } from "./utils";
@@ -145,16 +144,12 @@ export function useChartTooltipCartesian(
 
       const footer = props.tooltip?.footer?.(tooltipDetails);
 
-      const body = (
-        <>
-          {content}
-          {footer && <ChartPopoverFooter>{footer}</ChartPopoverFooter>}
-        </>
-      );
+      const body = content;
 
       return {
         title: props.tooltip?.title?.(tooltipDetails) ?? titleFormatter(point.x),
         body,
+        footer,
       };
     };
   };

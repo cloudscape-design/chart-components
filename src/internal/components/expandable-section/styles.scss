@@ -8,22 +8,19 @@
 
 @use "./motion";
 
-$icon-width-normal: 16px;
-$icon-width-medium: 20px;
-$icon-margin-left: "(#{cs.$line-height-body-m} - #{$icon-width-normal}) / -2";
+$icon-margin-left: "(#{cs.$line-height-body-m} - #{cs.$size-icon-normal}) / -2";
 $icon-margin-right-normal: "#{cs.$space-static-xxs} + 1px";
 $icon-margin-right-medium: cs.$space-static-xs;
 
 // Total space occupied by the expand icon on the left and its margins.
 // Useful to keep elements correctly aligned.
-$icon-total-space-normal: calc(#{$icon-width-normal} + #{$icon-margin-left} + #{$icon-margin-right-normal});
-$icon-total-space-medium: calc(#{$icon-width-medium} + #{$icon-margin-left} + #{$icon-margin-right-medium});
+$icon-total-space-normal: calc(#{cs.$size-icon-normal} + #{$icon-margin-left} + #{$icon-margin-right-normal});
+$icon-total-space-medium: calc(#{cs.$size-icon-medium} + #{$icon-margin-left} + #{$icon-margin-right-medium});
 
 .root {
   @include styles.styles-reset;
   @include styles.default-text-style;
   @include styles.text-wrapping;
-  display: block;
 }
 
 .expand-button {
@@ -49,50 +46,27 @@ $icon-total-space-medium: calc(#{$icon-width-medium} + #{$icon-margin-left} + #{
 .icon-container {
   position: relative;
   margin-inline: calc(#{$icon-margin-left}) calc(#{$icon-margin-right-normal});
-  // For vertical alignment of text in side navigation items
-  &-container {
-    margin-inline-end: $icon-margin-right-medium;
-  }
 }
 
 .wrapper {
   box-sizing: border-box;
-  border-block: none;
-  border-inline: none;
   inline-size: 100%;
   line-height: cs.$line-height-body-m;
   text-align: start;
 
-  &-compact {
-    color: cs.$color-text-body-default;
-    @include styles.font-smoothing;
+  color: cs.$color-text-body-default;
+  @include styles.font-smoothing;
 
-    padding-inline-end: 0;
-    &.header-deprecated {
-      padding-inline-start: 0;
-    }
-    &:not(.header-deprecated) {
-      padding-inline-start: $icon-total-space-normal;
-    }
-  }
+  padding-inline-start: $icon-total-space-normal;
+  padding-inline-end: 0;
 }
 
 .header {
-  /* used in test-utils */
-
-  &-wrapper,
-  &-deprecated {
+  &-wrapper {
     display: flex;
     font-weight: cs.$font-weight-heading-s;
-  }
-
-  &-wrapper {
     font-size: inherit;
     letter-spacing: inherit;
-    margin-block: 0;
-    margin-inline: 0;
-    padding-block: 0;
-    padding-inline: 0;
   }
 
   &-actions-wrapper {
@@ -102,81 +76,26 @@ $icon-total-space-medium: calc(#{$icon-width-medium} + #{$icon-margin-left} + #{
     align-items: center;
   }
 
-  &-button,
-  &-container-button {
-    @include focus-visible.when-visible {
-      @include styles.focus-highlight(0px);
-    }
-  }
-
   &-button {
     box-sizing: border-box;
     display: flex;
     margin-inline-start: calc(-1 * #{$icon-total-space-normal});
-  }
 
-  &-container-button {
-    margin-inline-start: calc(-1 * #{$icon-total-space-medium});
-  }
-
-  &-container {
-    inline-size: 100%;
-    // The icon-container style is kept for variant='container' and header
-    > .icon-container {
-      margin-block-start: 8px;
+    @include focus-visible.when-visible {
+      @include styles.focus-highlight(0px);
     }
   }
-
-  &-text {
-    /* used in test-utils */
-  }
-}
-
-// Make sure that actions can wrap for default expandable section headers.
-// The compact variant is used in chart popovers and should not wrap.
-:not(.wrapper-compact) > .header-actions-wrapper {
-  flex-wrap: wrap;
-  column-gap: cs.$space-static-xs;
-  row-gap: cs.$space-scaled-xxxs;
 }
 
 .content {
   display: none;
-
-  &-default,
-  &-inline {
-    padding-block: cs.$space-scaled-xs;
-    padding-inline: 0;
-  }
-
-  &-footer {
-    padding-block: cs.$space-static-xs;
-    padding-inline: 0;
-  }
+  padding-inline-start: $icon-total-space-normal;
 
   &-expanded {
     display: block;
   }
-
-  &-compact {
-    padding-inline-start: $icon-total-space-normal;
-  }
-}
-
-.focusable {
-  &:focus {
-    outline: none;
-    text-decoration: none;
-  }
-
-  // @include focus-visible.when-visible {
-  //   @include styles.focus-element-without-border(cs.$border-radius-control-default-focus-ring);
-  // }
 }
 
 .click-target {
   cursor: pointer;
-  &:not(.wrapper-container):not(.header-container-button):hover {
-    color: cs.$color-text-body-default;
-  }
 }

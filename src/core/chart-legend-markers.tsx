@@ -8,8 +8,8 @@ import type Highcharts from "highcharts";
 
 import { colorBackgroundLayoutMain } from "@cloudscape-design/design-tokens";
 
-import { ChartSeriesMarkerG, ChartSeriesMarkerType } from "../internal/components/chart-series-marker";
 import Portal from "../internal/components/portal";
+import { ChartSeriesMarkerG, ChartSeriesMarkerType } from "../internal/components/series-marker";
 import AsyncStore, { useSelector } from "../internal/utils/async-store";
 import { LegendMarkersProps } from "./interfaces-core";
 import { getLegendItemType, getSimpleColor } from "./utils";

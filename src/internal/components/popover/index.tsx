@@ -5,31 +5,30 @@ import { forwardRef, useEffect, useRef } from "react";
 import clsx from "clsx";
 
 import { nodeBelongs, nodeContains } from "@cloudscape-design/component-toolkit/dom";
+import { PopoverProps } from "@cloudscape-design/components/popover/interfaces";
 
 import { getDataAttributes } from "../../base-component/get-data-attributes";
 import { useMergeRefs } from "../../utils/use-merge-refs";
 import PopoverBody from "../popover/body";
 import PopoverContainer from "../popover/container";
-import { PopoverProps } from "../popover/interfaces";
 
 import popoverStyles from "../popover/styles.css.js";
 import styles from "./styles.css.js";
 
-interface ChartPopoverProps extends PopoverProps {
+interface ChartPopoverProps {
+  size?: PopoverProps.Size | "content";
+  position?: PopoverProps.Position;
+  fixedWidth?: boolean;
+  dismissButton?: boolean;
+  dismissAriaLabel?: string;
+
   /** Title of the popover */
   title?: React.ReactNode;
 
   /** References the element the container is positioned against. */
   getTrack: () => null | HTMLElement | SVGElement;
-  /**
-    Used to update the container position in case track or track position changes:
-    
-    const trackRef = useRef<Element>(null)
-    return (<>
-      <Track style={getPosition(selectedItemId)} ref={trackRef} />
-      <PopoverContainer trackRef={trackRef} trackKey={selectedItemId} .../>
-    </>)
-  */
+
+  /** Used to update the container position in case track or track position changes. */
   trackKey?: string | number;
 
   /** Optional container element that prevents any clicks in there from dismissing the popover */
@@ -48,6 +47,8 @@ interface ChartPopoverProps extends PopoverProps {
 
   /** Popover content */
   children?: React.ReactNode;
+
+  footer?: React.ReactNode;
 }
 
 export default forwardRef(ChartPopover);
@@ -61,6 +62,7 @@ function ChartPopover(
     dismissAriaLabel,
 
     children,
+    footer,
 
     title,
     getTrack,
@@ -136,9 +138,9 @@ function ChartPopover(
             header={title}
             onDismiss={() => onDismiss(false)}
             overflowVisible="content"
-            className={styles["popover-body"]}
           >
             {children}
+            {footer ?? <div className={styles.footer}>{footer}</div>}
           </PopoverBody>
         </div>
       </PopoverContainer>
