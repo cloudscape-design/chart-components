@@ -1,8 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+
 import { cleanup, fireEvent, render } from "@testing-library/react";
 
-import useFocusVisible from "../../../../lib/components/internal/utils/focus-visible";
+import { useFocusVisible } from "@cloudscape-design/component-toolkit/internal";
 
 function Fixture() {
   useFocusVisible();

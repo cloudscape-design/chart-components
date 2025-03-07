@@ -142,3 +142,27 @@ $font-weight-normal: 400;
   white-space: normal;
   word-spacing: normal;
 }
+
+@mixin animation-fade-in {
+  @keyframes awsui-motion-fade-in {
+    from {
+      opacity: 0.2;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+@mixin animation-fade-in-0 {
+  @keyframes awsui-motion-fade-in-0 {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+}

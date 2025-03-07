@@ -15,7 +15,6 @@ export function isContainingBlock(element: HTMLElement): boolean {
  * Allows to find multiple elements in the page each according to a specific test function,
  * but traversing the DOM only once.
  */
-
 export function findUpUntilMultiple({
   startElement,
   tests,

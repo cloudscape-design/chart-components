@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useCallback, useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import clsx from "clsx";
 
 import { nodeContains } from "@cloudscape-design/component-toolkit/dom";
@@ -13,18 +13,7 @@ import usePopoverPosition from "./use-popover-position.js";
 import styles from "./styles.css.js";
 
 interface PopoverContainerProps {
-  /** References the element the container is positioned against. */
-  trackRef?: React.RefObject<HTMLElement | SVGElement>;
-  getTrack?: () => null | HTMLElement | SVGElement;
-  /**
-    Used to update the container position in case track or track position changes:
-    
-    const trackRef = useRef<Element>(null)
-    return (<>
-      <Track style={getPosition(selectedItemId)} ref={trackRef} />
-      <PopoverContainer trackRef={trackRef} trackKey={selectedItemId} .../>
-    </>)
-  */
+  getTrack: () => null | HTMLElement | SVGElement;
   trackKey?: string | number;
   position: PopoverProps.Position;
   zIndex?: React.CSSProperties["zIndex"];
@@ -33,7 +22,6 @@ interface PopoverContainerProps {
   renderWithPortal?: boolean;
   size: PopoverProps.Size | "content";
   fixedWidth: boolean;
-  variant?: "annotation";
   // When keepPosition is true, the popover will not recalculate its position when it resizes nor when it receives clicks.
   keepPosition?: boolean;
   // When allowScrollToFit is true, we will scroll to the the popover if it overflows the viewport even when choosing the best possible position for it.
@@ -42,13 +30,11 @@ interface PopoverContainerProps {
   allowVerticalOverflow?: boolean;
   // Whether the popover should be hidden when the trigger is scrolled away.
   hideOnOverscroll?: boolean;
-  className?: string;
 }
 
 export default function PopoverContainer({
   position,
-  trackRef,
-  getTrack: externalGetTrack,
+  getTrack,
   trackKey,
   arrow,
   children,
@@ -56,23 +42,11 @@ export default function PopoverContainer({
   renderWithPortal,
   size,
   fixedWidth,
-  variant,
   keepPosition,
   allowScrollToFit,
   allowVerticalOverflow,
   hideOnOverscroll,
-  className,
 }: PopoverContainerProps) {
-  const getTrack = useCallback(() => {
-    if (externalGetTrack) {
-      return externalGetTrack();
-    }
-    if (trackRef) {
-      return trackRef.current;
-    }
-    throw new Error("Argument error: provide getTrack or trackRef.");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const popoverRef = useRef<HTMLDivElement | null>(null);
@@ -143,11 +117,7 @@ export default function PopoverContainer({
   }, [hideOnOverscroll, keepPosition, positionHandlerRef, getTrack, updatePositionHandler]);
 
   return isOverscrolling ? null : (
-    <div
-      ref={popoverRef}
-      style={{ ...popoverStyle, zIndex }}
-      className={clsx(styles.container, styles.refresh, className)}
-    >
+    <div ref={popoverRef} style={{ ...popoverStyle, zIndex }} className={clsx(styles.container, styles.refresh)}>
       <div
         ref={arrowRef}
         className={clsx(styles[`container-arrow`], styles[`container-arrow-position-${internalPosition}`])}
@@ -160,7 +130,6 @@ export default function PopoverContainer({
         ref={bodyRef}
         className={clsx(styles["container-body"], styles[`container-body-size-${size}`], {
           [styles["fixed-width"]]: fixedWidth,
-          [styles[`container-body-variant-${variant}`]]: variant,
         })}
       >
         <div ref={contentRef}>{children}</div>

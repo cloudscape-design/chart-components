@@ -4,9 +4,8 @@
 import Box from "@cloudscape-design/components/box";
 
 import { TooltipContentGetter } from "../core/interfaces-core";
-import ChartPopoverFooter from "../internal/components/chart-popover-footer";
-import ChartSeriesDetails from "../internal/components/chart-series-details";
-import { ChartSeriesMarker } from "../internal/components/chart-series-marker";
+import ChartSeriesDetails from "../internal/components/series-details";
+import { ChartSeriesMarker } from "../internal/components/series-marker";
 import { InternalPieChartOptions, PieChartProps } from "./interfaces-pie";
 
 export function useChartTooltipPie(
@@ -63,15 +62,9 @@ export function useChartTooltipPie(
 
     const footer = props.tooltip?.footer?.(tooltipDetails);
 
-    const body =
-      (content ?? footer) ? (
-        <>
-          {content}
-          {footer && <ChartPopoverFooter>{footer}</ChartPopoverFooter>}
-        </>
-      ) : null;
+    const body = (content ?? footer) ? content : null;
 
-    return () => ({ title, body });
+    return () => ({ title, body, footer });
   };
 
   return { getContent, state: undefined };

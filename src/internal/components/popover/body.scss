@@ -9,6 +9,8 @@
 $header-row-margin-block-end: cs.$space-static-xs;
 
 .body {
+  pointer-events: auto;
+
   @include styles.styles-reset;
   @include styles.default-text-style;
   @include styles.text-flex-wrapping;

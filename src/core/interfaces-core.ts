@@ -3,7 +3,7 @@
 
 import type Highcharts from "highcharts";
 
-import { ChartSeriesMarkerStatus } from "../internal/components/chart-series-marker";
+import { ChartSeriesMarkerStatus } from "../internal/components/series-marker";
 
 export interface CloudscapeHighchartsBase {
   /**
@@ -73,6 +73,7 @@ export interface TooltipProps<TooltipState> {
 export interface TooltipContent {
   title: React.ReactNode;
   body: React.ReactNode;
+  footer?: React.ReactNode;
 }
 
 export interface Point {
