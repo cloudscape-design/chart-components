@@ -6,7 +6,7 @@ import type Highcharts from "highcharts";
 
 import { colorChartsLineTick } from "@cloudscape-design/design-tokens";
 
-import ChartPopover from "../internal/components/chart-popover";
+import Popover from "../internal/components/popover";
 import AsyncStore, { useSelector } from "../internal/utils/async-store";
 import { DebouncedCall } from "../internal/utils/utils";
 import { Point, TooltipContent, TooltipContentGetter } from "./interfaces-core";
@@ -79,7 +79,7 @@ export function ChartTooltip<TooltipState>({
   }
   const renderedContent = tooltip.content(tooltipState);
   return (
-    <ChartPopover
+    <Popover
       getTrack={tooltipStore.getTrack}
       trackKey={tooltip.point.x + ":" + tooltip.point.y}
       container={null}
@@ -88,9 +88,10 @@ export function ChartTooltip<TooltipState>({
       onMouseEnter={tooltipStore.onMouseEnterTooltip}
       onMouseLeave={tooltipStore.onMouseLeaveTooltip}
       title={renderedContent.title}
+      footer={renderedContent.footer}
     >
       {renderedContent.body}
-    </ChartPopover>
+    </Popover>
   );
 }
 

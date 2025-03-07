@@ -3,7 +3,7 @@
 
 import type Highcharts from "highcharts";
 
-import { ChartSeriesMarkerType } from "../internal/components/chart-series-marker";
+import { ChartSeriesMarkerType } from "../internal/components/series-marker";
 
 type IdToSeriesMapping = Map<string, { series: Highcharts.Series; data: Map<string, Highcharts.Point> }>;
 

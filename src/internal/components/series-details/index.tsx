@@ -8,8 +8,8 @@ import { BaseComponentProps } from "@cloudscape-design/components/internal/base-
 
 import { getDataAttributes } from "../../base-component/get-data-attributes";
 import { useMergeRefs } from "../../utils/use-merge-refs";
-import { ChartSeriesMarker, ChartSeriesMarkerStatus, ChartSeriesMarkerType } from "../chart-series-marker";
-import ExpandableSection from "../expandable-section";
+import { ExpandableSection } from "../expandable-section";
+import { ChartSeriesMarker, ChartSeriesMarkerStatus, ChartSeriesMarkerType } from "../series-marker";
 import getSeriesDetailsText from "./series-details-text";
 
 import styles from "./styles.css.js";

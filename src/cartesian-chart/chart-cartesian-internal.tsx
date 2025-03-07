@@ -8,7 +8,7 @@ import { useControllableState } from "@cloudscape-design/component-toolkit";
 
 import { CloudscapeHighcharts, CloudscapeHighchartsRef } from "../core/chart-core";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
-import { ChartSeriesMarkerStatus } from "../internal/components/chart-series-marker";
+import { ChartSeriesMarkerStatus } from "../internal/components/series-marker";
 import { fireNonCancelableEvent, NonCancelableEventHandler } from "../internal/events";
 import { useChartTooltipCartesian } from "./chart-tooltip-cartesian";
 import { getDefaultFormatter } from "./default-formatters";

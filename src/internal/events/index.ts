@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+
 export type CancelableEventHandler<Detail = object> = (event: CustomEvent<Detail>) => void;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type

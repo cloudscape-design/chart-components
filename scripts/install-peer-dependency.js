@@ -15,6 +15,8 @@ const getModules = (packageName) => {
   switch (packageName) {
     case "components":
       return ["components", "design-tokens"];
+    case "theming-core":
+      return ["theming-build", "theming-runtime"];
     default:
       return [packageName];
   }
@@ -26,8 +28,12 @@ const getArtifactPath = (moduleName) => {
       return "/lib/components/*";
     case "design-tokens":
       return "/lib/design-tokens/*";
-    case '"board-components':
+    case "board-components":
       return "/lib/components/*";
+    case "theming-build":
+      return "/lib/node/*";
+    case "theming-runtime":
+      return "/lib/browser/*";
     default:
       return "/lib/*";
   }

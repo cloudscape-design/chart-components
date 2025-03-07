@@ -6,25 +6,30 @@
 @use "../../styles" as styles;
 @use "../../../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
 
+$motion-duration-show-paced: 180ms;
+$motion-duration-rotate-90: 135ms;
+$motion-easing-show-paced: ease-out;
+$motion-easing-rotate-90: cubic-bezier(0.165, 0.84, 0.44, 1);
+
 .content {
-  // &-enter {
-  //   @include styles.with-motion {
-  //     animation: awsui-motion-fade-in tokens.$motion-duration-show-paced tokens.$motion-easing-show-paced;
-  //     @include styles.animation-fade-in;
-  //   }
-  // }
+  &-enter {
+    @include styles.with-motion {
+      animation: awsui-motion-fade-in cs.$motion-duration-expandable-section cs.$motion-easing-expandable-section;
+      @include styles.animation-fade-in;
+    }
+  }
 }
 
 .trigger {
-  // &-expanded {
-  //   @include styles.with-motion {
-  //     transition: border-bottom-color tokens.$motion-duration-show-paced tokens.$motion-easing-show-paced;
-  //   }
-  // }
+  &-expanded {
+    @include styles.with-motion {
+      transition: border-bottom-color cs.$motion-duration-expandable-section cs.$motion-easing-expandable-section;
+    }
+  }
 }
 
 .icon {
-  // @include styles.with-motion {
-  //   transition: transform tokens.$motion-duration-rotate-90 tokens.$motion-easing-rotate-90;
-  // }
+  @include styles.with-motion {
+    transition: transform cs.$motion-duration-expand-toggle cs.$motion-easing-expand-toggle;
+  }
 }
