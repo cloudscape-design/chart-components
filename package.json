@@ -7,7 +7,7 @@
   },
   "homepage": "https://cloudscape.design",
   "scripts": {
-    "prebuild": "rm -rf lib dist .cache",
+    "prebuild": "rm -rf lib dist .cache && rm -rf node_modules/.vite && rm -rf node_modules/.vite-temp",
     "build": "npm-run-all build:pkg --parallel build:src:* --parallel build:pages:* build:themeable",
     "lint": "npm-run-all --parallel lint:*",
     "lint:eslint": "eslint --ignore-path .gitignore --ext ts,tsx,js .",

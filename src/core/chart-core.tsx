@@ -19,10 +19,10 @@ import { ChartNoDataProps, LegendMarkersProps, TooltipProps } from "./interfaces
 import * as Styles from "./styles";
 import { getSeriesToIdMap } from "./utils";
 
-interface CloudscapeHighchartsCoreProps<TooltipState> {
+interface CloudscapeHighchartsCoreProps {
   highcharts: null | typeof Highcharts;
   options: Highcharts.Options;
-  tooltip?: TooltipProps<TooltipState>;
+  tooltip?: TooltipProps;
   noData?: ChartNoDataProps;
   legendMarkers?: LegendMarkersProps;
   fallback?: React.ReactNode;
@@ -38,7 +38,7 @@ export interface CloudscapeHighchartsRef {
 }
 
 interface CloudscapeHighchartsForwardRefType {
-  <T>(props: CloudscapeHighchartsCoreProps<T> & { ref?: React.Ref<CloudscapeHighchartsRef> }): JSX.Element;
+  (props: CloudscapeHighchartsCoreProps & { ref?: React.Ref<CloudscapeHighchartsRef> }): JSX.Element;
 }
 
 /**
@@ -298,7 +298,7 @@ export const CloudscapeHighcharts = forwardRef(
           }}
         />
 
-        {tooltipProps && <ChartTooltip {...tooltip.props} tooltipState={tooltipProps.state} />}
+        {tooltipProps && <ChartTooltip {...tooltip.props} />}
 
         {noDataProps && <ChartNoData {...noData.props} />}
 
