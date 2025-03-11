@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 
-import { TooltipContentGetter } from "../core/interfaces-core";
+import { TooltipContent } from "../core/interfaces-core";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../internal/components/series-details";
 import { ChartSeriesMarkerStatus, ChartSeriesMarkerType } from "../internal/components/series-marker";
 import { getDefaultFormatter } from "./default-formatters";
@@ -24,14 +24,11 @@ export function useChartTooltipCartesian(
   const { xAxis, series } = props.options;
   const [expandedSeries, setExpandedSeries] = useState<Record<string, Set<string>>>({});
 
-  const getContent: TooltipContentGetter<{ expandedSeries: Record<string, Set<string>> }> = (point: {
-    x: number;
-    y: number;
-  }) => {
+  const getContent = (point: { x: number; y: number }): null | TooltipContent => {
     const chart = getChart();
     if (!chart) {
       console.warn("Chart instance is not available.");
-      return () => ({ title: null, body: null });
+      return null;
     }
 
     const matchedItems: CartesianChartProps.TooltipSeriesDetailItem[] = [];
@@ -120,41 +117,39 @@ export function useChartTooltipCartesian(
 
     const tooltipDetails = { x: point.x, items: matchedItems };
 
-    return ({ expandedSeries }) => {
-      const content = props.tooltip?.content?.(tooltipDetails) ?? (
-        <ChartSeriesDetails
-          details={details}
-          expandedSeries={expandedSeries[point.x]}
-          setExpandedState={(id, isExpanded) => {
-            setExpandedSeries((oldState) => {
-              const expandedSeriesInCurrentCoordinate = new Set(oldState[point.x]);
-              if (isExpanded) {
-                expandedSeriesInCurrentCoordinate.add(id);
-              } else {
-                expandedSeriesInCurrentCoordinate.delete(id);
-              }
-              return {
-                ...oldState,
-                [point.x]: expandedSeriesInCurrentCoordinate,
-              };
-            });
-          }}
-        />
-      );
+    const content = props.tooltip?.content?.(tooltipDetails) ?? (
+      <ChartSeriesDetails
+        details={details}
+        expandedSeries={expandedSeries[point.x]}
+        setExpandedState={(id, isExpanded) => {
+          setExpandedSeries((oldState) => {
+            const expandedSeriesInCurrentCoordinate = new Set(oldState[point.x]);
+            if (isExpanded) {
+              expandedSeriesInCurrentCoordinate.add(id);
+            } else {
+              expandedSeriesInCurrentCoordinate.delete(id);
+            }
+            return {
+              ...oldState,
+              [point.x]: expandedSeriesInCurrentCoordinate,
+            };
+          });
+        }}
+      />
+    );
 
-      const footer = props.tooltip?.footer?.(tooltipDetails);
+    const footer = props.tooltip?.footer?.(tooltipDetails);
 
-      const body = content;
+    const body = content;
 
-      return {
-        title: props.tooltip?.title?.(tooltipDetails) ?? titleFormatter(point.x),
-        body,
-        footer,
-      };
+    return {
+      title: props.tooltip?.title?.(tooltipDetails) ?? titleFormatter(point.x),
+      body,
+      footer,
     };
   };
 
-  return { getContent, state: { expandedSeries } };
+  return { getContent };
 }
 
 function getSeriesMarkerType(series: CartesianChartProps.Series): ChartSeriesMarkerType {
