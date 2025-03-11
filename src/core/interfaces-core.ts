@@ -65,9 +65,8 @@ export interface CloudscapeHighchartsBase {
   noData?: ChartNoDataProps;
 }
 
-export interface TooltipProps<TooltipState> {
-  state: TooltipState;
-  getContent: TooltipContentGetter<TooltipState>;
+export interface TooltipProps {
+  getContent: (point: Point) => null | TooltipContent;
 }
 
 export interface TooltipContent {
@@ -80,8 +79,6 @@ export interface Point {
   x: number;
   y: number;
 }
-
-export type TooltipContentGetter<State> = (point: Point) => null | ((state: State) => TooltipContent);
 
 export interface ChartNoDataProps {
   statusType?: "finished" | "loading" | "error";

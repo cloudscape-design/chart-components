@@ -9,7 +9,7 @@ import { colorChartsLineTick } from "@cloudscape-design/design-tokens";
 import Popover from "../internal/components/popover";
 import AsyncStore, { useSelector } from "../internal/utils/async-store";
 import { DebouncedCall } from "../internal/utils/utils";
-import { Point, TooltipContent, TooltipContentGetter } from "./interfaces-core";
+import { Point, TooltipContent } from "./interfaces-core";
 
 const MOUSE_LEAVE_DELAY = 300;
 const LAST_DISMISS_DELAY = 250;
@@ -19,15 +19,14 @@ const LAST_DISMISS_DELAY = 250;
 // The tooltip is can be hidden then we receive mouse-leave. It can also be pinned/unpinned on mouse click.
 // Despite event names, they events also fire on keyboard interactions.
 
-export function useChartTooltip<State>(
+export function useChartTooltip(
   highcharts: null | typeof Highcharts,
   getChart: () => Highcharts.Chart,
   tooltipProps?: {
-    state: State;
-    getContent: TooltipContentGetter<State>;
+    getContent: (point: Point) => null | TooltipContent;
   },
 ) {
-  const tooltipStore = useRef(new TooltipStore(getChart, tooltipProps?.getContent)).current;
+  const tooltipStore = useRef(new TooltipStore(getChart)).current;
 
   const options: Highcharts.Options = {
     chart: {
@@ -63,21 +62,24 @@ export function useChartTooltip<State>(
     },
   };
 
-  return { options, props: { tooltipStore } };
+  return { options, props: { tooltipStore, getContent: tooltipProps?.getContent ?? (() => null) } };
 }
 
-export function ChartTooltip<TooltipState>({
+export function ChartTooltip({
   tooltipStore,
-  tooltipState,
+  getContent,
 }: {
-  tooltipStore: TooltipStore<TooltipState>;
-  tooltipState: TooltipState;
+  tooltipStore: TooltipStore;
+  getContent: (point: Point) => null | TooltipContent;
 }) {
   const tooltip = useSelector(tooltipStore, (s) => s);
-  if (!tooltip.content) {
+  if (!tooltip.visible) {
     return null;
   }
-  const renderedContent = tooltip.content(tooltipState);
+  const content = getContent(tooltip.point);
+  if (!content) {
+    return null;
+  }
   return (
     <Popover
       getTrack={tooltipStore.getTrack}
@@ -87,36 +89,33 @@ export function ChartTooltip<TooltipState>({
       onDismiss={tooltipStore.onDismiss}
       onMouseEnter={tooltipStore.onMouseEnterTooltip}
       onMouseLeave={tooltipStore.onMouseLeaveTooltip}
-      title={renderedContent.title}
-      footer={renderedContent.footer}
+      title={content.title}
+      footer={content.footer}
     >
-      {renderedContent.body}
+      {content.body}
     </Popover>
   );
 }
 
-interface ReactiveTooltipState<TooltipState> {
+interface ReactiveTooltipState {
   visible: boolean;
   pinned: boolean;
   point: Point;
-  content: null | ((state: TooltipState) => TooltipContent);
 }
 
-class TooltipStore<TooltipState> extends AsyncStore<ReactiveTooltipState<TooltipState>> {
+class TooltipStore extends AsyncStore<ReactiveTooltipState> {
   public getTrack: () => null | HTMLElement | SVGElement = () => null;
 
   private getChart: () => Highcharts.Chart;
-  private getContent?: TooltipContentGetter<TooltipState>;
   private targetElement: null | Highcharts.SVGElement = null;
   private markerElement: null | Highcharts.SVGElement = null;
   private mouseLeaveCall = new DebouncedCall();
   private lastDismissTime = 0;
   private tooltipHovered = false;
 
-  constructor(getChart: () => Highcharts.Chart, getContent?: TooltipContentGetter<TooltipState>) {
-    super({ visible: false, pinned: false, point: { x: 0, y: 0 }, content: null });
+  constructor(getChart: () => Highcharts.Chart) {
+    super({ visible: false, pinned: false, point: { x: 0, y: 0 } });
     this.getChart = getChart;
-    this.getContent = getContent;
   }
 
   // When hovering (or focusing) over the target (point, bar, segment, etc.) we show the tooltip in the target coordinate.
@@ -131,8 +130,7 @@ class TooltipStore<TooltipState> extends AsyncStore<ReactiveTooltipState<Tooltip
     this.moveMarkers(target);
     this.set(() => {
       const point = { x: target.x, y: target.y ?? 0 };
-      const content = this.getContent?.(point) ?? null;
-      return { visible: !!content, pinned: false, point, content };
+      return { visible: true, pinned: false, point };
     });
   };
 
@@ -147,16 +145,14 @@ class TooltipStore<TooltipState> extends AsyncStore<ReactiveTooltipState<Tooltip
       this.moveMarkers(target);
       this.set((prev) => {
         const point = target ? { x: target.x, y: target.y ?? 0 } : prev.point;
-        const content = this.getContent?.(point) ?? null;
-        return { visible: !!content, pinned: false, point, content };
+        return { visible: true, pinned: false, point };
       });
     }
     // If the click point is missing or matches the current position and it wasn't recently dismissed - it is pinned in this position.
     else if (new Date().getTime() - this.lastDismissTime > LAST_DISMISS_DELAY) {
       this.set((prev) => {
         const point = target ? { x: target.x, y: target.y ?? 0 } : prev.point;
-        const content = this.getContent?.(point) ?? null;
-        return { visible: !!content, pinned: !!content, point, content };
+        return { visible: true, pinned: true, point };
       });
     }
   };

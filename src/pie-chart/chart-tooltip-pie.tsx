@@ -3,7 +3,7 @@
 
 import Box from "@cloudscape-design/components/box";
 
-import { TooltipContentGetter } from "../core/interfaces-core";
+import { TooltipContent } from "../core/interfaces-core";
 import ChartSeriesDetails from "../internal/components/series-details";
 import { ChartSeriesMarker } from "../internal/components/series-marker";
 import { InternalPieChartOptions, PieChartProps } from "./interfaces-pie";
@@ -15,11 +15,11 @@ export function useChartTooltipPie(
     tooltip?: PieChartProps.TooltipProps;
   },
 ) {
-  const getContent: TooltipContentGetter<undefined> = (point: { x: number; y: number }) => {
+  const getContent = (point: { x: number; y: number }): null | TooltipContent => {
     const chart = getChart();
     if (!chart) {
       console.warn("Chart instance is not available.");
-      return () => ({ title: null, body: null });
+      return null;
     }
     const series = props.options.series[0] as undefined | PieChartProps.Series;
     const matchedChartSeries = chart.series.find((s) => (s.userOptions.id ?? s.name) === (series?.id ?? series?.name));
@@ -62,10 +62,10 @@ export function useChartTooltipPie(
 
     const footer = props.tooltip?.footer?.(tooltipDetails);
 
-    const body = (content ?? footer) ? content : null;
+    const body = content;
 
-    return () => ({ title, body, footer });
+    return { title, body, footer };
   };
 
-  return { getContent, state: undefined };
+  return { getContent };
 }
