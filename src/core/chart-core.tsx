@@ -19,7 +19,7 @@ import { ChartNoDataProps, LegendMarkersProps, TooltipProps } from "./interfaces
 import * as Styles from "./styles";
 import { getSeriesToIdMap } from "./utils";
 
-interface CloudscapeHighchartsCoreProps {
+export interface CloudscapeHighchartsProps {
   highcharts: null | typeof Highcharts;
   options: Highcharts.Options;
   tooltip?: TooltipProps;
@@ -38,7 +38,7 @@ export interface CloudscapeHighchartsRef {
 }
 
 interface CloudscapeHighchartsForwardRefType {
-  (props: CloudscapeHighchartsCoreProps & { ref?: React.Ref<CloudscapeHighchartsRef> }): JSX.Element;
+  (props: CloudscapeHighchartsProps & { ref?: React.Ref<CloudscapeHighchartsRef> }): JSX.Element;
 }
 
 /**
@@ -116,7 +116,9 @@ export const CloudscapeHighcharts = forwardRef(
         for (const [seriesId, { series, data }] of mapping) {
           series.setVisible(visibleSeries.has(seriesId));
           for (const [itemId, item] of data) {
-            item.setVisible(visibleItems.has(itemId));
+            if ("setVisible" in item) {
+              item.setVisible(visibleItems.has(itemId));
+            }
           }
         }
       }
@@ -171,8 +173,8 @@ export const CloudscapeHighcharts = forwardRef(
             }
 
             // Handle items visibility (e.g. pie segments or treemap values).
-            if (visibleItemsIndex !== undefined && highcharts && event.legendItem instanceof highcharts.Point) {
-              const itemId = event.legendItem.options?.id;
+            if (visibleItemsExternal !== undefined && highcharts && event.legendItem instanceof highcharts.Point) {
+              const itemId = event.legendItem.options?.id ?? event.legendItem.options.name;
               const visible = event.legendItem.visible;
               if (itemId) {
                 const nextVisible = !visible;

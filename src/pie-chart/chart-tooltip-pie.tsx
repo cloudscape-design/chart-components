@@ -40,7 +40,7 @@ export function useChartTooltipPie(
       segmentName: matchedPieDatum.name ?? "",
     };
 
-    const title = props.tooltip?.title?.(tooltipDetails) ?? (
+    const header = props.tooltip?.title?.(tooltipDetails) ?? (
       <div style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
         <ChartSeriesMarker color={matchedPieDatum.color as string} type="circle" />{" "}
         <Box variant="span" fontWeight="bold">
@@ -49,7 +49,7 @@ export function useChartTooltipPie(
       </div>
     );
 
-    const content = props.tooltip?.content?.(tooltipDetails) ?? (
+    const content = props.tooltip?.body?.(tooltipDetails) ?? (
       <ChartSeriesDetails
         details={[
           {
@@ -64,7 +64,7 @@ export function useChartTooltipPie(
 
     const body = content;
 
-    return { title, body, footer };
+    return { header, body, footer };
   };
 
   return { getContent };

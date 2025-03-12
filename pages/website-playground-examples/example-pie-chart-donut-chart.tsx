@@ -44,7 +44,7 @@ export function ExamplePieChartDonutChart() {
         ariaDescription="Donut chart showing generic example data."
         series={hideSeries ? null : series}
         tooltip={{
-          content(details) {
+          body(details) {
             return (
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", marginLeft: "18px" }}>

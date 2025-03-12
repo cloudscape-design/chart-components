@@ -13,6 +13,8 @@ import AsyncStore, { useSelector } from "../internal/utils/async-store";
 import { ChartNoDataProps } from "./interfaces-core";
 import * as Styles from "./styles";
 
+import testClasses from "./test-classes/styles.css.js";
+
 // The custom no-data implementation relies on the Highcharts noData module.
 // We render a custom empty DIV as `lang.noData` and then provide actual content using React portal.
 
@@ -57,7 +59,11 @@ export function ChartNoData({
   } else {
     content = empty;
   }
-  return <Portal container={state.container}>{content}</Portal>;
+  return (
+    <Portal container={state.container}>
+      <div className={testClasses["no-data"]}>{content}</div>
+    </Portal>
+  );
 }
 
 class NoDataStore extends AsyncStore<{ container: null | Element; noMatch: boolean }> {
