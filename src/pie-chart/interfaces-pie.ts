@@ -71,7 +71,7 @@ export namespace PieChartProps {
 
   export interface TooltipProps {
     title?: (detail: PieChartProps.TooltipDetails) => React.ReactNode;
-    content?: (detail: PieChartProps.TooltipDetails) => React.ReactNode;
+    body?: (detail: PieChartProps.TooltipDetails) => React.ReactNode;
     footer?: (detail: PieChartProps.TooltipDetails) => React.ReactNode;
   }
 

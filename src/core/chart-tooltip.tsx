@@ -11,6 +11,8 @@ import AsyncStore, { useSelector } from "../internal/utils/async-store";
 import { DebouncedCall } from "../internal/utils/utils";
 import { Point, TooltipContent } from "./interfaces-core";
 
+import testClasses from "./test-classes/styles.css.js";
+
 const MOUSE_LEAVE_DELAY = 300;
 const LAST_DISMISS_DELAY = 250;
 
@@ -89,8 +91,9 @@ export function ChartTooltip({
       onDismiss={tooltipStore.onDismiss}
       onMouseEnter={tooltipStore.onMouseEnterTooltip}
       onMouseLeave={tooltipStore.onMouseLeaveTooltip}
-      title={content.title}
+      header={content.header}
       footer={content.footer}
+      className={testClasses.tooltip}
     >
       {content.body}
     </Popover>

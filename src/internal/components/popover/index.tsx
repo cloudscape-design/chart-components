@@ -7,13 +7,13 @@ import clsx from "clsx";
 import { nodeBelongs, nodeContains } from "@cloudscape-design/component-toolkit/dom";
 import { PopoverProps } from "@cloudscape-design/components/popover/interfaces";
 
-import { getDataAttributes } from "../../base-component/get-data-attributes";
 import { useMergeRefs } from "../../utils/use-merge-refs";
 import PopoverBody from "../popover/body";
 import PopoverContainer from "../popover/container";
 
 import popoverStyles from "../popover/styles.css.js";
 import styles from "./styles.css.js";
+import testClasses from "./test-classes/styles.css.js";
 
 interface ChartPopoverProps {
   size?: PopoverProps.Size | "content";
@@ -23,7 +23,7 @@ interface ChartPopoverProps {
   dismissAriaLabel?: string;
 
   /** Title of the popover */
-  title?: React.ReactNode;
+  header?: React.ReactNode;
 
   /** References the element the container is positioned against. */
   getTrack: () => null | HTMLElement | SVGElement;
@@ -49,6 +49,8 @@ interface ChartPopoverProps {
   children?: React.ReactNode;
 
   footer?: React.ReactNode;
+
+  className?: string;
 }
 
 export default forwardRef(ChartPopover);
@@ -64,7 +66,7 @@ function ChartPopover(
     children,
     footer,
 
-    title,
+    header,
     getTrack,
     trackKey,
     onDismiss,
@@ -74,11 +76,10 @@ function ChartPopover(
     onMouseLeave,
     onBlur,
 
-    ...restProps
+    className,
   }: ChartPopoverProps,
   ref: React.Ref<HTMLElement>,
 ) {
-  const baseProps = getDataAttributes(restProps as any);
   const popoverObjectRef = useRef<HTMLDivElement | null>(null);
 
   const popoverRef = useMergeRefs(popoverObjectRef, ref);
@@ -105,8 +106,7 @@ function ChartPopover(
 
   return (
     <div
-      {...baseProps}
-      className={clsx(popoverStyles.root, styles.root, baseProps.className)}
+      className={clsx(popoverStyles.root, styles.root, className)}
       ref={popoverRef}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -135,12 +135,12 @@ function ChartPopover(
           <PopoverBody
             dismissButton={dismissButton}
             dismissAriaLabel={dismissAriaLabel}
-            header={title}
+            header={<div className={testClasses.header}>{header}</div>}
             onDismiss={() => onDismiss(false)}
             overflowVisible="content"
           >
-            {children}
-            {footer ?? <div className={styles.footer}>{footer}</div>}
+            <div className={testClasses.body}>{children}</div>
+            {footer && <div className={clsx(testClasses.footer, styles.footer)}>{footer}</div>}
           </PopoverBody>
         </div>
       </PopoverContainer>
