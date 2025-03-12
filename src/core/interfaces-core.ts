@@ -70,7 +70,7 @@ export interface TooltipProps {
 }
 
 export interface TooltipContent {
-  title: React.ReactNode;
+  header: React.ReactNode;
   body: React.ReactNode;
   footer?: React.ReactNode;
 }

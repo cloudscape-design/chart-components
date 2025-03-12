@@ -163,8 +163,8 @@ export namespace CartesianChartProps {
 
   export interface TooltipProps {
     series?: (detail: TooltipSeriesDetailItem) => TooltipSeriesFormatted;
-    title?: (detail: TooltipDetails) => React.ReactNode;
-    content?: (detail: TooltipDetails) => React.ReactNode;
+    header?: (detail: TooltipDetails) => React.ReactNode;
+    body?: (detail: TooltipDetails) => React.ReactNode;
     footer?: (detail: TooltipDetails) => React.ReactNode;
   }
 

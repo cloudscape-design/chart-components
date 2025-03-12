@@ -117,7 +117,7 @@ export function useChartTooltipCartesian(
 
     const tooltipDetails = { x: point.x, items: matchedItems };
 
-    const content = props.tooltip?.content?.(tooltipDetails) ?? (
+    const content = props.tooltip?.body?.(tooltipDetails) ?? (
       <ChartSeriesDetails
         details={details}
         expandedSeries={expandedSeries[point.x]}
@@ -143,7 +143,7 @@ export function useChartTooltipCartesian(
     const body = content;
 
     return {
-      title: props.tooltip?.title?.(tooltipDetails) ?? titleFormatter(point.x),
+      header: props.tooltip?.header?.(tooltipDetails) ?? titleFormatter(point.x),
       body,
       footer,
     };

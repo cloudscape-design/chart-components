@@ -62,7 +62,7 @@ export function ExamplePieChartPieChart() {
         ariaDescription="Pie chart showing how many resources are currently in which state."
         series={hideSeries ? null : series}
         tooltip={{
-          content(details) {
+          body(details) {
             return (
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", marginLeft: "18px" }}>

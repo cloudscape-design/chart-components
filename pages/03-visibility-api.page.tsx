@@ -133,7 +133,7 @@ function ExamplePieChart() {
       ariaLabel="Pie chart"
       series={pieChartSeries}
       tooltip={{
-        content(details) {
+        body(details) {
           return (
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", marginLeft: "18px" }}>

@@ -175,7 +175,7 @@ inject links, or add expandable items.
         "name": "CartesianChartProps.TooltipProps",
         "properties": [
           {
-            "name": "content",
+            "name": "body",
             "optional": true,
             "type": "(detail: CartesianChartProps.TooltipDetails) => React.ReactNode",
           },
@@ -185,14 +185,14 @@ inject links, or add expandable items.
             "type": "(detail: CartesianChartProps.TooltipDetails) => React.ReactNode",
           },
           {
+            "name": "header",
+            "optional": true,
+            "type": "(detail: CartesianChartProps.TooltipDetails) => React.ReactNode",
+          },
+          {
             "name": "series",
             "optional": true,
             "type": "(detail: CartesianChartProps.TooltipSeriesDetailItem) => CartesianChartProps.TooltipSeriesFormatted",
-          },
-          {
-            "name": "title",
-            "optional": true,
-            "type": "(detail: CartesianChartProps.TooltipDetails) => React.ReactNode",
           },
         ],
         "type": "object",
@@ -515,7 +515,7 @@ Supported properties:
         "name": "PieChartProps.TooltipProps",
         "properties": [
           {
-            "name": "content",
+            "name": "body",
             "optional": true,
             "type": "(detail: PieChartProps.TooltipDetails) => React.ReactNode",
           },
