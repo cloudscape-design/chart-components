@@ -127,6 +127,7 @@ export const CloudscapeHighcharts = forwardRef(
             }
           }
         }
+        chartRef.current.redraw();
       }
     }, [chartRef, options.series, visibleSeriesIndex, visibleItemsIndex]);
 
@@ -143,11 +144,7 @@ export const CloudscapeHighcharts = forwardRef(
       title: { text: "", ...options.title },
       // Using default Cloudscape colors unless explicit colors are given.
       colors: options.colors ?? Styles.colors,
-      // When noData props is present, we hide series when loading or error.
-      series:
-        !noDataProps || (noData.props?.statusType !== "loading" && noData.props?.statusType !== "error")
-          ? options.series
-          : undefined,
+      series: options.series,
       legend: {
         ...options.legend,
         title: { style: Styles.legendTitleCss, ...options.legend?.title },

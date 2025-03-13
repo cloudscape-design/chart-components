@@ -4,10 +4,10 @@
 import Button from "@cloudscape-design/components/button";
 import Link from "@cloudscape-design/components/link";
 
-import { CartesianChart, CartesianChartProps } from "../../lib/components";
-import { percentageFormatter } from "../common/formatters";
-import { usePageSettings } from "../common/page-settings";
-import { PageSection } from "../common/templates";
+import { CartesianChart, CartesianChartProps } from "../../../lib/components";
+import { percentageFormatter } from "../../common/formatters";
+import { usePageSettings } from "../../common/page-settings";
+import { PageSection } from "../../common/templates";
 
 const series: CartesianChartProps.Series[] = [
   {

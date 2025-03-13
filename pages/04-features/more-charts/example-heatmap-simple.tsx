@@ -3,9 +3,9 @@
 
 import type Highcharts from "highcharts";
 
-import { InternalCartesianChart } from "../../lib/components/cartesian-chart/chart-cartesian-internal";
-import { usePageSettings } from "../common/page-settings";
-import pseudoRandom from "../utils/pseudo-random";
+import { InternalCartesianChart } from "../../../lib/components/cartesian-chart/chart-cartesian-internal";
+import { usePageSettings } from "../../common/page-settings";
+import pseudoRandom from "../../utils/pseudo-random";
 
 function randomInt(min: number, max: number) {
   return min + Math.floor(pseudoRandom() * (max - min));

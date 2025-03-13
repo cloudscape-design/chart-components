@@ -4,30 +4,27 @@
 import Box from "@cloudscape-design/components/box";
 import Link from "@cloudscape-design/components/link";
 
-import { PieChart, PieChartProps } from "../../lib/components";
-import { usePageSettings } from "../common/page-settings";
-import { PageSection } from "../common/templates";
+import { PieChart, PieChartProps } from "../../../lib/components";
+import { usePageSettings } from "../../common/page-settings";
+import { PageSection } from "../../common/templates";
 
 const series: PieChartProps.Series = {
-  name: "Value",
+  name: "Units",
   type: "awsui-donut",
   data: [
-    { name: "Item A", y: 40 },
-    { name: "Item B", y: 25 },
-    { name: "Item C", y: 20 },
-    { name: "Item D", y: 10 },
-    { name: "Item E", y: 5 },
+    { name: "Complete", y: 160 },
+    { name: "Incomplete", y: 40 },
   ],
 };
 
-export function ExamplePieChartDonutChart() {
+export function ExamplePieChartSmallDonutChart() {
   const { highcharts, settings, chartStateProps } = usePageSettings();
   const hideSeries = settings.applyLoadingState || settings.applyEmptyState || settings.applyErrorState;
   return (
     <PageSection
-      title="Pie and donut charts: Donut chart"
+      title="Pie and donut charts: Small donut chart"
       subtitle={
-        <Link href="https://cloudscape.aws.dev/components/pie-chart/?tabId=playground&example=donut-chart">
+        <Link href="https://cloudscape.aws.dev/components/pie-chart/?tabId=playground&example=small-donut-chart">
           compare with the website playground example
         </Link>
       }
@@ -35,20 +32,20 @@ export function ExamplePieChartDonutChart() {
       <PieChart
         highcharts={highcharts}
         {...chartStateProps}
-        height={500}
+        height={200}
         legend={{
           enabled: settings.showLegend,
           title: settings.showLegendTitle ? "Legend title" : undefined,
         }}
-        ariaLabel="Donut chart"
-        ariaDescription="Donut chart showing generic example data."
+        ariaLabel="Small donut chart"
+        ariaDescription="Donut chart showing generic progress."
         series={hideSeries ? null : series}
         tooltip={{
           body(details) {
             return (
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", marginLeft: "18px" }}>
-                  <Box variant="span">Value</Box>
+                  <Box variant="span">Units</Box>
                   <Box variant="span">{details.segmentValue}</Box>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", marginLeft: "18px" }}>
@@ -58,10 +55,6 @@ export function ExamplePieChartDonutChart() {
               </div>
             );
           },
-        }}
-        segment={{
-          description: ({ totalValue, segmentValue }) =>
-            `${segmentValue} units, ${((segmentValue / totalValue) * 100).toFixed(0)}%`,
         }}
         innerValue={settings.pieInnerValue.trim() || undefined}
         innerDescription={settings.pieInnerDescription.trim() || undefined}

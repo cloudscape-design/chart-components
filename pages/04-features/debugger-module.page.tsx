@@ -3,7 +3,7 @@
 
 import { CartesianChart, CartesianChartProps } from "../../lib/components";
 import { usePageSettings } from "../common/page-settings";
-import { Page, PageSection } from "../common/templates";
+import { Page } from "../common/templates";
 
 const series: CartesianChartProps.Series[] = [
   {
@@ -25,9 +25,7 @@ export default function () {
       title="Debugger module demo"
       subtitle="The page demonstrates how debugger module (active in development mode only) helps finding issues."
     >
-      <PageSection>
-        <ExampleMixedChart />
-      </PageSection>
+      <ExampleMixedChart />
     </Page>
   );
 }

@@ -76,7 +76,8 @@ export namespace PieChartProps {
   }
 
   export interface SegmentProps {
-    description?: (detail: PieChartProps.SegmentDescriptionDetail) => string;
+    title?: null | ((detail: PieChartProps.SegmentDescriptionDetail) => string);
+    description?: null | ((detail: PieChartProps.SegmentDescriptionDetail) => string);
   }
 
   export interface TooltipDetails {

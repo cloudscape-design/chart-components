@@ -34,7 +34,7 @@ export interface PageSettings {
   emphasizeBaselineAxis: boolean;
 }
 
-type PageContext = React.Context<AppContextType<Partial<PageSettings>>>;
+type PageContext<SettingsType> = React.Context<AppContextType<Partial<SettingsType>>>;
 
 const DEFAULT_SETTINGS = {
   minHeight: 300,
@@ -70,10 +70,12 @@ export function PageSettingsDefaults({
   );
 }
 
-export function usePageSettings(options: { more?: boolean; treemap?: boolean } = {}): {
+export function usePageSettings<SettingsType extends PageSettings = PageSettings>(
+  options: { more?: boolean; treemap?: boolean } = {},
+): {
   highcharts: null | typeof Highcharts;
-  settings: PageSettings;
-  setSettings: (settings: Partial<PageSettings>) => void;
+  settings: SettingsType;
+  setSettings: (settings: Partial<SettingsType>) => void;
   chartStateProps: {
     ref: React.Ref<ChartRef>;
     noData: ChartNoDataProps;
@@ -81,7 +83,7 @@ export function usePageSettings(options: { more?: boolean; treemap?: boolean } =
 } {
   const highcharts = useHighcharts(options);
   const defaultSettings = useContext(PageSettingsDefaultsContext);
-  const { urlParams, setUrlParams } = useContext(AppContext as PageContext);
+  const { urlParams, setUrlParams } = useContext(AppContext as PageContext<SettingsType>);
   const settings = {
     ...defaultSettings,
     ...urlParams,
@@ -97,8 +99,8 @@ export function usePageSettings(options: { more?: boolean; treemap?: boolean } =
     showLegend: parseBoolean(defaultSettings.showLegend, urlParams.showLegend),
     showLegendTitle: parseBoolean(defaultSettings.showLegendTitle, urlParams.showLegendTitle),
     emphasizeBaselineAxis: parseBoolean(defaultSettings.emphasizeBaselineAxis, urlParams.emphasizeBaselineAxis),
-  };
-  const setSettings = (partial: Partial<PageSettings>) => {
+  } as PageSettings as SettingsType;
+  const setSettings = (partial: Partial<SettingsType>) => {
     const settings = { ...partial };
     if (settings.selectedSeries) {
       settings.selectedSeries = settings.selectedSeries.join(",") as any;
@@ -106,7 +108,7 @@ export function usePageSettings(options: { more?: boolean; treemap?: boolean } =
     if (settings.visibleContent) {
       settings.visibleContent = settings.visibleContent.join(",") as any;
     }
-    setUrlParams(settings);
+    setUrlParams(settings as any);
   };
 
   const ref = useRef<ChartRef>(null);

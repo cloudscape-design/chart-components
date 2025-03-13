@@ -15,8 +15,7 @@ import pseudoRandom from "../utils/pseudo-random";
 
 const pieSeries: PieChartProps.Series = {
   name: "Units",
-  type: "pie",
-  innerSize: "80%",
+  type: "awsui-donut",
   data: [
     { name: "Item A", y: 40 },
     { name: "Item B", y: 25 },
@@ -45,7 +44,7 @@ export default function () {
   };
   return (
     <Page
-      title="Fit height: Donut chart"
+      title="Fit size"
       subtitle="The page demonstrates the fit-height property. It works the same across all supported types of Highcharts."
       settings={
         <SpaceBetween size="s">
@@ -81,7 +80,7 @@ export default function () {
     >
       <PageSection
         title="Fit-height with outer container"
-        subtitle="This example demonstrates how fit-height behavior is implemented with an outer container that relies on the resize observer."
+        subtitle="This example demonstrates fit-height behavior implemented with an outer container that relies on the resize observer."
       >
         <div style={{ ...outerContainerStyle, overflow: "auto" }}>
           <MeasureHeight minHeight={settings.minHeight}>
@@ -107,7 +106,7 @@ export default function () {
 
       <PageSection
         title="Fit-height with scrollable plot area settings"
-        subtitle="This example demonstrates how fit-height behavior is implemented with Highcharts scrollablePlotArea features."
+        subtitle="This example demonstrates fit-height behavior implemented with Highcharts scrollablePlotArea features."
       >
         <div style={{ ...outerContainerStyle, overflow: "hidden" }}>
           <MeasureHeight>
@@ -134,7 +133,7 @@ export default function () {
 
       <PageSection
         title="Fit-width with scrollable plot area settings"
-        subtitle="This example demonstrates how fit-width behavior is implemented with Highcharts scrollablePlotArea features."
+        subtitle="This example demonstrates fit-width behavior implemented with Highcharts scrollablePlotArea features."
       >
         <div style={{ ...outerContainerStyle, overflow: "hidden", height: settings.minHeight }}>
           <CartesianChart

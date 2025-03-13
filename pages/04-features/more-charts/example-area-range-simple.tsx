@@ -3,10 +3,10 @@
 
 import type Highcharts from "highcharts";
 
-import { CartesianChartProps } from "../../lib/components";
-import { InternalCartesianChart } from "../../lib/components/cartesian-chart/chart-cartesian-internal";
-import { dateFormatter, numberFormatter } from "../common/formatters";
-import { usePageSettings } from "../common/page-settings";
+import { CartesianChartProps } from "../../../lib/components";
+import { InternalCartesianChart } from "../../../lib/components/cartesian-chart/chart-cartesian-internal";
+import { dateFormatter, numberFormatter } from "../../common/formatters";
+import { usePageSettings } from "../../common/page-settings";
 
 const series: (CartesianChartProps.Series | Highcharts.SeriesOptionsType)[] = [
   {

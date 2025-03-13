@@ -3,17 +3,16 @@
 
 import Link from "@cloudscape-design/components/link";
 
-import { CartesianChart, CartesianChartProps } from "../../lib/components";
-import { dateFormatter, numberFormatter } from "../common/formatters";
-import { usePageSettings } from "../common/page-settings";
-import { PageSection } from "../common/templates";
+import { CartesianChart, CartesianChartProps } from "../../../lib/components";
+import { dateFormatter, numberFormatter } from "../../common/formatters";
+import { usePageSettings } from "../../common/page-settings";
+import { PageSection } from "../../common/templates";
 
 const series: CartesianChartProps.Series[] = [
   {
     name: "Network 1",
     type: "area",
     data: [
-      // The x values are timestamps that can be converted to a date with new Date(timestamp)
       { x: 1600984800000, y: 114489 },
       { x: 1600985700000, y: 136935 },
       { x: 1600986600000, y: 141026 },
@@ -52,7 +51,44 @@ const series: CartesianChartProps.Series[] = [
     name: "Network 2",
     type: "area",
     data: [
-      // The x values are timestamps that can be converted to a date with new Date(timestamp)
+      { x: 1600984800000, y: 126623 },
+      { x: 1600985700000, y: 147035 },
+      { x: 1600986600000, y: 136488 },
+      { x: 1600987500000, y: 149778 },
+      { x: 1600988400000, y: 126710 },
+      { x: 1600989300000, y: 107964 },
+      { x: 1600990200000, y: 131969 },
+      { x: 1600991100000, y: 147045 },
+      { x: 1600992000000, y: 122661 },
+      { x: 1600992900000, y: 112436 },
+      { x: 1600993800000, y: 133167 },
+      { x: 1600994700000, y: 96558 },
+      { x: 1600995600000, y: 122246 },
+      { x: 1600996500000, y: 99248 },
+      { x: 1600997400000, y: 144693 },
+      { x: 1600998300000, y: 149547 },
+      { x: 1600999200000, y: 125133 },
+      { x: 1601000100000, y: 124845 },
+      { x: 1601001000000, y: 102768 },
+      { x: 1601001900000, y: 90708 },
+      { x: 1601002800000, y: 116681 },
+      { x: 1601003700000, y: 133457 },
+      { x: 1601004600000, y: 111090 },
+      { x: 1601005500000, y: 104931 },
+      { x: 1601006400000, y: 133434 },
+      { x: 1601007300000, y: 135491 },
+      { x: 1601008200000, y: 101198 },
+      { x: 1601009100000, y: 93306 },
+      { x: 1601010000000, y: 103043 },
+      { x: 1601010900000, y: 138810 },
+      { x: 1601011800000, y: 113219 },
+      { x: 1601012700000, y: 142304 },
+    ],
+  },
+  {
+    name: "Network 3",
+    type: "area",
+    data: [
       { x: 1600984800000, y: 10413 },
       { x: 1600985700000, y: 26582 },
       { x: 1600986600000, y: 45593 },
@@ -87,16 +123,21 @@ const series: CartesianChartProps.Series[] = [
       { x: 1601012700000, y: 293879 },
     ],
   },
+  {
+    type: "awsui-y-threshold",
+    name: "Target",
+    value: 350000,
+  },
 ];
 
-export function ExampleAreaChartStackedAreaChart() {
+export function ExampleAreaChartStackedAreaChartWithThreshold() {
   const { highcharts, settings, chartStateProps } = usePageSettings();
   const hideSeries = settings.applyLoadingState || settings.applyEmptyState || settings.applyErrorState;
   return (
     <PageSection
-      title="Area chart: Stacked area chart"
+      title="Area chart: Stacked area chart, with threshold"
       subtitle={
-        <Link href="https://cloudscape.aws.dev/components/area-chart?tabId=playground&example=stacked-area-chart">
+        <Link href="https://cloudscape.aws.dev/components/area-chart?tabId=playground&example=stacked-area-chart%2C-with-threshold">
           compare with the website playground example
         </Link>
       }
@@ -109,7 +150,7 @@ export function ExampleAreaChartStackedAreaChart() {
           enabled: settings.showLegend,
           title: settings.showLegendTitle ? "Legend title" : undefined,
         }}
-        ariaLabel="Stacked area chart"
+        ariaLabel="Stacked area chart, with threshold"
         plotOptions={{ series: { stacking: "normal" } }}
         series={hideSeries ? [] : series}
         tooltip={{
@@ -141,7 +182,7 @@ export function ExampleAreaChartStackedAreaChart() {
         yAxis={{
           title: "Bytes transferred",
           min: 0,
-          max: 500000,
+          max: 600000,
           valueFormatter: numberFormatter,
         }}
         emphasizeBaselineAxis={settings.emphasizeBaselineAxis}
