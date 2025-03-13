@@ -44,9 +44,14 @@ function renderChart(props: Partial<CloudscapeHighchartsProps>, Component = Clou
       rerender(<Component highcharts={Highcharts} className="test-chart" options={{}} {...props} />),
   };
 }
-
 function renderStatefulChart(props: Partial<CloudscapeHighchartsProps>) {
   return renderChart(props, StatefulChart);
+}
+function getLegendItemContent(wrapper: TestWrapper) {
+  return wrapper.findLegendItems().map((w) => w.getElement().textContent);
+}
+function getHiddenLegendItemContent(wrapper: TestWrapper) {
+  return wrapper.findHiddenLegendItems().map((w) => w.getElement().textContent);
 }
 
 describe("CloudscapeHighcharts: visibility", () => {
@@ -80,31 +85,29 @@ describe("CloudscapeHighcharts: visibility", () => {
       { type: "line", name: "Line series 2", data: [1, 2, 3] },
     ];
     const { wrapper, rerender } = renderChart({ options: { series }, visibleSeries: null, onToggleVisibleSeries });
-    const getLegendItemContent = () => wrapper.findLegendItems().map((w) => w.getElement().textContent);
-    const getHiddenLegendItemContent = () => wrapper.findHiddenLegendItems().map((w) => w.getElement().textContent);
 
-    expect(getLegendItemContent()).toEqual(["Line series 1", "Line series 2"]);
-    expect(getHiddenLegendItemContent()).toEqual([]);
+    expect(getLegendItemContent(wrapper)).toEqual(["Line series 1", "Line series 2"]);
+    expect(getHiddenLegendItemContent(wrapper)).toEqual([]);
 
     rerender({ options: { series }, visibleSeries: ["Line series 1", "Line series 2"], onToggleVisibleSeries });
 
-    expect(getLegendItemContent()).toEqual(["Line series 1", "Line series 2"]);
-    expect(getHiddenLegendItemContent()).toEqual([]);
+    expect(getLegendItemContent(wrapper)).toEqual(["Line series 1", "Line series 2"]);
+    expect(getHiddenLegendItemContent(wrapper)).toEqual([]);
 
     rerender({ options: { series }, visibleSeries: ["Line series 1"], onToggleVisibleSeries });
 
-    expect(getLegendItemContent()).toEqual(["Line series 1", "Line series 2"]);
-    expect(getHiddenLegendItemContent()).toEqual(["Line series 2"]);
+    expect(getLegendItemContent(wrapper)).toEqual(["Line series 1", "Line series 2"]);
+    expect(getHiddenLegendItemContent(wrapper)).toEqual(["Line series 2"]);
 
     rerender({ options: { series }, visibleSeries: ["Line series 2"], onToggleVisibleSeries });
 
-    expect(getLegendItemContent()).toEqual(["Line series 1", "Line series 2"]);
-    expect(getHiddenLegendItemContent()).toEqual(["Line series 1"]);
+    expect(getLegendItemContent(wrapper)).toEqual(["Line series 1", "Line series 2"]);
+    expect(getHiddenLegendItemContent(wrapper)).toEqual(["Line series 1"]);
 
     rerender({ options: { series }, visibleSeries: [], onToggleVisibleSeries });
 
-    expect(getLegendItemContent()).toEqual(["Line series 1", "Line series 2"]);
-    expect(getHiddenLegendItemContent()).toEqual(["Line series 1", "Line series 2"]);
+    expect(getLegendItemContent(wrapper)).toEqual(["Line series 1", "Line series 2"]);
+    expect(getHiddenLegendItemContent(wrapper)).toEqual(["Line series 1", "Line series 2"]);
   });
 
   test("prefers series id over series name", () => {
@@ -114,16 +117,14 @@ describe("CloudscapeHighcharts: visibility", () => {
       { type: "line", id: "2", name: "Line", data: [1, 2, 3] },
     ];
     const { wrapper, rerender } = renderChart({ options: { series }, visibleSeries: ["Line"], onToggleVisibleSeries });
-    const getLegendItemContent = () => wrapper.findLegendItems().map((w) => w.getElement().textContent);
-    const getHiddenLegendItemContent = () => wrapper.findHiddenLegendItems().map((w) => w.getElement().textContent);
 
-    expect(getLegendItemContent()).toEqual(["Line", "Line"]);
-    expect(getHiddenLegendItemContent()).toEqual(["Line", "Line"]);
+    expect(getLegendItemContent(wrapper)).toEqual(["Line", "Line"]);
+    expect(getHiddenLegendItemContent(wrapper)).toEqual(["Line", "Line"]);
 
     rerender({ options: { series }, visibleSeries: ["1", "2"], onToggleVisibleSeries });
 
-    expect(getLegendItemContent()).toEqual(["Line", "Line"]);
-    expect(getHiddenLegendItemContent()).toEqual([]);
+    expect(getLegendItemContent(wrapper)).toEqual(["Line", "Line"]);
+    expect(getHiddenLegendItemContent(wrapper)).toEqual([]);
 
     wrapper.findLegendItems()[0].click();
 
@@ -177,31 +178,29 @@ describe("CloudscapeHighcharts: visibility", () => {
       },
     ];
     const { wrapper, rerender } = renderChart({ options: { series }, visibleItems: null, onToggleVisibleItems });
-    const getLegendItemContent = () => wrapper.findLegendItems().map((w) => w.getElement().textContent);
-    const getHiddenLegendItemContent = () => wrapper.findHiddenLegendItems().map((w) => w.getElement().textContent);
 
-    expect(getLegendItemContent()).toEqual(["A", "B"]);
-    expect(getHiddenLegendItemContent()).toEqual([]);
+    expect(getLegendItemContent(wrapper)).toEqual(["A", "B"]);
+    expect(getHiddenLegendItemContent(wrapper)).toEqual([]);
 
     rerender({ options: { series }, visibleItems: ["A", "B"], onToggleVisibleItems });
 
-    expect(getLegendItemContent()).toEqual(["A", "B"]);
-    expect(getHiddenLegendItemContent()).toEqual([]);
+    expect(getLegendItemContent(wrapper)).toEqual(["A", "B"]);
+    expect(getHiddenLegendItemContent(wrapper)).toEqual([]);
 
     rerender({ options: { series }, visibleItems: ["A"], onToggleVisibleItems });
 
-    expect(getLegendItemContent()).toEqual(["A", "B"]);
-    expect(getHiddenLegendItemContent()).toEqual(["B"]);
+    expect(getLegendItemContent(wrapper)).toEqual(["A", "B"]);
+    expect(getHiddenLegendItemContent(wrapper)).toEqual(["B"]);
 
     rerender({ options: { series }, visibleItems: ["B"], onToggleVisibleItems });
 
-    expect(getLegendItemContent()).toEqual(["A", "B"]);
-    expect(getHiddenLegendItemContent()).toEqual(["A"]);
+    expect(getLegendItemContent(wrapper)).toEqual(["A", "B"]);
+    expect(getHiddenLegendItemContent(wrapper)).toEqual(["A"]);
 
     rerender({ options: { series }, visibleItems: [], onToggleVisibleItems });
 
-    expect(getLegendItemContent()).toEqual(["A", "B"]);
-    expect(getHiddenLegendItemContent()).toEqual(["A", "B"]);
+    expect(getLegendItemContent(wrapper)).toEqual(["A", "B"]);
+    expect(getHiddenLegendItemContent(wrapper)).toEqual(["A", "B"]);
   });
 
   test("prefers item id over item name", () => {
@@ -218,16 +217,14 @@ describe("CloudscapeHighcharts: visibility", () => {
       },
     ];
     const { wrapper, rerender } = renderChart({ options: { series }, visibleItems: ["Segment"], onToggleVisibleItems });
-    const getLegendItemContent = () => wrapper.findLegendItems().map((w) => w.getElement().textContent);
-    const getHiddenLegendItemContent = () => wrapper.findHiddenLegendItems().map((w) => w.getElement().textContent);
 
-    expect(getLegendItemContent()).toEqual(["Segment", "Segment"]);
-    expect(getHiddenLegendItemContent()).toEqual(["Segment", "Segment"]);
+    expect(getLegendItemContent(wrapper)).toEqual(["Segment", "Segment"]);
+    expect(getHiddenLegendItemContent(wrapper)).toEqual(["Segment", "Segment"]);
 
     rerender({ options: { series }, visibleItems: ["1", "2"], onToggleVisibleItems });
 
-    expect(getLegendItemContent()).toEqual(["Segment", "Segment"]);
-    expect(getHiddenLegendItemContent()).toEqual([]);
+    expect(getLegendItemContent(wrapper)).toEqual(["Segment", "Segment"]);
+    expect(getHiddenLegendItemContent(wrapper)).toEqual([]);
 
     wrapper.findLegendItems()[0].click();
 

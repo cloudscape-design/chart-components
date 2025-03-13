@@ -3,68 +3,93 @@
 
 import { BaseComponentProps } from "@cloudscape-design/components/internal/base-component";
 
-export type ChartSeriesMarkerType = "line" | "dashed" | "rectangle" | "hollow-rectangle" | "circle";
+export type ChartSeriesMarkerType =
+  | "line"
+  | "dashed"
+  | "area"
+  | "square"
+  | "diamond"
+  | "triangle"
+  | "triangle-down"
+  | "large-circle"
+  | "circle";
 
 export type ChartSeriesMarkerStatus = "normal" | "warning";
 
-interface ChartSeriesMarkerProps extends BaseComponentProps {
+export interface ChartSeriesMarkerProps extends BaseComponentProps {
   type: ChartSeriesMarkerType;
   status?: ChartSeriesMarkerStatus;
   color: string;
 }
 
-export function ChartSeriesMarker(props: ChartSeriesMarkerProps) {
+export function ChartSeriesMarker({ type = "line", color, status }: ChartSeriesMarkerProps) {
+  const size = 14;
+  const halfSize = size / 2;
+  const scale = (value: number) =>
+    `translate(${size * ((1 - value) / 2)}, ${size * ((1 - value) / 2)}) scale(${value})`;
   return (
-    <svg focusable={false} width={18} height={18} viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-      <ChartSeriesMarkerG {...props} />
+    <svg focusable={false} width={20} height={20} viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(4, 4)">
+        {type === "line" && <line x1={0} y1={halfSize} x2={size} y2={halfSize} stroke={color} strokeWidth={2} />}
+
+        {type === "dashed" && (
+          <line x1={0} y1={halfSize} x2={size} y2={halfSize} stroke={color} strokeWidth={2} strokeDasharray="6,2" />
+        )}
+
+        {type === "area" && (
+          <>
+            <rect x={0} y={halfSize - 2} width={size} height={6} fill={color} fillOpacity="0.75" stroke="none" />
+            <line
+              x1={-0.5}
+              y1={halfSize - 2}
+              x2={0.5 + size}
+              y2={halfSize - 2}
+              stroke={color}
+              strokeWidth={2}
+              strokeLinecap="round"
+            />
+          </>
+        )}
+
+        {type === "square" && <rect x={0} y={0} width={size} height={size} fill={color} transform={scale(0.65)} />}
+
+        {type === "diamond" && (
+          <polygon
+            points={`${halfSize},${0} ${size},${halfSize} ${halfSize},${size} ${0},${halfSize}`}
+            fill={color}
+            transform={scale(0.75)}
+          />
+        )}
+
+        {type === "triangle" && (
+          <polygon points={`${halfSize},${0} ${size},${size} ${0},${size}`} fill={color} transform={scale(0.65)} />
+        )}
+
+        {type === "triangle-down" && (
+          <polygon points={`${halfSize},${size} ${0},${0} ${size},${0}`} fill={color} transform={scale(0.65)} />
+        )}
+
+        {type === "large-circle" && (
+          <circle cx={halfSize} cy={halfSize} r={halfSize} fill={color} transform={scale(0.9)} />
+        )}
+
+        {type === "circle" && <circle cx={halfSize} cy={halfSize} r={halfSize} fill={color} transform={scale(0.65)} />}
+
+        {status === "warning" && (
+          <g transform={`translate(2, 0)`}>
+            <WarningIcon />
+          </g>
+        )}
+      </g>
     </svg>
   );
 }
 
-export function ChartSeriesMarkerG({ type = "line", color, status }: ChartSeriesMarkerProps) {
-  const size = 14;
-  const halfSize = size / 2;
+export function WarningIcon() {
   return (
-    <g>
-      {type === "line" && (
-        <line x1={2} y1={2 + halfSize} x2={2 + size} y2={2 + halfSize} stroke={color} strokeWidth={2} />
-      )}
-
-      {type === "dashed" && (
-        <line
-          x1={2}
-          y1={2 + halfSize}
-          x2={2 + size}
-          y2={2 + halfSize}
-          stroke={color}
-          strokeWidth={2}
-          strokeDasharray="4 4"
-        />
-      )}
-
-      {type === "rectangle" && <rect x={2} y={2} width={size} height={size} fill={color} rx="2" ry="2" />}
-
-      {type === "hollow-rectangle" && (
-        <g>
-          <rect x={2} y={2} width={size} height={size} fill={color} opacity={0.3} rx="2" ry="2" />
-          <rect x={2} y={2} width={size} height={size} stroke={color} fill="none" strokeWidth={2} rx="2" ry="2" />
-        </g>
-      )}
-
-      {type === "circle" && <circle cx={2 + halfSize} cy={2 + halfSize} r={halfSize} fill={color} />}
-
-      {status === "warning" && <WarningIcon />}
-    </g>
-  );
-}
-
-function WarningIcon() {
-  const trianglePath = "M8 1L15 14H1Z";
-  const scale = 0.75;
-  return (
-    <g transform={`translate(3, 3) scale(${scale})`}>
-      <path d={trianglePath} stroke="white" strokeWidth={3} fill="none" />
-      <path d={trianglePath} fill="orange" stroke="black" strokeWidth={0.5} />
+    <g transform={`translate(3, 3) scale(0.75)`}>
+      <path d="M8 1L15 14H1Z" stroke="white" strokeWidth={3} fill="none" />
+      <path d="M8 1L15 14H1Z" fill="orange" stroke="black" strokeWidth={0.5} />
       <line x1="8" y1="5" x2="8" y2="9" stroke="black" strokeWidth={1} />
       <line x1="8" y1="10" x2="8" y2="12" stroke="black" strokeWidth={1} />
     </g>

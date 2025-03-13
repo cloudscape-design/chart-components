@@ -60,19 +60,20 @@ export function useChartTooltipCartesian(
     }
     series.forEach((s) => (s.type === "awsui-y-threshold" ? findMatchedYThreshold(s) : undefined));
 
-    const seriesToColor = new Map<InternalSeriesOptions, string>();
+    const seriesToChartSeries = new Map<InternalSeriesOptions, Highcharts.Series>();
     for (const s of series) {
-      const color = chart.series.find((cs) => (cs.userOptions.id ?? cs.name) === (s.id ?? s.name))?.color?.toString();
-      if (color) {
-        seriesToColor.set(s, color);
+      const chartSeries = chart.series.find((cs) => (cs.userOptions.id ?? cs.name) === (s.id ?? s.name));
+      if (chartSeries) {
+        seriesToChartSeries.set(s, chartSeries);
       }
     }
     const getItemColor = (item: CartesianChartProps.TooltipSeriesDetailItem) =>
-      seriesToColor.get(item.series) ?? "black";
+      seriesToChartSeries.get(item.series)?.color?.toString() ?? "black";
 
     const details: ChartSeriesDetailItem[] = [];
 
     for (const matched of matchedItems) {
+      const chartSeries = seriesToChartSeries.get(matched.series);
       const yAxisProps = chart.yAxis[0];
       const valueFormatter = yAxisProps
         ? getDefaultFormatter(yAxisProps, getDataExtremes(chart.xAxis[0]))
@@ -102,7 +103,7 @@ export function useChartTooltipCartesian(
       details.push({
         key: formatted.key,
         value: formatted.value,
-        markerType: getSeriesMarkerType(matched.series),
+        markerType: chartSeries ? getSeriesMarkerType(matched.series.type, chartSeries) : "circle",
         markerStatus: props.series?.getItemStatus?.(matched.series.id ?? matched.series.name),
         color: getItemColor(matched),
         subItems: formatted.subItems,
@@ -152,21 +153,38 @@ export function useChartTooltipCartesian(
   return { getContent };
 }
 
-function getSeriesMarkerType(series: CartesianChartProps.Series): ChartSeriesMarkerType {
-  switch (series.type) {
+function getSeriesMarkerType(
+  seriesType: CartesianChartProps.Series["type"],
+  series: Highcharts.Series,
+): ChartSeriesMarkerType {
+  const seriesSymbol = "symbol" in series && typeof series.symbol === "string" ? series.symbol : "circle";
+  switch (seriesType) {
     case "area":
     case "areaspline":
-      return "hollow-rectangle";
-    case "column":
-      return "rectangle";
+      return "area";
     case "line":
     case "spline":
       return "line";
     case "awsui-x-threshold":
     case "awsui-y-threshold":
       return "dashed";
-    case "errorbar":
     case "scatter":
-      return "circle";
+      switch (seriesSymbol) {
+        case "square":
+          return "square";
+        case "diamond":
+          return "diamond";
+        case "triangle":
+          return "triangle";
+        case "triangle-down":
+          return "triangle-down";
+        case "circle":
+        default:
+          return "circle";
+      }
+    case "column":
+    case "errorbar":
+    default:
+      return "large-circle";
   }
 }

@@ -42,7 +42,7 @@ export function useChartTooltipPie(
 
     const header = props.tooltip?.title?.(tooltipDetails) ?? (
       <div style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-        <ChartSeriesMarker color={matchedPieDatum.color as string} type="circle" />{" "}
+        <ChartSeriesMarker color={matchedPieDatum.color as string} type="large-circle" />{" "}
         <Box variant="span" fontWeight="bold">
           {matchedPieDatum.name}
         </Box>

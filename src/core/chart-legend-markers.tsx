@@ -3,50 +3,35 @@
 
 import { useRef } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { useUniqueId } from "@dnd-kit/utilities";
 import type Highcharts from "highcharts";
 
-import { colorBackgroundLayoutMain } from "@cloudscape-design/design-tokens";
-
 import Portal from "../internal/components/portal";
-import { ChartSeriesMarkerG, ChartSeriesMarkerType } from "../internal/components/series-marker";
+import { WarningIcon } from "../internal/components/series-marker";
 import AsyncStore, { useSelector } from "../internal/utils/async-store";
+import { useUniqueId } from "../internal/utils/unique-id";
 import { LegendMarkersProps } from "./interfaces-core";
-import { getLegendItemType, getSimpleColor } from "./utils";
+
+import testClasses from "./test-classes/styles.css.js";
 
 interface LegendItemProps {
   id: string;
-  color: string;
-  type: ChartSeriesMarkerType;
   container: Element;
 }
 
-// The custom legend markers override Highcharts legend markers. This is done for consistency with Cloudscape
-// markers that we also use in the tooltip, and to provide additional customization.
+// The legend markers add the capability to define warning state for Highcharts legend markers.
 // The Highcharts legend API does not allow overriding the markers explicitly, so we use legend.labelFormatter
-// to render a fake TSPAN and then provide custom content using React portal. When overriding, we ensure the
-// legend item sizes remain unchanged. We don't hide the original markers but overlay them with custom markers.
+// to render a fake TSPAN and then provide custom content using React portal.
 
-export function useLegendMarkers(
-  highcharts: null | typeof Highcharts,
-  getChart: () => Highcharts.Chart,
-  legendMarkersProps?: LegendMarkersProps,
-) {
+export function useLegendMarkers(getChart: () => Highcharts.Chart, legendMarkersProps?: LegendMarkersProps) {
   const markersId = useUniqueId("legend-markers");
 
   const legendMarkersStore = useRef(new LegendMarkersStore(getChart, markersId)).current;
-  legendMarkersStore.highcharts = highcharts;
 
   const options: Highcharts.Options = {
     legend: {
       labelFormatter: function () {
         legendMarkersStore.onRenderLabel();
-        return renderToStaticMarkup(
-          <tspan>
-            <tspan id={`${markersId}-${this.name}`}></tspan>
-            <tspan>{this.name}</tspan>
-          </tspan>,
-        );
+        return renderToStaticMarkup(<tspan id={`${markersId}-${this.name}`}>{this.name}</tspan>);
       },
     },
   };
@@ -59,27 +44,25 @@ export function ChartLegendMarkers({
   legendMarkersStore,
 }: LegendMarkersProps & { legendMarkersStore: LegendMarkersStore }) {
   const legendItems = useSelector(legendMarkersStore, (state) => state.legendItems);
-
   return (
     <>
-      {legendItems.map((item) => (
-        <Portal container={item.container} key={item.id}>
-          <rect x={-1} y={4} width={18} height={18} fill={colorBackgroundLayoutMain}></rect>
-
-          <g transform="translate(1, 6)">
-            <ChartSeriesMarkerG type={item.type} color={item.color} status={getItemStatus?.(item.id)} />
-          </g>
-        </Portal>
-      ))}
+      {legendItems.map((item) =>
+        getItemStatus?.(item.id) === "warning" ? (
+          <Portal container={item.container} key={item.id}>
+            <g transform="translate(8, 6)" className={testClasses["legend-item-warning"]}>
+              <WarningIcon />
+            </g>
+          </Portal>
+        ) : null,
+      )}
     </>
   );
 }
 
 class LegendMarkersStore extends AsyncStore<{ legendItems: LegendItemProps[] }> {
-  public highcharts: null | typeof Highcharts = null;
   private getChart: () => Highcharts.Chart;
   private markersId: string;
-  private timeoutId: null | number = null;
+  private timeoutId = setTimeout(() => {}, 0);
 
   constructor(getChart: () => Highcharts.Chart, markersId: string) {
     super({ legendItems: [] });
@@ -91,16 +74,13 @@ class LegendMarkersStore extends AsyncStore<{ legendItems: LegendItemProps[] }> 
   // That is why we add a simple timeout-based debouncing - it ensures we don't cause many async state updates
   // unnecessarily.
   public onRenderLabel = () => {
-    if (this.timeoutId) {
-      clearTimeout(this.timeoutId);
-    }
+    clearTimeout(this.timeoutId);
 
     this.timeoutId = setTimeout(() => {
-      const highcharts = this.highcharts;
       const chartLegendItems = this.getChart().legend.allItems;
       const containers: Element[] = [];
       for (const container of Array.from(document.querySelectorAll(`[id*="${this.markersId}-"]`))) {
-        const parent = container.parentElement?.parentElement?.parentElement;
+        const parent = container.parentElement?.parentElement;
         if (parent) {
           containers.push(parent);
         }
@@ -109,12 +89,10 @@ class LegendMarkersStore extends AsyncStore<{ legendItems: LegendItemProps[] }> 
         this.set(() => ({
           legendItems: chartLegendItems.map((item, index) => ({
             id: item.options.id ?? item.name ?? index.toString(),
-            type: getLegendItemType(highcharts, item),
-            color: getSimpleColor(item.color),
             container: containers[index],
           })),
         }));
       }
-    }, 0) as unknown as number;
+    }, 0);
   };
 }

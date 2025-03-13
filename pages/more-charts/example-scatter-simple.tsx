@@ -67,6 +67,18 @@ const series: CartesianChartProps.Series[] = [
     data: baseline.map(({ x, y }) => ({ name: "C", x, y: y + randomInt(-150000, 50000) })),
     marker: { enabled: true },
   },
+  {
+    name: "D",
+    type: "scatter",
+    data: baseline.map(({ x, y }) => ({ name: "C", x, y: y + randomInt(-200000, -100000) })),
+    marker: { enabled: true },
+  },
+  {
+    name: "E",
+    type: "scatter",
+    data: baseline.map(({ x, y }) => ({ name: "C", x, y: y + randomInt(50000, 75000) })),
+    marker: { enabled: true },
+  },
 ];
 
 export function ExampleScatterSimple() {

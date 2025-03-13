@@ -16,8 +16,7 @@ class TestWrapper extends ElementWrapper {
 
 function renderChart(props: Partial<CloudscapeHighchartsProps>, Component = CloudscapeHighcharts) {
   render(<Component highcharts={Highcharts} className="test-chart" options={{}} {...props} />);
-  const wrapper = new TestWrapper(createWrapper().findByClassName("test-chart")!.getElement());
-  return wrapper;
+  return new TestWrapper(createWrapper().findByClassName("test-chart")!.getElement());
 }
 
 const series: Highcharts.SeriesOptionsType[] = [{ type: "line", name: "Line series", data: [1, 2, 3] }];

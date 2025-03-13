@@ -1,11 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { CartesianChart, CartesianChartProps } from "../lib/components";
-import { dateFormatter, numberFormatter, priceFormatter } from "./common/formatters";
-import { PageSettingsDefaults, usePageSettings } from "./common/page-settings";
-import { SeriesSelector } from "./common/series-selector";
-import { Page, PageSection } from "./common/templates";
+import { CartesianChart, CartesianChartProps } from "../../lib/components";
+import { dateFormatter, numberFormatter, priceFormatter } from "../common/formatters";
+import { PageSettingsDefaults, usePageSettings } from "../common/page-settings";
+import { SeriesSelector } from "../common/series-selector";
+import { Page, PageSection } from "../common/templates";
 
 const allSeries: CartesianChartProps.Series[] = [
   {
