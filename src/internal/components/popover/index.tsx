@@ -35,7 +35,7 @@ interface ChartPopoverProps {
   container: Element | null;
 
   /** Event that is fired when the popover is dismissed */
-  onDismiss: (outsideClick: boolean) => void;
+  onDismiss?: (outsideClick: boolean) => void;
 
   /** Fired when the pointer enters the hover-able area around the popover */
   onMouseEnter?: (event: React.MouseEvent) => void;
@@ -91,7 +91,7 @@ function ChartPopover(
         !nodeBelongs(popoverObjectRef.current, event.target as Element) && // click not in popover
         !nodeContains(container, event.target as Element) // click not in segment
       ) {
-        onDismiss(true);
+        onDismiss?.(true);
       }
     };
 
@@ -136,7 +136,7 @@ function ChartPopover(
             dismissButton={dismissButton}
             dismissAriaLabel={dismissAriaLabel}
             header={<div className={testClasses.header}>{header}</div>}
-            onDismiss={() => onDismiss(false)}
+            onDismiss={() => onDismiss?.(false)}
             overflowVisible="content"
           >
             <div className={testClasses.body}>{children}</div>

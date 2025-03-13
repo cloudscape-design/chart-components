@@ -7,6 +7,7 @@ import type Highcharts from "highcharts";
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
 import { CloudscapeHighcharts, CloudscapeHighchartsRef } from "../core/chart-core";
+import { LegendTooltipProps } from "../core/interfaces-core";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { ChartSeriesMarkerStatus } from "../internal/components/series-marker";
 import { fireNonCancelableEvent, NonCancelableEventHandler } from "../internal/events";
@@ -27,6 +28,7 @@ interface InternalCartesianChartProps {
     getItemStatus?: (itemId: string) => ChartSeriesMarkerStatus;
   };
   tooltip?: CartesianChartProps.TooltipProps;
+  legendTooltip?: LegendTooltipProps;
   noData?: CartesianChartProps.NoDataProps;
   emphasizeBaselineAxis?: boolean;
   visibleSeries?: string[];
@@ -192,6 +194,7 @@ export const InternalCartesianChart = forwardRef(
         highcharts={highcharts}
         options={highchartsOptions}
         tooltip={tooltipProps}
+        legendTooltip={props.legendTooltip}
         noData={props.noData}
         legendMarkers={{ getItemStatus: props.series?.getItemStatus }}
         visibleSeries={visibleSeries}

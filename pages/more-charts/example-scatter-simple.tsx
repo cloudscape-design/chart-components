@@ -1,6 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import Alert from "@cloudscape-design/components/alert";
+
 import { CartesianChartProps } from "../../lib/components";
 import { InternalCartesianChart } from "../../lib/components/cartesian-chart/chart-cartesian-internal";
 import { dateFormatter } from "../common/formatters";
@@ -107,8 +109,16 @@ export function ExampleScatterSimple() {
         yAxis: [{ title: "Events" }],
       }}
       series={{
-        getItemStatus(seriesId: string) {
-          return seriesId === "B" ? "warning" : "normal";
+        getItemStatus(itemId: string) {
+          return itemId === "B" ? "warning" : "normal";
+        },
+      }}
+      legendTooltip={{
+        getContent(itemId) {
+          if (itemId === "B") {
+            return { header: "B", body: <Alert type="warning">This series has a warning</Alert> };
+          }
+          return null;
         },
       }}
     />

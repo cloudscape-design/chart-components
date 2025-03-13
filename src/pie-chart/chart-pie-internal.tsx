@@ -8,6 +8,7 @@ import type Highcharts from "highcharts";
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
 import { CloudscapeHighcharts, CloudscapeHighchartsRef } from "../core/chart-core";
+import { LegendTooltipProps } from "../core/interfaces-core";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { fireNonCancelableEvent, NonCancelableEventHandler } from "../internal/events";
 import { useChartTooltipPie } from "./chart-tooltip-pie";
@@ -20,6 +21,7 @@ interface InternalPieChartProps {
   highcharts: null | typeof Highcharts;
   options: InternalPieChartOptions;
   tooltip?: PieChartProps.TooltipProps;
+  legendTooltip?: LegendTooltipProps;
   segment?: PieChartProps.SegmentProps;
   noData?: PieChartProps.NoDataProps;
   visibleSegments?: string[];
@@ -178,6 +180,7 @@ export const InternalPieChart = forwardRef(
         highcharts={highcharts}
         options={highchartsOptions}
         tooltip={tooltipProps}
+        legendTooltip={props.legendTooltip}
         noData={props.noData}
         legendMarkers={{}}
         visibleItems={visibleSegments}

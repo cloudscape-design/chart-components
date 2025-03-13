@@ -13,9 +13,10 @@ import Spinner from "@cloudscape-design/components/spinner";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { castArray } from "../internal/utils/utils";
 import { ChartLegendMarkers, useLegendMarkers } from "./chart-legend-markers";
+import { ChartLegendTooltip, useChartLegendTooltip } from "./chart-legend-tooltip";
 import { ChartNoData, useNoData } from "./chart-no-data";
 import { ChartTooltip, useChartTooltip } from "./chart-tooltip";
-import { ChartNoDataProps, LegendMarkersProps, TooltipProps } from "./interfaces-core";
+import { ChartNoDataProps, LegendMarkersProps, LegendTooltipProps, TooltipProps } from "./interfaces-core";
 import * as Styles from "./styles";
 import { getSeriesToIdMap } from "./utils";
 
@@ -23,6 +24,7 @@ export interface CloudscapeHighchartsProps {
   highcharts: null | typeof Highcharts;
   options: Highcharts.Options;
   tooltip?: TooltipProps;
+  legendTooltip?: LegendTooltipProps;
   noData?: ChartNoDataProps;
   legendMarkers?: LegendMarkersProps;
   fallback?: React.ReactNode;
@@ -51,6 +53,7 @@ export const CloudscapeHighcharts = forwardRef(
       highcharts,
       options,
       tooltip: tooltipProps,
+      legendTooltip: legendTooltipProps,
       noData: noDataProps,
       legendMarkers: legendMarkersProps,
       fallback = <Spinner />,
@@ -70,6 +73,9 @@ export const CloudscapeHighcharts = forwardRef(
     // Provides custom Cloudscape tooltip instead of Highcharts tooltip, when `props.tooltip` is present.
     // The custom tooltip provides Cloudscape styles and can be pinned.
     const tooltip = useChartTooltip(highcharts, () => chartRef.current!, tooltipProps);
+
+    // Provides custom Cloudscape tooltip for legend items, when `props.legendTooltip` is present.
+    const legendTooltip = useChartLegendTooltip(highcharts, () => chartRef.current!, legendTooltipProps);
 
     // Provides empty, no-match, loading, and error states handling, when `props.noData` is present.
     const noData = useNoData(highcharts, noDataProps);
@@ -218,6 +224,9 @@ export const CloudscapeHighcharts = forwardRef(
             if (noDataProps) {
               noData.options.chart?.events?.render?.call(this, event);
             }
+            if (legendTooltipProps) {
+              legendTooltip.options.chart?.events?.render?.call(this, event);
+            }
             return options.chart?.events?.render?.call(this, event);
           },
           click(event) {
@@ -302,6 +311,8 @@ export const CloudscapeHighcharts = forwardRef(
         />
 
         {tooltipProps && <ChartTooltip {...tooltip.props} />}
+
+        {legendTooltipProps && <ChartLegendTooltip {...legendTooltip.props} />}
 
         {noDataProps && <ChartNoData {...noData.props} />}
 
