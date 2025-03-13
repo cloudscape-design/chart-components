@@ -1,38 +1,14 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { render, waitFor } from "@testing-library/react";
-import Highcharts from "highcharts";
+import { waitFor } from "@testing-library/react";
+import highcharts from "highcharts";
 import { vi } from "vitest";
 
-import { ComponentWrapper } from "@cloudscape-design/test-utils-core/dom";
+import { renderChart } from "./common";
 
-import "@cloudscape-design/components/test-utils/dom";
-import { CloudscapeHighcharts, CloudscapeHighchartsProps } from "../../../lib/components/core/chart-core";
-import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
-import tooltipTestClasses from "../../../lib/components/internal/components/popover/test-classes/styles.selectors";
-import createWrapper, { ElementWrapper } from "../../../lib/components/test-utils/dom";
-
-class TestWrapper extends ElementWrapper {
-  findHighchartsTooltip = () => this.findByClassName("highcharts-tooltip");
-  findTooltip = () => {
-    const wrapper = this.findByClassName(testClasses.tooltip);
-    return wrapper ? new TooltipTestWrapper(wrapper.getElement()) : null;
-  };
-}
-
-class TooltipTestWrapper extends ComponentWrapper {
-  findHeader = () => this.findByClassName(tooltipTestClasses.header);
-  findBody = () => this.findByClassName(tooltipTestClasses.body);
-  findFooter = () => this.findByClassName(tooltipTestClasses.footer);
-}
-
-function renderChart(props: Partial<CloudscapeHighchartsProps>) {
-  render(<CloudscapeHighcharts highcharts={Highcharts} className="test-chart" options={{}} {...props} />);
-  return new TestWrapper(createWrapper().findByClassName("test-chart")!.getElement());
-}
 function hoverPoint(index: number) {
-  const chart = Highcharts.charts.find((c) => c)!;
+  const chart = highcharts.charts.find((c) => c)!;
   chart.series[0].data[index].onMouseOver();
 }
 
@@ -52,7 +28,8 @@ const series: Highcharts.SeriesOptionsType[] = [
 
 describe("CloudscapeHighcharts: tooltip", () => {
   test("renders highcharts tooltip", () => {
-    const wrapper = renderChart({
+    const { wrapper } = renderChart({
+      highcharts,
       options: { series, tooltip: { enabled: true, formatter: () => "Custom content" } },
     });
 
@@ -63,7 +40,8 @@ describe("CloudscapeHighcharts: tooltip", () => {
   });
 
   test("renders tooltip", async () => {
-    const wrapper = renderChart({
+    const { wrapper } = renderChart({
+      highcharts,
       options: { series },
       tooltip: { getContent: () => ({ header: "Tooltip title", body: "Tooltip body", footer: "Tooltip footer" }) },
     });
@@ -80,7 +58,7 @@ describe("CloudscapeHighcharts: tooltip", () => {
 
   test("provides point for tooltip.getContent", async () => {
     const getContent = vi.fn();
-    renderChart({ options: { series }, tooltip: { getContent } });
+    renderChart({ highcharts, options: { series }, tooltip: { getContent } });
 
     for (let i = 0; i < data.length; i++) {
       hoverPoint(i);
