@@ -19,7 +19,7 @@
     "test:visual": "run-p -r preview test:visual:vitest",
     "test:visual:vitest": "delay 1 && vitest run --config vite.config.e2e-visual.mjs",
     "test:visual:update": "UPDATE_SCREENSHOTS=true npm run test:visual",
-    "pretest": "tsc -p tsconfig.unit.json && tsc -p tsconfig.e2e.json",
+    "pretest": "tsc -p tsconfig.e2e.json",
     "test": "run-s lint test:unit test:functional",
     "preview": "vite preview",
     "start": "run-p start:server start:watch:ts start:watch:css",

@@ -3,7 +3,6 @@
 
 import { render, waitFor } from "@testing-library/react";
 import Highcharts from "highcharts";
-import { vi } from "vitest";
 
 import { ComponentWrapper } from "@cloudscape-design/test-utils-core/dom";
 
@@ -14,7 +13,6 @@ import tooltipTestClasses from "../../../lib/components/internal/components/popo
 import createWrapper, { ElementWrapper } from "../../../lib/components/test-utils/dom";
 
 class TestWrapper extends ElementWrapper {
-  findHighchartsTooltip = () => this.findByClassName("highcharts-tooltip");
   findTooltip = () => {
     const wrapper = this.findByClassName(testClasses.tooltip);
     return wrapper ? new TooltipTestWrapper(wrapper.getElement()) : null;
@@ -31,63 +29,55 @@ function renderChart(props: Partial<CloudscapeHighchartsProps>) {
   render(<CloudscapeHighcharts highcharts={Highcharts} className="test-chart" options={{}} {...props} />);
   return new TestWrapper(createWrapper().findByClassName("test-chart")!.getElement());
 }
-function hoverPoint(index: number) {
+function hoverLegendItem(index: number) {
   const chart = Highcharts.charts.find((c) => c)!;
-  chart.series[0].data[index].onMouseOver();
+  const labelElement = (chart.legend.allItems[index] as any).legendItem.label.element;
+  labelElement.dispatchEvent(new MouseEvent("mouseover", { bubbles: true, cancelable: true }));
 }
 
-const data = [
-  { name: "P1", y: 10 },
-  { name: "P2", y: 30 },
-  { name: "P3", y: 60 },
+const lineSeries: Highcharts.SeriesOptionsType[] = [
+  { type: "line", name: "P1", data: [1, 2, 3] },
+  { type: "line", name: "P2", data: [4, 5, 6], id: "testid" },
 ];
 
-const series: Highcharts.SeriesOptionsType[] = [
+const pieSeries: Highcharts.SeriesOptionsType[] = [
   {
     type: "pie",
     name: "Pie series",
-    data,
+    data: [
+      { name: "P1", y: 10 },
+      { name: "P2", y: 90, id: "testid" },
+    ],
+    showInLegend: true,
   },
 ];
 
-describe("CloudscapeHighcharts: tooltip", () => {
-  test("renders highcharts tooltip", () => {
-    const wrapper = renderChart({
-      options: { series, tooltip: { enabled: true, formatter: () => "Custom content" } },
-    });
-
-    hoverPoint(0);
-
-    expect(wrapper.findHighchartsTooltip()).not.toBe(null);
-    expect(wrapper.findHighchartsTooltip()!.getElement().textContent).toBe("Custom content");
-  });
-
-  test("renders tooltip", async () => {
+describe("CloudscapeHighcharts: legend tooltip", () => {
+  test.each(["line", "pie"])("renders legend tooltip for series type = %s", async (seriesType) => {
+    const series = seriesType === "line" ? lineSeries : pieSeries;
     const wrapper = renderChart({
       options: { series },
-      tooltip: { getContent: () => ({ header: "Tooltip title", body: "Tooltip body", footer: "Tooltip footer" }) },
+      legendTooltip: {
+        getContent: (id) => ({ header: `Header ${id}`, body: `Body ${id}`, footer: `Footer ${id}` }),
+      },
     });
 
-    hoverPoint(0);
+    hoverLegendItem(0);
 
     await waitFor(() => {
       expect(wrapper.findTooltip()).not.toBe(null);
-      expect(wrapper.findTooltip()!.findHeader()!.getElement().textContent).toBe("Tooltip title");
-      expect(wrapper.findTooltip()!.findBody()!.getElement().textContent).toBe("Tooltip body");
-      expect(wrapper.findTooltip()!.findFooter()!.getElement().textContent).toBe("Tooltip footer");
+      expect(wrapper.findTooltip()!.findHeader()!.getElement().textContent).toBe("Header P1");
+      expect(wrapper.findTooltip()!.findBody()!.getElement().textContent).toBe("Body P1");
+      expect(wrapper.findTooltip()!.findFooter()!.getElement().textContent).toBe("Footer P1");
     });
-  });
 
-  test("provides point for tooltip.getContent", async () => {
-    const getContent = vi.fn();
-    renderChart({ options: { series }, tooltip: { getContent } });
+    hoverLegendItem(1);
 
-    for (let i = 0; i < data.length; i++) {
-      hoverPoint(i);
-
-      await waitFor(() => {
-        expect(getContent).toHaveBeenCalledWith({ x: i, y: data[i].y });
-      });
-    }
+    await waitFor(() => {
+      expect(wrapper.findTooltip()).not.toBe(null);
+      expect(wrapper.findTooltip()!.findHeader()!.getElement().textContent).toBe("Header testid");
+      expect(wrapper.findTooltip()!.findBody()!.getElement().textContent).toBe("Body testid");
+      expect(wrapper.findTooltip()!.findFooter()!.getElement().textContent).toBe("Footer testid");
+    });
   });
 });

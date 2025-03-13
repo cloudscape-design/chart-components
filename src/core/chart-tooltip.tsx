@@ -18,7 +18,7 @@ const LAST_DISMISS_DELAY = 250;
 
 // The custom tooltip does not rely on the Highcharts tooltip. Instead, we listen to the mouse-over event on series points,
 // and then render a fake invisible target element to compute the Cloudscape chart popover position against.
-// The tooltip is can be hidden then we receive mouse-leave. It can also be pinned/unpinned on mouse click.
+// The tooltip can be hidden when we receive mouse-leave. It can also be pinned/unpinned on mouse click.
 // Despite event names, they events also fire on keyboard interactions.
 
 export function useChartTooltip(
@@ -53,7 +53,7 @@ export function useChartTooltip(
               }
             },
             mouseOut() {
-              tooltipStore.onMouseLeavePlot();
+              tooltipStore.onMouseLeaveTarget();
             },
             click() {
               tooltipStore.onMouseClickPlot(this);
@@ -160,7 +160,7 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
     }
   };
 
-  public onMouseLeavePlot = () => {
+  public onMouseLeaveTarget = () => {
     // The behavior is ignored if user hovers over the tooltip.
     if (this.tooltipHovered) {
       return;

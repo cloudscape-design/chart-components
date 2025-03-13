@@ -69,6 +69,10 @@ export interface TooltipProps {
   getContent: (point: Point) => null | TooltipContent;
 }
 
+export interface LegendTooltipProps {
+  getContent: (legendItemId: string) => null | TooltipContent;
+}
+
 export interface TooltipContent {
   header: React.ReactNode;
   body: React.ReactNode;
