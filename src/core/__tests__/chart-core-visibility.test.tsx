@@ -1,67 +1,36 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useState } from "react";
-import { render } from "@testing-library/react";
-import Highcharts from "highcharts";
+import highcharts from "highcharts";
 import { vi } from "vitest";
 
 import "@cloudscape-design/components/test-utils/dom";
-import { CloudscapeHighcharts, CloudscapeHighchartsProps } from "../../../lib/components/core/chart-core";
-import createWrapper, { ElementWrapper } from "../../../lib/components/test-utils/dom";
+import { CloudscapeHighchartsWrapper, renderChart, renderStatefulChart } from "./common";
 
-class TestWrapper extends ElementWrapper {
-  findLegendItems = () => this.findAllByClassName("highcharts-legend-item");
-  findHiddenLegendItems = () => this.findAllByClassName("highcharts-legend-item-hidden");
-}
-
-function StatefulChart(props: CloudscapeHighchartsProps) {
-  const [visibleSeries, setVisibleSeries] = useState<null | string[]>(props.visibleSeries ?? null);
-  const [visibleItems, setVisibleItems] = useState<null | string[]>(props.visibleItems ?? null);
-  return (
-    <CloudscapeHighcharts
-      {...props}
-      visibleSeries={visibleSeries}
-      onToggleVisibleSeries={(state) => {
-        setVisibleSeries(state);
-        props.onToggleVisibleSeries?.(state);
-      }}
-      visibleItems={visibleItems}
-      onToggleVisibleItems={(state) => {
-        setVisibleItems(state);
-        props.onToggleVisibleItems?.(state);
-      }}
-    />
-  );
-}
-
-function renderChart(props: Partial<CloudscapeHighchartsProps>, Component = CloudscapeHighcharts) {
-  const { rerender } = render(<Component highcharts={Highcharts} className="test-chart" options={{}} {...props} />);
-  const wrapper = new TestWrapper(createWrapper().findByClassName("test-chart")!.getElement());
-  return {
-    wrapper,
-    rerender: (props: Partial<CloudscapeHighchartsProps>) =>
-      rerender(<Component highcharts={Highcharts} className="test-chart" options={{}} {...props} />),
-  };
-}
-function renderStatefulChart(props: Partial<CloudscapeHighchartsProps>) {
-  return renderChart(props, StatefulChart);
-}
-function getLegendItemContent(wrapper: TestWrapper) {
+function getLegendItemContent(wrapper: CloudscapeHighchartsWrapper) {
   return wrapper.findLegendItems().map((w) => w.getElement().textContent);
 }
-function getHiddenLegendItemContent(wrapper: TestWrapper) {
+function getHiddenLegendItemContent(wrapper: CloudscapeHighchartsWrapper) {
   return wrapper.findHiddenLegendItems().map((w) => w.getElement().textContent);
 }
 
+const onToggleVisibleSeries = vi.fn();
+const onToggleVisibleItems = vi.fn();
+
+afterEach(() => {
+  onToggleVisibleSeries.mockReset();
+  onToggleVisibleItems.mockReset();
+});
+
+const defaultProps = { highcharts, onToggleVisibleSeries, onToggleVisibleItems };
+
 describe("CloudscapeHighcharts: visibility", () => {
   test.each(["uncontrolled", "controlled"])("toggles series visibility by clicking on legend, %s", (mode) => {
-    const onToggleVisibleSeries = vi.fn();
     const series: Highcharts.SeriesOptionsType[] = [{ type: "line", name: "Line series", data: [1, 2, 3] }];
     const { wrapper } =
       mode === "uncontrolled"
-        ? renderChart({ options: { series } })
-        : renderStatefulChart({ options: { series }, visibleSeries: ["Line series"], onToggleVisibleSeries });
+        ? renderChart({ ...defaultProps, options: { series } })
+        : renderStatefulChart({ ...defaultProps, options: { series }, visibleSeries: ["Line series"] });
 
     expect(wrapper.findLegendItems()).toHaveLength(1);
     expect(wrapper.findLegendItems()[0].getElement()).toHaveTextContent("Line series");
@@ -79,49 +48,47 @@ describe("CloudscapeHighcharts: visibility", () => {
   });
 
   test("changes series visibility from the outside", () => {
-    const onToggleVisibleSeries = vi.fn();
     const series: Highcharts.SeriesOptionsType[] = [
       { type: "line", name: "Line series 1", data: [1, 2, 3] },
       { type: "line", name: "Line series 2", data: [1, 2, 3] },
     ];
-    const { wrapper, rerender } = renderChart({ options: { series }, visibleSeries: null, onToggleVisibleSeries });
+    const { wrapper, rerender } = renderChart({ ...defaultProps, options: { series }, visibleSeries: null });
 
     expect(getLegendItemContent(wrapper)).toEqual(["Line series 1", "Line series 2"]);
     expect(getHiddenLegendItemContent(wrapper)).toEqual([]);
 
-    rerender({ options: { series }, visibleSeries: ["Line series 1", "Line series 2"], onToggleVisibleSeries });
+    rerender({ ...defaultProps, options: { series }, visibleSeries: ["Line series 1", "Line series 2"] });
 
     expect(getLegendItemContent(wrapper)).toEqual(["Line series 1", "Line series 2"]);
     expect(getHiddenLegendItemContent(wrapper)).toEqual([]);
 
-    rerender({ options: { series }, visibleSeries: ["Line series 1"], onToggleVisibleSeries });
+    rerender({ ...defaultProps, options: { series }, visibleSeries: ["Line series 1"] });
 
     expect(getLegendItemContent(wrapper)).toEqual(["Line series 1", "Line series 2"]);
     expect(getHiddenLegendItemContent(wrapper)).toEqual(["Line series 2"]);
 
-    rerender({ options: { series }, visibleSeries: ["Line series 2"], onToggleVisibleSeries });
+    rerender({ ...defaultProps, options: { series }, visibleSeries: ["Line series 2"] });
 
     expect(getLegendItemContent(wrapper)).toEqual(["Line series 1", "Line series 2"]);
     expect(getHiddenLegendItemContent(wrapper)).toEqual(["Line series 1"]);
 
-    rerender({ options: { series }, visibleSeries: [], onToggleVisibleSeries });
+    rerender({ ...defaultProps, options: { series }, visibleSeries: [] });
 
     expect(getLegendItemContent(wrapper)).toEqual(["Line series 1", "Line series 2"]);
     expect(getHiddenLegendItemContent(wrapper)).toEqual(["Line series 1", "Line series 2"]);
   });
 
   test("prefers series id over series name", () => {
-    const onToggleVisibleSeries = vi.fn();
     const series: Highcharts.SeriesOptionsType[] = [
       { type: "line", id: "1", name: "Line", data: [1, 2, 3] },
       { type: "line", id: "2", name: "Line", data: [1, 2, 3] },
     ];
-    const { wrapper, rerender } = renderChart({ options: { series }, visibleSeries: ["Line"], onToggleVisibleSeries });
+    const { wrapper, rerender } = renderChart({ ...defaultProps, options: { series }, visibleSeries: ["Line"] });
 
     expect(getLegendItemContent(wrapper)).toEqual(["Line", "Line"]);
     expect(getHiddenLegendItemContent(wrapper)).toEqual(["Line", "Line"]);
 
-    rerender({ options: { series }, visibleSeries: ["1", "2"], onToggleVisibleSeries });
+    rerender({ ...defaultProps, options: { series }, visibleSeries: ["1", "2"] });
 
     expect(getLegendItemContent(wrapper)).toEqual(["Line", "Line"]);
     expect(getHiddenLegendItemContent(wrapper)).toEqual([]);
@@ -132,7 +99,6 @@ describe("CloudscapeHighcharts: visibility", () => {
   });
 
   test.each(["uncontrolled", "controlled"])("toggles items visibility by clicking on legend, %s", (mode) => {
-    const onToggleVisibleItems = vi.fn();
     const series: Highcharts.SeriesOptionsType[] = [
       {
         type: "pie",
@@ -146,8 +112,8 @@ describe("CloudscapeHighcharts: visibility", () => {
     ];
     const { wrapper } =
       mode === "uncontrolled"
-        ? renderChart({ options: { series } })
-        : renderStatefulChart({ options: { series }, visibleItems: ["A", "B"], onToggleVisibleItems });
+        ? renderChart({ highcharts, options: { series } })
+        : renderStatefulChart({ ...defaultProps, options: { series }, visibleItems: ["A", "B"] });
 
     expect(wrapper.findLegendItems()).toHaveLength(2);
     expect(wrapper.findLegendItems()[1].getElement()).toHaveTextContent("B");
@@ -165,7 +131,6 @@ describe("CloudscapeHighcharts: visibility", () => {
   });
 
   test("changes items visibility from the outside", () => {
-    const onToggleVisibleItems = vi.fn();
     const series: Highcharts.SeriesOptionsType[] = [
       {
         type: "pie",
@@ -177,34 +142,33 @@ describe("CloudscapeHighcharts: visibility", () => {
         showInLegend: true,
       },
     ];
-    const { wrapper, rerender } = renderChart({ options: { series }, visibleItems: null, onToggleVisibleItems });
+    const { wrapper, rerender } = renderChart({ ...defaultProps, options: { series }, visibleItems: null });
 
     expect(getLegendItemContent(wrapper)).toEqual(["A", "B"]);
     expect(getHiddenLegendItemContent(wrapper)).toEqual([]);
 
-    rerender({ options: { series }, visibleItems: ["A", "B"], onToggleVisibleItems });
+    rerender({ ...defaultProps, options: { series }, visibleItems: ["A", "B"] });
 
     expect(getLegendItemContent(wrapper)).toEqual(["A", "B"]);
     expect(getHiddenLegendItemContent(wrapper)).toEqual([]);
 
-    rerender({ options: { series }, visibleItems: ["A"], onToggleVisibleItems });
+    rerender({ ...defaultProps, options: { series }, visibleItems: ["A"] });
 
     expect(getLegendItemContent(wrapper)).toEqual(["A", "B"]);
     expect(getHiddenLegendItemContent(wrapper)).toEqual(["B"]);
 
-    rerender({ options: { series }, visibleItems: ["B"], onToggleVisibleItems });
+    rerender({ ...defaultProps, options: { series }, visibleItems: ["B"] });
 
     expect(getLegendItemContent(wrapper)).toEqual(["A", "B"]);
     expect(getHiddenLegendItemContent(wrapper)).toEqual(["A"]);
 
-    rerender({ options: { series }, visibleItems: [], onToggleVisibleItems });
+    rerender({ ...defaultProps, options: { series }, visibleItems: [] });
 
     expect(getLegendItemContent(wrapper)).toEqual(["A", "B"]);
     expect(getHiddenLegendItemContent(wrapper)).toEqual(["A", "B"]);
   });
 
   test("prefers item id over item name", () => {
-    const onToggleVisibleItems = vi.fn();
     const series: Highcharts.SeriesOptionsType[] = [
       {
         type: "pie",
@@ -216,12 +180,12 @@ describe("CloudscapeHighcharts: visibility", () => {
         showInLegend: true,
       },
     ];
-    const { wrapper, rerender } = renderChart({ options: { series }, visibleItems: ["Segment"], onToggleVisibleItems });
+    const { wrapper, rerender } = renderChart({ ...defaultProps, options: { series }, visibleItems: ["Segment"] });
 
     expect(getLegendItemContent(wrapper)).toEqual(["Segment", "Segment"]);
     expect(getHiddenLegendItemContent(wrapper)).toEqual(["Segment", "Segment"]);
 
-    rerender({ options: { series }, visibleItems: ["1", "2"], onToggleVisibleItems });
+    rerender({ ...defaultProps, options: { series }, visibleItems: ["1", "2"] });
 
     expect(getLegendItemContent(wrapper)).toEqual(["Segment", "Segment"]);
     expect(getHiddenLegendItemContent(wrapper)).toEqual([]);

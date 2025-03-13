@@ -1,37 +1,15 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { render, waitFor } from "@testing-library/react";
-import Highcharts from "highcharts";
+import { waitFor } from "@testing-library/react";
+import highcharts from "highcharts";
 
-import "@cloudscape-design/components/test-utils/dom";
-import { CloudscapeHighcharts, CloudscapeHighchartsProps } from "../../../lib/components/core/chart-core";
-import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
-import createWrapper, { ElementWrapper } from "../../../lib/components/test-utils/dom";
+import { CloudscapeHighchartsWrapper, renderChart } from "./common";
 
-class TestWrapper extends ElementWrapper {
-  findLegendItems = () => this.findAllByClassName("highcharts-legend-item");
-  findLegendItemsWithWarning = () => {
-    const items = this.findAllByClassName("highcharts-legend-item");
-    return items.filter((wrapper) => wrapper.findByClassName(testClasses["legend-item-warning"]));
-  };
-}
-
-function renderChart(props: Partial<CloudscapeHighchartsProps>) {
-  const { rerender } = render(
-    <CloudscapeHighcharts highcharts={Highcharts} className="test-chart" options={{}} {...props} />,
-  );
-  const wrapper = new TestWrapper(createWrapper().findByClassName("test-chart")!.getElement());
-  return {
-    wrapper,
-    rerender: (props: Partial<CloudscapeHighchartsProps>) =>
-      rerender(<CloudscapeHighcharts highcharts={Highcharts} className="test-chart" options={{}} {...props} />),
-  };
-}
-function getLegendItemsContent(wrapper: TestWrapper) {
+function getLegendItemsContent(wrapper: CloudscapeHighchartsWrapper) {
   return wrapper.findLegendItems().map((w) => w.getElement().textContent);
 }
-function getWarningLegendItemsContent(wrapper: TestWrapper) {
+function getWarningLegendItemsContent(wrapper: CloudscapeHighchartsWrapper) {
   return wrapper.findLegendItemsWithWarning().map((w) => w.getElement().textContent);
 }
 
@@ -56,6 +34,7 @@ const pieSeries: Highcharts.SeriesOptionsType[] = [
 describe("CloudscapeHighcharts: legend markers", () => {
   test("renders legend warning for line series", async () => {
     const { wrapper, rerender } = renderChart({
+      highcharts,
       options: { series: lineSeries },
       legendMarkers: { getItemStatus: (id) => (id === "Line series 1" ? "warning" : "normal") },
     });
@@ -66,6 +45,7 @@ describe("CloudscapeHighcharts: legend markers", () => {
     });
 
     rerender({
+      highcharts,
       options: { series: lineSeries },
       legendMarkers: { getItemStatus: (id) => (id === "testid" ? "warning" : "normal") },
     });
@@ -78,6 +58,7 @@ describe("CloudscapeHighcharts: legend markers", () => {
 
   test("renders legend warning for pie segments", async () => {
     const { wrapper, rerender } = renderChart({
+      highcharts,
       options: { series: pieSeries },
       legendMarkers: { getItemStatus: (id) => (id === "P2" ? "warning" : "normal") },
     });
@@ -88,6 +69,7 @@ describe("CloudscapeHighcharts: legend markers", () => {
     });
 
     rerender({
+      highcharts,
       options: { series: pieSeries },
       legendMarkers: { getItemStatus: (id) => (id === "testid" ? "warning" : "normal") },
     });

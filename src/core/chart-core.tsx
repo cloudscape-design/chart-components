@@ -275,6 +275,7 @@ export const CloudscapeHighcharts = forwardRef(
               },
             },
           },
+          borderColor: Styles.seriesBorderColor,
         },
       },
       xAxis: castArray(options.xAxis)?.map((xAxis) => ({

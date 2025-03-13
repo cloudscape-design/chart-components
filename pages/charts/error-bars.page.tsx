@@ -1,12 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import Box from "@cloudscape-design/components/box";
 import Link from "@cloudscape-design/components/link";
 
 import { CartesianChart, CartesianChartProps } from "../../lib/components";
 import { moneyFormatter, numberFormatter } from "../common/formatters";
 import { usePageSettings } from "../common/page-settings";
+import { Page, PageSection } from "../common/templates";
 
 function errorRange(value: number, delta: number) {
   return { low: value - delta, high: value + delta };
@@ -38,11 +38,8 @@ const series: CartesianChartProps.Series[] = [
 export default function () {
   const { highcharts, chartStateProps, settings } = usePageSettings({ more: true });
   return (
-    <Box margin="m">
-      <h1>Error bar: Mixed bar chart</h1>
-      <Box variant="p">This pages demonstrates the use of error bars for columns and line series.</Box>
-
-      <Box padding={{ vertical: "xl" }}>
+    <Page title="Error bars" subtitle="This pages demonstrates the use of error bars for columns and line series.">
+      <PageSection title="Mixed bar chart with error bars">
         <CartesianChart
           highcharts={highcharts}
           {...chartStateProps}
@@ -90,7 +87,7 @@ export default function () {
           }}
           emphasizeBaselineAxis={settings.emphasizeBaselineAxis}
         />
-      </Box>
-    </Box>
+      </PageSection>
+    </Page>
   );
 }

@@ -1,23 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { render, waitFor } from "@testing-library/react";
-import Highcharts from "highcharts";
+import { waitFor } from "@testing-library/react";
+import highcharts from "highcharts";
 
 import "highcharts/modules/no-data-to-display";
-import "@cloudscape-design/components/test-utils/dom";
-import { CloudscapeHighcharts, CloudscapeHighchartsProps } from "../../../lib/components/core/chart-core";
-import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
-import createWrapper, { ElementWrapper } from "../../../lib/components/test-utils/dom";
-
-class TestWrapper extends ElementWrapper {
-  findNoData = () => this.findByClassName(testClasses["no-data"]);
-}
-
-function renderChart(props: Partial<CloudscapeHighchartsProps>, Component = CloudscapeHighcharts) {
-  render(<Component highcharts={Highcharts} className="test-chart" options={{}} {...props} />);
-  return new TestWrapper(createWrapper().findByClassName("test-chart")!.getElement());
-}
+import { renderChart } from "./common";
 
 const series: Highcharts.SeriesOptionsType[] = [{ type: "line", name: "Line series", data: [1, 2, 3] }];
 
@@ -30,7 +18,8 @@ const noDataContent = {
 
 describe("CloudscapeHighcharts: no-data", () => {
   test('does not render no-data when statusType="finished"', () => {
-    const wrapper = renderChart({
+    const { wrapper } = renderChart({
+      highcharts,
       options: { series },
       noData: { statusType: "finished", ...noDataContent },
     });
@@ -39,7 +28,8 @@ describe("CloudscapeHighcharts: no-data", () => {
   });
 
   test('renders no-data loading when statusType="loading"', async () => {
-    const wrapper = renderChart({
+    const { wrapper } = renderChart({
+      highcharts,
       options: { series },
       noData: { statusType: "loading", ...noDataContent },
     });
@@ -52,7 +42,8 @@ describe("CloudscapeHighcharts: no-data", () => {
   });
 
   test('renders no-data loading when statusType="error"', async () => {
-    const wrapper = renderChart({
+    const { wrapper } = renderChart({
+      highcharts,
       options: { series },
       noData: { statusType: "error", ...noDataContent },
     });
@@ -65,7 +56,8 @@ describe("CloudscapeHighcharts: no-data", () => {
   });
 
   test('renders no-data empty when statusType="finished" and no series provided', async () => {
-    const wrapper = renderChart({
+    const { wrapper } = renderChart({
+      highcharts,
       options: { series: [] },
       noData: { statusType: "finished", ...noDataContent },
     });
@@ -78,7 +70,8 @@ describe("CloudscapeHighcharts: no-data", () => {
   });
 
   test('renders no-data no-match when statusType="finished" and no series visible', async () => {
-    const wrapper = renderChart({
+    const { wrapper } = renderChart({
+      highcharts,
       options: { series },
       noData: { statusType: "finished", ...noDataContent },
       visibleSeries: [],
