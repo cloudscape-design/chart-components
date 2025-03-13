@@ -1,9 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { CartesianChart, CartesianChartProps } from "../lib/components";
-import { usePageSettings } from "./common/page-settings";
-import { Page, PageSection } from "./common/templates";
+import { CartesianChart, CartesianChartProps } from "../../lib/components";
+import { usePageSettings } from "../common/page-settings";
+import { Page, PageSection } from "../common/templates";
 
 const series: CartesianChartProps.Series[] = [
   {

@@ -10,7 +10,7 @@ import { ComponentWrapper } from "@cloudscape-design/test-utils-core/dom";
 import "@cloudscape-design/components/test-utils/dom";
 import { CloudscapeHighcharts, CloudscapeHighchartsProps } from "../../../lib/components/core/chart-core";
 import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
-import tooltipTextClasses from "../../../lib/components/internal/components/popover/test-classes/styles.selectors";
+import tooltipTestClasses from "../../../lib/components/internal/components/popover/test-classes/styles.selectors";
 import createWrapper, { ElementWrapper } from "../../../lib/components/test-utils/dom";
 
 class TestWrapper extends ElementWrapper {
@@ -22,9 +22,9 @@ class TestWrapper extends ElementWrapper {
 }
 
 class TooltipTestWrapper extends ComponentWrapper {
-  findHeader = () => this.findByClassName(tooltipTextClasses.header);
-  findBody = () => this.findByClassName(tooltipTextClasses.body);
-  findFooter = () => this.findByClassName(tooltipTextClasses.footer);
+  findHeader = () => this.findByClassName(tooltipTestClasses.header);
+  findBody = () => this.findByClassName(tooltipTestClasses.body);
+  findFooter = () => this.findByClassName(tooltipTestClasses.footer);
 }
 
 function renderChart(props: Partial<CloudscapeHighchartsProps>, Component = CloudscapeHighcharts) {

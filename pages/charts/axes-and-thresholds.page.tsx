@@ -6,11 +6,11 @@ import { range } from "lodash";
 
 import ColumnLayout from "@cloudscape-design/components/column-layout";
 
-import { CartesianChart } from "../lib/components";
-import { dateFormatter } from "./common/formatters";
-import { PageSettingsDefaults, usePageSettings } from "./common/page-settings";
-import { Page, PageSection } from "./common/templates";
-import pseudoRandom from "./utils/pseudo-random";
+import { CartesianChart } from "../../lib/components";
+import { dateFormatter } from "../common/formatters";
+import { PageSettingsDefaults, usePageSettings } from "../common/page-settings";
+import { Page, PageSection } from "../common/templates";
+import pseudoRandom from "../utils/pseudo-random";
 
 export default function () {
   return (

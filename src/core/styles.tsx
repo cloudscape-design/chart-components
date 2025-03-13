@@ -79,6 +79,8 @@ export const legendItemCss: Highcharts.CSSObject = {
 
 export const legendBackgroundColor = colorBackgroundLayoutMain;
 
+export const legendSymbolPadding = 8;
+
 export const chartPlotCss: Highcharts.CSSObject = {
   font: fontFamilyBase,
   color: colorTextBodyDefault,
