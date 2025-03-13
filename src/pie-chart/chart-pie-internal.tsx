@@ -152,19 +152,24 @@ export const InternalPieChart = forwardRef(
           dataLabels: {
             position: "left",
             formatter() {
-              const description = props.segment?.description?.({
+              const segmentProps = {
                 totalValue: this.total ?? 0,
                 segmentValue: this.y ?? 0,
                 segmentId: this.options.id,
                 segmentName: this.options.name ?? "",
-              });
-              return renderToStaticMarkup(
-                <text>
-                  <tspan>{this.name}</tspan>
-                  <br />
-                  {description ? <tspan style={Styles.segmentDescriptionCss}>{description}</tspan> : null}
-                </text>,
-              );
+              };
+              const title = props.segment?.title === null ? null : (props.segment?.title?.(segmentProps) ?? this.name);
+              const description = props.segment?.description?.(segmentProps);
+              if (title || description) {
+                return renderToStaticMarkup(
+                  <text>
+                    {title ? <tspan>{this.name}</tspan> : null}
+                    <br />
+                    {description ? <tspan style={Styles.segmentDescriptionCss}>{description}</tspan> : null}
+                  </text>,
+                );
+              }
+              return null;
             },
             useHTML: false,
             ...props.options.plotOptions?.pie?.dataLabels,

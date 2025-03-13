@@ -43,7 +43,12 @@ const permutationsForColors = [
 
 export default function MarkerPermutations() {
   return (
-    <Page title="Marker permutations">
+    <Page
+      title="Marker permutations"
+      subtitle="This page lists all markers that we currently support. Each marker can have any color,
+      and can be combined with a warning indicator. The markers are deliberately made similar to Highcharts
+      markers, as we cannot override Highcharts markers in the legend."
+    >
       <ScreenshotArea>
         <SpaceBetween size="m">
           {permutationsForColors.map((permutations, index) => (

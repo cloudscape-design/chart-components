@@ -30,7 +30,7 @@ describe("CloudscapeHighcharts: no-data", () => {
   test('renders no-data loading when statusType="loading"', async () => {
     const { wrapper } = renderChart({
       highcharts,
-      options: { series },
+      options: { series: [] },
       noData: { statusType: "loading", ...noDataContent },
     });
 
@@ -41,10 +41,10 @@ describe("CloudscapeHighcharts: no-data", () => {
     });
   });
 
-  test('renders no-data loading when statusType="error"', async () => {
+  test('renders no-data error when statusType="error"', async () => {
     const { wrapper } = renderChart({
       highcharts,
-      options: { series },
+      options: { series: [] },
       noData: { statusType: "error", ...noDataContent },
     });
 
@@ -68,6 +68,23 @@ describe("CloudscapeHighcharts: no-data", () => {
       expect(wrapper.findLiveRegion()).toBe(null);
     });
   });
+
+  test.each(["line", "pie"] as const)(
+    'renders no-data empty when statusType="finished" and no series data provided, series type = %s',
+    async (seriesType) => {
+      const { wrapper } = renderChart({
+        highcharts,
+        options: { series: [{ type: seriesType, name: "Empty data series", data: [] }] },
+        noData: { statusType: "finished", ...noDataContent },
+      });
+
+      await waitFor(() => {
+        expect(wrapper.findNoData()).not.toBe(null);
+        expect(wrapper.findNoData()!.getElement().textContent).toBe("no-data: empty");
+        expect(wrapper.findLiveRegion()).toBe(null);
+      });
+    },
+  );
 
   test('renders no-data no-match when statusType="finished" and no series visible', async () => {
     const { wrapper } = renderChart({

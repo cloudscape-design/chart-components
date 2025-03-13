@@ -3,8 +3,8 @@
 
 import type Highcharts from "highcharts";
 
-import { CloudscapeHighcharts } from "../../lib/components/core/chart-core";
-import { usePageSettings } from "../common/page-settings";
+import { CloudscapeHighcharts } from "../../../lib/components/core/chart-core";
+import { usePageSettings } from "../../common/page-settings";
 
 const series: Highcharts.SeriesOptionsType[] = [
   {

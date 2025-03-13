@@ -4,9 +4,9 @@
 import Box from "@cloudscape-design/components/box";
 import Link from "@cloudscape-design/components/link";
 
-import { PieChart, PieChartProps } from "../../lib/components";
-import { usePageSettings } from "../common/page-settings";
-import { PageSection } from "../common/templates";
+import { PieChart, PieChartProps } from "../../../lib/components";
+import { usePageSettings } from "../../common/page-settings";
+import { PageSection } from "../../common/templates";
 
 const series: PieChartProps.Series = {
   name: "Resource count",
