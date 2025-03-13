@@ -3,13 +3,13 @@
 
 import { useMemo } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { useUniqueId } from "@dnd-kit/utilities";
 import type Highcharts from "highcharts";
 
 import LiveRegion from "@cloudscape-design/components/live-region";
 
 import Portal from "../internal/components/portal";
 import AsyncStore, { useSelector } from "../internal/utils/async-store";
+import { useUniqueId } from "../internal/utils/unique-id";
 import { ChartNoDataProps } from "./interfaces-core";
 import * as Styles from "./styles";
 
@@ -88,7 +88,9 @@ class NoDataStore extends AsyncStore<{ container: null | Element; noMatch: boole
         // We use timeout to make sure the no-data container is rendered.
         setTimeout(() => {
           if (this.highcharts && event.target instanceof this.highcharts.Chart) {
-            const noDataContainer = event.target.container.querySelector(`#${this.noDataId}`) as null | HTMLElement;
+            const noDataContainer = event.target.container.querySelector(
+              `[id="${this.noDataId}"]`,
+            ) as null | HTMLElement;
             if (noDataContainer) {
               noDataContainer.style.width = `${event.target.plotWidth}px`;
               noDataContainer.style.height = `${event.target.plotHeight}px`;

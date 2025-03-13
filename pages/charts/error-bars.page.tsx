@@ -4,9 +4,9 @@
 import Box from "@cloudscape-design/components/box";
 import Link from "@cloudscape-design/components/link";
 
-import { CartesianChart, CartesianChartProps } from "../lib/components";
-import { moneyFormatter, numberFormatter } from "./common/formatters";
-import { usePageSettings } from "./common/page-settings";
+import { CartesianChart, CartesianChartProps } from "../../lib/components";
+import { moneyFormatter, numberFormatter } from "../common/formatters";
+import { usePageSettings } from "../common/page-settings";
 
 function errorRange(value: number, delta: number) {
   return { low: value - delta, high: value + delta };

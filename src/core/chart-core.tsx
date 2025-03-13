@@ -77,7 +77,7 @@ export const CloudscapeHighcharts = forwardRef(
     // Provides custom legend markers, when `props.legendMarkers` is present.
     // The custom markers ensure the markers are aligned between Cloudscape tooltip and Highcharts legend,
     // and offer additional customization such as warning states.
-    const legendMarkers = useLegendMarkers(highcharts, () => chartRef.current!, legendMarkersProps);
+    const legendMarkers = useLegendMarkers(() => chartRef.current!, legendMarkersProps);
 
     // IDs or visible series. Unless provided explicitly, taking all series IDs by default.
     // When series ID is not given, series name is used instead.
@@ -148,6 +148,7 @@ export const CloudscapeHighcharts = forwardRef(
         itemStyle: options.legend?.itemStyle ?? Styles.legendItemCss,
         backgroundColor: options.legend?.backgroundColor ?? Styles.legendBackgroundColor,
         ...(legendLabelFormatter ? { labelFormatter: legendLabelFormatter } : {}),
+        symbolPadding: options.legend?.symbolPadding ?? Styles.legendSymbolPadding,
         // We override legend events to trigger visibility callbacks if controllable series/items visibility API is used.
         // If the event callbacks are present in the given options - we execute them, too.
         events: {

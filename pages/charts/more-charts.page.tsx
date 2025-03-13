@@ -3,12 +3,12 @@
 
 import ColumnLayout from "@cloudscape-design/components/column-layout";
 
-import { PageSettingsDefaults } from "./common/page-settings";
-import { Page, PageSection } from "./common/templates";
-import { ExampleAreaRangeSimple } from "./more-charts/example-area-range-simple";
-import { ExampleHeatmapSimple } from "./more-charts/example-heatmap-simple";
-import { ExampleScatterSimple } from "./more-charts/example-scatter-simple";
-import { ExampleTreemapSimple } from "./more-charts/example-treemap-simple";
+import { PageSettingsDefaults } from "../common/page-settings";
+import { Page, PageSection } from "../common/templates";
+import { ExampleAreaRangeSimple } from "../more-charts/example-area-range-simple";
+import { ExampleHeatmapSimple } from "../more-charts/example-heatmap-simple";
+import { ExampleScatterSimple } from "../more-charts/example-scatter-simple";
+import { ExampleTreemapSimple } from "../more-charts/example-treemap-simple";
 
 export default function () {
   return (

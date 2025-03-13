@@ -7,11 +7,11 @@ import FormField from "@cloudscape-design/components/form-field";
 import Input from "@cloudscape-design/components/input";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
-import { CartesianChart, CartesianChartProps, PieChart, PieChartProps } from "../lib/components";
-import { MeasureHeight } from "./common/measure-height";
-import { usePageSettings } from "./common/page-settings";
-import { Page, PageSection } from "./common/templates";
-import pseudoRandom from "./utils/pseudo-random";
+import { CartesianChart, CartesianChartProps, PieChart, PieChartProps } from "../../lib/components";
+import { MeasureHeight } from "../common/measure-height";
+import { usePageSettings } from "../common/page-settings";
+import { Page, PageSection } from "../common/templates";
+import pseudoRandom from "../utils/pseudo-random";
 
 const pieSeries: PieChartProps.Series = {
   name: "Units",
