@@ -46,7 +46,18 @@ export default function App() {
 function Page({ pageId }: { pageId: string }) {
   const Component = pagesMap[pageId];
   return (
-    <Suspense fallback={<Spinner />}>{Component ? <Component /> : <Alert type="error">Page not found</Alert>}</Suspense>
+    <Suspense fallback={<Spinner />}>
+      {Component ? (
+        <Component />
+      ) : (
+        <AppLayout
+          headerSelector="#h"
+          navigationHide={true}
+          toolsHide={true}
+          content={<Alert type="error">Page not found</Alert>}
+        />
+      )}
+    </Suspense>
   );
 }
 

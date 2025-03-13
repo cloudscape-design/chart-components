@@ -36,7 +36,11 @@ export function Page({
       content={
         <Box>
           <h1>{title}</h1>
-          {subtitle && <Box variant="p">{subtitle}</Box>}
+          {subtitle && (
+            <Box variant="p" margin={{ bottom: "xs" }}>
+              {subtitle}
+            </Box>
+          )}
           <Box>{children}</Box>
         </Box>
       }
@@ -55,8 +59,12 @@ export function PageSection({
 }) {
   return (
     <Box margin={{ vertical: "m" }}>
-      {title && <h2>{title}</h2>}
-      {subtitle && <Box variant="p">{subtitle}</Box>}
+      {title && <Box variant="h2">{title}</Box>}
+      {subtitle && (
+        <Box variant={typeof subtitle === "string" ? "p" : "div"} color="text-body-secondary">
+          {subtitle}
+        </Box>
+      )}
 
       <Box padding={{ vertical: "m" }}>{children}</Box>
     </Box>

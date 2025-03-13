@@ -78,7 +78,12 @@ class NoDataStore extends AsyncStore<{ container: null | Element; noMatch: boole
 
   public onChartRender: Highcharts.ChartRenderCallbackFunction = (event) => {
     if (this.highcharts && event.target instanceof this.highcharts.Chart) {
-      const allSeries = event.target.series;
+      const allSeries = event.target.series.filter((s) => {
+        if (s.type === "pie") {
+          return s.data && s.data.filter((d) => d.y !== null).length > 0;
+        }
+        return s.data && s.data.length > 0;
+      });
       const visibleSeries = allSeries.filter(
         (s) => s.visible && (s.type !== "pie" || s.data.some((d) => d.y !== null && d.visible)),
       );
@@ -88,7 +93,7 @@ class NoDataStore extends AsyncStore<{ container: null | Element; noMatch: boole
         // We use timeout to make sure the no-data container is rendered.
         setTimeout(() => {
           if (this.highcharts && event.target instanceof this.highcharts.Chart) {
-            const noDataContainer = event.target.container.querySelector(
+            const noDataContainer = event.target.container?.querySelector(
               `[id="${this.noDataId}"]`,
             ) as null | HTMLElement;
             if (noDataContainer) {

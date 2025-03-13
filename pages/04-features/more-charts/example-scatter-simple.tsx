@@ -3,11 +3,11 @@
 
 import Alert from "@cloudscape-design/components/alert";
 
-import { CartesianChartProps } from "../../lib/components";
-import { InternalCartesianChart } from "../../lib/components/cartesian-chart/chart-cartesian-internal";
-import { dateFormatter } from "../common/formatters";
-import { usePageSettings } from "../common/page-settings";
-import pseudoRandom from "../utils/pseudo-random";
+import { CartesianChartProps } from "../../../lib/components";
+import { InternalCartesianChart } from "../../../lib/components/cartesian-chart/chart-cartesian-internal";
+import { dateFormatter } from "../../common/formatters";
+import { usePageSettings } from "../../common/page-settings";
+import pseudoRandom from "../../utils/pseudo-random";
 
 function randomInt(min: number, max: number) {
   return min + Math.floor(pseudoRandom() * (max - min));
