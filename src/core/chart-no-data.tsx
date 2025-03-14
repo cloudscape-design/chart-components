@@ -3,6 +3,7 @@
 
 import { useMemo } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import clsx from "clsx";
 import type Highcharts from "highcharts";
 
 import LiveRegion from "@cloudscape-design/components/live-region";
@@ -13,6 +14,7 @@ import { useUniqueId } from "../internal/utils/unique-id";
 import { ChartNoDataProps } from "./interfaces-core";
 import * as Styles from "./styles";
 
+import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
 
 // The custom no-data implementation relies on the Highcharts noData module.
@@ -61,7 +63,7 @@ export function ChartNoData({
   }
   return (
     <Portal container={state.container}>
-      <div className={testClasses["no-data"]}>{content}</div>
+      <div className={clsx(testClasses["no-data"], styles["no-data"])}>{content}</div>
     </Portal>
   );
 }
