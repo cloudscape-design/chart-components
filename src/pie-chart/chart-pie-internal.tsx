@@ -9,6 +9,7 @@ import { useControllableState } from "@cloudscape-design/component-toolkit";
 
 import { CloudscapeHighcharts } from "../core/chart-core";
 import { LegendTooltipProps } from "../core/interfaces-core";
+import { getOptionsId } from "../core/utils";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { fireNonCancelableEvent, NonCancelableEventHandler } from "../internal/events";
 import { useChartTooltipPie } from "./chart-tooltip-pie";
@@ -51,7 +52,7 @@ export const InternalPieChart = forwardRef(
 
     // When visibleSegments and onToggleVisibleSegment are provided - the segments visibility can be controlled from the outside.
     // Otherwise - the component handles segments visibility using its internal state.
-    const [visibleSegments, setVisibleSegments] = useControllableState(
+    const [visibleSegmentsState, setVisibleSegments] = useControllableState(
       props.visibleSegments,
       props.onToggleVisibleSegment,
       null,
@@ -62,6 +63,19 @@ export const InternalPieChart = forwardRef(
       },
       (value, handler) => fireNonCancelableEvent(handler, { visibleSegments: value ?? [] }),
     );
+    const allSegmentIds = props.options.series.flatMap((s) => {
+      const itemIds: string[] = [];
+      if ("data" in s && Array.isArray(s.data)) {
+        for (const dataItem of s.data) {
+          if (dataItem && typeof dataItem === "object" && "id" in dataItem && "name" in dataItem) {
+            itemIds.push(getOptionsId(dataItem));
+          }
+        }
+      }
+      return itemIds;
+    });
+    const visibleSegments = visibleSegmentsState ?? allSegmentIds;
+    const hiddenSegments = allSegmentIds.filter((id) => !visibleSegments.includes(id));
 
     const series: Highcharts.SeriesOptionsRegistry["SeriesPieOptions"][] = [];
     for (const s of props.options.series) {
@@ -77,16 +91,7 @@ export const InternalPieChart = forwardRef(
       // The clear filter API allows to programmatically make all segments visible, even when the controllable
       // visibility API is not used. This can be used for a custom clear-filter action of the no-match state or elsewhere.
       clearFilter() {
-        setVisibleSegments(
-          series.flatMap((series) =>
-            (series.data ?? []).map((segment) => {
-              if (segment && typeof segment === "object" && !Array.isArray(segment)) {
-                return segment.id ?? segment.name ?? "";
-              }
-              return "";
-            }),
-          ),
-        );
+        setVisibleSegments(allSegmentIds);
       },
     }));
 
@@ -194,8 +199,12 @@ export const InternalPieChart = forwardRef(
         legendTooltip={props.legendTooltip}
         noData={props.noData}
         legendMarkers={{}}
-        visibleItems={visibleSegments}
-        onToggleVisibleItems={setVisibleSegments}
+        hiddenItems={hiddenSegments}
+        onLegendItemClick={(itemId, visible) => {
+          const nextState = visible ? [...visibleSegments, itemId] : visibleSegments.filter((id) => id !== itemId);
+          setVisibleSegments(nextState);
+          return false;
+        }}
         className={testClasses.root}
         callback={(chart) => {
           chartRef.current = chart;

@@ -8,6 +8,7 @@ import { useControllableState } from "@cloudscape-design/component-toolkit";
 
 import { CloudscapeHighcharts } from "../core/chart-core";
 import { LegendTooltipProps } from "../core/interfaces-core";
+import { getOptionsId } from "../core/utils";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { ChartSeriesMarkerStatus } from "../internal/components/series-marker";
 import { fireNonCancelableEvent, NonCancelableEventHandler } from "../internal/events";
@@ -19,7 +20,7 @@ import { getDataExtremes } from "./utils";
 
 import testClasses from "./test-classes/styles.css.js";
 
-const BaselineId = "awsui-baseline-id";
+const BASELINE_PLOT_LINE_ID = "awsui-baseline-id";
 
 interface InternalCartesianChartProps {
   highcharts: null | typeof Highcharts;
@@ -56,7 +57,7 @@ export const InternalCartesianChart = forwardRef(
 
     // When visibleSeries and onToggleVisibleSeries are provided - the series visibility can be controlled from the outside.
     // Otherwise - the component handles series visibility using its internal state.
-    const [visibleSeries, setVisibleSeries] = useControllableState(
+    const [visibleSeriesState, setVisibleSeries] = useControllableState(
       props.visibleSeries,
       props.onToggleVisibleSeries,
       null,
@@ -67,51 +68,65 @@ export const InternalCartesianChart = forwardRef(
       },
       (value, handler) => fireNonCancelableEvent(handler, { visibleSeries: value ?? [] }),
     );
+    const allSeriesIds = props.options.series.map((s) => getOptionsId(s));
+    const visibleSeries = visibleSeriesState ?? allSeriesIds;
+    const hiddenSeries = allSeriesIds.filter((id) => !visibleSeries.includes(id));
+
+    // Threshold series are converted to empty lines series to be visible in the legend.
+    const series: Highcharts.SeriesOptionsType[] = props.options.series.map((s) => {
+      // The awsui-threshold series are added as a combination of plot lines and empty series.
+      // This makes them available in the chart's legend.
+      if (s.type === "awsui-x-threshold" || s.type === "awsui-y-threshold") {
+        return {
+          type: "line",
+          id: s.id,
+          name: s.name,
+          color: s.color ?? Styles.thresholdSeriesDefaultColor,
+          data: [],
+          ...Styles.thresholdSeriesOptions,
+        };
+      }
+      return { ...s };
+    });
+
+    // Threshold series are added to the plot as x- or y-axis plot lines.
+    const xPlotLines: Highcharts.XAxisPlotLinesOptions[] = [];
+    const yPlotLines: Highcharts.YAxisPlotLinesOptions[] = [];
+    for (const s of props.options.series) {
+      const seriesId = getOptionsId(s);
+      if (s.type === "awsui-x-threshold" && visibleSeries.includes(seriesId)) {
+        xPlotLines.push({
+          id: seriesId,
+          value: s.value,
+          color: s.color ?? Styles.thresholdSeriesDefaultColor,
+          ...Styles.thresholdPlotLineOptions,
+        });
+      }
+      if (s.type === "awsui-y-threshold" && visibleSeries.includes(seriesId)) {
+        yPlotLines.push({
+          id: seriesId,
+          value: s.value,
+          color: s.color ?? Styles.thresholdSeriesDefaultColor,
+          ...Styles.thresholdPlotLineOptions,
+        });
+      }
+    }
+
+    // This makes the baseline better prominent in the plot.
+    if (props.emphasizeBaselineAxis) {
+      yPlotLines.push({ value: 0, ...Styles.chatPlotBaselineOptions, id: BASELINE_PLOT_LINE_ID });
+    }
 
     useImperativeHandle(ref, () => ({
       // The clear filter API allows to programmatically make all series visible, even when the controllable
       // visibility API is not used. This can be used for a custom clear-filter action of the no-match state or elsewhere.
       clearFilter() {
-        setVisibleSeries(props.options.series.map((s) => s.id ?? s.name ?? ""));
+        setVisibleSeries(allSeriesIds);
       },
     }));
 
     // The below code transforms Cloudscape-extended series into Highcharts series and plot lines.
-    const { xAxis, yAxis, series: externalSeries, ...options } = props.options;
-    const series: Highcharts.SeriesOptionsType[] = [];
-    const xAxisPlotLines: Highcharts.XAxisPlotLinesOptions[] = [];
-    const addXPlotLine = (plotLine: Highcharts.XAxisPlotLinesOptions) => {
-      if (!visibleSeries || !plotLine.id || visibleSeries.includes(plotLine.id)) {
-        xAxisPlotLines.push(plotLine);
-      }
-    };
-    const yAxisPlotLines: Highcharts.YAxisPlotLinesOptions[] = [];
-    const addYPlotLine = (plotLine: Highcharts.YAxisPlotLinesOptions) => {
-      if (!visibleSeries || !plotLine.id || visibleSeries.includes(plotLine.id)) {
-        yAxisPlotLines.push(plotLine);
-      }
-    };
-
-    // The awsui-threshold series are added as a combination of plot lines and empty series.
-    // This makes them available in the chart's legend.
-    for (const s of externalSeries) {
-      const commonThresholdProps: Highcharts.SeriesLineOptions = {
-        type: "line",
-        id: s.id,
-        name: s.name,
-        data: [],
-        custom: { isThreshold: true },
-      };
-      if (s.type === "awsui-x-threshold") {
-        series.push({ ...Styles.thresholdSeriesOptions({ color: s.color }), ...commonThresholdProps });
-        addXPlotLine({ ...Styles.thresholdPlotLineOptions({ color: s.color }), id: s.id ?? s.name, value: s.value });
-      } else if (s.type === "awsui-y-threshold") {
-        series.push({ ...Styles.thresholdSeriesOptions({ color: s.color }), ...commonThresholdProps });
-        addYPlotLine({ ...Styles.thresholdPlotLineOptions({ color: s.color }), id: s.id ?? s.name, value: s.value });
-      } else {
-        series.push({ ...s });
-      }
-    }
+    const { xAxis, yAxis, ...options } = props.options;
 
     // For scatter series type we enable markers by default, unless explicit markers settings provided.
     // Without markers, the scatter series are not visible by default.
@@ -119,11 +134,6 @@ export const InternalCartesianChart = forwardRef(
       if (s.type === "scatter" && !s.marker) {
         s.marker = { enabled: true };
       }
-    }
-
-    // This makes the baseline better prominent in the plot.
-    if (props.emphasizeBaselineAxis) {
-      yAxisPlotLines.push({ value: 0, ...Styles.chatPlotBaselineOptions, id: BaselineId });
     }
 
     // The Highcharts options takes all provided Highcharts options and custom properties and merges them together, so that
@@ -137,23 +147,7 @@ export const InternalCartesianChart = forwardRef(
           render(event) {
             if (highcharts && event.target instanceof highcharts.Chart) {
               (event.target as any).colorCounter = series.length;
-
-              for (const s of event.target.series) {
-                if (s.type === "column" && s.data.length === 1) {
-                  const id = s.data[0].y!.toString();
-                  if (!s.visible) {
-                    event.target.xAxis[0].removePlotLine(id);
-                  } else {
-                    event.target.xAxis[0].addPlotLine({
-                      id,
-                      value: s.data[0].y!,
-                      ...Styles.thresholdPlotLineOptions({}),
-                    });
-                  }
-                }
-              }
             }
-
             options.chart?.events?.render?.call(this, event);
           },
         },
@@ -164,7 +158,7 @@ export const InternalCartesianChart = forwardRef(
         return {
           ...highchartsProps,
           title: { text: title },
-          plotLines: [...xAxisPlotLines, ...(highchartsProps.plotLines ?? [])],
+          plotLines: [...xPlotLines, ...(highchartsProps.plotLines ?? [])],
           labels: {
             // We use custom formatters instead of Highcharts defaults to ensure consistent formatting
             // between x-axis ticks and tooltip header.
@@ -181,7 +175,7 @@ export const InternalCartesianChart = forwardRef(
         return {
           ...highchartsProps,
           title: { text: title },
-          plotLines: [...yAxisPlotLines, ...(highchartsProps.plotLines ?? [])],
+          plotLines: [...yPlotLines, ...(highchartsProps.plotLines ?? [])],
           labels: {
             // We use custom formatters instead of Highcharts defaults to ensure consistent formatting
             // between y-axis ticks and tooltip series values.
@@ -203,8 +197,12 @@ export const InternalCartesianChart = forwardRef(
         legendTooltip={props.legendTooltip}
         noData={props.noData}
         legendMarkers={{ getItemStatus: props.series?.getItemStatus }}
-        visibleSeries={visibleSeries}
-        onToggleVisibleSeries={setVisibleSeries}
+        hiddenSeries={hiddenSeries}
+        onLegendSeriesClick={(seriesId, visible) => {
+          const nextState = visible ? [...visibleSeries, seriesId] : visibleSeries.filter((id) => id !== seriesId);
+          setVisibleSeries(nextState);
+          return false;
+        }}
         className={testClasses.root}
         callback={(chart) => {
           chartRef.current = chart;

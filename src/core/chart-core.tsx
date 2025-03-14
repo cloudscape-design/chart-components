@@ -16,7 +16,7 @@ import { ChartNoData, useNoData } from "./chart-no-data";
 import { ChartTooltip, useChartTooltip } from "./chart-tooltip";
 import { ChartNoDataProps, LegendMarkersProps, LegendTooltipProps, TooltipProps } from "./interfaces-core";
 import * as Styles from "./styles";
-import { getSeriesToIdMap } from "./utils";
+import { getPointId, getSeriesId } from "./utils";
 
 export interface CloudscapeHighchartsProps {
   highcharts: null | typeof Highcharts;
@@ -27,10 +27,10 @@ export interface CloudscapeHighchartsProps {
   legendMarkers?: LegendMarkersProps;
   fallback?: React.ReactNode;
   callback?: (chart: Highcharts.Chart) => void;
-  visibleSeries?: null | string[];
-  onToggleVisibleSeries?: (nextVisibleSeries: string[]) => void;
-  visibleItems?: null | string[];
-  onToggleVisibleItems?: (nextVisibleItems: string[]) => void;
+  hiddenSeries?: string[];
+  onLegendSeriesClick?: (seriesId: string, visible: boolean) => void | boolean;
+  hiddenItems?: string[];
+  onLegendItemClick?: (itemId: string, visible: boolean) => void | boolean;
   className?: string;
 }
 
@@ -47,10 +47,10 @@ export function CloudscapeHighcharts({
   legendMarkers: legendMarkersProps,
   fallback = <Spinner />,
   callback,
-  visibleSeries: visibleSeriesExternal,
-  onToggleVisibleSeries,
-  visibleItems: visibleItemsExternal,
-  onToggleVisibleItems,
+  hiddenSeries,
+  onLegendSeriesClick,
+  hiddenItems,
+  onLegendItemClick,
   className,
   ...rest
 }: CloudscapeHighchartsProps) {
@@ -81,50 +81,31 @@ export function CloudscapeHighcharts({
   // and offer additional customization such as warning states.
   const legendMarkers = useLegendMarkers(getChart, legendMarkersProps);
 
-  // IDs or visible series. Unless provided explicitly, taking all series IDs by default.
-  // When series ID is not given, series name is used instead.
-  const visibleSeries = visibleSeriesExternal ?? (() => (options.series ?? []).map((s) => s.id ?? s.name ?? ""))();
-
-  // IDs or visible series items. Unless provided explicitly, taking all items IDs by default.
-  // When item ID is not given, item name is used instead.
-  const visibleItems =
-    visibleItemsExternal ??
-    (() => {
-      const allItems = (options.series ?? []).flatMap((s) => {
-        const itemIds: string[] = [];
-        if ("data" in s && Array.isArray(s.data)) {
-          for (const dataItem of s.data) {
-            if (dataItem && typeof dataItem === "object") {
-              const id = "id" in dataItem && dataItem.id ? dataItem.id : undefined;
-              const name = "name" in dataItem && dataItem.name ? dataItem.name : undefined;
-              itemIds.push(id ?? name ?? "");
-            }
-          }
-        }
-        return itemIds;
-      });
-      return allItems;
-    })();
-
   // When series or items visibility change, we call setVisible Highcharts method on series and/or items
   // for the change to take an effect.
-  const visibleSeriesIndex = visibleSeries.join("::");
-  const visibleItemsIndex = visibleItems.join("::");
+  const hiddenSeriesIndex = hiddenSeries ? hiddenSeries.join("::") : null;
   useEffect(() => {
-    if (chartRef.current) {
-      const visibleSeries = new Set(visibleSeriesIndex.split("::").filter(Boolean));
-      const visibleItems = new Set(visibleItemsIndex.split("::").filter(Boolean));
-      const mapping = getSeriesToIdMap(chartRef.current.series);
-      for (const [seriesId, { series, data }] of mapping) {
-        series.setVisible(visibleSeries.has(seriesId));
-        for (const [itemId, item] of data) {
-          if ("setVisible" in item) {
-            item.setVisible(visibleItems.has(itemId));
+    if (chartRef.current && hiddenSeriesIndex !== null) {
+      const hiddenSeriesIds = new Set(hiddenSeriesIndex.split("::").filter(Boolean));
+      for (const series of chartRef.current.series) {
+        series.setVisible(!hiddenSeriesIds.has(getSeriesId(series)));
+      }
+    }
+  }, [chartRef, hiddenSeriesIndex]);
+
+  const hiddenItemsIndex = hiddenItems ? hiddenItems.join("::") : null;
+  useEffect(() => {
+    if (chartRef.current && hiddenItemsIndex !== null) {
+      const hiddenItemsIds = new Set(hiddenItemsIndex.split("::").filter(Boolean));
+      for (const series of chartRef.current.series) {
+        for (const point of series.data) {
+          if (typeof point.setVisible === "function") {
+            point.setVisible(!hiddenItemsIds.has(getPointId(point)));
           }
         }
       }
     }
-  }, [chartRef, options.series, visibleSeriesIndex, visibleItemsIndex]);
+  }, [chartRef, hiddenItemsIndex]);
 
   // The Highcharts options takes all provided Highcharts options and custom properties and merges them together, so that
   // the Cloudscape features and custom Highcharts extensions can co-exist.
@@ -139,6 +120,47 @@ export function CloudscapeHighcharts({
     title: { text: "", ...options.title },
     // Using default Cloudscape colors unless explicit colors are given.
     colors: options.colors ?? Styles.colors,
+    chart: {
+      ...options.chart,
+      displayErrors: options.chart?.displayErrors ?? isDevelopment,
+      style: options.chart?.style ?? Styles.chartPlotCss,
+      backgroundColor: options.chart?.backgroundColor ?? Styles.chartPlotBackgroundColor,
+      // We override chart events to add custom noData and tooltip behaviors.
+      // If the event callbacks are present in the given options - we execute them, too.
+      events: {
+        ...options.chart?.events,
+        load(event) {
+          // We set series and items visibility in the load event same as we do in the use-effect
+          // to make sure the initial render with controllable visibility is done correctly.
+          const hiddenSeriesIds = new Set(hiddenSeries);
+          const hiddenPointIds = new Set(hiddenItems);
+          for (const series of this.series) {
+            series.setVisible(!hiddenSeriesIds.has(getSeriesId(series)));
+            for (const point of series.data) {
+              if (typeof point.setVisible === "function") {
+                point.setVisible(!hiddenPointIds.has(getPointId(point)));
+              }
+            }
+          }
+          return options.chart?.events?.load?.call(this, event);
+        },
+        render(event) {
+          if (noDataProps) {
+            noData.options.chart?.events?.render?.call(this, event);
+          }
+          if (legendTooltipProps) {
+            legendTooltip.options.chart?.events?.render?.call(this, event);
+          }
+          return options.chart?.events?.render?.call(this, event);
+        },
+        click(event) {
+          if (tooltipProps) {
+            tooltip.options.chart?.events?.click?.call(this, event);
+          }
+          return options.chart?.events?.click?.call(this, event);
+        },
+      },
+    },
     series: options.series,
     legend: {
       ...options.legend,
@@ -152,38 +174,21 @@ export function CloudscapeHighcharts({
       events: {
         ...options.legend?.events,
         itemClick(event) {
-          const result = options.legend?.events?.itemClick?.call(this, event) as any;
-          if (result === false) {
-            return;
-          }
-
           // Handle series visibility.
-          if (visibleSeriesExternal !== undefined && highcharts && event.legendItem instanceof highcharts.Series) {
-            const seriesId = event.legendItem.userOptions?.id ?? event.legendItem.userOptions.name;
-            const visible = event.legendItem.visible;
-            if (seriesId) {
-              const nextVisible = !visible;
-              const nextVisibleSeries = nextVisible
-                ? [...visibleSeries, seriesId]
-                : visibleSeries.filter((s) => s !== seriesId);
-              onToggleVisibleSeries?.(nextVisibleSeries);
-              return false;
-            }
+          if (highcharts && event.legendItem instanceof highcharts.Series) {
+            const seriesId = event.legendItem.userOptions?.id ?? event.legendItem.userOptions.name ?? "";
+            const nextVisible = !event.legendItem.visible;
+            return onLegendSeriesClick?.(seriesId, nextVisible);
           }
 
           // Handle items visibility (e.g. pie segments or treemap values).
-          if (visibleItemsExternal !== undefined && highcharts && event.legendItem instanceof highcharts.Point) {
-            const itemId = event.legendItem.options?.id ?? event.legendItem.options.name;
-            const visible = event.legendItem.visible;
-            if (itemId) {
-              const nextVisible = !visible;
-              const nextVisibleItems = nextVisible
-                ? [...visibleItems, itemId]
-                : visibleItems.filter((s) => s !== itemId);
-              onToggleVisibleItems?.(nextVisibleItems);
-              return false;
-            }
+          if (highcharts && event.legendItem instanceof highcharts.Point) {
+            const itemId = event.legendItem.options?.id ?? event.legendItem.options.name ?? "";
+            const nextVisible = !event.legendItem.visible;
+            return onLegendItemClick?.(itemId, nextVisible);
           }
+
+          return options.legend?.events?.itemClick?.call(this, event);
         },
       },
     },
@@ -200,45 +205,6 @@ export function CloudscapeHighcharts({
         focusBorder: {
           style: Styles.focusBorderCss,
           ...options.accessibility?.keyboardNavigation?.focusBorder,
-        },
-      },
-    },
-    chart: {
-      ...options.chart,
-      displayErrors: options.chart?.displayErrors ?? isDevelopment,
-      style: options.chart?.style ?? Styles.chartPlotCss,
-      backgroundColor: options.chart?.backgroundColor ?? Styles.chartPlotBackgroundColor,
-      // We override chart events to add custom noData and tooltip behaviors.
-      // If the event callbacks are present in the given options - we execute them, too.
-      events: {
-        ...options.chart?.events,
-        load() {
-          const visibleSeries = new Set(visibleSeriesIndex.split("::").filter(Boolean));
-          const visibleItems = new Set(visibleItemsIndex.split("::").filter(Boolean));
-          const mapping = getSeriesToIdMap(getChart().series);
-          for (const [seriesId, { series, data }] of mapping) {
-            series.setVisible(visibleSeries.has(seriesId));
-            for (const [itemId, item] of data) {
-              if ("setVisible" in item) {
-                item.setVisible(visibleItems.has(itemId));
-              }
-            }
-          }
-        },
-        render(event) {
-          if (noDataProps) {
-            noData.options.chart?.events?.render?.call(this, event);
-          }
-          if (legendTooltipProps) {
-            legendTooltip.options.chart?.events?.render?.call(this, event);
-          }
-          return options.chart?.events?.render?.call(this, event);
-        },
-        click(event) {
-          if (tooltipProps) {
-            tooltip.options.chart?.events?.click?.call(this, event);
-          }
-          return options.chart?.events?.click?.call(this, event);
         },
       },
     },
