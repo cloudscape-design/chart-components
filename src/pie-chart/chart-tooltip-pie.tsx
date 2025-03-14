@@ -9,7 +9,7 @@ import { ChartSeriesMarker } from "../internal/components/series-marker";
 import { InternalPieChartOptions, PieChartProps } from "./interfaces-pie";
 
 export function useChartTooltipPie(
-  getChart: () => null | Highcharts.Chart,
+  getChart: () => Highcharts.Chart,
   props: {
     options: InternalPieChartOptions;
     tooltip?: PieChartProps.TooltipProps;
@@ -17,10 +17,6 @@ export function useChartTooltipPie(
 ) {
   const getContent = (point: { x: number; y: number }): null | TooltipContent => {
     const chart = getChart();
-    if (!chart) {
-      console.warn("Chart instance is not available.");
-      return null;
-    }
     const series = props.options.series[0] as undefined | PieChartProps.Series;
     const matchedChartSeries = chart.series.find((s) => (s.userOptions.id ?? s.name) === (series?.id ?? series?.name));
     if (!matchedChartSeries) {

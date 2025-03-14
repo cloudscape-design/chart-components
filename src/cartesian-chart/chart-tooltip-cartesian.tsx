@@ -12,7 +12,7 @@ import { getDataExtremes } from "./utils";
 import { getCartesianDetailsItem } from "./utils";
 
 export function useChartTooltipCartesian(
-  getChart: () => null | Highcharts.Chart,
+  getChart: () => Highcharts.Chart,
   props: {
     options: InternalCartesianChartOptions;
     tooltip?: CartesianChartProps.TooltipProps;
@@ -26,10 +26,6 @@ export function useChartTooltipCartesian(
 
   const getContent = (point: { x: number; y: number }): null | TooltipContent => {
     const chart = getChart();
-    if (!chart) {
-      console.warn("Chart instance is not available.");
-      return null;
-    }
 
     const matchedItems: CartesianChartProps.TooltipSeriesDetailItem[] = [];
     function findMatchedItem(series: InternalSeriesOptions) {
