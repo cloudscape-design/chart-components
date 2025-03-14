@@ -7,7 +7,7 @@ import type Highcharts from "highcharts";
 
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
-import { CloudscapeHighcharts, CloudscapeHighchartsRef } from "../core/chart-core";
+import { CloudscapeHighcharts } from "../core/chart-core";
 import { LegendTooltipProps } from "../core/interfaces-core";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { fireNonCancelableEvent, NonCancelableEventHandler } from "../internal/events";
@@ -36,11 +36,18 @@ interface InternalPieChartProps {
  */
 export const InternalPieChart = forwardRef(
   ({ highcharts, ...props }: InternalPieChartProps, ref: React.Ref<PieChartProps.Ref>) => {
-    const chartRef = useRef<CloudscapeHighchartsRef>(null) as React.MutableRefObject<CloudscapeHighchartsRef>;
+    const chartRef = useRef<Highcharts.Chart>(null) as React.MutableRefObject<Highcharts.Chart>;
+    const getChart = () => {
+      /* c8 ignore next */
+      if (!chartRef.current) {
+        throw new Error("Invariant violation: chart instance is not available.");
+      }
+      return chartRef.current;
+    };
 
     // Obtaining tooltip content, specific for pie charts.
     // By default, it renders the selected content name, and allows to extend and override its contents.
-    const tooltipProps = useChartTooltipPie(() => chartRef.current.getChart(), props);
+    const tooltipProps = useChartTooltipPie(getChart, props);
 
     // When visibleSegments and onToggleVisibleSegment are provided - the segments visibility can be controlled from the outside.
     // Otherwise - the component handles segments visibility using its internal state.
@@ -181,7 +188,6 @@ export const InternalPieChart = forwardRef(
 
     return (
       <CloudscapeHighcharts
-        ref={chartRef}
         highcharts={highcharts}
         options={highchartsOptions}
         tooltip={tooltipProps}
@@ -191,6 +197,9 @@ export const InternalPieChart = forwardRef(
         visibleItems={visibleSegments}
         onToggleVisibleItems={setVisibleSegments}
         className={testClasses.root}
+        callback={(chart) => {
+          chartRef.current = chart;
+        }}
         {...getDataAttributes(props)}
       />
     );
