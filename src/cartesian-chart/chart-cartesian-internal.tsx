@@ -6,7 +6,7 @@ import type Highcharts from "highcharts";
 
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
-import { CloudscapeHighcharts, CloudscapeHighchartsRef } from "../core/chart-core";
+import { CloudscapeHighcharts } from "../core/chart-core";
 import { LegendTooltipProps } from "../core/interfaces-core";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { ChartSeriesMarkerStatus } from "../internal/components/series-marker";
@@ -41,11 +41,18 @@ interface InternalCartesianChartProps {
  */
 export const InternalCartesianChart = forwardRef(
   ({ highcharts, ...props }: InternalCartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
-    const chartRef = useRef<CloudscapeHighchartsRef>(null) as React.MutableRefObject<CloudscapeHighchartsRef>;
+    const chartRef = useRef<Highcharts.Chart>(null) as React.MutableRefObject<Highcharts.Chart>;
+    const getChart = () => {
+      /* c8 ignore next */
+      if (!chartRef.current) {
+        throw new Error("Invariant violation: chart instance is not available.");
+      }
+      return chartRef.current;
+    };
 
     // Obtaining tooltip content, specific for cartesian charts.
     // By default, it renders a list of series under the cursor, and allows to extend and override its contents.
-    const tooltipProps = useChartTooltipCartesian(() => chartRef.current.getChart(), props);
+    const tooltipProps = useChartTooltipCartesian(getChart, props);
 
     // When visibleSeries and onToggleVisibleSeries are provided - the series visibility can be controlled from the outside.
     // Otherwise - the component handles series visibility using its internal state.
@@ -190,7 +197,6 @@ export const InternalCartesianChart = forwardRef(
 
     return (
       <CloudscapeHighcharts
-        ref={chartRef}
         highcharts={highcharts}
         options={highchartsOptions}
         tooltip={tooltipProps}
@@ -200,6 +206,9 @@ export const InternalCartesianChart = forwardRef(
         visibleSeries={visibleSeries}
         onToggleVisibleSeries={setVisibleSeries}
         className={testClasses.root}
+        callback={(chart) => {
+          chartRef.current = chart;
+        }}
         {...getDataAttributes(props)}
       />
     );
