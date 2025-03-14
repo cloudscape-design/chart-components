@@ -1,0 +1,13 @@
+/*
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+*/
+
+@use "../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
+
+.no-data {
+  padding: cs.$space-static-xs;
+  background-color: cs.$color-background-layout-main;
+  border-radius: 8px;
+  opacity: 0.9;
+}
