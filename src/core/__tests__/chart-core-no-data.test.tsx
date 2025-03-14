@@ -91,7 +91,7 @@ describe("CloudscapeHighcharts: no-data", () => {
       highcharts,
       options: { series },
       noData: { statusType: "finished", ...noDataContent },
-      visibleSeries: [],
+      hiddenSeries: ["Line series"],
     });
 
     await waitFor(() => {
