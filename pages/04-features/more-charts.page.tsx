@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import ColumnLayout from "@cloudscape-design/components/column-layout";
+import SpaceBetween from "@cloudscape-design/components/space-between";
 
 import { PageSettingsDefaults } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
+import { TooltipPlacement } from "../common/tooltip-placement";
 import { ExampleAreaRangeSimple } from "./more-charts/example-area-range-simple";
 import { ExampleHeatmapSimple } from "./more-charts/example-heatmap-simple";
 import { ExampleScatterSimple } from "./more-charts/example-scatter-simple";
@@ -13,7 +15,15 @@ import { ExampleTreemapSimple } from "./more-charts/example-treemap-simple";
 export default function () {
   return (
     <PageSettingsDefaults settings={{}}>
-      <Page title="More charts" subtitle="This pages demonstrates different chart types that Cloudscape can support.">
+      <Page
+        title="More charts"
+        subtitle="This pages demonstrates different chart types that Cloudscape can support."
+        settings={
+          <SpaceBetween size="s">
+            <TooltipPlacement />
+          </SpaceBetween>
+        }
+      >
         <ColumnLayout columns={2} borders="all">
           <PageSection title="Simple scatter chart">
             <ExampleScatterSimple />

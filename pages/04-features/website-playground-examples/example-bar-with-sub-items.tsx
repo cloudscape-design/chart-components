@@ -112,6 +112,7 @@ export function ExampleBarChartWithSubItems() {
               </>
             );
           },
+          placement: settings.tooltipPlacement,
         }}
         xAxis={{
           type: "category",

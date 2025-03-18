@@ -130,6 +130,7 @@ export function ExampleAreaChartStackedAreaChart() {
               </>
             );
           },
+          placement: settings.tooltipPlacement,
         }}
         xAxis={{
           type: "datetime",

@@ -83,6 +83,7 @@ export interface CloudscapeHighchartsProps {
 
 export interface TooltipProps {
   getContent: (point: Point) => null | TooltipContent;
+  placement?: "target" | "bottom";
 }
 
 export interface LegendTooltipProps {

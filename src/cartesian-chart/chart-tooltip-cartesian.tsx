@@ -146,7 +146,7 @@ export function useChartTooltipCartesian(
     };
   };
 
-  return { getContent };
+  return { getContent, placement: props.tooltip?.placement };
 }
 
 function getSeriesMarkerType(

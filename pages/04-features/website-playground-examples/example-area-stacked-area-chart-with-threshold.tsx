@@ -171,6 +171,7 @@ export function ExampleAreaChartStackedAreaChartWithThreshold() {
               </>
             );
           },
+          placement: settings.tooltipPlacement,
         }}
         xAxis={{
           type: "datetime",

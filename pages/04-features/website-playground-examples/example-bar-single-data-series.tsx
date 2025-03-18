@@ -52,6 +52,7 @@ export function ExampleBarChartSingleDataSeries() {
                 return { key: "?", value: "?" };
             }
           },
+          placement: settings.tooltipPlacement,
         }}
         xAxis={{
           type: "category",
