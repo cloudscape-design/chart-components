@@ -14,25 +14,9 @@ import { ChartLegendMarkers, useLegendMarkers } from "./chart-legend-markers";
 import { ChartLegendTooltip, useChartLegendTooltip } from "./chart-legend-tooltip";
 import { ChartNoData, useNoData } from "./chart-no-data";
 import { ChartTooltip, useChartTooltip } from "./chart-tooltip";
-import { ChartNoDataProps, LegendMarkersProps, LegendTooltipProps, TooltipProps } from "./interfaces-core";
+import { CloudscapeHighchartsProps } from "./interfaces-core";
 import * as Styles from "./styles";
 import { getOptionsId, getPointId, getSeriesId } from "./utils";
-
-export interface CloudscapeHighchartsProps {
-  highcharts: null | typeof Highcharts;
-  options: Highcharts.Options;
-  tooltip?: TooltipProps;
-  legendTooltip?: LegendTooltipProps;
-  noData?: ChartNoDataProps;
-  legendMarkers?: LegendMarkersProps;
-  fallback?: React.ReactNode;
-  callback?: (chart: Highcharts.Chart) => void;
-  hiddenSeries?: string[];
-  onLegendSeriesClick?: (seriesId: string, visible: boolean) => void | boolean;
-  hiddenItems?: string[];
-  onLegendItemClick?: (itemId: string, visible: boolean) => void | boolean;
-  className?: string;
-}
 
 /**
  * CloudscapeHighcharts is the core internal abstraction that accepts the entire set of Highcharts options along

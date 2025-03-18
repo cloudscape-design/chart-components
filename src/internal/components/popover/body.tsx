@@ -12,6 +12,7 @@ import { useUniqueId } from "../../utils/unique-id";
 import FocusLock from "../focus-lock";
 
 import styles from "./styles.css.js";
+import testClasses from "./test-classes/styles.css.js";
 
 export interface PopoverBodyProps {
   dismissButton: boolean;
@@ -74,7 +75,7 @@ export default function PopoverBody({
         variant="icon"
         formAction="none"
         iconName="close"
-        className={styles["dismiss-control"]}
+        className={clsx(testClasses["dismiss-button"], styles["dismiss-control"])}
         ariaLabel={dismissAriaLabel}
         onClick={() => onDismiss?.()}
         ref={dismissButtonRef}

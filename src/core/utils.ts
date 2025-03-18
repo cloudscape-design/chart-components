@@ -3,34 +3,6 @@
 
 import type Highcharts from "highcharts";
 
-export function setVisibleSeries(chart: Highcharts.Chart, visibleSeries: null | string[]): boolean {
-  let stateChanged = false;
-  const visibleSeriesSet = visibleSeries ? new Set(visibleSeries) : null;
-  for (const series of chart.series) {
-    const isVisible = !visibleSeriesSet || visibleSeriesSet.has(getSeriesId(series));
-    if (isVisible !== series.visible) {
-      series.setVisible(isVisible);
-      stateChanged = true;
-    }
-  }
-  return stateChanged;
-}
-
-export function setVisiblePoints(chart: Highcharts.Chart, visiblePoints: null | string[]): boolean {
-  let stateChanged = false;
-  const visiblePointsSet = visiblePoints ? new Set(visiblePoints) : null;
-  for (const series of chart.series) {
-    for (const point of series.data) {
-      const isVisible = !visiblePointsSet || visiblePointsSet.has(getPointId(point));
-      if (isVisible !== point.visible) {
-        point.setVisible(isVisible);
-        stateChanged = true;
-      }
-    }
-  }
-  return stateChanged;
-}
-
 export function getSeriesId(series: Highcharts.Series): string {
   return series.options.id ?? series.options.name ?? noIdPlaceholder();
 }
