@@ -30,41 +30,30 @@ export function useChartTooltip(
 ) {
   const tooltipStore = useRef(new TooltipStore(getChart)).current;
 
-  const options: Highcharts.Options = {
-    chart: {
-      events: {
-        click() {
-          const { hoverPoint } = this;
-          if (hoverPoint) {
-            tooltipStore.onMouseClickPlot(hoverPoint);
-          } else {
-            tooltipStore.onMouseClickPlot(null);
-          }
-        },
-      },
-    },
-    plotOptions: {
-      series: {
-        point: {
-          events: {
-            mouseOver(event) {
-              if (highcharts && event.target instanceof highcharts.Point) {
-                tooltipStore.onMouseOverTarget(event.target);
-              }
-            },
-            mouseOut() {
-              tooltipStore.onMouseLeaveTarget();
-            },
-            click() {
-              tooltipStore.onMouseClickPlot(this);
-            },
-          },
-        },
-      },
-    },
+  const chartClick: Highcharts.ChartClickCallbackFunction = function () {
+    const { hoverPoint } = this;
+    if (hoverPoint) {
+      tooltipStore.onMouseClickPlot(hoverPoint);
+    } else {
+      tooltipStore.onMouseClickPlot(null);
+    }
+  };
+  const seriesPointMouseOver: Highcharts.PointMouseOverCallbackFunction = function (event) {
+    if (highcharts && event.target instanceof highcharts.Point) {
+      tooltipStore.onMouseOverTarget(event.target);
+    }
+  };
+  const seriesPointMouseOut: Highcharts.PointMouseOutCallbackFunction = function () {
+    tooltipStore.onMouseLeaveTarget();
+  };
+  const seriesPointClick: Highcharts.PointClickCallbackFunction = function () {
+    tooltipStore.onMouseClickPlot(this);
   };
 
-  return { options, props: { tooltipStore, getContent: tooltipProps?.getContent ?? (() => null) } };
+  return {
+    options: { chartClick, seriesPointMouseOver, seriesPointMouseOut, seriesPointClick },
+    props: { tooltipStore, getContent: tooltipProps?.getContent ?? (() => null) },
+  };
 }
 
 export function ChartTooltip({

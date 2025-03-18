@@ -25,25 +25,22 @@ export function useChartLegendTooltip(
 ) {
   const legendTooltipStore = useRef(new LegendTooltipStore(getChart)).current;
 
-  const options: Highcharts.Options = {
-    chart: {
-      events: {
-        render() {
-          if (!highcharts) {
-            return;
-          }
-          for (const item of this.legend.allItems) {
-            const itemId = item.options.id ?? item.options.name ?? "";
-            const label = (item as any)?.legendItem?.label;
-            label?.on("mouseover", () => legendTooltipStore.onMouseOverTarget(itemId));
-            label?.on("mouseout", () => legendTooltipStore.onMouseLeaveTarget());
-          }
-        },
-      },
-    },
+  const chartRender: Highcharts.ChartRenderCallbackFunction = function () {
+    if (!highcharts) {
+      return;
+    }
+    for (const item of this.legend.allItems) {
+      const itemId = item.options.id ?? item.options.name ?? "";
+      const label = (item as any)?.legendItem?.label;
+      label?.on("mouseover", () => legendTooltipStore.onMouseOverTarget(itemId));
+      label?.on("mouseout", () => legendTooltipStore.onMouseLeaveTarget());
+    }
   };
 
-  return { options, props: { legendTooltipStore, getContent: tooltipProps?.getContent ?? (() => null) } };
+  return {
+    options: { chartRender },
+    props: { legendTooltipStore, getContent: tooltipProps?.getContent ?? (() => null) },
+  };
 }
 
 export function ChartLegendTooltip({

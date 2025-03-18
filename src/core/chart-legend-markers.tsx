@@ -27,16 +27,12 @@ export function useLegendMarkers(getChart: () => Highcharts.Chart, legendMarkers
 
   const legendMarkersStore = useRef(new LegendMarkersStore(getChart, markersId)).current;
 
-  const options: Highcharts.Options = {
-    legend: {
-      labelFormatter: function () {
-        legendMarkersStore.onRenderLabel();
-        return renderToStaticMarkup(<tspan id={`${markersId}-${this.name}`}>{this.name}</tspan>);
-      },
-    },
+  const legendLabelFormatter: Highcharts.FormatterCallbackFunction<Highcharts.Point | Highcharts.Series> = function () {
+    legendMarkersStore.onRenderLabel();
+    return renderToStaticMarkup(<tspan id={`${markersId}-${this.name}`}>{this.name}</tspan>);
   };
 
-  return { options, props: { legendMarkersStore, ...legendMarkersProps } };
+  return { options: { legendLabelFormatter }, props: { legendMarkersStore, ...legendMarkersProps } };
 }
 
 export function ChartLegendMarkers({

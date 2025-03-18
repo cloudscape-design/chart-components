@@ -16,7 +16,7 @@ import { ChartNoData, useNoData } from "./chart-no-data";
 import { ChartTooltip, useChartTooltip } from "./chart-tooltip";
 import { ChartNoDataProps, LegendMarkersProps, LegendTooltipProps, TooltipProps } from "./interfaces-core";
 import * as Styles from "./styles";
-import { getPointId, getSeriesId } from "./utils";
+import { getOptionsId, getPointId, getSeriesId } from "./utils";
 
 export interface CloudscapeHighchartsProps {
   highcharts: null | typeof Highcharts;
@@ -111,7 +111,7 @@ export function CloudscapeHighcharts({
   // the Cloudscape features and custom Highcharts extensions can co-exist.
   // For certain options we provide Cloudscape styling, but in all cases this can be explicitly overridden.
   const legendLabelFormatter =
-    options.legend?.labelFormatter ?? (legendMarkersProps ? legendMarkers.options.legend?.labelFormatter : undefined);
+    options.legend?.labelFormatter ?? (legendMarkersProps ? legendMarkers.options.legendLabelFormatter : undefined);
   const highchartsOptions: Highcharts.Options = {
     ...options,
     // Credits label is disabled by default, but can be set explicitly.
@@ -146,16 +146,16 @@ export function CloudscapeHighcharts({
         },
         render(event) {
           if (noDataProps) {
-            noData.options.chart?.events?.render?.call(this, event);
+            noData.options.chartRender.call(this, event);
           }
           if (legendTooltipProps) {
-            legendTooltip.options.chart?.events?.render?.call(this, event);
+            legendTooltip.options.chartRender.call(this, event);
           }
           return options.chart?.events?.render?.call(this, event);
         },
         click(event) {
           if (tooltipProps) {
-            tooltip.options.chart?.events?.click?.call(this, event);
+            tooltip.options.chartClick.call(this, event);
           }
           return options.chart?.events?.click?.call(this, event);
         },
@@ -176,14 +176,14 @@ export function CloudscapeHighcharts({
         itemClick(event) {
           // Handle series visibility.
           if (highcharts && event.legendItem instanceof highcharts.Series) {
-            const seriesId = event.legendItem.userOptions?.id ?? event.legendItem.userOptions.name ?? "";
+            const seriesId = getOptionsId(event.legendItem.userOptions);
             const nextVisible = !event.legendItem.visible;
             return onLegendSeriesClick?.(seriesId, nextVisible);
           }
 
           // Handle items visibility (e.g. pie segments or treemap values).
           if (highcharts && event.legendItem instanceof highcharts.Point) {
-            const itemId = event.legendItem.options?.id ?? event.legendItem.options.name ?? "";
+            const itemId = getOptionsId(event.legendItem.options);
             const nextVisible = !event.legendItem.visible;
             return onLegendItemClick?.(itemId, nextVisible);
           }
@@ -196,7 +196,7 @@ export function CloudscapeHighcharts({
     noData: noDataProps ? noData.options.noData : options.noData,
     lang: {
       ...options.lang,
-      noData: noDataProps ? noData.options.lang?.noData : options.lang?.noData,
+      noData: noDataProps ? noData.options.langNoData : options.lang?.noData,
     },
     accessibility: {
       ...options.accessibility,
@@ -211,6 +211,7 @@ export function CloudscapeHighcharts({
     plotOptions: {
       ...options.plotOptions,
       series: {
+        borderColor: Styles.seriesBorderColor,
         ...options.plotOptions?.series,
         dataLabels: { style: Styles.seriesDataLabelsCss, ...options.plotOptions?.series?.dataLabels },
         states: {
@@ -228,25 +229,24 @@ export function CloudscapeHighcharts({
             ...options.plotOptions?.series?.point?.events,
             mouseOver(event) {
               if (tooltipProps) {
-                tooltip.options.plotOptions?.series?.point?.events?.mouseOver?.call(this, event);
+                tooltip.options.seriesPointMouseOver.call(this, event);
               }
               return options.plotOptions?.series?.point?.events?.mouseOver?.call(this, event);
             },
             mouseOut(event) {
               if (tooltipProps) {
-                tooltip.options.plotOptions?.series?.point?.events?.mouseOut?.call(this, event);
+                tooltip.options.seriesPointMouseOut.call(this, event);
               }
               return options.plotOptions?.series?.point?.events?.mouseOut?.call(this, event);
             },
             click(event) {
               if (tooltipProps) {
-                tooltip.options.plotOptions?.series?.point?.events?.click?.call(this, event);
+                tooltip.options.seriesPointClick.call(this, event);
               }
               return options.plotOptions?.series?.point?.events?.click?.call(this, event);
             },
           },
         },
-        borderColor: Styles.seriesBorderColor,
       },
     },
     xAxis: castArray(options.xAxis)?.map((xAxis) => ({
