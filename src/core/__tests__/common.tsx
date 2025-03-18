@@ -5,10 +5,12 @@ import { useState } from "react";
 import { render } from "@testing-library/react";
 import type Highcharts from "highcharts";
 
+import { ButtonWrapper } from "@cloudscape-design/components/test-utils/dom";
 import { ComponentWrapper } from "@cloudscape-design/test-utils-core/dom";
 
 import "@cloudscape-design/components/test-utils/dom";
-import { CloudscapeHighcharts, CloudscapeHighchartsProps } from "../../../lib/components/core/chart-core";
+import { CloudscapeHighcharts } from "../../../lib/components/core/chart-core";
+import { CloudscapeHighchartsProps } from "../../../lib/components/core/interfaces-core";
 import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
 import tooltipTestClasses from "../../../lib/components/internal/components/popover/test-classes/styles.selectors";
 import createWrapper, { ElementWrapper } from "../../../lib/components/test-utils/dom";
@@ -32,23 +34,26 @@ class TooltipTestWrapper extends ComponentWrapper {
   findHeader = () => this.findByClassName(tooltipTestClasses.header);
   findBody = () => this.findByClassName(tooltipTestClasses.body);
   findFooter = () => this.findByClassName(tooltipTestClasses.footer);
+  findDismissButton = () => this.findComponent(`.${tooltipTestClasses["dismiss-button"]}`, ButtonWrapper) ?? null;
 }
 
 export function StatefulChart(props: CloudscapeHighchartsProps) {
-  const [visibleSeries, setVisibleSeries] = useState<null | string[]>(props.visibleSeries ?? null);
-  const [visibleItems, setVisibleItems] = useState<null | string[]>(props.visibleItems ?? null);
+  const [hiddenSeries, setHiddenSeries] = useState<string[]>(props.hiddenSeries ?? []);
+  const [hiddenItems, setHiddenItems] = useState<string[]>(props.hiddenItems ?? []);
   return (
     <CloudscapeHighcharts
       {...props}
-      visibleSeries={visibleSeries}
-      onToggleVisibleSeries={(state) => {
-        setVisibleSeries(state);
-        props.onToggleVisibleSeries?.(state);
+      hiddenSeries={hiddenSeries}
+      onLegendSeriesClick={(seriesId, visible) => {
+        setHiddenSeries(visible ? hiddenSeries.filter((id) => id !== seriesId) : [...hiddenSeries, seriesId]);
+        props.onLegendSeriesClick?.(seriesId, visible);
+        return false;
       }}
-      visibleItems={visibleItems}
-      onToggleVisibleItems={(state) => {
-        setVisibleItems(state);
-        props.onToggleVisibleItems?.(state);
+      hiddenItems={hiddenItems}
+      onLegendItemClick={(itemId, visible) => {
+        setHiddenItems(visible ? hiddenItems.filter((id) => id !== itemId) : [...hiddenItems, itemId]);
+        props.onLegendItemClick?.(itemId, visible);
+        return false;
       }}
     />
   );

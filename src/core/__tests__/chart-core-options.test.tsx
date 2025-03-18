@@ -6,7 +6,7 @@ import HighchartsReact from "highcharts-react-official";
 import { omit } from "lodash";
 import { vi } from "vitest";
 
-import { CloudscapeHighchartsProps } from "../../../lib/components/core/chart-core";
+import { CloudscapeHighchartsProps } from "../../../lib/components/core/interfaces-core";
 import { renderChart } from "./common";
 
 vi.mock("highcharts-react-official", () => ({ __esModule: true, default: vi.fn(() => null) }));

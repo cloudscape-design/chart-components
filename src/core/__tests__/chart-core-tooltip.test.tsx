@@ -5,11 +5,30 @@ import { waitFor } from "@testing-library/react";
 import highcharts from "highcharts";
 import { vi } from "vitest";
 
-import { renderChart } from "./common";
+import { CloudscapeHighchartsWrapper, renderChart } from "./common";
 
+function findChart() {
+  return highcharts.charts.find((c) => c)!;
+}
+function findPoint(seriesIndex: number, pointIndex: number) {
+  return findChart().series[seriesIndex].data[pointIndex];
+}
 function hoverPoint(index: number) {
-  const chart = highcharts.charts.find((c) => c)!;
-  chart.series[0].data[index].onMouseOver();
+  findPoint(0, index).onMouseOver();
+}
+function leavePoint(index: number) {
+  findPoint(0, index).onMouseOut();
+}
+function clickPoint(index: number) {
+  findPoint(0, index).graphic!.element.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+}
+function hoverTooltip(wrapper: CloudscapeHighchartsWrapper) {
+  const tooltipElement = wrapper.findTooltip()!.getElement();
+  tooltipElement.dispatchEvent(new MouseEvent("mouseover", { bubbles: true, cancelable: true }));
+}
+function leaveTooltip(wrapper: CloudscapeHighchartsWrapper) {
+  const tooltipElement = wrapper.findTooltip()!.getElement();
+  tooltipElement.dispatchEvent(new MouseEvent("mouseout", { bubbles: true, cancelable: true }));
 }
 
 const data = [
@@ -39,7 +58,7 @@ describe("CloudscapeHighcharts: tooltip", () => {
     expect(wrapper.findHighchartsTooltip()!.getElement().textContent).toBe("Custom content");
   });
 
-  test("renders tooltip", async () => {
+  test("shows tooltip on hover", async () => {
     const { wrapper } = renderChart({
       highcharts,
       options: { series },
@@ -53,6 +72,82 @@ describe("CloudscapeHighcharts: tooltip", () => {
       expect(wrapper.findTooltip()!.findHeader()!.getElement().textContent).toBe("Tooltip title");
       expect(wrapper.findTooltip()!.findBody()!.getElement().textContent).toBe("Tooltip body");
       expect(wrapper.findTooltip()!.findFooter()!.getElement().textContent).toBe("Tooltip footer");
+    });
+
+    leavePoint(0);
+
+    await waitFor(() => {
+      expect(wrapper.findTooltip()).toBe(null);
+    });
+  });
+
+  test("keeps showing tooltip when cursor is over the tooltip", async () => {
+    const { wrapper } = renderChart({
+      highcharts,
+      options: { series },
+      tooltip: {
+        getContent: () => ({ header: "", body: "" }),
+      },
+    });
+
+    hoverPoint(0);
+
+    await waitFor(() => {
+      expect(wrapper.findTooltip()).not.toBe(null);
+    });
+
+    hoverTooltip(wrapper);
+    leavePoint(0);
+
+    await waitFor(() => {
+      expect(wrapper.findTooltip()).not.toBe(null);
+    });
+
+    leaveTooltip(wrapper);
+
+    await waitFor(() => {
+      expect(wrapper.findTooltip()).toBe(null);
+    });
+  });
+
+  test("pins and unpins tooltip", async () => {
+    const { wrapper } = renderChart({
+      highcharts,
+      options: { series },
+      tooltip: {
+        getContent: (point) => ({ header: `y${point.y}`, body: "" }),
+      },
+    });
+
+    // Hover point 1 to show the popover.
+    hoverPoint(1);
+
+    await waitFor(() => {
+      expect(wrapper.findTooltip()).not.toBe(null);
+      expect(wrapper.findTooltip()!.getElement()).toHaveTextContent("y30");
+      expect(wrapper.findTooltip()!.findDismissButton()).toBe(null);
+    });
+
+    // Make popover pinned on point 1.
+    clickPoint(1);
+
+    await waitFor(() => {
+      expect(wrapper.findTooltip()).not.toBe(null);
+      expect(wrapper.findTooltip()!.getElement()).toHaveTextContent("y30");
+      expect(wrapper.findTooltip()!.findDismissButton()).not.toBe(null);
+    });
+
+    // Hover and click on point 0.
+    // Clicking outside the tooltip also dismisses the tooltip, so we imitate that.
+    hoverPoint(0);
+    wrapper.findTooltip()!.findDismissButton()!.click();
+    clickPoint(0);
+
+    // The tooltip moves to point 0, but it is no longer pinned.
+    await waitFor(() => {
+      expect(wrapper.findTooltip()).not.toBe(null);
+      expect(wrapper.findTooltip()!.getElement()).toHaveTextContent("y10");
+      expect(wrapper.findTooltip()!.findDismissButton()).toBe(null);
     });
   });
 
