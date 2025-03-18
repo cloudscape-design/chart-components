@@ -65,6 +65,22 @@ export interface CloudscapeHighchartsBase {
   noData?: ChartNoDataProps;
 }
 
+export interface CloudscapeHighchartsProps {
+  highcharts: null | typeof Highcharts;
+  options: Highcharts.Options;
+  tooltip?: TooltipProps;
+  legendTooltip?: LegendTooltipProps;
+  noData?: ChartNoDataProps;
+  legendMarkers?: LegendMarkersProps;
+  fallback?: React.ReactNode;
+  callback?: (chart: Highcharts.Chart) => void;
+  hiddenSeries?: string[];
+  onLegendSeriesClick?: (seriesId: string, visible: boolean) => void | boolean;
+  hiddenItems?: string[];
+  onLegendItemClick?: (itemId: string, visible: boolean) => void | boolean;
+  className?: string;
+}
+
 export interface TooltipProps {
   getContent: (point: Point) => null | TooltipContent;
 }
