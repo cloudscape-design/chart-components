@@ -103,6 +103,7 @@ export function ExampleLineChartSingleDataSeries() {
                 return { key: "?", value: "?" };
             }
           },
+          placement: settings.tooltipPlacement,
         }}
         xAxis={{
           type: "datetime",

@@ -84,7 +84,7 @@ const series: CartesianChartProps.Series[] = [
 ];
 
 export function ExampleScatterSimple() {
-  const { highcharts, chartStateProps } = usePageSettings();
+  const { settings, highcharts, chartStateProps } = usePageSettings();
   return (
     <InternalCartesianChart
       highcharts={highcharts}
@@ -112,6 +112,9 @@ export function ExampleScatterSimple() {
         getItemStatus(itemId: string) {
           return itemId === "B" ? "warning" : "normal";
         },
+      }}
+      tooltip={{
+        placement: settings.tooltipPlacement,
       }}
       legendTooltip={{
         getContent(itemId) {

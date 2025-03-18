@@ -152,6 +152,7 @@ export function ExampleBarChartMultipleDataSeriesStackedHorizontal() {
             }
           },
           footer: ({ x }) => <Button ariaLabel={`View details for ${x}`}>View details</Button>,
+          placement: settings.tooltipPlacement,
         }}
         xAxis={{
           type: "category",

@@ -53,7 +53,7 @@ const series: Highcharts.SeriesOptionsType[] = [
 ];
 
 export function ExampleHeatmapSimple() {
-  const { highcharts, chartStateProps } = usePageSettings();
+  const { settings, highcharts, chartStateProps } = usePageSettings();
   return (
     <InternalCartesianChart
       highcharts={highcharts}
@@ -86,6 +86,7 @@ export function ExampleHeatmapSimple() {
         ],
         yAxis: [{ title: "Values", type: "category", categories: ["A", "B", "C", "D"] }],
       }}
+      tooltip={{ placement: settings.tooltipPlacement }}
     />
   );
 }
