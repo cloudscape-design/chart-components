@@ -166,6 +166,7 @@ export namespace CartesianChartProps {
     header?: (detail: TooltipDetails) => React.ReactNode;
     body?: (detail: TooltipDetails) => React.ReactNode;
     footer?: (detail: TooltipDetails) => React.ReactNode;
+    placement?: "target" | "bottom";
   }
 
   export interface TooltipDetails {

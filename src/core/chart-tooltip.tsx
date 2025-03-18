@@ -26,9 +26,11 @@ export function useChartTooltip(
   getChart: () => Highcharts.Chart,
   tooltipProps?: {
     getContent: (point: Point) => null | TooltipContent;
+    placement?: "target" | "bottom";
   },
 ) {
   const tooltipStore = useRef(new TooltipStore(getChart)).current;
+  tooltipStore.placement = tooltipProps?.placement ?? "target";
 
   const chartClick: Highcharts.ChartClickCallbackFunction = function () {
     const { hoverPoint } = this;
@@ -52,16 +54,18 @@ export function useChartTooltip(
 
   return {
     options: { chartClick, seriesPointMouseOver, seriesPointMouseOut, seriesPointClick },
-    props: { tooltipStore, getContent: tooltipProps?.getContent ?? (() => null) },
+    props: { tooltipStore, getContent: tooltipProps?.getContent ?? (() => null), placement: tooltipProps?.placement },
   };
 }
 
 export function ChartTooltip({
   tooltipStore,
   getContent,
+  placement,
 }: {
   tooltipStore: TooltipStore;
   getContent: (point: Point) => null | TooltipContent;
+  placement?: "target" | "bottom";
 }) {
   const tooltip = useSelector(tooltipStore, (s) => s);
   if (!tooltip.visible) {
@@ -82,6 +86,7 @@ export function ChartTooltip({
       onMouseLeave={tooltipStore.onMouseLeaveTooltip}
       header={content.header}
       footer={content.footer}
+      position={placement === "bottom" ? "bottom" : undefined}
       className={testClasses.tooltip}
     >
       {content.body}
@@ -97,6 +102,7 @@ interface ReactiveTooltipState {
 
 class TooltipStore extends AsyncStore<ReactiveTooltipState> {
   public getTrack: () => null | HTMLElement | SVGElement = () => null;
+  public placement: "target" | "bottom" = "target";
 
   private getChart: () => Highcharts.Chart;
   private targetElement: null | Highcharts.SVGElement = null;
@@ -217,13 +223,14 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
       x = (target as any).tooltipPos[0];
       y = (target as any).tooltipPos[1];
     }
-    this.targetElement = this.chart.renderer.circle(x, y, 0).add();
-    if (target.series.type !== "pie") {
-      this.markerElement = this.chart.renderer
-        .rect(x, this.chart.plotTop, 1, this.chart.plotHeight)
-        .attr({ fill: colorChartsLineTick })
-        .add();
-    }
+    // this.targetElement = this.chart.renderer.circle(x, y, 0).add();
+
+    this.markerElement = this.chart.renderer
+      .rect(x, this.chart.plotTop, 1, this.chart.plotHeight)
+      .attr({ fill: target.series.type !== "pie" ? colorChartsLineTick : "transparent" })
+      .add();
+    this.targetElement = this.placement === "target" ? this.chart.renderer.circle(x, y, 0).add() : this.markerElement;
+
     // The targetElement.element can get invalidated by Highcharts, so we cannot use
     // trackRef.current = targetElement.element as it might get invalidated unexpectedly.
     // The getTrack function ensures the latest element reference is given on each request.

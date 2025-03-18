@@ -32,6 +32,7 @@ export interface PageSettings {
   showLegend: boolean;
   showLegendTitle: boolean;
   emphasizeBaselineAxis: boolean;
+  tooltipPlacement: "target" | "bottom";
 }
 
 type PageContext<SettingsType> = React.Context<AppContextType<Partial<SettingsType>>>;
@@ -52,6 +53,7 @@ const DEFAULT_SETTINGS = {
   showLegend: true,
   showLegendTitle: false,
   emphasizeBaselineAxis: true,
+  tooltipPlacement: "target" as const,
 };
 
 export const PageSettingsDefaultsContext = createContext<PageSettings>(DEFAULT_SETTINGS);
