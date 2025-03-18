@@ -23,18 +23,12 @@ import testClasses from "./test-classes/styles.css.js";
 export function useNoData(highcharts: null | typeof Highcharts, noDataProps?: ChartNoDataProps) {
   const noDataId = useUniqueId("no-data");
   const noDataStore = useMemo(() => new NoDataStore({ highcharts, noDataId }), [highcharts, noDataId]);
-  const options: Highcharts.Options = {
-    chart: {
-      events: {
-        render: noDataStore.onChartRender,
-      },
-    },
-    noData: { position: Styles.noDataPosition, useHTML: true },
-    lang: {
-      noData: renderToStaticMarkup(<div style={Styles.noDataCss} id={noDataId}></div>),
-    },
-  };
-  return { options, props: { ...noDataProps, noDataStore } };
+
+  const chartRender: Highcharts.ChartRenderCallbackFunction = noDataStore.onChartRender;
+  const noData: Highcharts.NoDataOptions = { position: Styles.noDataPosition, useHTML: true };
+  const langNoData = renderToStaticMarkup(<div style={Styles.noDataCss} id={noDataId}></div>);
+
+  return { options: { chartRender, noData, langNoData }, props: { ...noDataProps, noDataStore } };
 }
 
 export function ChartNoData({
