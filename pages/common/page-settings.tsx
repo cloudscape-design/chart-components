@@ -8,7 +8,7 @@ import Box from "@cloudscape-design/components/box";
 import Button from "@cloudscape-design/components/button";
 import StatusIndicator from "@cloudscape-design/components/status-indicator";
 
-import { ChartNoDataProps } from "../../lib/components/core/interfaces-core";
+import { BaseNoDataProps } from "../../lib/components/core/interfaces-base";
 import AppContext, { AppContextType } from "../app/app-context";
 import { useHighcharts } from "./use-highcharts";
 
@@ -33,11 +33,13 @@ export interface PageSettings {
   showLegendTitle: boolean;
   emphasizeBaselineAxis: boolean;
   tooltipPlacement: "target" | "bottom";
+  tooltipSize: "small" | "medium" | "large";
+  keepZoomingFrame: boolean;
 }
 
 type PageContext<SettingsType> = React.Context<AppContextType<Partial<SettingsType>>>;
 
-const DEFAULT_SETTINGS = {
+const DEFAULT_SETTINGS: PageSettings = {
   minHeight: 300,
   minWidth: 800,
   containerHeight: 300,
@@ -53,7 +55,9 @@ const DEFAULT_SETTINGS = {
   showLegend: true,
   showLegendTitle: false,
   emphasizeBaselineAxis: true,
-  tooltipPlacement: "target" as const,
+  tooltipPlacement: "target",
+  tooltipSize: "medium",
+  keepZoomingFrame: false,
 };
 
 export const PageSettingsDefaultsContext = createContext<PageSettings>(DEFAULT_SETTINGS);
@@ -73,14 +77,14 @@ export function PageSettingsDefaults({
 }
 
 export function usePageSettings<SettingsType extends PageSettings = PageSettings>(
-  options: { more?: boolean; treemap?: boolean } = {},
+  options: { more?: boolean; treemap?: boolean; xrange?: boolean } = {},
 ): {
   highcharts: null | typeof Highcharts;
   settings: SettingsType;
   setSettings: (settings: Partial<SettingsType>) => void;
   chartStateProps: {
     ref: React.Ref<ChartRef>;
-    noData: ChartNoDataProps;
+    noData: BaseNoDataProps;
   };
 } {
   const highcharts = useHighcharts(options);
@@ -101,6 +105,7 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
     showLegend: parseBoolean(defaultSettings.showLegend, urlParams.showLegend),
     showLegendTitle: parseBoolean(defaultSettings.showLegendTitle, urlParams.showLegendTitle),
     emphasizeBaselineAxis: parseBoolean(defaultSettings.emphasizeBaselineAxis, urlParams.emphasizeBaselineAxis),
+    keepZoomingFrame: parseBoolean(defaultSettings.keepZoomingFrame, urlParams.keepZoomingFrame),
   } as PageSettings as SettingsType;
   const setSettings = (partial: Partial<SettingsType>) => {
     const settings = { ...partial };

@@ -7,7 +7,7 @@ import type Highcharts from "highcharts";
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
 import { CloudscapeHighcharts } from "../core/chart-core";
-import { LegendTooltipProps } from "../core/interfaces-core";
+import { CloudscapeChartAPI, CoreLegendProps } from "../core/interfaces-core";
 import { getOptionsId } from "../core/utils";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { ChartSeriesMarkerStatus } from "../internal/components/series-marker";
@@ -20,8 +20,6 @@ import { getDataExtremes } from "./utils";
 
 import testClasses from "./test-classes/styles.css.js";
 
-const BASELINE_PLOT_LINE_ID = "awsui-baseline-id";
-
 interface InternalCartesianChartProps {
   highcharts: null | typeof Highcharts;
   options: InternalCartesianChartOptions;
@@ -29,11 +27,11 @@ interface InternalCartesianChartProps {
     getItemStatus?: (itemId: string) => ChartSeriesMarkerStatus;
   };
   tooltip?: CartesianChartProps.TooltipProps;
-  legendTooltip?: LegendTooltipProps;
   noData?: CartesianChartProps.NoDataProps;
   emphasizeBaselineAxis?: boolean;
   visibleSeries?: string[];
   onToggleVisibleSeries?: NonCancelableEventHandler<{ visibleSeries: string[] }>;
+  legend?: CoreLegendProps;
 }
 
 /**
@@ -42,7 +40,7 @@ interface InternalCartesianChartProps {
  */
 export const InternalCartesianChart = forwardRef(
   ({ highcharts, ...props }: InternalCartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
-    const chartRef = useRef<Highcharts.Chart>(null) as React.MutableRefObject<Highcharts.Chart>;
+    const chartRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
     const getChart = () => {
       /* c8 ignore next */
       if (!chartRef.current) {
@@ -114,7 +112,7 @@ export const InternalCartesianChart = forwardRef(
 
     // This makes the baseline better prominent in the plot.
     if (props.emphasizeBaselineAxis) {
-      yPlotLines.push({ value: 0, ...Styles.chatPlotBaselineOptions, id: BASELINE_PLOT_LINE_ID });
+      yPlotLines.push({ value: 0, ...Styles.chatPlotBaselineOptions });
     }
 
     useImperativeHandle(ref, () => ({
@@ -187,6 +185,10 @@ export const InternalCartesianChart = forwardRef(
         };
       }),
       series,
+      tooltip: {
+        enabled: false,
+        ...options.tooltip,
+      },
     };
 
     return (
@@ -194,14 +196,20 @@ export const InternalCartesianChart = forwardRef(
         highcharts={highcharts}
         options={highchartsOptions}
         tooltip={tooltipProps}
-        legendTooltip={props.legendTooltip}
         noData={props.noData}
-        legendMarkers={{ getItemStatus: props.series?.getItemStatus }}
-        hiddenSeries={hiddenSeries}
-        onLegendSeriesClick={(seriesId, visible) => {
+        legend={
+          props.legend ? { align: "start", ...props.legend, getItemStatus: props.series?.getItemStatus } : undefined
+        }
+        hiddenItems={hiddenSeries}
+        onLegendItemToggle={(seriesId, visible) => {
           const nextState = visible ? [...visibleSeries, seriesId] : visibleSeries.filter((id) => id !== seriesId);
           setVisibleSeries(nextState);
-          return false;
+        }}
+        onLegendItemShowOnly={(seriesId) => {
+          setVisibleSeries([seriesId]);
+        }}
+        onLegendItemShowAll={() => {
+          setVisibleSeries(allSeriesIds);
         }}
         className={testClasses.root}
         callback={(chart) => {

@@ -38,12 +38,6 @@ export const colors = [
   colorChartsPaletteCategorical10,
 ];
 
-const axisOptions: Highcharts.XAxisOptions & Highcharts.YAxisOptions = {
-  tickColor: colorChartsLineTick,
-  lineColor: colorChartsLineTick,
-  gridLineColor: colorChartsLineTick,
-};
-
 export const axisTitleCss: Highcharts.CSSObject = {
   color: colorTextBodyDefault,
   fontSize: fontSizeBodyM,
@@ -56,30 +50,20 @@ export const axisLabelsCss: Highcharts.CSSObject = {
 };
 
 export const xAxisOptions: Highcharts.XAxisOptions = {
-  ...axisOptions,
+  tickColor: colorChartsLineTick,
+  lineColor: colorChartsLineTick,
+  gridLineColor: colorChartsLineTick,
   lineWidth: 1,
   crosshair: true,
 };
 
 export const yAxisOptions: Highcharts.YAxisOptions = {
-  ...axisOptions,
+  tickColor: colorChartsLineTick,
+  lineColor: colorChartsLineTick,
+  gridLineColor: colorChartsLineTick,
   lineWidth: 0,
   crosshair: false,
 };
-
-export const legendTitleCss: Highcharts.CSSObject = {
-  fontSize: fontSizeBodyM,
-  fontFamily: fontFamilyBase,
-};
-
-export const legendItemCss: Highcharts.CSSObject = {
-  color: colorTextBodyDefault,
-  fontSize: fontSizeBodyM,
-};
-
-export const legendBackgroundColor = colorBackgroundLayoutMain;
-
-export const legendSymbolPadding = 8;
 
 export const chartPlotCss: Highcharts.CSSObject = {
   font: fontFamilyBase,
@@ -113,3 +97,5 @@ export const noDataCss: React.CSSProperties = {
   alignItems: "center",
   justifyContent: "center",
 };
+
+export const colorChartCursor = colorChartsLineTick;

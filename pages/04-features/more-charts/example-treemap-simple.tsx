@@ -36,6 +36,7 @@ export function ExampleTreemapSimple() {
     },
     legend: { enabled: false },
     series,
+    tooltip: { enabled: true },
   };
 
   return <CloudscapeHighcharts highcharts={highcharts} options={highchartsOptions} noData={chartStateProps.noData} />;

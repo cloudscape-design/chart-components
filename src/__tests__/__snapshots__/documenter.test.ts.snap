@@ -73,18 +73,47 @@ This property corresponds to [chart.inverted](https://api.highcharts.com/highcha
       "type": "boolean",
     },
     {
-      "description": "Chart series legend that corresponds to [legend](https://api.highcharts.com/highcharts/legend).
-The legend is enabled by default.
-The legend is interactive: clicking on legend items hides/shows the respective chart elements.",
+      "description": "Chart series legend props.",
+      "inlineType": {
+        "name": "BaseLegendProps",
+        "properties": [
+          {
+            "name": "align",
+            "optional": true,
+            "type": ""center" | "start"",
+          },
+          {
+            "name": "enabled",
+            "optional": true,
+            "type": "false | true",
+          },
+          {
+            "name": "extendedActions",
+            "optional": true,
+            "type": "false | true",
+          },
+          {
+            "name": "title",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "tooltip",
+            "optional": true,
+            "type": "unknown",
+          },
+        ],
+        "type": "object",
+      },
       "name": "legend",
       "optional": true,
-      "type": "unknown",
+      "type": "BaseLegendProps",
     },
     {
       "description": "The empty, no-match, loading, or error state of the chart, rendered as [chart.noData](https://api.highcharts.com/highcharts/noData).
 This property requires the \`no-data-to-display\` module.",
       "inlineType": {
-        "name": "ChartNoDataProps",
+        "name": "BaseNoDataProps",
         "properties": [
           {
             "name": "empty",
@@ -116,7 +145,7 @@ This property requires the \`no-data-to-display\` module.",
       },
       "name": "noData",
       "optional": true,
-      "type": "ChartNoDataProps",
+      "type": "BaseNoDataProps",
     },
     {
       "description": "Chart plot options.
@@ -182,9 +211,19 @@ inject links, or add expandable items.
             "type": "(detail: CartesianChartProps.TooltipDetails) => React.ReactNode",
           },
           {
+            "name": "placement",
+            "optional": true,
+            "type": ""bottom" | "target"",
+          },
+          {
             "name": "series",
             "optional": true,
             "type": "(detail: CartesianChartProps.TooltipSeriesDetailItem) => CartesianChartProps.TooltipSeriesFormatted",
+          },
+          {
+            "name": "size",
+            "optional": true,
+            "type": ""large" | "medium" | "small"",
           },
         ],
         "type": "object",
@@ -353,7 +392,7 @@ and adds extra features such as inner title and description, alternative tooltip
       "cancelable": false,
       "description": "A callback, executed when segments visibility is toggled by clicking on legend items.",
       "detailType": "unknown",
-      "name": "onToggleVisibleSegment",
+      "name": "onChangeVisibleSegments",
     },
   ],
   "functions": [
@@ -416,18 +455,47 @@ Supported Highcharts versions:
       "type": "string",
     },
     {
-      "description": "Chart series legend that corresponds to [legend](https://api.highcharts.com/highcharts/legend).
-The legend is enabled by default.
-The legend is interactive: clicking on legend items hides/shows the respective chart elements.",
+      "description": "Chart series legend props.",
+      "inlineType": {
+        "name": "BaseLegendProps",
+        "properties": [
+          {
+            "name": "align",
+            "optional": true,
+            "type": ""center" | "start"",
+          },
+          {
+            "name": "enabled",
+            "optional": true,
+            "type": "false | true",
+          },
+          {
+            "name": "extendedActions",
+            "optional": true,
+            "type": "false | true",
+          },
+          {
+            "name": "title",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "tooltip",
+            "optional": true,
+            "type": "unknown",
+          },
+        ],
+        "type": "object",
+      },
       "name": "legend",
       "optional": true,
-      "type": "unknown",
+      "type": "BaseLegendProps",
     },
     {
       "description": "The empty, no-match, loading, or error state of the chart, rendered as [chart.noData](https://api.highcharts.com/highcharts/noData).
 This property requires the \`no-data-to-display\` module.",
       "inlineType": {
-        "name": "ChartNoDataProps",
+        "name": "BaseNoDataProps",
         "properties": [
           {
             "name": "empty",
@@ -459,7 +527,7 @@ This property requires the \`no-data-to-display\` module.",
       },
       "name": "noData",
       "optional": true,
-      "type": "ChartNoDataProps",
+      "type": "BaseNoDataProps",
     },
     {
       "description": "The chart container scrollable area. Either min height or min width can be used, but not both at the same time.
@@ -469,9 +537,9 @@ This property corresponds to [chart.scrollablePlotArea](https://api.highcharts.c
       "type": "unknown",
     },
     {
-      "description": "Chart segment settings.",
+      "description": "Chart segment options.",
       "inlineType": {
-        "name": "PieChartProps.SegmentProps",
+        "name": "PieChartProps.SegmentOptions",
         "properties": [
           {
             "name": "description",
@@ -486,9 +554,9 @@ This property corresponds to [chart.scrollablePlotArea](https://api.highcharts.c
         ],
         "type": "object",
       },
-      "name": "segment",
+      "name": "segmentOptions",
       "optional": true,
-      "type": "PieChartProps.SegmentProps",
+      "type": "PieChartProps.SegmentOptions",
     },
     {
       "description": "Chart series and data.
@@ -517,9 +585,24 @@ Supported properties:
             "type": "(detail: PieChartProps.TooltipDetails) => React.ReactNode",
           },
           {
+            "name": "enabled",
+            "optional": true,
+            "type": "false | true",
+          },
+          {
             "name": "footer",
             "optional": true,
             "type": "(detail: PieChartProps.TooltipDetails) => React.ReactNode",
+          },
+          {
+            "name": "placement",
+            "optional": true,
+            "type": ""bottom" | "target"",
+          },
+          {
+            "name": "size",
+            "optional": true,
+            "type": ""large" | "medium" | "small"",
           },
           {
             "name": "title",

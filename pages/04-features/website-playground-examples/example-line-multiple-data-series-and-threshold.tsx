@@ -118,7 +118,7 @@ export function ExampleLineChartMultipleDataSeriesAndThreshold() {
         }}
         ariaLabel="Multiple data series line chart"
         series={hideSeries ? [] : series}
-        tooltip={{ placement: settings.tooltipPlacement }}
+        tooltip={{ placement: settings.tooltipPlacement, size: settings.tooltipSize }}
         xAxis={{
           type: "datetime",
           title: "Time (UTC)",

@@ -206,7 +206,7 @@ describe("CloudscapeHighcharts: options", () => {
     expect(click).toHaveBeenCalledWith(clickEvent);
   });
 
-  test.each([0, 1, 2, 3])("propagates highcharts chart options, inputs=%s", (index) => {
+  test.each([0, 1, 2])("propagates highcharts chart options, inputs=%s", (index) => {
     const chartStub = { series: [], legend: { allItems: [] } };
     const loadEvent = {};
     const load = vi.fn();
@@ -228,7 +228,6 @@ describe("CloudscapeHighcharts: options", () => {
       { highcharts, options },
       { highcharts, options, noData: { statusType: "error" } },
       { highcharts, options, tooltip: { getContent: () => ({ header: "", body: "" }) } },
-      { highcharts, options, legendTooltip: { getContent: () => ({ header: "", body: "" }) } },
     ];
     renderChart(inputs[index]);
 
@@ -246,6 +245,8 @@ describe("CloudscapeHighcharts: options", () => {
       expect.anything(),
     );
 
+    vi.mocked(HighchartsReact).mock.calls[0][0].callback(chartStub);
+
     vi.mocked(HighchartsReact).mock.calls[0][0].options.chart.events.load.call(chartStub, loadEvent);
     expect(load).toHaveBeenCalledWith(loadEvent);
 
@@ -256,7 +257,7 @@ describe("CloudscapeHighcharts: options", () => {
     expect(click).toHaveBeenCalledWith(clickEvent);
   });
 
-  test.each([0, 1])("propagates highcharts legend options, inputs=%s", (index) => {
+  test("propagates highcharts legend options", () => {
     const itemClickEvent = {};
     const labelFormatter = () => "";
     const itemClick = vi.fn();
@@ -270,11 +271,7 @@ describe("CloudscapeHighcharts: options", () => {
         events: { itemClick },
       },
     };
-    const inputs: CloudscapeHighchartsProps[] = [
-      { highcharts, options },
-      { highcharts, options, legendMarkers: { getItemStatus: () => "warning" } },
-    ];
-    renderChart(inputs[index]);
+    renderChart({ highcharts, options });
 
     expect(HighchartsReact).toHaveBeenCalledWith(
       expect.objectContaining({

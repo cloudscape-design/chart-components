@@ -108,7 +108,7 @@ export function ExampleAreaRangeSimple() {
           },
         ],
       }}
-      tooltip={{ placement: settings.tooltipPlacement }}
+      tooltip={{ placement: settings.tooltipPlacement, size: settings.tooltipSize }}
       emphasizeBaselineAxis={settings.emphasizeBaselineAxis}
     />
   );

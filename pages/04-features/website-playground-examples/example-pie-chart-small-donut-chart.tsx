@@ -55,6 +55,8 @@ export function ExamplePieChartSmallDonutChart() {
               </div>
             );
           },
+          placement: settings.tooltipPlacement,
+          size: settings.tooltipSize,
         }}
         innerValue={settings.pieInnerValue.trim() || undefined}
         innerDescription={settings.pieInnerDescription.trim() || undefined}

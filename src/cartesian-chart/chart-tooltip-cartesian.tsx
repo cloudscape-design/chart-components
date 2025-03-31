@@ -3,16 +3,17 @@
 
 import { useState } from "react";
 
-import { TooltipContent } from "../core/interfaces-core";
+import { CloudscapeChartAPI, CoreTooltipContent } from "../core/interfaces-core";
+import { getSeriesMarkerType } from "../core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../internal/components/series-details";
-import { ChartSeriesMarkerStatus, ChartSeriesMarkerType } from "../internal/components/series-marker";
+import { ChartSeriesMarkerStatus } from "../internal/components/series-marker";
 import { getDefaultFormatter } from "./default-formatters";
 import { CartesianChartProps, InternalCartesianChartOptions, InternalSeriesOptions } from "./interfaces-cartesian";
 import { getDataExtremes } from "./utils";
 import { getCartesianDetailsItem } from "./utils";
 
 export function useChartTooltipCartesian(
-  getChart: () => Highcharts.Chart,
+  getChart: () => CloudscapeChartAPI,
   props: {
     options: InternalCartesianChartOptions;
     tooltip?: CartesianChartProps.TooltipProps;
@@ -24,8 +25,8 @@ export function useChartTooltipCartesian(
   const { xAxis, series } = props.options;
   const [expandedSeries, setExpandedSeries] = useState<Record<string, Set<string>>>({});
 
-  const getContent = (point: { x: number; y: number }): null | TooltipContent => {
-    const chart = getChart();
+  const getContent = (point: { x: number; y: number }): null | CoreTooltipContent => {
+    const chart = getChart().hc;
 
     const matchedItems: CartesianChartProps.TooltipSeriesDetailItem[] = [];
     function findMatchedItem(series: InternalSeriesOptions) {
@@ -99,7 +100,7 @@ export function useChartTooltipCartesian(
       details.push({
         key: formatted.key,
         value: formatted.value,
-        markerType: chartSeries ? getSeriesMarkerType(matched.series.type, chartSeries) : "circle",
+        markerType: chartSeries ? getSeriesMarkerType(chartSeries) : "circle",
         markerStatus: props.series?.getItemStatus?.(matched.series.id ?? matched.series.name),
         color: getItemColor(matched),
         subItems: formatted.subItems,
@@ -146,41 +147,5 @@ export function useChartTooltipCartesian(
     };
   };
 
-  return { getContent, placement: props.tooltip?.placement };
-}
-
-function getSeriesMarkerType(
-  seriesType: CartesianChartProps.Series["type"],
-  series: Highcharts.Series,
-): ChartSeriesMarkerType {
-  const seriesSymbol = "symbol" in series && typeof series.symbol === "string" ? series.symbol : "circle";
-  switch (seriesType) {
-    case "area":
-    case "areaspline":
-      return "area";
-    case "line":
-    case "spline":
-      return "line";
-    case "awsui-x-threshold":
-    case "awsui-y-threshold":
-      return "dashed";
-    case "scatter":
-      switch (seriesSymbol) {
-        case "square":
-          return "square";
-        case "diamond":
-          return "diamond";
-        case "triangle":
-          return "triangle";
-        case "triangle-down":
-          return "triangle-down";
-        case "circle":
-        default:
-          return "circle";
-      }
-    case "column":
-    case "errorbar":
-    default:
-      return "large-circle";
-  }
+  return { getContent, size: props.tooltip?.size, placement: props.tooltip?.placement };
 }

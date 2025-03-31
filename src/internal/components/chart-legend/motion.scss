@@ -1,0 +1,13 @@
+/*
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+*/
+
+@use "../../styles" as styles;
+@use "../../../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
+
+.marker {
+  // @include styles.with-motion {
+  //   transition: opacity cs.$motion-duration-transition-quick cs.$motion-easing-transition-quick;
+  // }
+}

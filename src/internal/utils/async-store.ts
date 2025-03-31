@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { useLayoutEffect, useState } from "react";
-import { unstable_batchedUpdates } from "react-dom";
 
 import { usePrevious } from "./use-previous";
 
@@ -33,13 +32,11 @@ export default class AsyncStore<S> implements ReadonlyAsyncStore<S> {
 
     this._state = newState;
 
-    unstable_batchedUpdates(() => {
-      for (const [selector, listener] of this._listeners) {
-        if (selector(prevState) !== selector(newState)) {
-          listener(newState, prevState);
-        }
+    for (const [selector, listener] of this._listeners) {
+      if (selector(prevState) !== selector(newState)) {
+        listener(newState, prevState);
       }
-    });
+    }
   }
 
   subscribe<R>(selector: Selector<S, R>, listener: Listener<S>): () => void {
@@ -80,6 +77,15 @@ export function useSelector<S, R>(store: ReadonlyAsyncStore<S>, selector: Select
   useReaction(store, selector, (newState) => {
     setState(newState);
   });
+
+  useLayoutEffect(
+    () => {
+      setState(selector(store.get()));
+    },
+    // ignoring selector as new only need a single time update
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selector],
+  );
 
   // When store changes we need the state to be updated synchronously to avoid inconsistencies.
   const prevStore = usePrevious(store);

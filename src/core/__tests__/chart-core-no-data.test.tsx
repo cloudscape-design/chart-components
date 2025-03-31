@@ -5,6 +5,7 @@ import { waitFor } from "@testing-library/react";
 import highcharts from "highcharts";
 
 import "highcharts/modules/no-data-to-display";
+import createWrapper from "../../../lib/components/test-utils/dom";
 import { renderChart } from "./common";
 
 const series: Highcharts.SeriesOptionsType[] = [{ type: "line", name: "Line series", data: [1, 2, 3] }];
@@ -37,7 +38,7 @@ describe("CloudscapeHighcharts: no-data", () => {
     await waitFor(() => {
       expect(wrapper.findNoData()).not.toBe(null);
       expect(wrapper.findNoData()!.getElement().textContent).toBe("no-data: loading");
-      expect(wrapper.findLiveRegion()!.getElement()).toHaveTextContent("no-data: loading");
+      expect(createWrapper().findLiveRegion()!.getElement()).toHaveTextContent("no-data: loading");
     });
   });
 
@@ -51,7 +52,7 @@ describe("CloudscapeHighcharts: no-data", () => {
     await waitFor(() => {
       expect(wrapper.findNoData()).not.toBe(null);
       expect(wrapper.findNoData()!.getElement().textContent).toBe("no-data: error");
-      expect(wrapper.findLiveRegion()!.getElement()).toHaveTextContent("no-data: error");
+      expect(createWrapper().findLiveRegion()!.getElement()).toHaveTextContent("no-data: error");
     });
   });
 
@@ -65,7 +66,7 @@ describe("CloudscapeHighcharts: no-data", () => {
     await waitFor(() => {
       expect(wrapper.findNoData()).not.toBe(null);
       expect(wrapper.findNoData()!.getElement().textContent).toBe("no-data: empty");
-      expect(wrapper.findLiveRegion()).toBe(null);
+      expect(createWrapper().findLiveRegion()).toBe(null);
     });
   });
 
@@ -81,7 +82,7 @@ describe("CloudscapeHighcharts: no-data", () => {
       await waitFor(() => {
         expect(wrapper.findNoData()).not.toBe(null);
         expect(wrapper.findNoData()!.getElement().textContent).toBe("no-data: empty");
-        expect(wrapper.findLiveRegion()).toBe(null);
+        expect(createWrapper().findLiveRegion()).toBe(null);
       });
     },
   );
@@ -91,13 +92,13 @@ describe("CloudscapeHighcharts: no-data", () => {
       highcharts,
       options: { series },
       noData: { statusType: "finished", ...noDataContent },
-      hiddenSeries: ["Line series"],
+      hiddenItems: ["Line series"],
     });
 
     await waitFor(() => {
       expect(wrapper.findNoData()).not.toBe(null);
       expect(wrapper.findNoData()!.getElement().textContent).toBe("no-data: no-match");
-      expect(wrapper.findLiveRegion()).toBe(null);
+      expect(createWrapper().findLiveRegion()).toBe(null);
     });
   });
 });

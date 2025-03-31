@@ -5,7 +5,7 @@ import { waitFor } from "@testing-library/react";
 import highcharts from "highcharts";
 import { vi } from "vitest";
 
-import { CloudscapeHighchartsWrapper, renderChart } from "./common";
+import { createChartWrapper, renderChart } from "./common";
 
 function findChart() {
   return highcharts.charts.find((c) => c)!;
@@ -22,12 +22,12 @@ function leavePoint(index: number) {
 function clickPoint(index: number) {
   findPoint(0, index).graphic!.element.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
 }
-function hoverTooltip(wrapper: CloudscapeHighchartsWrapper) {
-  const tooltipElement = wrapper.findTooltip()!.getElement();
+function hoverTooltip() {
+  const tooltipElement = createChartWrapper().findTooltip()!.getElement();
   tooltipElement.dispatchEvent(new MouseEvent("mouseover", { bubbles: true, cancelable: true }));
 }
-function leaveTooltip(wrapper: CloudscapeHighchartsWrapper) {
-  const tooltipElement = wrapper.findTooltip()!.getElement();
+function leaveTooltip() {
+  const tooltipElement = createChartWrapper().findTooltip()!.getElement();
   tooltipElement.dispatchEvent(new MouseEvent("mouseout", { bubbles: true, cancelable: true }));
 }
 
@@ -96,14 +96,14 @@ describe("CloudscapeHighcharts: tooltip", () => {
       expect(wrapper.findTooltip()).not.toBe(null);
     });
 
-    hoverTooltip(wrapper);
+    hoverTooltip();
     leavePoint(0);
 
     await waitFor(() => {
       expect(wrapper.findTooltip()).not.toBe(null);
     });
 
-    leaveTooltip(wrapper);
+    leaveTooltip();
 
     await waitFor(() => {
       expect(wrapper.findTooltip()).toBe(null);

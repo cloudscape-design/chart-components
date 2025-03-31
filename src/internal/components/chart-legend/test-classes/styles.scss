@@ -3,6 +3,11 @@
  SPDX-License-Identifier: Apache-2.0
 */
 
-.root {
-  /* used in tests */
+.root,
+.title,
+.item,
+.hidden-item,
+.item-status-normal,
+.item-status-warning {
+  /* used in test-utils */
 }

@@ -4,14 +4,13 @@
 import { useRef } from "react";
 import type Highcharts from "highcharts";
 
-import { colorChartsLineTick } from "@cloudscape-design/design-tokens";
+import ChartTooltipBase from "@cloudscape-design/components/internal/chart-tooltip-do-not-use";
 
-import Popover from "../internal/components/popover";
 import AsyncStore, { useSelector } from "../internal/utils/async-store";
 import { DebouncedCall } from "../internal/utils/utils";
-import { Point, TooltipContent } from "./interfaces-core";
-
-import testClasses from "./test-classes/styles.css.js";
+import { Point } from "./interfaces-base";
+import { CloudscapeChartAPI, CoreTooltipProps } from "./interfaces-core";
+import * as Styles from "./styles";
 
 const MOUSE_LEAVE_DELAY = 300;
 const LAST_DISMISS_DELAY = 250;
@@ -23,11 +22,8 @@ const LAST_DISMISS_DELAY = 250;
 
 export function useChartTooltip(
   highcharts: null | typeof Highcharts,
-  getChart: () => Highcharts.Chart,
-  tooltipProps?: {
-    getContent: (point: Point) => null | TooltipContent;
-    placement?: "target" | "bottom";
-  },
+  getChart: () => CloudscapeChartAPI,
+  tooltipProps?: CoreTooltipProps,
 ) {
   const tooltipStore = useRef(new TooltipStore(getChart)).current;
   tooltipStore.placement = tooltipProps?.placement ?? "target";
@@ -52,9 +48,18 @@ export function useChartTooltip(
     tooltipStore.onMouseClickPlot(this);
   };
 
+  const highlightPoint = (point: Highcharts.Point) => tooltipStore.onMouseOverTarget(point);
+  const clearHighlight = () => tooltipStore.onMouseLeaveTarget();
+
   return {
     options: { chartClick, seriesPointMouseOver, seriesPointMouseOut, seriesPointClick },
-    props: { tooltipStore, getContent: tooltipProps?.getContent ?? (() => null), placement: tooltipProps?.placement },
+    props: {
+      tooltipStore,
+      getContent: tooltipProps?.getContent ?? (() => null),
+      placement: tooltipProps?.placement,
+      size: tooltipProps?.size,
+    },
+    api: { highlightPoint, clearHighlight },
   };
 }
 
@@ -62,11 +67,8 @@ export function ChartTooltip({
   tooltipStore,
   getContent,
   placement,
-}: {
-  tooltipStore: TooltipStore;
-  getContent: (point: Point) => null | TooltipContent;
-  placement?: "target" | "bottom";
-}) {
+  size,
+}: CoreTooltipProps & { tooltipStore: TooltipStore }) {
   const tooltip = useSelector(tooltipStore, (s) => s);
   if (!tooltip.visible) {
     return null;
@@ -76,7 +78,7 @@ export function ChartTooltip({
     return null;
   }
   return (
-    <Popover
+    <ChartTooltipBase
       getTrack={tooltipStore.getTrack}
       trackKey={tooltip.point.x + ":" + tooltip.point.y}
       container={null}
@@ -84,13 +86,13 @@ export function ChartTooltip({
       onDismiss={tooltipStore.onDismiss}
       onMouseEnter={tooltipStore.onMouseEnterTooltip}
       onMouseLeave={tooltipStore.onMouseLeaveTooltip}
-      header={content.header}
+      title={content.header}
       footer={content.footer}
+      size={size}
       position={placement === "bottom" ? "bottom" : undefined}
-      className={testClasses.tooltip}
     >
       {content.body}
-    </Popover>
+    </ChartTooltipBase>
   );
 }
 
@@ -104,14 +106,14 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
   public getTrack: () => null | HTMLElement | SVGElement = () => null;
   public placement: "target" | "bottom" = "target";
 
-  private getChart: () => Highcharts.Chart;
+  private getChart: () => CloudscapeChartAPI;
   private targetElement: null | Highcharts.SVGElement = null;
-  private markerElement: null | Highcharts.SVGElement = null;
+  private cursorElement: null | Highcharts.SVGElement = null;
   private mouseLeaveCall = new DebouncedCall();
   private lastDismissTime = 0;
   private tooltipHovered = false;
 
-  constructor(getChart: () => Highcharts.Chart) {
+  constructor(getChart: () => CloudscapeChartAPI) {
     super({ visible: false, pinned: false, point: { x: 0, y: 0 } });
     this.getChart = getChart;
   }
@@ -202,7 +204,7 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
   };
 
   private get chart() {
-    return this.getChart();
+    return this.getChart().hc;
   }
 
   private moveMarkers = (target: Highcharts.Point) => {
@@ -211,6 +213,8 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
   };
 
   private createMarkers = (target: Highcharts.Point) => {
+    let markerTop = this.chart.plotTop;
+    let markerHeight = this.chart.plotHeight;
     let x = (target.plotX ?? 0) + this.chart.plotLeft;
     let y = (target.plotY ?? 0) + this.chart.plotTop;
     if (this.chart.inverted) {
@@ -219,17 +223,23 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
     }
     // The pie series segments do not provide plotX, plotY.
     // That's why we use the tooltipPos tuple, which is not covered by Typescript.
-    if (target.series.type === "pie") {
+    if (target.series.type === "pie" && this.placement === "target") {
       x = (target as any).tooltipPos[0];
       y = (target as any).tooltipPos[1];
     }
-    // this.targetElement = this.chart.renderer.circle(x, y, 0).add();
+    if (target.series.type === "pie" && this.placement === "bottom") {
+      const { centerX, centerY, radius } = this.getPieCoordinates(target.series);
+      x = centerX;
+      y = centerY;
+      markerTop = centerY - radius;
+      markerHeight = 2 * radius;
+    }
 
-    this.markerElement = this.chart.renderer
-      .rect(x, this.chart.plotTop, 1, this.chart.plotHeight)
-      .attr({ fill: target.series.type !== "pie" ? colorChartsLineTick : "transparent" })
+    this.cursorElement = this.chart.renderer
+      .rect(x, markerTop, 1, markerHeight)
+      .attr({ fill: target.series.type !== "pie" ? Styles.colorChartCursor : "transparent" })
       .add();
-    this.targetElement = this.placement === "target" ? this.chart.renderer.circle(x, y, 0).add() : this.markerElement;
+    this.targetElement = this.placement === "target" ? this.chart.renderer.circle(x, y, 0).add() : this.cursorElement;
 
     // The targetElement.element can get invalidated by Highcharts, so we cannot use
     // trackRef.current = targetElement.element as it might get invalidated unexpectedly.
@@ -237,8 +247,19 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
     this.getTrack = () => this.targetElement?.element ?? null;
   };
 
+  private getPieCoordinates = (series: Highcharts.Series) => {
+    const [relativeX, relativeY, relativeDiameter] = series.center;
+    const plotLeft = this.chart.plotLeft;
+    const plotTop = this.chart.plotTop;
+    const centerX = plotLeft + (typeof relativeX === "number" ? relativeX : (relativeX / 100) * this.chart.plotWidth);
+    const centerY = plotTop + (typeof relativeY === "number" ? relativeY : (relativeY / 100) * this.chart.plotHeight);
+    const radius =
+      (typeof relativeDiameter === "number" ? relativeDiameter : (relativeDiameter / 100) * this.chart.plotWidth) / 2;
+    return { centerX, centerY, radius };
+  };
+
   private destroyMarkers = () => {
     this.targetElement?.destroy();
-    this.markerElement?.destroy();
+    this.cursorElement?.destroy();
   };
 }

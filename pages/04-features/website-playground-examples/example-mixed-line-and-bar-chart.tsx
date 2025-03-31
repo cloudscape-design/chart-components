@@ -76,6 +76,7 @@ export function ExampleMixedLineAndBarChart() {
             }
           },
           placement: settings.tooltipPlacement,
+          size: settings.tooltipSize,
         }}
         xAxis={{
           type: "category",

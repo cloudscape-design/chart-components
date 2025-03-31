@@ -3,20 +3,20 @@
 
 import Box from "@cloudscape-design/components/box";
 
-import { TooltipContent } from "../core/interfaces-core";
+import { CloudscapeChartAPI, CoreTooltipContent } from "../core/interfaces-core";
 import ChartSeriesDetails from "../internal/components/series-details";
 import { ChartSeriesMarker } from "../internal/components/series-marker";
 import { InternalPieChartOptions, PieChartProps } from "./interfaces-pie";
 
 export function useChartTooltipPie(
-  getChart: () => Highcharts.Chart,
+  getChart: () => CloudscapeChartAPI,
   props: {
     options: InternalPieChartOptions;
     tooltip?: PieChartProps.TooltipProps;
   },
 ) {
-  const getContent = (point: { x: number; y: number }): null | TooltipContent => {
-    const chart = getChart();
+  const getContent = (point: { x: number; y: number }): null | CoreTooltipContent => {
+    const chart = getChart().hc;
     const series = props.options.series[0] as undefined | PieChartProps.Series;
     const matchedChartSeries = chart.series.find((s) => (s.userOptions.id ?? s.name) === (series?.id ?? series?.name));
     if (!matchedChartSeries) {
@@ -63,5 +63,5 @@ export function useChartTooltipPie(
     return { header, body, footer };
   };
 
-  return { getContent };
+  return { getContent, size: props.tooltip?.size, placement: props.tooltip?.placement };
 }
