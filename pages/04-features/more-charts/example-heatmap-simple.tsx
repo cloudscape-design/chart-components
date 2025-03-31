@@ -86,7 +86,7 @@ export function ExampleHeatmapSimple() {
         ],
         yAxis: [{ title: "Values", type: "category", categories: ["A", "B", "C", "D"] }],
       }}
-      tooltip={{ placement: settings.tooltipPlacement }}
+      tooltip={{ placement: settings.tooltipPlacement, size: settings.tooltipSize }}
     />
   );
 }

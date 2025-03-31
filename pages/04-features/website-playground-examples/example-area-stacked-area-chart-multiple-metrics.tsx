@@ -857,6 +857,7 @@ export function ExampleAreaChartStackedAreaChartMultipleMetrics() {
             );
           },
           placement: settings.tooltipPlacement,
+          size: settings.tooltipSize,
         }}
         xAxis={{
           type: "datetime",

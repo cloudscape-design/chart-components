@@ -1,11 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import * as CoreTypes from "../core/interfaces-core";
-import * as SeriesTypes from "../core/interfaces-core-series";
+import * as BaseTypes from "../core/interfaces-base";
 import { NonCancelableEventHandler } from "../internal/events";
 
-export interface PieChartProps extends CoreTypes.CloudscapeHighchartsBase {
+export interface PieChartProps extends BaseTypes.BaseChartProps {
   /**
    * Chart series and data.
    * This property corresponds to [series](https://api.highcharts.com/highcharts/series).
@@ -27,9 +26,9 @@ export interface PieChartProps extends CoreTypes.CloudscapeHighchartsBase {
   tooltip?: PieChartProps.TooltipProps;
 
   /**
-   * Chart segment settings.
+   * Chart segment options.
    */
-  segment?: PieChartProps.SegmentProps;
+  segmentOptions?: PieChartProps.SegmentOptions;
 
   /**
    * List of segments IDs to be visible. When unset, all segments are visible by default, but can be hidden by clicking on the
@@ -41,7 +40,7 @@ export interface PieChartProps extends CoreTypes.CloudscapeHighchartsBase {
   /**
    * A callback, executed when segments visibility is toggled by clicking on legend items.
    */
-  onToggleVisibleSegment?: NonCancelableEventHandler<{ visibleSegments: string[] }>;
+  onChangeVisibleSegments?: NonCancelableEventHandler<{ visibleSegments: string[] }>;
 
   /**
    * Inner title of the donut chart.
@@ -61,21 +60,21 @@ export namespace PieChartProps {
 
   export type Series = PieSeries | DonutSeries;
 
-  export type PieSeries = SeriesTypes.PieSeries;
+  export type PieSeries = BaseTypes.PieSeries;
 
-  export type DonutSeries = SeriesTypes.DonutSeries;
+  export type DonutSeries = BaseTypes.DonutSeries;
 
-  export type PieDataItem = SeriesTypes.PieDataItem;
+  export type PieDataItem = BaseTypes.PieDataItem;
 
-  export type NoDataProps = CoreTypes.ChartNoDataProps;
+  export type NoDataProps = BaseTypes.BaseNoDataProps;
 
-  export interface TooltipProps {
+  export interface TooltipProps extends BaseTypes.BaseTooltipProps {
     title?: (detail: PieChartProps.TooltipDetails) => React.ReactNode;
     body?: (detail: PieChartProps.TooltipDetails) => React.ReactNode;
     footer?: (detail: PieChartProps.TooltipDetails) => React.ReactNode;
   }
 
-  export interface SegmentProps {
+  export interface SegmentOptions {
     title?: null | ((detail: PieChartProps.SegmentDescriptionDetail) => string);
     description?: null | ((detail: PieChartProps.SegmentDescriptionDetail) => string);
   }

@@ -5,68 +5,142 @@ import highcharts from "highcharts";
 import { vi } from "vitest";
 
 import "@cloudscape-design/components/test-utils/dom";
-import { CloudscapeHighchartsWrapper, renderChart, renderStatefulChart } from "./common";
+import { createChartWrapper, renderChart, renderStatefulChart } from "./common";
 
-function getLegendItemContent(wrapper: CloudscapeHighchartsWrapper) {
-  return wrapper.findLegendItems().map((w) => w.getElement().textContent);
-}
-function getHiddenLegendItemContent(wrapper: CloudscapeHighchartsWrapper) {
-  return wrapper.findHiddenLegendItems().map((w) => w.getElement().textContent);
+function getVisibilityState() {
+  const legend = createChartWrapper().findLegend();
+  const chart = highcharts.charts.find((c) => c)!;
+  const series = chart.series;
+  const hiddenSeries = series.filter((s) => !s.visible);
+  const points = chart.series.flatMap((s) => s.data);
+  const hiddenPoints = points.filter((p) => !p.visible);
+  return {
+    allLegendItems: legend?.findItems().map((w) => w.getElement().textContent) ?? [],
+    hiddenLegendItems: legend?.findItems({ hidden: true }).map((w) => w.getElement().textContent) ?? [],
+    allSeries: series.map((s) => s.options.id ?? s.name),
+    hiddenSeries: hiddenSeries.map((s) => s.options.id ?? s.name),
+    allPoints: points.map((p) => p.options.id ?? p.name),
+    hiddenPoints: hiddenPoints.map((p) => p.options.id ?? p.name),
+  };
 }
 
-const onLegendSeriesClick = vi.fn();
-const onLegendItemClick = vi.fn();
+const onLegendItemToggle = vi.fn();
 
 afterEach(() => {
-  onLegendSeriesClick.mockReset();
-  onLegendItemClick.mockReset();
+  onLegendItemToggle.mockReset();
 });
 
-const defaultProps = { highcharts, onLegendSeriesClick, onLegendItemClick };
+const defaultProps = { highcharts, onLegendItemToggle };
+
+const lineSeries: Highcharts.SeriesOptionsType[] = [
+  {
+    type: "line",
+    name: "L1",
+    data: [
+      { name: "A", y: 1 },
+      { name: "B", y: 2 },
+    ],
+  },
+  {
+    type: "line",
+    name: "L2",
+    data: [
+      { name: "C", y: 3 },
+      { name: "D", y: 4 },
+    ],
+  },
+];
+
+const pieSeries: Highcharts.SeriesOptionsType[] = [
+  {
+    type: "pie",
+    name: "Pie series",
+    data: [
+      { name: "A", y: 20 },
+      { name: "B", y: 80 },
+    ],
+    showInLegend: true,
+  },
+];
 
 describe("CloudscapeHighcharts: visibility", () => {
-  test.each(["uncontrolled", "controlled"])("toggles series visibility by clicking on legend, %s", (mode) => {
-    const series: Highcharts.SeriesOptionsType[] = [{ type: "line", name: "Line series", data: [1, 2, 3] }];
-    const { wrapper } =
-      mode === "uncontrolled"
-        ? renderChart({ ...defaultProps, options: { series } })
-        : renderStatefulChart({ ...defaultProps, options: { series }, hiddenSeries: [] });
+  test.each([false, true])("hides series on the first render, legend=%s", (legend) => {
+    renderStatefulChart({
+      ...defaultProps,
+      options: { series: lineSeries },
+      legend: { enabled: legend },
+      hiddenItems: ["L1"],
+    });
 
-    expect(getLegendItemContent(wrapper)).toEqual(["Line series"]);
-    expect(getHiddenLegendItemContent(wrapper)).toEqual([]);
+    expect(getVisibilityState()).toEqual({
+      allLegendItems: legend ? ["L1", "L2"] : [],
+      hiddenLegendItems: legend ? ["L1"] : [],
+      allSeries: ["L1", "L2"],
+      hiddenSeries: ["L1"],
+      allPoints: ["A", "B", "C", "D"],
+      hiddenPoints: [],
+    });
+  });
 
-    wrapper.findLegendItems()[0].click();
+  test("toggles series visibility by clicking on legend", () => {
+    renderStatefulChart({ ...defaultProps, options: { series: lineSeries }, hiddenItems: [] });
 
-    expect(getLegendItemContent(wrapper)).toEqual(["Line series"]);
-    expect(getHiddenLegendItemContent(wrapper)).toEqual(["Line series"]);
+    expect(getVisibilityState()).toEqual({
+      allLegendItems: ["L1", "L2"],
+      hiddenLegendItems: [],
+      allSeries: ["L1", "L2"],
+      hiddenSeries: [],
+      allPoints: ["A", "B", "C", "D"],
+      hiddenPoints: [],
+    });
 
-    expect(onLegendSeriesClick).toHaveBeenCalledWith("Line series", false);
+    createChartWrapper().findLegend()!.findItems()[0].click();
+
+    expect(getVisibilityState()).toEqual({
+      allLegendItems: ["L1", "L2"],
+      hiddenLegendItems: ["L1"],
+      allSeries: ["L1", "L2"],
+      hiddenSeries: ["L1"],
+      allPoints: ["A", "B", "C", "D"],
+      hiddenPoints: [],
+    });
+
+    expect(onLegendItemToggle).toHaveBeenCalledWith("L1", false);
   });
 
   test("changes series visibility from the outside", () => {
-    const series: Highcharts.SeriesOptionsType[] = [
-      { type: "line", name: "Line series 1", data: [1, 2, 3] },
-      { type: "line", name: "Line series 2", data: [1, 2, 3] },
-    ];
-    const { wrapper, rerender } = renderChart({ ...defaultProps, options: { series }, hiddenSeries: [] });
+    const { rerender } = renderChart({ ...defaultProps, options: { series: lineSeries }, hiddenItems: [] });
 
-    expect(getLegendItemContent(wrapper)).toEqual(["Line series 1", "Line series 2"]);
-    expect(getHiddenLegendItemContent(wrapper)).toEqual([]);
+    expect(getVisibilityState()).toEqual({
+      allLegendItems: ["L1", "L2"],
+      hiddenLegendItems: [],
+      allSeries: ["L1", "L2"],
+      hiddenSeries: [],
+      allPoints: ["A", "B", "C", "D"],
+      hiddenPoints: [],
+    });
 
-    rerender({ ...defaultProps, options: { series }, hiddenSeries: ["Line series 1"] });
+    rerender({ ...defaultProps, options: { series: lineSeries }, hiddenItems: ["L2"] });
 
-    expect(getLegendItemContent(wrapper)).toEqual(["Line series 1", "Line series 2"]);
-    expect(getHiddenLegendItemContent(wrapper)).toEqual(["Line series 1"]);
+    expect(getVisibilityState()).toEqual({
+      allLegendItems: ["L1", "L2"],
+      hiddenLegendItems: ["L2"],
+      allSeries: ["L1", "L2"],
+      hiddenSeries: ["L2"],
+      allPoints: ["A", "B", "C", "D"],
+      hiddenPoints: [],
+    });
 
-    rerender({ ...defaultProps, options: { series }, hiddenSeries: ["Line series 2"] });
+    rerender({ ...defaultProps, options: { series: lineSeries }, hiddenItems: ["L1", "L2"] });
 
-    expect(getLegendItemContent(wrapper)).toEqual(["Line series 1", "Line series 2"]);
-    expect(getHiddenLegendItemContent(wrapper)).toEqual(["Line series 2"]);
-
-    rerender({ ...defaultProps, options: { series }, hiddenSeries: ["Line series 1", "Line series 2"] });
-
-    expect(getLegendItemContent(wrapper)).toEqual(["Line series 1", "Line series 2"]);
-    expect(getHiddenLegendItemContent(wrapper)).toEqual(["Line series 1", "Line series 2"]);
+    expect(getVisibilityState()).toEqual({
+      allLegendItems: ["L1", "L2"],
+      hiddenLegendItems: ["L1", "L2"],
+      allSeries: ["L1", "L2"],
+      hiddenSeries: ["L1", "L2"],
+      allPoints: ["A", "B", "C", "D"],
+      hiddenPoints: [],
+    });
   });
 
   test("prefers series id over series name", () => {
@@ -74,80 +148,119 @@ describe("CloudscapeHighcharts: visibility", () => {
       { type: "line", id: "1", name: "Line", data: [1, 2, 3] },
       { type: "line", id: "2", name: "Line", data: [1, 2, 3] },
     ];
-    const { wrapper, rerender } = renderChart({ ...defaultProps, options: { series }, hiddenSeries: ["Line"] });
+    const { wrapper, rerender } = renderChart({
+      ...defaultProps,
+      options: { series },
 
-    expect(getLegendItemContent(wrapper)).toEqual(["Line", "Line"]);
-    expect(getHiddenLegendItemContent(wrapper)).toEqual([]);
+      hiddenItems: ["Line"],
+    });
 
-    rerender({ ...defaultProps, options: { series }, hiddenSeries: ["1", "2"] });
+    expect(getVisibilityState()).toEqual(
+      expect.objectContaining({
+        allLegendItems: ["Line", "Line"],
+        hiddenLegendItems: [],
+        allSeries: ["1", "2"],
+        hiddenSeries: [],
+      }),
+    );
 
-    expect(getLegendItemContent(wrapper)).toEqual(["Line", "Line"]);
-    expect(getHiddenLegendItemContent(wrapper)).toEqual(["Line", "Line"]);
+    rerender({ ...defaultProps, options: { series }, hiddenItems: ["1"] });
 
-    wrapper.findLegendItems()[0].click();
+    expect(getVisibilityState()).toEqual(
+      expect.objectContaining({
+        allLegendItems: ["Line", "Line"],
+        hiddenLegendItems: ["Line"],
+        allSeries: ["1", "2"],
+        hiddenSeries: ["1"],
+      }),
+    );
 
-    expect(onLegendSeriesClick).toHaveBeenCalledWith("1", true);
+    wrapper.findLegend()!.findItems()[0].click();
+
+    expect(onLegendItemToggle).toHaveBeenCalledWith("1", true);
+
+    wrapper.findLegend()!.findItems()[1].click();
+
+    expect(onLegendItemToggle).toHaveBeenCalledWith("2", false);
   });
 
-  test.each(["uncontrolled", "controlled"])("toggles items visibility by clicking on legend, %s", (mode) => {
-    const series: Highcharts.SeriesOptionsType[] = [
-      {
-        type: "pie",
-        name: "Pie series",
-        data: [
-          { name: "A", y: 20 },
-          { name: "B", y: 80 },
-        ],
-        showInLegend: true,
-      },
-    ];
-    const { wrapper } =
-      mode === "uncontrolled"
-        ? renderChart({ ...defaultProps, options: { series } })
-        : renderStatefulChart({ ...defaultProps, options: { series }, hiddenItems: [] });
+  test.each([false, true])("hides items on the first render, legend=%s", (legend) => {
+    renderStatefulChart({
+      ...defaultProps,
+      options: { series: pieSeries },
+      legend: { enabled: legend },
+      hiddenItems: ["A", "B"],
+    });
 
-    expect(getLegendItemContent(wrapper)).toEqual(["A", "B"]);
-    expect(getHiddenLegendItemContent(wrapper)).toEqual([]);
+    expect(getVisibilityState()).toEqual({
+      allLegendItems: legend ? ["A", "B"] : [],
+      hiddenLegendItems: legend ? ["A", "B"] : [],
+      allSeries: ["Pie series"],
+      hiddenSeries: [],
+      allPoints: ["A", "B"],
+      hiddenPoints: ["A", "B"],
+    });
+  });
 
-    wrapper.findLegendItems()[1].click();
+  test("toggles items visibility by clicking on legend", () => {
+    const { wrapper } = renderStatefulChart({ ...defaultProps, options: { series: pieSeries }, hiddenItems: [] });
 
-    expect(getLegendItemContent(wrapper)).toEqual(["A", "B"]);
-    expect(getHiddenLegendItemContent(wrapper)).toEqual(["B"]);
+    expect(getVisibilityState()).toEqual({
+      allLegendItems: ["A", "B"],
+      hiddenLegendItems: [],
+      allSeries: ["Pie series"],
+      hiddenSeries: [],
+      allPoints: ["A", "B"],
+      hiddenPoints: [],
+    });
 
-    expect(onLegendItemClick).toHaveBeenCalledWith("B", false);
+    wrapper.findLegend()!.findItems()[1].click();
+
+    expect(getVisibilityState()).toEqual({
+      allLegendItems: ["A", "B"],
+      hiddenLegendItems: ["B"],
+      allSeries: ["Pie series"],
+      hiddenSeries: [],
+      allPoints: ["A", "B"],
+      hiddenPoints: ["B"],
+    });
+
+    expect(onLegendItemToggle).toHaveBeenCalledWith("B", false);
   });
 
   test("changes items visibility from the outside", () => {
-    const series: Highcharts.SeriesOptionsType[] = [
-      {
-        type: "pie",
-        name: "Pie series",
-        data: [
-          { name: "A", y: 20 },
-          { name: "B", y: 80 },
-        ],
-        showInLegend: true,
-      },
-    ];
-    const { wrapper, rerender } = renderChart({ ...defaultProps, options: { series }, hiddenItems: [] });
+    const { rerender } = renderChart({ ...defaultProps, options: { series: pieSeries }, hiddenItems: [] });
 
-    expect(getLegendItemContent(wrapper)).toEqual(["A", "B"]);
-    expect(getHiddenLegendItemContent(wrapper)).toEqual([]);
+    expect(getVisibilityState()).toEqual({
+      allLegendItems: ["A", "B"],
+      hiddenLegendItems: [],
+      allSeries: ["Pie series"],
+      hiddenSeries: [],
+      allPoints: ["A", "B"],
+      hiddenPoints: [],
+    });
 
-    rerender({ ...defaultProps, options: { series }, hiddenItems: ["A"] });
+    rerender({ ...defaultProps, options: { series: pieSeries }, hiddenItems: ["A"] });
 
-    expect(getLegendItemContent(wrapper)).toEqual(["A", "B"]);
-    expect(getHiddenLegendItemContent(wrapper)).toEqual(["A"]);
+    expect(getVisibilityState()).toEqual({
+      allLegendItems: ["A", "B"],
+      hiddenLegendItems: ["A"],
+      allSeries: ["Pie series"],
+      hiddenSeries: [],
+      allPoints: ["A", "B"],
+      hiddenPoints: ["A"],
+    });
 
-    rerender({ ...defaultProps, options: { series }, hiddenItems: ["B"] });
+    rerender({ ...defaultProps, options: { series: pieSeries }, hiddenItems: ["A", "B"] });
 
-    expect(getLegendItemContent(wrapper)).toEqual(["A", "B"]);
-    expect(getHiddenLegendItemContent(wrapper)).toEqual(["B"]);
-
-    rerender({ ...defaultProps, options: { series }, hiddenItems: ["A", "B"] });
-
-    expect(getLegendItemContent(wrapper)).toEqual(["A", "B"]);
-    expect(getHiddenLegendItemContent(wrapper)).toEqual(["A", "B"]);
+    expect(getVisibilityState()).toEqual({
+      allLegendItems: ["A", "B"],
+      hiddenLegendItems: ["A", "B"],
+      allSeries: ["Pie series"],
+      hiddenSeries: [],
+      allPoints: ["A", "B"],
+      hiddenPoints: ["A", "B"],
+    });
   });
 
   test("prefers item id over item name", () => {
@@ -162,22 +275,39 @@ describe("CloudscapeHighcharts: visibility", () => {
         showInLegend: true,
       },
     ];
-    const { wrapper, rerender } = renderChart({ ...defaultProps, options: { series }, hiddenItems: ["Segment"] });
+    const { wrapper, rerender } = renderChart({
+      ...defaultProps,
+      options: { series },
 
-    expect(getLegendItemContent(wrapper)).toEqual(["Segment", "Segment"]);
-    expect(getHiddenLegendItemContent(wrapper)).toEqual([]);
+      hiddenItems: ["Segment"],
+    });
+
+    expect(getVisibilityState()).toEqual({
+      allLegendItems: ["Segment", "Segment"],
+      hiddenLegendItems: [],
+      allSeries: ["Pie series"],
+      hiddenSeries: [],
+      allPoints: ["1", "2"],
+      hiddenPoints: [],
+    });
 
     rerender({ ...defaultProps, options: { series }, hiddenItems: ["1"] });
 
-    expect(getLegendItemContent(wrapper)).toEqual(["Segment", "Segment"]);
-    expect(getHiddenLegendItemContent(wrapper)).toEqual(["Segment"]);
+    expect(getVisibilityState()).toEqual({
+      allLegendItems: ["Segment", "Segment"],
+      hiddenLegendItems: ["Segment"],
+      allSeries: ["Pie series"],
+      hiddenSeries: [],
+      allPoints: ["1", "2"],
+      hiddenPoints: ["1"],
+    });
 
-    wrapper.findLegendItems()[0].click();
+    wrapper.findLegend()!.findItems()[0].click();
 
-    expect(onLegendItemClick).toHaveBeenCalledWith("1", true);
+    expect(onLegendItemToggle).toHaveBeenCalledWith("1", true);
 
-    wrapper.findLegendItems()[1].click();
+    wrapper.findLegend()!.findItems()[1].click();
 
-    expect(onLegendItemClick).toHaveBeenCalledWith("2", false);
+    expect(onLegendItemToggle).toHaveBeenCalledWith("2", false);
   });
 });

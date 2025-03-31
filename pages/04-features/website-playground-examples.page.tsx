@@ -9,7 +9,7 @@ import SpaceBetween from "@cloudscape-design/components/space-between";
 
 import { PageSettingsDefaults, usePageSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
-import { TooltipPlacement } from "../common/tooltip-placement";
+import { TooltipSettings } from "../common/tooltip-settings";
 import { ExampleAreaChartStackedAreaChart } from "./website-playground-examples/example-area-stacked-area-chart";
 import { ExampleAreaChartStackedAreaChartMultipleMetrics } from "./website-playground-examples/example-area-stacked-area-chart-multiple-metrics";
 import { ExampleAreaChartStackedAreaChartWithThreshold } from "./website-playground-examples/example-area-stacked-area-chart-with-threshold";
@@ -36,7 +36,7 @@ export default function () {
           repetition."
         settings={
           <SpaceBetween size="s">
-            <TooltipPlacement />
+            <TooltipSettings />
             <FormField label="Donut chart inner value">
               <Input
                 value={settings.pieInnerValue}

@@ -10,12 +10,14 @@ import { generateTestUtils } from "@cloudscape-design/test-utils-converter";
 import { pluralizeComponentName } from "./pluralize.js";
 import { pascalCase } from "./utils.js";
 
-const componentNames = globbySync(["src/test-utils/dom/**/index.ts", "!src/test-utils/dom/index.ts"]).map(
-  (filePath) => {
-    const fileNameKebabCase = filePath.replace("src/test-utils/dom/", "").replace("/index.ts", "");
-    return pascalCase(fileNameKebabCase);
-  },
-);
+const componentNames = globbySync([
+  "src/test-utils/dom/**/index.ts",
+  "!src/test-utils/dom/index.ts",
+  "!src/test-utils/dom/core/**",
+]).map((filePath) => {
+  const fileNameKebabCase = filePath.replace("src/test-utils/dom/", "").replace("/index.ts", "");
+  return pascalCase(fileNameKebabCase);
+});
 
 generateTestUtils({
   testUtilsPath: path.resolve("src/test-utils"),

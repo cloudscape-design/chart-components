@@ -148,12 +148,12 @@ function ExamplePieChart() {
           );
         },
       }}
-      segment={{
+      segmentOptions={{
         description: ({ segmentValue, totalValue }) =>
           `${segmentValue} units, ${((segmentValue / totalValue) * 100).toFixed(0)}%`,
       }}
       visibleSegments={settings.visibleContent}
-      onToggleVisibleSegment={({ detail: { visibleSegments } }) => setSettings({ visibleContent: visibleSegments })}
+      onChangeVisibleSegments={({ detail: { visibleSegments } }) => setSettings({ visibleContent: visibleSegments })}
     />
   );
 }

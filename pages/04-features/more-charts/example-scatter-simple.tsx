@@ -108,6 +108,19 @@ export function ExampleScatterSimple() {
         ],
         yAxis: [{ title: "Events" }],
       }}
+      legend={{
+        enabled: settings.showLegend,
+        title: settings.showLegendTitle ? "Legend title" : undefined,
+        align: "center",
+        extendedActions: true,
+        tooltip: {
+          render: (itemId) => ({
+            header: `Series ${itemId}`,
+            body: "Series info",
+            footer: itemId === "B" ? <Alert type="warning">This series has a warning</Alert> : null,
+          }),
+        },
+      }}
       series={{
         getItemStatus(itemId: string) {
           return itemId === "B" ? "warning" : "normal";
@@ -115,14 +128,7 @@ export function ExampleScatterSimple() {
       }}
       tooltip={{
         placement: settings.tooltipPlacement,
-      }}
-      legendTooltip={{
-        getContent(itemId) {
-          if (itemId === "B") {
-            return { header: "B", body: <Alert type="warning">This series has a warning</Alert> };
-          }
-          return null;
-        },
+        size: settings.tooltipSize,
       }}
     />
   );

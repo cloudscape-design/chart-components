@@ -8,15 +8,14 @@ import { renderChart } from "./common";
 describe("CloudscapeHighcharts: rendering", () => {
   test("renders default fallback with highcharts=null", () => {
     const { wrapper } = renderChart({ highcharts: null });
-    expect(wrapper).not.toBe(null);
-    expect(wrapper!.findSpinner()).not.toBe(null);
+    expect(wrapper.findFallback()).not.toBe(null);
+    expect(wrapper.findFallback()!.findSpinner()).not.toBe(null);
   });
 
   test("renders custom fallback with highcharts=null", () => {
     const { wrapper } = renderChart({ highcharts: null, fallback: "Custom fallback" });
-    expect(wrapper).not.toBe(null);
-    expect(wrapper!.findSpinner()).toBe(null);
-    expect(wrapper!.getElement()).toHaveTextContent("Custom fallback");
+    expect(wrapper.findFallback()).not.toBe(null);
+    expect(wrapper.findFallback()!.getElement()).toHaveTextContent("Custom fallback");
   });
 
   test("renders chart with highcharts=Highcharts", () => {
@@ -24,7 +23,7 @@ describe("CloudscapeHighcharts: rendering", () => {
       highcharts,
       options: { title: { text: "Chart title" } },
     });
-    expect(wrapper).not.toBe(null);
-    expect(wrapper!.getElement()).toHaveTextContent("Chart title");
+    expect(wrapper.getElement()).toHaveTextContent("Chart title");
+    expect(wrapper.findFallback()).toBe(null);
   });
 });

@@ -11,7 +11,7 @@ import LiveRegion from "@cloudscape-design/components/live-region";
 import Portal from "../internal/components/portal";
 import AsyncStore, { useSelector } from "../internal/utils/async-store";
 import { useUniqueId } from "../internal/utils/unique-id";
-import { ChartNoDataProps } from "./interfaces-core";
+import { CoreNoDataProps } from "./interfaces-core";
 import * as Styles from "./styles";
 
 import styles from "./styles.css.js";
@@ -20,7 +20,7 @@ import testClasses from "./test-classes/styles.css.js";
 // The custom no-data implementation relies on the Highcharts noData module.
 // We render a custom empty DIV as `lang.noData` and then provide actual content using React portal.
 
-export function useNoData(highcharts: null | typeof Highcharts, noDataProps?: ChartNoDataProps) {
+export function useNoData(highcharts: null | typeof Highcharts, noDataProps?: CoreNoDataProps) {
   const noDataId = useUniqueId("no-data");
   const noDataStore = useMemo(() => new NoDataStore({ highcharts, noDataId }), [highcharts, noDataId]);
 
@@ -38,7 +38,7 @@ export function ChartNoData({
   empty,
   error,
   noMatch,
-}: ChartNoDataProps & {
+}: CoreNoDataProps & {
   noDataStore: AsyncStore<{ container: null | Element; noMatch: boolean }>;
 }) {
   const state = useSelector(noDataStore, (s) => s);

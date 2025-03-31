@@ -86,6 +86,7 @@ export function ExampleBarChartMultipleDataSeriesGrouped() {
             }
           },
           placement: settings.tooltipPlacement,
+          size: settings.tooltipSize,
         }}
         xAxis={{
           type: "category",

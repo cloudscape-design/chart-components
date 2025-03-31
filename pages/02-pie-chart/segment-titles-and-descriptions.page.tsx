@@ -126,7 +126,7 @@ export default function () {
             height={settings.containerHeight}
             ariaLabel={`Pie chart with ${index + 1} segments`}
             series={getPieSeries(index + 1)}
-            segment={{
+            segmentOptions={{
               title: showTitles ? undefined : null,
               description: showDescriptions
                 ? ({ segmentValue, totalValue }) =>

@@ -36,8 +36,7 @@
     "build:themeable": "node scripts/themeable-source",
     "build:pages:vite": "vite build",
     "build:pages:tsc": "tsc -p pages/tsconfig.json",
-    "postinstall": "npm run postinstall:theming && npm run postinstall:components",
-    "postinstall:theming": "node ./scripts/install-peer-dependency.js theming-core:expose-size-tokens",
+    "postinstall": "npm run postinstall:components",
     "postinstall:components": "node ./scripts/install-peer-dependency.js components:charts-design-tokens"
   },
   "exports": {

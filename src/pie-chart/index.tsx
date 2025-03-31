@@ -19,10 +19,11 @@ export const PieChart = forwardRef((props: PieChartProps, ref: React.Ref<PieChar
       highcharts={props.highcharts}
       options={validateOptions(props)}
       tooltip={getAllowedProps(props.tooltip)}
-      segment={getAllowedProps(props.segment)}
+      legend={getAllowedProps(props.legend)}
+      segmentOptions={getAllowedProps(props.segmentOptions)}
       noData={getAllowedProps(props.noData)}
       visibleSegments={props.visibleSegments}
-      onToggleVisibleSegment={props.onToggleVisibleSegment}
+      onChangeVisibleSegments={props.onChangeVisibleSegments}
       innerValue={props.innerValue}
       innerDescription={props.innerDescription}
       {...getDataAttributes(props)}
@@ -53,13 +54,6 @@ function validateOptions(props: PieChartProps): InternalPieChartOptions {
     lang: {
       accessibility: {
         chartContainerLabel: props.ariaLabel,
-      },
-    },
-    legend: {
-      align: "center",
-      enabled: props.legend?.enabled ?? true,
-      title: {
-        text: props.legend?.title,
       },
     },
     colors: props.colors,
