@@ -58,8 +58,10 @@ export function ExamplePieChartDonutChart() {
               </div>
             );
           },
+          placement: settings.tooltipPlacement,
+          size: settings.tooltipSize,
         }}
-        segment={{
+        segmentOptions={{
           description: ({ totalValue, segmentValue }) =>
             `${segmentValue} units, ${((segmentValue / totalValue) * 100).toFixed(0)}%`,
         }}

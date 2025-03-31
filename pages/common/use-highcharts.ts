@@ -6,7 +6,11 @@ import type Highcharts from "highcharts";
 
 import { isDevelopment } from "@cloudscape-design/component-toolkit/internal";
 
-export function useHighcharts({ more = false, treemap = false }: { more?: boolean; treemap?: boolean } = {}) {
+export function useHighcharts({
+  more = false,
+  treemap = false,
+  xrange = false,
+}: { more?: boolean; treemap?: boolean; xrange?: boolean } = {}) {
   const [highcharts, setHighcharts] = useState<null | typeof Highcharts>(null);
 
   useEffect(() => {
@@ -33,6 +37,9 @@ export function useHighcharts({ more = false, treemap = false }: { more?: boolea
       if (treemap) {
         await import("highcharts/modules/treemap");
       }
+      if (xrange) {
+        await import("highcharts/modules/xrange");
+      }
 
       if (isDevelopment) {
         await import("highcharts/modules/debugger");
@@ -42,7 +49,7 @@ export function useHighcharts({ more = false, treemap = false }: { more?: boolea
     };
 
     load();
-  }, [more, treemap]);
+  }, [more, treemap, xrange]);
 
   return highcharts;
 }

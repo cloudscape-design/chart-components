@@ -8,7 +8,7 @@ import type Highcharts from "highcharts";
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
 import { CloudscapeHighcharts } from "../core/chart-core";
-import { LegendTooltipProps } from "../core/interfaces-core";
+import { CloudscapeChartAPI, CoreLegendProps } from "../core/interfaces-core";
 import { getOptionsId } from "../core/utils";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { fireNonCancelableEvent, NonCancelableEventHandler } from "../internal/events";
@@ -22,11 +22,11 @@ interface InternalPieChartProps {
   highcharts: null | typeof Highcharts;
   options: InternalPieChartOptions;
   tooltip?: PieChartProps.TooltipProps;
-  legendTooltip?: LegendTooltipProps;
-  segment?: PieChartProps.SegmentProps;
+  legend?: CoreLegendProps;
   noData?: PieChartProps.NoDataProps;
+  segmentOptions?: PieChartProps.SegmentOptions;
   visibleSegments?: string[];
-  onToggleVisibleSegment?: NonCancelableEventHandler<{ visibleSegments: string[] }>;
+  onChangeVisibleSegments?: NonCancelableEventHandler<{ visibleSegments: string[] }>;
   innerValue?: string;
   innerDescription?: string;
 }
@@ -37,7 +37,7 @@ interface InternalPieChartProps {
  */
 export const InternalPieChart = forwardRef(
   ({ highcharts, ...props }: InternalPieChartProps, ref: React.Ref<PieChartProps.Ref>) => {
-    const chartRef = useRef<Highcharts.Chart>(null) as React.MutableRefObject<Highcharts.Chart>;
+    const chartRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
     const getChart = () => {
       /* c8 ignore next */
       if (!chartRef.current) {
@@ -50,16 +50,16 @@ export const InternalPieChart = forwardRef(
     // By default, it renders the selected content name, and allows to extend and override its contents.
     const tooltipProps = useChartTooltipPie(getChart, props);
 
-    // When visibleSegments and onToggleVisibleSegment are provided - the segments visibility can be controlled from the outside.
+    // When visibleSegments and onChangeVisibleSegments are provided - the segments visibility can be controlled from the outside.
     // Otherwise - the component handles segments visibility using its internal state.
     const [visibleSegmentsState, setVisibleSegments] = useControllableState(
       props.visibleSegments,
-      props.onToggleVisibleSegment,
+      props.onChangeVisibleSegments,
       null,
       {
         componentName: "PieChart",
         propertyName: "visibleSegments",
-        changeHandlerName: "onToggleVisibleSegment",
+        changeHandlerName: "onChangeVisibleSegments",
       },
       (value, handler) => fireNonCancelableEvent(handler, { visibleSegments: value ?? [] }),
     );
@@ -67,8 +67,9 @@ export const InternalPieChart = forwardRef(
       const itemIds: string[] = [];
       if ("data" in s && Array.isArray(s.data)) {
         for (const dataItem of s.data) {
-          if (dataItem && typeof dataItem === "object" && "id" in dataItem && "name" in dataItem) {
-            itemIds.push(getOptionsId(dataItem));
+          const id = getOptionsId(dataItem as any);
+          if (id) {
+            itemIds.push(id);
           }
         }
       }
@@ -164,14 +165,18 @@ export const InternalPieChart = forwardRef(
           dataLabels: {
             position: "left",
             formatter() {
+              if (!props.segmentOptions) {
+                return null;
+              }
+              const { title: renderTitle, description: renderDescription } = props.segmentOptions;
               const segmentProps = {
                 totalValue: this.total ?? 0,
                 segmentValue: this.y ?? 0,
                 segmentId: this.options.id,
                 segmentName: this.options.name ?? "",
               };
-              const title = props.segment?.title === null ? null : (props.segment?.title?.(segmentProps) ?? this.name);
-              const description = props.segment?.description?.(segmentProps);
+              const title = renderTitle === null ? null : (renderTitle?.(segmentProps) ?? this.name);
+              const description = renderDescription?.(segmentProps);
               if (title || description) {
                 return renderToStaticMarkup(
                   <text>
@@ -196,14 +201,21 @@ export const InternalPieChart = forwardRef(
         highcharts={highcharts}
         options={highchartsOptions}
         tooltip={tooltipProps}
-        legendTooltip={props.legendTooltip}
         noData={props.noData}
-        legendMarkers={{}}
+        legend={props.legend ? { align: "center", ...props.legend } : undefined}
         hiddenItems={hiddenSegments}
-        onLegendItemClick={(itemId, visible) => {
-          const nextState = visible ? [...visibleSegments, itemId] : visibleSegments.filter((id) => id !== itemId);
+        onLegendItemToggle={(segmentId, visible) => {
+          const nextState = visible
+            ? [...visibleSegments, segmentId]
+            : visibleSegments.filter((id) => id !== segmentId);
           setVisibleSegments(nextState);
           return false;
+        }}
+        onLegendItemShowOnly={(segmentId) => {
+          setVisibleSegments([segmentId]);
+        }}
+        onLegendItemShowAll={() => {
+          setVisibleSegments(allSegmentIds);
         }}
         className={testClasses.root}
         callback={(chart) => {

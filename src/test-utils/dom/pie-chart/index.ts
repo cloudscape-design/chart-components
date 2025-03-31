@@ -3,8 +3,14 @@
 
 import { ComponentWrapper } from "@cloudscape-design/test-utils-core/dom";
 
+import CoreWrapper from "../core";
+
 import testClasses from "../../../pie-chart/test-classes/styles.selectors.js";
 
 export default class PieChartWrapper extends ComponentWrapper {
   static rootSelector: string = testClasses.root;
+
+  private findCoreChart(): CoreWrapper {
+    return this.findComponent(CoreWrapper.rootSelector, CoreWrapper)!;
+  }
 }

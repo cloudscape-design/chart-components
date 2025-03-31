@@ -113,6 +113,7 @@ export function ExampleBarChartWithSubItems() {
             );
           },
           placement: settings.tooltipPlacement,
+          size: settings.tooltipSize,
         }}
         xAxis={{
           type: "category",

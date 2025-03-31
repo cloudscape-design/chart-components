@@ -10,13 +10,14 @@ import Spinner from "@cloudscape-design/components/spinner";
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { castArray } from "../internal/utils/utils";
-import { ChartLegendMarkers, useLegendMarkers } from "./chart-legend-markers";
-import { ChartLegendTooltip, useChartLegendTooltip } from "./chart-legend-tooltip";
+import { ChartLegend, useLegend } from "./chart-legend";
 import { ChartNoData, useNoData } from "./chart-no-data";
 import { ChartTooltip, useChartTooltip } from "./chart-tooltip";
-import { CloudscapeHighchartsProps } from "./interfaces-core";
+import { CloudscapeChartAPI, CloudscapeHighchartsProps } from "./interfaces-core";
 import * as Styles from "./styles";
-import { getOptionsId, getPointId, getSeriesId } from "./utils";
+import { getPointId, getSeriesId, isSettingEnabled } from "./utils";
+
+import testClasses from "./test-classes/styles.css.js";
 
 /**
  * CloudscapeHighcharts is the core internal abstraction that accepts the entire set of Highcharts options along
@@ -26,22 +27,21 @@ export function CloudscapeHighcharts({
   highcharts,
   options,
   tooltip: tooltipProps,
-  legendTooltip: legendTooltipProps,
   noData: noDataProps,
-  legendMarkers: legendMarkersProps,
+  legend: legendProps,
   fallback = <Spinner />,
   callback,
-  hiddenSeries,
-  onLegendSeriesClick,
   hiddenItems,
-  onLegendItemClick,
+  onLegendItemToggle,
+  onLegendItemShowOnly,
+  onLegendItemShowAll,
   className,
   ...rest
 }: CloudscapeHighchartsProps) {
   // The chartRef holds the Highcharts.Chart instance and is expected to be available after the initial render.
   // The instance is used to get internal series and points detail, and run APIs such as series.setVisible() to
   // synchronize custom React state with Highcharts state.
-  const chartRef = useRef<Highcharts.Chart>(null) as React.MutableRefObject<Highcharts.Chart>;
+  const chartRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
   const getChart = () => {
     /* c8 ignore next */
     if (!chartRef.current) {
@@ -52,36 +52,29 @@ export function CloudscapeHighcharts({
 
   // Provides custom Cloudscape tooltip instead of Highcharts tooltip, when `props.tooltip` is present.
   // The custom tooltip provides Cloudscape styles and can be pinned.
+  const isTooltipEnabled = isSettingEnabled(tooltipProps);
   const tooltip = useChartTooltip(highcharts, getChart, tooltipProps);
 
-  // Provides custom Cloudscape tooltip for legend items, when `props.legendTooltip` is present.
-  const legendTooltip = useChartLegendTooltip(highcharts, getChart, legendTooltipProps);
+  // Provides custom legend, when `props.legend` is present.
+  const isLegendEnabled = isSettingEnabled(legendProps);
+  const legend = useLegend(getChart, {
+    ...legendProps,
+    onLegendItemToggle,
+    onLegendItemShowOnly,
+    onLegendItemShowAll,
+  });
 
   // Provides empty, no-match, loading, and error states handling, when `props.noData` is present.
   const noData = useNoData(highcharts, noDataProps);
 
-  // Provides custom legend markers, when `props.legendMarkers` is present.
-  // The custom markers ensure the markers are aligned between Cloudscape tooltip and Highcharts legend,
-  // and offer additional customization such as warning states.
-  const legendMarkers = useLegendMarkers(getChart, legendMarkersProps);
-
   // When series or items visibility change, we call setVisible Highcharts method on series and/or items
   // for the change to take an effect.
-  const hiddenSeriesIndex = hiddenSeries ? hiddenSeries.join("::") : null;
-  useEffect(() => {
-    if (chartRef.current && hiddenSeriesIndex !== null) {
-      const hiddenSeriesIds = new Set(hiddenSeriesIndex.split("::").filter(Boolean));
-      for (const series of chartRef.current.series) {
-        series.setVisible(!hiddenSeriesIds.has(getSeriesId(series)));
-      }
-    }
-  }, [chartRef, hiddenSeriesIndex]);
-
   const hiddenItemsIndex = hiddenItems ? hiddenItems.join("::") : null;
   useEffect(() => {
     if (chartRef.current && hiddenItemsIndex !== null) {
       const hiddenItemsIds = new Set(hiddenItemsIndex.split("::").filter(Boolean));
-      for (const series of chartRef.current.series) {
+      for (const series of chartRef.current.hc.series) {
+        series.setVisible(!hiddenItemsIds.has(getSeriesId(series)));
         for (const point of series.data) {
           if (typeof point.setVisible === "function") {
             point.setVisible(!hiddenItemsIds.has(getPointId(point)));
@@ -94,8 +87,6 @@ export function CloudscapeHighcharts({
   // The Highcharts options takes all provided Highcharts options and custom properties and merges them together, so that
   // the Cloudscape features and custom Highcharts extensions can co-exist.
   // For certain options we provide Cloudscape styling, but in all cases this can be explicitly overridden.
-  const legendLabelFormatter =
-    options.legend?.labelFormatter ?? (legendMarkersProps ? legendMarkers.options.legendLabelFormatter : undefined);
   const highchartsOptions: Highcharts.Options = {
     ...options,
     // Credits label is disabled by default, but can be set explicitly.
@@ -116,13 +107,12 @@ export function CloudscapeHighcharts({
         load(event) {
           // We set series and items visibility in the load event same as we do in the use-effect
           // to make sure the initial render with controllable visibility is done correctly.
-          const hiddenSeriesIds = new Set(hiddenSeries);
-          const hiddenPointIds = new Set(hiddenItems);
+          const hiddenItemsIds = new Set(hiddenItems);
           for (const series of this.series) {
-            series.setVisible(!hiddenSeriesIds.has(getSeriesId(series)));
+            series.setVisible(!hiddenItemsIds.has(getSeriesId(series)));
             for (const point of series.data) {
               if (typeof point.setVisible === "function") {
-                point.setVisible(!hiddenPointIds.has(getPointId(point)));
+                point.setVisible(!hiddenItemsIds.has(getPointId(point)));
               }
             }
           }
@@ -132,13 +122,13 @@ export function CloudscapeHighcharts({
           if (noDataProps) {
             noData.options.chartRender.call(this, event);
           }
-          if (legendTooltipProps) {
-            legendTooltip.options.chartRender.call(this, event);
+          if (isLegendEnabled) {
+            legend.options.onChartRender();
           }
           return options.chart?.events?.render?.call(this, event);
         },
         click(event) {
-          if (tooltipProps) {
+          if (isTooltipEnabled) {
             tooltip.options.chartClick.call(this, event);
           }
           return options.chart?.events?.click?.call(this, event);
@@ -146,36 +136,7 @@ export function CloudscapeHighcharts({
       },
     },
     series: options.series,
-    legend: {
-      ...options.legend,
-      title: { style: Styles.legendTitleCss, ...options.legend?.title },
-      itemStyle: options.legend?.itemStyle ?? Styles.legendItemCss,
-      backgroundColor: options.legend?.backgroundColor ?? Styles.legendBackgroundColor,
-      ...(legendLabelFormatter ? { labelFormatter: legendLabelFormatter } : {}),
-      symbolPadding: options.legend?.symbolPadding ?? Styles.legendSymbolPadding,
-      // We override legend events to trigger visibility callbacks if controllable series/items visibility API is used.
-      // If the event callbacks are present in the given options - we execute them, too.
-      events: {
-        ...options.legend?.events,
-        itemClick(event) {
-          // Handle series visibility.
-          if (highcharts && event.legendItem instanceof highcharts.Series) {
-            const seriesId = getOptionsId(event.legendItem.userOptions);
-            const nextVisible = !event.legendItem.visible;
-            return onLegendSeriesClick?.(seriesId, nextVisible);
-          }
-
-          // Handle items visibility (e.g. pie segments or treemap values).
-          if (highcharts && event.legendItem instanceof highcharts.Point) {
-            const itemId = getOptionsId(event.legendItem.options);
-            const nextVisible = !event.legendItem.visible;
-            return onLegendItemClick?.(itemId, nextVisible);
-          }
-
-          return options.legend?.events?.itemClick?.call(this, event);
-        },
-      },
-    },
+    legend: { enabled: false, ...options.legend },
     // We override noData options if Cloudscape noData props is used instead.
     noData: noDataProps ? noData.options.noData : options.noData,
     lang: {
@@ -212,19 +173,19 @@ export function CloudscapeHighcharts({
           events: {
             ...options.plotOptions?.series?.point?.events,
             mouseOver(event) {
-              if (tooltipProps) {
+              if (isTooltipEnabled) {
                 tooltip.options.seriesPointMouseOver.call(this, event);
               }
               return options.plotOptions?.series?.point?.events?.mouseOver?.call(this, event);
             },
             mouseOut(event) {
-              if (tooltipProps) {
+              if (isTooltipEnabled) {
                 tooltip.options.seriesPointMouseOut.call(this, event);
               }
               return options.plotOptions?.series?.point?.events?.mouseOut?.call(this, event);
             },
             click(event) {
-              if (tooltipProps) {
+              if (isTooltipEnabled) {
                 tooltip.options.seriesPointClick.call(this, event);
               }
               return options.plotOptions?.series?.point?.events?.click?.call(this, event);
@@ -245,13 +206,13 @@ export function CloudscapeHighcharts({
       title: { style: Styles.axisTitleCss, ...yAxis.title },
       labels: { style: Styles.axisLabelsCss, ...yAxis.labels },
     })),
-    tooltip: { enabled: !tooltipProps, ...options.tooltip },
+    tooltip: { enabled: !!options.tooltip, ...options.tooltip },
   };
 
   if (!highcharts) {
     return (
       <div {...getDataAttributes(rest)} className={className}>
-        {fallback}
+        <div className={testClasses.fallback}>{fallback}</div>
       </div>
     );
   }
@@ -262,18 +223,22 @@ export function CloudscapeHighcharts({
         highcharts={highcharts}
         options={highchartsOptions}
         callback={(chart: Highcharts.Chart) => {
-          chartRef.current = chart;
-          callback?.(chart);
+          chartRef.current = {
+            hc: chart,
+            cloudscape: {
+              highlightPoint: (point) => tooltip.api.highlightPoint(point),
+              clearHighlight: () => tooltip.api.clearHighlight(),
+            },
+          };
+          callback?.(chartRef.current);
         }}
       />
 
-      {tooltipProps && <ChartTooltip {...tooltip.props} />}
+      {isTooltipEnabled && <ChartTooltip {...tooltip.props} />}
 
-      {legendTooltipProps && <ChartLegendTooltip {...legendTooltip.props} />}
+      {isLegendEnabled && <ChartLegend {...legend.props} />}
 
       {noDataProps && <ChartNoData {...noData.props} />}
-
-      {legendMarkersProps && <ChartLegendMarkers {...legendMarkers.props} />}
     </div>
   );
 }

@@ -5,10 +5,10 @@ import { forwardRef, memo, ReactNode, useEffect, useRef } from "react";
 import clsx from "clsx";
 
 import { BaseComponentProps } from "@cloudscape-design/components/internal/base-component";
+import InternalExpandableSection from "@cloudscape-design/components/internal/expandable-section-do-not-use";
 
 import { getDataAttributes } from "../../base-component/get-data-attributes";
 import { useMergeRefs } from "../../utils/use-merge-refs";
-import { ExpandableSection } from "../expandable-section";
 import { ChartSeriesMarker, ChartSeriesMarkerStatus, ChartSeriesMarkerType } from "../series-marker";
 import getSeriesDetailsText from "./series-details-text";
 
@@ -163,14 +163,15 @@ function ExpandableSeries({
         </div>
       )}
       <div className={styles["full-width"]}>
-        <ExpandableSection
+        <InternalExpandableSection
           headerText={itemKey}
           headerActions={<span className={clsx(styles.value, styles.expandable)}>{value}</span>}
           expanded={expanded}
-          onChange={(expanded) => setExpandedState(expanded)}
+          onChange={({ detail }) => setExpandedState(detail.expanded)}
+          variant="compact"
         >
           <SubItems items={subItems} expandable={true} expanded={expanded} />
-        </ExpandableSection>
+        </InternalExpandableSection>
       </div>
     </div>
   );

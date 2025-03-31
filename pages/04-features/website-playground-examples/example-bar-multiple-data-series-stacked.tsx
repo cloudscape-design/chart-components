@@ -54,7 +54,7 @@ export function ExampleBarChartMultipleDataSeriesStacked() {
         ariaLabel="Stacked bar chart"
         plotOptions={{ series: { stacking: "normal" } }}
         series={hideSeries ? [] : series}
-        tooltip={{ placement: settings.tooltipPlacement }}
+        tooltip={{ placement: settings.tooltipPlacement, size: settings.tooltipSize }}
         xAxis={{
           type: "category",
           title: "Time (UTC)",

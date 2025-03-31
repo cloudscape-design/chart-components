@@ -1,11 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import * as CoreTypes from "../core/interfaces-core";
-import * as SeriesTypes from "../core/interfaces-core-series";
+import * as BaseTypes from "../core/interfaces-base";
 import { NonCancelableEventHandler } from "../internal/events";
 
-export interface CartesianChartProps extends CoreTypes.CloudscapeHighchartsBase {
+export interface CartesianChartProps extends BaseTypes.BaseChartProps {
   /**
    * Inverts X and Y axes. Use it to show horizontal columns (bars).
    * This property corresponds to [chart.inverted](https://api.highcharts.com/highcharts/chart.inverted).
@@ -134,15 +133,15 @@ export namespace CartesianChartProps {
     | XThresholdSeries
     | YThresholdSeries;
 
-  export type AreaSeries = SeriesTypes.AreaSeries;
-  export type AreaSplineSeries = SeriesTypes.AreaSplineSeries;
-  export type ColumnSeries = SeriesTypes.ColumnSeries;
-  export type ErrorBarSeries = SeriesTypes.ErrorBarSeries;
-  export type LineSeries = SeriesTypes.LineSeries;
-  export type ScatterSeries = SeriesTypes.ScatterSeries;
-  export type SplineSeries = SeriesTypes.SplineSeries;
-  export type XThresholdSeries = SeriesTypes.XThresholdSeries;
-  export type YThresholdSeries = SeriesTypes.YThresholdSeries;
+  export type AreaSeries = BaseTypes.AreaSeries;
+  export type AreaSplineSeries = BaseTypes.AreaSplineSeries;
+  export type ColumnSeries = BaseTypes.ColumnSeries;
+  export type ErrorBarSeries = BaseTypes.ErrorBarSeries;
+  export type LineSeries = BaseTypes.LineSeries;
+  export type ScatterSeries = BaseTypes.ScatterSeries;
+  export type SplineSeries = BaseTypes.SplineSeries;
+  export type XThresholdSeries = BaseTypes.XThresholdSeries;
+  export type YThresholdSeries = BaseTypes.YThresholdSeries;
 
   export interface AxisProps {
     title?: string;
@@ -167,6 +166,7 @@ export namespace CartesianChartProps {
     body?: (detail: TooltipDetails) => React.ReactNode;
     footer?: (detail: TooltipDetails) => React.ReactNode;
     placement?: "target" | "bottom";
+    size?: "small" | "medium" | "large";
   }
 
   export interface TooltipDetails {
@@ -207,7 +207,7 @@ export namespace CartesianChartProps {
     subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
   }
 
-  export type NoDataProps = CoreTypes.ChartNoDataProps;
+  export type NoDataProps = BaseTypes.BaseNoDataProps;
 }
 
 // The internal chart options allow propagation of all Highcharts properties, including series types and axes options,

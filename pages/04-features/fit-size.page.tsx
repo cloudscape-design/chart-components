@@ -3,6 +3,7 @@
 
 import { range } from "lodash";
 
+import Checkbox from "@cloudscape-design/components/checkbox";
 import FormField from "@cloudscape-design/components/form-field";
 import Input from "@cloudscape-design/components/input";
 import SpaceBetween from "@cloudscape-design/components/space-between";
@@ -75,6 +76,18 @@ export default function () {
               onChange={({ detail }) => setSettings({ containerWidth: detail.value })}
             />
           </FormField>
+          <Checkbox
+            checked={settings.showLegend}
+            onChange={({ detail }) => setSettings({ showLegend: detail.checked })}
+          >
+            Show legend
+          </Checkbox>
+          <Checkbox
+            checked={settings.showLegendTitle}
+            onChange={({ detail }) => setSettings({ showLegendTitle: detail.checked })}
+          >
+            Show legend title
+          </Checkbox>
         </SpaceBetween>
       }
     >
@@ -92,7 +105,11 @@ export default function () {
                 ariaLabel="Donut chart"
                 ariaDescription="Donut chart showing generic example data."
                 series={pieSeries}
-                segment={{
+                legend={{
+                  enabled: settings.showLegend,
+                  title: settings.showLegendTitle ? "Legend title" : undefined,
+                }}
+                segmentOptions={{
                   description: ({ segmentValue, totalValue }) =>
                     `${segmentValue} units, ${((segmentValue / totalValue) * 100).toFixed(0)}%`,
                 }}
@@ -108,7 +125,7 @@ export default function () {
         title="Fit-height with scrollable plot area settings"
         subtitle="This example demonstrates fit-height behavior implemented with Highcharts scrollablePlotArea features."
       >
-        <div style={{ ...outerContainerStyle, overflow: "hidden" }}>
+        <div style={outerContainerStyle}>
           <MeasureHeight>
             {(height) => (
               <PieChart
@@ -119,7 +136,11 @@ export default function () {
                 ariaLabel="Donut chart"
                 ariaDescription="Donut chart showing generic example data."
                 series={pieSeries}
-                segment={{
+                legend={{
+                  enabled: settings.showLegend,
+                  title: settings.showLegendTitle ? "Legend title" : undefined,
+                }}
+                segmentOptions={{
                   description: ({ segmentValue, totalValue }) =>
                     `${segmentValue} units, ${((segmentValue / totalValue) * 100).toFixed(0)}%`,
                 }}
@@ -135,12 +156,16 @@ export default function () {
         title="Fit-width with scrollable plot area settings"
         subtitle="This example demonstrates fit-width behavior implemented with Highcharts scrollablePlotArea features."
       >
-        <div style={{ ...outerContainerStyle, overflow: "hidden", height: settings.minHeight }}>
+        <div style={{ ...outerContainerStyle, height: settings.minHeight }}>
           <CartesianChart
             highcharts={highcharts}
             height={settings.minHeight}
             scrollablePlotArea={{ minWidth: settings.minWidth }}
             series={splineSeries}
+            legend={{
+              enabled: settings.showLegend,
+              title: settings.showLegendTitle ? "Legend title" : undefined,
+            }}
             xAxis={{
               title: "X values",
               type: "linear",

@@ -8,6 +8,8 @@ export type ChartSeriesMarkerType =
   | "dashed"
   | "area"
   | "square"
+  | "large-square"
+  | "hollow-square"
   | "diamond"
   | "triangle"
   | "triangle-down"
@@ -51,7 +53,26 @@ export function ChartSeriesMarker({ type = "line", color, status }: ChartSeriesM
           </>
         )}
 
+        {type === "large-square" && (
+          <rect x={0} y={0} width={size} height={size} fill={color} transform={scale(0.9)} rx={2} />
+        )}
+
         {type === "square" && <rect x={0} y={0} width={size} height={size} fill={color} transform={scale(0.65)} />}
+
+        {type === "hollow-square" && (
+          <rect
+            x={0}
+            y={0}
+            width={size}
+            height={size}
+            stroke={color}
+            strokeWidth={2}
+            fill={color}
+            fillOpacity="0.75"
+            transform={scale(0.8)}
+            rx={2}
+          />
+        )}
 
         {type === "diamond" && (
           <polygon

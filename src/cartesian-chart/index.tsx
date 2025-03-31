@@ -3,7 +3,7 @@
 
 import { forwardRef } from "react";
 
-import { AbstractSeries } from "../core/interfaces-core-series";
+import { AbstractSeries } from "../core/interfaces-base";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { getAllowedProps } from "../internal/utils/utils";
 import { InternalCartesianChart } from "./chart-cartesian-internal";
@@ -21,6 +21,7 @@ export const CartesianChart = forwardRef((props: CartesianChartProps, ref: React
       options={validateOptions(props)}
       noData={getAllowedProps(props.noData)}
       tooltip={getAllowedProps(props.tooltip)}
+      legend={getAllowedProps(props.legend)}
       visibleSeries={props.visibleSeries}
       onToggleVisibleSeries={props.onToggleVisibleSeries}
       emphasizeBaselineAxis={props.emphasizeBaselineAxis}
@@ -53,13 +54,6 @@ function validateOptions(props: CartesianChartProps): InternalCartesianChartOpti
     lang: {
       accessibility: {
         chartContainerLabel: props.ariaLabel,
-      },
-    },
-    legend: {
-      align: "left",
-      enabled: props.legend?.enabled ?? true,
-      title: {
-        text: props.legend?.title,
       },
     },
     plotOptions: {
