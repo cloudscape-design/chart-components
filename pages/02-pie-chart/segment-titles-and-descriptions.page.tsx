@@ -13,6 +13,7 @@ import SpaceBetween from "@cloudscape-design/components/space-between";
 import { PieChart, PieChartProps } from "../../lib/components";
 import { PageSettings, usePageSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
+import { ScreenshotArea } from "../screenshot-area";
 
 interface ThisPageSettings extends PageSettings {
   segmentDistribution: "proportional" | "growing" | "fast growing";
@@ -118,25 +119,27 @@ export default function () {
         </SpaceBetween>
       }
     >
-      <ColumnLayout columns={2}>
-        {range(0, 10).map((index) => (
-          <PieChart
-            key={index}
-            highcharts={highcharts}
-            height={settings.containerHeight}
-            ariaLabel={`Pie chart with ${index + 1} segments`}
-            series={getPieSeries(index + 1)}
-            segmentOptions={{
-              title: showTitles ? undefined : null,
-              description: showDescriptions
-                ? ({ segmentValue, totalValue }) =>
-                    `${segmentValue} units, ${((segmentValue / totalValue) * 100).toFixed(1)}%`
-                : null,
-            }}
-            legend={{ enabled: settings.showLegend }}
-          />
-        ))}
-      </ColumnLayout>
+      <ScreenshotArea>
+        <ColumnLayout columns={2}>
+          {range(0, 10).map((index) => (
+            <PieChart
+              key={index}
+              highcharts={highcharts}
+              height={settings.containerHeight}
+              ariaLabel={`Pie chart with ${index + 1} segments`}
+              series={getPieSeries(index + 1)}
+              segmentOptions={{
+                title: showTitles ? undefined : null,
+                description: showDescriptions
+                  ? ({ segmentValue, totalValue }) =>
+                      `${segmentValue} units, ${((segmentValue / totalValue) * 100).toFixed(1)}%`
+                  : null,
+              }}
+              legend={{ enabled: settings.showLegend }}
+            />
+          ))}
+        </ColumnLayout>
+      </ScreenshotArea>
     </Page>
   );
 }
