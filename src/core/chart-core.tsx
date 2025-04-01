@@ -15,7 +15,7 @@ import { ChartNoData, useNoData } from "./chart-no-data";
 import { ChartTooltip, useChartTooltip } from "./chart-tooltip";
 import { CloudscapeChartAPI, CloudscapeHighchartsProps } from "./interfaces-core";
 import * as Styles from "./styles";
-import { getPointId, getSeriesId, isSettingEnabled } from "./utils";
+import { getPointId, getSeriesId } from "./utils";
 
 import testClasses from "./test-classes/styles.css.js";
 
@@ -52,11 +52,11 @@ export function CloudscapeHighcharts({
 
   // Provides custom Cloudscape tooltip instead of Highcharts tooltip, when `props.tooltip` is present.
   // The custom tooltip provides Cloudscape styles and can be pinned.
-  const isTooltipEnabled = isSettingEnabled(tooltipProps);
+  const isTooltipEnabled = tooltipProps?.enabled !== false;
   const tooltip = useChartTooltip(highcharts, getChart, tooltipProps);
 
   // Provides custom legend, when `props.legend` is present.
-  const isLegendEnabled = isSettingEnabled(legendProps);
+  const isLegendEnabled = legendProps?.enabled !== false;
   const legend = useLegend(getChart, {
     ...legendProps,
     onLegendItemToggle,
@@ -226,8 +226,8 @@ export function CloudscapeHighcharts({
           chartRef.current = {
             hc: chart,
             cloudscape: {
-              highlightPoint: (point) => tooltip.api.highlightPoint(point),
-              clearHighlight: () => tooltip.api.clearHighlight(),
+              showTooltipOnPoint: (point) => tooltip.api.showTooltipOnPoint(point),
+              hideTooltip: () => tooltip.api.hideTooltip(),
             },
           };
           callback?.(chartRef.current);
