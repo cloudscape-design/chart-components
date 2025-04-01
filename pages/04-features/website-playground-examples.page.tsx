@@ -31,9 +31,7 @@ export default function () {
     <PageSettingsDefaults settings={{ pieInnerValue: "100", pieInnerDescription: "total units" }}>
       <Page
         title="Website playground examples"
-        subtitle="This pages demonstrates new charts implemented from the existing website playground examples to demonstrate
-          feature parity. It does not include empty, loading, and error states for each type of chart to avoid
-          repetition."
+        subtitle="This pages features new charts implemented from the existing website playground examples to demonstrate feature parity."
         settings={
           <SpaceBetween size="s">
             <TooltipSettings />
