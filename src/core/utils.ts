@@ -5,16 +5,21 @@ import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
 
+// The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
+// We expect that items requiring referencing (e.g. in order to control their visibility) have the unique identifier defined.
+// Otherwise,  we return a randomized id that is to ensure no accidental matches.
 export function getSeriesId(series: Highcharts.Series): string {
-  return series.options.id ?? series.options.name ?? noIdPlaceholder();
+  return getOptionsId(series.options);
 }
-
 export function getPointId(point: Highcharts.Point): string {
-  return point.options.id ?? point.options.name ?? noIdPlaceholder();
+  return getOptionsId(point.options);
 }
-
 export function getOptionsId(options: { id?: string; name?: string }): string {
   return options.id ?? options.name ?? noIdPlaceholder();
+}
+function noIdPlaceholder(): string {
+  const rand = (Math.random() * 1_000_000).toFixed(0).padStart(6, "0");
+  return "awsui-no-id-placeholder-" + rand;
 }
 
 export function getSeriesMarkerType(series: Highcharts.Series): ChartSeriesMarkerType {
@@ -45,20 +50,10 @@ export function getSeriesMarkerType(series: Highcharts.Series): ChartSeriesMarke
       }
     case "column":
       return "large-square";
+    case "pie":
+      return "large-circle";
     case "errorbar":
     default:
       return "large-circle";
   }
-}
-
-export function isSettingEnabled<S extends { enabled?: boolean }>(setting?: S) {
-  return setting === undefined || setting.enabled === undefined || setting.enabled === true;
-}
-
-// We expect that series and series items that require referencing e.g. in order to control their visibility
-// have either id or name or both properties set. If none is set, we return a randomized id that is to ensure
-// no accidental matches (which could happen should we default to null or an empty string).
-function noIdPlaceholder(): string {
-  const rand = (Math.random() * 1_000_000).toFixed(0).padStart(6, "0");
-  return "awsui-no-id-placeholder-" + rand;
 }

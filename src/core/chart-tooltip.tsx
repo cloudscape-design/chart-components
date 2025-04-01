@@ -48,8 +48,8 @@ export function useChartTooltip(
     tooltipStore.onMouseClickPlot(this);
   };
 
-  const highlightPoint = (point: Highcharts.Point) => tooltipStore.onMouseOverTarget(point);
-  const clearHighlight = () => tooltipStore.onMouseLeaveTarget();
+  const showTooltipOnPoint = (point: Highcharts.Point) => tooltipStore.onMouseOverTarget(point);
+  const hideTooltip = () => tooltipStore.onMouseLeaveTarget();
 
   return {
     options: { chartClick, seriesPointMouseOver, seriesPointMouseOut, seriesPointClick },
@@ -59,7 +59,7 @@ export function useChartTooltip(
       placement: tooltipProps?.placement,
       size: tooltipProps?.size,
     },
-    api: { highlightPoint, clearHighlight },
+    api: { showTooltipOnPoint, hideTooltip },
   };
 }
 

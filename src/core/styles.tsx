@@ -54,7 +54,7 @@ export const xAxisOptions: Highcharts.XAxisOptions = {
   lineColor: colorChartsLineTick,
   gridLineColor: colorChartsLineTick,
   lineWidth: 1,
-  crosshair: true,
+  crosshair: false,
 };
 
 export const yAxisOptions: Highcharts.YAxisOptions = {

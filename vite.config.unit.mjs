@@ -18,7 +18,7 @@ export default defineConfig({
       provider: "v8",
       reporter: ["clover", "lcov", "html", "json"],
       include: ["src/**", "lib/components/**"],
-      exclude: ["**/debug-tools/**", "**/__tests__/**", "**/*.d.ts"],
+      exclude: ["**/debug-tools/**", "**/__tests__/**", "**/*.d.ts", "**/styles.selectors.js", "**/styles.css.js"],
     },
     globals: true,
   },
