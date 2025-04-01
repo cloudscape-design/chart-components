@@ -32,7 +32,7 @@ export function ExamplePieChartSmallDonutChart() {
       <PieChart
         highcharts={highcharts}
         {...chartStateProps}
-        height={200}
+        chartHeight={200}
         legend={{
           enabled: settings.showLegend,
           title: settings.showLegendTitle ? "Legend title" : undefined,

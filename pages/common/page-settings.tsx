@@ -17,6 +17,7 @@ interface ChartRef {
 }
 
 export interface PageSettings {
+  height: number;
   minHeight: number;
   minWidth: number;
   containerHeight: number;
@@ -35,12 +36,14 @@ export interface PageSettings {
   tooltipPlacement: "target" | "bottom";
   tooltipSize: "small" | "medium" | "large";
   keepZoomingFrame: boolean;
+  useFallback: boolean;
 }
 
 type PageContext<SettingsType> = React.Context<AppContextType<Partial<SettingsType>>>;
 
 const DEFAULT_SETTINGS: PageSettings = {
-  minHeight: 300,
+  height: 250,
+  minHeight: 250,
   minWidth: 800,
   containerHeight: 300,
   containerWidth: "100%",
@@ -58,6 +61,7 @@ const DEFAULT_SETTINGS: PageSettings = {
   tooltipPlacement: "target",
   tooltipSize: "medium",
   keepZoomingFrame: false,
+  useFallback: false,
 };
 
 export const PageSettingsDefaultsContext = createContext<PageSettings>(DEFAULT_SETTINGS);
@@ -93,6 +97,7 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
   const settings = {
     ...defaultSettings,
     ...urlParams,
+    height: parseNumber(defaultSettings.height, urlParams.height),
     minHeight: parseNumber(defaultSettings.minHeight, urlParams.minHeight),
     minWidth: parseNumber(defaultSettings.minWidth, urlParams.minWidth),
     containerHeight: parseNumber(defaultSettings.containerHeight, urlParams.containerHeight),
@@ -106,6 +111,7 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
     showLegendTitle: parseBoolean(defaultSettings.showLegendTitle, urlParams.showLegendTitle),
     emphasizeBaselineAxis: parseBoolean(defaultSettings.emphasizeBaselineAxis, urlParams.emphasizeBaselineAxis),
     keepZoomingFrame: parseBoolean(defaultSettings.keepZoomingFrame, urlParams.keepZoomingFrame),
+    useFallback: parseBoolean(defaultSettings.useFallback, urlParams.useFallback),
   } as PageSettings as SettingsType;
   const setSettings = (partial: Partial<SettingsType>) => {
     const settings = { ...partial };

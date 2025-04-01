@@ -830,7 +830,7 @@ export function ExampleAreaChartStackedAreaChartMultipleMetrics() {
       <CartesianChart
         highcharts={highcharts}
         {...chartStateProps}
-        height={379}
+        chartHeight={379}
         legend={{
           enabled: settings.showLegend,
           title: settings.showLegendTitle ? "Legend title" : undefined,

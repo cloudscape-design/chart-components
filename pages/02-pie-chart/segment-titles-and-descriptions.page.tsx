@@ -125,7 +125,7 @@ export default function () {
             <PieChart
               key={index}
               highcharts={highcharts}
-              height={settings.containerHeight}
+              chartHeight={settings.containerHeight}
               ariaLabel={`Pie chart with ${index + 1} segments`}
               series={getPieSeries(index + 1)}
               segmentOptions={{

@@ -12,6 +12,29 @@ export interface BaseChartProps {
   highcharts: null | typeof Highcharts;
 
   /**
+   * The chart hight in pixels, it includes chart plot, labels, and legend.
+   * This property corresponds to [chart.height](https://api.highcharts.com/highcharts/chart.height).
+   */
+  chartHeight?: number;
+
+  /**
+   * When set, the chart grows automatically to fill the parent container.
+   */
+  fitHeight?: boolean;
+
+  /**
+   * Defines the minimal allowed height of the chart plot. If the parent container is too small to satisfy the min
+   * height value, the vertical scrollbar is automatically added.
+   */
+  chartMinHeight?: number;
+
+  /**
+   * Defines the minimal allowed width of the chart plot. If the parent container is too small to satisfy the min
+   * width value, the horizontal scrollbar is automatically added.
+   */
+  chartMinWidth?: number;
+
+  /**
    * ARIA label of the chart container.
    * This property corresponds to [lang.chartContainerLabel](https://api.highcharts.com/highcharts/lang.accessibility.chartContainerLabel),
    * and requires the [accessibility module](https://www.highcharts.com/docs/accessibility/accessibility-module).
@@ -24,22 +47,6 @@ export interface BaseChartProps {
    * and requires the [accessibility module](https://www.highcharts.com/docs/accessibility/accessibility-module).
    */
   ariaDescription?: string;
-
-  /**
-   * The chart hight in pixels, it includes chart plot, labels, and legend.
-   * This property corresponds to [chart.height](https://api.highcharts.com/highcharts/chart.height).
-   */
-  height?: number;
-
-  // TODO: remove and replace with Cloudscape fitHeight and possibly minWidth
-  /**
-   * The chart container scrollable area. Either min height or min width can be used, but not both at the same time.
-   * This property corresponds to [chart.scrollablePlotArea](https://api.highcharts.com/highcharts/chart.scrollablePlotArea).
-   */
-  scrollablePlotArea?: {
-    minHeight?: number;
-    minWidth?: number;
-  };
 
   /**
    * An array of default series colors. Only use it when you want to override the Cloudscape-provided set of colors.

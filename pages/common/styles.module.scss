@@ -1,0 +1,27 @@
+/*
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+*/
+
+@use "@cloudscape-design/design-tokens/index.scss" as cs;
+
+.option-label {
+  display: flex;
+  align-items: center;
+  gap: cs.$space-static-xxs;
+}
+
+.chart-frame {
+  border: 1px solid cs.$color-border-status-error;
+  border-radius: 4px;
+  position: relative;
+}
+
+.chart-frame-annotation {
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: cs.$color-text-notification-severity-critical;
+  background-color: cs.$color-border-status-error;
+  opacity: 0.75;
+}
