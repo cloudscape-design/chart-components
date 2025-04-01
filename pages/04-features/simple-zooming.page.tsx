@@ -215,12 +215,12 @@ function Charts() {
                     if (event.target instanceof Highcharts.Point) {
                       const minPoint = findMinPoint(event.target, getNavigatorChart().hc);
                       if (minPoint) {
-                        getNavigatorChart().cloudscape.highlightPoint(minPoint);
+                        getNavigatorChart().cloudscape.showTooltipOnPoint(minPoint);
                       }
                     }
                   },
                   mouseOut() {
-                    getNavigatorChart().cloudscape.clearHighlight();
+                    getNavigatorChart().cloudscape.hideTooltip();
                   },
                 },
               },
@@ -311,7 +311,7 @@ function Charts() {
                       if (event.target instanceof Highcharts.Point) {
                         const minPoint = findMinPoint(event.target, getScatterChart().hc);
                         if (minPoint) {
-                          getScatterChart().cloudscape.highlightPoint(minPoint);
+                          getScatterChart().cloudscape.showTooltipOnPoint(minPoint);
                         }
                       }
 
@@ -326,7 +326,7 @@ function Charts() {
                     }
                   },
                   mouseOut() {
-                    getScatterChart().cloudscape.clearHighlight();
+                    getScatterChart().cloudscape.hideTooltip();
                   },
                   click(event) {
                     if (zoomStateRef.current === null) {
