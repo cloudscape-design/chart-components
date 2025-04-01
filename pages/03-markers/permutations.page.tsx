@@ -34,7 +34,18 @@ const permutationsForColors = [
 ].map((color) =>
   createPermutations<ChartSeriesMarkerProps>([
     {
-      type: ["line", "dashed", "area", "large-circle", "circle", "square", "diamond", "triangle", "triangle-down"],
+      type: [
+        "line",
+        "dashed",
+        "large-circle",
+        "large-square",
+        "hollow-square",
+        "circle",
+        "square",
+        "diamond",
+        "triangle",
+        "triangle-down",
+      ],
       color: [color],
       status: ["normal", "warning"],
     },
@@ -46,8 +57,7 @@ export default function MarkerPermutations() {
     <Page
       title="Marker permutations"
       subtitle="This page lists all markers that we currently support. Each marker can have any color,
-      and can be combined with a warning indicator. The markers are deliberately made similar to Highcharts
-      markers, as we cannot override Highcharts markers in the legend."
+      and can be combined with a warning indicator."
     >
       <ScreenshotArea>
         <SpaceBetween size="m">
