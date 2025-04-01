@@ -46,6 +46,27 @@ and requires the [accessibility module](https://www.highcharts.com/docs/accessib
       "type": "string",
     },
     {
+      "description": "The chart hight in pixels, it includes chart plot, labels, and legend.
+This property corresponds to [chart.height](https://api.highcharts.com/highcharts/chart.height).",
+      "name": "chartHeight",
+      "optional": true,
+      "type": "number",
+    },
+    {
+      "description": "Defines the minimal allowed height of the chart plot. If the parent container is too small to satisfy the min
+height value, the vertical scrollbar is automatically added.",
+      "name": "chartMinHeight",
+      "optional": true,
+      "type": "number",
+    },
+    {
+      "description": "Defines the minimal allowed width of the chart plot. If the parent container is too small to satisfy the min
+width value, the horizontal scrollbar is automatically added.",
+      "name": "chartMinWidth",
+      "optional": true,
+      "type": "number",
+    },
+    {
       "description": "An array of default series colors. Only use it when you want to override the Cloudscape-provided set of colors.
 This property corresponds to [colors](https://api.highcharts.com/highcharts/colors).",
       "name": "colors",
@@ -59,11 +80,10 @@ This property corresponds to [colors](https://api.highcharts.com/highcharts/colo
       "type": "boolean",
     },
     {
-      "description": "The chart hight in pixels, it includes chart plot, labels, and legend.
-This property corresponds to [chart.height](https://api.highcharts.com/highcharts/chart.height).",
-      "name": "height",
+      "description": "When set, the chart grows automatically to fill the parent container.",
+      "name": "fitHeight",
       "optional": true,
-      "type": "number",
+      "type": "boolean",
     },
     {
       "description": "The Highcharts instance, that can be obtained as \`import Highcharts from 'highcharts'\`.
@@ -163,13 +183,6 @@ Supported settings:
 * * \`stacking\` (optional, 'normal') - Specifies series stacking behavior. Use it for stacked columns and areas.
 ",
       "name": "plotOptions",
-      "optional": true,
-      "type": "unknown",
-    },
-    {
-      "description": "The chart container scrollable area. Either min height or min width can be used, but not both at the same time.
-This property corresponds to [chart.scrollablePlotArea](https://api.highcharts.com/highcharts/chart.scrollablePlotArea).",
-      "name": "scrollablePlotArea",
       "optional": true,
       "type": "unknown",
     },
@@ -429,6 +442,27 @@ and requires the [accessibility module](https://www.highcharts.com/docs/accessib
       "type": "string",
     },
     {
+      "description": "The chart hight in pixels, it includes chart plot, labels, and legend.
+This property corresponds to [chart.height](https://api.highcharts.com/highcharts/chart.height).",
+      "name": "chartHeight",
+      "optional": true,
+      "type": "number",
+    },
+    {
+      "description": "Defines the minimal allowed height of the chart plot. If the parent container is too small to satisfy the min
+height value, the vertical scrollbar is automatically added.",
+      "name": "chartMinHeight",
+      "optional": true,
+      "type": "number",
+    },
+    {
+      "description": "Defines the minimal allowed width of the chart plot. If the parent container is too small to satisfy the min
+width value, the horizontal scrollbar is automatically added.",
+      "name": "chartMinWidth",
+      "optional": true,
+      "type": "number",
+    },
+    {
       "description": "An array of default series colors. Only use it when you want to override the Cloudscape-provided set of colors.
 This property corresponds to [colors](https://api.highcharts.com/highcharts/colors).",
       "name": "colors",
@@ -436,11 +470,10 @@ This property corresponds to [colors](https://api.highcharts.com/highcharts/colo
       "type": "Array<string>",
     },
     {
-      "description": "The chart hight in pixels, it includes chart plot, labels, and legend.
-This property corresponds to [chart.height](https://api.highcharts.com/highcharts/chart.height).",
-      "name": "height",
+      "description": "When set, the chart grows automatically to fill the parent container.",
+      "name": "fitHeight",
       "optional": true,
-      "type": "number",
+      "type": "boolean",
     },
     {
       "description": "The Highcharts instance, that can be obtained as \`import Highcharts from 'highcharts'\`.
@@ -536,13 +569,6 @@ This property requires the \`no-data-to-display\` module.",
       "name": "noData",
       "optional": true,
       "type": "BaseNoDataProps",
-    },
-    {
-      "description": "The chart container scrollable area. Either min height or min width can be used, but not both at the same time.
-This property corresponds to [chart.scrollablePlotArea](https://api.highcharts.com/highcharts/chart.scrollablePlotArea).",
-      "name": "scrollablePlotArea",
-      "optional": true,
-      "type": "unknown",
     },
     {
       "description": "Chart segment options.",

@@ -18,6 +18,9 @@ export const PieChart = forwardRef((props: PieChartProps, ref: React.Ref<PieChar
       ref={ref}
       highcharts={props.highcharts}
       options={validateOptions(props)}
+      fitHeight={props.fitHeight}
+      chartMinHeight={props.chartMinHeight}
+      chartMinWidth={props.chartMinWidth}
       tooltip={getAllowedProps(props.tooltip)}
       legend={getAllowedProps(props.legend)}
       segmentOptions={getAllowedProps(props.segmentOptions)}
@@ -40,13 +43,7 @@ export default PieChart;
 function validateOptions(props: PieChartProps): InternalPieChartOptions {
   return {
     chart: {
-      height: props.height,
-      scrollablePlotArea: props.scrollablePlotArea
-        ? {
-            minHeight: props.scrollablePlotArea.minHeight,
-            minWidth: props.scrollablePlotArea.minWidth,
-          }
-        : undefined,
+      height: props.chartHeight,
     },
     accessibility: {
       description: props.ariaDescription,

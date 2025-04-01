@@ -23,6 +23,9 @@ import testClasses from "./test-classes/styles.css.js";
 interface InternalCartesianChartProps {
   highcharts: null | typeof Highcharts;
   options: InternalCartesianChartOptions;
+  fitHeight?: boolean;
+  chartMinHeight?: number;
+  chartMinWidth?: number;
   series?: {
     getItemStatus?: (itemId: string) => ChartSeriesMarkerStatus;
   };
@@ -195,6 +198,9 @@ export const InternalCartesianChart = forwardRef(
       <CloudscapeHighcharts
         highcharts={highcharts}
         options={highchartsOptions}
+        fitHeight={props.fitHeight}
+        chartMinHeight={props.chartMinHeight}
+        chartMinWidth={props.chartMinWidth}
         tooltip={tooltipProps}
         noData={props.noData}
         legend={

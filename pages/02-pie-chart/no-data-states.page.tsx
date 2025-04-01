@@ -72,7 +72,7 @@ export default function () {
           <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
             <PieChart
               highcharts={highcharts}
-              height={settings.containerHeight}
+              chartHeight={settings.containerHeight}
               ariaLabel="Pie chart in empty state"
               series={null}
               legend={{ enabled: settings.showLegend }}
@@ -97,7 +97,7 @@ export default function () {
           <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
             <PieChart
               highcharts={highcharts}
-              height={settings.containerHeight}
+              chartHeight={settings.containerHeight}
               ariaLabel="Pie chart in empty state"
               series={{ name: "Units", type: chartType, data: [] }}
               legend={{ enabled: settings.showLegend }}
@@ -122,7 +122,7 @@ export default function () {
           <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
             <PieChart
               highcharts={highcharts}
-              height={settings.containerHeight}
+              chartHeight={settings.containerHeight}
               ariaLabel="Pie chart in no-match state"
               series={{
                 name: "Units",
@@ -159,7 +159,7 @@ export default function () {
           <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
             <PieChart
               highcharts={highcharts}
-              height={settings.containerHeight}
+              chartHeight={settings.containerHeight}
               ariaLabel="Pie chart in loading state"
               series={{ name: "Units", type: chartType, data: [] }}
               legend={{ enabled: settings.showLegend }}
@@ -175,7 +175,7 @@ export default function () {
           <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
             <PieChart
               highcharts={highcharts}
-              height={settings.containerHeight}
+              chartHeight={settings.containerHeight}
               ariaLabel="Pie chart in loading state"
               series={{
                 name: "Units",
@@ -209,7 +209,7 @@ export default function () {
             <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
               <PieChart
                 highcharts={highcharts}
-                height={settings.containerHeight}
+                chartHeight={settings.containerHeight}
                 ariaLabel="Pie chart in loading state"
                 series={{
                   name: "Units",
@@ -230,7 +230,7 @@ export default function () {
           <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
             <PieChart
               highcharts={highcharts}
-              height={settings.containerHeight}
+              chartHeight={settings.containerHeight}
               ariaLabel="Pie chart in error state"
               series={{ name: "Units", type: chartType, data: [] }}
               legend={{ enabled: settings.showLegend }}
@@ -246,7 +246,7 @@ export default function () {
           <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
             <PieChart
               highcharts={highcharts}
-              height={settings.containerHeight}
+              chartHeight={settings.containerHeight}
               ariaLabel="Pie chart in error state"
               series={{
                 name: "Units",
@@ -280,7 +280,7 @@ export default function () {
             <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
               <PieChart
                 highcharts={highcharts}
-                height={settings.containerHeight}
+                chartHeight={settings.containerHeight}
                 ariaLabel="Pie chart in error state"
                 series={{
                   name: "Units",

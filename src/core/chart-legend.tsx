@@ -53,9 +53,10 @@ export function useLegend(
 }
 
 export function ChartLegend({
+  legendStore,
   getItemStatus,
   align,
-  legendStore,
+  title,
   extendedActions,
   tooltip,
   onItemToggleHide,
@@ -71,8 +72,9 @@ export function ChartLegend({
 }) {
   const legendItems = useSelector(legendStore, (state) => state.legendItems);
   return (
-    <Box margin={{ horizontal: "m" }}>
+    <Box padding={{ horizontal: "m", bottom: "xs" }}>
       <ChartLegendComponent
+        legendTitle={title}
         items={legendItems.map((item) => {
           let actions: undefined | ChartLegendAction[] = undefined;
           if (extendedActions && tooltip) {

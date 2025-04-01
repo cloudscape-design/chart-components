@@ -52,7 +52,7 @@ export function ExampleBarChartMultipleDataSeriesStackedHorizontal() {
       <CartesianChart
         highcharts={highcharts}
         {...chartStateProps}
-        height={423}
+        chartHeight={423}
         inverted={true}
         ariaLabel="Stacked, horizontal bar chart"
         legend={{

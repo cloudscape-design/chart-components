@@ -21,6 +21,9 @@ import testClasses from "./test-classes/styles.css.js";
 interface InternalPieChartProps {
   highcharts: null | typeof Highcharts;
   options: InternalPieChartOptions;
+  fitHeight?: boolean;
+  chartMinHeight?: number;
+  chartMinWidth?: number;
   tooltip?: PieChartProps.TooltipProps;
   legend?: CoreLegendProps;
   noData?: PieChartProps.NoDataProps;
@@ -200,6 +203,9 @@ export const InternalPieChart = forwardRef(
       <CloudscapeHighcharts
         highcharts={highcharts}
         options={highchartsOptions}
+        fitHeight={props.fitHeight}
+        chartMinHeight={props.chartMinHeight}
+        chartMinWidth={props.chartMinWidth}
         tooltip={tooltipProps}
         noData={props.noData}
         legend={props.legend ? { align: "center", ...props.legend } : undefined}

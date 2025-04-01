@@ -68,7 +68,7 @@ function ExampleMixedChart() {
     <CartesianChart
       highcharts={highcharts}
       {...chartStateProps}
-      height={423}
+      chartHeight={423}
       inverted={series.some((s) => s.name.startsWith("bar"))}
       ariaLabel="Mixed series chart"
       series={series}
