@@ -19,10 +19,13 @@ export function ChartContainer({
   chartMinHeight?: number;
   chartMinWidth?: number;
 }) {
-  const [measuredHeight, measureRef] = useContainerQuery((entry) => entry.contentBoxHeight);
-  const [legendHeight, setLegendHeight] = useState(0);
+  const [measuredChartHeight, measureRef] = useContainerQuery((entry) => entry.contentBoxHeight);
+  const [measuredLegendHeight, setLegendHeight] = useState<null | number>(null);
+  const effectiveLegendHeight = legend ? measuredLegendHeight : 0;
   const chartHeight =
-    measuredHeight === null ? (chartMinHeight ?? null) : Math.max(chartMinHeight ?? 0, measuredHeight - legendHeight);
+    measuredChartHeight === null || effectiveLegendHeight === null
+      ? (chartMinHeight ?? null)
+      : Math.max(chartMinHeight ?? 0, measuredChartHeight - effectiveLegendHeight);
   const overflowX = chartMinWidth !== undefined ? "auto" : undefined;
   return (
     <div ref={measureRef} style={fitHeight ? { position: "absolute", inset: 0, overflowX } : { overflowX }}>
