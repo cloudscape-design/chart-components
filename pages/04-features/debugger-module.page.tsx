@@ -36,7 +36,7 @@ function ExampleMixedChart() {
     <CartesianChart
       highcharts={highcharts}
       {...chartStateProps}
-      height={423}
+      chartHeight={423}
       ariaLabel="Simple line chart with a mistake in series definition"
       series={series}
       xAxis={{

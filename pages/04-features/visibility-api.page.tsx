@@ -79,7 +79,7 @@ function ExampleMixedChart() {
     <CartesianChart
       highcharts={highcharts}
       {...chartStateProps}
-      height={379}
+      chartHeight={379}
       ariaLabel="Mixed bar chart"
       series={mixedChartSeries}
       tooltip={{
@@ -129,7 +129,7 @@ function ExamplePieChart() {
     <PieChart
       highcharts={highcharts}
       {...chartStateProps}
-      height={500}
+      chartHeight={500}
       ariaLabel="Pie chart"
       series={pieChartSeries}
       tooltip={{

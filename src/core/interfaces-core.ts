@@ -4,9 +4,10 @@
 import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerStatus } from "../internal/components/series-marker";
-import { BaseLegendProps, BaseNoDataProps, BaseTooltipProps, Point } from "./interfaces-base";
+import { BaseChartProps, BaseLegendProps, BaseNoDataProps, BaseTooltipProps, Point } from "./interfaces-base";
 
-export interface CloudscapeHighchartsProps {
+export interface CloudscapeHighchartsProps
+  extends Pick<BaseChartProps, "fitHeight" | "chartMinHeight" | "chartMinWidth"> {
   /**
    * The Highcharts instance. When null, the fallback() is rendered instead.
    */

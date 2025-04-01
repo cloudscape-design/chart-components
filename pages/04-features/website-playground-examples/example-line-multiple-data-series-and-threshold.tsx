@@ -111,7 +111,7 @@ export function ExampleLineChartMultipleDataSeriesAndThreshold() {
       <CartesianChart
         highcharts={highcharts}
         {...chartStateProps}
-        height={423}
+        chartHeight={423}
         legend={{
           enabled: settings.showLegend,
           title: settings.showLegendTitle ? "Legend title" : undefined,

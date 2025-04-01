@@ -43,7 +43,7 @@ export default function () {
         <CartesianChart
           highcharts={highcharts}
           {...chartStateProps}
-          height={379}
+          chartHeight={379}
           ariaLabel="Mixed bar chart"
           series={series}
           tooltip={{

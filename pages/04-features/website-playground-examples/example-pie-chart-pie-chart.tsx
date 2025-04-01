@@ -53,7 +53,7 @@ export function ExamplePieChartPieChart() {
       <PieChart
         highcharts={highcharts}
         {...chartStateProps}
-        height={379}
+        chartHeight={379}
         legend={{
           enabled: settings.showLegend,
           title: settings.showLegendTitle ? "Legend title" : undefined,

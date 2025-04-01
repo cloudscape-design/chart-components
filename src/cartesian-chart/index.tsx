@@ -19,6 +19,9 @@ export const CartesianChart = forwardRef((props: CartesianChartProps, ref: React
       ref={ref}
       highcharts={props.highcharts}
       options={validateOptions(props)}
+      fitHeight={props.fitHeight}
+      chartMinHeight={props.chartMinHeight}
+      chartMinWidth={props.chartMinWidth}
       noData={getAllowedProps(props.noData)}
       tooltip={getAllowedProps(props.tooltip)}
       legend={getAllowedProps(props.legend)}
@@ -39,14 +42,8 @@ export default CartesianChart;
 function validateOptions(props: CartesianChartProps): InternalCartesianChartOptions {
   return {
     chart: {
-      height: props.height,
+      height: props.chartHeight,
       inverted: props.inverted,
-      scrollablePlotArea: props.scrollablePlotArea
-        ? {
-            minHeight: props.scrollablePlotArea.minHeight,
-            minWidth: props.scrollablePlotArea.minWidth,
-          }
-        : undefined,
     },
     accessibility: {
       description: props.ariaDescription,

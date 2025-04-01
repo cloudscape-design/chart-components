@@ -30,7 +30,7 @@ export default function () {
   const defaultProps: CartesianChartProps = {
     highcharts,
     series: [],
-    height: settings.containerHeight,
+    chartHeight: settings.containerHeight,
     legend: { enabled: settings.showLegend },
     xAxis: { title: "X axis", min: 0, max: 1000 },
     yAxis: { title: "Y axis", min: 0, max: 1, valueFormatter: percentageFormatter },
