@@ -72,7 +72,7 @@ export function ChartLegend({
 }) {
   const legendItems = useSelector(legendStore, (state) => state.legendItems);
   return (
-    <Box padding={{ horizontal: "m", bottom: "xs" }}>
+    <Box padding={{ horizontal: "m" }}>
       <ChartLegendComponent
         legendTitle={title}
         items={legendItems.map((item) => {
