@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { useEffect, useRef } from "react";
+import clsx from "clsx";
 import type Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 
@@ -18,6 +19,7 @@ import { CloudscapeChartAPI, CloudscapeHighchartsProps } from "./interfaces-core
 import * as Styles from "./styles";
 import { getPointId, getSeriesId } from "./utils";
 
+import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
 
 /**
@@ -88,9 +90,11 @@ export function CloudscapeHighcharts({
     }
   }, [chartRef, hiddenItemsIndex]);
 
+  const rootClassName = clsx(styles.root, fitHeight && styles["root-fit-height"], className);
+
   if (!highcharts) {
     return (
-      <div {...getDataAttributes(rest)} className={className}>
+      <div {...getDataAttributes(rest)} className={rootClassName}>
         <ChartContainer
           fitHeight={fitHeight}
           chartMinHeight={chartMinHeight}
@@ -111,7 +115,7 @@ export function CloudscapeHighcharts({
   }
 
   return (
-    <div {...getDataAttributes(rest)} className={className}>
+    <div {...getDataAttributes(rest)} className={rootClassName}>
       <ChartContainer
         fitHeight={fitHeight}
         chartMinHeight={chartMinHeight}

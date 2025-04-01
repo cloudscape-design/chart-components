@@ -5,6 +5,13 @@
 
 @use "../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
 
+.root {
+  position: relative;
+}
+.root-fit-height {
+  block-size: 100%;
+}
+
 .no-data {
   padding: cs.$space-static-xs;
   background-color: cs.$color-background-layout-main;

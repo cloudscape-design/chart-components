@@ -45,7 +45,7 @@ const DEFAULT_SETTINGS: PageSettings = {
   height: 250,
   minHeight: 250,
   minWidth: 800,
-  containerHeight: 300,
+  containerHeight: 400,
   containerWidth: "100%",
   chartHeight: 499,
   pieInnerValue: "",

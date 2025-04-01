@@ -27,6 +27,7 @@ export function listPublicDirs(baseDir) {
         elem !== "api-docs" &&
         elem !== "core" &&
         elem !== "internal" &&
+        elem !== "internal-do-not-use" &&
         elem !== "index.tsx" &&
         elem !== "index.ts" &&
         elem !== "test-utils",

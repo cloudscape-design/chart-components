@@ -43,7 +43,8 @@
     ".": "./index.js",
     "./test-utils/dom": "./test-utils/dom/index.js",
     "./test-utils/selectors": "./test-utils/selectors/index.js",
-    "./internal/api-docs/*.js": "./internal/api-docs/*.js"
+    "./internal/api-docs/*.js": "./internal/api-docs/*.js",
+    "./internal-do-not-use": "./internal-do-not-use/index.js"
   },
   "dependencies": {
     "@cloudscape-design/component-toolkit": "^1.0.0-beta",
