@@ -12,7 +12,7 @@
 }
 
 .chart-frame {
-  border: 1px solid cs.$color-border-status-error;
+  border: 1px solid cs.$color-border-status-info;
   border-radius: 4px;
   position: relative;
 }
@@ -21,7 +21,7 @@
   position: absolute;
   top: 0;
   right: 0;
-  color: cs.$color-text-notification-severity-critical;
-  background-color: cs.$color-border-status-error;
+  color: cs.$color-background-layout-main;
+  background-color: cs.$color-border-status-info;
   opacity: 0.75;
 }

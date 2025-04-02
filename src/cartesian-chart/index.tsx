@@ -27,7 +27,7 @@ export const CartesianChart = forwardRef((props: CartesianChartProps, ref: React
       legend={getAllowedProps(props.legend)}
       visibleSeries={props.visibleSeries}
       onToggleVisibleSeries={props.onToggleVisibleSeries}
-      emphasizeBaselineAxis={props.emphasizeBaselineAxis}
+      emphasizeBaselineAxis={props.emphasizeBaselineAxis ?? true}
       {...getDataAttributes(props)}
     />
   );
