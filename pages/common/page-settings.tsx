@@ -135,26 +135,22 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
       noData: {
         statusType: settings.applyLoadingState ? "loading" : settings.applyErrorState ? "error" : "finished",
         empty: (
-          <Box textAlign="center" color="inherit">
+          <Box textAlign="center">
             <b>No data available</b>
-            <Box variant="p" color="inherit">
-              There is no data available
-            </Box>
+            <Box variant="p">There is no data available</Box>
           </Box>
         ),
         loading: <StatusIndicator type="loading">Loading data</StatusIndicator>,
         error: (
           <span>
-            <StatusIndicator type="error">{`The data couldn't be fetched. Try again later.`}</StatusIndicator>{" "}
+            <StatusIndicator type="error">{"The data couldn't be fetched. Try again later."}</StatusIndicator>{" "}
             <Button variant="inline-link">Retry</Button>
           </span>
         ),
         noMatch: (
-          <Box textAlign="center" color="inherit">
+          <Box textAlign="center">
             <b>No matching data</b>
-            <Box variant="p" color="inherit">
-              There is no matching data to display
-            </Box>
+            <Box variant="p">There is no matching data to display</Box>
             <Button onClick={onClearFilter}>Clear filter</Button>
           </Box>
         ),

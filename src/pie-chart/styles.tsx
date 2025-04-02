@@ -22,3 +22,5 @@ export const segmentDescriptionCss: React.CSSProperties = {
   fontSize: fontSizeBodyS,
   color: colorTextBodySecondary,
 };
+
+export const segmentBorderWidth = 2;

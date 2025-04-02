@@ -163,8 +163,9 @@ export const InternalPieChart = forwardRef(
       plotOptions: {
         ...props.options.plotOptions,
         pie: {
-          ...props.options.plotOptions?.pie,
           showInLegend: true,
+          borderWidth: Styles.segmentBorderWidth,
+          ...props.options.plotOptions?.pie,
           dataLabels: {
             position: "left",
             formatter() {
