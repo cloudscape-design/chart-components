@@ -1,11 +1,16 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { createContext, useContext, useRef } from "react";
+import { createContext, useContext, useRef, useState } from "react";
 import type Highcharts from "highcharts";
 
+import Autosuggest from "@cloudscape-design/components/autosuggest";
 import Box from "@cloudscape-design/components/box";
 import Button from "@cloudscape-design/components/button";
+import FormField from "@cloudscape-design/components/form-field";
+import Multiselect from "@cloudscape-design/components/multiselect";
+import Select from "@cloudscape-design/components/select";
+import SpaceBetween from "@cloudscape-design/components/space-between";
 import StatusIndicator from "@cloudscape-design/components/status-indicator";
 
 import { BaseNoDataProps } from "../../lib/components/core/interfaces-base";
@@ -157,6 +162,160 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
       },
     },
   };
+}
+
+export function SeriesFilter({ allSeries }: { allSeries: string[] }) {
+  const { settings, setSettings } = usePageSettings();
+  const options = allSeries.map((value) => ({ value, label: value }));
+  return (
+    <FormField label="Visible series">
+      <div style={{ maxWidth: 300 }}>
+        <Multiselect
+          options={options}
+          selectedOptions={options.filter((option) => settings.visibleContent.includes(option.value))}
+          onChange={({ detail }) =>
+            setSettings({ visibleContent: detail.selectedOptions.map((option) => option.value!) })
+          }
+          inlineTokens={true}
+        />
+      </div>
+    </FormField>
+  );
+}
+
+export function SeriesSelector({ allSeries }: { allSeries: string[] }) {
+  const { settings, setSettings } = usePageSettings();
+  const [autosuggestValue, setAutosuggestValue] = useState("");
+  const availableSeries = allSeries.filter((s) => !settings.selectedSeries.includes(s));
+  return (
+    <FormField
+      label={
+        <Box variant="span" fontWeight="bold">
+          Selected series{" "}
+          <Box variant="span" color="text-body-secondary">
+            ({settings.selectedSeries.length})
+          </Box>
+        </Box>
+      }
+    >
+      <div style={{ maxWidth: 300 }}>
+        <SpaceBetween size="s">
+          <Autosuggest
+            options={availableSeries.map((value) => ({ value }))}
+            value={autosuggestValue}
+            onChange={({ detail }) => setAutosuggestValue(detail.value)}
+            onSelect={({ detail }) => {
+              const closest = availableSeries.find((seriesName) => seriesName.includes(detail.value));
+              if (closest) {
+                setSettings({ selectedSeries: [...new Set([...settings.selectedSeries, closest])] });
+              }
+              setAutosuggestValue("");
+            }}
+            enteredTextLabel={(value) => {
+              const closest = availableSeries.find((seriesName) => seriesName.includes(value));
+              return closest ? `Use "${closest}"` : "Clear input";
+            }}
+          />
+
+          <ReorderableList
+            options={settings.selectedSeries}
+            onReorder={(selectedSeries) => setSettings({ selectedSeries: [...selectedSeries] })}
+            onRemove={(removedSeries) =>
+              setSettings({ selectedSeries: settings.selectedSeries.filter((s) => s !== removedSeries) })
+            }
+          />
+        </SpaceBetween>
+      </div>
+    </FormField>
+  );
+}
+
+const placementOptions = [{ value: "target" }, { value: "bottom" }];
+
+const sizeOptions = [{ value: "small" }, { value: "medium" }, { value: "large" }];
+
+export function TooltipSettings() {
+  const {
+    settings: { tooltipPlacement = "target", tooltipSize = "medium" },
+    setSettings,
+  } = usePageSettings();
+  return (
+    <SpaceBetween size="s">
+      <FormField label="Tooltip placement">
+        <Select
+          options={placementOptions}
+          selectedOption={placementOptions.find((option) => option.value === tooltipPlacement) ?? placementOptions[0]}
+          onChange={({ detail }) =>
+            setSettings({ tooltipPlacement: detail.selectedOption.value as string as "target" | "bottom" })
+          }
+        />
+      </FormField>
+
+      <FormField label="Tooltip size">
+        <Select
+          options={sizeOptions}
+          selectedOption={sizeOptions.find((option) => option.value === tooltipSize) ?? sizeOptions[1]}
+          onChange={({ detail }) =>
+            setSettings({ tooltipSize: detail.selectedOption.value as string as "small" | "medium" | "large" })
+          }
+        />
+      </FormField>
+    </SpaceBetween>
+  );
+}
+
+function ReorderableList({
+  options,
+  onReorder,
+  onRemove,
+}: {
+  options: readonly string[];
+  onReorder: (options: readonly string[]) => void;
+  onRemove: (option: string) => void;
+}) {
+  const moveUp = (index: number) => {
+    const option = options[index];
+    const newOptions = [...options];
+    newOptions.splice(index, 1);
+    newOptions.splice(index - 1, 0, option);
+    onReorder(newOptions);
+  };
+  const moveDown = (index: number) => {
+    const option = options[index];
+    const newOptions = [...options];
+    newOptions.splice(index, 1);
+    newOptions.splice(index + 1, 0, option);
+    onReorder(newOptions);
+  };
+  return (
+    <ul role="list">
+      {options.map((option, index) => (
+        <li key={option}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
+            <div>
+              <Button
+                variant="inline-icon"
+                ariaLabel="Move up"
+                iconName="arrow-up"
+                onClick={() => moveUp(index)}
+                disabled={index === 0}
+              />
+              <Button
+                variant="inline-icon"
+                ariaLabel="Move down"
+                iconName="arrow-down"
+                onClick={() => moveDown(index)}
+                disabled={index === options.length - 1}
+              />
+              <label>{option}</label>
+            </div>
+
+            <Button variant="inline-icon" iconName="remove" onClick={() => onRemove(option)} />
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 function parseStringArray(defaultValue: string[], value?: string | string[]) {

@@ -9,9 +9,8 @@ import Input from "@cloudscape-design/components/input";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
 import { CartesianChart, CartesianChartProps } from "../../lib/components";
-import { ChartFrame } from "../common/chart-frame";
 import { usePageSettings } from "../common/page-settings";
-import { Page, PageSection } from "../common/templates";
+import { FitSizeDemo, Page, PageSection } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
 
 const splineSeries: CartesianChartProps.Series[] = [
@@ -124,31 +123,31 @@ export default function () {
       }
     >
       <PageSection title="Chart height">
-        <ChartFrame height={settings.containerHeight} width={settings.containerWidth}>
+        <FitSizeDemo height={settings.containerHeight} width={settings.containerWidth}>
           <CartesianChart {...commonChartProps} chartHeight={settings.height} />
-        </ChartFrame>
+        </FitSizeDemo>
       </PageSection>
 
       <PageSection title="Chart height, min height, and min width">
-        <ChartFrame height={settings.containerHeight} width={settings.containerWidth}>
+        <FitSizeDemo height={settings.containerHeight} width={settings.containerWidth}>
           <CartesianChart
             {...commonChartProps}
             chartHeight={settings.height}
             chartMinHeight={settings.minHeight}
             chartMinWidth={settings.minWidth}
           />
-        </ChartFrame>
+        </FitSizeDemo>
       </PageSection>
 
       <PageSection title="Fit height, min height, and min width">
-        <ChartFrame height={settings.containerHeight} width={settings.containerWidth}>
+        <FitSizeDemo height={settings.containerHeight} width={settings.containerWidth}>
           <CartesianChart
             {...commonChartProps}
             fitHeight={true}
             chartMinHeight={settings.minHeight}
             chartMinWidth={settings.minWidth}
           />
-        </ChartFrame>
+        </FitSizeDemo>
       </PageSection>
     </Page>
   );

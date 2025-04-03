@@ -8,8 +8,7 @@ import Link from "@cloudscape-design/components/link";
 
 import { CartesianChart, CartesianChartProps, PieChart, PieChartProps } from "../../lib/components";
 import { moneyFormatter, numberFormatter } from "../common/formatters";
-import { PageSettingsDefaults, usePageSettings } from "../common/page-settings";
-import { SeriesFilter } from "../common/series-filter";
+import { PageSettingsDefaults, SeriesFilter, usePageSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
 
 const mixedChartSeries: CartesianChartProps.Series[] = [

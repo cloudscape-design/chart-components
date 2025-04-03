@@ -5,9 +5,8 @@ import Checkbox from "@cloudscape-design/components/checkbox";
 import ColumnLayout from "@cloudscape-design/components/column-layout";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
-import { PageSettingsDefaults, usePageSettings } from "../common/page-settings";
+import { PageSettingsDefaults, TooltipSettings, usePageSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
-import { TooltipSettings } from "../common/tooltip-settings";
 import { ExampleAreaRangeSimple } from "./more-charts/example-area-range-simple";
 import { ExampleHeatmapSimple } from "./more-charts/example-heatmap-simple";
 import { ExampleScatterSimple } from "./more-charts/example-scatter-simple";

@@ -10,9 +10,8 @@ import Header from "@cloudscape-design/components/header";
 import Input from "@cloudscape-design/components/input";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
-import { usePageSettings } from "../common/page-settings";
+import { TooltipSettings, usePageSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
-import { TooltipSettings } from "../common/tooltip-settings";
 import { WidgetInstanceHours } from "./dashboard-demo/widget-instance-hours";
 import { NetworkTrafficWidget } from "./dashboard-demo/widget-network-traffic";
 import { WidgetOperationalMetrics } from "./dashboard-demo/widget-operational-metrics";

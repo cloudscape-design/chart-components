@@ -12,7 +12,6 @@ import StatusIndicator from "@cloudscape-design/components/status-indicator";
 import { colorBorderDividerDefault } from "@cloudscape-design/design-tokens";
 
 import { CartesianChart, CartesianChartProps } from "../../lib/components";
-import { ScreenshotArea } from "../app/screenshot-area";
 import { percentageFormatter } from "../common/formatters";
 import { PageSettings, usePageSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
@@ -62,59 +61,131 @@ export default function () {
         </SpaceBetween>
       }
     >
-      <ScreenshotArea>
-        <PageSection title="Empty state: all" subtitle="No series provided">
-          <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
-            <CartesianChart
-              {...defaultProps}
-              ariaLabel="Cartesian chart in empty state"
-              series={[]}
-              noData={{
-                statusType: "finished",
-                empty: (
-                  <>
-                    <Box textAlign="center" color="inherit">
-                      <b>No data available</b>
-                      <Box variant="p" color="inherit">
-                        There is no available data to display
-                      </Box>
+      <PageSection title="Empty state: all" subtitle="No series provided">
+        <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
+          <CartesianChart
+            {...defaultProps}
+            ariaLabel="Cartesian chart in empty state"
+            series={[]}
+            noData={{
+              statusType: "finished",
+              empty: (
+                <>
+                  <Box textAlign="center" color="inherit">
+                    <b>No data available</b>
+                    <Box variant="p" color="inherit">
+                      There is no available data to display
                     </Box>
-                  </>
-                ),
-              }}
-            />
-          </div>
-        </PageSection>
+                  </Box>
+                </>
+              ),
+            }}
+          />
+        </div>
+      </PageSection>
 
-        <PageSection title="Empty state: data" subtitle="No data provided">
-          <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
-            <CartesianChart
-              {...defaultProps}
-              ariaLabel="Cartesian chart in empty state"
-              series={[{ type: "line", name: "Load", data: [] }]}
-              noData={{
-                statusType: "finished",
-                empty: (
-                  <>
-                    <Box textAlign="center" color="inherit">
-                      <b>No data available</b>
-                      <Box variant="p" color="inherit">
-                        There is no available data to display
-                      </Box>
+      <PageSection title="Empty state: data" subtitle="No data provided">
+        <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
+          <CartesianChart
+            {...defaultProps}
+            ariaLabel="Cartesian chart in empty state"
+            series={[{ type: "line", name: "Load", data: [] }]}
+            noData={{
+              statusType: "finished",
+              empty: (
+                <>
+                  <Box textAlign="center" color="inherit">
+                    <b>No data available</b>
+                    <Box variant="p" color="inherit">
+                      There is no available data to display
                     </Box>
-                  </>
-                ),
-              }}
-              visibleSeries={["Load"]}
-            />
-          </div>
-        </PageSection>
+                  </Box>
+                </>
+              ),
+            }}
+            visibleSeries={["Load"]}
+          />
+        </div>
+      </PageSection>
 
-        <PageSection title="No match state" subtitle="No visible series">
+      <PageSection title="No match state" subtitle="No visible series">
+        <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
+          <CartesianChart
+            {...defaultProps}
+            ariaLabel="Cartesian chart in no-match state"
+            series={[
+              {
+                type: "line",
+                name: "Load",
+                data: [
+                  { x: 0, y: 0.1 },
+                  { x: 1000, y: 0.9 },
+                ],
+              },
+            ]}
+            noData={{
+              statusType: "finished",
+              noMatch: (
+                <>
+                  <Box textAlign="center" color="inherit">
+                    <b>No matching data</b>
+                    <Box variant="p" color="inherit">
+                      There is no matching data to display
+                    </Box>
+                    <Button>Clear filter</Button>
+                  </Box>
+                </>
+              ),
+            }}
+            visibleSeries={[]}
+          />
+        </div>
+      </PageSection>
+
+      <PageSection title="Loading state: all" subtitle="Neither series nor series data is available.">
+        <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
+          <CartesianChart
+            {...defaultProps}
+            ariaLabel="Cartesian chart in loading state"
+            series={[]}
+            noData={{
+              statusType: "loading",
+              loading: <StatusIndicator type="loading">Loading data...</StatusIndicator>,
+            }}
+          />
+        </div>
+      </PageSection>
+
+      <PageSection title="Loading state: data" subtitle="Series are known, but data is loading.">
+        <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
+          <CartesianChart
+            {...defaultProps}
+            ariaLabel="Cartesian chart in loading state"
+            series={[{ type: "line", name: "Load", data: [] }]}
+            noData={{
+              statusType: "loading",
+              loading: <StatusIndicator type="loading">Loading data...</StatusIndicator>,
+            }}
+            visibleSeries={["Load"]}
+          />
+        </div>
+      </PageSection>
+
+      <PageSection
+        title="Loading state: partial"
+        subtitle={
+          <>
+            <div>Series and series data are partially available or are not up to date.</div>
+            <div>Note: this is achieved by indicating the loading state outside of the chart component.</div>
+          </>
+        }
+      >
+        <SpaceBetween size="m">
+          <StatusIndicator type="loading">Refreshing data</StatusIndicator>
           <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
             <CartesianChart
               {...defaultProps}
-              ariaLabel="Cartesian chart in no-match state"
+              ariaLabel="Cartesian chart in loading state"
               series={[
                 {
                   type: "line",
@@ -125,151 +196,77 @@ export default function () {
                   ],
                 },
               ]}
-              noData={{
-                statusType: "finished",
-                noMatch: (
-                  <>
-                    <Box textAlign="center" color="inherit">
-                      <b>No matching data</b>
-                      <Box variant="p" color="inherit">
-                        There is no matching data to display
-                      </Box>
-                      <Button>Clear filter</Button>
-                    </Box>
-                  </>
-                ),
-              }}
-              visibleSeries={[]}
-            />
-          </div>
-        </PageSection>
-
-        <PageSection title="Loading state: all" subtitle="Neither series nor series data is available.">
-          <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
-            <CartesianChart
-              {...defaultProps}
-              ariaLabel="Cartesian chart in loading state"
-              series={[]}
-              noData={{
-                statusType: "loading",
-                loading: <StatusIndicator type="loading">Loading data...</StatusIndicator>,
-              }}
-            />
-          </div>
-        </PageSection>
-
-        <PageSection title="Loading state: data" subtitle="Series are known, but data is loading.">
-          <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
-            <CartesianChart
-              {...defaultProps}
-              ariaLabel="Cartesian chart in loading state"
-              series={[{ type: "line", name: "Load", data: [] }]}
-              noData={{
-                statusType: "loading",
-                loading: <StatusIndicator type="loading">Loading data...</StatusIndicator>,
-              }}
               visibleSeries={["Load"]}
             />
           </div>
-        </PageSection>
+        </SpaceBetween>
+      </PageSection>
 
-        <PageSection
-          title="Loading state: partial"
-          subtitle={
-            <>
-              <div>Series and series data are partially available or are not up to date.</div>
-              <div>Note: this is achieved by indicating the loading state outside of the chart component.</div>
-            </>
-          }
-        >
-          <SpaceBetween size="m">
-            <StatusIndicator type="loading">Refreshing data</StatusIndicator>
-            <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
-              <CartesianChart
-                {...defaultProps}
-                ariaLabel="Cartesian chart in loading state"
-                series={[
-                  {
-                    type: "line",
-                    name: "Load",
-                    data: [
-                      { x: 0, y: 0.1 },
-                      { x: 1000, y: 0.9 },
-                    ],
-                  },
-                ]}
-                visibleSeries={["Load"]}
-              />
-            </div>
-          </SpaceBetween>
-        </PageSection>
+      <PageSection title="Error state: all" subtitle="Both series and series data failed to load.">
+        <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
+          <CartesianChart
+            {...defaultProps}
+            ariaLabel="Cartesian chart in error state"
+            series={[]}
+            noData={{
+              statusType: "error",
+              error: <StatusIndicator type="error">An error occurred</StatusIndicator>,
+            }}
+          />
+        </div>
+      </PageSection>
 
-        <PageSection title="Error state: all" subtitle="Both series and series data failed to load.">
+      <PageSection title="Error state: data" subtitle="Series are present, but data failed to load.">
+        <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
+          <CartesianChart
+            {...defaultProps}
+            ariaLabel="Cartesian chart in error state"
+            series={[
+              {
+                type: "line",
+                name: "Load",
+                data: [],
+              },
+            ]}
+            visibleSeries={["Load"]}
+            noData={{
+              statusType: "error",
+              error: <StatusIndicator type="error">An error occurred</StatusIndicator>,
+            }}
+          />
+        </div>
+      </PageSection>
+
+      <PageSection
+        title="Error state: partial"
+        subtitle={
+          <>
+            <div>Some series or data failed to load or refresh.</div>
+            <div>Note: this is achieved by indicating the error state outside of the chart component.</div>
+          </>
+        }
+      >
+        <SpaceBetween size="m">
+          <Alert type="error">An error occurred</Alert>
           <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
             <CartesianChart
               {...defaultProps}
-              ariaLabel="Cartesian chart in error state"
-              series={[]}
-              noData={{
-                statusType: "error",
-                error: <StatusIndicator type="error">An error occurred</StatusIndicator>,
-              }}
-            />
-          </div>
-        </PageSection>
-
-        <PageSection title="Error state: data" subtitle="Series are present, but data failed to load.">
-          <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
-            <CartesianChart
-              {...defaultProps}
-              ariaLabel="Cartesian chart in error state"
+              ariaLabel="Cartesian chart in loading state"
               series={[
                 {
                   type: "line",
                   name: "Load",
-                  data: [],
+                  data: [
+                    { x: 0, y: 0.1 },
+                    { x: 1000, y: 0.9 },
+                  ],
                 },
               ]}
               visibleSeries={["Load"]}
-              noData={{
-                statusType: "error",
-                error: <StatusIndicator type="error">An error occurred</StatusIndicator>,
-              }}
             />
           </div>
-        </PageSection>
-
-        <PageSection
-          title="Error state: partial"
-          subtitle={
-            <>
-              <div>Some series or data failed to load or refresh.</div>
-              <div>Note: this is achieved by indicating the error state outside of the chart component.</div>
-            </>
-          }
-        >
-          <SpaceBetween size="m">
-            <Alert type="error">An error occurred</Alert>
-            <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
-              <CartesianChart
-                {...defaultProps}
-                ariaLabel="Cartesian chart in loading state"
-                series={[
-                  {
-                    type: "line",
-                    name: "Load",
-                    data: [
-                      { x: 0, y: 0.1 },
-                      { x: 1000, y: 0.9 },
-                    ],
-                  },
-                ]}
-                visibleSeries={["Load"]}
-              />
-            </div>
-          </SpaceBetween>
-        </PageSection>
-      </ScreenshotArea>
+        </SpaceBetween>
+      </PageSection>
     </Page>
   );
 }
