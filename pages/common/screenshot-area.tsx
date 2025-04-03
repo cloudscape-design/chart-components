@@ -4,7 +4,7 @@
 import { createContext, ReactNode, useContext } from "react";
 import clsx from "clsx";
 
-import AppContext from "./app-context";
+import AppContext from "../app/app-context";
 
 import styles from "./styles.module.scss";
 

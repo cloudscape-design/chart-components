@@ -16,9 +16,8 @@ import { CloudscapeChartAPI } from "../../lib/components/core/interfaces-core";
 import { getSeriesMarkerType } from "../../lib/components/core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../lib/components/internal/components/series-details";
 import { dateFormatter, numberFormatter } from "../common/formatters";
-import { usePageSettings } from "../common/page-settings";
+import { TooltipSettings, usePageSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
-import { TooltipSettings } from "../common/tooltip-settings";
 import pseudoRandom from "../utils/pseudo-random";
 
 function randomInt(min: number, max: number) {

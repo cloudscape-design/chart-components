@@ -7,9 +7,8 @@ import FormField from "@cloudscape-design/components/form-field";
 import Input from "@cloudscape-design/components/input";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
-import { PageSettingsDefaults, usePageSettings } from "../common/page-settings";
+import { PageSettingsDefaults, TooltipSettings, usePageSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
-import { TooltipSettings } from "../common/tooltip-settings";
 import { ExampleAreaChartStackedAreaChart } from "./website-playground-examples/example-area-stacked-area-chart";
 import { ExampleAreaChartStackedAreaChartMultipleMetrics } from "./website-playground-examples/example-area-stacked-area-chart-multiple-metrics";
 import { ExampleAreaChartStackedAreaChartWithThreshold } from "./website-playground-examples/example-area-stacked-area-chart-with-threshold";

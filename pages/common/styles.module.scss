@@ -25,3 +25,24 @@
   background-color: cs.$color-border-status-info;
   opacity: 0.75;
 }
+
+.old-chart-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Spinner animations do not follow our general motion configuration, we need to disable them explicitly to get stable
+// screenshot testing results
+/* stylelint-disable selector-max-universal, @cloudscape-design/no-motion-outside-of-mixin, @cloudscape-design/no-implicit-descendant */
+.no-animation {
+  *,
+  *:before,
+  *:after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+/* stylelint-enable */
