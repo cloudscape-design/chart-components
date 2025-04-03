@@ -13,6 +13,7 @@ interface AppUrlParams {
   direction: "ltr" | "rtl";
   motionDisabled: boolean;
   screenshotMode: boolean;
+  i18n: boolean;
 }
 
 export interface AppContextType<T = unknown> {
@@ -29,6 +30,7 @@ const appContextDefaults: AppContextType = {
     direction: "ltr",
     motionDisabled: false,
     screenshotMode: false,
+    i18n: true,
   },
   setUrlParams: () => {},
 };
