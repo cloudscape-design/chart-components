@@ -38,11 +38,11 @@ interface ComponentProps {
 }
 
 export function ComponentNew({ statusType, series, hideSeries }: ComponentProps) {
-  const { highcharts, chartStateProps } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <PieChart
-      highcharts={highcharts}
-      noData={{ ...chartStateProps.noData, statusType }}
+      {...chartProps}
+      noData={{ ...chartProps.noData, statusType }}
       fitHeight={true}
       chartMinHeight={150}
       ariaLabel="Pie chart"
@@ -53,7 +53,7 @@ export function ComponentNew({ statusType, series, hideSeries }: ComponentProps)
 }
 
 export function ComponentOld({ statusType, series, hideSeries }: ComponentProps) {
-  const { chartStateProps } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <OldPieChart
       fitHeight={true}
@@ -62,7 +62,7 @@ export function ComponentOld({ statusType, series, hideSeries }: ComponentProps)
       data={{ none: [], empty: dataOldEmpty, data: dataOld }[series]}
       visibleSegments={hideSeries ? [] : undefined}
       ariaLabel="Pie chart"
-      {...chartStateProps.noData}
+      {...chartProps.noData}
       onRecoveryClick={() => {}}
       statusType={statusType}
     />

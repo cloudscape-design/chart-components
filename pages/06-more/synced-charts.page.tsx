@@ -14,7 +14,7 @@ import { CloudscapeChartAPI } from "../../lib/components/core/interfaces-core";
 import { getSeriesMarkerType } from "../../lib/components/core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../lib/components/internal/components/series-details";
 import { dateFormatter, numberFormatter } from "../common/formatters";
-import { PageSettingsDefaults, usePageSettings } from "../common/page-settings";
+import { PageSettingsForm, usePageSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
 
@@ -114,23 +114,20 @@ const xrangeSeries: Highcharts.SeriesOptionsType[] = [
 
 export default function () {
   return (
-    <PageSettingsDefaults
-      settings={{
-        visibleContent: ["Costs", "Costs last year", "Peak cost"],
-      }}
+    <Page
+      title="Synched charts demo"
+      subtitle="This page demonstrates how charts can have a synchronized tooltip and legend"
+      settings={
+        <PageSettingsForm selectedSettings={["showLegend", "showLegendTooltip", "tooltipSize", "tooltipPlacement"]} />
+      }
     >
-      <Page
-        title="Synched charts demo"
-        subtitle="This page demonstrates how charts can have a synchronized tooltip and legend"
-      >
-        <Charts />
-      </Page>
-    </PageSettingsDefaults>
+      <Charts />
+    </Page>
   );
 }
 
 function Charts() {
-  const { highcharts, chartStateProps } = usePageSettings({ xrange: true });
+  const { chartProps } = usePageSettings({ xrange: true });
   const scatterChartRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
   const getScatterChart = () => scatterChartRef.current!;
   const xrangeChartRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
@@ -141,8 +138,7 @@ function Charts() {
         callback={(chart) => {
           scatterChartRef.current = chart;
         }}
-        highcharts={highcharts}
-        {...omit(chartStateProps, "ref")}
+        {...omit(chartProps, "ref")}
         options={{
           chart: {
             height: 379,
@@ -169,14 +165,14 @@ function Charts() {
                 events: {
                   mouseOver(event) {
                     if (event.target instanceof Highcharts.Point) {
-                      const minPoint = findMinPoint(event.target, getXrangeChart().hc);
+                      const minPoint = findMinPoint(event.target, getXrangeChart().chart);
                       if (minPoint) {
-                        getXrangeChart().cloudscape.showTooltipOnPoint(minPoint);
+                        getXrangeChart().showTooltipOnPoint(minPoint);
                       }
                     }
                   },
                   mouseOut() {
-                    getXrangeChart().cloudscape.hideTooltip();
+                    getXrangeChart().hideTooltip();
                   },
                 },
               },
@@ -199,7 +195,7 @@ function Charts() {
               </div>
             );
             const details: ChartSeriesDetailItem[] = [];
-            for (const s of getScatterChart().hc.series) {
+            for (const s of getScatterChart().chart.series) {
               for (const p of s.data) {
                 if (p.x === x) {
                   details.push({
@@ -224,8 +220,7 @@ function Charts() {
         callback={(chart) => {
           xrangeChartRef.current = chart;
         }}
-        highcharts={highcharts}
-        {...omit(chartStateProps, "ref")}
+        {...omit(chartProps, "ref")}
         options={{
           chart: {
             height: 150,
@@ -254,15 +249,15 @@ function Charts() {
                   mouseOver(event) {
                     if (event.target instanceof Highcharts.Point) {
                       if (event.target instanceof Highcharts.Point) {
-                        const minPoint = findMinPoint(event.target, getScatterChart().hc);
+                        const minPoint = findMinPoint(event.target, getScatterChart().chart);
                         if (minPoint) {
-                          getScatterChart().cloudscape.showTooltipOnPoint(minPoint);
+                          getScatterChart().showTooltipOnPoint(minPoint);
                         }
                       }
                     }
                   },
                   mouseOut() {
-                    getScatterChart().cloudscape.hideTooltip();
+                    getScatterChart().hideTooltip();
                   },
                 },
               },

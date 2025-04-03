@@ -32,8 +32,7 @@ const series: CartesianChartProps.Series[] = [
 ];
 
 export function ExampleMixedLineAndBarChart() {
-  const { highcharts, settings, chartStateProps } = usePageSettings();
-  const hideSeries = settings.applyLoadingState || settings.applyEmptyState || settings.applyErrorState;
+  const { chartProps, isEmpty } = usePageSettings();
   return (
     <PageSection
       title="Mixed line and bar chart: Mixed bar chart"
@@ -44,16 +43,12 @@ export function ExampleMixedLineAndBarChart() {
       }
     >
       <CartesianChart
-        highcharts={highcharts}
-        {...chartStateProps}
+        {...chartProps}
         chartHeight={379}
-        legend={{
-          enabled: settings.showLegend,
-          title: settings.showLegendTitle ? "Legend title" : undefined,
-        }}
         ariaLabel="Mixed bar chart"
-        series={hideSeries ? [] : series}
+        series={isEmpty ? [] : series}
         tooltip={{
+          ...chartProps.tooltip,
           series: (detail) => {
             switch (detail.type) {
               case "point":
@@ -75,8 +70,6 @@ export function ExampleMixedLineAndBarChart() {
                 return { key: "?", value: "?" };
             }
           },
-          placement: settings.tooltipPlacement,
-          size: settings.tooltipSize,
         }}
         xAxis={{
           type: "category",
@@ -91,7 +84,6 @@ export function ExampleMixedLineAndBarChart() {
           max: 20000,
           valueFormatter: numberFormatter,
         }}
-        emphasizeBaselineAxis={settings.emphasizeBaselineAxis}
       />
     </PageSection>
   );

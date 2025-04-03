@@ -42,8 +42,7 @@ const series: CartesianChartProps.Series[] = [
 ];
 
 export function ExampleBarChartMultipleDataSeriesGrouped() {
-  const { highcharts, settings, chartStateProps } = usePageSettings();
-  const hideSeries = settings.applyLoadingState || settings.applyEmptyState || settings.applyErrorState;
+  const { chartProps, isEmpty } = usePageSettings();
   return (
     <PageSection
       title="Bar chart: Multiple data series, grouped"
@@ -54,16 +53,12 @@ export function ExampleBarChartMultipleDataSeriesGrouped() {
       }
     >
       <CartesianChart
-        highcharts={highcharts}
-        {...chartStateProps}
+        {...chartProps}
         chartHeight={423}
-        legend={{
-          enabled: settings.showLegend,
-          title: settings.showLegendTitle ? "Legend title" : undefined,
-        }}
         ariaLabel="Multiple data series bar chart"
-        series={hideSeries ? [] : series}
+        series={isEmpty ? [] : series}
         tooltip={{
+          ...chartProps.tooltip,
           series: (detail) => {
             switch (detail.type) {
               case "point": {
@@ -85,8 +80,6 @@ export function ExampleBarChartMultipleDataSeriesGrouped() {
                 return { key: "?", value: "?" };
             }
           },
-          placement: settings.tooltipPlacement,
-          size: settings.tooltipSize,
         }}
         xAxis={{
           type: "category",
@@ -105,7 +98,6 @@ export function ExampleBarChartMultipleDataSeriesGrouped() {
           max: 500000,
           valueFormatter: numberFormatter,
         }}
-        emphasizeBaselineAxis={settings.emphasizeBaselineAxis}
       />
     </PageSection>
   );

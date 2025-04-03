@@ -43,18 +43,18 @@ interface InternalCartesianChartProps {
  */
 export const InternalCartesianChart = forwardRef(
   ({ highcharts, ...props }: InternalCartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
-    const chartRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
-    const getChart = () => {
+    const apiRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
+    const getAPI = () => {
       /* c8 ignore next */
-      if (!chartRef.current) {
+      if (!apiRef.current) {
         throw new Error("Invariant violation: chart instance is not available.");
       }
-      return chartRef.current;
+      return apiRef.current;
     };
 
     // Obtaining tooltip content, specific for cartesian charts.
     // By default, it renders a list of series under the cursor, and allows to extend and override its contents.
-    const tooltipProps = useChartTooltipCartesian(getChart, props);
+    const tooltipProps = useChartTooltipCartesian(getAPI, props);
 
     // When visibleSeries and onToggleVisibleSeries are provided - the series visibility can be controlled from the outside.
     // Otherwise - the component handles series visibility using its internal state.
@@ -211,15 +211,9 @@ export const InternalCartesianChart = forwardRef(
           const nextState = visible ? [...visibleSeries, seriesId] : visibleSeries.filter((id) => id !== seriesId);
           setVisibleSeries(nextState);
         }}
-        onLegendItemShowOnly={(seriesId) => {
-          setVisibleSeries([seriesId]);
-        }}
-        onLegendItemShowAll={() => {
-          setVisibleSeries(allSeriesIds);
-        }}
         className={testClasses.root}
         callback={(chart) => {
-          chartRef.current = chart;
+          apiRef.current = chart;
         }}
         {...getDataAttributes(props)}
       />

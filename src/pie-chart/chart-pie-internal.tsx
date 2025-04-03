@@ -40,18 +40,18 @@ interface InternalPieChartProps {
  */
 export const InternalPieChart = forwardRef(
   ({ highcharts, ...props }: InternalPieChartProps, ref: React.Ref<PieChartProps.Ref>) => {
-    const chartRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
-    const getChart = () => {
+    const apiRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
+    const getAPI = () => {
       /* c8 ignore next */
-      if (!chartRef.current) {
+      if (!apiRef.current) {
         throw new Error("Invariant violation: chart instance is not available.");
       }
-      return chartRef.current;
+      return apiRef.current;
     };
 
     // Obtaining tooltip content, specific for pie charts.
     // By default, it renders the selected content name, and allows to extend and override its contents.
-    const tooltipProps = useChartTooltipPie(getChart, props);
+    const tooltipProps = useChartTooltipPie(getAPI, props);
 
     // When visibleSegments and onChangeVisibleSegments are provided - the segments visibility can be controlled from the outside.
     // Otherwise - the component handles segments visibility using its internal state.
@@ -218,15 +218,9 @@ export const InternalPieChart = forwardRef(
           setVisibleSegments(nextState);
           return false;
         }}
-        onLegendItemShowOnly={(segmentId) => {
-          setVisibleSegments([segmentId]);
-        }}
-        onLegendItemShowAll={() => {
-          setVisibleSegments(allSegmentIds);
-        }}
         className={testClasses.root}
         callback={(chart) => {
-          chartRef.current = chart;
+          apiRef.current = chart;
         }}
         {...getDataAttributes(props)}
       />

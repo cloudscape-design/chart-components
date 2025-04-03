@@ -97,8 +97,7 @@ const series: CartesianChartProps.Series[] = [
 ];
 
 export function ExampleLineChartMultipleDataSeriesAndThreshold() {
-  const { highcharts, settings, chartStateProps } = usePageSettings();
-  const hideSeries = settings.applyLoadingState || settings.applyEmptyState || settings.applyErrorState;
+  const { chartProps, isEmpty } = usePageSettings();
   return (
     <PageSection
       title="Line chart: Multiple data series and threshold"
@@ -109,16 +108,10 @@ export function ExampleLineChartMultipleDataSeriesAndThreshold() {
       }
     >
       <CartesianChart
-        highcharts={highcharts}
-        {...chartStateProps}
+        {...chartProps}
         chartHeight={423}
-        legend={{
-          enabled: settings.showLegend,
-          title: settings.showLegendTitle ? "Legend title" : undefined,
-        }}
         ariaLabel="Multiple data series line chart"
-        series={hideSeries ? [] : series}
-        tooltip={{ placement: settings.tooltipPlacement, size: settings.tooltipSize }}
+        series={isEmpty ? [] : series}
         xAxis={{
           type: "datetime",
           title: "Time (UTC)",
@@ -132,7 +125,6 @@ export function ExampleLineChartMultipleDataSeriesAndThreshold() {
           max: 500000,
           valueFormatter: numberFormatter,
         }}
-        emphasizeBaselineAxis={settings.emphasizeBaselineAxis}
       />
     </PageSection>
   );

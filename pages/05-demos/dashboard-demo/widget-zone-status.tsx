@@ -18,15 +18,13 @@ const series: PieChartProps.Series = {
 };
 
 export function ZoneStatusWidget() {
-  const { highcharts, settings, chartStateProps } = usePageSettings();
-  const hideSeries = settings.applyLoadingState || settings.applyEmptyState || settings.applyErrorState;
+  const { chartProps, isEmpty } = usePageSettings();
   return (
     <PieChart
-      highcharts={highcharts}
-      {...chartStateProps}
+      {...chartProps}
       fitHeight={true}
-      chartMinHeight={100}
-      series={hideSeries ? null : series}
+      chartMinHeight={200}
+      series={isEmpty ? null : series}
       ariaLabel="Zone status chart"
       ariaDescription="Pie chart summarizing the status of all zones."
       segmentOptions={{
@@ -35,6 +33,7 @@ export function ZoneStatusWidget() {
         },
       }}
       tooltip={{
+        ...chartProps.tooltip,
         body(details) {
           return (
             <div>
@@ -49,11 +48,6 @@ export function ZoneStatusWidget() {
             </div>
           );
         },
-        placement: settings.tooltipPlacement,
-        size: settings.tooltipSize,
-      }}
-      legend={{
-        enabled: settings.showLegend,
       }}
     />
   );

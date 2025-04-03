@@ -1,7 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import Box from "@cloudscape-design/components/box";
 import Link from "@cloudscape-design/components/link";
 
 import { CartesianChart, CartesianChartProps } from "../../../lib/components";
@@ -142,17 +141,15 @@ const series: CartesianChartProps.Series[] = [
 ];
 
 export function NetworkTrafficWidget() {
-  const { highcharts, settings, chartStateProps } = usePageSettings();
-  const hideSeries = settings.applyLoadingState || settings.applyEmptyState || settings.applyErrorState;
+  const { chartProps, isEmpty } = usePageSettings();
   return (
     <CartesianChart
-      highcharts={highcharts}
-      {...chartStateProps}
+      {...chartProps}
       ariaLabel="Network traffic"
       ariaDescription="Line chart showing transferred data of all your instances."
       fitHeight={true}
-      chartMinHeight={100}
-      series={hideSeries ? [] : series}
+      chartMinHeight={200}
+      series={isEmpty ? [] : series}
       xAxis={{
         title: "Time (UTC)",
         min: domain[0].getTime(),
@@ -160,19 +157,8 @@ export function NetworkTrafficWidget() {
         valueFormatter: dateFormatter,
       }}
       yAxis={{ title: "Data transferred", min: 0, max: 200000 }}
-      noData={{
-        noMatch: (
-          <Box textAlign="center" color="inherit">
-            <b>No matching data</b>
-            <Box variant="p" color="inherit">
-              There is no matching data to display
-            </Box>
-          </Box>
-        ),
-      }}
       tooltip={{
-        placement: settings.tooltipPlacement,
-        size: settings.tooltipSize,
+        ...chartProps.tooltip,
         series(detail) {
           switch (detail.type) {
             case "point":
@@ -188,9 +174,6 @@ export function NetworkTrafficWidget() {
               return { key: "", value: "" };
           }
         },
-      }}
-      legend={{
-        enabled: settings.showLegend,
       }}
       emphasizeBaselineAxis={true}
     />

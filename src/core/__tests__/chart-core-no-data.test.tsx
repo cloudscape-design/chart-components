@@ -66,7 +66,7 @@ describe("CloudscapeHighcharts: no-data", () => {
     await waitFor(() => {
       expect(wrapper.findNoData()).not.toBe(null);
       expect(wrapper.findNoData()!.getElement().textContent).toBe("no-data: empty");
-      expect(createWrapper().findLiveRegion()).toBe(null);
+      expect(createWrapper().findLiveRegion()!.getElement()).toHaveTextContent("no-data: empty");
     });
   });
 
@@ -82,7 +82,7 @@ describe("CloudscapeHighcharts: no-data", () => {
       await waitFor(() => {
         expect(wrapper.findNoData()).not.toBe(null);
         expect(wrapper.findNoData()!.getElement().textContent).toBe("no-data: empty");
-        expect(createWrapper().findLiveRegion()).toBe(null);
+        expect(createWrapper().findLiveRegion()!.getElement()).toHaveTextContent("no-data: empty");
       });
     },
   );
@@ -98,7 +98,7 @@ describe("CloudscapeHighcharts: no-data", () => {
     await waitFor(() => {
       expect(wrapper.findNoData()).not.toBe(null);
       expect(wrapper.findNoData()!.getElement().textContent).toBe("no-data: no-match");
-      expect(createWrapper().findLiveRegion()).toBe(null);
+      expect(createWrapper().findLiveRegion()!.getElement()).toHaveTextContent("no-data: no-match");
     });
   });
 });

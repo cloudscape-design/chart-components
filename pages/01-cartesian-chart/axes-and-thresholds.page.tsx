@@ -8,69 +8,67 @@ import ColumnLayout from "@cloudscape-design/components/column-layout";
 
 import { CartesianChart } from "../../lib/components";
 import { dateFormatter } from "../common/formatters";
-import { PageSettingsDefaults, usePageSettings } from "../common/page-settings";
+import { usePageSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
 
 export default function () {
   return (
-    <PageSettingsDefaults settings={{}}>
-      <Page
-        title="Axes and thresholds"
-        subtitle="This pages demonstrates different axes types, tick formatters, and thresholds."
-      >
-        <ColumnLayout columns={2}>
-          <PageSection title="Linear X, linear Y">
-            <LinearLinear />
-          </PageSection>
-          <PageSection title="Linear X, log Y">
-            <LinearLog />
-          </PageSection>
-          <PageSection title="Log X, linear Y">
-            <LogLinear />
-          </PageSection>
-          <PageSection title="Log X, log Y">
-            <LogLog />
-          </PageSection>
-          <PageSection title="Categorical X, linear Y">
-            <CategoryLinear />
-          </PageSection>
-          <PageSection title="Linear X, categorical Y">
-            <LinearCategory />
-          </PageSection>
-          <PageSection title="Categorical X, categorical Y">
-            <CategoryCategory />
-          </PageSection>
-          <PageSection title="Datetime X, linear Y">
-            <DatetimeLinear />
-          </PageSection>
-          <PageSection title="Linear X, datetime Y">
-            <LinearDatetime />
-          </PageSection>
-          <PageSection title="Datetime X, datetime Y">
-            <DatetimeDatetime />
-          </PageSection>
-          <PageSection title="Log X, categorical Y">
-            <LogCategory />
-          </PageSection>
-          <PageSection title="Categorical X, log Y">
-            <CategoryLog />
-          </PageSection>
-          <PageSection title="Datetime X, log Y">
-            <DatetimeLog />
-          </PageSection>
-          <PageSection title="Log X, datetime Y">
-            <LogDatetime />
-          </PageSection>
-          <PageSection title="Categorical X, datetime Y">
-            <DatetimeCategory />
-          </PageSection>
-          <PageSection title="Datetime X, categorical Y">
-            <CategoryDatetime />
-          </PageSection>
-        </ColumnLayout>
-      </Page>
-    </PageSettingsDefaults>
+    <Page
+      title="Axes and thresholds"
+      subtitle="This pages demonstrates different axes types, tick formatters, and thresholds."
+    >
+      <ColumnLayout columns={2}>
+        <PageSection title="Linear X, linear Y">
+          <LinearLinear />
+        </PageSection>
+        <PageSection title="Linear X, log Y">
+          <LinearLog />
+        </PageSection>
+        <PageSection title="Log X, linear Y">
+          <LogLinear />
+        </PageSection>
+        <PageSection title="Log X, log Y">
+          <LogLog />
+        </PageSection>
+        <PageSection title="Categorical X, linear Y">
+          <CategoryLinear />
+        </PageSection>
+        <PageSection title="Linear X, categorical Y">
+          <LinearCategory />
+        </PageSection>
+        <PageSection title="Categorical X, categorical Y">
+          <CategoryCategory />
+        </PageSection>
+        <PageSection title="Datetime X, linear Y">
+          <DatetimeLinear />
+        </PageSection>
+        <PageSection title="Linear X, datetime Y">
+          <LinearDatetime />
+        </PageSection>
+        <PageSection title="Datetime X, datetime Y">
+          <DatetimeDatetime />
+        </PageSection>
+        <PageSection title="Log X, categorical Y">
+          <LogCategory />
+        </PageSection>
+        <PageSection title="Categorical X, log Y">
+          <CategoryLog />
+        </PageSection>
+        <PageSection title="Datetime X, log Y">
+          <DatetimeLog />
+        </PageSection>
+        <PageSection title="Log X, datetime Y">
+          <LogDatetime />
+        </PageSection>
+        <PageSection title="Categorical X, datetime Y">
+          <DatetimeCategory />
+        </PageSection>
+        <PageSection title="Datetime X, categorical Y">
+          <CategoryDatetime />
+        </PageSection>
+      </ColumnLayout>
+    </Page>
   );
 }
 
@@ -80,10 +78,10 @@ const defaultSettings = {
 };
 
 function LinearLinear() {
-  const { highcharts } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <CartesianChart
-      highcharts={highcharts}
+      {...chartProps}
       {...defaultSettings}
       series={[
         {
@@ -121,10 +119,10 @@ function LinearLinear() {
 }
 
 function LinearLog() {
-  const { highcharts } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <CartesianChart
-      highcharts={highcharts}
+      {...chartProps}
       {...defaultSettings}
       series={[
         {
@@ -158,10 +156,10 @@ function LinearLog() {
 }
 
 function LogLinear() {
-  const { highcharts } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <CartesianChart
-      highcharts={highcharts}
+      {...chartProps}
       {...defaultSettings}
       series={[
         {
@@ -195,10 +193,10 @@ function LogLinear() {
 }
 
 function LogLog() {
-  const { highcharts } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <CartesianChart
-      highcharts={highcharts}
+      {...chartProps}
       {...defaultSettings}
       series={[
         {
@@ -230,10 +228,10 @@ function LogLog() {
 }
 
 function CategoryLinear() {
-  const { highcharts } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <CartesianChart
-      highcharts={highcharts}
+      {...chartProps}
       {...defaultSettings}
       series={[
         {
@@ -268,10 +266,10 @@ function CategoryLinear() {
 }
 
 function LinearCategory() {
-  const { highcharts } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <CartesianChart
-      highcharts={highcharts}
+      {...chartProps}
       {...defaultSettings}
       series={[
         {
@@ -306,10 +304,10 @@ function LinearCategory() {
 }
 
 function CategoryCategory() {
-  const { highcharts } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <CartesianChart
-      highcharts={highcharts}
+      {...chartProps}
       {...defaultSettings}
       series={[
         ...range(0, 5).map(
@@ -346,10 +344,10 @@ function CategoryCategory() {
 }
 
 function DatetimeLinear() {
-  const { highcharts } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <CartesianChart
-      highcharts={highcharts}
+      {...chartProps}
       {...defaultSettings}
       series={[
         {
@@ -383,10 +381,10 @@ function DatetimeLinear() {
 }
 
 function LinearDatetime() {
-  const { highcharts } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <CartesianChart
-      highcharts={highcharts}
+      {...chartProps}
       {...defaultSettings}
       series={[
         {
@@ -420,10 +418,10 @@ function LinearDatetime() {
 }
 
 function DatetimeDatetime() {
-  const { highcharts } = usePageSettings({ more: true });
+  const { chartProps } = usePageSettings({ more: true });
   return (
     <CartesianChart
-      highcharts={highcharts}
+      {...chartProps}
       {...defaultSettings}
       series={[
         {
@@ -469,10 +467,10 @@ function DatetimeDatetime() {
 }
 
 function LogCategory() {
-  const { highcharts } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <CartesianChart
-      highcharts={highcharts}
+      {...chartProps}
       {...defaultSettings}
       series={[
         {
@@ -504,10 +502,10 @@ function LogCategory() {
 }
 
 function CategoryLog() {
-  const { highcharts } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <CartesianChart
-      highcharts={highcharts}
+      {...chartProps}
       {...defaultSettings}
       series={[
         {
@@ -539,10 +537,10 @@ function CategoryLog() {
 }
 
 function DatetimeLog() {
-  const { highcharts } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <CartesianChart
-      highcharts={highcharts}
+      {...chartProps}
       {...defaultSettings}
       series={[
         {
@@ -574,10 +572,10 @@ function DatetimeLog() {
 }
 
 function LogDatetime() {
-  const { highcharts } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <CartesianChart
-      highcharts={highcharts}
+      {...chartProps}
       {...defaultSettings}
       series={[
         {
@@ -609,10 +607,10 @@ function LogDatetime() {
 }
 
 function DatetimeCategory() {
-  const { highcharts } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <CartesianChart
-      highcharts={highcharts}
+      {...chartProps}
       {...defaultSettings}
       series={[
         {
@@ -644,10 +642,10 @@ function DatetimeCategory() {
 }
 
 function CategoryDatetime() {
-  const { highcharts } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <CartesianChart
-      highcharts={highcharts}
+      {...chartProps}
       {...defaultSettings}
       series={[
         {

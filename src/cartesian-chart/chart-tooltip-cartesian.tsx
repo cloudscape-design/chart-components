@@ -13,7 +13,7 @@ import { getDataExtremes } from "./utils";
 import { getCartesianDetailsItem } from "./utils";
 
 export function useChartTooltipCartesian(
-  getChart: () => CloudscapeChartAPI,
+  getAPI: () => CloudscapeChartAPI,
   props: {
     options: InternalCartesianChartOptions;
     tooltip?: CartesianChartProps.TooltipProps;
@@ -26,7 +26,7 @@ export function useChartTooltipCartesian(
   const [expandedSeries, setExpandedSeries] = useState<Record<string, Set<string>>>({});
 
   const getContent = (point: { x: number; y: number }): null | CoreTooltipContent => {
-    const chart = getChart().hc;
+    const chart = getAPI().chart;
 
     const matchedItems: CartesianChartProps.TooltipSeriesDetailItem[] = [];
     function findMatchedItem(series: InternalSeriesOptions) {

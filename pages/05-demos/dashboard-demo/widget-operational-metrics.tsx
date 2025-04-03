@@ -24,8 +24,7 @@ const series: CartesianChartProps.Series[] = [
 ];
 
 export function WidgetOperationalMetrics() {
-  const { highcharts, settings, chartStateProps } = usePageSettings();
-  const hideSeries = settings.applyLoadingState || settings.applyEmptyState || settings.applyErrorState;
+  const { chartProps, isEmpty } = usePageSettings();
   return (
     <ResponsiveLayout
       filters={
@@ -68,13 +67,12 @@ export function WidgetOperationalMetrics() {
 
       <ResponsiveLayoutColumn header={<Header variant="h3">Breakdown</Header>}>
         <CartesianChart
-          highcharts={highcharts}
-          {...chartStateProps}
+          {...chartProps}
           ariaLabel="Operational metrics"
           ariaDescription="Bar chart showing operational metrics."
           fitHeight={true}
-          chartMinHeight={100}
-          series={hideSeries ? [] : series}
+          chartMinHeight={200}
+          series={isEmpty ? [] : series}
           xAxis={{
             title: "Chars",
             type: "category",

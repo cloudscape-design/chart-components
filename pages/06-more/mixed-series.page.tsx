@@ -3,8 +3,12 @@
 
 import { CartesianChart, CartesianChartProps } from "../../lib/components";
 import { dateFormatter, numberFormatter, priceFormatter } from "../common/formatters";
-import { PageSettingsDefaults, SeriesSelector, usePageSettings } from "../common/page-settings";
+import { PageSettings, SeriesSelector, usePageSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
+
+interface ThisPageSettings extends PageSettings {
+  selectedSeries: string;
+}
 
 const allSeries: CartesianChartProps.Series[] = [
   {
@@ -43,30 +47,38 @@ const allSeries: CartesianChartProps.Series[] = [
 
 const seriesOptions = allSeries.map((s) => s.name);
 
+const defaultSelectedSeries = "column-1";
+
 export default function () {
+  const { settings, setSettings } = usePageSettings<ThisPageSettings>();
+  const selectedSeries = (settings.selectedSeries ?? defaultSelectedSeries).split(",");
   return (
-    <PageSettingsDefaults settings={{ selectedSeries: ["column-1"] }}>
-      <Page
-        title="Mixing series demo"
-        subtitle="The page demonstrates how chart series can be combined together. Some series while can be combined
+    <Page
+      title="Mixing series demo"
+      subtitle="The page demonstrates how chart series can be combined together. Some series while can be combined
             technically, do not provide a reasonable user experience and/or cause performance issues."
-        settings={<SeriesSelector allSeries={seriesOptions} />}
-      >
-        <PageSection>
-          <ExampleMixedChart />
-        </PageSection>
-      </Page>
-    </PageSettingsDefaults>
+      settings={
+        <SeriesSelector
+          allSeries={seriesOptions}
+          selectedSeries={selectedSeries}
+          onSelectedSeriesChange={(selectedSeries) => setSettings({ selectedSeries: selectedSeries.join(",") })}
+        />
+      }
+    >
+      <PageSection>
+        <ExampleMixedChart />
+      </PageSection>
+    </Page>
   );
 }
 
 function ExampleMixedChart() {
-  const { highcharts, settings, chartStateProps } = usePageSettings();
-  const series = getSelected(allSeries, settings.selectedSeries);
+  const { settings, chartProps } = usePageSettings<ThisPageSettings>();
+  const selectedSeries = (settings.selectedSeries ?? defaultSelectedSeries).split(",");
+  const series = getSelected(allSeries, selectedSeries);
   return (
     <CartesianChart
-      highcharts={highcharts}
-      {...chartStateProps}
+      {...chartProps}
       chartHeight={423}
       inverted={series.some((s) => s.name.startsWith("bar"))}
       ariaLabel="Mixed series chart"

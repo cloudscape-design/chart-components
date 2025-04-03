@@ -32,8 +32,7 @@ const series: CartesianChartProps.Series[] = [
 ];
 
 export function ExampleBarChartMultipleDataSeriesStacked() {
-  const { highcharts, settings, chartStateProps } = usePageSettings();
-  const hideSeries = settings.applyLoadingState || settings.applyEmptyState || settings.applyErrorState;
+  const { chartProps, isEmpty } = usePageSettings();
   return (
     <PageSection
       title="Bar chart: Multiple data series, stacked"
@@ -44,17 +43,11 @@ export function ExampleBarChartMultipleDataSeriesStacked() {
       }
     >
       <CartesianChart
-        highcharts={highcharts}
-        {...chartStateProps}
+        {...chartProps}
         chartHeight={423}
-        legend={{
-          enabled: settings.showLegend,
-          title: settings.showLegendTitle ? "Legend title" : undefined,
-        }}
         ariaLabel="Stacked bar chart"
         plotOptions={{ series: { stacking: "normal" } }}
-        series={hideSeries ? [] : series}
-        tooltip={{ placement: settings.tooltipPlacement, size: settings.tooltipSize }}
+        series={isEmpty ? [] : series}
         xAxis={{
           type: "category",
           title: "Time (UTC)",
@@ -67,7 +60,6 @@ export function ExampleBarChartMultipleDataSeriesStacked() {
           ],
         }}
         yAxis={{ title: "Error count", min: 0, max: 50 }}
-        emphasizeBaselineAxis={settings.emphasizeBaselineAxis}
       />
     </PageSection>
   );
