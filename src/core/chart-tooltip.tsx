@@ -4,7 +4,7 @@
 import { useRef } from "react";
 import type Highcharts from "highcharts";
 
-import ChartTooltipBase from "@cloudscape-design/components/internal/chart-tooltip-do-not-use";
+import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
 
 import AsyncStore, { useSelector } from "../internal/utils/async-store";
 import { DebouncedCall } from "../internal/utils/utils";
@@ -78,7 +78,7 @@ export function ChartTooltip({
     return null;
   }
   return (
-    <ChartTooltipBase
+    <InternalChartTooltip
       getTrack={tooltipStore.getTrack}
       trackKey={tooltip.point.x + ":" + tooltip.point.y}
       container={null}
@@ -92,7 +92,7 @@ export function ChartTooltip({
       position={placement === "bottom" ? "bottom" : undefined}
     >
       {content.body}
-    </ChartTooltipBase>
+    </InternalChartTooltip>
   );
 }
 

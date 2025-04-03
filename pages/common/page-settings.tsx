@@ -11,7 +11,6 @@ import FormField from "@cloudscape-design/components/form-field";
 import Multiselect from "@cloudscape-design/components/multiselect";
 import Select from "@cloudscape-design/components/select";
 import SpaceBetween from "@cloudscape-design/components/space-between";
-import StatusIndicator from "@cloudscape-design/components/status-indicator";
 
 import { BaseNoDataProps } from "../../lib/components/core/interfaces-base";
 import AppContext, { AppContextType } from "../app/app-context";
@@ -145,13 +144,6 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
             <Box variant="p">There is no data available</Box>
           </Box>
         ),
-        loading: <StatusIndicator type="loading">Loading data</StatusIndicator>,
-        error: (
-          <span>
-            <StatusIndicator type="error">{"The data couldn't be fetched. Try again later."}</StatusIndicator>{" "}
-            <Button variant="inline-link">Retry</Button>
-          </span>
-        ),
         noMatch: (
           <Box textAlign="center">
             <b>No matching data</b>
@@ -159,6 +151,9 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
             <Button onClick={onClearFilter}>Clear filter</Button>
           </Box>
         ),
+        // Not including loading and empty states to let those be served from i18n.
+        // Adding an empty recovery click handler to make the default recovery button appear.
+        onRecoveryClick: () => {},
       },
     },
   };

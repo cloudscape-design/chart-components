@@ -41,6 +41,7 @@ export function CloudscapeHighcharts({
   onLegendItemToggle,
   onLegendItemShowOnly,
   onLegendItemShowAll,
+  i18nStrings,
   className,
   ...rest
 }: CloudscapeHighchartsProps) {
@@ -272,7 +273,7 @@ export function CloudscapeHighcharts({
 
       {isTooltipEnabled && <ChartTooltip {...tooltip.props} />}
 
-      {noDataProps && <ChartNoData {...noData.props} />}
+      {noDataProps && <ChartNoData {...noData.props} i18nStrings={i18nStrings} />}
     </div>
   );
 }
