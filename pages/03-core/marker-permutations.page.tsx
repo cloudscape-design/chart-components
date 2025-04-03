@@ -16,7 +16,6 @@ import {
 } from "@cloudscape-design/design-tokens";
 
 import { ChartSeriesMarker, ChartSeriesMarkerProps } from "../../lib/components/internal/components/series-marker";
-import { ScreenshotArea } from "../app/screenshot-area";
 import PermutationsView, { createPermutations } from "../common/permutations";
 import { Page } from "../common/templates";
 
@@ -59,18 +58,16 @@ export default function MarkerPermutations() {
       subtitle="This page lists all markers that we currently support. Each marker can have any color,
       and can be combined with a warning indicator."
     >
-      <ScreenshotArea>
-        <SpaceBetween size="m">
-          {permutationsForColors.map((permutations, index) => (
-            <PermutationsView
-              key={index}
-              permutations={permutations}
-              render={(permutation) => <ChartSeriesMarker {...permutation} />}
-              direction="horizontal"
-            />
-          ))}
-        </SpaceBetween>
-      </ScreenshotArea>
+      <SpaceBetween size="m">
+        {permutationsForColors.map((permutations, index) => (
+          <PermutationsView
+            key={index}
+            permutations={permutations}
+            render={(permutation) => <ChartSeriesMarker {...permutation} />}
+            direction="horizontal"
+          />
+        ))}
+      </SpaceBetween>
     </Page>
   );
 }

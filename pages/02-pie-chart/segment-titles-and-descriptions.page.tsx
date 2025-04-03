@@ -11,7 +11,6 @@ import Select from "@cloudscape-design/components/select";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
 import { PieChart, PieChartProps } from "../../lib/components";
-import { ScreenshotArea } from "../app/screenshot-area";
 import { PageSettings, usePageSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
 
@@ -119,27 +118,25 @@ export default function () {
         </SpaceBetween>
       }
     >
-      <ScreenshotArea>
-        <ColumnLayout columns={2}>
-          {range(0, 10).map((index) => (
-            <PieChart
-              key={index}
-              highcharts={highcharts}
-              chartHeight={settings.containerHeight}
-              ariaLabel={`Pie chart with ${index + 1} segments`}
-              series={getPieSeries(index + 1)}
-              segmentOptions={{
-                title: showTitles ? undefined : null,
-                description: showDescriptions
-                  ? ({ segmentValue, totalValue }) =>
-                      `${segmentValue} units, ${((segmentValue / totalValue) * 100).toFixed(1)}%`
-                  : null,
-              }}
-              legend={{ enabled: settings.showLegend }}
-            />
-          ))}
-        </ColumnLayout>
-      </ScreenshotArea>
+      <ColumnLayout columns={2}>
+        {range(0, 10).map((index) => (
+          <PieChart
+            key={index}
+            highcharts={highcharts}
+            chartHeight={settings.containerHeight}
+            ariaLabel={`Pie chart with ${index + 1} segments`}
+            series={getPieSeries(index + 1)}
+            segmentOptions={{
+              title: showTitles ? undefined : null,
+              description: showDescriptions
+                ? ({ segmentValue, totalValue }) =>
+                    `${segmentValue} units, ${((segmentValue / totalValue) * 100).toFixed(1)}%`
+                : null,
+            }}
+            legend={{ enabled: settings.showLegend }}
+          />
+        ))}
+      </ColumnLayout>
     </Page>
   );
 }
