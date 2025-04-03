@@ -44,11 +44,11 @@ interface ComponentProps {
 }
 
 export function ComponentNew({ statusType, series, hideSeries }: ComponentProps) {
-  const { highcharts, chartStateProps } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <CartesianChart
-      highcharts={highcharts}
-      noData={{ ...chartStateProps.noData, statusType }}
+      {...chartProps}
+      noData={{ ...chartProps.noData, statusType }}
       fitHeight={true}
       chartMinHeight={150}
       ariaLabel="Line chart"
@@ -68,7 +68,7 @@ export function ComponentNew({ statusType, series, hideSeries }: ComponentProps)
 }
 
 export function ComponentOld({ statusType, series, hideSeries }: ComponentProps) {
-  const { chartStateProps } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <LineChart
       fitHeight={true}
@@ -85,7 +85,7 @@ export function ComponentOld({ statusType, series, hideSeries }: ComponentProps)
       xScaleType="time"
       xTitle="Time (UTC)"
       yTitle="Error count"
-      {...chartStateProps.noData}
+      {...chartProps.noData}
       onRecoveryClick={() => {}}
       statusType={statusType}
     />

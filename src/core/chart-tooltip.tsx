@@ -20,12 +20,8 @@ const LAST_DISMISS_DELAY = 250;
 // The tooltip can be hidden when we receive mouse-leave. It can also be pinned/unpinned on mouse click.
 // Despite event names, they events also fire on keyboard interactions.
 
-export function useChartTooltip(
-  highcharts: null | typeof Highcharts,
-  getChart: () => CloudscapeChartAPI,
-  tooltipProps?: CoreTooltipProps,
-) {
-  const tooltipStore = useRef(new TooltipStore(getChart)).current;
+export function useChartTooltip(getAPI: () => CloudscapeChartAPI, tooltipProps?: CoreTooltipProps) {
+  const tooltipStore = useRef(new TooltipStore(getAPI)).current;
   tooltipStore.placement = tooltipProps?.placement ?? "target";
 
   const chartClick: Highcharts.ChartClickCallbackFunction = function () {
@@ -37,7 +33,7 @@ export function useChartTooltip(
     }
   };
   const seriesPointMouseOver: Highcharts.PointMouseOverCallbackFunction = function (event) {
-    if (highcharts && event.target instanceof highcharts.Point) {
+    if (event.target instanceof getAPI().highcharts.Point) {
       tooltipStore.onMouseOverTarget(event.target);
     }
   };
@@ -48,9 +44,6 @@ export function useChartTooltip(
     tooltipStore.onMouseClickPlot(this);
   };
 
-  const showTooltipOnPoint = (point: Highcharts.Point) => tooltipStore.onMouseOverTarget(point);
-  const hideTooltip = () => tooltipStore.onMouseLeaveTarget();
-
   return {
     options: { chartClick, seriesPointMouseOver, seriesPointMouseOut, seriesPointClick },
     props: {
@@ -59,7 +52,10 @@ export function useChartTooltip(
       placement: tooltipProps?.placement,
       size: tooltipProps?.size,
     },
-    api: { showTooltipOnPoint, hideTooltip },
+    api: {
+      showTooltipOnPoint: (point: Highcharts.Point) => tooltipStore.onMouseOverTarget(point),
+      hideTooltip: () => tooltipStore.onMouseLeaveTarget(),
+    },
   };
 }
 
@@ -73,7 +69,7 @@ export function ChartTooltip({
   if (!tooltip.visible) {
     return null;
   }
-  const content = getContent(tooltip.point);
+  const content = getContent?.(tooltip.point);
   if (!content) {
     return null;
   }
@@ -106,16 +102,16 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
   public getTrack: () => null | HTMLElement | SVGElement = () => null;
   public placement: "target" | "bottom" = "target";
 
-  private getChart: () => CloudscapeChartAPI;
+  private getAPI: () => CloudscapeChartAPI;
   private targetElement: null | Highcharts.SVGElement = null;
   private cursorElement: null | Highcharts.SVGElement = null;
   private mouseLeaveCall = new DebouncedCall();
   private lastDismissTime = 0;
   private tooltipHovered = false;
 
-  constructor(getChart: () => CloudscapeChartAPI) {
+  constructor(getAPI: () => CloudscapeChartAPI) {
     super({ visible: false, pinned: false, point: { x: 0, y: 0 } });
-    this.getChart = getChart;
+    this.getAPI = getAPI;
   }
 
   // When hovering (or focusing) over the target (point, bar, segment, etc.) we show the tooltip in the target coordinate.
@@ -198,13 +194,13 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
       if (!outsideClick) {
         // This brings the focus back to the chart.
         // If the last focused target is no longer around - the focus goes back to the first data point.
-        this.chart.series?.[0]?.data?.[0].graphic?.element.focus();
+        this.api.chart.series?.[0]?.data?.[0].graphic?.element.focus();
       }
     }
   };
 
-  private get chart() {
-    return this.getChart().hc;
+  private get api() {
+    return this.getAPI();
   }
 
   private moveMarkers = (target: Highcharts.Point) => {
@@ -213,13 +209,13 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
   };
 
   private createMarkers = (target: Highcharts.Point) => {
-    let markerTop = this.chart.plotTop;
-    let markerHeight = this.chart.plotHeight;
-    let x = (target.plotX ?? 0) + this.chart.plotLeft;
-    let y = (target.plotY ?? 0) + this.chart.plotTop;
-    if (this.chart.inverted) {
-      x = this.chart.plotWidth - (target.plotY ?? 0) + this.chart.plotLeft;
-      y = this.chart.plotHeight - (target.plotX ?? 0) + this.chart.plotTop;
+    let markerTop = this.api.chart.plotTop;
+    let markerHeight = this.api.chart.plotHeight;
+    let x = (target.plotX ?? 0) + this.api.chart.plotLeft;
+    let y = (target.plotY ?? 0) + this.api.chart.plotTop;
+    if (this.api.chart.inverted) {
+      x = this.api.chart.plotWidth - (target.plotY ?? 0) + this.api.chart.plotLeft;
+      y = this.api.chart.plotHeight - (target.plotX ?? 0) + this.api.chart.plotTop;
     }
     // The pie series segments do not provide plotX, plotY.
     // That's why we use the tooltipPos tuple, which is not covered by Typescript.
@@ -235,11 +231,12 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
       markerHeight = 2 * radius;
     }
 
-    this.cursorElement = this.chart.renderer
+    this.cursorElement = this.api.chart.renderer
       .rect(x, markerTop, 1, markerHeight)
       .attr({ fill: target.series.type !== "pie" ? Styles.colorChartCursor : "transparent" })
       .add();
-    this.targetElement = this.placement === "target" ? this.chart.renderer.circle(x, y, 0).add() : this.cursorElement;
+    this.targetElement =
+      this.placement === "target" ? this.api.chart.renderer.circle(x, y, 0).add() : this.cursorElement;
 
     // The targetElement.element can get invalidated by Highcharts, so we cannot use
     // trackRef.current = targetElement.element as it might get invalidated unexpectedly.
@@ -249,12 +246,15 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
 
   private getPieCoordinates = (series: Highcharts.Series) => {
     const [relativeX, relativeY, relativeDiameter] = series.center;
-    const plotLeft = this.chart.plotLeft;
-    const plotTop = this.chart.plotTop;
-    const centerX = plotLeft + (typeof relativeX === "number" ? relativeX : (relativeX / 100) * this.chart.plotWidth);
-    const centerY = plotTop + (typeof relativeY === "number" ? relativeY : (relativeY / 100) * this.chart.plotHeight);
+    const plotLeft = this.api.chart.plotLeft;
+    const plotTop = this.api.chart.plotTop;
+    const centerX =
+      plotLeft + (typeof relativeX === "number" ? relativeX : (relativeX / 100) * this.api.chart.plotWidth);
+    const centerY =
+      plotTop + (typeof relativeY === "number" ? relativeY : (relativeY / 100) * this.api.chart.plotHeight);
     const radius =
-      (typeof relativeDiameter === "number" ? relativeDiameter : (relativeDiameter / 100) * this.chart.plotWidth) / 2;
+      (typeof relativeDiameter === "number" ? relativeDiameter : (relativeDiameter / 100) * this.api.chart.plotWidth) /
+      2;
     return { centerX, centerY, radius };
   };
 

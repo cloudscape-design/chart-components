@@ -36,13 +36,12 @@ const series: CartesianChartProps.Series[] = [
 ];
 
 export default function () {
-  const { highcharts, chartStateProps, settings } = usePageSettings({ more: true });
+  const { chartProps } = usePageSettings({ more: true });
   return (
     <Page title="Error bars" subtitle="This pages demonstrates the use of error bars for columns and line series.">
       <PageSection title="Mixed bar chart with error bars">
         <CartesianChart
-          highcharts={highcharts}
-          {...chartStateProps}
+          {...chartProps}
           chartHeight={379}
           ariaLabel="Mixed bar chart"
           series={series}
@@ -85,7 +84,6 @@ export default function () {
             max: 20000,
             valueFormatter: numberFormatter,
           }}
-          emphasizeBaselineAxis={settings.emphasizeBaselineAxis}
         />
       </PageSection>
     </Page>

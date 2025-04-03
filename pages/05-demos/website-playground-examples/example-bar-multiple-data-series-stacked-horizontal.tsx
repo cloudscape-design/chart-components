@@ -38,8 +38,7 @@ const series: CartesianChartProps.Series[] = [
 ];
 
 export function ExampleBarChartMultipleDataSeriesStackedHorizontal() {
-  const { highcharts, settings, chartStateProps } = usePageSettings();
-  const hideSeries = settings.applyLoadingState || settings.applyEmptyState || settings.applyErrorState;
+  const { chartProps, isEmpty } = usePageSettings();
   return (
     <PageSection
       title="Bar chart: Multiple data series, stacked, horizontal"
@@ -50,18 +49,14 @@ export function ExampleBarChartMultipleDataSeriesStackedHorizontal() {
       }
     >
       <CartesianChart
-        highcharts={highcharts}
-        {...chartStateProps}
+        {...chartProps}
         chartHeight={423}
         inverted={true}
         ariaLabel="Stacked, horizontal bar chart"
-        legend={{
-          enabled: settings.showLegend,
-          title: settings.showLegendTitle ? "Legend title" : undefined,
-        }}
         plotOptions={{ series: { stacking: "normal" } }}
-        series={hideSeries ? [] : series}
+        series={isEmpty ? [] : series}
         tooltip={{
+          ...chartProps.tooltip,
           series: (detail) => {
             switch (detail.type) {
               case "point": {
@@ -152,8 +147,6 @@ export function ExampleBarChartMultipleDataSeriesStackedHorizontal() {
             }
           },
           footer: ({ x }) => <Button ariaLabel={`View details for ${x}`}>View details</Button>,
-          placement: settings.tooltipPlacement,
-          size: settings.tooltipSize,
         }}
         xAxis={{
           type: "category",
@@ -161,7 +154,6 @@ export function ExampleBarChartMultipleDataSeriesStackedHorizontal() {
           categories: ["Visits", "Bounces"],
         }}
         yAxis={{ title: "", min: 0, max: 1, valueFormatter: percentageFormatter }}
-        emphasizeBaselineAxis={settings.emphasizeBaselineAxis}
       />
     </PageSection>
   );

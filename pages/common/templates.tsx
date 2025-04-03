@@ -196,6 +196,10 @@ export function FitSizeDemo({
   );
 }
 
+export function FramedDemo({ children }: { children: React.ReactNode }) {
+  return <ChartFrame>{children}</ChartFrame>;
+}
+
 export function DocsSection({ functional, visualDesign, behavior, implementation }: DocsSectionProps) {
   return (
     <SpaceBetween size="s">

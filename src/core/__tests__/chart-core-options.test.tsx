@@ -158,6 +158,7 @@ describe("CloudscapeHighcharts: options", () => {
   });
 
   test.each([0, 1])("propagates plotOptions.series.point, inputs=%s", (index) => {
+    const chartStub = { series: [], legend: { allItems: [] } };
     const mouseOverEvent = {};
     const mouseOver = vi.fn();
     const mouseOutEvent = {};
@@ -194,7 +195,9 @@ describe("CloudscapeHighcharts: options", () => {
       }),
       expect.anything(),
     );
+
     const mockCall = vi.mocked(HighchartsReact).mock.calls[0][0];
+    mockCall.callback(chartStub);
 
     mockCall.options.plotOptions.series.point.events.mouseOver.call(null, mouseOverEvent);
     expect(mouseOver).toHaveBeenCalledWith(mouseOverEvent);

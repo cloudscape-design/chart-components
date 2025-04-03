@@ -9,14 +9,14 @@ import { ChartSeriesMarker } from "../internal/components/series-marker";
 import { InternalPieChartOptions, PieChartProps } from "./interfaces-pie";
 
 export function useChartTooltipPie(
-  getChart: () => CloudscapeChartAPI,
+  getAPI: () => CloudscapeChartAPI,
   props: {
     options: InternalPieChartOptions;
     tooltip?: PieChartProps.TooltipProps;
   },
 ) {
   const getContent = (point: { x: number; y: number }): null | CoreTooltipContent => {
-    const chart = getChart().hc;
+    const chart = getAPI().chart;
     const series = props.options.series[0] as undefined | PieChartProps.Series;
     const matchedChartSeries = chart.series.find((s) => (s.userOptions.id ?? s.name) === (series?.id ?? series?.name));
     if (!matchedChartSeries) {

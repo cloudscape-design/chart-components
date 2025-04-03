@@ -816,8 +816,7 @@ const series: CartesianChartProps.Series[] = [
 ];
 
 export function ExampleAreaChartStackedAreaChartMultipleMetrics() {
-  const { highcharts, settings, chartStateProps } = usePageSettings();
-  const hideSeries = settings.applyLoadingState || settings.applyEmptyState || settings.applyErrorState;
+  const { chartProps, isEmpty } = usePageSettings();
   return (
     <PageSection
       title="Area chart: Stacked area chart, multiple metrics"
@@ -828,17 +827,13 @@ export function ExampleAreaChartStackedAreaChartMultipleMetrics() {
       }
     >
       <CartesianChart
-        highcharts={highcharts}
-        {...chartStateProps}
+        {...chartProps}
         chartHeight={379}
-        legend={{
-          enabled: settings.showLegend,
-          title: settings.showLegendTitle ? "Legend title" : undefined,
-        }}
         ariaLabel="Stacked area chart, multiple metrics"
         plotOptions={{ series: { stacking: "normal" } }}
-        series={hideSeries ? [] : series}
+        series={isEmpty ? [] : series}
         tooltip={{
+          ...chartProps.tooltip,
           footer: ({ x }) => {
             const total = findY(x as number, series[0])! + findY(x as number, series[1])!;
             return (
@@ -856,8 +851,6 @@ export function ExampleAreaChartStackedAreaChartMultipleMetrics() {
               </>
             );
           },
-          placement: settings.tooltipPlacement,
-          size: settings.tooltipSize,
         }}
         xAxis={{
           type: "datetime",
@@ -872,7 +865,6 @@ export function ExampleAreaChartStackedAreaChartMultipleMetrics() {
           max: 1,
           valueFormatter: percentageFormatter,
         }}
-        emphasizeBaselineAxis={settings.emphasizeBaselineAxis}
       />
     </PageSection>
   );

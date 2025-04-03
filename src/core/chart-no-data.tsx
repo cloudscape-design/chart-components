@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useMemo } from "react";
+import { useRef } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import clsx from "clsx";
 import type Highcharts from "highcharts";
@@ -15,7 +15,7 @@ import Portal from "../internal/components/portal";
 import { fireNonCancelableEvent } from "../internal/events";
 import AsyncStore, { useSelector } from "../internal/utils/async-store";
 import { useUniqueId } from "../internal/utils/unique-id";
-import { CoreI18nStrings, CoreNoDataProps } from "./interfaces-core";
+import { CloudscapeChartAPI, CoreI18nStrings, CoreNoDataProps } from "./interfaces-core";
 import * as Styles from "./styles";
 
 import styles from "./styles.css.js";
@@ -24,9 +24,9 @@ import testClasses from "./test-classes/styles.css.js";
 // The custom no-data implementation relies on the Highcharts noData module.
 // We render a custom empty DIV as `lang.noData` and then provide actual content using React portal.
 
-export function useNoData(highcharts: null | typeof Highcharts, noDataProps?: CoreNoDataProps) {
+export function useNoData(getAPI: () => CloudscapeChartAPI, noDataProps?: CoreNoDataProps) {
   const noDataId = useUniqueId("no-data");
-  const noDataStore = useMemo(() => new NoDataStore({ highcharts, noDataId }), [highcharts, noDataId]);
+  const noDataStore = useRef(new NoDataStore(getAPI, noDataId)).current;
 
   const chartRender: Highcharts.ChartRenderCallbackFunction = noDataStore.onChartRender;
   const noData: Highcharts.NoDataOptions = { position: Styles.noDataPosition, useHTML: true };
@@ -91,17 +91,18 @@ export function ChartNoData({
 }
 
 class NoDataStore extends AsyncStore<{ container: null | Element; noMatch: boolean }> {
-  private highcharts: null | typeof Highcharts;
+  private getAPI: () => CloudscapeChartAPI;
   private noDataId: string;
 
-  constructor({ highcharts, noDataId }: { highcharts: null | typeof Highcharts; noDataId: string }) {
+  constructor(getAPI: () => CloudscapeChartAPI, noDataId: string) {
     super({ container: null, noMatch: false });
-    this.highcharts = highcharts;
+    this.getAPI = getAPI;
     this.noDataId = noDataId;
   }
 
   public onChartRender: Highcharts.ChartRenderCallbackFunction = (event) => {
-    if (this.highcharts && event.target instanceof this.highcharts.Chart) {
+    const api = this.getAPI();
+    if (event.target instanceof api.highcharts.Chart) {
       const allSeries = event.target.series.filter((s) => {
         if (s.type === "pie") {
           return s.data && s.data.filter((d) => d.y !== null).length > 0;
@@ -116,7 +117,7 @@ class NoDataStore extends AsyncStore<{ container: null | Element; noMatch: boole
       } else {
         // We use timeout to make sure the no-data container is rendered.
         setTimeout(() => {
-          if (this.highcharts && event.target instanceof this.highcharts.Chart) {
+          if (event.target instanceof api.highcharts.Chart) {
             const noDataContainer = event.target.container?.querySelector(
               `[id="${this.noDataId}"]`,
             ) as null | HTMLElement;

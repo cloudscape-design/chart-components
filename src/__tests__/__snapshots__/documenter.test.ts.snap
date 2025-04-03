@@ -108,11 +108,6 @@ This property corresponds to [chart.inverted](https://api.highcharts.com/highcha
             "type": "false | true",
           },
           {
-            "name": "extendedActions",
-            "optional": true,
-            "type": "false | true",
-          },
-          {
             "name": "title",
             "optional": true,
             "type": "string",
@@ -154,6 +149,11 @@ This property requires the \`no-data-to-display\` module.",
             "name": "noMatch",
             "optional": true,
             "type": "React.ReactNode",
+          },
+          {
+            "name": "onRecoveryClick",
+            "optional": true,
+            "type": "NonCancelableEventHandler",
           },
           {
             "name": "statusType",
@@ -503,11 +503,6 @@ Supported Highcharts versions:
             "type": "false | true",
           },
           {
-            "name": "extendedActions",
-            "optional": true,
-            "type": "false | true",
-          },
-          {
             "name": "title",
             "optional": true,
             "type": "string",
@@ -549,6 +544,11 @@ This property requires the \`no-data-to-display\` module.",
             "name": "noMatch",
             "optional": true,
             "type": "React.ReactNode",
+          },
+          {
+            "name": "onRecoveryClick",
+            "optional": true,
+            "type": "NonCancelableEventHandler",
           },
           {
             "name": "statusType",

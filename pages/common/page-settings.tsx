@@ -1,18 +1,20 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { createContext, useContext, useRef, useState } from "react";
+import { createContext, Fragment, useContext, useRef, useState } from "react";
 import type Highcharts from "highcharts";
 
 import Autosuggest from "@cloudscape-design/components/autosuggest";
 import Box from "@cloudscape-design/components/box";
 import Button from "@cloudscape-design/components/button";
+import Checkbox from "@cloudscape-design/components/checkbox";
 import FormField from "@cloudscape-design/components/form-field";
+import Input from "@cloudscape-design/components/input";
 import Multiselect from "@cloudscape-design/components/multiselect";
 import Select from "@cloudscape-design/components/select";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
-import { BaseNoDataProps } from "../../lib/components/core/interfaces-base";
+import { BaseLegendProps, BaseNoDataProps, BaseTooltipProps } from "../../lib/components/core/interfaces-base";
 import AppContext, { AppContextType } from "../app/app-context";
 import { useHighcharts } from "./use-highcharts";
 
@@ -24,22 +26,17 @@ export interface PageSettings {
   height: number;
   minHeight: number;
   minWidth: number;
-  containerHeight: number;
+  containerHeight: string;
   containerWidth: string;
-  chartHeight: number;
-  pieInnerValue: string;
-  pieInnerDescription: string;
-  selectedSeries: string[]; // a stringified array of series IDs
-  visibleContent: string[]; // a stringified array of series IDs
-  applyLoadingState: boolean;
-  applyEmptyState: boolean;
-  applyErrorState: boolean;
-  showLegend: boolean;
-  showLegendTitle: boolean;
+  emptySeries: boolean;
+  seriesLoading: boolean;
+  seriesError: boolean;
   emphasizeBaselineAxis: boolean;
   tooltipPlacement: "target" | "bottom";
   tooltipSize: "small" | "medium" | "large";
-  keepZoomingFrame: boolean;
+  showLegend: boolean;
+  showLegendTitle: boolean;
+  showLegendTooltip: boolean;
   useFallback: boolean;
 }
 
@@ -49,54 +46,39 @@ const DEFAULT_SETTINGS: PageSettings = {
   height: 250,
   minHeight: 250,
   minWidth: 800,
-  containerHeight: 400,
+  containerHeight: "400px",
   containerWidth: "100%",
-  chartHeight: 499,
-  pieInnerValue: "",
-  pieInnerDescription: "",
-  selectedSeries: [],
-  visibleContent: [],
-  applyLoadingState: false,
-  applyEmptyState: false,
-  applyErrorState: false,
-  showLegend: true,
-  showLegendTitle: false,
+  emptySeries: false,
+  seriesLoading: false,
+  seriesError: false,
   emphasizeBaselineAxis: true,
   tooltipPlacement: "target",
   tooltipSize: "medium",
-  keepZoomingFrame: false,
+  showLegend: true,
+  showLegendTitle: false,
+  showLegendTooltip: false,
   useFallback: false,
 };
 
-export const PageSettingsDefaultsContext = createContext<PageSettings>(DEFAULT_SETTINGS);
-
-export function PageSettingsDefaults({
-  children,
-  settings,
-}: {
-  children: React.ReactNode;
-  settings: Partial<PageSettings>;
-}) {
-  return (
-    <PageSettingsDefaultsContext.Provider value={{ ...DEFAULT_SETTINGS, ...settings }}>
-      {children}
-    </PageSettingsDefaultsContext.Provider>
-  );
-}
+export const PageSettingsContext = createContext<PageSettings>(DEFAULT_SETTINGS);
 
 export function usePageSettings<SettingsType extends PageSettings = PageSettings>(
   options: { more?: boolean; treemap?: boolean; xrange?: boolean } = {},
 ): {
-  highcharts: null | typeof Highcharts;
   settings: SettingsType;
   setSettings: (settings: Partial<SettingsType>) => void;
-  chartStateProps: {
+  chartProps: {
     ref: React.Ref<ChartRef>;
+    highcharts: null | typeof Highcharts;
     noData: BaseNoDataProps;
+    tooltip: BaseTooltipProps;
+    legend: BaseLegendProps;
+    emphasizeBaselineAxis: boolean;
   };
+  isEmpty: boolean;
 } {
   const highcharts = useHighcharts(options);
-  const defaultSettings = useContext(PageSettingsDefaultsContext);
+  const defaultSettings = useContext(PageSettingsContext);
   const { urlParams, setUrlParams } = useContext(AppContext as PageContext<SettingsType>);
   const settings = {
     ...defaultSettings,
@@ -104,40 +86,28 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
     height: parseNumber(defaultSettings.height, urlParams.height),
     minHeight: parseNumber(defaultSettings.minHeight, urlParams.minHeight),
     minWidth: parseNumber(defaultSettings.minWidth, urlParams.minWidth),
-    containerHeight: parseNumber(defaultSettings.containerHeight, urlParams.containerHeight),
-    chartHeight: parseNumber(defaultSettings.chartHeight, urlParams.chartHeight),
-    selectedSeries: parseStringArray(defaultSettings.selectedSeries, urlParams.selectedSeries),
-    visibleContent: parseStringArray(defaultSettings.visibleContent, urlParams.visibleContent),
-    applyLoadingState: parseBoolean(defaultSettings.applyLoadingState, urlParams.applyLoadingState),
-    applyEmptyState: parseBoolean(defaultSettings.applyEmptyState, urlParams.applyEmptyState),
-    applyErrorState: parseBoolean(defaultSettings.applyErrorState, urlParams.applyErrorState),
+    emptySeries: parseBoolean(defaultSettings.emptySeries, urlParams.emptySeries),
+    seriesLoading: parseBoolean(defaultSettings.seriesLoading, urlParams.seriesLoading),
+    seriesError: parseBoolean(defaultSettings.seriesError, urlParams.seriesError),
+    emphasizeBaselineAxis: parseBoolean(defaultSettings.emphasizeBaselineAxis, urlParams.emphasizeBaselineAxis),
     showLegend: parseBoolean(defaultSettings.showLegend, urlParams.showLegend),
     showLegendTitle: parseBoolean(defaultSettings.showLegendTitle, urlParams.showLegendTitle),
-    emphasizeBaselineAxis: parseBoolean(defaultSettings.emphasizeBaselineAxis, urlParams.emphasizeBaselineAxis),
-    keepZoomingFrame: parseBoolean(defaultSettings.keepZoomingFrame, urlParams.keepZoomingFrame),
     useFallback: parseBoolean(defaultSettings.useFallback, urlParams.useFallback),
   } as PageSettings as SettingsType;
   const setSettings = (partial: Partial<SettingsType>) => {
-    const settings = { ...partial };
-    if (settings.selectedSeries) {
-      settings.selectedSeries = settings.selectedSeries.join(",") as any;
-    }
-    if (settings.visibleContent) {
-      settings.visibleContent = settings.visibleContent.join(",") as any;
-    }
-    setUrlParams(settings as any);
+    setUrlParams(partial as any);
   };
 
   const ref = useRef<ChartRef>(null);
   const onClearFilter = () => ref.current?.clearFilter();
   return {
-    highcharts,
     settings,
     setSettings,
-    chartStateProps: {
+    chartProps: {
       ref,
+      highcharts: settings.useFallback ? null : highcharts,
       noData: {
-        statusType: settings.applyLoadingState ? "loading" : settings.applyErrorState ? "error" : "finished",
+        statusType: settings.seriesLoading ? "loading" : settings.seriesError ? "error" : "finished",
         empty: (
           <Box textAlign="center">
             <b>No data available</b>
@@ -155,22 +125,220 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
         // Adding an empty recovery click handler to make the default recovery button appear.
         onRecoveryClick: () => {},
       },
+      tooltip: {
+        placement: settings.tooltipPlacement,
+        size: settings.tooltipSize,
+      },
+      legend: {
+        enabled: settings.showLegend,
+        title: settings.showLegendTitle ? "Legend title" : undefined,
+        tooltip: settings.showLegendTooltip
+          ? { render: (itemId) => ({ header: itemId, body: "Item details" }) }
+          : undefined,
+      },
+      emphasizeBaselineAxis: settings.emphasizeBaselineAxis,
     },
+    isEmpty: settings.emptySeries || settings.seriesLoading || settings.seriesError,
   };
 }
 
-export function SeriesFilter({ allSeries }: { allSeries: string[] }) {
+const tooltipPlacementOptions = [{ value: "target" }, { value: "bottom" }];
+
+const tooltipSizeOptions = [{ value: "small" }, { value: "medium" }, { value: "large" }];
+
+export function PageSettingsForm({
+  selectedSettings,
+}: {
+  selectedSettings: (keyof PageSettings | { content: React.ReactNode })[];
+}) {
   const { settings, setSettings } = usePageSettings();
+  return (
+    <SpaceBetween size="s">
+      {selectedSettings.map((setting, index) => {
+        const content: React.ReactNode = (() => {
+          if (typeof setting === "object") {
+            return setting.content;
+          }
+          switch (setting) {
+            case "height":
+              return (
+                <FormField label="Chart height">
+                  <Input
+                    type="number"
+                    value={settings.height.toString()}
+                    onChange={({ detail }) => setSettings({ height: parseInt(detail.value) })}
+                  />
+                </FormField>
+              );
+            case "minHeight":
+              return (
+                <FormField label="Chart min height">
+                  <Input
+                    type="number"
+                    value={settings.minHeight.toString()}
+                    onChange={({ detail }) => setSettings({ minHeight: parseInt(detail.value) })}
+                  />
+                </FormField>
+              );
+            case "minWidth":
+              return (
+                <FormField label="Chart min width">
+                  <Input
+                    type="number"
+                    value={settings.minWidth.toString()}
+                    onChange={({ detail }) => setSettings({ minWidth: parseInt(detail.value) })}
+                  />
+                </FormField>
+              );
+            case "containerHeight":
+              return (
+                <FormField label="Container height">
+                  <Input
+                    value={settings.containerHeight.toString()}
+                    onChange={({ detail }) => setSettings({ containerHeight: detail.value })}
+                  />
+                </FormField>
+              );
+            case "containerWidth":
+              return (
+                <FormField label="Container width">
+                  <Input
+                    value={settings.containerWidth}
+                    onChange={({ detail }) => setSettings({ containerWidth: detail.value })}
+                  />
+                </FormField>
+              );
+            case "emptySeries":
+              return (
+                <Checkbox
+                  checked={settings.emptySeries}
+                  onChange={({ detail }) => setSettings({ emptySeries: detail.checked })}
+                >
+                  Apply empty state
+                </Checkbox>
+              );
+            case "seriesLoading":
+              return (
+                <Checkbox
+                  checked={settings.seriesLoading}
+                  onChange={({ detail }) => setSettings({ seriesLoading: detail.checked })}
+                >
+                  Apply loading state
+                </Checkbox>
+              );
+            case "seriesError":
+              return (
+                <Checkbox
+                  checked={settings.seriesError}
+                  onChange={({ detail }) => setSettings({ seriesError: detail.checked })}
+                >
+                  Apply error state
+                </Checkbox>
+              );
+            case "emphasizeBaselineAxis":
+              return (
+                <Checkbox
+                  checked={settings.emphasizeBaselineAxis}
+                  onChange={({ detail }) => setSettings({ emphasizeBaselineAxis: detail.checked })}
+                >
+                  Emphasize baseline axis
+                </Checkbox>
+              );
+            case "tooltipPlacement":
+              return (
+                <FormField label="Tooltip placement">
+                  <Select
+                    options={tooltipPlacementOptions}
+                    selectedOption={
+                      tooltipPlacementOptions.find((option) => option.value === settings.tooltipPlacement) ??
+                      tooltipPlacementOptions[0]
+                    }
+                    onChange={({ detail }) =>
+                      setSettings({ tooltipPlacement: detail.selectedOption.value as string as "target" | "bottom" })
+                    }
+                  />
+                </FormField>
+              );
+            case "tooltipSize":
+              return (
+                <FormField label="Tooltip size">
+                  <Select
+                    options={tooltipSizeOptions}
+                    selectedOption={
+                      tooltipSizeOptions.find((option) => option.value === settings.tooltipSize) ??
+                      tooltipSizeOptions[1]
+                    }
+                    onChange={({ detail }) =>
+                      setSettings({
+                        tooltipSize: detail.selectedOption.value as string as "small" | "medium" | "large",
+                      })
+                    }
+                  />
+                </FormField>
+              );
+            case "showLegend":
+              return (
+                <Checkbox
+                  checked={settings.showLegend}
+                  onChange={({ detail }) => setSettings({ showLegend: detail.checked })}
+                >
+                  Show legend
+                </Checkbox>
+              );
+            case "showLegendTitle":
+              return (
+                <Checkbox
+                  checked={settings.showLegendTitle}
+                  onChange={({ detail }) => setSettings({ showLegendTitle: detail.checked })}
+                >
+                  Show legend title
+                </Checkbox>
+              );
+            case "showLegendTooltip":
+              return (
+                <Checkbox
+                  checked={settings.showLegendTooltip}
+                  onChange={({ detail }) => setSettings({ showLegendTooltip: detail.checked })}
+                >
+                  Show legend tooltip
+                </Checkbox>
+              );
+            case "useFallback":
+              return (
+                <Checkbox
+                  checked={settings.useFallback}
+                  onChange={({ detail }) => setSettings({ useFallback: detail.checked })}
+                >
+                  Show fallback
+                </Checkbox>
+              );
+            default:
+              return null;
+          }
+        })();
+        return <Fragment key={index}>{content}</Fragment>;
+      })}
+    </SpaceBetween>
+  );
+}
+
+export function SeriesFilter({
+  allSeries,
+  visibleSeries,
+  onVisibleSeriesChange,
+}: {
+  allSeries: string[];
+  visibleSeries: string[];
+  onVisibleSeriesChange: (series: string[]) => void;
+}) {
   const options = allSeries.map((value) => ({ value, label: value }));
   return (
     <FormField label="Visible series">
       <div style={{ maxWidth: 300 }}>
         <Multiselect
           options={options}
-          selectedOptions={options.filter((option) => settings.visibleContent.includes(option.value))}
-          onChange={({ detail }) =>
-            setSettings({ visibleContent: detail.selectedOptions.map((option) => option.value!) })
-          }
+          selectedOptions={options.filter((option) => visibleSeries.includes(option.value))}
+          onChange={({ detail }) => onVisibleSeriesChange(detail.selectedOptions.map((option) => option.value!))}
           inlineTokens={true}
         />
       </div>
@@ -178,17 +346,24 @@ export function SeriesFilter({ allSeries }: { allSeries: string[] }) {
   );
 }
 
-export function SeriesSelector({ allSeries }: { allSeries: string[] }) {
-  const { settings, setSettings } = usePageSettings();
+export function SeriesSelector({
+  allSeries,
+  selectedSeries,
+  onSelectedSeriesChange,
+}: {
+  allSeries: string[];
+  selectedSeries: string[];
+  onSelectedSeriesChange: (series: string[]) => void;
+}) {
   const [autosuggestValue, setAutosuggestValue] = useState("");
-  const availableSeries = allSeries.filter((s) => !settings.selectedSeries.includes(s));
+  const availableSeries = allSeries.filter((s) => !selectedSeries.includes(s));
   return (
     <FormField
       label={
         <Box variant="span" fontWeight="bold">
           Selected series{" "}
           <Box variant="span" color="text-body-secondary">
-            ({settings.selectedSeries.length})
+            ({selectedSeries.length})
           </Box>
         </Box>
       }
@@ -202,7 +377,7 @@ export function SeriesSelector({ allSeries }: { allSeries: string[] }) {
             onSelect={({ detail }) => {
               const closest = availableSeries.find((seriesName) => seriesName.includes(detail.value));
               if (closest) {
-                setSettings({ selectedSeries: [...new Set([...settings.selectedSeries, closest])] });
+                onSelectedSeriesChange([...new Set([...selectedSeries, closest])]);
               }
               setAutosuggestValue("");
             }}
@@ -213,49 +388,13 @@ export function SeriesSelector({ allSeries }: { allSeries: string[] }) {
           />
 
           <ReorderableList
-            options={settings.selectedSeries}
-            onReorder={(selectedSeries) => setSettings({ selectedSeries: [...selectedSeries] })}
-            onRemove={(removedSeries) =>
-              setSettings({ selectedSeries: settings.selectedSeries.filter((s) => s !== removedSeries) })
-            }
+            options={selectedSeries}
+            onReorder={(selectedSeries) => onSelectedSeriesChange([...selectedSeries])}
+            onRemove={(removedSeries) => onSelectedSeriesChange(selectedSeries.filter((s) => s !== removedSeries))}
           />
         </SpaceBetween>
       </div>
     </FormField>
-  );
-}
-
-const placementOptions = [{ value: "target" }, { value: "bottom" }];
-
-const sizeOptions = [{ value: "small" }, { value: "medium" }, { value: "large" }];
-
-export function TooltipSettings() {
-  const {
-    settings: { tooltipPlacement = "target", tooltipSize = "medium" },
-    setSettings,
-  } = usePageSettings();
-  return (
-    <SpaceBetween size="s">
-      <FormField label="Tooltip placement">
-        <Select
-          options={placementOptions}
-          selectedOption={placementOptions.find((option) => option.value === tooltipPlacement) ?? placementOptions[0]}
-          onChange={({ detail }) =>
-            setSettings({ tooltipPlacement: detail.selectedOption.value as string as "target" | "bottom" })
-          }
-        />
-      </FormField>
-
-      <FormField label="Tooltip size">
-        <Select
-          options={sizeOptions}
-          selectedOption={sizeOptions.find((option) => option.value === tooltipSize) ?? sizeOptions[1]}
-          onChange={({ detail }) =>
-            setSettings({ tooltipSize: detail.selectedOption.value as string as "small" | "medium" | "large" })
-          }
-        />
-      </FormField>
-    </SpaceBetween>
   );
 }
 
@@ -311,16 +450,6 @@ function ReorderableList({
       ))}
     </ul>
   );
-}
-
-function parseStringArray(defaultValue: string[], value?: string | string[]) {
-  if (typeof value !== "string") {
-    return defaultValue;
-  }
-  return value
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
 }
 
 function parseNumber(defaultValue: number, value?: number | string) {

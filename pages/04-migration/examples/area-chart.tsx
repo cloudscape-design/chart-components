@@ -104,11 +104,10 @@ const seriesOld: AreaChartProps<Date>["series"] = [
 ];
 
 export function ComponentNew() {
-  const { highcharts, chartStateProps } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <CartesianChart
-      highcharts={highcharts}
-      {...chartStateProps}
+      {...chartProps}
       fitHeight={true}
       chartMinHeight={200}
       ariaLabel="Area chart"
@@ -140,7 +139,7 @@ export function ComponentNew() {
 }
 
 export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
-  const { chartStateProps } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <AreaChart
       fitHeight={true}
@@ -156,7 +155,7 @@ export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
       xScaleType="time"
       xTitle="Time (UTC)"
       yTitle="Bytes transferred"
-      noMatch={chartStateProps.noData.noMatch}
+      noMatch={chartProps.noData.noMatch}
     />
   );
 }

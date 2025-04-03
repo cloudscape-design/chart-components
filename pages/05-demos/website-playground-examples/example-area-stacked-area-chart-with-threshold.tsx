@@ -131,8 +131,7 @@ const series: CartesianChartProps.Series[] = [
 ];
 
 export function ExampleAreaChartStackedAreaChartWithThreshold() {
-  const { highcharts, settings, chartStateProps } = usePageSettings();
-  const hideSeries = settings.applyLoadingState || settings.applyEmptyState || settings.applyErrorState;
+  const { chartProps, isEmpty } = usePageSettings();
   return (
     <PageSection
       title="Area chart: Stacked area chart, with threshold"
@@ -143,17 +142,13 @@ export function ExampleAreaChartStackedAreaChartWithThreshold() {
       }
     >
       <CartesianChart
-        highcharts={highcharts}
-        {...chartStateProps}
+        {...chartProps}
         chartHeight={379}
-        legend={{
-          enabled: settings.showLegend,
-          title: settings.showLegendTitle ? "Legend title" : undefined,
-        }}
         ariaLabel="Stacked area chart, with threshold"
         plotOptions={{ series: { stacking: "normal" } }}
-        series={hideSeries ? [] : series}
+        series={isEmpty ? [] : series}
         tooltip={{
+          ...chartProps.tooltip,
           footer: ({ x }) => {
             const total = findY(x as number, series[0])! + findY(x as number, series[1])!;
             return (
@@ -171,8 +166,6 @@ export function ExampleAreaChartStackedAreaChartWithThreshold() {
               </>
             );
           },
-          placement: settings.tooltipPlacement,
-          size: settings.tooltipSize,
         }}
         xAxis={{
           type: "datetime",
@@ -187,7 +180,6 @@ export function ExampleAreaChartStackedAreaChartWithThreshold() {
           max: 600000,
           valueFormatter: numberFormatter,
         }}
-        emphasizeBaselineAxis={settings.emphasizeBaselineAxis}
       />
     </PageSection>
   );

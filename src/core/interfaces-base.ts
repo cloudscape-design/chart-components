@@ -83,7 +83,6 @@ export interface BaseLegendProps {
   enabled?: boolean;
   title?: string;
   align?: "start" | "center";
-  extendedActions?: boolean;
   tooltip?: {
     render: (itemId: string) => {
       header: React.ReactNode;

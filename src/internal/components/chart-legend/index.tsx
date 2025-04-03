@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { forwardRef, memo, Ref, useEffect, useRef, useState } from "react";
+import { forwardRef, memo, Ref, useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 
 import {
@@ -13,11 +13,11 @@ import {
   useSingleTabStopNavigation,
 } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
-import { InternalButtonDropdown } from "@cloudscape-design/components/internal/do-not-use/button-dropdown";
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
 import { colorTextInteractiveDisabled } from "@cloudscape-design/design-tokens";
 
 import { useMergeRefs } from "../../utils/use-merge-refs";
+import { DebouncedCall } from "../../utils/utils";
 import { ChartSeriesMarker, ChartSeriesMarkerStatus, ChartSeriesMarkerType } from "../series-marker";
 
 import styles from "./styles.css.js";
@@ -30,31 +30,6 @@ interface ChartLegendItem {
   active: boolean;
   type: ChartSeriesMarkerType;
   status?: ChartSeriesMarkerStatus;
-  actions?: readonly ChartLegendAction[];
-}
-
-export type ChartLegendAction = ChartLegendActionHide | ChartLegendActionOnly | ChartLegendActionDetail;
-
-interface ChartLegendActionHide {
-  type: "show-hide";
-  textShow: string;
-  textHide: string;
-}
-
-interface ChartLegendActionOnly {
-  type: "only-all";
-  textOnly: string;
-  textAll: string;
-}
-
-interface ChartLegendActionDetail {
-  type: "detail";
-  text: string;
-  render: () => {
-    header: React.ReactNode;
-    body: React.ReactNode;
-    footer?: React.ReactNode;
-  };
 }
 
 export interface ChartLegendProps {
@@ -62,10 +37,16 @@ export interface ChartLegendProps {
   align?: "start" | "center";
   legendTitle?: string;
   ariaLabel?: string;
+  tooltip?: {
+    render: (itemId: string) => {
+      header: React.ReactNode;
+      body: React.ReactNode;
+      footer?: React.ReactNode;
+    };
+  };
   onItemHighlightEnter?: (itemId: string) => void;
   onItemHighlightExit?: () => void;
-  onItemToggleHide?: (itemId: string) => void;
-  onItemToggleOnly?: (itemId: string) => void;
+  onItemToggle?: (itemId: string) => void;
 }
 
 export default memo(ChartLegend) as typeof ChartLegend;
@@ -75,25 +56,23 @@ function ChartLegend({
   align = "start",
   legendTitle,
   ariaLabel,
-  onItemToggleHide,
-  onItemToggleOnly,
+  tooltip,
+  onItemToggle,
   onItemHighlightEnter,
   onItemHighlightExit,
 }: ChartLegendProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const segmentsRef = useRef<Record<number, HTMLElement>>([]);
 
+  const tooltipState = useMemo(() => new DebouncedCall(), []);
+
   const [focusedIndex, setFocusedIndex] = useState<number>(0);
   const [menuIndex, setMenuIndex] = useState<null | number>(null);
   const detailContent = (() => {
-    if (menuIndex === null || !items[menuIndex]) {
+    if (menuIndex === null || !items[menuIndex] || !tooltip) {
       return null;
     }
-    const detailAction = items[menuIndex].actions?.find((action) => action.type === "detail");
-    if (!detailAction) {
-      return null;
-    }
-    return (detailAction as ChartLegendActionDetail).render();
+    return tooltip.render(items[menuIndex].id);
   })();
 
   const navigationAPI = useRef<SingleTabStopNavigationAPI>(null);
@@ -183,15 +162,25 @@ function ChartLegend({
         <div className={clsx(styles.list, styles[`list-align-${align}`])}>
           {items.map((item, index) => {
             const handlers = {
-              onMouseEnter: () => onItemHighlightEnter?.(item.id),
-              onMouseLeave: () => onItemHighlightExit?.(),
+              onMouseEnter: () => {
+                onItemHighlightEnter?.(item.id);
+                tooltipState.cancelPrevious();
+                setMenuIndex(index);
+              },
+              onMouseLeave: () => {
+                onItemHighlightExit?.();
+                tooltipState.call(() => setMenuIndex(null), 50);
+              },
               onFocus: () => {
                 onFocus(index);
                 onItemHighlightEnter?.(item.id);
+                tooltipState.cancelPrevious();
+                setMenuIndex(index);
               },
               onBlur: () => {
                 onBlur();
                 onItemHighlightExit?.();
+                tooltipState.call(() => setMenuIndex(null), 50);
               },
               onKeyDown,
             };
@@ -203,62 +192,12 @@ function ChartLegend({
               }
             };
 
-            if (item.actions) {
-              return (
-                <InternalButtonDropdown
-                  key={index}
-                  items={item.actions.map((action) => {
-                    const otherActive = items.filter((i) => i.id !== item.id).some((i) => i.active);
-                    switch (action.type) {
-                      case "show-hide":
-                        return { id: action.type, text: item.active ? action.textHide : action.textShow };
-                      case "only-all":
-                        return { id: action.type, text: otherActive ? action.textOnly : action.textAll };
-                      case "detail":
-                        return { id: action.type, text: action.text };
-                      default:
-                        throw new Error("Invariant violation: unsupported legend item action requested.");
-                    }
-                  })}
-                  onItemClick={({ detail }) => {
-                    switch (detail.id) {
-                      case "show-hide":
-                        return onItemToggleHide?.(item.id);
-                      case "only-all":
-                        return onItemToggleOnly?.(item.id);
-                      case "detail":
-                        return setMenuIndex(index);
-                      default:
-                        throw new Error("Invariant violation: unsupported legend item action requested.");
-                    }
-                  }}
-                  customTriggerBuilder={({ onClick, triggerRef, ariaExpanded }) => {
-                    return (
-                      <LegendItemTrigger
-                        {...handlers}
-                        ref={thisTriggerRef}
-                        triggerRef={triggerRef}
-                        onClick={onClick}
-                        itemId={item.id}
-                        label={item.name}
-                        color={item.color}
-                        type={item.type}
-                        status={item.status}
-                        active={item.active}
-                        ariaExpanded={ariaExpanded}
-                      />
-                    );
-                  }}
-                />
-              );
-            }
-
             return (
               <LegendItemTrigger
                 key={index}
                 {...handlers}
                 ref={thisTriggerRef}
-                onClick={() => onItemToggleHide?.(item.id)}
+                onClick={() => onItemToggle?.(item.id)}
                 itemId={item.id}
                 label={item.name}
                 color={item.color}
@@ -273,12 +212,19 @@ function ChartLegend({
         {menuIndex !== null && detailContent && (
           <InternalChartTooltip
             getTrack={() => segmentsRef.current[menuIndex]}
+            trackKey={menuIndex}
             onDismiss={() => {
               setMenuIndex(null);
               focusElement(focusedIndex);
             }}
+            onMouseEnter={() => {
+              tooltipState.cancelPrevious();
+            }}
+            onMouseLeave={() => {
+              tooltipState.call(() => setMenuIndex(null), 50);
+            }}
             container={null}
-            dismissButton={true}
+            dismissButton={false}
             title={detailContent.header}
             footer={detailContent.footer}
             position="bottom"
@@ -316,6 +262,7 @@ const LegendItemTrigger = forwardRef(
       status?: ChartSeriesMarkerStatus;
       active: boolean;
       onClick: () => void;
+      onMarkerClick?: () => void;
       ariaExpanded?: boolean;
       triggerRef?: Ref<HTMLElement>;
       onMouseEnter?: () => void;

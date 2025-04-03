@@ -21,8 +21,7 @@ const series: PieChartProps.Series = {
 };
 
 export function ExamplePieChartDonutChart() {
-  const { highcharts, settings, chartStateProps } = usePageSettings();
-  const hideSeries = settings.applyLoadingState || settings.applyEmptyState || settings.applyErrorState;
+  const { chartProps, isEmpty } = usePageSettings();
   return (
     <PageSection
       title="Pie and donut charts: Donut chart"
@@ -33,17 +32,13 @@ export function ExamplePieChartDonutChart() {
       }
     >
       <PieChart
-        highcharts={highcharts}
-        {...chartStateProps}
+        {...chartProps}
         chartHeight={500}
-        legend={{
-          enabled: settings.showLegend,
-          title: settings.showLegendTitle ? "Legend title" : undefined,
-        }}
         ariaLabel="Donut chart"
         ariaDescription="Donut chart showing generic example data."
-        series={hideSeries ? null : series}
+        series={isEmpty ? null : series}
         tooltip={{
+          ...chartProps.tooltip,
           body(details) {
             return (
               <div>
@@ -58,15 +53,13 @@ export function ExamplePieChartDonutChart() {
               </div>
             );
           },
-          placement: settings.tooltipPlacement,
-          size: settings.tooltipSize,
         }}
         segmentOptions={{
           description: ({ totalValue, segmentValue }) =>
             `${segmentValue} units, ${((segmentValue / totalValue) * 100).toFixed(0)}%`,
         }}
-        innerValue={settings.pieInnerValue.trim() || undefined}
-        innerDescription={settings.pieInnerDescription.trim() || undefined}
+        innerValue="100"
+        innerDescription="total units"
       />
     </PageSection>
   );

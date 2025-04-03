@@ -49,11 +49,10 @@ const dataOld: OldPieChartProps["data"] = [
 ];
 
 export function ComponentNew() {
-  const { highcharts, chartStateProps } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <PieChart
-      highcharts={highcharts}
-      {...chartStateProps}
+      {...chartProps}
       fitHeight={true}
       chartMinHeight={200}
       ariaLabel="Pie chart"
@@ -64,7 +63,7 @@ export function ComponentNew() {
 }
 
 export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
-  const { chartStateProps } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <OldPieChart
       fitHeight={true}
@@ -72,7 +71,7 @@ export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
       size="small"
       data={dataOld}
       ariaLabel="Pie chart"
-      noMatch={chartStateProps.noData.noMatch}
+      noMatch={chartProps.noData.noMatch}
     />
   );
 }

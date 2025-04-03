@@ -3,11 +3,39 @@
 
 import Alert from "@cloudscape-design/components/alert";
 
-import { CartesianChartProps } from "../../../lib/components";
-import { InternalCartesianChart } from "../../../lib/components/cartesian-chart/chart-cartesian-internal";
-import { dateFormatter } from "../../common/formatters";
-import { usePageSettings } from "../../common/page-settings";
-import pseudoRandom from "../../utils/pseudo-random";
+import { CartesianChartProps } from "../../lib/components";
+import { InternalCartesianChart } from "../../lib/components/cartesian-chart/chart-cartesian-internal";
+import { dateFormatter } from "../common/formatters";
+import { PageSettingsForm, usePageSettings } from "../common/page-settings";
+import { Page, PageSection } from "../common/templates";
+import pseudoRandom from "../utils/pseudo-random";
+
+export default function () {
+  return (
+    <Page
+      title="More charts"
+      subtitle="This pages demonstrates different chart types that Cloudscape can support."
+      settings={
+        <PageSettingsForm
+          selectedSettings={[
+            "emptySeries",
+            "seriesLoading",
+            "seriesError",
+            "showLegend",
+            "showLegendTitle",
+            "showLegendTooltip",
+            "tooltipSize",
+            "tooltipPlacement",
+          ]}
+        />
+      }
+    >
+      <PageSection title="Simple scatter chart">
+        <ExampleScatterSimple />
+      </PageSection>
+    </Page>
+  );
+}
 
 function randomInt(min: number, max: number) {
   return min + Math.floor(pseudoRandom() * (max - min));
@@ -54,41 +82,40 @@ const series: CartesianChartProps.Series[] = [
   {
     name: "A",
     type: "scatter",
-    data: baseline.map(({ x, y }) => ({ name: "A", x, y })),
+    data: baseline.map(({ x, y }) => ({ name: "A" + x, x, y })),
     marker: { enabled: true },
   },
   {
     name: "B",
     type: "scatter",
-    data: baseline.map(({ x, y }) => ({ name: "B", x, y: y + randomInt(-100000, 100000) })),
+    data: baseline.map(({ x, y }) => ({ name: "B" + x, x, y: y + randomInt(-100000, 100000) })),
     marker: { enabled: true },
   },
   {
     name: "C",
     type: "scatter",
-    data: baseline.map(({ x, y }) => ({ name: "C", x, y: y + randomInt(-150000, 50000) })),
+    data: baseline.map(({ x, y }) => ({ name: "C" + x, x, y: y + randomInt(-150000, 50000) })),
     marker: { enabled: true },
   },
   {
     name: "D",
     type: "scatter",
-    data: baseline.map(({ x, y }) => ({ name: "C", x, y: y + randomInt(-200000, -100000) })),
+    data: baseline.map(({ x, y }) => ({ name: "D" + x, x, y: y + randomInt(-200000, -100000) })),
     marker: { enabled: true },
   },
   {
     name: "E",
     type: "scatter",
-    data: baseline.map(({ x, y }) => ({ name: "C", x, y: y + randomInt(50000, 75000) })),
+    data: baseline.map(({ x, y }) => ({ name: "E" + x, x, y: y + randomInt(50000, 75000) })),
     marker: { enabled: true },
   },
 ];
 
-export function ExampleScatterSimple() {
-  const { settings, highcharts, chartStateProps } = usePageSettings();
+function ExampleScatterSimple() {
+  const { chartProps } = usePageSettings();
   return (
     <InternalCartesianChart
-      highcharts={highcharts}
-      {...chartStateProps}
+      {...chartProps}
       options={{
         chart: {
           height: 379,
@@ -109,10 +136,8 @@ export function ExampleScatterSimple() {
         yAxis: [{ title: "Events" }],
       }}
       legend={{
-        enabled: settings.showLegend,
-        title: settings.showLegendTitle ? "Legend title" : undefined,
+        ...chartProps.legend,
         align: "center",
-        extendedActions: true,
         tooltip: {
           render: (itemId) => ({
             header: `Series ${itemId}`,
@@ -125,10 +150,6 @@ export function ExampleScatterSimple() {
         getItemStatus(itemId: string) {
           return itemId === "B" ? "warning" : "normal";
         },
-      }}
-      tooltip={{
-        placement: settings.tooltipPlacement,
-        size: settings.tooltipSize,
       }}
     />
   );
