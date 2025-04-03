@@ -6,12 +6,16 @@ import { renderToStaticMarkup } from "react-dom/server";
 import clsx from "clsx";
 import type Highcharts from "highcharts";
 
+import Button from "@cloudscape-design/components/button";
+import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-use/i18n";
 import LiveRegion from "@cloudscape-design/components/live-region";
+import StatusIndicator from "@cloudscape-design/components/status-indicator";
 
 import Portal from "../internal/components/portal";
+import { fireNonCancelableEvent } from "../internal/events";
 import AsyncStore, { useSelector } from "../internal/utils/async-store";
 import { useUniqueId } from "../internal/utils/unique-id";
-import { CoreNoDataProps } from "./interfaces-core";
+import { CoreI18nStrings, CoreNoDataProps } from "./interfaces-core";
 import * as Styles from "./styles";
 
 import styles from "./styles.css.js";
@@ -38,18 +42,40 @@ export function ChartNoData({
   empty,
   error,
   noMatch,
+  onRecoveryClick,
+  i18nStrings,
 }: CoreNoDataProps & {
+  i18nStrings?: CoreI18nStrings;
   noDataStore: AsyncStore<{ container: null | Element; noMatch: boolean }>;
 }) {
+  const i18n = useInternalI18n("[charts]");
   const state = useSelector(noDataStore, (s) => s);
   if (!state.container) {
     return null;
   }
   let content = null;
   if (statusType === "loading") {
-    content = <LiveRegion>{loading}</LiveRegion>;
+    const loadingText = i18n("loadingText", i18nStrings?.loadingText);
+    content = loading ?? <StatusIndicator type="loading">{loadingText}</StatusIndicator>;
   } else if (statusType === "error") {
-    content = <LiveRegion>{error}</LiveRegion>;
+    const errorText = i18n("errorText", i18nStrings?.errorText);
+    const recoveryText = i18n("recoveryText", i18nStrings?.recoveryText);
+    content = error ?? (
+      <span>
+        <StatusIndicator type="error">{i18n("errorText", errorText)}</StatusIndicator>{" "}
+        {!!recoveryText && !!onRecoveryClick && (
+          <Button
+            onFollow={(event: CustomEvent) => {
+              event.preventDefault();
+              fireNonCancelableEvent(onRecoveryClick);
+            }}
+            variant="inline-link"
+          >
+            {recoveryText}
+          </Button>
+        )}
+      </span>
+    );
   } else if (state.noMatch) {
     content = noMatch;
   } else {
@@ -57,7 +83,9 @@ export function ChartNoData({
   }
   return (
     <Portal container={state.container}>
-      <div className={clsx(testClasses["no-data"], styles["no-data"])}>{content}</div>
+      <div className={clsx(testClasses["no-data"], styles["no-data"])}>
+        <LiveRegion>{content}</LiveRegion>
+      </div>
     </Portal>
   );
 }

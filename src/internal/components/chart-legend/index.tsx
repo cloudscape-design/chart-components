@@ -13,8 +13,8 @@ import {
   useSingleTabStopNavigation,
 } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
-import InternalButtonDropdown from "@cloudscape-design/components/internal/button-dropdown-do-not-use";
-import ChartTooltip from "@cloudscape-design/components/internal/chart-tooltip-do-not-use";
+import { InternalButtonDropdown } from "@cloudscape-design/components/internal/do-not-use/button-dropdown";
+import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
 import { colorTextInteractiveDisabled } from "@cloudscape-design/design-tokens";
 
 import { useMergeRefs } from "../../utils/use-merge-refs";
@@ -271,7 +271,7 @@ function ChartLegend({
         </div>
 
         {menuIndex !== null && detailContent && (
-          <ChartTooltip
+          <InternalChartTooltip
             getTrack={() => segmentsRef.current[menuIndex]}
             onDismiss={() => {
               setMenuIndex(null);
@@ -284,7 +284,7 @@ function ChartLegend({
             position="bottom"
           >
             {detailContent.body}
-          </ChartTooltip>
+          </InternalChartTooltip>
         )}
       </div>
     </SingleTabStopNavigationProvider>

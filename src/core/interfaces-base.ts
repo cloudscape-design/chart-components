@@ -3,6 +3,8 @@
 
 import type Highcharts from "highcharts";
 
+import { NonCancelableEventHandler } from "../internal/events";
+
 export interface BaseChartProps {
   /**
    * The Highcharts instance, that can be obtained as `import Highcharts from 'highcharts'`.
@@ -97,6 +99,13 @@ export interface BaseNoDataProps {
   error?: React.ReactNode;
   loading?: React.ReactNode;
   noMatch?: React.ReactNode;
+  onRecoveryClick?: NonCancelableEventHandler;
+}
+
+export interface BaseI18nStrings {
+  loadingText?: string;
+  errorText?: string;
+  recoveryText?: string;
 }
 
 export interface Point {

@@ -4,7 +4,14 @@
 import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerStatus } from "../internal/components/series-marker";
-import { BaseChartProps, BaseLegendProps, BaseNoDataProps, BaseTooltipProps, Point } from "./interfaces-base";
+import {
+  BaseChartProps,
+  BaseI18nStrings,
+  BaseLegendProps,
+  BaseNoDataProps,
+  BaseTooltipProps,
+  Point,
+} from "./interfaces-base";
 
 export interface CloudscapeHighchartsProps
   extends Pick<BaseChartProps, "fitHeight" | "chartMinHeight" | "chartMinWidth"> {
@@ -62,6 +69,11 @@ export interface CloudscapeHighchartsProps
    */
   onLegendItemShowAll?: () => void;
   /**
+   * An object that contains all of the localized strings required by the component.
+   * @i18n
+   */
+  i18nStrings?: CoreI18nStrings;
+  /**
    * This is used to provide a test-utils selector. Do not use this property to provide custom styles.
    */
   className?: string;
@@ -90,3 +102,5 @@ export interface CoreTooltipContent {
   body: React.ReactNode;
   footer?: React.ReactNode;
 }
+
+export type CoreI18nStrings = BaseI18nStrings;
