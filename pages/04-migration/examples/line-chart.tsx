@@ -111,11 +111,12 @@ export function ComponentNew() {
   );
 }
 
-export function ComponentOld() {
+export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
   const { chartStateProps } = usePageSettings();
   return (
     <LineChart
       fitHeight={true}
+      hideFilter={hideFilter}
       height={200}
       series={seriesOld}
       xDomain={[domain[0], domain[domain.length - 1]]}
