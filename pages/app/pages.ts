@@ -3,7 +3,7 @@
 
 import { lazy } from "react";
 
-const pagesRaw = import.meta.glob("./**/*.page.tsx");
+const pagesRaw = import.meta.glob("../**/*.page.tsx");
 const pageIdRegex = /([\w-/]+)\.page\.tsx/;
 const getPage = (path: string) => path.match(pageIdRegex)![1];
 

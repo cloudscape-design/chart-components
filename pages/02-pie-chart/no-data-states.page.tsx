@@ -13,9 +13,9 @@ import StatusIndicator from "@cloudscape-design/components/status-indicator";
 import { colorBorderDividerDefault } from "@cloudscape-design/design-tokens";
 
 import { PieChart } from "../../lib/components";
+import { ScreenshotArea } from "../app/screenshot-area";
 import { PageSettings, usePageSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
-import { ScreenshotArea } from "../screenshot-area";
 
 interface ThisPageSettings extends PageSettings {
   chartType: "pie" | "awsui-donut";
@@ -67,7 +67,7 @@ export default function () {
         </SpaceBetween>
       }
     >
-      <ScreenshotArea disableAnimations={true}>
+      <ScreenshotArea>
         <PageSection title="Empty state: all" subtitle="No series provided">
           <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
             <PieChart
