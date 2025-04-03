@@ -1,10 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import CodeView from "@cloudscape-design/code-view/code-view";
 import Box from "@cloudscape-design/components/box";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
+import { CodeSnippet } from "../common/code-snippet";
 import { MigrationDemo, Page, PageSection } from "../common/templates";
 import * as CartesianChartStatesExample from "./examples/cartesian-chart-no-data";
 import * as PieChartStatesExample from "./examples/pie-chart-no-data";
@@ -18,12 +18,10 @@ const ErrorSlotDevGuidance = (
       replaced by the <Box variant="code">error</Box> slot in the new charts.
     </Box>
 
-    <CodeView
-      content={`// Old
-<PieChart {...props} statusType="error" errorText="The data couldn't be fetched. Try again later." onRecoveryClick={onRecoveryClick} />
+    <CodeSnippet
+      content={`let oldChart = <PieChart {...props} statusType="error" errorText="The data couldn't be fetched. Try again later." onRecoveryClick={onRecoveryClick} />;
 
-// New
-<PieChart {...props} noData={{ statusType: "error", error: <Error onRecoveryClick={onRecoveryClick} /> }} />
+let newChart = <PieChart {...props} noData={{ statusType: "error", error: <Error onRecoveryClick={onRecoveryClick} /> }} />;
 
 function Error({ onRecoveryClick }) {
   return (

@@ -63,11 +63,12 @@ export function ComponentNew() {
   );
 }
 
-export function ComponentOld() {
+export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
   const { chartStateProps } = usePageSettings();
   return (
     <OldPieChart
       fitHeight={true}
+      hideFilter={hideFilter}
       size="small"
       data={dataOld}
       ariaLabel="Pie chart"

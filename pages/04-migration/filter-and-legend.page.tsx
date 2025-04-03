@@ -13,24 +13,27 @@ export default function () {
         docs={{
           visualDesign: {
             bullets: [
-              {
-                content:
-                  "Legacy charts featured an optional series filter at the top-left. The new charts allow series filtering by clicking on the legend items instead.",
-              },
+              "The legacy charts feature an optional series filter at the top-left. The new charts allow series filtering by clicking on the legend items instead.",
             ],
           },
           behavior: {
             bullets: [
-              {
-                content:
-                  "The thresholds are now treated differently. A legacy area/line/bar chart with thresholds only is not considered empty. A new cartesian chart with threshold only is considered empty (or no-match).",
-              },
+              "The thresholds are now treated differently. A legacy area/line/bar chart with thresholds only is not considered empty. A new cartesian chart with threshold only is considered empty (or no-match).",
             ],
           },
         }}
       />
 
-      <PageSection title="Legend" docs={{ functional: { bullets: [] } }} />
+      <PageSection
+        title="Legend"
+        docs={{
+          functional: {
+            bullets: [
+              "The new charts legend items can be toggled, which is represented with the new inactive item state.",
+            ],
+          },
+        }}
+      />
 
       <PageSection title="Demos">
         <MigrationDemo
