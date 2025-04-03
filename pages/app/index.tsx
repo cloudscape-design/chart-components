@@ -14,8 +14,8 @@ import Spinner from "@cloudscape-design/components/spinner";
 import TopNavigation from "@cloudscape-design/components/top-navigation";
 import { Density, Mode } from "@cloudscape-design/global-styles";
 
-import { pages, pagesMap } from "../pages";
 import AppContext, { AppContextProvider } from "./app-context";
+import { pages, pagesMap } from "./pages";
 
 import "@cloudscape-design/global-styles/index.css";
 
@@ -85,6 +85,8 @@ function Navigation() {
               { id: "dark-mode", text: isDarkMode ? "Set light mode" : "Set dark mode" },
               { id: "compact-mode", text: isCompactMode ? "Set comfortable mode" : "Set compact mode" },
               { id: "rtl", text: isRtl ? "Set left to right text" : "Set right to left text" },
+              { id: "motion", text: urlParams.motionDisabled ? "Enable motion" : "Disable motion" },
+              { id: "screenshot", text: urlParams.screenshotMode ? "Disable screenshot mode" : "Screenshot mode" },
             ],
             onItemClick({ detail }) {
               switch (detail.id) {
@@ -94,6 +96,10 @@ function Navigation() {
                   return setUrlParams({ density: isCompactMode ? Density.Comfortable : Density.Compact });
                 case "rtl":
                   return setUrlParams({ direction: isRtl ? "ltr" : "rtl" });
+                case "motion":
+                  return setUrlParams({ motionDisabled: !urlParams.motionDisabled });
+                case "screenshot":
+                  return setUrlParams({ screenshotMode: !urlParams.screenshotMode });
               }
             },
           },
