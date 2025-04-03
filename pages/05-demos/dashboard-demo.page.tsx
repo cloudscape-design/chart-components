@@ -2,15 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import Button from "@cloudscape-design/components/button";
-import Checkbox from "@cloudscape-design/components/checkbox";
 import ColumnLayout from "@cloudscape-design/components/column-layout";
 import Container from "@cloudscape-design/components/container";
-import FormField from "@cloudscape-design/components/form-field";
 import Header from "@cloudscape-design/components/header";
-import Input from "@cloudscape-design/components/input";
-import SpaceBetween from "@cloudscape-design/components/space-between";
 
-import { TooltipSettings, usePageSettings } from "../common/page-settings";
+import { PageSettingsForm, usePageSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
 import { WidgetInstanceHours } from "./dashboard-demo/widget-instance-hours";
 import { NetworkTrafficWidget } from "./dashboard-demo/widget-network-traffic";
@@ -18,46 +14,24 @@ import { WidgetOperationalMetrics } from "./dashboard-demo/widget-operational-me
 import { ZoneStatusWidget } from "./dashboard-demo/widget-zone-status";
 
 export default function () {
-  const { settings, setSettings } = usePageSettings();
+  const { settings } = usePageSettings();
   return (
     <Page
       title="Dashboard demo"
       subtitle="This pages features new charts implemented from the existing demos to demonstrate feature parity."
       settings={
-        <SpaceBetween size="s">
-          <TooltipSettings />
-          <Checkbox
-            checked={settings.applyLoadingState}
-            onChange={({ detail }) => setSettings({ applyLoadingState: detail.checked })}
-          >
-            Apply loading state
-          </Checkbox>
-          <Checkbox
-            checked={settings.applyEmptyState}
-            onChange={({ detail }) => setSettings({ applyEmptyState: detail.checked })}
-          >
-            Apply empty state
-          </Checkbox>
-          <Checkbox
-            checked={settings.applyErrorState}
-            onChange={({ detail }) => setSettings({ applyErrorState: detail.checked })}
-          >
-            Apply error state
-          </Checkbox>
-          <Checkbox
-            checked={settings.showLegend}
-            onChange={({ detail }) => setSettings({ showLegend: detail.checked })}
-          >
-            Show legend
-          </Checkbox>
-          <FormField label="Container height">
-            <Input
-              type="number"
-              value={settings.containerHeight.toString()}
-              onChange={({ detail }) => setSettings({ containerHeight: parseInt(detail.value) })}
-            />
-          </FormField>
-        </SpaceBetween>
+        <PageSettingsForm
+          selectedSettings={[
+            "containerHeight",
+            "emptySeries",
+            "seriesLoading",
+            "seriesError",
+            "showLegend",
+            "showLegendTitle",
+            "tooltipSize",
+            "tooltipPlacement",
+          ]}
+        />
       }
     >
       <ColumnLayout columns={2}>

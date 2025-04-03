@@ -8,8 +8,12 @@ import Link from "@cloudscape-design/components/link";
 
 import { CartesianChart, CartesianChartProps, PieChart, PieChartProps } from "../../lib/components";
 import { moneyFormatter, numberFormatter } from "../common/formatters";
-import { PageSettingsDefaults, SeriesFilter, usePageSettings } from "../common/page-settings";
+import { PageSettings, PageSettingsForm, SeriesFilter, usePageSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
+
+interface ThisPageSettings extends PageSettings {
+  visibleItems: string;
+}
 
 const mixedChartSeries: CartesianChartProps.Series[] = [
   {
@@ -48,36 +52,49 @@ const pieChartSeries: PieChartProps.Series = {
   ],
 };
 
+const defaultVisibleItems = "Costs,Costs last year,Peak cost";
+
 export default function () {
+  const { settings, setSettings } = usePageSettings<ThisPageSettings>();
+  const visibleSeries = (settings.visibleItems ?? defaultVisibleItems).split(",");
   return (
-    <PageSettingsDefaults
-      settings={{
-        visibleContent: ["Costs", "Costs last year", "Peak cost"],
-      }}
+    <Page
+      title="Visibility API"
+      subtitle="This page demonstrates controllable series visibility API that allows to make series visible or hidden
+        programmatically."
+      settings={
+        <PageSettingsForm
+          selectedSettings={[
+            "showLegend",
+            {
+              content: (
+                <SeriesFilter
+                  allSeries={["Costs", "Costs last year", "Peak cost", "Budget"]}
+                  visibleSeries={visibleSeries}
+                  onVisibleSeriesChange={(visibleSeries) => setSettings({ visibleItems: visibleSeries.join(",") })}
+                />
+              ),
+            },
+          ]}
+        />
+      }
     >
-      <Page
-        title="Visibility API"
-        subtitle="This page demonstrates controllable series visibility API that allows to make series visible or hidden
-            programmatically."
-        settings={<SeriesFilter allSeries={["Costs", "Costs last year", "Peak cost", "Budget"]} />}
-      >
-        <PageSection title="Mixed chart">
-          <ExampleMixedChart />
-        </PageSection>
-        <PageSection title="Pie chart">
-          <ExamplePieChart />
-        </PageSection>
-      </Page>
-    </PageSettingsDefaults>
+      <PageSection title="Mixed chart">
+        <ExampleMixedChart />
+      </PageSection>
+      <PageSection title="Pie chart">
+        <ExamplePieChart />
+      </PageSection>
+    </Page>
   );
 }
 
 function ExampleMixedChart() {
-  const { highcharts, settings, setSettings, chartStateProps } = usePageSettings();
+  const { settings, setSettings, chartProps } = usePageSettings<ThisPageSettings>();
+  const visibleSeries = (settings.visibleItems ?? defaultVisibleItems).split(",");
   return (
     <CartesianChart
-      highcharts={highcharts}
-      {...chartStateProps}
+      {...chartProps}
       chartHeight={379}
       ariaLabel="Mixed bar chart"
       series={mixedChartSeries}
@@ -115,19 +132,19 @@ function ExampleMixedChart() {
         max: 20000,
         valueFormatter: numberFormatter,
       }}
-      visibleSeries={settings.visibleContent}
-      onToggleVisibleSeries={({ detail: { visibleSeries } }) => setSettings({ visibleContent: visibleSeries })}
+      visibleSeries={visibleSeries}
+      onToggleVisibleSeries={({ detail: { visibleSeries } }) => setSettings({ visibleItems: visibleSeries.join(",") })}
       emphasizeBaselineAxis={settings.emphasizeBaselineAxis}
     />
   );
 }
 
 function ExamplePieChart() {
-  const { highcharts, settings, setSettings, chartStateProps } = usePageSettings();
+  const { settings, setSettings, chartProps } = usePageSettings<ThisPageSettings>();
+  const visibleSegments = (settings.visibleItems ?? defaultVisibleItems).split(",");
   return (
     <PieChart
-      highcharts={highcharts}
-      {...chartStateProps}
+      {...chartProps}
       chartHeight={500}
       ariaLabel="Pie chart"
       series={pieChartSeries}
@@ -151,8 +168,10 @@ function ExamplePieChart() {
         description: ({ segmentValue, totalValue }) =>
           `${segmentValue} units, ${((segmentValue / totalValue) * 100).toFixed(0)}%`,
       }}
-      visibleSegments={settings.visibleContent}
-      onChangeVisibleSegments={({ detail: { visibleSegments } }) => setSettings({ visibleContent: visibleSegments })}
+      visibleSegments={visibleSegments}
+      onChangeVisibleSegments={({ detail: { visibleSegments } }) =>
+        setSettings({ visibleItems: visibleSegments.join(",") })
+      }
     />
   );
 }

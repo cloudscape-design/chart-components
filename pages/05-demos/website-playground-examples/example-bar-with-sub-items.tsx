@@ -42,8 +42,7 @@ const series: CartesianChartProps.Series[] = [
 ];
 
 export function ExampleBarChartWithSubItems() {
-  const { highcharts, settings, chartStateProps } = usePageSettings();
-  const hideSeries = settings.applyLoadingState || settings.applyEmptyState || settings.applyErrorState;
+  const { chartProps, isEmpty } = usePageSettings();
   return (
     <PageSection
       title="Bar chart: With sub-items"
@@ -54,17 +53,13 @@ export function ExampleBarChartWithSubItems() {
       }
     >
       <CartesianChart
-        highcharts={highcharts}
-        {...chartStateProps}
+        {...chartProps}
         chartHeight={423}
-        legend={{
-          enabled: settings.showLegend,
-          title: settings.showLegendTitle ? "Legend title" : undefined,
-        }}
         ariaLabel="Costs chart"
         plotOptions={{ series: { stacking: "normal" } }}
-        series={hideSeries ? [] : series}
+        series={isEmpty ? [] : series}
         tooltip={{
+          ...chartProps.tooltip,
           series: (detail) => {
             switch (detail.type) {
               case "point": {
@@ -112,8 +107,6 @@ export function ExampleBarChartWithSubItems() {
               </>
             );
           },
-          placement: settings.tooltipPlacement,
-          size: settings.tooltipSize,
         }}
         xAxis={{
           type: "category",
@@ -121,7 +114,6 @@ export function ExampleBarChartWithSubItems() {
           categories: ["2023-04", "2023-05", "2023-06", "2023-07", "2023-08", "2023-09"],
         }}
         yAxis={{ title: "Costs" }}
-        emphasizeBaselineAxis={settings.emphasizeBaselineAxis}
       />
     </PageSection>
   );

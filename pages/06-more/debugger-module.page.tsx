@@ -31,11 +31,10 @@ export default function () {
 }
 
 function ExampleMixedChart() {
-  const { highcharts, chartStateProps } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <CartesianChart
-      highcharts={highcharts}
-      {...chartStateProps}
+      {...chartProps}
       chartHeight={423}
       ariaLabel="Simple line chart with a mistake in series definition"
       series={series}

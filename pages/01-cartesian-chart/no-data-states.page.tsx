@@ -4,65 +4,33 @@
 import Alert from "@cloudscape-design/components/alert";
 import Box from "@cloudscape-design/components/box";
 import Button from "@cloudscape-design/components/button";
-import Checkbox from "@cloudscape-design/components/checkbox";
-import FormField from "@cloudscape-design/components/form-field";
-import Input from "@cloudscape-design/components/input";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import StatusIndicator from "@cloudscape-design/components/status-indicator";
-import { colorBorderDividerDefault } from "@cloudscape-design/design-tokens";
 
 import { CartesianChart, CartesianChartProps } from "../../lib/components";
 import { percentageFormatter } from "../common/formatters";
-import { PageSettings, usePageSettings } from "../common/page-settings";
-import { Page, PageSection } from "../common/templates";
-
-interface ThisPageSettings extends PageSettings {
-  showBoundaries: boolean;
-}
+import { PageSettingsForm, usePageSettings } from "../common/page-settings";
+import { FramedDemo, Page, PageSection } from "../common/templates";
 
 export default function () {
-  const { highcharts, settings, setSettings } = usePageSettings<ThisPageSettings>();
-  const { showBoundaries = true } = settings;
-
-  const borderColor = showBoundaries ? colorBorderDividerDefault : "transparent";
+  const { settings, chartProps } = usePageSettings();
 
   const defaultProps: CartesianChartProps = {
-    highcharts,
+    ...chartProps,
     series: [],
-    chartHeight: settings.containerHeight,
-    legend: { enabled: settings.showLegend },
+    chartHeight: settings.height,
     xAxis: { title: "X axis", min: 0, max: 1000 },
     yAxis: { title: "Y axis", min: 0, max: 1, valueFormatter: percentageFormatter },
-    emphasizeBaselineAxis: true,
   };
 
   return (
     <Page
       title="Cartesian chart: no data states"
       subtitle="The page demonstrates all possible no-data states of the cartesian charts."
-      settings={
-        <SpaceBetween size="s">
-          <Checkbox
-            checked={settings.showLegend}
-            onChange={({ detail }) => setSettings({ showLegend: detail.checked })}
-          >
-            Show legend
-          </Checkbox>
-          <Checkbox checked={showBoundaries} onChange={({ detail }) => setSettings({ showBoundaries: detail.checked })}>
-            Show component boundaries
-          </Checkbox>
-          <FormField label="Chart height">
-            <Input
-              type="number"
-              value={settings.containerHeight.toString()}
-              onChange={({ detail }) => setSettings({ containerHeight: parseInt(detail.value) })}
-            />
-          </FormField>
-        </SpaceBetween>
-      }
+      settings={<PageSettingsForm selectedSettings={["height", "showLegend"]} />}
     >
       <PageSection title="Empty state: all" subtitle="No series provided">
-        <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
+        <FramedDemo>
           <CartesianChart
             {...defaultProps}
             ariaLabel="Cartesian chart in empty state"
@@ -81,11 +49,11 @@ export default function () {
               ),
             }}
           />
-        </div>
+        </FramedDemo>
       </PageSection>
 
       <PageSection title="Empty state: data" subtitle="No data provided">
-        <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
+        <FramedDemo>
           <CartesianChart
             {...defaultProps}
             ariaLabel="Cartesian chart in empty state"
@@ -105,11 +73,11 @@ export default function () {
             }}
             visibleSeries={["Load"]}
           />
-        </div>
+        </FramedDemo>
       </PageSection>
 
       <PageSection title="No match state" subtitle="No visible series">
-        <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
+        <FramedDemo>
           <CartesianChart
             {...defaultProps}
             ariaLabel="Cartesian chart in no-match state"
@@ -139,11 +107,11 @@ export default function () {
             }}
             visibleSeries={[]}
           />
-        </div>
+        </FramedDemo>
       </PageSection>
 
       <PageSection title="Loading state: all" subtitle="Neither series nor series data is available.">
-        <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
+        <FramedDemo>
           <CartesianChart
             {...defaultProps}
             ariaLabel="Cartesian chart in loading state"
@@ -153,11 +121,11 @@ export default function () {
               loading: <StatusIndicator type="loading">Loading data...</StatusIndicator>,
             }}
           />
-        </div>
+        </FramedDemo>
       </PageSection>
 
       <PageSection title="Loading state: data" subtitle="Series are known, but data is loading.">
-        <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
+        <FramedDemo>
           <CartesianChart
             {...defaultProps}
             ariaLabel="Cartesian chart in loading state"
@@ -168,7 +136,7 @@ export default function () {
             }}
             visibleSeries={["Load"]}
           />
-        </div>
+        </FramedDemo>
       </PageSection>
 
       <PageSection
@@ -182,7 +150,7 @@ export default function () {
       >
         <SpaceBetween size="m">
           <StatusIndicator type="loading">Refreshing data</StatusIndicator>
-          <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
+          <FramedDemo>
             <CartesianChart
               {...defaultProps}
               ariaLabel="Cartesian chart in loading state"
@@ -198,12 +166,12 @@ export default function () {
               ]}
               visibleSeries={["Load"]}
             />
-          </div>
+          </FramedDemo>
         </SpaceBetween>
       </PageSection>
 
       <PageSection title="Error state: all" subtitle="Both series and series data failed to load.">
-        <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
+        <FramedDemo>
           <CartesianChart
             {...defaultProps}
             ariaLabel="Cartesian chart in error state"
@@ -213,11 +181,11 @@ export default function () {
               error: <StatusIndicator type="error">An error occurred</StatusIndicator>,
             }}
           />
-        </div>
+        </FramedDemo>
       </PageSection>
 
       <PageSection title="Error state: data" subtitle="Series are present, but data failed to load.">
-        <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
+        <FramedDemo>
           <CartesianChart
             {...defaultProps}
             ariaLabel="Cartesian chart in error state"
@@ -234,7 +202,7 @@ export default function () {
               error: <StatusIndicator type="error">An error occurred</StatusIndicator>,
             }}
           />
-        </div>
+        </FramedDemo>
       </PageSection>
 
       <PageSection
@@ -248,7 +216,7 @@ export default function () {
       >
         <SpaceBetween size="m">
           <Alert type="error">An error occurred</Alert>
-          <div style={{ border: `1px solid ${borderColor}`, borderRadius: "4px" }}>
+          <FramedDemo>
             <CartesianChart
               {...defaultProps}
               ariaLabel="Cartesian chart in loading state"
@@ -264,7 +232,7 @@ export default function () {
               ]}
               visibleSeries={["Load"]}
             />
-          </div>
+          </FramedDemo>
         </SpaceBetween>
       </PageSection>
     </Page>

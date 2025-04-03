@@ -39,8 +39,7 @@ const lastUpdatesMap = new Map([
 ]);
 
 export function ExamplePieChartPieChart() {
-  const { highcharts, settings, chartStateProps } = usePageSettings();
-  const hideSeries = settings.applyLoadingState || settings.applyEmptyState || settings.applyErrorState;
+  const { chartProps, isEmpty } = usePageSettings();
   return (
     <PageSection
       title="Pie and donut charts: Pie chart"
@@ -51,17 +50,13 @@ export function ExamplePieChartPieChart() {
       }
     >
       <PieChart
-        highcharts={highcharts}
-        {...chartStateProps}
+        {...chartProps}
         chartHeight={379}
-        legend={{
-          enabled: settings.showLegend,
-          title: settings.showLegendTitle ? "Legend title" : undefined,
-        }}
         ariaLabel="Pie chart"
         ariaDescription="Pie chart showing how many resources are currently in which state."
-        series={hideSeries ? null : series}
+        series={isEmpty ? null : series}
         tooltip={{
+          ...chartProps.tooltip,
           body(details) {
             return (
               <div>
@@ -80,8 +75,6 @@ export function ExamplePieChartPieChart() {
               </div>
             );
           },
-          placement: settings.tooltipPlacement,
-          size: settings.tooltipSize,
         }}
         segmentOptions={{
           description: ({ segmentValue, totalValue }) =>

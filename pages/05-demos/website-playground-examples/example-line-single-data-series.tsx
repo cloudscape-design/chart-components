@@ -61,8 +61,7 @@ const series: CartesianChartProps.Series[] = [
 ];
 
 export function ExampleLineChartSingleDataSeries() {
-  const { highcharts, settings, chartStateProps } = usePageSettings();
-  const hideSeries = settings.applyLoadingState || settings.applyEmptyState || settings.applyErrorState;
+  const { chartProps, isEmpty } = usePageSettings();
   return (
     <PageSection
       title="Line chart: Single data series"
@@ -73,16 +72,12 @@ export function ExampleLineChartSingleDataSeries() {
       }
     >
       <CartesianChart
-        highcharts={highcharts}
-        {...chartStateProps}
+        {...chartProps}
         chartHeight={379}
-        legend={{
-          enabled: settings.showLegend,
-          title: settings.showLegendTitle ? "Legend title" : undefined,
-        }}
         ariaLabel="Single data series line chart"
-        series={hideSeries ? [] : series}
+        series={isEmpty ? [] : series}
         tooltip={{
+          ...chartProps.tooltip,
           series: (detail) => {
             switch (detail.type) {
               case "point":
@@ -103,8 +98,6 @@ export function ExampleLineChartSingleDataSeries() {
                 return { key: "?", value: "?" };
             }
           },
-          placement: settings.tooltipPlacement,
-          size: settings.tooltipSize,
         }}
         xAxis={{
           type: "datetime",
@@ -119,7 +112,6 @@ export function ExampleLineChartSingleDataSeries() {
           max: 500000,
           valueFormatter: numberFormatter,
         }}
-        emphasizeBaselineAxis={settings.emphasizeBaselineAxis}
       />
     </PageSection>
   );

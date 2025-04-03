@@ -61,14 +61,6 @@ export interface CloudscapeHighchartsProps
    */
   onLegendItemToggle?: (seriesOrItemId: string, visible: boolean) => void;
   /**
-   * A callback triggered when using show-only command on a legend item.
-   */
-  onLegendItemShowOnly?: (seriesOrItemId: string) => void;
-  /**
-   * A callback triggered when using show-all command on the legend.
-   */
-  onLegendItemShowAll?: () => void;
-  /**
    * An object that contains all of the localized strings required by the component.
    * @i18n
    */
@@ -80,15 +72,14 @@ export interface CloudscapeHighchartsProps
 }
 
 export interface CloudscapeChartAPI {
-  hc: Highcharts.Chart;
-  cloudscape: {
-    showTooltipOnPoint(point: Highcharts.Point): void;
-    hideTooltip(): void;
-  };
+  chart: Highcharts.Chart;
+  highcharts: typeof Highcharts;
+  showTooltipOnPoint(point: Highcharts.Point): void;
+  hideTooltip(): void;
 }
 
 export interface CoreTooltipProps extends BaseTooltipProps {
-  getContent: (point: Point) => null | CoreTooltipContent;
+  getContent?: (point: Point) => null | CoreTooltipContent;
 }
 
 export interface CoreLegendProps extends BaseLegendProps {

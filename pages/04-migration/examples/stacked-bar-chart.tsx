@@ -47,11 +47,10 @@ const seriesOld: BarChartProps<Date>["series"] = series.map((s) => ({
 }));
 
 export function ComponentNew() {
-  const { highcharts, chartStateProps } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <CartesianChart
-      highcharts={highcharts}
-      {...chartStateProps}
+      {...chartProps}
       fitHeight={true}
       chartMinHeight={200}
       ariaLabel="Stacked bar chart"
@@ -68,7 +67,7 @@ export function ComponentNew() {
 }
 
 export function ComponentOld() {
-  const { chartStateProps } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <BarChart
       fitHeight={true}
@@ -84,7 +83,7 @@ export function ComponentOld() {
       stackedBars={true}
       xTitle="Time (UTC)"
       yTitle="Error count"
-      noMatch={chartStateProps.noData.noMatch}
+      noMatch={chartProps.noData.noMatch}
     />
   );
 }

@@ -16,9 +16,13 @@ import { CloudscapeChartAPI } from "../../lib/components/core/interfaces-core";
 import { getSeriesMarkerType } from "../../lib/components/core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../lib/components/internal/components/series-details";
 import { dateFormatter, numberFormatter } from "../common/formatters";
-import { TooltipSettings, usePageSettings } from "../common/page-settings";
+import { PageSettings, PageSettingsForm, usePageSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
+
+interface ThisPageSettings extends PageSettings {
+  keepZoomingFrame: boolean;
+}
 
 function randomInt(min: number, max: number) {
   return min + Math.floor(pseudoRandom() * (max - min));
@@ -109,21 +113,33 @@ const rangeSeries: Highcharts.SeriesOptionsType[] = [
 ];
 
 export default function () {
-  const { settings, setSettings } = usePageSettings({});
+  const {
+    settings: { keepZoomingFrame = false },
+    setSettings,
+  } = usePageSettings<ThisPageSettings>();
   return (
     <Page
       title="Simple zooming demo"
       subtitle="This page shows how a secondary chart can be used as a zoom navigator."
       settings={
-        <SpaceBetween size="s">
-          <TooltipSettings />
-          <Checkbox
-            checked={settings.keepZoomingFrame}
-            onChange={({ detail }) => setSettings({ keepZoomingFrame: detail.checked })}
-          >
-            Keep zooming frame
-          </Checkbox>
-        </SpaceBetween>
+        <PageSettingsForm
+          selectedSettings={[
+            "showLegend",
+            "showLegendTooltip",
+            "tooltipSize",
+            "tooltipPlacement",
+            {
+              content: (
+                <Checkbox
+                  checked={keepZoomingFrame}
+                  onChange={({ detail }) => setSettings({ keepZoomingFrame: detail.checked })}
+                >
+                  Keep zooming frame
+                </Checkbox>
+              ),
+            },
+          ]}
+        />
       }
     >
       <Charts />
@@ -137,15 +153,18 @@ const Style = {
 
 function Charts() {
   const [zoomRange, setZoomRange] = useState<null | [number, number]>(null);
-  const { settings, highcharts, chartStateProps } = usePageSettings({ more: true });
+  const {
+    settings: { keepZoomingFrame = false },
+    chartProps,
+  } = usePageSettings<ThisPageSettings>({ more: true });
   const scatterChartRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
   const getScatterChart = () => scatterChartRef.current!;
   const navigatorChartRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
   const getNavigatorChart = () => navigatorChartRef.current!;
   const setZoom = (range: null | [number, number]) => {
-    getScatterChart().hc.xAxis[0].setExtremes(range?.[0], range?.[1]);
-    if (!settings.keepZoomingFrame) {
-      getNavigatorChart().hc.xAxis[0].setExtremes(range?.[0], range?.[1]);
+    getScatterChart().chart.xAxis[0].setExtremes(range?.[0], range?.[1]);
+    if (!keepZoomingFrame) {
+      getNavigatorChart().chart.xAxis[0].setExtremes(range?.[0], range?.[1]);
     }
     setZoomRange(range);
   };
@@ -153,8 +172,8 @@ function Charts() {
   useEffect(() => {
     const onEscape = (event: KeyboardEvent) => {
       if (event.keyCode === KeyCode.escape) {
-        getNavigatorChart().hc.xAxis[0].removePlotLine("zoom-start");
-        getNavigatorChart().hc.xAxis[0].removePlotLine("zoom-end");
+        getNavigatorChart().chart.xAxis[0].removePlotLine("zoom-start");
+        getNavigatorChart().chart.xAxis[0].removePlotLine("zoom-end");
         zoomStateRef.current = null;
       }
     };
@@ -184,8 +203,7 @@ function Charts() {
         callback={(chart) => {
           scatterChartRef.current = chart;
         }}
-        highcharts={highcharts}
-        {...omit(chartStateProps, "ref")}
+        {...omit(chartProps, "ref")}
         options={{
           chart: {
             height: 379,
@@ -212,14 +230,14 @@ function Charts() {
                 events: {
                   mouseOver(event) {
                     if (event.target instanceof Highcharts.Point) {
-                      const minPoint = findMinPoint(event.target, getNavigatorChart().hc);
+                      const minPoint = findMinPoint(event.target, getNavigatorChart().chart);
                       if (minPoint) {
-                        getNavigatorChart().cloudscape.showTooltipOnPoint(minPoint);
+                        getNavigatorChart().showTooltipOnPoint(minPoint);
                       }
                     }
                   },
                   mouseOut() {
-                    getNavigatorChart().cloudscape.hideTooltip();
+                    getNavigatorChart().hideTooltip();
                   },
                 },
               },
@@ -230,7 +248,7 @@ function Charts() {
           getContent({ x }) {
             const header = dateFormatter(x);
             const details: ChartSeriesDetailItem[] = [];
-            for (const s of getScatterChart().hc.series) {
+            for (const s of getScatterChart().chart.series) {
               for (const p of s.data) {
                 if (p.x === x) {
                   details.push({
@@ -254,8 +272,7 @@ function Charts() {
         callback={(chart) => {
           navigatorChartRef.current = chart;
         }}
-        highcharts={highcharts}
-        {...omit(chartStateProps, "ref")}
+        {...omit(chartProps, "ref")}
         options={{
           chart: {
             height: 150,
@@ -308,15 +325,15 @@ function Charts() {
                   mouseOver(event) {
                     if (event.target instanceof Highcharts.Point) {
                       if (event.target instanceof Highcharts.Point) {
-                        const minPoint = findMinPoint(event.target, getScatterChart().hc);
+                        const minPoint = findMinPoint(event.target, getScatterChart().chart);
                         if (minPoint) {
-                          getScatterChart().cloudscape.showTooltipOnPoint(minPoint);
+                          getScatterChart().showTooltipOnPoint(minPoint);
                         }
                       }
 
                       if (zoomStateRef.current !== null) {
-                        getNavigatorChart().hc.xAxis[0].removePlotLine("zoom-end");
-                        getNavigatorChart().hc.xAxis[0].addPlotLine({
+                        getNavigatorChart().chart.xAxis[0].removePlotLine("zoom-end");
+                        getNavigatorChart().chart.xAxis[0].addPlotLine({
                           id: "zoom-end",
                           value: event.target.x,
                           ...Style.zoomPlotLine,
@@ -325,19 +342,19 @@ function Charts() {
                     }
                   },
                   mouseOut() {
-                    getScatterChart().cloudscape.hideTooltip();
+                    getScatterChart().hideTooltip();
                   },
                   click(event) {
                     if (zoomStateRef.current === null) {
-                      getNavigatorChart().hc.xAxis[0].addPlotLine({
+                      getNavigatorChart().chart.xAxis[0].addPlotLine({
                         id: "zoom-start",
                         value: event.point.x,
                         ...Style.zoomPlotLine,
                       });
                       zoomStateRef.current = event.point.x;
                     } else {
-                      getNavigatorChart().hc.xAxis[0].removePlotLine("zoom-start");
-                      getNavigatorChart().hc.xAxis[0].removePlotLine("zoom-end");
+                      getNavigatorChart().chart.xAxis[0].removePlotLine("zoom-start");
+                      getNavigatorChart().chart.xAxis[0].removePlotLine("zoom-end");
                       setZoom([
                         Math.min(zoomStateRef.current, event.point.x),
                         Math.max(zoomStateRef.current, event.point.x),

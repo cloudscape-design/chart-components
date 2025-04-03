@@ -72,11 +72,10 @@ const seriesOld: MixedLineBarChartProps<string>["series"] = [
 ];
 
 export function ComponentNew() {
-  const { highcharts, chartStateProps } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <CartesianChart
-      highcharts={highcharts}
-      {...chartStateProps}
+      {...chartProps}
       fitHeight={true}
       chartMinHeight={200}
       ariaLabel="Mixed chart"
@@ -99,7 +98,7 @@ export function ComponentNew() {
 }
 
 export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
-  const { chartStateProps } = usePageSettings();
+  const { chartProps } = usePageSettings();
   return (
     <MixedLineBarChart
       fitHeight={true}
@@ -112,7 +111,7 @@ export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
       xScaleType="categorical"
       xTitle="Budget month"
       yTitle="Costs (USD)"
-      noMatch={chartStateProps.noData.noMatch}
+      noMatch={chartProps.noData.noMatch}
     />
   );
 }

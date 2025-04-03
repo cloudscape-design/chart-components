@@ -39,48 +39,41 @@ export function CloudscapeHighcharts({
   callback,
   hiddenItems,
   onLegendItemToggle,
-  onLegendItemShowOnly,
-  onLegendItemShowAll,
   i18nStrings,
   className,
   ...rest
 }: CloudscapeHighchartsProps) {
-  // The chartRef holds the Highcharts.Chart instance and is expected to be available after the initial render.
+  // The apiRef is expected to be available after the initial render.
   // The instance is used to get internal series and points detail, and run APIs such as series.setVisible() to
   // synchronize custom React state with Highcharts state.
-  const chartRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
-  const getChart = () => {
+  const apiRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
+  const getAPI = () => {
     /* c8 ignore next */
-    if (!chartRef.current) {
-      throw new Error("Invariant violation: chart instance is not available.");
+    if (!apiRef.current) {
+      throw new Error("Invariant violation: chart api is not available.");
     }
-    return chartRef.current;
+    return apiRef.current;
   };
 
   // Provides custom Cloudscape tooltip instead of Highcharts tooltip, when `props.tooltip` is present.
   // The custom tooltip provides Cloudscape styles and can be pinned.
   const isTooltipEnabled = tooltipProps?.enabled !== false;
-  const tooltip = useChartTooltip(highcharts, getChart, tooltipProps);
+  const tooltip = useChartTooltip(getAPI, tooltipProps);
 
   // Provides custom legend, when `props.legend` is present.
   const isLegendEnabled = legendProps?.enabled !== false;
-  const legend = useLegend(getChart, {
-    ...legendProps,
-    onLegendItemToggle,
-    onLegendItemShowOnly,
-    onLegendItemShowAll,
-  });
+  const legend = useLegend(getAPI, { ...legendProps, onLegendItemToggle });
 
   // Provides empty, no-match, loading, and error states handling, when `props.noData` is present.
-  const noData = useNoData(highcharts, noDataProps);
+  const noData = useNoData(getAPI, noDataProps);
 
   // When series or items visibility change, we call setVisible Highcharts method on series and/or items
   // for the change to take an effect.
   const hiddenItemsIndex = hiddenItems ? hiddenItems.join("::") : null;
   useEffect(() => {
-    if (chartRef.current && hiddenItemsIndex !== null) {
+    if (apiRef.current && hiddenItemsIndex !== null) {
       const hiddenItemsIds = new Set(hiddenItemsIndex.split("::").filter(Boolean));
-      for (const series of chartRef.current.hc.series) {
+      for (const series of apiRef.current.chart.series) {
         series.setVisible(!hiddenItemsIds.has(getSeriesId(series)));
         for (const point of series.data) {
           if (typeof point.setVisible === "function") {
@@ -89,7 +82,7 @@ export function CloudscapeHighcharts({
         }
       }
     }
-  }, [chartRef, hiddenItemsIndex]);
+  }, [apiRef, hiddenItemsIndex]);
 
   const rootClassName = clsx(styles.root, fitHeight && styles["root-fit-height"], className);
 
@@ -256,14 +249,13 @@ export function CloudscapeHighcharts({
               highcharts={highcharts}
               options={highchartsOptions}
               callback={(chart: Highcharts.Chart) => {
-                chartRef.current = {
-                  hc: chart,
-                  cloudscape: {
-                    showTooltipOnPoint: (point) => tooltip.api.showTooltipOnPoint(point),
-                    hideTooltip: () => tooltip.api.hideTooltip(),
-                  },
+                apiRef.current = {
+                  chart,
+                  highcharts,
+                  showTooltipOnPoint: (point) => tooltip.api.showTooltipOnPoint(point),
+                  hideTooltip: () => tooltip.api.hideTooltip(),
                 };
-                callback?.(chartRef.current);
+                callback?.(apiRef.current);
               }}
             />
           );
