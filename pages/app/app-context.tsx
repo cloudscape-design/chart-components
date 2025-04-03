@@ -5,14 +5,14 @@ import { createContext, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import mapValues from "lodash/mapValues";
 
-import { applyDensity, applyMode, Density, Mode } from "@cloudscape-design/global-styles";
+import { applyDensity, applyMode, Density, disableMotion, Mode } from "@cloudscape-design/global-styles";
 
 interface AppUrlParams {
   mode: Mode;
   density: Density;
   direction: "ltr" | "rtl";
   motionDisabled: boolean;
-  appLayoutWidget: boolean;
+  screenshotMode: boolean;
 }
 
 export interface AppContextType<T = unknown> {
@@ -28,7 +28,7 @@ const appContextDefaults: AppContextType = {
     density: Density.Comfortable,
     direction: "ltr",
     motionDisabled: false,
-    appLayoutWidget: false,
+    screenshotMode: false,
   },
   setUrlParams: () => {},
 };
@@ -79,6 +79,10 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     document.documentElement.setAttribute("dir", urlParams.direction);
   }, [urlParams.direction]);
+
+  useEffect(() => {
+    disableMotion(urlParams.motionDisabled);
+  }, [urlParams.motionDisabled]);
 
   return <AppContext.Provider value={{ urlParams, setUrlParams: setUrlParams }}>{children}</AppContext.Provider>;
 }

@@ -16,9 +16,9 @@ import {
 } from "@cloudscape-design/design-tokens";
 
 import { ChartSeriesMarker, ChartSeriesMarkerProps } from "../../lib/components/internal/components/series-marker";
+import { ScreenshotArea } from "../app/screenshot-area";
 import PermutationsView, { createPermutations } from "../common/permutations";
 import { Page } from "../common/templates";
-import { ScreenshotArea } from "../screenshot-area";
 
 const permutationsForColors = [
   colorChartsPaletteCategorical1,

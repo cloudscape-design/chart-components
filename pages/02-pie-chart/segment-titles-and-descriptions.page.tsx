@@ -11,9 +11,9 @@ import Select from "@cloudscape-design/components/select";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
 import { PieChart, PieChartProps } from "../../lib/components";
+import { ScreenshotArea } from "../app/screenshot-area";
 import { PageSettings, usePageSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
-import { ScreenshotArea } from "../screenshot-area";
 
 interface ThisPageSettings extends PageSettings {
   segmentDistribution: "proportional" | "growing" | "fast growing";
