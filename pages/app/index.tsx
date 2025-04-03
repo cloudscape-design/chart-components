@@ -29,17 +29,31 @@ declare const window: ExtendedWindow;
 
 export default function App() {
   return (
+    <HashRouter>
+      <AppContextProvider>
+        <AppBody />
+      </AppContextProvider>
+    </HashRouter>
+  );
+}
+
+function AppBody() {
+  const { urlParams } = useContext(AppContext);
+  const routes = (
+    <>
+      <Navigation />
+      <Routes>
+        <Route path="/" element={<IndexPage />} />
+        <Route path="/*" element={<PageWithFallback />} />
+      </Routes>
+    </>
+  );
+  return urlParams.i18n ? (
     <I18nProvider locale="en" messages={[enMessages]}>
-      <HashRouter>
-        <AppContextProvider>
-          <Navigation />
-          <Routes>
-            <Route path="/" element={<IndexPage />} />
-            <Route path="/*" element={<PageWithFallback />} />
-          </Routes>
-        </AppContextProvider>
-      </HashRouter>
+      {routes}
     </I18nProvider>
+  ) : (
+    routes
   );
 }
 
@@ -87,6 +101,7 @@ function Navigation() {
               { id: "rtl", text: isRtl ? "Set left to right text" : "Set right to left text" },
               { id: "motion", text: urlParams.motionDisabled ? "Enable motion" : "Disable motion" },
               { id: "screenshot", text: urlParams.screenshotMode ? "Disable screenshot mode" : "Screenshot mode" },
+              { id: "i18n", text: urlParams.i18n ? "Disable built-in i18n" : "Enable built-in i18n" },
             ],
             onItemClick({ detail }) {
               switch (detail.id) {
@@ -100,6 +115,8 @@ function Navigation() {
                   return setUrlParams({ motionDisabled: !urlParams.motionDisabled });
                 case "screenshot":
                   return setUrlParams({ screenshotMode: !urlParams.screenshotMode });
+                case "i18n":
+                  return setUrlParams({ i18n: !urlParams.i18n });
               }
             },
           },
