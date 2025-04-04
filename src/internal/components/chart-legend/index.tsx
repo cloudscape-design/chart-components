@@ -64,21 +64,23 @@ function ChartLegend({
   const containerRef = useRef<HTMLDivElement>(null);
   const segmentsRef = useRef<Record<number, HTMLElement>>([]);
 
-  const tooltipState = useMemo(() => new DebouncedCall(), []);
-
-  const [focusedIndex, setFocusedIndex] = useState<number>(0);
-  const [menuIndex, setMenuIndex] = useState<null | number>(null);
-  const detailContent = (() => {
-    if (menuIndex === null || !items[menuIndex] || !tooltip) {
-      return null;
-    }
-    return tooltip.render(items[menuIndex].id);
-  })();
+  const tooltipControl = useMemo(() => new DebouncedCall(), []);
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [tooltipItem, setTooltipItem] = useState<null | string>(null);
+  const tooltipItemIndex = items.findIndex((item) => item.id === tooltipItem);
+  const tooltipContent = tooltipItem ? tooltip?.render(tooltipItem) : null;
+  const showTooltip = (itemId: string) => {
+    tooltipControl.cancelPrevious();
+    setTooltipItem(itemId);
+  };
+  const hideTooltip = () => {
+    tooltipControl.call(() => setTooltipItem(null), 50);
+  };
 
   const navigationAPI = useRef<SingleTabStopNavigationAPI>(null);
 
   function onFocus(index: number) {
-    setFocusedIndex(index);
+    setSelectedIndex(index);
     navigationAPI.current?.updateFocusTarget();
   }
 
@@ -106,10 +108,10 @@ function ChartLegend({
       const range = [0, items.length - 1] as [number, number];
 
       handleKey(event, {
-        onInlineStart: () => focusElement(circleIndex(focusedIndex - 1, range)),
-        onInlineEnd: () => focusElement(circleIndex(focusedIndex + 1, range)),
-        onBlockStart: () => focusElement(circleIndex(focusedIndex - 1, range)),
-        onBlockEnd: () => focusElement(circleIndex(focusedIndex + 1, range)),
+        onInlineStart: () => focusElement(circleIndex(selectedIndex - 1, range)),
+        onInlineEnd: () => focusElement(circleIndex(selectedIndex + 1, range)),
+        onBlockStart: () => focusElement(circleIndex(selectedIndex - 1, range)),
+        onBlockEnd: () => focusElement(circleIndex(selectedIndex + 1, range)),
         onHome: () => focusElement(0),
         onEnd: () => focusElement(items.length - 1),
         onEscape: () => onItemHighlightExit?.(),
@@ -120,7 +122,7 @@ function ChartLegend({
   function getNextFocusTarget(): null | HTMLElement {
     if (containerRef.current) {
       const buttons: HTMLButtonElement[] = Array.from(containerRef.current.querySelectorAll(`.${styles.marker}`));
-      return buttons[focusedIndex] ?? null;
+      return buttons[selectedIndex] ?? null;
     }
     return null;
   }
@@ -164,23 +166,21 @@ function ChartLegend({
             const handlers = {
               onMouseEnter: () => {
                 onItemHighlightEnter?.(item.id);
-                tooltipState.cancelPrevious();
-                setMenuIndex(index);
+                showTooltip(item.id);
               },
               onMouseLeave: () => {
                 onItemHighlightExit?.();
-                tooltipState.call(() => setMenuIndex(null), 50);
+                hideTooltip();
               },
               onFocus: () => {
                 onFocus(index);
                 onItemHighlightEnter?.(item.id);
-                tooltipState.cancelPrevious();
-                setMenuIndex(index);
+                showTooltip(item.id);
               },
               onBlur: () => {
                 onBlur();
                 onItemHighlightExit?.();
-                tooltipState.call(() => setMenuIndex(null), 50);
+                hideTooltip();
               },
               onKeyDown,
             };
@@ -209,27 +209,21 @@ function ChartLegend({
           })}
         </div>
 
-        {menuIndex !== null && detailContent && (
+        {tooltipContent && tooltipItem && (
           <InternalChartTooltip
-            getTrack={() => segmentsRef.current[menuIndex]}
-            trackKey={menuIndex}
-            onDismiss={() => {
-              setMenuIndex(null);
-              focusElement(focusedIndex);
-            }}
-            onMouseEnter={() => {
-              tooltipState.cancelPrevious();
-            }}
-            onMouseLeave={() => {
-              tooltipState.call(() => setMenuIndex(null), 50);
-            }}
+            key={tooltipItem}
+            trackKey={tooltipItem}
+            getTrack={() => segmentsRef.current[tooltipItemIndex]}
+            onDismiss={() => {}}
+            onMouseEnter={() => showTooltip(tooltipItem)}
+            onMouseLeave={() => hideTooltip()}
             container={null}
             dismissButton={false}
-            title={detailContent.header}
-            footer={detailContent.footer}
-            position="bottom"
+            title={tooltipContent.header}
+            footer={tooltipContent.footer}
+            position="top"
           >
-            {detailContent.body}
+            {tooltipContent.body}
           </InternalChartTooltip>
         )}
       </div>
