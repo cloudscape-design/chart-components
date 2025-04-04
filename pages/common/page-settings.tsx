@@ -37,6 +37,7 @@ export interface PageSettings {
   showLegend: boolean;
   showLegendTitle: boolean;
   showLegendTooltip: boolean;
+  showLegendTooltipAction: boolean;
   useFallback: boolean;
 }
 
@@ -57,6 +58,7 @@ const DEFAULT_SETTINGS: PageSettings = {
   showLegend: true,
   showLegendTitle: false,
   showLegendTooltip: false,
+  showLegendTooltipAction: false,
   useFallback: false,
 };
 
@@ -92,6 +94,8 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
     emphasizeBaselineAxis: parseBoolean(defaultSettings.emphasizeBaselineAxis, urlParams.emphasizeBaselineAxis),
     showLegend: parseBoolean(defaultSettings.showLegend, urlParams.showLegend),
     showLegendTitle: parseBoolean(defaultSettings.showLegendTitle, urlParams.showLegendTitle),
+    showLegendTooltip: parseBoolean(defaultSettings.showLegendTooltip, urlParams.showLegendTooltip),
+    showLegendTooltipAction: parseBoolean(defaultSettings.showLegendTooltipAction, urlParams.showLegendTooltipAction),
     useFallback: parseBoolean(defaultSettings.useFallback, urlParams.useFallback),
   } as PageSettings as SettingsType;
   const setSettings = (partial: Partial<SettingsType>) => {
@@ -133,7 +137,13 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
         enabled: settings.showLegend,
         title: settings.showLegendTitle ? "Legend title" : undefined,
         tooltip: settings.showLegendTooltip
-          ? { render: (itemId) => ({ header: itemId, body: "Item details" }) }
+          ? {
+              render: (itemId) => ({
+                header: itemId,
+                body: "Item details",
+                footer: settings.showLegendTooltipAction ? <Button>Legend tooltip action</Button> : null,
+              }),
+            }
           : undefined,
       },
       emphasizeBaselineAxis: settings.emphasizeBaselineAxis,
@@ -301,6 +311,15 @@ export function PageSettingsForm({
                   onChange={({ detail }) => setSettings({ showLegendTooltip: detail.checked })}
                 >
                   Show legend tooltip
+                </Checkbox>
+              );
+            case "showLegendTooltipAction":
+              return (
+                <Checkbox
+                  checked={settings.showLegendTooltipAction}
+                  onChange={({ detail }) => setSettings({ showLegendTooltipAction: detail.checked })}
+                >
+                  Show legend tooltip action
                 </Checkbox>
               );
             case "useFallback":
