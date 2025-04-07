@@ -128,6 +128,7 @@ interface MigrationDemoExample {
 
 export function MigrationDemo({ examples }: { examples: MigrationDemoExample[] }) {
   const { urlParams } = useContext(AppContext);
+
   return (
     <SpaceBetween size="s">
       {examples.map((example, index) => {
@@ -148,7 +149,13 @@ export function MigrationDemo({ examples }: { examples: MigrationDemoExample[] }
             <ColumnLayout columns={2}>
               <ChartFrame height={containerHeightOld ?? 400} annotation="Old">
                 {!urlParams.screenshotMode ? (
-                  example.old
+                  example.old === "CW" ? (
+                    <div className={styles["old-chart-placeholder"]}>
+                      <Box color="text-body-secondary">Legacy CloudWatch examples are not supported</Box>
+                    </div>
+                  ) : (
+                    example.old
+                  )
                 ) : (
                   <div className={styles["old-chart-placeholder"]}>
                     <Box color="text-body-secondary">Legacy chart example is hidden in screenshot mode</Box>

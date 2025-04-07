@@ -1,9 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import Box from "@cloudscape-design/components/box";
+import Button from "@cloudscape-design/components/button";
 import LineChart, { LineChartProps } from "@cloudscape-design/components/line-chart";
+import StatusIndicator from "@cloudscape-design/components/status-indicator";
 
-import { CartesianChart, CartesianChartProps } from "../../../lib/components";
+import { CartesianChartProps } from "../../../lib/components";
+import { InternalCartesianChart } from "../../../lib/components/cartesian-chart/chart-cartesian-internal";
 import { dateFormatter } from "../../common/formatters";
 import { usePageSettings } from "../../common/page-settings";
 
@@ -89,23 +93,58 @@ const seriesOld: LineChartProps<Date>["series"] = [
   },
 ];
 
-export function ComponentNew() {
+export function ComponentNew({ cwLegend }: { cwLegend?: boolean }) {
   const { chartProps } = usePageSettings();
   return (
-    <CartesianChart
+    <InternalCartesianChart
       {...chartProps}
       fitHeight={true}
       chartMinHeight={200}
-      ariaLabel="Line chart"
-      series={seriesNew}
-      xAxis={{
-        type: "datetime",
-        title: "Time (UTC)",
-        min: domain[0].getTime(),
-        max: domain[domain.length - 1].getTime(),
-        valueFormatter: dateFormatter,
+      options={{
+        lang: { accessibility: { chartContainerLabel: "Line chart" } },
+        series: seriesNew,
+        xAxis: [
+          {
+            type: "datetime",
+            title: "Time (UTC)",
+            min: domain[0].getTime(),
+            max: domain[domain.length - 1].getTime(),
+            valueFormatter: dateFormatter,
+          },
+        ],
+        yAxis: [{ title: "Bytes transferred", min: 0, max: 500000 }],
+        plotOptions: { series: { marker: { enabled: false } } },
       }}
-      yAxis={{ title: "Bytes transferred", min: 0, max: 500000 }}
+      series={{
+        getItemStatus: cwLegend ? (itemId) => (itemId === "Site 2" ? "warning" : "normal") : undefined,
+      }}
+      legend={{
+        tooltip: cwLegend
+          ? {
+              render: (itemId) => ({
+                header:
+                  itemId === "Site 2" ? (
+                    <StatusIndicator type="warning">
+                      <Box fontWeight="bold" color="inherit" variant="span">
+                        {itemId}
+                      </Box>
+                    </StatusIndicator>
+                  ) : (
+                    itemId
+                  ),
+                body: "Tooltip content",
+                footer: (
+                  <>
+                    <hr />
+                    <div>
+                      Tooltip footer with <Button variant="inline-link">action</Button>
+                    </div>
+                  </>
+                ),
+              }),
+            }
+          : undefined,
+      }}
     />
   );
 }
