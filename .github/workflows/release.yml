@@ -14,7 +14,12 @@ permissions:
 
 jobs:
   release:
-    uses: cloudscape-design/actions/.github/workflows/release.yml@main
-    secrets: inherit
-    with:
-      publish-packages: lib/components,lib/components-themeable
+    runs-on: ubuntu-latest
+    steps:
+      - name: No release
+        run: echo "Skipped release"
+#   release:
+#     uses: cloudscape-design/actions/.github/workflows/release.yml@main
+#     secrets: inherit
+#     with:
+#       publish-packages: lib/components,lib/components-themeable
