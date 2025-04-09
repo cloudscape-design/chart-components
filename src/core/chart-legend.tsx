@@ -23,14 +23,14 @@ export function useLegend(
   getChart: () => CloudscapeChartAPI,
   legendProps?: CoreLegendProps & {
     getItemStatus?: (itemId: string) => ChartSeriesMarkerStatus;
-    onLegendItemToggle?: (seriesOrItemId: string, visible: boolean) => void;
+    onItemVisibilityChange?: (hiddenItems: string[]) => void;
   },
 ) {
   const legendStore = useRef(new LegendStore(getChart)).current;
-  legendStore.onLegendItemToggle = legendProps?.onLegendItemToggle;
+  legendStore.onItemVisibilityChangeCb = legendProps?.onItemVisibilityChange;
 
   const onChartRender = legendStore.onChartRender;
-  const onItemToggle = legendStore.onItemToggle;
+  const onItemVisibilityChange = legendStore.onItemVisibilityChange;
   const onItemHighlightEnter = legendStore.onItemHighlightEnter;
   const onItemHighlightExit = legendStore.onItemHighlightExit;
 
@@ -39,7 +39,7 @@ export function useLegend(
     props: {
       legendStore,
       ...legendProps,
-      onItemToggle,
+      onItemVisibilityChange,
       onItemHighlightEnter,
       onItemHighlightExit,
     },
@@ -52,12 +52,14 @@ export function ChartLegend({
   align,
   title,
   tooltip,
-  onItemToggle,
+  variant,
+  showFilter,
+  onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
 }: CoreLegendProps & {
   legendStore: LegendStore;
-  onItemToggle: (itemId: string) => void;
+  onItemVisibilityChange: (visibleItems: string[]) => void;
   onItemHighlightEnter: (itemId: string) => void;
   onItemHighlightExit: () => void;
 }) {
@@ -76,7 +78,9 @@ export function ChartLegend({
         }))}
         align={align}
         tooltip={tooltip}
-        onItemToggle={onItemToggle}
+        variant={variant}
+        showFilter={showFilter}
+        onItemVisibilityChange={onItemVisibilityChange}
         onItemHighlightEnter={onItemHighlightEnter}
         onItemHighlightExit={onItemHighlightExit}
       />
@@ -86,7 +90,7 @@ export function ChartLegend({
 
 class LegendStore extends AsyncStore<{ legendItems: LegendItemProps[] }> {
   private getAPI: () => CloudscapeChartAPI;
-  public onLegendItemToggle?: (seriesOrItemId: string, visible: boolean) => void;
+  public onItemVisibilityChangeCb?: (hiddenItems: string[]) => void;
 
   constructor(getAPI: () => CloudscapeChartAPI) {
     super({ legendItems: [] });
@@ -145,17 +149,8 @@ class LegendStore extends AsyncStore<{ legendItems: LegendItemProps[] }> {
     });
   };
 
-  public onItemToggle = (itemId: string) => {
-    for (const s of this.api.chart.series) {
-      if (getSeriesId(s) === itemId) {
-        this.onLegendItemToggle?.(getSeriesId(s), !s.visible);
-      }
-      for (const p of s.data) {
-        if (getPointId(p) === itemId) {
-          this.onLegendItemToggle?.(getPointId(p), !p.visible);
-        }
-      }
-    }
+  public onItemVisibilityChange = (hiddenItems: string[]) => {
+    this.onItemVisibilityChangeCb?.(hiddenItems);
     const legendItems = this.computeLegendItems();
     if (!isEqualArrays(legendItems, this.get().legendItems, isEqualLegendItems)) {
       this.set(() => ({ legendItems }));

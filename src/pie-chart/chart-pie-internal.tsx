@@ -211,12 +211,9 @@ export const InternalPieChart = forwardRef(
         noData={props.noData}
         legend={props.legend ? { align: "center", ...props.legend } : undefined}
         hiddenItems={hiddenSegments}
-        onLegendItemToggle={(segmentId, visible) => {
-          const nextState = visible
-            ? [...visibleSegments, segmentId]
-            : visibleSegments.filter((id) => id !== segmentId);
-          setVisibleSegments(nextState);
-          return false;
+        onItemVisibilityChange={(hiddenSegments) => {
+          const nextVisibleSegments = allSegmentIds.filter((id) => !hiddenSegments.includes(id));
+          setVisibleSegments(nextVisibleSegments);
         }}
         className={testClasses.root}
         callback={(chart) => {

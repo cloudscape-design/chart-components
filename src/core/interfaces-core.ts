@@ -59,7 +59,7 @@ export interface CloudscapeHighchartsProps
   /**
    * A callback triggered when clicking on a legend item.
    */
-  onLegendItemToggle?: (seriesOrItemId: string, visible: boolean) => void;
+  onItemVisibilityChange?: (hiddenItems: string[]) => void;
   /**
    * An object that contains all of the localized strings required by the component.
    * @i18n
@@ -83,6 +83,8 @@ export interface CoreTooltipProps extends BaseTooltipProps {
 }
 
 export interface CoreLegendProps extends BaseLegendProps {
+  variant?: "single-target" | "dual-target" | "dual-target-inverse";
+  showFilter?: boolean;
   getItemStatus?: (seriesOrItemId: string) => ChartSeriesMarkerStatus;
 }
 
