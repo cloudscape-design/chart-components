@@ -13,8 +13,9 @@ import {
   useSingleTabStopNavigation,
 } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
+import { InternalChartFilter } from "@cloudscape-design/components/internal/do-not-use/chart-filter";
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
-import { colorTextInteractiveDisabled } from "@cloudscape-design/design-tokens";
+import { colorBorderDividerDefault, colorTextInteractiveDisabled } from "@cloudscape-design/design-tokens";
 
 import { useMergeRefs } from "../../utils/use-merge-refs";
 import { DebouncedCall } from "../../utils/utils";
@@ -44,9 +45,11 @@ export interface ChartLegendProps {
       footer?: React.ReactNode;
     };
   };
+  variant?: "single-target" | "dual-target" | "dual-target-inverse";
+  showFilter?: boolean;
   onItemHighlightEnter?: (itemId: string) => void;
   onItemHighlightExit?: () => void;
-  onItemToggle?: (itemId: string) => void;
+  onItemVisibilityChange?: (hiddenItems: string[]) => void;
 }
 
 export default memo(ChartLegend) as typeof ChartLegend;
@@ -57,7 +60,9 @@ function ChartLegend({
   legendTitle,
   ariaLabel,
   tooltip,
-  onItemToggle,
+  variant,
+  showFilter,
+  onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
 }: ChartLegendProps) {
@@ -142,6 +147,23 @@ function ChartLegend({
     navigationAPI.current?.updateFocusTarget();
   });
 
+  const createPrimaryClickHandler = (itemId: string) => () => {
+    const hiddenItems = items.filter((i) => !i.active).map((i) => i.id);
+    if (hiddenItems.includes(itemId)) {
+      onItemVisibilityChange?.(hiddenItems.filter((id) => id !== itemId));
+    } else {
+      onItemVisibilityChange?.([...hiddenItems, itemId]);
+    }
+  };
+  const createSecondaryClickHandler = (itemId: string) => () => {
+    const visibleItems = items.filter((i) => i.active).map((i) => i.id);
+    if (visibleItems.length === 1 && visibleItems[0] === itemId) {
+      onItemVisibilityChange?.([]);
+    } else {
+      onItemVisibilityChange?.(items.map((i) => i.id).filter((id) => id !== itemId));
+    }
+  };
+
   return (
     <SingleTabStopNavigationProvider
       ref={navigationAPI}
@@ -162,6 +184,24 @@ function ChartLegend({
         )}
 
         <div className={clsx(styles.list, styles[`list-align-${align}`])}>
+          {showFilter && (
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <InternalChartFilter
+                series={items.map((item) => ({
+                  label: item.name,
+                  color: item.color,
+                  type: "rectangle",
+                  datum: item.id,
+                }))}
+                selectedSeries={items.filter((item) => item.active).map((item) => item.id)}
+                onChange={(selectedSeries) =>
+                  onItemVisibilityChange?.(items.map((item) => item.id).filter((id) => !selectedSeries.includes(id)))
+                }
+              />
+              <div style={{ background: colorBorderDividerDefault, width: 1, height: "80%" }} />
+            </div>
+          )}
+
           {items.map((item, index) => {
             const handlers = {
               onMouseEnter: () => {
@@ -197,7 +237,18 @@ function ChartLegend({
                 key={index}
                 {...handlers}
                 ref={thisTriggerRef}
-                onClick={() => onItemToggle?.(item.id)}
+                onClick={
+                  variant === "single-target" || variant === "dual-target"
+                    ? createPrimaryClickHandler(item.id)
+                    : createSecondaryClickHandler(item.id)
+                }
+                onSecondaryClick={
+                  variant === "dual-target"
+                    ? createSecondaryClickHandler(item.id)
+                    : variant === "dual-target-inverse"
+                      ? createPrimaryClickHandler(item.id)
+                      : undefined
+                }
                 itemId={item.id}
                 label={item.name}
                 color={item.color}
@@ -210,21 +261,23 @@ function ChartLegend({
         </div>
 
         {tooltipContent && tooltipItem && (
-          <InternalChartTooltip
-            key={tooltipItem}
-            trackKey={tooltipItem}
-            getTrack={() => segmentsRef.current[tooltipItemIndex]}
-            onDismiss={() => {}}
-            onMouseEnter={() => showTooltip(tooltipItem)}
-            onMouseLeave={() => hideTooltip()}
-            container={null}
-            dismissButton={false}
-            title={tooltipContent.header}
-            footer={tooltipContent.footer}
-            position="top"
-          >
-            {tooltipContent.body}
-          </InternalChartTooltip>
+          <div onFocus={() => showTooltip(tooltipItem)}>
+            <InternalChartTooltip
+              key={tooltipItem}
+              trackKey={tooltipItem}
+              getTrack={() => segmentsRef.current[tooltipItemIndex]}
+              onDismiss={() => {}}
+              onMouseEnter={() => showTooltip(tooltipItem)}
+              onMouseLeave={() => hideTooltip()}
+              container={null}
+              dismissButton={false}
+              title={tooltipContent.header}
+              footer={tooltipContent.footer}
+              position="top"
+            >
+              {tooltipContent.body}
+            </InternalChartTooltip>
+          </div>
         )}
       </div>
     </SingleTabStopNavigationProvider>
@@ -241,6 +294,7 @@ const LegendItemTrigger = forwardRef(
       status = "normal",
       active,
       onClick,
+      onSecondaryClick,
       ariaExpanded,
       triggerRef,
       onMouseEnter,
@@ -256,6 +310,7 @@ const LegendItemTrigger = forwardRef(
       status?: ChartSeriesMarkerStatus;
       active: boolean;
       onClick: () => void;
+      onSecondaryClick?: () => void;
       onMarkerClick?: () => void;
       ariaExpanded?: boolean;
       triggerRef?: Ref<HTMLElement>;
@@ -271,31 +326,41 @@ const LegendItemTrigger = forwardRef(
     const mergedRef = useMergeRefs(ref, triggerRef, refObject);
     const { tabIndex } = useSingleTabStopNavigation(refObject);
     return (
-      <button
-        data-itemid={itemId}
-        aria-haspopup={typeof ariaExpanded === "boolean"}
-        aria-expanded={ariaExpanded}
-        className={clsx(
-          testClasses.item,
-          styles.marker,
-          {
-            [styles["marker--dimmed"]]: !active,
-            [testClasses["hidden-item"]]: !active,
-          },
-          testClasses[`item-status-${status}`],
-        )}
-        ref={mergedRef}
-        tabIndex={tabIndex}
-        onClick={onClick}
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
-        onFocus={onFocus}
-        onBlur={onBlur}
-        onKeyDown={onKeyDown}
-      >
-        <ChartSeriesMarker color={active ? color : colorTextInteractiveDisabled} type={type} status={status} />
-        <span>{label}</span>
-      </button>
+      <span style={{ display: "flex", gap: 8, alignItems: "center", cursor: "pointer" }}>
+        {onSecondaryClick ? (
+          <span role="button" onClick={onSecondaryClick}>
+            <ChartSeriesMarker color={active ? color : colorTextInteractiveDisabled} type={type} status={status} />
+          </span>
+        ) : null}
+
+        <button
+          data-itemid={itemId}
+          aria-haspopup={typeof ariaExpanded === "boolean"}
+          aria-expanded={ariaExpanded}
+          className={clsx(
+            testClasses.item,
+            styles.marker,
+            {
+              [styles["marker--dimmed"]]: !active,
+              [testClasses["hidden-item"]]: !active,
+            },
+            testClasses[`item-status-${status}`],
+          )}
+          ref={mergedRef}
+          tabIndex={tabIndex}
+          onClick={onClick}
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          onKeyDown={onKeyDown}
+        >
+          {onSecondaryClick ? null : (
+            <ChartSeriesMarker color={active ? color : colorTextInteractiveDisabled} type={type} status={status} />
+          )}
+          <span>{label}</span>
+        </button>
+      </span>
     );
   },
 );
