@@ -13,8 +13,7 @@ import pseudoRandom from "../utils/pseudo-random";
 export default function () {
   return (
     <Page
-      title="More charts"
-      subtitle="This pages demonstrates different chart types that Cloudscape can support."
+      title="Scatter chart"
       settings={
         <PageSettingsForm
           selectedSettings={[
@@ -30,7 +29,7 @@ export default function () {
         />
       }
     >
-      <PageSection title="Simple scatter chart">
+      <PageSection>
         <ExampleScatterSimple />
       </PageSection>
     </Page>

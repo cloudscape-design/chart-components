@@ -38,7 +38,7 @@ export function CloudscapeHighcharts({
   fallback = <Spinner />,
   callback,
   hiddenItems,
-  onLegendItemToggle,
+  onItemVisibilityChange,
   i18nStrings,
   className,
   ...rest
@@ -62,7 +62,7 @@ export function CloudscapeHighcharts({
 
   // Provides custom legend, when `props.legend` is present.
   const isLegendEnabled = legendProps?.enabled !== false;
-  const legend = useLegend(getAPI, { ...legendProps, onLegendItemToggle });
+  const legend = useLegend(getAPI, { ...legendProps, onItemVisibilityChange });
 
   // Provides empty, no-match, loading, and error states handling, when `props.noData` is present.
   const noData = useNoData(getAPI, noDataProps);

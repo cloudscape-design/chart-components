@@ -34,7 +34,10 @@ interface InternalCartesianChartProps {
   emphasizeBaselineAxis?: boolean;
   visibleSeries?: string[];
   onToggleVisibleSeries?: NonCancelableEventHandler<{ visibleSeries: string[] }>;
-  legend?: CoreLegendProps;
+  legend?: CoreLegendProps & {
+    variant?: "single-target" | "dual-target" | "dual-target-inverse";
+    showFilter?: boolean;
+  };
 }
 
 /**
@@ -207,9 +210,9 @@ export const InternalCartesianChart = forwardRef(
           props.legend ? { align: "start", ...props.legend, getItemStatus: props.series?.getItemStatus } : undefined
         }
         hiddenItems={hiddenSeries}
-        onLegendItemToggle={(seriesId, visible) => {
-          const nextState = visible ? [...visibleSeries, seriesId] : visibleSeries.filter((id) => id !== seriesId);
-          setVisibleSeries(nextState);
+        onItemVisibilityChange={(hiddenSeries) => {
+          const nextVisibleSeries = allSeriesIds.filter((id) => !hiddenSeries.includes(id));
+          setVisibleSeries(nextVisibleSeries);
         }}
         className={testClasses.root}
         callback={(chart) => {
