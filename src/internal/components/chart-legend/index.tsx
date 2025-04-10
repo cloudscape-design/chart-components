@@ -60,7 +60,7 @@ function ChartLegend({
   legendTitle,
   ariaLabel,
   tooltip,
-  variant,
+  variant = "single-target",
   showFilter,
   onItemVisibilityChange,
   onItemHighlightEnter,
