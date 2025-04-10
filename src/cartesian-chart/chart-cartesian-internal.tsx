@@ -21,7 +21,7 @@ import { getDataExtremes } from "./utils";
 import testClasses from "./test-classes/styles.css.js";
 
 interface InternalCartesianChartProps {
-  highcharts: null | typeof Highcharts;
+  highcharts: null | object;
   options: InternalCartesianChartOptions;
   fitHeight?: boolean;
   chartMinHeight?: number;
@@ -45,7 +45,8 @@ interface InternalCartesianChartProps {
  * adds threshold series and emphasized baseline.
  */
 export const InternalCartesianChart = forwardRef(
-  ({ highcharts, ...props }: InternalCartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
+  (props: InternalCartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
+    const highcharts = props.highcharts as null | typeof Highcharts;
     const apiRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
     const getAPI = () => {
       /* c8 ignore next */

@@ -251,7 +251,7 @@ export function CloudscapeHighcharts({
               callback={(chart: Highcharts.Chart) => {
                 apiRef.current = {
                   chart,
-                  highcharts,
+                  highcharts: highcharts as typeof Highcharts,
                   showTooltipOnPoint: (point) => tooltip.api.showTooltipOnPoint(point),
                   hideTooltip: () => tooltip.api.hideTooltip(),
                 };
