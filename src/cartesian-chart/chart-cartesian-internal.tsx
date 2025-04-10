@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { forwardRef, useImperativeHandle, useRef } from "react";
+import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
 import type Highcharts from "highcharts";
 
 import { useControllableState } from "@cloudscape-design/component-toolkit";
@@ -48,13 +48,13 @@ export const InternalCartesianChart = forwardRef(
   (props: InternalCartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
     const highcharts = props.highcharts as null | typeof Highcharts;
     const apiRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
-    const getAPI = () => {
+    const getAPI = useCallback(() => {
       /* c8 ignore next */
       if (!apiRef.current) {
         throw new Error("Invariant violation: chart instance is not available.");
       }
       return apiRef.current;
-    };
+    }, []);
 
     // Obtaining tooltip content, specific for cartesian charts.
     // By default, it renders a list of series under the cursor, and allows to extend and override its contents.
@@ -77,10 +77,7 @@ export const InternalCartesianChart = forwardRef(
     const visibleSeries = visibleSeriesState ?? allSeriesIds;
     const hiddenSeries = allSeriesIds.filter((id) => !visibleSeries.includes(id));
 
-    const { series, xPlotLines, yPlotLines } = useCartesianSeries(props.options, {
-      visibleSeries,
-      emphasizeBaselineAxis: props.emphasizeBaselineAxis,
-    });
+    const { series, xPlotLines, yPlotLines, onChartRender } = useCartesianSeries(getAPI, { ...props, visibleSeries });
 
     useImperativeHandle(ref, () => ({
       // The clear filter API allows to programmatically make all series visible, even when the controllable
@@ -105,6 +102,7 @@ export const InternalCartesianChart = forwardRef(
             if (highcharts && event.target instanceof highcharts.Chart) {
               (event.target as any).colorCounter = series.length;
             }
+            onChartRender?.call(this, event);
             options.chart?.events?.render?.call(this, event);
           },
         },
