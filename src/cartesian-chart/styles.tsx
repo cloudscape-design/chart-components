@@ -7,6 +7,7 @@ import { colorChartsLineTick, colorChartsThresholdNeutral } from "@cloudscape-de
 
 export const thresholdSeriesOptions: Partial<Highcharts.SeriesLineOptions> = {
   dashStyle: "ShortDash",
+  lineWidth: 0,
 };
 
 export const thresholdSeriesDefaultColor = colorChartsThresholdNeutral;
