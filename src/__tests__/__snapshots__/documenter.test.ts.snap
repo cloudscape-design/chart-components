@@ -2,13 +2,22 @@
 
 exports[`definition for cartesian-chart matches the snapshot > cartesian-chart 1`] = `
 {
-  "description": "CartesianChart is a public Cloudscape component. It features a custom API, which resembles the Highcharts API where appropriate,
-and adds extra features such as additional series types (thresholds), alternative tooltip, no-data, and more.",
   "events": [
     {
       "cancelable": false,
       "description": "A callback, executed when series visibility is toggled by clicking on legend items.",
-      "detailType": "unknown",
+      "detailInlineType": {
+        "name": "{ visibleSeries: Array<string>; }",
+        "properties": [
+          {
+            "name": "visibleSeries",
+            "optional": false,
+            "type": "Array<string>",
+          },
+        ],
+        "type": "object",
+      },
+      "detailType": "{ visibleSeries: Array<string>; }",
       "name": "onToggleVisibleSeries",
     },
   ],
@@ -83,7 +92,7 @@ Supported Highcharts versions:
 * \`v12\`",
       "name": "highcharts",
       "optional": false,
-      "type": "null | query",
+      "type": "object | null",
     },
     {
       "description": "Inverts X and Y axes. Use it to show horizontal columns (bars).
@@ -100,12 +109,12 @@ This property corresponds to [chart.inverted](https://api.highcharts.com/highcha
           {
             "name": "align",
             "optional": true,
-            "type": ""center" | "start"",
+            "type": ""start" | "center"",
           },
           {
             "name": "enabled",
             "optional": true,
-            "type": "false | true",
+            "type": "boolean",
           },
           {
             "name": "title",
@@ -115,7 +124,7 @@ This property corresponds to [chart.inverted](https://api.highcharts.com/highcha
           {
             "name": "tooltip",
             "optional": true,
-            "type": "unknown",
+            "type": "{ render: (itemId: string) => { header: React.ReactNode; body: React.ReactNode; footer?: React.ReactNode; }; }",
           },
         ],
         "type": "object",
@@ -153,12 +162,12 @@ This property requires the \`no-data-to-display\` module.",
           {
             "name": "onRecoveryClick",
             "optional": true,
-            "type": "NonCancelableEventHandler",
+            "type": "NonCancelableEventHandler<{}>",
           },
           {
             "name": "statusType",
             "optional": true,
-            "type": ""error" | "finished" | "loading"",
+            "type": ""finished" | "loading" | "error"",
           },
         ],
         "type": "object",
@@ -170,17 +179,29 @@ This property requires the \`no-data-to-display\` module.",
     {
       "description": "Chart plot options.
 This property corresponds to [plotOptions](https://api.highcharts.com/highcharts/plotOptions).
+
 Supported settings:
 * \`series\` - Series options that apply to all series at once.
-* * \`stacking\` (optional, 'normal') - Specifies series stacking behavior. Use it for stacked columns and areas.
-",
+* * \`stacking\` (optional, 'normal') - Specifies series stacking behavior. Use it for stacked columns and areas.",
+      "inlineType": {
+        "name": "{ series?: { stacking?: "normal" | undefined; } | undefined; }",
+        "properties": [
+          {
+            "name": "series",
+            "optional": true,
+            "type": "{ stacking?: "normal" | undefined; }",
+          },
+        ],
+        "type": "object",
+      },
       "name": "plotOptions",
       "optional": true,
-      "type": "unknown",
+      "type": "{ series?: { stacking?: "normal" | undefined; } | undefined; }",
     },
     {
       "description": "Chart series and data.
 This property corresponds to [series](https://api.highcharts.com/highcharts/series).
+
 Supported series types:
 * [area](https://api.highcharts.com/highcharts/series.area).
 * [areaspline](https://api.highcharts.com/highcharts/series.areaspline).
@@ -190,53 +211,52 @@ Supported series types:
 * [scatter](https://api.highcharts.com/highcharts/series.scatter).
 * [spline](https://api.highcharts.com/highcharts/series.spline).
 * awsui-x-threshold - The line-like series to represent x-axis threshold (vertical, when \`inverted=false\`).
-* awsui-y-threshold - The line-like series to represent y-axis threshold (horizontal, when \`inverted=false\`).
-",
+* awsui-y-threshold - The line-like series to represent y-axis threshold (horizontal, when \`inverted=false\`).",
       "name": "series",
       "optional": false,
       "type": "Array<CartesianChartProps.Series>",
     },
     {
       "description": "Chart tooltip that replaces [tooltip](https://api.highcharts.com/highcharts/tooltip).
+
 Supported properties:
 * \`title\` - (optional, function) - Use it to provide a custom tooltip title.
 * \`content\` - (optional, function) - Use it to provide a custom tooltip content.
 * \`footer\` - (optional, function) - Use it to add a tooltip footer.
 * \`series\` - (optional, function) - Use it to extend the default series list, in order to use custom value formatting,
-inject links, or add expandable items.
-",
+inject links, or add expandable items.",
       "inlineType": {
         "name": "CartesianChartProps.TooltipProps",
         "properties": [
           {
             "name": "body",
             "optional": true,
-            "type": "(detail: CartesianChartProps.TooltipDetails) => React.ReactNode",
+            "type": "((detail: CartesianChartProps.TooltipDetails) => React.ReactNode)",
           },
           {
             "name": "footer",
             "optional": true,
-            "type": "(detail: CartesianChartProps.TooltipDetails) => React.ReactNode",
+            "type": "((detail: CartesianChartProps.TooltipDetails) => React.ReactNode)",
           },
           {
             "name": "header",
             "optional": true,
-            "type": "(detail: CartesianChartProps.TooltipDetails) => React.ReactNode",
+            "type": "((detail: CartesianChartProps.TooltipDetails) => React.ReactNode)",
           },
           {
             "name": "placement",
             "optional": true,
-            "type": ""bottom" | "target"",
+            "type": ""target" | "bottom"",
           },
           {
             "name": "series",
             "optional": true,
-            "type": "(detail: CartesianChartProps.TooltipSeriesDetailItem) => CartesianChartProps.TooltipSeriesFormatted",
+            "type": "((detail: CartesianChartProps.TooltipSeriesDetailItem) => CartesianChartProps.TooltipSeriesFormatted)",
           },
           {
             "name": "size",
             "optional": true,
-            "type": ""large" | "medium" | "small"",
+            "type": ""small" | "medium" | "large"",
           },
         ],
         "type": "object",
@@ -255,6 +275,7 @@ When the property is provided, use \`onToggleVisibleSeries\` to update it when t
     },
     {
       "description": "X-axis options that extend [xAxis](https://api.highcharts.com/highcharts/xAxis).
+
 Supported properties (Highcharts):
 * \`title\` (optional, string) - The axis title.
 * \`type\` (optional, 'linear' | 'datetime' | 'category' | 'logarithmic') - The axis type.
@@ -269,8 +290,7 @@ Supported properties (Highcharts):
 Additional properties (Cloudscape):
 * \`valueFormatter\` (optional, function) - Takes axis tick as input and returns a formatted string. This formatter also
 applies to the tooltip header.
-* \`valueDecimals\` (optional, number) - The number of decimal digits the axis values have, defaults to 2.
-",
+* \`valueDecimals\` (optional, number) - The number of decimal digits the axis values have, defaults to 2.",
       "inlineType": {
         "name": "CartesianChartProps.AxisProps",
         "properties": [
@@ -312,7 +332,7 @@ applies to the tooltip header.
           {
             "name": "valueFormatter",
             "optional": true,
-            "type": "(value: number) => string",
+            "type": "((value: number) => string)",
           },
         ],
         "type": "object",
@@ -323,6 +343,7 @@ applies to the tooltip header.
     },
     {
       "description": "Y-axis options that extend [xAxis](https://api.highcharts.com/highcharts/yAxis).
+
 Supported properties (Highcharts):
 * \`title\` (optional, string) - The axis title.
 * \`type\` (optional, 'linear' | 'datetime' | 'category' | 'logarithmic') - The axis type.
@@ -338,8 +359,7 @@ Supported properties (Highcharts):
 Additional properties (Cloudscape):
 * \`valueFormatter\` (optional, function) - Takes axis tick as input and returns a formatted string. This formatter also
 applies to the tooltip header.
-* \`valueDecimals\` (optional, number) - The number of decimal digits the axis values have, defaults to 2.
-",
+* \`valueDecimals\` (optional, number) - The number of decimal digits the axis values have, defaults to 2.",
       "inlineType": {
         "name": "CartesianChartProps.AxisProps",
         "properties": [
@@ -381,7 +401,7 @@ applies to the tooltip header.
           {
             "name": "valueFormatter",
             "optional": true,
-            "type": "(value: number) => string",
+            "type": "((value: number) => string)",
           },
         ],
         "type": "object",
@@ -398,13 +418,22 @@ applies to the tooltip header.
 
 exports[`definition for pie-chart matches the snapshot > pie-chart 1`] = `
 {
-  "description": "PieChart is a public Cloudscape component. It features a custom API, which resembles the Highcharts API where appropriate,
-and adds extra features such as inner title and description, alternative tooltip, no-data, and more.",
   "events": [
     {
       "cancelable": false,
       "description": "A callback, executed when segments visibility is toggled by clicking on legend items.",
-      "detailType": "unknown",
+      "detailInlineType": {
+        "name": "{ visibleSegments: Array<string>; }",
+        "properties": [
+          {
+            "name": "visibleSegments",
+            "optional": false,
+            "type": "Array<string>",
+          },
+        ],
+        "type": "object",
+      },
+      "detailType": "{ visibleSegments: Array<string>; }",
       "name": "onChangeVisibleSegments",
     },
   ],
@@ -473,7 +502,7 @@ Supported Highcharts versions:
 * \`v12\`",
       "name": "highcharts",
       "optional": false,
-      "type": "null | query",
+      "type": "object | null",
     },
     {
       "description": "Inner description of the donut chart.",
@@ -495,12 +524,12 @@ Supported Highcharts versions:
           {
             "name": "align",
             "optional": true,
-            "type": ""center" | "start"",
+            "type": ""start" | "center"",
           },
           {
             "name": "enabled",
             "optional": true,
-            "type": "false | true",
+            "type": "boolean",
           },
           {
             "name": "title",
@@ -510,7 +539,7 @@ Supported Highcharts versions:
           {
             "name": "tooltip",
             "optional": true,
-            "type": "unknown",
+            "type": "{ render: (itemId: string) => { header: React.ReactNode; body: React.ReactNode; footer?: React.ReactNode; }; }",
           },
         ],
         "type": "object",
@@ -548,12 +577,12 @@ This property requires the \`no-data-to-display\` module.",
           {
             "name": "onRecoveryClick",
             "optional": true,
-            "type": "NonCancelableEventHandler",
+            "type": "NonCancelableEventHandler<{}>",
           },
           {
             "name": "statusType",
             "optional": true,
-            "type": ""error" | "finished" | "loading"",
+            "type": ""finished" | "loading" | "error"",
           },
         ],
         "type": "object",
@@ -587,53 +616,61 @@ This property requires the \`no-data-to-display\` module.",
     {
       "description": "Chart series and data.
 This property corresponds to [series](https://api.highcharts.com/highcharts/series).
+
 Supported series types:
 * [pie](https://api.highcharts.com/highcharts/series.pie).
-* donut - the pie series with predefined inner radius.
-",
+* donut - the pie series with predefined inner radius.",
+      "inlineType": {
+        "name": "PieChartProps.Series",
+        "type": "union",
+        "values": [
+          "PieSeries",
+          "DonutSeries",
+        ],
+      },
       "name": "series",
       "optional": false,
-      "type": "PieChartProps.Series | null",
+      "type": "PieChartProps.Series",
     },
     {
       "description": "Chart tooltip that replaces [tooltip](https://api.highcharts.com/highcharts/tooltip).
+
 Supported properties:
 * \`title\` - (optional, function) - Use it to provide a custom tooltip title.
 * \`content\` - (optional, function) - Use it to provide a custom tooltip content.
-* \`footer\` - (optional, function) - Use it to add a tooltip footer.
-",
+* \`footer\` - (optional, function) - Use it to add a tooltip footer.",
       "inlineType": {
         "name": "PieChartProps.TooltipProps",
         "properties": [
           {
             "name": "body",
             "optional": true,
-            "type": "(detail: PieChartProps.TooltipDetails) => React.ReactNode",
+            "type": "((detail: PieChartProps.TooltipDetails) => React.ReactNode)",
           },
           {
             "name": "enabled",
             "optional": true,
-            "type": "false | true",
+            "type": "boolean",
           },
           {
             "name": "footer",
             "optional": true,
-            "type": "(detail: PieChartProps.TooltipDetails) => React.ReactNode",
+            "type": "((detail: PieChartProps.TooltipDetails) => React.ReactNode)",
           },
           {
             "name": "placement",
             "optional": true,
-            "type": ""bottom" | "target"",
+            "type": ""target" | "bottom"",
           },
           {
             "name": "size",
             "optional": true,
-            "type": ""large" | "medium" | "small"",
+            "type": ""small" | "medium" | "large"",
           },
           {
             "name": "title",
             "optional": true,
-            "type": "(detail: PieChartProps.TooltipDetails) => React.ReactNode",
+            "type": "((detail: PieChartProps.TooltipDetails) => React.ReactNode)",
           },
         ],
         "type": "object",

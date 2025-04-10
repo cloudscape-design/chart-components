@@ -24,13 +24,13 @@ function getVisibilityState() {
   };
 }
 
-const onLegendItemToggle = vi.fn();
+const onItemVisibilityChange = vi.fn();
 
 afterEach(() => {
-  onLegendItemToggle.mockReset();
+  onItemVisibilityChange.mockReset();
 });
 
-const defaultProps = { highcharts, onLegendItemToggle };
+const defaultProps = { highcharts, onItemVisibilityChange };
 
 const lineSeries: Highcharts.SeriesOptionsType[] = [
   {
@@ -105,7 +105,7 @@ describe("CloudscapeHighcharts: visibility", () => {
       hiddenPoints: [],
     });
 
-    expect(onLegendItemToggle).toHaveBeenCalledWith("L1", false);
+    expect(onItemVisibilityChange).toHaveBeenCalledWith(["L1"]);
   });
 
   test("changes series visibility from the outside", () => {
@@ -177,11 +177,11 @@ describe("CloudscapeHighcharts: visibility", () => {
 
     wrapper.findLegend()!.findItems()[0].click();
 
-    expect(onLegendItemToggle).toHaveBeenCalledWith("1", true);
+    expect(onItemVisibilityChange).toHaveBeenCalledWith([]);
 
     wrapper.findLegend()!.findItems()[1].click();
 
-    expect(onLegendItemToggle).toHaveBeenCalledWith("2", false);
+    expect(onItemVisibilityChange).toHaveBeenCalledWith(["1", "2"]);
   });
 
   test.each([false, true])("hides items on the first render, legend=%s", (legend) => {
@@ -225,7 +225,7 @@ describe("CloudscapeHighcharts: visibility", () => {
       hiddenPoints: ["B"],
     });
 
-    expect(onLegendItemToggle).toHaveBeenCalledWith("B", false);
+    expect(onItemVisibilityChange).toHaveBeenCalledWith(["B"]);
   });
 
   test("changes items visibility from the outside", () => {
@@ -304,10 +304,10 @@ describe("CloudscapeHighcharts: visibility", () => {
 
     wrapper.findLegend()!.findItems()[0].click();
 
-    expect(onLegendItemToggle).toHaveBeenCalledWith("1", true);
+    expect(onItemVisibilityChange).toHaveBeenCalledWith([]);
 
     wrapper.findLegend()!.findItems()[1].click();
 
-    expect(onLegendItemToggle).toHaveBeenCalledWith("2", false);
+    expect(onItemVisibilityChange).toHaveBeenCalledWith(["1", "2"]);
   });
 });
