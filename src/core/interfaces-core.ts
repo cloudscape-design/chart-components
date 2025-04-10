@@ -18,7 +18,7 @@ export interface CloudscapeHighchartsProps
   /**
    * The Highcharts instance. When null, the fallback() is rendered instead.
    */
-  highcharts: null | typeof Highcharts;
+  highcharts: null | object;
   /**
    * The Highcharts options. Cloudscape injects custom styles and settings, but all can be
    * overridden with explicitly provided options. An exception is event handlers - those are
