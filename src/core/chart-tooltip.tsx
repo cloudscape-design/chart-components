@@ -123,7 +123,7 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
     // If the target is hovered soon after the mouse-out was received, we cancel the mouse-out behavior to hide the tooltip.
     this.mouseLeaveCall.cancelPrevious();
 
-    this.moveMarkers(target);
+    this.hoverActions(target);
     this.set(() => {
       const point = { x: target.x, y: target.y ?? 0 };
       return { visible: true, pinned: false, point };
@@ -138,7 +138,7 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
     }
     // If the click point is different from the current position - the tooltip is moved to the new position.
     if (target && this.get().point.x !== target.x && this.get().point.y !== target.y) {
-      this.moveMarkers(target);
+      this.hoverActions(target);
       this.set((prev) => {
         const point = target ? { x: target.x, y: target.y ?? 0 } : prev.point;
         return { visible: true, pinned: false, point };
@@ -164,7 +164,7 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
         if (this.tooltipHovered) {
           return;
         }
-        this.destroyMarkers();
+        this.resetHoverActions();
         this.set((prev) => ({ ...prev, visible: false, pinned: false, content: null }));
       }, MOUSE_LEAVE_DELAY);
     }
@@ -178,7 +178,7 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
     if (!this.get().pinned) {
       this.mouseLeaveCall.cancelPrevious();
       this.mouseLeaveCall.call(() => {
-        this.destroyMarkers();
+        this.resetHoverActions();
         this.set((prev) => ({ ...prev, visible: false, pinned: false, content: null }));
       }, MOUSE_LEAVE_DELAY);
     }
@@ -203,8 +203,9 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
     return this.getAPI();
   }
 
-  private moveMarkers = (target: Highcharts.Point) => {
-    this.destroyMarkers();
+  private hoverActions = (target: Highcharts.Point) => {
+    this.resetHoverActions();
+    this.dimColumns(target);
     this.createMarkers(target);
   };
 
@@ -244,6 +245,28 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
     this.getTrack = () => this.targetElement?.element ?? null;
   };
 
+  private dimColumns = (target: Highcharts.Point) => {
+    for (const s of this.api.chart.series) {
+      if (s.type === "column") {
+        for (const p of s.data) {
+          if (p.x !== target.x) {
+            p.setState("inactive");
+          }
+        }
+      }
+    }
+  };
+
+  private resetHighlight = () => {
+    for (const s of this.api.chart.series) {
+      if (s.type === "column") {
+        for (const p of s.data) {
+          p.setState("normal");
+        }
+      }
+    }
+  };
+
   private getPieCoordinates = (series: Highcharts.Series) => {
     const [relativeX, relativeY, relativeDiameter] = series.center;
     const plotLeft = this.api.chart.plotLeft;
@@ -256,6 +279,11 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
       (typeof relativeDiameter === "number" ? relativeDiameter : (relativeDiameter / 100) * this.api.chart.plotWidth) /
       2;
     return { centerX, centerY, radius };
+  };
+
+  private resetHoverActions = () => {
+    this.resetHighlight();
+    this.destroyMarkers();
   };
 
   private destroyMarkers = () => {
