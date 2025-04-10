@@ -83,7 +83,7 @@ export const seriesDataLabelsCss: Highcharts.CSSObject = {
   textOutline: "",
 };
 
-export const seriesOpacityInactive = 0.4;
+export const seriesOpacityInactive = 0.2;
 
 export const focusBorderCss: Highcharts.CSSObject = {
   color: colorBorderItemFocused,

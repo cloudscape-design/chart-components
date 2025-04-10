@@ -5,6 +5,7 @@ import { useRef } from "react";
 
 import Box from "@cloudscape-design/components/box";
 
+import ChartFilterComponent from "../internal/components/chart-filter";
 import ChartLegendComponent from "../internal/components/chart-legend";
 import { ChartSeriesMarkerStatus, ChartSeriesMarkerType } from "../internal/components/series-marker";
 import AsyncStore, { useSelector } from "../internal/utils/async-store";
@@ -53,7 +54,7 @@ export function ChartLegend({
   title,
   tooltip,
   variant,
-  showFilter,
+  filter,
   onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
@@ -79,10 +80,34 @@ export function ChartLegend({
         align={align}
         tooltip={tooltip}
         variant={variant}
-        showFilter={showFilter}
+        showFilter={filter === "compact"}
         onItemVisibilityChange={onItemVisibilityChange}
         onItemHighlightEnter={onItemHighlightEnter}
         onItemHighlightExit={onItemHighlightExit}
+      />
+    </Box>
+  );
+}
+
+export function ChartFilter({
+  legendStore,
+  onItemVisibilityChange,
+}: CoreLegendProps & {
+  legendStore: LegendStore;
+  onItemVisibilityChange: (visibleItems: string[]) => void;
+}) {
+  const legendItems = useSelector(legendStore, (state) => state.legendItems);
+  return (
+    <Box padding={{ horizontal: "m" }}>
+      <ChartFilterComponent
+        items={legendItems.map((item) => ({
+          id: item.id,
+          name: item.name,
+          color: item.color,
+          active: item.active,
+          type: item.markerType,
+        }))}
+        onItemVisibilityChange={onItemVisibilityChange}
       />
     </Box>
   );
