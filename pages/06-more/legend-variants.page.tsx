@@ -18,6 +18,7 @@ import pseudoRandom from "../utils/pseudo-random";
 
 export default function () {
   const [showFilter, setShowFilter] = useState(false);
+  const [compactFilter, setCompactFilter] = useState(false);
   const [swapTargets, setSwapTargets] = useState(false);
   return (
     <Page
@@ -39,10 +40,18 @@ export default function () {
     >
       <PageSection title="Single-target legend">
         <SpaceBetween size="m">
-          <Checkbox checked={showFilter} onChange={({ detail }) => setShowFilter(detail.checked)}>
-            Show filter
-          </Checkbox>
-          <Component legendVariant="single-target" showFilter={showFilter} />
+          <SpaceBetween size="s" direction="horizontal">
+            <Checkbox checked={showFilter} onChange={({ detail }) => setShowFilter(detail.checked)}>
+              Show filter
+            </Checkbox>
+            <Checkbox checked={compactFilter} onChange={({ detail }) => setCompactFilter(detail.checked)}>
+              Compact filter
+            </Checkbox>
+          </SpaceBetween>
+          <Component
+            legendVariant="single-target"
+            filterVariant={showFilter && compactFilter ? "compact" : showFilter ? "full-size" : undefined}
+          />
         </SpaceBetween>
       </PageSection>
 
@@ -51,7 +60,7 @@ export default function () {
           <Checkbox checked={swapTargets} onChange={({ detail }) => setSwapTargets(detail.checked)}>
             Swap targets
           </Checkbox>
-          <Component legendVariant={swapTargets ? "dual-target-inverse" : "dual-target"} showFilter={false} />
+          <Component legendVariant={swapTargets ? "dual-target-inverse" : "dual-target"} />
         </SpaceBetween>
       </PageSection>
     </Page>
@@ -155,10 +164,10 @@ const seriesNew: CartesianChartProps.Series[] = [
 
 function Component({
   legendVariant,
-  showFilter,
+  filterVariant,
 }: {
   legendVariant?: "single-target" | "dual-target" | "dual-target-inverse";
-  showFilter?: boolean;
+  filterVariant?: "compact" | "full-size";
 }) {
   const { chartProps } = usePageSettings();
   return (
@@ -187,7 +196,7 @@ function Component({
       }}
       legend={{
         variant: legendVariant,
-        showFilter: showFilter,
+        filter: filterVariant,
         tooltip: chartProps.legend.tooltip
           ? {
               render: (itemId) => ({

@@ -12,7 +12,7 @@ import Spinner from "@cloudscape-design/components/spinner";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { castArray } from "../internal/utils/utils";
 import { ChartContainer } from "./chart-container";
-import { ChartLegend, useLegend } from "./chart-legend";
+import { ChartFilter, ChartLegend, useLegend } from "./chart-legend";
 import { ChartNoData, useNoData } from "./chart-no-data";
 import { ChartTooltip, useChartTooltip } from "./chart-tooltip";
 import { CloudscapeChartAPI, CloudscapeHighchartsProps } from "./interfaces-core";
@@ -98,6 +98,7 @@ export function CloudscapeHighcharts({
               {fallback}
             </div>
           )}
+          filter={null}
           legend={null}
         ></ChartContainer>
       </div>
@@ -260,6 +261,7 @@ export function CloudscapeHighcharts({
             />
           );
         }}
+        filter={legendProps?.filter === "full-size" ? <ChartFilter {...legend.props} /> : null}
         legend={isLegendEnabled ? <ChartLegend {...legend.props} /> : null}
       />
 
