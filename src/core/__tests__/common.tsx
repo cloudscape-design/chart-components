@@ -21,9 +21,9 @@ export function StatefulChart(props: CloudscapeHighchartsProps) {
     <CloudscapeHighcharts
       {...props}
       hiddenItems={hiddenItems}
-      onLegendItemToggle={(itemId, visible) => {
-        setHiddenItems(visible ? hiddenItems.filter((id) => id !== itemId) : [...hiddenItems, itemId]);
-        props.onLegendItemToggle?.(itemId, visible);
+      onItemVisibilityChange={(hiddenItems) => {
+        setHiddenItems(hiddenItems);
+        props.onItemVisibilityChange?.(hiddenItems);
       }}
     />
   );
