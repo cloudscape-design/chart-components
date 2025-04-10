@@ -36,7 +36,7 @@ interface InternalCartesianChartProps {
   onToggleVisibleSeries?: NonCancelableEventHandler<{ visibleSeries: string[] }>;
   legend?: CoreLegendProps & {
     variant?: "single-target" | "dual-target" | "dual-target-inverse";
-    showFilter?: boolean;
+    filter?: "compact" | "full-size";
   };
 }
 

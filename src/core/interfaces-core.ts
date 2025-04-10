@@ -84,7 +84,7 @@ export interface CoreTooltipProps extends BaseTooltipProps {
 
 export interface CoreLegendProps extends BaseLegendProps {
   variant?: "single-target" | "dual-target" | "dual-target-inverse";
-  showFilter?: boolean;
+  filter?: "compact" | "full-size";
   getItemStatus?: (seriesOrItemId: string) => ChartSeriesMarkerStatus;
 }
 
