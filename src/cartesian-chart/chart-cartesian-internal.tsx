@@ -142,10 +142,6 @@ export const InternalCartesianChart = forwardRef(
         };
       }),
       series,
-      tooltip: {
-        enabled: false,
-        ...options.tooltip,
-      },
     };
 
     return (
