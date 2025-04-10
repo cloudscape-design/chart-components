@@ -12,10 +12,10 @@ import { getOptionsId } from "../core/utils";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { ChartSeriesMarkerStatus } from "../internal/components/series-marker";
 import { fireNonCancelableEvent, NonCancelableEventHandler } from "../internal/events";
+import { useCartesianSeries } from "./chart-series-cartesian";
 import { useChartTooltipCartesian } from "./chart-tooltip-cartesian";
 import { getDefaultFormatter } from "./default-formatters";
 import { CartesianChartProps, InternalCartesianChartOptions } from "./interfaces-cartesian";
-import * as Styles from "./styles";
 import { getDataExtremes } from "./utils";
 
 import testClasses from "./test-classes/styles.css.js";
@@ -77,50 +77,10 @@ export const InternalCartesianChart = forwardRef(
     const visibleSeries = visibleSeriesState ?? allSeriesIds;
     const hiddenSeries = allSeriesIds.filter((id) => !visibleSeries.includes(id));
 
-    // Threshold series are converted to empty lines series to be visible in the legend.
-    const series: Highcharts.SeriesOptionsType[] = props.options.series.map((s) => {
-      // The awsui-threshold series are added as a combination of plot lines and empty series.
-      // This makes them available in the chart's legend.
-      if (s.type === "awsui-x-threshold" || s.type === "awsui-y-threshold") {
-        return {
-          type: "line",
-          id: s.id,
-          name: s.name,
-          color: s.color ?? Styles.thresholdSeriesDefaultColor,
-          data: [],
-          ...Styles.thresholdSeriesOptions,
-        };
-      }
-      return { ...s };
+    const { series, xPlotLines, yPlotLines } = useCartesianSeries(props.options, {
+      visibleSeries,
+      emphasizeBaselineAxis: props.emphasizeBaselineAxis,
     });
-
-    // Threshold series are added to the plot as x- or y-axis plot lines.
-    const xPlotLines: Highcharts.XAxisPlotLinesOptions[] = [];
-    const yPlotLines: Highcharts.YAxisPlotLinesOptions[] = [];
-    for (const s of props.options.series) {
-      const seriesId = getOptionsId(s);
-      if (s.type === "awsui-x-threshold" && visibleSeries.includes(seriesId)) {
-        xPlotLines.push({
-          id: seriesId,
-          value: s.value,
-          color: s.color ?? Styles.thresholdSeriesDefaultColor,
-          ...Styles.thresholdPlotLineOptions,
-        });
-      }
-      if (s.type === "awsui-y-threshold" && visibleSeries.includes(seriesId)) {
-        yPlotLines.push({
-          id: seriesId,
-          value: s.value,
-          color: s.color ?? Styles.thresholdSeriesDefaultColor,
-          ...Styles.thresholdPlotLineOptions,
-        });
-      }
-    }
-
-    // This makes the baseline better prominent in the plot.
-    if (props.emphasizeBaselineAxis) {
-      yPlotLines.push({ value: 0, ...Styles.chatPlotBaselineOptions });
-    }
 
     useImperativeHandle(ref, () => ({
       // The clear filter API allows to programmatically make all series visible, even when the controllable
@@ -132,14 +92,6 @@ export const InternalCartesianChart = forwardRef(
 
     // The below code transforms Cloudscape-extended series into Highcharts series and plot lines.
     const { xAxis, yAxis, ...options } = props.options;
-
-    // For scatter series type we enable markers by default, unless explicit markers settings provided.
-    // Without markers, the scatter series are not visible by default.
-    for (const s of series) {
-      if (s.type === "scatter" && !s.marker) {
-        s.marker = { enabled: true };
-      }
-    }
 
     // The Highcharts options takes all provided Highcharts options and custom properties and merges them together, so that
     // the Cloudscape features and custom Highcharts extensions can co-exist.
