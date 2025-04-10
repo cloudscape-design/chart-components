@@ -47,7 +47,7 @@ export default function () {
           functional: {
             bullets: [
               `In the old cartesian charts series without data do not count towards empty or no-match state, so no indicator is shown.
-              In the new cartesian charts the empty or no-match state can be added if all series are empty and/or are thresholds.`,
+              In the new cartesian charts the empty or no-match state can be added if all series are empty.`,
             ],
           },
           visualDesign: {
