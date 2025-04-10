@@ -1,8 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import type Highcharts from "highcharts";
-
 import { NonCancelableEventHandler } from "../internal/events";
 
 export interface BaseChartProps {
@@ -11,7 +9,7 @@ export interface BaseChartProps {
    * Supported Highcharts versions:
    * * `v12`
    */
-  highcharts: null | typeof Highcharts;
+  highcharts: null | object;
 
   /**
    * The chart hight in pixels, it includes chart plot, labels, and legend.
