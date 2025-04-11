@@ -128,7 +128,7 @@ function Component({ showFilter }: { showFilter?: boolean }) {
       }}
       series={{
         getItemStatus: chartProps.legend.tooltip
-          ? (itemId) => (itemId.includes("xxx") ? "warning" : "normal")
+          ? (itemId) => (itemId.includes("si") ? "warning" : "normal")
           : undefined,
       }}
       legend={{
@@ -137,7 +137,7 @@ function Component({ showFilter }: { showFilter?: boolean }) {
         tooltip: chartProps.legend.tooltip
           ? {
               render: (itemId) => ({
-                header: itemId.includes("xxx") ? (
+                header: itemId.includes("si") ? (
                   <StatusIndicator type="warning">
                     <Box fontWeight="bold" color="inherit" variant="span">
                       {itemId}
