@@ -6,19 +6,34 @@ import { useEffect, useState } from "react";
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import { useStableCallback } from "@cloudscape-design/component-toolkit/internal";
 
-export function ChartContainer({
-  chart,
-  legend,
-  fitHeight,
-  chartMinHeight,
-  chartMinWidth,
-}: {
+interface ChartContainerBaseProps {
   chart: (height: null | number) => React.ReactNode;
   legend: React.ReactNode;
   fitHeight?: boolean;
   chartMinHeight?: number;
   chartMinWidth?: number;
+}
+
+export function ChartContainer({
+  legendPlacement = "block-end",
+  ...props
+}: ChartContainerBaseProps & {
+  legendPlacement?: "block-end" | "inline-end";
 }) {
+  return legendPlacement === "block-end" ? (
+    <ChartContainerWithBlockLegend {...props} />
+  ) : (
+    <ChartContainerWithInlineLegend {...props} />
+  );
+}
+
+function ChartContainerWithBlockLegend({
+  chart,
+  legend,
+  fitHeight,
+  chartMinHeight,
+  chartMinWidth,
+}: ChartContainerBaseProps) {
   const [measuredChartHeight, measureRef] = useContainerQuery((entry) => entry.contentBoxHeight);
   const [measuredLegendHeight, setLegendHeight] = useState<null | number>(null);
   const effectiveLegendHeight = legend ? measuredLegendHeight : 0;
@@ -31,6 +46,28 @@ export function ChartContainer({
     <div ref={measureRef} style={fitHeight ? { position: "absolute", inset: 0, overflowX } : { overflowX }}>
       <div style={chartMinWidth !== undefined ? { minWidth: chartMinWidth } : {}}>{chart(chartHeight)}</div>
       <LegendBox onResize={setLegendHeight}>{legend}</LegendBox>
+    </div>
+  );
+}
+
+function ChartContainerWithInlineLegend({
+  chart,
+  legend,
+  fitHeight,
+  chartMinHeight,
+  chartMinWidth,
+}: ChartContainerBaseProps) {
+  const [measuredChartHeight, measureRef] = useContainerQuery((entry) => entry.contentBoxHeight);
+  const chartHeight =
+    measuredChartHeight === null ? (chartMinHeight ?? null) : Math.max(chartMinHeight ?? 0, measuredChartHeight);
+  const overflowX = chartMinWidth !== undefined ? "auto" : undefined;
+  const innerWrapperStyle: React.CSSProperties = { display: "flex", gap: 16, inlineSize: "100%" };
+  return (
+    <div ref={measureRef} style={fitHeight ? { position: "absolute", inset: 0, overflowX } : { overflowX }}>
+      <div style={chartMinWidth !== undefined ? { minWidth: chartMinWidth, ...innerWrapperStyle } : innerWrapperStyle}>
+        <div style={{ flex: 1 }}>{chart(chartHeight)}</div>
+        {legend ? <div style={{ width: 200 }}>{legend}</div> : null}
+      </div>
     </div>
   );
 }

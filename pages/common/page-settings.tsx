@@ -39,6 +39,7 @@ export interface PageSettings {
   showLegendFilter: boolean;
   showLegendTooltip: boolean;
   showLegendTooltipAction: boolean;
+  legendPlacement: "block-end" | "inline-end";
   useFallback: boolean;
 }
 
@@ -61,6 +62,7 @@ const DEFAULT_SETTINGS: PageSettings = {
   showLegendFilter: false,
   showLegendTooltip: false,
   showLegendTooltipAction: false,
+  legendPlacement: "block-end",
   useFallback: false,
 };
 
@@ -140,6 +142,7 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
         enabled: settings.showLegend,
         title: settings.showLegendTitle ? "Legend title" : undefined,
         filter: settings.showLegendFilter,
+        placement: settings.legendPlacement,
         tooltip: settings.showLegendTooltip
           ? {
               render: (itemId) => ({
@@ -159,6 +162,8 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
 const tooltipPlacementOptions = [{ value: "target" }, { value: "bottom" }];
 
 const tooltipSizeOptions = [{ value: "small" }, { value: "medium" }, { value: "large" }];
+
+const legendPlacementOptions = [{ value: "block-end" }, { value: "inline-end" }];
 
 export function PageSettingsForm({
   selectedSettings,
@@ -334,6 +339,23 @@ export function PageSettingsForm({
                 >
                   Show legend tooltip action
                 </Checkbox>
+              );
+            case "legendPlacement":
+              return (
+                <FormField label="Legend placement">
+                  <Select
+                    options={legendPlacementOptions}
+                    selectedOption={
+                      legendPlacementOptions.find((option) => option.value === settings.legendPlacement) ??
+                      legendPlacementOptions[0]
+                    }
+                    onChange={({ detail }) =>
+                      setSettings({
+                        legendPlacement: detail.selectedOption.value as string as "block-end" | "inline-end",
+                      })
+                    }
+                  />
+                </FormField>
               );
             case "useFallback":
               return (
