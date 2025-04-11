@@ -1,28 +1,22 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useState } from "react";
-
 import Box from "@cloudscape-design/components/box";
 import Button from "@cloudscape-design/components/button";
-import Checkbox from "@cloudscape-design/components/checkbox";
-import SpaceBetween from "@cloudscape-design/components/space-between";
 import StatusIndicator from "@cloudscape-design/components/status-indicator";
 
 import { CartesianChartProps } from "../../lib/components";
 import { InternalCartesianChart } from "../../lib/components/cartesian-chart/chart-cartesian-internal";
 import { dateFormatter } from "../common/formatters";
 import { PageSettingsForm, usePageSettings } from "../common/page-settings";
-import { Page, PageSection } from "../common/templates";
+import { Page } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
 
 export default function () {
-  const [showFilter, setShowFilter] = useState(false);
-  const [compactFilter, setCompactFilter] = useState(false);
-  const [swapTargets, setSwapTargets] = useState(false);
   return (
     <Page
-      title="Legend variants"
+      title="Legend demo"
+      subtitle="This pages shows how legend works in a chart with many series"
       settings={
         <PageSettingsForm
           selectedSettings={[
@@ -31,6 +25,7 @@ export default function () {
             "seriesError",
             "showLegend",
             "showLegendTitle",
+            "showLegendFilter",
             "showLegendTooltip",
             "tooltipSize",
             "tooltipPlacement",
@@ -38,31 +33,7 @@ export default function () {
         />
       }
     >
-      <PageSection title="Single-target legend">
-        <SpaceBetween size="m">
-          <SpaceBetween size="s" direction="horizontal">
-            <Checkbox checked={showFilter} onChange={({ detail }) => setShowFilter(detail.checked)}>
-              Show filter
-            </Checkbox>
-            <Checkbox checked={compactFilter} onChange={({ detail }) => setCompactFilter(detail.checked)}>
-              Compact filter
-            </Checkbox>
-          </SpaceBetween>
-          <Component
-            legendVariant="single-target"
-            filterVariant={showFilter && compactFilter ? "compact" : showFilter ? "full-size" : undefined}
-          />
-        </SpaceBetween>
-      </PageSection>
-
-      <PageSection title="Dual-target target legend">
-        <SpaceBetween size="m">
-          <Checkbox checked={swapTargets} onChange={({ detail }) => setSwapTargets(detail.checked)}>
-            Swap targets
-          </Checkbox>
-          <Component legendVariant={swapTargets ? "dual-target-inverse" : "dual-target"} />
-        </SpaceBetween>
-      </PageSection>
+      <Component />
     </Page>
   );
 }
@@ -117,42 +88,42 @@ const multiply = (data: number[], factor: number) => data.map((v) => v + Math.ro
 const seriesNew: CartesianChartProps.Series[] = [
   {
     name: "Site 1",
-    type: "line",
+    type: "area",
     data: site1Data.map((y, index) => ({ x: domain[index].getTime(), y })),
   },
   {
     name: "Site 1x",
-    type: "line",
+    type: "area",
     data: multiply(site1Data, 25000).map((y, index) => ({ x: domain[index].getTime(), y })),
   },
   {
     name: "Site 1xx",
-    type: "line",
+    type: "area",
     data: multiply(site1Data, 50000).map((y, index) => ({ x: domain[index].getTime(), y })),
   },
   {
     name: "Site 1xxx",
-    type: "line",
+    type: "area",
     data: multiply(site1Data, 100000).map((y, index) => ({ x: domain[index].getTime(), y })),
   },
   {
     name: "Site 2",
-    type: "line",
+    type: "area",
     data: site2Data.map((y, index) => ({ x: domain[index].getTime(), y })),
   },
   {
     name: "Site 2x",
-    type: "line",
+    type: "area",
     data: multiply(site2Data, 25000).map((y, index) => ({ x: domain[index].getTime(), y })),
   },
   {
     name: "Site 2xx",
-    type: "line",
+    type: "area",
     data: multiply(site2Data, 50000).map((y, index) => ({ x: domain[index].getTime(), y })),
   },
   {
     name: "Site 2xxx",
-    type: "line",
+    type: "area",
     data: multiply(site2Data, 100000).map((y, index) => ({ x: domain[index].getTime(), y })),
   },
   {
@@ -162,19 +133,13 @@ const seriesNew: CartesianChartProps.Series[] = [
   },
 ];
 
-function Component({
-  legendVariant,
-  filterVariant,
-}: {
-  legendVariant?: "single-target" | "dual-target" | "dual-target-inverse";
-  filterVariant?: "compact" | "full-size";
-}) {
+function Component({ showFilter }: { showFilter?: boolean }) {
   const { chartProps } = usePageSettings();
   return (
     <InternalCartesianChart
       {...chartProps}
       options={{
-        chart: { height: 200 },
+        chart: { height: 500 },
         lang: { accessibility: { chartContainerLabel: "Line chart" } },
         series: seriesNew,
         xAxis: [
@@ -186,8 +151,8 @@ function Component({
             valueFormatter: dateFormatter,
           },
         ],
-        yAxis: [{ title: "Bytes transferred", min: 0, max: 500000 }],
-        plotOptions: { series: { marker: { enabled: false } } },
+        yAxis: [{ title: "Bytes transferred" }],
+        plotOptions: { series: { marker: { enabled: false }, stacking: "normal" } },
       }}
       series={{
         getItemStatus: chartProps.legend.tooltip
@@ -195,8 +160,8 @@ function Component({
           : undefined,
       }}
       legend={{
-        variant: legendVariant,
-        filter: filterVariant,
+        ...chartProps.legend,
+        showFilter: showFilter,
         tooltip: chartProps.legend.tooltip
           ? {
               render: (itemId) => ({

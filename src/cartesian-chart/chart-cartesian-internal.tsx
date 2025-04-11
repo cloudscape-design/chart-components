@@ -34,10 +34,7 @@ interface InternalCartesianChartProps {
   emphasizeBaselineAxis?: boolean;
   visibleSeries?: string[];
   onToggleVisibleSeries?: NonCancelableEventHandler<{ visibleSeries: string[] }>;
-  legend?: CoreLegendProps & {
-    variant?: "single-target" | "dual-target" | "dual-target-inverse";
-    filter?: "compact" | "full-size";
-  };
+  legend?: CoreLegendProps & { showFilter?: boolean };
 }
 
 /**

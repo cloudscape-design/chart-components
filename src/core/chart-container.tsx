@@ -5,18 +5,15 @@ import { useEffect, useState } from "react";
 
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import { useStableCallback } from "@cloudscape-design/component-toolkit/internal";
-import Box from "@cloudscape-design/components/box";
 
 export function ChartContainer({
   chart,
-  filter,
   legend,
   fitHeight,
   chartMinHeight,
   chartMinWidth,
 }: {
   chart: (height: null | number) => React.ReactNode;
-  filter: React.ReactNode;
   legend: React.ReactNode;
   fitHeight?: boolean;
   chartMinHeight?: number;
@@ -32,7 +29,6 @@ export function ChartContainer({
   const overflowX = chartMinWidth !== undefined ? "auto" : undefined;
   return (
     <div ref={measureRef} style={fitHeight ? { position: "absolute", inset: 0, overflowX } : { overflowX }}>
-      {filter ? <Box margin={{ bottom: "m" }}>{filter}</Box> : null}
       <div style={chartMinWidth !== undefined ? { minWidth: chartMinWidth } : {}}>{chart(chartHeight)}</div>
       <LegendBox onResize={setLegendHeight}>{legend}</LegendBox>
     </div>
