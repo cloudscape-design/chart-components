@@ -66,7 +66,9 @@ function ChartContainerWithInlineLegend({
     <div ref={measureRef} style={fitHeight ? { position: "absolute", inset: 0, overflowX } : { overflowX }}>
       <div style={chartMinWidth !== undefined ? { minWidth: chartMinWidth, ...innerWrapperStyle } : innerWrapperStyle}>
         <div style={{ flex: 1 }}>{chart(chartHeight)}</div>
-        {legend ? <div style={{ width: 200 }}>{legend}</div> : null}
+        {legend ? (
+          <div style={{ width: 200, minWidth: 200, height: measuredChartHeight ?? 0, overflowY: "auto" }}>{legend}</div>
+        ) : null}
       </div>
     </div>
   );

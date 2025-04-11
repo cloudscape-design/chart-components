@@ -13,9 +13,15 @@ import {
   useSingleTabStopNavigation,
 } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
+import Checkbox from "@cloudscape-design/components/checkbox";
 import { InternalChartFilter } from "@cloudscape-design/components/internal/do-not-use/chart-filter";
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
-import { colorBorderDividerDefault, colorTextInteractiveDisabled } from "@cloudscape-design/design-tokens";
+import TextFilter from "@cloudscape-design/components/text-filter";
+import {
+  colorBackgroundLayoutMain,
+  colorBorderDividerDefault,
+  colorTextInteractiveDisabled,
+} from "@cloudscape-design/design-tokens";
 
 import { useMergeRefs } from "../../utils/use-merge-refs";
 import { DebouncedCall } from "../../utils/utils";
@@ -49,7 +55,7 @@ export interface ChartLegendProps {
   placement?: "block-end" | "inline-end";
   onItemHighlightEnter?: (itemId: string) => void;
   onItemHighlightExit?: () => void;
-  onItemVisibilityChange?: (hiddenItems: string[]) => void;
+  onItemVisibilityChange: (hiddenItems: string[]) => void;
 }
 
 export default memo(ChartLegend) as typeof ChartLegend;
@@ -61,6 +67,7 @@ function ChartLegend({
   ariaLabel,
   tooltip,
   filter: showFilter = false,
+  placement = "block-end",
   onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
@@ -149,20 +156,23 @@ function ChartLegend({
   const toggleItem = (itemId: string) => {
     const hiddenItems = items.filter((i) => !i.active).map((i) => i.id);
     if (hiddenItems.includes(itemId)) {
-      onItemVisibilityChange?.(hiddenItems.filter((id) => id !== itemId));
+      onItemVisibilityChange(hiddenItems.filter((id) => id !== itemId));
     } else {
-      onItemVisibilityChange?.([...hiddenItems, itemId]);
+      onItemVisibilityChange([...hiddenItems, itemId]);
     }
   };
 
   const selectItem = (itemId: string) => {
     const visibleItems = items.filter((i) => i.active).map((i) => i.id);
     if (visibleItems.length === 1 && visibleItems[0] === itemId) {
-      onItemVisibilityChange?.([]);
+      onItemVisibilityChange([]);
     } else {
-      onItemVisibilityChange?.(items.map((i) => i.id).filter((id) => id !== itemId));
+      onItemVisibilityChange(items.map((i) => i.id).filter((id) => id !== itemId));
     }
   };
+
+  const [filteringText, setFilteringText] = useState("");
+  const filteredItems = items.filter((i) => i.name.toLowerCase().includes(filteringText.toLowerCase()));
 
   return (
     <SingleTabStopNavigationProvider
@@ -183,8 +193,49 @@ function ChartLegend({
           </Box>
         )}
 
-        <div className={clsx(styles.list, styles[`list-align-${align}`])}>
-          {showFilter && (
+        {showFilter && placement === "inline-end" && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              position: "sticky",
+              top: 0,
+              background: colorBackgroundLayoutMain,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 16,
+              }}
+            >
+              <Checkbox
+                checked={filteredItems.every((i) => i.active)}
+                indeterminate={!filteredItems.every((i) => i.active) && filteredItems.some((i) => i.active)}
+                onChange={() => {
+                  if (filteredItems.every((i) => i.active)) {
+                    onItemVisibilityChange(filteredItems.map((i) => i.id));
+                  } else {
+                    onItemVisibilityChange([]);
+                  }
+                }}
+              />
+              <TextFilter
+                filteringText={filteringText}
+                filteringPlaceholder="Search"
+                filteringAriaLabel="Search legend items"
+                onChange={({ detail }) => setFilteringText(detail.filteringText)}
+              />
+            </div>
+
+            <div style={{ background: colorBorderDividerDefault, width: "100%", height: 1 }} />
+          </div>
+        )}
+
+        <div className={clsx(styles.list, styles[`list-align-${align}`], styles[`list-placement-${placement}`])}>
+          {showFilter && placement === "block-end" && (
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <InternalChartFilter
                 series={items.map((item) => ({
@@ -195,14 +246,14 @@ function ChartLegend({
                 }))}
                 selectedSeries={items.filter((item) => item.active).map((item) => item.id)}
                 onChange={(selectedSeries) =>
-                  onItemVisibilityChange?.(items.map((item) => item.id).filter((id) => !selectedSeries.includes(id)))
+                  onItemVisibilityChange(items.map((item) => item.id).filter((id) => !selectedSeries.includes(id)))
                 }
               />
               <div style={{ background: colorBorderDividerDefault, width: 1, height: "80%" }} />
             </div>
           )}
 
-          {items.map((item, index) => {
+          {filteredItems.map((item, index) => {
             const handlers = {
               onMouseEnter: () => {
                 onItemHighlightEnter?.(item.id);
@@ -268,7 +319,7 @@ function ChartLegend({
               dismissButton={false}
               title={tooltipContent.header}
               footer={tooltipContent.footer}
-              position="top"
+              position={placement === "block-end" ? "top" : "left"}
             >
               {tooltipContent.body}
             </InternalChartTooltip>
