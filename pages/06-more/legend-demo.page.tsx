@@ -12,6 +12,9 @@ import { PageSettingsForm, usePageSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
 
+const loremIpsum =
+  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris congue aliquet feugiat. Integer gravida efficitur elementum. Interdum et malesuada fames ac ante ipsum primis in faucibus. Curabitur et nisi iaculis diam laoreet pharetra. Phasellus nec nibh dapibus, feugiat leo sodales, feugiat mi. Vivamus a orci mattis, fringilla nisl et, pretium metus. Nunc leo nisi, blandit et sodales ut, sodales id leo. Vestibulum consectetur ante et sapien pretium vestibulum. Donec cursus arcu vitae nunc convallis molestie. Nunc est elit, maximus eu odio eget, commodo fermentum felis. Nullam sit amet sem lectus. Quisque eu rhoncus libero, nec lacinia ipsum. Mauris libero nulla, placerat vitae nisi et, luctus placerat turpis. Donec vitae faucibus neque, eu accumsan enim. Cras nec arcu lacus. Aenean vehicula, mauris in vestibulum maximus, sem nisi rutrum mi, in lobortis lorem elit quis est.";
+
 export default function () {
   return (
     <Page
@@ -27,6 +30,7 @@ export default function () {
             "showLegendTitle",
             "showLegendFilter",
             "showLegendTooltip",
+            "legendPlacement",
             "tooltipSize",
             "tooltipPlacement",
           ]}
@@ -83,55 +87,23 @@ const site2Data = [
   205951, 218958, 220516, 213557, 165899, 173557, 172331, 186492, 131541, 142262, 194091, 185899, 173401, 171635,
   179130, 185951, 144091, 152975, 157299,
 ].map((v) => v * 0.9);
-const multiply = (data: number[], factor: number) => data.map((v) => v + Math.round((pseudoRandom() - 0.5) * factor));
 
-const seriesNew: CartesianChartProps.Series[] = [
-  {
-    name: "Site 1",
-    type: "area",
-    data: site1Data.map((y, index) => ({ x: domain[index].getTime(), y })),
-  },
-  {
-    name: "Site 1x",
-    type: "area",
-    data: multiply(site1Data, 25000).map((y, index) => ({ x: domain[index].getTime(), y })),
-  },
-  {
-    name: "Site 1xx",
-    type: "area",
-    data: multiply(site1Data, 50000).map((y, index) => ({ x: domain[index].getTime(), y })),
-  },
-  {
-    name: "Site 1xxx",
-    type: "area",
-    data: multiply(site1Data, 100000).map((y, index) => ({ x: domain[index].getTime(), y })),
-  },
-  {
-    name: "Site 2",
-    type: "area",
-    data: site2Data.map((y, index) => ({ x: domain[index].getTime(), y })),
-  },
-  {
-    name: "Site 2x",
-    type: "area",
-    data: multiply(site2Data, 25000).map((y, index) => ({ x: domain[index].getTime(), y })),
-  },
-  {
-    name: "Site 2xx",
-    type: "area",
-    data: multiply(site2Data, 50000).map((y, index) => ({ x: domain[index].getTime(), y })),
-  },
-  {
-    name: "Site 2xxx",
-    type: "area",
-    data: multiply(site2Data, 100000).map((y, index) => ({ x: domain[index].getTime(), y })),
-  },
-  {
-    type: "awsui-y-threshold",
-    name: "Performance goal",
-    value: 250000,
-  },
-];
+const series: CartesianChartProps.Series[] = [];
+for (let index = 0; index < 20; index++) {
+  const data = index < 10 ? site1Data : site2Data;
+  series.push({
+    name: loremIpsum
+      .slice(index * 20, (index + 1) * 20)
+      .replace(/[\W]+/g, "-")
+      .replace(/(^-)|(-$)/g, "")
+      .toLowerCase(),
+    type: "areaspline",
+    data: data.map((y, index) => ({
+      x: domain[index].getTime(),
+      y: y + Math.round((pseudoRandom() - 0.5) * (index + 1) * 5000),
+    })),
+  });
+}
 
 function Component({ showFilter }: { showFilter?: boolean }) {
   const { chartProps } = usePageSettings();
@@ -141,7 +113,7 @@ function Component({ showFilter }: { showFilter?: boolean }) {
       options={{
         chart: { height: 500 },
         lang: { accessibility: { chartContainerLabel: "Line chart" } },
-        series: seriesNew,
+        series: series,
         xAxis: [
           {
             type: "datetime",
