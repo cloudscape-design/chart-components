@@ -36,6 +36,10 @@
   justify-content: center;
 }
 
+.list-placement-inline-end {
+  flex-direction: column;
+}
+
 .marker {
   @include styles.styles-reset;
   @include styles.default-text-style;
