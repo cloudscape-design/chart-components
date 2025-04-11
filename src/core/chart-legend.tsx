@@ -53,6 +53,7 @@ export function ChartLegend({
   title,
   tooltip,
   filter,
+  placement,
   onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
@@ -78,6 +79,7 @@ export function ChartLegend({
         align={align}
         tooltip={tooltip}
         filter={filter}
+        placement={placement}
         onItemVisibilityChange={onItemVisibilityChange}
         onItemHighlightEnter={onItemHighlightEnter}
         onItemHighlightExit={onItemHighlightExit}

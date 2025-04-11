@@ -74,13 +74,15 @@ export function CloudscapeHighcharts({
     if (apiRef.current && hiddenItemsIndex !== null) {
       const hiddenItemsIds = new Set(hiddenItemsIndex.split("::").filter(Boolean));
       for (const series of apiRef.current.chart.series) {
-        series.setVisible(!hiddenItemsIds.has(getSeriesId(series)));
+        series.setVisible(!hiddenItemsIds.has(getSeriesId(series)), false);
         for (const point of series.data) {
           if (typeof point.setVisible === "function") {
-            point.setVisible(!hiddenItemsIds.has(getPointId(point)));
+            point.setVisible(!hiddenItemsIds.has(getPointId(point)), false);
           }
         }
       }
+      // TODO: only redraw if visibility actually changed
+      apiRef.current.chart.redraw();
     }
   }, [apiRef, hiddenItemsIndex]);
 
@@ -261,6 +263,7 @@ export function CloudscapeHighcharts({
           );
         }}
         legend={isLegendEnabled ? <ChartLegend {...legend.props} /> : null}
+        legendPlacement={legendProps?.placement}
       />
 
       {isTooltipEnabled && <ChartTooltip {...tooltip.props} />}

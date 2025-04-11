@@ -46,6 +46,7 @@ export interface ChartLegendProps {
     };
   };
   filter?: boolean;
+  placement?: "block-end" | "inline-end";
   onItemHighlightEnter?: (itemId: string) => void;
   onItemHighlightExit?: () => void;
   onItemVisibilityChange?: (hiddenItems: string[]) => void;
