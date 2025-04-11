@@ -80,6 +80,7 @@ export interface BaseTooltipProps {
 export interface BaseLegendProps {
   enabled?: boolean;
   title?: string;
+  filter?: boolean;
   align?: "start" | "center";
   tooltip?: {
     render: (itemId: string) => {

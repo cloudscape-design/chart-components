@@ -36,6 +36,7 @@ export interface PageSettings {
   tooltipSize: "small" | "medium" | "large";
   showLegend: boolean;
   showLegendTitle: boolean;
+  showLegendFilter: boolean;
   showLegendTooltip: boolean;
   showLegendTooltipAction: boolean;
   useFallback: boolean;
@@ -57,6 +58,7 @@ const DEFAULT_SETTINGS: PageSettings = {
   tooltipSize: "medium",
   showLegend: true,
   showLegendTitle: false,
+  showLegendFilter: false,
   showLegendTooltip: false,
   showLegendTooltipAction: false,
   useFallback: false,
@@ -94,6 +96,7 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
     emphasizeBaselineAxis: parseBoolean(defaultSettings.emphasizeBaselineAxis, urlParams.emphasizeBaselineAxis),
     showLegend: parseBoolean(defaultSettings.showLegend, urlParams.showLegend),
     showLegendTitle: parseBoolean(defaultSettings.showLegendTitle, urlParams.showLegendTitle),
+    showLegendFilter: parseBoolean(defaultSettings.showLegendFilter, urlParams.showLegendFilter),
     showLegendTooltip: parseBoolean(defaultSettings.showLegendTooltip, urlParams.showLegendTooltip),
     showLegendTooltipAction: parseBoolean(defaultSettings.showLegendTooltipAction, urlParams.showLegendTooltipAction),
     useFallback: parseBoolean(defaultSettings.useFallback, urlParams.useFallback),
@@ -136,6 +139,7 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
       legend: {
         enabled: settings.showLegend,
         title: settings.showLegendTitle ? "Legend title" : undefined,
+        filter: settings.showLegendFilter,
         tooltip: settings.showLegendTooltip
           ? {
               render: (itemId) => ({
@@ -302,6 +306,15 @@ export function PageSettingsForm({
                   onChange={({ detail }) => setSettings({ showLegendTitle: detail.checked })}
                 >
                   Show legend title
+                </Checkbox>
+              );
+            case "showLegendFilter":
+              return (
+                <Checkbox
+                  checked={settings.showLegendFilter}
+                  onChange={({ detail }) => setSettings({ showLegendFilter: detail.checked })}
+                >
+                  Show legend filter
                 </Checkbox>
               );
             case "showLegendTooltip":
