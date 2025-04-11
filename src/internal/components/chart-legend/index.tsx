@@ -45,8 +45,7 @@ export interface ChartLegendProps {
       footer?: React.ReactNode;
     };
   };
-  variant?: "single-target" | "dual-target" | "dual-target-inverse";
-  showFilter?: boolean;
+  filter?: boolean;
   onItemHighlightEnter?: (itemId: string) => void;
   onItemHighlightExit?: () => void;
   onItemVisibilityChange?: (hiddenItems: string[]) => void;
@@ -60,8 +59,7 @@ function ChartLegend({
   legendTitle,
   ariaLabel,
   tooltip,
-  variant = "single-target",
-  showFilter,
+  filter: showFilter = false,
   onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
@@ -147,7 +145,7 @@ function ChartLegend({
     navigationAPI.current?.updateFocusTarget();
   });
 
-  const createPrimaryClickHandler = (itemId: string) => () => {
+  const toggleItem = (itemId: string) => {
     const hiddenItems = items.filter((i) => !i.active).map((i) => i.id);
     if (hiddenItems.includes(itemId)) {
       onItemVisibilityChange?.(hiddenItems.filter((id) => id !== itemId));
@@ -155,7 +153,8 @@ function ChartLegend({
       onItemVisibilityChange?.([...hiddenItems, itemId]);
     }
   };
-  const createSecondaryClickHandler = (itemId: string) => () => {
+
+  const selectItem = (itemId: string) => {
     const visibleItems = items.filter((i) => i.active).map((i) => i.id);
     if (visibleItems.length === 1 && visibleItems[0] === itemId) {
       onItemVisibilityChange?.([]);
@@ -237,18 +236,13 @@ function ChartLegend({
                 key={index}
                 {...handlers}
                 ref={thisTriggerRef}
-                onClick={
-                  variant === "single-target" || variant === "dual-target"
-                    ? createPrimaryClickHandler(item.id)
-                    : createSecondaryClickHandler(item.id)
-                }
-                onSecondaryClick={
-                  variant === "dual-target"
-                    ? createSecondaryClickHandler(item.id)
-                    : variant === "dual-target-inverse"
-                      ? createPrimaryClickHandler(item.id)
-                      : undefined
-                }
+                onClick={(event) => {
+                  if (event.metaKey || event.ctrlKey) {
+                    selectItem(item.id);
+                  } else {
+                    toggleItem(item.id);
+                  }
+                }}
                 itemId={item.id}
                 label={item.name}
                 color={item.color}
@@ -294,7 +288,6 @@ const LegendItemTrigger = forwardRef(
       status = "normal",
       active,
       onClick,
-      onSecondaryClick,
       ariaExpanded,
       triggerRef,
       onMouseEnter,
@@ -309,8 +302,7 @@ const LegendItemTrigger = forwardRef(
       type: ChartSeriesMarkerType;
       status?: ChartSeriesMarkerStatus;
       active: boolean;
-      onClick: () => void;
-      onSecondaryClick?: () => void;
+      onClick: (event: React.MouseEvent) => void;
       onMarkerClick?: () => void;
       ariaExpanded?: boolean;
       triggerRef?: Ref<HTMLElement>;
@@ -326,41 +318,31 @@ const LegendItemTrigger = forwardRef(
     const mergedRef = useMergeRefs(ref, triggerRef, refObject);
     const { tabIndex } = useSingleTabStopNavigation(refObject);
     return (
-      <span style={{ display: "flex", gap: 8, alignItems: "center", cursor: "pointer" }}>
-        {onSecondaryClick ? (
-          <span role="button" onClick={onSecondaryClick}>
-            <ChartSeriesMarker color={active ? color : colorTextInteractiveDisabled} type={type} status={status} />
-          </span>
-        ) : null}
-
-        <button
-          data-itemid={itemId}
-          aria-haspopup={typeof ariaExpanded === "boolean"}
-          aria-expanded={ariaExpanded}
-          className={clsx(
-            testClasses.item,
-            styles.marker,
-            {
-              [styles["marker--dimmed"]]: !active,
-              [testClasses["hidden-item"]]: !active,
-            },
-            testClasses[`item-status-${status}`],
-          )}
-          ref={mergedRef}
-          tabIndex={tabIndex}
-          onClick={onClick}
-          onMouseEnter={onMouseEnter}
-          onMouseLeave={onMouseLeave}
-          onFocus={onFocus}
-          onBlur={onBlur}
-          onKeyDown={onKeyDown}
-        >
-          {onSecondaryClick ? null : (
-            <ChartSeriesMarker color={active ? color : colorTextInteractiveDisabled} type={type} status={status} />
-          )}
-          <span>{label}</span>
-        </button>
-      </span>
+      <button
+        data-itemid={itemId}
+        aria-haspopup={typeof ariaExpanded === "boolean"}
+        aria-expanded={ariaExpanded}
+        className={clsx(
+          testClasses.item,
+          styles.marker,
+          {
+            [styles["marker--dimmed"]]: !active,
+            [testClasses["hidden-item"]]: !active,
+          },
+          testClasses[`item-status-${status}`],
+        )}
+        ref={mergedRef}
+        tabIndex={tabIndex}
+        onClick={onClick}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        onFocus={onFocus}
+        onBlur={onBlur}
+        onKeyDown={onKeyDown}
+      >
+        <ChartSeriesMarker color={active ? color : colorTextInteractiveDisabled} type={type} status={status} />
+        <span>{label}</span>
+      </button>
     );
   },
 );
