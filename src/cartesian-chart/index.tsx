@@ -13,7 +13,7 @@ import { CartesianChartProps, InternalCartesianChartOptions } from "./interfaces
  * CartesianChart is a public Cloudscape component. It features a custom API, which resembles the Highcharts API where appropriate,
  * and adds extra features such as additional series types (thresholds), alternative tooltip, no-data, and more.
  */
-export const CartesianChart = forwardRef((props: CartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
+const CartesianChart = forwardRef((props: CartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
   return (
     <InternalCartesianChart
       ref={ref}

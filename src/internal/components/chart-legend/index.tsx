@@ -75,6 +75,7 @@ function ChartLegend({
   const containerRef = useRef<HTMLDivElement>(null);
   const segmentsRef = useRef<Record<number, HTMLElement>>([]);
 
+  const highlightControl = useMemo(() => new DebouncedCall(), []);
   const tooltipControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [tooltipItem, setTooltipItem] = useState<null | string>(null);
@@ -83,9 +84,18 @@ function ChartLegend({
   const showTooltip = (itemId: string) => {
     tooltipControl.cancelPrevious();
     setTooltipItem(itemId);
+    showHighlight(itemId);
   };
   const hideTooltip = () => {
     tooltipControl.call(() => setTooltipItem(null), 50);
+    onItemHighlightExit?.();
+  };
+  const showHighlight = (itemId: string) => {
+    highlightControl.cancelPrevious();
+    onItemHighlightEnter?.(itemId);
+  };
+  const clearHighlight = () => {
+    highlightControl.call(() => onItemHighlightExit?.(), 50);
   };
 
   const navigationAPI = useRef<SingleTabStopNavigationAPI>(null);
@@ -256,21 +266,21 @@ function ChartLegend({
           {filteredItems.map((item, index) => {
             const handlers = {
               onMouseEnter: () => {
-                onItemHighlightEnter?.(item.id);
+                showHighlight(item.id);
                 showTooltip(item.id);
               },
               onMouseLeave: () => {
-                onItemHighlightExit?.();
+                clearHighlight();
                 hideTooltip();
               },
               onFocus: () => {
                 onFocus(index);
-                onItemHighlightEnter?.(item.id);
+                showHighlight(item.id);
                 showTooltip(item.id);
               },
               onBlur: () => {
                 onBlur();
-                onItemHighlightExit?.();
+                clearHighlight();
                 hideTooltip();
               },
               onKeyDown,

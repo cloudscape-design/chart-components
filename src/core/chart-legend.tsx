@@ -112,15 +112,11 @@ class LegendStore extends AsyncStore<{ legendItems: LegendItemProps[] }> {
   public onItemHighlightEnter = (itemId: string) => {
     for (const s of this.api.chart.series) {
       if (s.type !== "pie") {
-        if (getSeriesId(s) !== itemId) {
-          s.setState("inactive");
-        }
+        s.setState(getSeriesId(s) !== itemId ? "inactive" : "normal");
       }
       if (s.type === "pie") {
         for (const p of s.data) {
-          if (getPointId(p) !== itemId) {
-            p.setState("inactive");
-          }
+          p.setState(getPointId(p) !== itemId ? "inactive" : "normal");
         }
       }
     }
