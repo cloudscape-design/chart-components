@@ -12,7 +12,7 @@ import { InternalPieChartOptions, PieChartProps } from "./interfaces-pie";
  * PieChart is a public Cloudscape component. It features a custom API, which resembles the Highcharts API where appropriate,
  * and adds extra features such as inner title and description, alternative tooltip, no-data, and more.
  */
-export const PieChart = forwardRef((props: PieChartProps, ref: React.Ref<PieChartProps.Ref>) => {
+const PieChart = forwardRef((props: PieChartProps, ref: React.Ref<PieChartProps.Ref>) => {
   return (
     <InternalPieChart
       ref={ref}
