@@ -38,6 +38,10 @@ export const colors = [
   colorChartsPaletteCategorical10,
 ];
 
+export const chart: Highcharts.ChartOptions = {
+  spacing: [10, 10, 0, 0],
+};
+
 export const axisTitleCss: Highcharts.CSSObject = {
   color: colorTextBodyDefault,
   fontSize: fontSizeBodyM,
@@ -63,6 +67,7 @@ export const yAxisOptions: Highcharts.YAxisOptions = {
   gridLineColor: colorChartsLineTick,
   lineWidth: 0,
   crosshair: false,
+  endOnTick: false,
 };
 
 export const chartPlotCss: Highcharts.CSSObject = {
