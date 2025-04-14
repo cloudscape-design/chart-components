@@ -39,6 +39,7 @@ export function CloudscapeHighcharts({
   callback,
   hiddenItems,
   onItemVisibilityChange,
+  onLegendPlacementChange,
   i18nStrings,
   className,
   ...rest
@@ -62,7 +63,7 @@ export function CloudscapeHighcharts({
 
   // Provides custom legend, when `props.legend` is present.
   const isLegendEnabled = legendProps?.enabled !== false;
-  const legend = useLegend(getAPI, { ...legendProps, onItemVisibilityChange });
+  const legend = useLegend(getAPI, { ...legendProps, onItemVisibilityChange, onLegendPlacementChange });
 
   // Provides empty, no-match, loading, and error states handling, when `props.noData` is present.
   const noData = useNoData(getAPI, noDataProps);
@@ -142,20 +143,22 @@ export function CloudscapeHighcharts({
               // If the event callbacks are present in the given options - we execute them, too.
               events: {
                 ...options.chart?.events,
-                load(event) {
-                  // We set series and items visibility in the load event same as we do in the use-effect
-                  // to make sure the initial render with controllable visibility is done correctly.
-                  const hiddenItemsIds = new Set(hiddenItems);
-                  for (const series of this.series) {
-                    series.setVisible(!hiddenItemsIds.has(getSeriesId(series)));
-                    for (const point of series.data) {
-                      if (typeof point.setVisible === "function") {
-                        point.setVisible(!hiddenItemsIds.has(getPointId(point)));
-                      }
-                    }
-                  }
-                  return options.chart?.events?.load?.call(this, event);
-                },
+                // load(event) {
+                //   // We set series and items visibility in the load event same as we do in the use-effect
+                //   // to make sure the initial render with controllable visibility is done correctly.
+                //   const hiddenItemsIds = new Set(hiddenItems);
+                //   for (const series of this.series) {
+                //     series.setVisible(!hiddenItemsIds.has(getSeriesId(series)), false);
+                //     for (const point of series.data) {
+                //       if (typeof point.setVisible === "function") {
+                //         point.setVisible(!hiddenItemsIds.has(getPointId(point)), false);
+                //       }
+                //     }
+                //     // TODO: only redraw if visibility actually changed
+                //     apiRef.current.chart.redraw();
+                //   }
+                //   return options.chart?.events?.load?.call(this, event);
+                // },
                 render(event) {
                   if (noDataProps) {
                     noData.options.chartRender.call(this, event);

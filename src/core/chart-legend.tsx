@@ -24,6 +24,7 @@ export function useLegend(
   legendProps?: CoreLegendProps & {
     getItemStatus?: (itemId: string) => ChartSeriesMarkerStatus;
     onItemVisibilityChange?: (hiddenItems: string[]) => void;
+    onLegendPlacementChange?: (placement: "block-end" | "inline-end") => void;
   },
 ) {
   const legendStore = useRef(new LegendStore(getChart)).current;
@@ -39,6 +40,7 @@ export function useLegend(
     props: {
       legendStore,
       ...legendProps,
+      onPlacementChange: legendProps?.onLegendPlacementChange,
       onItemVisibilityChange,
       onItemHighlightEnter,
       onItemHighlightExit,
@@ -57,11 +59,13 @@ export function ChartLegend({
   onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
+  onPlacementChange,
 }: CoreLegendProps & {
   legendStore: LegendStore;
   onItemVisibilityChange: (visibleItems: string[]) => void;
   onItemHighlightEnter: (itemId: string) => void;
   onItemHighlightExit: () => void;
+  onPlacementChange?: (placement: "block-end" | "inline-end") => void;
 }) {
   const legendItems = useSelector(legendStore, (state) => state.legendItems);
   return (
@@ -80,6 +84,7 @@ export function ChartLegend({
         tooltip={tooltip}
         filter={filter}
         placement={placement}
+        onPlacementChange={onPlacementChange}
         onItemVisibilityChange={onItemVisibilityChange}
         onItemHighlightEnter={onItemHighlightEnter}
         onItemHighlightExit={onItemHighlightExit}

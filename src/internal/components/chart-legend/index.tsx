@@ -14,10 +14,11 @@ import {
 } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
 import Button from "@cloudscape-design/components/button";
+import ButtonDropdown, { ButtonDropdownProps } from "@cloudscape-design/components/button-dropdown";
 import Checkbox from "@cloudscape-design/components/checkbox";
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
+import SpaceBetween from "@cloudscape-design/components/space-between";
 import TextFilter from "@cloudscape-design/components/text-filter";
-import ToggleButton from "@cloudscape-design/components/toggle-button";
 import {
   colorBackgroundLayoutMain,
   colorBorderDividerDefault,
@@ -54,6 +55,7 @@ export interface ChartLegendProps {
   };
   filter?: boolean;
   placement?: "block-end" | "inline-end";
+  onPlacementChange?: (placement: "block-end" | "inline-end") => void;
   onItemHighlightEnter?: (itemId: string) => void;
   onItemHighlightExit?: () => void;
   onItemVisibilityChange: (hiddenItems: string[]) => void;
@@ -69,6 +71,7 @@ function ChartLegend({
   tooltip,
   filter: showFilter = false,
   placement = "block-end",
+  onPlacementChange,
   onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
@@ -77,6 +80,7 @@ function ChartLegend({
   const segmentsRef = useRef<Record<number, HTMLElement>>([]);
 
   const [tooltipPinned, setTooltipPinned] = useState(false);
+  const [filterExpanded, setFilterExpanded] = useState(false);
   const highlightControl = useMemo(() => new DebouncedCall(), []);
   const tooltipControl = useMemo(() => new DebouncedCall(), []);
   const noTooltipRef = useRef(false);
@@ -199,6 +203,39 @@ function ChartLegend({
 
   const [infoPressed, setInfoPressed] = useState(false);
 
+  const actionItems: ButtonDropdownProps.ItemOrGroup[] = [];
+  if (tooltip) {
+    actionItems.push({
+      id: "info",
+      itemType: "checkbox",
+      checked: infoPressed,
+      text: "Show item info",
+    });
+  }
+  if (onPlacementChange) {
+    actionItems.push({
+      id: "placement",
+      itemType: "checkbox",
+      checked: placement === "inline-end",
+      text: "Show legend on the side",
+    });
+  }
+
+  const actions = (
+    <ButtonDropdown
+      variant="icon"
+      items={actionItems}
+      onItemClick={({ detail }) => {
+        switch (detail.id) {
+          case "info":
+            return setInfoPressed(!!detail.checked);
+          case "placement":
+            return onPlacementChange?.(detail.checked ? "inline-end" : "block-end");
+        }
+      }}
+    />
+  );
+
   return (
     <SingleTabStopNavigationProvider
       ref={navigationAPI}
@@ -233,26 +270,23 @@ function ChartLegend({
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 16,
+                gap: 4,
+                justifyContent: "space-between",
+                flexWrap: "wrap",
               }}
             >
-              <Checkbox
-                checked={filteredItems.every((i) => i.active)}
-                indeterminate={!filteredItems.every((i) => i.active) && filteredItems.some((i) => i.active)}
-                onChange={() => {
-                  if (filteredItems.every((i) => i.active)) {
-                    onItemVisibilityChange(filteredItems.map((i) => i.id));
-                  } else {
-                    onItemVisibilityChange([]);
-                  }
-                }}
-              />
-              <TextFilter
+              <LegendFilter
                 filteringText={filteringText}
-                filteringPlaceholder="Search"
-                filteringAriaLabel="Search legend items"
-                onChange={({ detail }) => setFilteringText(detail.filteringText)}
+                allChecked={filteredItems.every((i) => i.active)}
+                someChecked={!filteredItems.every((i) => i.active) && filteredItems.some((i) => i.active)}
+                onFilterChange={(filteringText) => setFilteringText(filteringText)}
+                onSelectAll={() => onItemVisibilityChange([])}
+                onSelectNone={() => onItemVisibilityChange(filteredItems.map((i) => i.id))}
+                onFilterExpand={() => setFilterExpanded(true)}
+                onFilterCollapse={() => setFilterExpanded(false)}
               />
+
+              {actionItems.length > 0 && !filterExpanded && actions}
             </div>
 
             <div style={{ background: colorBorderDividerDefault, width: "100%", height: 1 }} />
@@ -260,24 +294,6 @@ function ChartLegend({
         )}
 
         <div className={clsx(styles.list, styles[`list-align-${align}`], styles[`list-placement-${placement}`])}>
-          {/* {showFilter && placement === "block-end" && (
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <InternalChartFilter
-                series={items.map((item) => ({
-                  label: item.name,
-                  color: item.color,
-                  type: "rectangle",
-                  datum: item.id,
-                }))}
-                selectedSeries={items.filter((item) => item.active).map((item) => item.id)}
-                onChange={(selectedSeries) =>
-                  onItemVisibilityChange(items.map((item) => item.id).filter((id) => !selectedSeries.includes(id)))
-                }
-              />
-              <div style={{ background: colorBorderDividerDefault, width: 1, height: "80%" }} />
-            </div>
-          )} */}
-
           {placement === "block-end" && (showFilter || tooltip) && (
             <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
               {showFilter && (
@@ -288,18 +304,12 @@ function ChartLegend({
                   onFilterChange={(filteringText) => setFilteringText(filteringText)}
                   onSelectAll={() => onItemVisibilityChange([])}
                   onSelectNone={() => onItemVisibilityChange(filteredItems.map((i) => i.id))}
+                  onFilterExpand={() => setFilterExpanded(true)}
+                  onFilterCollapse={() => setFilterExpanded(false)}
                 />
               )}
 
-              {tooltip && (
-                <ToggleButton
-                  variant="icon"
-                  pressed={infoPressed}
-                  onChange={({ detail }) => setInfoPressed(detail.pressed)}
-                  iconName="status-info"
-                  pressedIconSvg={<StatusInfoToggledSVG />}
-                />
-              )}
+              {actionItems.length > 0 && !filterExpanded && actions}
 
               <div style={{ background: colorBorderDividerDefault, width: 1, height: "80%" }} />
             </div>
@@ -310,7 +320,7 @@ function ChartLegend({
               onMouseEnter: () => {
                 showHighlight(item.id);
 
-                if (!tooltipPinned && (infoPressed || placement === "inline-end")) {
+                if (!tooltipPinned && infoPressed) {
                   showTooltip(item.id);
                 }
               },
@@ -325,7 +335,7 @@ function ChartLegend({
                 onFocus(index);
                 showHighlight(item.id);
 
-                if (infoPressed || placement === "inline-end") {
+                if (infoPressed) {
                   showTooltip(item.id);
                 }
               },
@@ -377,6 +387,7 @@ function ChartLegend({
                 type={item.type}
                 status={item.status}
                 active={item.active}
+                infoMode={infoPressed}
               />
             );
           })}
@@ -404,7 +415,17 @@ function ChartLegend({
               onMouseEnter={() => showTooltip(tooltipItem)}
               onMouseLeave={() => !tooltipPinned && hideTooltip()}
               container={segmentsRef.current[tooltipItemIndex]}
-              title={tooltipContent.header}
+              title={
+                <SpaceBetween direction="horizontal" size="xs">
+                  <Box>
+                    <Checkbox
+                      checked={!!items.find((it) => it.id === tooltipItem)?.active}
+                      onChange={() => toggleItem(tooltipItem)}
+                    />
+                  </Box>
+                  <span>{tooltipContent.header}</span>
+                </SpaceBetween>
+              }
               footer={tooltipContent.footer}
               position={placement === "block-end" ? "bottom" : "left"}
             >
@@ -417,15 +438,6 @@ function ChartLegend({
   );
 }
 
-function StatusInfoToggledSVG() {
-  return (
-    <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true">
-      <circle cx="8" cy="8" r="7" fill="currentColor"></circle>
-      <path d="M8 12V7M8 6V4" color={colorBackgroundLayoutMain}></path>
-    </svg>
-  );
-}
-
 function LegendFilter({
   filteringText,
   allChecked,
@@ -433,6 +445,8 @@ function LegendFilter({
   onFilterChange,
   onSelectAll,
   onSelectNone,
+  onFilterExpand,
+  onFilterCollapse,
 }: {
   filteringText: string;
   allChecked: boolean;
@@ -440,24 +454,34 @@ function LegendFilter({
   onFilterChange: (filteringText: string) => void;
   onSelectAll: () => void;
   onSelectNone: () => void;
+  onFilterExpand?: () => void;
+  onFilterCollapse?: () => void;
 }) {
   const [searchVisible, setSearchVisible] = useState(false);
   return (
     <div style={{ display: "flex", gap: 4, alignItems: "center", height: "100%" }}>
       {!searchVisible && (
-        <Button iconName="search" ariaLabel="Search" variant="icon" onClick={() => setSearchVisible(true)} />
+        <Button
+          iconName="search"
+          ariaLabel="Search"
+          variant="icon"
+          onClick={() => {
+            setSearchVisible(true);
+            onFilterExpand?.();
+          }}
+        />
       )}
 
       {searchVisible && (
         <>
-          <Checkbox
-            ariaLabel="Select all"
-            checked={allChecked}
-            indeterminate={!allChecked && someChecked}
-            onChange={() => (allChecked ? onSelectNone() : onSelectAll())}
-          >
-            All
-          </Checkbox>
+          <div>
+            <Checkbox
+              ariaLabel="Select all"
+              checked={allChecked}
+              indeterminate={!allChecked && someChecked}
+              onChange={() => (allChecked ? onSelectNone() : onSelectAll())}
+            />
+          </div>
 
           <TextFilter
             filteringText={filteringText}
@@ -472,6 +496,7 @@ function LegendFilter({
             variant="icon"
             onClick={() => {
               setSearchVisible(false);
+              onFilterCollapse?.();
               onFilterChange("");
             }}
           />
@@ -498,6 +523,7 @@ const LegendItemTrigger = forwardRef(
       onFocus,
       onBlur,
       onKeyDown,
+      infoMode,
     }: {
       itemId: string;
       label: string;
@@ -514,6 +540,7 @@ const LegendItemTrigger = forwardRef(
       onFocus?: () => void;
       onBlur?: () => void;
       onKeyDown?: (event: React.KeyboardEvent<HTMLElement>) => void;
+      infoMode?: boolean;
     },
     ref: Ref<HTMLButtonElement>,
   ) => {
@@ -534,6 +561,7 @@ const LegendItemTrigger = forwardRef(
           },
           testClasses[`item-status-${status}`],
         )}
+        style={{ textDecoration: infoMode ? "underline" : "" }}
         ref={mergedRef}
         tabIndex={tabIndex}
         onClick={onClick}
