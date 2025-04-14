@@ -248,7 +248,9 @@ export function CloudscapeHighcharts({
               title: { style: Styles.axisTitleCss, ...yAxis.title },
               labels: { style: Styles.axisLabelsCss, ...yAxis.labels },
             })),
-            tooltip: options.tooltip ? options.tooltip : { enabled: false, shared: true, style: { opacity: 0 } },
+            tooltip: options.tooltip
+              ? options.tooltip
+              : { enabled: !!options.series?.some((s) => s.type === "column"), shared: true, style: { opacity: 0 } },
           };
           return (
             <HighchartsReact
