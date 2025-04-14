@@ -17,6 +17,7 @@ import Button from "@cloudscape-design/components/button";
 import Checkbox from "@cloudscape-design/components/checkbox";
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
 import TextFilter from "@cloudscape-design/components/text-filter";
+import ToggleButton from "@cloudscape-design/components/toggle-button";
 import {
   colorBackgroundLayoutMain,
   colorBorderDividerDefault,
@@ -75,14 +76,19 @@ function ChartLegend({
   const containerRef = useRef<HTMLDivElement>(null);
   const segmentsRef = useRef<Record<number, HTMLElement>>([]);
 
-  const [tooltipFocused, setTooltipFocused] = useState(false);
+  const [tooltipPinned, setTooltipPinned] = useState(false);
   const highlightControl = useMemo(() => new DebouncedCall(), []);
   const tooltipControl = useMemo(() => new DebouncedCall(), []);
+  const noTooltipRef = useRef(false);
+  const noTooltipControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [tooltipItem, setTooltipItem] = useState<null | string>(null);
   const tooltipItemIndex = items.findIndex((item) => item.id === tooltipItem);
   const tooltipContent = tooltipItem ? tooltip?.render(tooltipItem) : null;
   const showTooltip = (itemId: string) => {
+    if (noTooltipRef.current) {
+      return;
+    }
     tooltipControl.cancelPrevious();
     setTooltipItem(itemId);
     showHighlight(itemId);
@@ -110,7 +116,13 @@ function ChartLegend({
     navigationAPI.current?.updateFocusTarget();
   }
 
-  function focusElement(index: number) {
+  function focusElement(index: number, noTooltip = false) {
+    if (noTooltip) {
+      noTooltipRef.current = true;
+      noTooltipControl.call(() => {
+        noTooltipRef.current = false;
+      }, 25);
+    }
     segmentsRef.current[index]?.focus();
   }
 
@@ -184,6 +196,8 @@ function ChartLegend({
 
   const [filteringText, setFilteringText] = useState("");
   const filteredItems = items.filter((i) => i.name.toLowerCase().includes(filteringText.toLowerCase()));
+
+  const [infoPressed, setInfoPressed] = useState(false);
 
   return (
     <SingleTabStopNavigationProvider
@@ -264,16 +278,29 @@ function ChartLegend({
             </div>
           )} */}
 
-          {showFilter && placement === "block-end" && (
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <LegendFilter
-                filteringText={filteringText}
-                allChecked={filteredItems.every((i) => i.active)}
-                someChecked={!filteredItems.every((i) => i.active) && filteredItems.some((i) => i.active)}
-                onFilterChange={(filteringText) => setFilteringText(filteringText)}
-                onSelectAll={() => onItemVisibilityChange([])}
-                onSelectNone={() => onItemVisibilityChange(filteredItems.map((i) => i.id))}
-              />
+          {placement === "block-end" && (showFilter || tooltip) && (
+            <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+              {showFilter && (
+                <LegendFilter
+                  filteringText={filteringText}
+                  allChecked={filteredItems.every((i) => i.active)}
+                  someChecked={!filteredItems.every((i) => i.active) && filteredItems.some((i) => i.active)}
+                  onFilterChange={(filteringText) => setFilteringText(filteringText)}
+                  onSelectAll={() => onItemVisibilityChange([])}
+                  onSelectNone={() => onItemVisibilityChange(filteredItems.map((i) => i.id))}
+                />
+              )}
+
+              {tooltip && (
+                <ToggleButton
+                  variant="icon"
+                  pressed={infoPressed}
+                  onChange={({ detail }) => setInfoPressed(detail.pressed)}
+                  iconName="status-info"
+                  pressedIconSvg={<StatusInfoToggledSVG />}
+                />
+              )}
+
               <div style={{ background: colorBorderDividerDefault, width: 1, height: "80%" }} />
             </div>
           )}
@@ -281,13 +308,13 @@ function ChartLegend({
           {filteredItems.map((item, index) => {
             const handlers = {
               onMouseEnter: () => {
-                if (!tooltipFocused) {
+                if (!tooltipPinned) {
                   showHighlight(item.id);
                   showTooltip(item.id);
                 }
               },
               onMouseLeave: () => {
-                if (!tooltipFocused) {
+                if (!tooltipPinned) {
                   clearHighlight();
                   hideTooltip();
                 }
@@ -318,6 +345,16 @@ function ChartLegend({
                 {...handlers}
                 ref={thisTriggerRef}
                 onClick={(event) => {
+                  if (infoPressed && !tooltipPinned) {
+                    setTooltipPinned(true);
+                    showTooltip(item.id);
+                    return;
+                  }
+                  if (infoPressed && tooltipPinned) {
+                    setTooltipPinned(false);
+                    hideTooltip();
+                    return;
+                  }
                   if (event.metaKey || event.ctrlKey) {
                     selectItem(item.id);
                   } else {
@@ -335,30 +372,31 @@ function ChartLegend({
           })}
         </div>
 
-        {tooltipContent && tooltipItem && (
+        {tooltipContent && tooltipItem && (infoPressed || placement === "inline-end") && (
           <div
             onFocus={() => {
               showTooltip(tooltipItem);
-              setTooltipFocused(true);
             }}
           >
             <InternalChartTooltip
               key={tooltipItem}
               trackKey={tooltipItem}
               getTrack={() => segmentsRef.current[tooltipItemIndex]}
-              dismissButton={true}
-              hoverDismissButton={true}
+              dismissButton={tooltipPinned}
               onDismiss={() => {
-                focusElement(items.findIndex((it) => it.id === tooltipItem));
+                focusElement(
+                  items.findIndex((it) => it.id === tooltipItem),
+                  true,
+                );
                 hideTooltip();
+                setTooltipPinned(false);
               }}
-              onBlur={() => setTooltipFocused(false)}
               onMouseEnter={() => showTooltip(tooltipItem)}
-              onMouseLeave={() => !tooltipFocused && hideTooltip()}
-              container={null}
+              onMouseLeave={() => !tooltipPinned && hideTooltip()}
+              container={segmentsRef.current[tooltipItemIndex]}
               title={tooltipContent.header}
               footer={tooltipContent.footer}
-              position={placement === "block-end" ? "top" : "left"}
+              position={placement === "block-end" ? "bottom" : "left"}
             >
               {tooltipContent.body}
             </InternalChartTooltip>
@@ -366,6 +404,15 @@ function ChartLegend({
         )}
       </div>
     </SingleTabStopNavigationProvider>
+  );
+}
+
+function StatusInfoToggledSVG() {
+  return (
+    <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true">
+      <circle cx="8" cy="8" r="7" fill="currentColor"></circle>
+      <path d="M8 12V7M8 6V4" color={colorBackgroundLayoutMain}></path>
+    </svg>
   );
 }
 
