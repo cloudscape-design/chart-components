@@ -63,6 +63,7 @@ export interface ChartLegendProps {
 
 export default memo(ChartLegend) as typeof ChartLegend;
 
+// TODO: replace all indices with IDs
 function ChartLegend({
   items,
   align = "start",
@@ -87,7 +88,6 @@ function ChartLegend({
   const noTooltipControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [tooltipItem, setTooltipItem] = useState<null | string>(null);
-  const tooltipItemIndex = items.findIndex((item) => item.id === tooltipItem);
   const tooltipContent = tooltipItem ? tooltip?.render(tooltipItem) : null;
   const showTooltip = (itemId: string) => {
     if (noTooltipRef.current) {
@@ -200,6 +200,7 @@ function ChartLegend({
 
   const [filteringText, setFilteringText] = useState("");
   const filteredItems = items.filter((i) => i.name.toLowerCase().includes(filteringText.toLowerCase()));
+  const tooltipItemIndex = filteredItems.findIndex((item) => item.id === tooltipItem);
 
   const [infoPressed, setInfoPressed] = useState(false);
 
@@ -406,7 +407,7 @@ function ChartLegend({
               dismissButton={tooltipPinned}
               onDismiss={() => {
                 focusElement(
-                  items.findIndex((it) => it.id === tooltipItem),
+                  filteredItems.findIndex((it) => it.id === tooltipItem),
                   true,
                 );
                 hideTooltip();
