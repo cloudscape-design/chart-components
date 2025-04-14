@@ -39,6 +39,7 @@ export interface PageSettings {
   showLegendFilter: boolean;
   showLegendTooltip: boolean;
   showLegendTooltipAction: boolean;
+  legendFilterType: "dropdown" | "inline";
   legendPlacement: "block-end" | "inline-end";
   useFallback: boolean;
 }
@@ -62,6 +63,7 @@ const DEFAULT_SETTINGS: PageSettings = {
   showLegendFilter: false,
   showLegendTooltip: false,
   showLegendTooltipAction: false,
+  legendFilterType: "inline",
   legendPlacement: "block-end",
   useFallback: false,
 };
@@ -143,6 +145,7 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
         enabled: settings.showLegend,
         title: settings.showLegendTitle ? "Legend title" : undefined,
         filter: settings.showLegendFilter,
+        filterType: settings.legendFilterType,
         placement: settings.legendPlacement,
         tooltip: settings.showLegendTooltip
           ? {
@@ -166,6 +169,8 @@ const tooltipPlacementOptions = [{ value: "target" }, { value: "bottom" }];
 const tooltipSizeOptions = [{ value: "small" }, { value: "medium" }, { value: "large" }];
 
 const legendPlacementOptions = [{ value: "block-end" }, { value: "inline-end" }];
+
+const legendFilterTypeOptions = [{ value: "inline" }, { value: "dropdown" }];
 
 export function PageSettingsForm({
   selectedSettings,
@@ -341,6 +346,23 @@ export function PageSettingsForm({
                 >
                   Show legend tooltip action
                 </Checkbox>
+              );
+            case "legendFilterType":
+              return (
+                <FormField label="Legend filter type">
+                  <Select
+                    options={legendFilterTypeOptions}
+                    selectedOption={
+                      legendFilterTypeOptions.find((option) => option.value === settings.legendFilterType) ??
+                      legendFilterTypeOptions[0]
+                    }
+                    onChange={({ detail }) =>
+                      setSettings({
+                        legendFilterType: detail.selectedOption.value as string as "dropdown" | "inline",
+                      })
+                    }
+                  />
+                </FormField>
               );
             case "legendPlacement":
               return (
