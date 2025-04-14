@@ -61,34 +61,6 @@ export default function () {
           ]}
         />
       </PageSection>
-
-      <PageSection
-        title="CloudWatch legend"
-        docs={{
-          functional: {
-            bullets: [
-              `CloudWatch legend items can have on-hover tooltips that include supportive series info and might include actions.
-              The tooltip is not pin-able because the click action is reserved to toggling series visibility.`,
-              `CloudWatch legend items can include a warning icon to indicate series status.`,
-              `(not demoed) CloudWatch legend items features a different click interaction: when item is clicked, the respective
-              series becomes the single series visible.`,
-              `(not demoed) CloudWatch legend items feature an additional click interaction when clicking on the item marker. This
-              toggles series visibility.`,
-            ],
-          },
-        }}
-      >
-        <MigrationDemo
-          examples={[
-            {
-              tags: ["line chart"],
-              old: "CW",
-              new: <LineChartExample.ComponentNew cwLegend={true} />,
-              containerHeight: 450,
-            },
-          ]}
-        />
-      </PageSection>
     </Page>
   );
 }
