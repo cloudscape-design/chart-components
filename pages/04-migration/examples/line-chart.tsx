@@ -1,10 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import Box from "@cloudscape-design/components/box";
-import Button from "@cloudscape-design/components/button";
 import LineChart, { LineChartProps } from "@cloudscape-design/components/line-chart";
-import StatusIndicator from "@cloudscape-design/components/status-indicator";
 
 import { CartesianChartProps } from "../../../lib/components";
 import { InternalCartesianChart } from "../../../lib/components/cartesian-chart/chart-cartesian-internal";
@@ -93,7 +90,7 @@ const seriesOld: LineChartProps<Date>["series"] = [
   },
 ];
 
-export function ComponentNew({ cwLegend }: { cwLegend?: boolean }) {
+export function ComponentNew({ legendFilter }: { legendFilter?: boolean }) {
   const { chartProps } = usePageSettings();
   return (
     <InternalCartesianChart
@@ -115,36 +112,8 @@ export function ComponentNew({ cwLegend }: { cwLegend?: boolean }) {
         yAxis: [{ title: "Bytes transferred", min: 0, max: 500000 }],
         plotOptions: { series: { marker: { enabled: false } } },
       }}
-      series={{
-        getItemStatus: cwLegend ? (itemId) => (itemId === "Site 2" ? "warning" : "normal") : undefined,
-      }}
-      legend={{
-        tooltip: cwLegend
-          ? {
-              render: (itemId) => ({
-                header:
-                  itemId === "Site 2" ? (
-                    <StatusIndicator type="warning">
-                      <Box fontWeight="bold" color="inherit" variant="span">
-                        {itemId}
-                      </Box>
-                    </StatusIndicator>
-                  ) : (
-                    itemId
-                  ),
-                body: "Tooltip content",
-                footer: (
-                  <>
-                    <hr />
-                    <div>
-                      Tooltip footer with <Button variant="inline-link">action</Button>
-                    </div>
-                  </>
-                ),
-              }),
-            }
-          : undefined,
-      }}
+      legend={{ ...chartProps.legend, filter: legendFilter }}
+      onLegendPlacementChange={undefined}
     />
   );
 }

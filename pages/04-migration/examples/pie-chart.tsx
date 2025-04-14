@@ -48,7 +48,7 @@ const dataOld: OldPieChartProps["data"] = [
   },
 ];
 
-export function ComponentNew() {
+export function ComponentNew({ legendFilter }: { legendFilter?: boolean }) {
   const { chartProps } = usePageSettings();
   return (
     <PieChart
@@ -58,6 +58,7 @@ export function ComponentNew() {
       ariaLabel="Pie chart"
       series={seriesNew}
       segmentOptions={{}}
+      legend={{ ...chartProps.legend, filter: legendFilter }}
     />
   );
 }
