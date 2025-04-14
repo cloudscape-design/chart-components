@@ -13,8 +13,8 @@ import {
   useSingleTabStopNavigation,
 } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
+import Button from "@cloudscape-design/components/button";
 import Checkbox from "@cloudscape-design/components/checkbox";
-import { InternalChartFilter } from "@cloudscape-design/components/internal/do-not-use/chart-filter";
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
 import TextFilter from "@cloudscape-design/components/text-filter";
 import {
@@ -75,6 +75,7 @@ function ChartLegend({
   const containerRef = useRef<HTMLDivElement>(null);
   const segmentsRef = useRef<Record<number, HTMLElement>>([]);
 
+  const [tooltipFocused, setTooltipFocused] = useState(false);
   const highlightControl = useMemo(() => new DebouncedCall(), []);
   const tooltipControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
@@ -245,7 +246,7 @@ function ChartLegend({
         )}
 
         <div className={clsx(styles.list, styles[`list-align-${align}`], styles[`list-placement-${placement}`])}>
-          {showFilter && placement === "block-end" && (
+          {/* {showFilter && placement === "block-end" && (
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <InternalChartFilter
                 series={items.map((item) => ({
@@ -261,17 +262,35 @@ function ChartLegend({
               />
               <div style={{ background: colorBorderDividerDefault, width: 1, height: "80%" }} />
             </div>
+          )} */}
+
+          {showFilter && placement === "block-end" && (
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <LegendFilter
+                filteringText={filteringText}
+                allChecked={filteredItems.every((i) => i.active)}
+                someChecked={!filteredItems.every((i) => i.active) && filteredItems.some((i) => i.active)}
+                onFilterChange={(filteringText) => setFilteringText(filteringText)}
+                onSelectAll={() => onItemVisibilityChange([])}
+                onSelectNone={() => onItemVisibilityChange(filteredItems.map((i) => i.id))}
+              />
+              <div style={{ background: colorBorderDividerDefault, width: 1, height: "80%" }} />
+            </div>
           )}
 
           {filteredItems.map((item, index) => {
             const handlers = {
               onMouseEnter: () => {
-                showHighlight(item.id);
-                showTooltip(item.id);
+                if (!tooltipFocused) {
+                  showHighlight(item.id);
+                  showTooltip(item.id);
+                }
               },
               onMouseLeave: () => {
-                clearHighlight();
-                hideTooltip();
+                if (!tooltipFocused) {
+                  clearHighlight();
+                  hideTooltip();
+                }
               },
               onFocus: () => {
                 onFocus(index);
@@ -317,16 +336,26 @@ function ChartLegend({
         </div>
 
         {tooltipContent && tooltipItem && (
-          <div onFocus={() => showTooltip(tooltipItem)}>
+          <div
+            onFocus={() => {
+              showTooltip(tooltipItem);
+              setTooltipFocused(true);
+            }}
+          >
             <InternalChartTooltip
               key={tooltipItem}
               trackKey={tooltipItem}
               getTrack={() => segmentsRef.current[tooltipItemIndex]}
-              onDismiss={() => {}}
+              dismissButton={true}
+              hoverDismissButton={true}
+              onDismiss={() => {
+                focusElement(items.findIndex((it) => it.id === tooltipItem));
+                hideTooltip();
+              }}
+              onBlur={() => setTooltipFocused(false)}
               onMouseEnter={() => showTooltip(tooltipItem)}
-              onMouseLeave={() => hideTooltip()}
+              onMouseLeave={() => !tooltipFocused && hideTooltip()}
               container={null}
-              dismissButton={false}
               title={tooltipContent.header}
               footer={tooltipContent.footer}
               position={placement === "block-end" ? "top" : "left"}
@@ -337,6 +366,61 @@ function ChartLegend({
         )}
       </div>
     </SingleTabStopNavigationProvider>
+  );
+}
+
+function LegendFilter({
+  filteringText,
+  allChecked,
+  someChecked,
+  onFilterChange,
+  onSelectAll,
+  onSelectNone,
+}: {
+  filteringText: string;
+  allChecked: boolean;
+  someChecked: boolean;
+  onFilterChange: (filteringText: string) => void;
+  onSelectAll: () => void;
+  onSelectNone: () => void;
+}) {
+  const [searchVisible, setSearchVisible] = useState(false);
+  return (
+    <div style={{ display: "flex", gap: 4, alignItems: "center", height: "100%" }}>
+      {!searchVisible && (
+        <Button iconName="search" ariaLabel="Search" variant="icon" onClick={() => setSearchVisible(true)} />
+      )}
+
+      {searchVisible && (
+        <>
+          <Checkbox
+            ariaLabel="Select all"
+            checked={allChecked}
+            indeterminate={!allChecked && someChecked}
+            onChange={() => (allChecked ? onSelectNone() : onSelectAll())}
+          >
+            All
+          </Checkbox>
+
+          <TextFilter
+            filteringText={filteringText}
+            filteringPlaceholder="Search"
+            filteringAriaLabel="Search input"
+            onChange={({ detail }) => onFilterChange(detail.filteringText)}
+          />
+
+          <Button
+            iconName="close"
+            ariaLabel="Close search"
+            variant="icon"
+            onClick={() => {
+              setSearchVisible(false);
+              onFilterChange("");
+            }}
+          />
+        </>
+      )}
+    </div>
   );
 }
 
