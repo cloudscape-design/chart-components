@@ -16,6 +16,7 @@ import Box from "@cloudscape-design/components/box";
 import Button from "@cloudscape-design/components/button";
 import ButtonDropdown, { ButtonDropdownProps } from "@cloudscape-design/components/button-dropdown";
 import Checkbox from "@cloudscape-design/components/checkbox";
+import { InternalChartFilter } from "@cloudscape-design/components/internal/do-not-use/chart-filter";
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import TextFilter from "@cloudscape-design/components/text-filter";
@@ -54,6 +55,7 @@ export interface ChartLegendProps {
     };
   };
   filter?: boolean;
+  filterType?: "inline" | "dropdown";
   placement?: "block-end" | "inline-end";
   onPlacementChange?: (placement: "block-end" | "inline-end") => void;
   onItemHighlightEnter?: (itemId: string) => void;
@@ -71,6 +73,7 @@ function ChartLegend({
   ariaLabel,
   tooltip,
   filter: showFilter = false,
+  filterType = "inline",
   placement = "block-end",
   onPlacementChange,
   onItemVisibilityChange,
@@ -81,7 +84,6 @@ function ChartLegend({
   const segmentsRef = useRef<Record<number, HTMLElement>>([]);
 
   const [tooltipPinned, setTooltipPinned] = useState(false);
-  const [filterExpanded, setFilterExpanded] = useState(false);
   const highlightControl = useMemo(() => new DebouncedCall(), []);
   const tooltipControl = useMemo(() => new DebouncedCall(), []);
   const noTooltipRef = useRef(false);
@@ -205,21 +207,41 @@ function ChartLegend({
   const [infoPressed, setInfoPressed] = useState(false);
 
   const actionItems: ButtonDropdownProps.ItemOrGroup[] = [];
+  actionItems.push({
+    id: "show-all",
+    disabled: items.every((i) => i.active),
+    text: "Show all",
+  });
+  actionItems.push({
+    id: "hide-all",
+    disabled: items.every((i) => !i.active),
+    text: "Hide all",
+  });
   if (tooltip) {
-    actionItems.push({
-      id: "info",
-      itemType: "checkbox",
-      checked: infoPressed,
-      text: "Show item info",
-    });
+    actionItems.push(
+      infoPressed
+        ? {
+            id: "info",
+            text: "Hide info tooltips",
+          }
+        : {
+            id: "info",
+            text: "Show item tooltips",
+          },
+    );
   }
   if (onPlacementChange) {
-    actionItems.push({
-      id: "placement",
-      itemType: "checkbox",
-      checked: placement === "inline-end",
-      text: "Show legend on the side",
-    });
+    actionItems.push(
+      placement === "block-end"
+        ? {
+            id: "placement",
+            text: "Show on side",
+          }
+        : {
+            id: "placement",
+            text: "Show at bottom",
+          },
+    );
   }
 
   const actions = (
@@ -229,13 +251,31 @@ function ChartLegend({
       onItemClick={({ detail }) => {
         switch (detail.id) {
           case "info":
-            return setInfoPressed(!!detail.checked);
+            return setInfoPressed((prev) => !prev);
           case "placement":
-            return onPlacementChange?.(detail.checked ? "inline-end" : "block-end");
+            return onPlacementChange?.(placement === "block-end" ? "inline-end" : "block-end");
+          case "show-all":
+            return onItemVisibilityChange([]);
+          case "hide-all":
+            return onItemVisibilityChange(filteredItems.map((i) => i.id));
         }
       }}
     />
   );
+
+  const filter =
+    filterType === "inline" ? (
+      <InlineLegendFilter
+        filteringText={filteringText}
+        onFilterChange={(filteringText) => setFilteringText(filteringText)}
+      />
+    ) : (
+      <InternalChartFilter
+        series={items.map((i) => ({ label: i.name, color: i.color, datum: i.id, type: "rectangle" }))}
+        selectedSeries={items.filter((i) => i.active).map((i) => i.id)}
+        onChange={(visible) => onItemVisibilityChange(items.filter((i) => !visible.includes(i.id)).map((i) => i.id))}
+      />
+    );
 
   return (
     <SingleTabStopNavigationProvider
@@ -273,21 +313,11 @@ function ChartLegend({
                 alignItems: "center",
                 gap: 4,
                 justifyContent: "space-between",
-                flexWrap: "wrap",
               }}
             >
-              <LegendFilter
-                filteringText={filteringText}
-                allChecked={filteredItems.every((i) => i.active)}
-                someChecked={!filteredItems.every((i) => i.active) && filteredItems.some((i) => i.active)}
-                onFilterChange={(filteringText) => setFilteringText(filteringText)}
-                onSelectAll={() => onItemVisibilityChange([])}
-                onSelectNone={() => onItemVisibilityChange(filteredItems.map((i) => i.id))}
-                onFilterExpand={() => setFilterExpanded(true)}
-                onFilterCollapse={() => setFilterExpanded(false)}
-              />
+              <div>{showFilter && filter}</div>
 
-              {actionItems.length > 0 && !filterExpanded && actions}
+              {actionItems.length > 0 && actions}
             </div>
 
             <div style={{ background: colorBorderDividerDefault, width: "100%", height: 1 }} />
@@ -297,20 +327,9 @@ function ChartLegend({
         <div className={clsx(styles.list, styles[`list-align-${align}`], styles[`list-placement-${placement}`])}>
           {placement === "block-end" && (showFilter || tooltip) && (
             <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-              {showFilter && (
-                <LegendFilter
-                  filteringText={filteringText}
-                  allChecked={filteredItems.every((i) => i.active)}
-                  someChecked={!filteredItems.every((i) => i.active) && filteredItems.some((i) => i.active)}
-                  onFilterChange={(filteringText) => setFilteringText(filteringText)}
-                  onSelectAll={() => onItemVisibilityChange([])}
-                  onSelectNone={() => onItemVisibilityChange(filteredItems.map((i) => i.id))}
-                  onFilterExpand={() => setFilterExpanded(true)}
-                  onFilterCollapse={() => setFilterExpanded(false)}
-                />
-              )}
+              {showFilter && filter}
 
-              {actionItems.length > 0 && !filterExpanded && actions}
+              {actionItems.length > 0 && actions}
 
               <div style={{ background: colorBorderDividerDefault, width: 1, height: "80%" }} />
             </div>
@@ -439,26 +458,19 @@ function ChartLegend({
   );
 }
 
-function LegendFilter({
+function InlineLegendFilter({
   filteringText,
-  allChecked,
-  someChecked,
   onFilterChange,
-  onSelectAll,
-  onSelectNone,
   onFilterExpand,
   onFilterCollapse,
 }: {
   filteringText: string;
-  allChecked: boolean;
-  someChecked: boolean;
   onFilterChange: (filteringText: string) => void;
-  onSelectAll: () => void;
-  onSelectNone: () => void;
   onFilterExpand?: () => void;
   onFilterCollapse?: () => void;
 }) {
   const [searchVisible, setSearchVisible] = useState(false);
+
   return (
     <div style={{ display: "flex", gap: 4, alignItems: "center", height: "100%" }}>
       {!searchVisible && (
@@ -475,15 +487,6 @@ function LegendFilter({
 
       {searchVisible && (
         <>
-          <div>
-            <Checkbox
-              ariaLabel="Select all"
-              checked={allChecked}
-              indeterminate={!allChecked && someChecked}
-              onChange={() => (allChecked ? onSelectNone() : onSelectAll())}
-            />
-          </div>
-
           <TextFilter
             filteringText={filteringText}
             filteringPlaceholder="Search"
