@@ -134,6 +134,7 @@ export function CloudscapeHighcharts({
             // Using default Cloudscape colors unless explicit colors are given.
             colors: options.colors ?? Styles.colors,
             chart: {
+              ...Styles.chart,
               ...options.chart,
               height: fitHeight ? height : withMinHeight(options.chart?.height),
               displayErrors: options.chart?.displayErrors ?? isDevelopment,
