@@ -13,12 +13,8 @@ export default function () {
         docs={{
           visualDesign: {
             bullets: [
-              "The legacy charts feature an optional series filter at the top-left. The new charts allow series filtering by clicking on the legend items instead.",
-            ],
-          },
-          behavior: {
-            bullets: [
-              "The thresholds are now treated differently. A legacy area/line/bar chart with thresholds only is not considered empty. A new cartesian chart with threshold only is considered empty (or no-match).",
+              `The legacy charts feature an optional series filter at the top-left. The new charts allow series filtering by clicking on the legend items instead.
+              The new charts also support an in-legend filter for use cases with many series or segments.`,
             ],
           },
         }}
@@ -43,7 +39,7 @@ export default function () {
               old: <LineChartExample.ComponentOld />,
               new: (
                 <FilterOffsetBox>
-                  <LineChartExample.ComponentNew />
+                  <LineChartExample.ComponentNew legendFilter={true} />
                 </FilterOffsetBox>
               ),
               containerHeight: 450,
@@ -53,7 +49,7 @@ export default function () {
               old: <PieChartExample.ComponentOld />,
               new: (
                 <FilterOffsetBox>
-                  <PieChartExample.ComponentNew />
+                  <PieChartExample.ComponentNew legendFilter={true} />
                 </FilterOffsetBox>
               ),
               containerHeight: 450,
