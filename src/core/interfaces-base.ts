@@ -83,6 +83,7 @@ export interface BaseLegendProps {
   filter?: boolean;
   align?: "start" | "center";
   placement?: "block-end" | "inline-end";
+  filterType?: "dropdown" | "inline";
   tooltip?: {
     render: (itemId: string) => {
       header: React.ReactNode;

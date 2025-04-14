@@ -9,7 +9,7 @@ import { CartesianChartProps } from "../../lib/components";
 import { InternalCartesianChart } from "../../lib/components/cartesian-chart/chart-cartesian-internal";
 import { dateFormatter } from "../common/formatters";
 import { PageSettingsForm, usePageSettings } from "../common/page-settings";
-import { Page } from "../common/templates";
+import { Page, PageSection } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
 
 const loremIpsum =
@@ -19,7 +19,7 @@ export default function () {
   return (
     <Page
       title="Legend demo"
-      subtitle="This pages shows how legend works in a chart with many series"
+      subtitle="This pages shows how legend works in a chart with many series."
       settings={
         <PageSettingsForm
           selectedSettings={[
@@ -27,6 +27,7 @@ export default function () {
             "showLegendTitle",
             "showLegendFilter",
             "showLegendTooltip",
+            "legendFilterType",
             "legendPlacement",
             "tooltipSize",
             "tooltipPlacement",
@@ -34,7 +35,40 @@ export default function () {
         />
       }
     >
-      <Component />
+      <PageSection
+        docs={{
+          functional: {
+            before: <Box>Commands</Box>,
+            bullets: [
+              {
+                content: (
+                  <>
+                    <b>Click</b> on legend item to <b>toggle</b> series visibility.
+                  </>
+                ),
+              },
+              {
+                content: (
+                  <>
+                    <b>Command+Click</b> on legend item to <b>isolate</b> the series. <b>Command+Click</b> again to{" "}
+                    <b>show all</b> series.
+                  </>
+                ),
+              },
+              {
+                content: (
+                  <>
+                    <b>Option+Click</b> on legend item to show item&apos;s info tooltip (if legend tooltips are
+                    defined).
+                  </>
+                ),
+              },
+            ],
+          },
+        }}
+      >
+        <Component />
+      </PageSection>
     </Page>
   );
 }
