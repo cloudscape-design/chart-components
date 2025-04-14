@@ -102,7 +102,7 @@ for (let index = 0; index < 20; index++) {
   });
 }
 
-function Component({ showFilter }: { showFilter?: boolean }) {
+function Component() {
   const { chartProps } = usePageSettings();
   return (
     <InternalCartesianChart
@@ -130,7 +130,6 @@ function Component({ showFilter }: { showFilter?: boolean }) {
       }}
       legend={{
         ...chartProps.legend,
-        showFilter: showFilter,
         tooltip: chartProps.legend.tooltip
           ? {
               render: (itemId) => ({
