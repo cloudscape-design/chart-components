@@ -308,26 +308,34 @@ function ChartLegend({
           {filteredItems.map((item, index) => {
             const handlers = {
               onMouseEnter: () => {
-                if (!tooltipPinned) {
-                  showHighlight(item.id);
+                showHighlight(item.id);
+
+                if (!tooltipPinned && (infoPressed || placement === "inline-end")) {
                   showTooltip(item.id);
                 }
               },
               onMouseLeave: () => {
+                clearHighlight();
+
                 if (!tooltipPinned) {
-                  clearHighlight();
                   hideTooltip();
                 }
               },
               onFocus: () => {
                 onFocus(index);
                 showHighlight(item.id);
-                showTooltip(item.id);
+
+                if (infoPressed || placement === "inline-end") {
+                  showTooltip(item.id);
+                }
               },
               onBlur: () => {
                 onBlur();
                 clearHighlight();
-                hideTooltip();
+
+                if (!tooltipPinned) {
+                  hideTooltip();
+                }
               },
               onKeyDown,
             };
@@ -345,12 +353,14 @@ function ChartLegend({
                 {...handlers}
                 ref={thisTriggerRef}
                 onClick={(event) => {
-                  if (infoPressed && !tooltipPinned) {
+                  const isAlt = event.getModifierState("Alt");
+                  const tooltipAction = infoPressed || isAlt;
+                  if (tooltipAction && !tooltipPinned) {
                     setTooltipPinned(true);
                     showTooltip(item.id);
                     return;
                   }
-                  if (infoPressed && tooltipPinned) {
+                  if (tooltipAction && tooltipPinned) {
                     setTooltipPinned(false);
                     hideTooltip();
                     return;
@@ -372,7 +382,7 @@ function ChartLegend({
           })}
         </div>
 
-        {tooltipContent && tooltipItem && (infoPressed || placement === "inline-end") && (
+        {tooltipContent && tooltipItem && (
           <div
             onFocus={() => {
               showTooltip(tooltipItem);
