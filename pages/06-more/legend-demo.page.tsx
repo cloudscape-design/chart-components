@@ -35,38 +35,7 @@ export default function () {
         />
       }
     >
-      <PageSection
-        docs={{
-          functional: {
-            before: <Box>Commands</Box>,
-            bullets: [
-              {
-                content: (
-                  <>
-                    <b>Click</b> on legend item to <b>toggle</b> series visibility.
-                  </>
-                ),
-              },
-              {
-                content: (
-                  <>
-                    <b>Command+Click</b> on legend item to <b>isolate</b> the series. <b>Command+Click</b> again to{" "}
-                    <b>show all</b> series.
-                  </>
-                ),
-              },
-              {
-                content: (
-                  <>
-                    <b>Option+Click</b> on legend item to show item&apos;s info tooltip (if legend tooltips are
-                    defined).
-                  </>
-                ),
-              },
-            ],
-          },
-        }}
-      >
+      <PageSection>
         <Component />
       </PageSection>
     </Page>

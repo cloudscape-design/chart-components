@@ -18,6 +18,7 @@ import ButtonDropdown, { ButtonDropdownProps } from "@cloudscape-design/componen
 import Checkbox from "@cloudscape-design/components/checkbox";
 import { InternalChartFilter } from "@cloudscape-design/components/internal/do-not-use/chart-filter";
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
+import Popover from "@cloudscape-design/components/popover";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import TextFilter from "@cloudscape-design/components/text-filter";
 import {
@@ -245,22 +246,46 @@ function ChartLegend({
   }
 
   const actions = (
-    <ButtonDropdown
-      variant="icon"
-      items={actionItems}
-      onItemClick={({ detail }) => {
-        switch (detail.id) {
-          case "info":
-            return setInfoPressed((prev) => !prev);
-          case "placement":
-            return onPlacementChange?.(placement === "block-end" ? "inline-end" : "block-end");
-          case "show-all":
-            return onItemVisibilityChange([]);
-          case "hide-all":
-            return onItemVisibilityChange(filteredItems.map((i) => i.id));
+    <div>
+      <ButtonDropdown
+        variant="icon"
+        items={actionItems}
+        onItemClick={({ detail }) => {
+          switch (detail.id) {
+            case "info":
+              return setInfoPressed((prev) => !prev);
+            case "placement":
+              return onPlacementChange?.(placement === "block-end" ? "inline-end" : "block-end");
+            case "show-all":
+              return onItemVisibilityChange([]);
+            case "hide-all":
+              return onItemVisibilityChange(filteredItems.map((i) => i.id));
+          }
+        }}
+      />
+
+      <Popover
+        triggerType="custom"
+        position="top"
+        header="Navigation"
+        renderWithPortal={true}
+        content={
+          <SpaceBetween size="xs">
+            <Box color="text-body-secondary" fontSize="body-s">
+              <Box variant="code">Click</Box> on legend items to toggle series visibility.
+            </Box>
+            <Box color="text-body-secondary" fontSize="body-s">
+              <Box variant="code">Command+Click</Box> on legend items to isolate the respective series.
+            </Box>
+            <Box color="text-body-secondary" fontSize="body-s">
+              <Box variant="code">Option+Click</Box> on legend items to show additional item info.
+            </Box>
+          </SpaceBetween>
         }
-      }}
-    />
+      >
+        <Button variant="icon" iconName="status-info" />
+      </Popover>
+    </div>
   );
 
   const filter =
@@ -317,7 +342,7 @@ function ChartLegend({
             >
               <div>{showFilter && filter}</div>
 
-              {actionItems.length > 0 && actions}
+              {actions}
             </div>
 
             <div style={{ background: colorBorderDividerDefault, width: "100%", height: 1 }} />
@@ -329,7 +354,7 @@ function ChartLegend({
             <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
               {showFilter && filter}
 
-              {actionItems.length > 0 && actions}
+              {actions}
 
               <div style={{ background: colorBorderDividerDefault, width: 1, height: "80%" }} />
             </div>
