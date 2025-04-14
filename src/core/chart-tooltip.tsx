@@ -14,6 +14,7 @@ import * as Styles from "./styles";
 
 const MOUSE_LEAVE_DELAY = 300;
 const LAST_DISMISS_DELAY = 250;
+const SET_STATE_OVERRIDE_MARKER = Symbol("awsui-set-state");
 
 // The custom tooltip does not rely on the Highcharts tooltip. Instead, we listen to the mouse-over event on series points,
 // and then render a fake invisible target element to compute the Cloudscape chart popover position against.
@@ -117,9 +118,11 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
 
   // When hovering (or focusing) over the target (point, bar, segment, etc.) we show the tooltip in the target coordinate.
   public onMouseOverTarget = (target: Highcharts.Point) => {
+    this.updateSetters();
+
     // The behavior is ignored if the tooltip is already shown and pinned.
     if (this.get().pinned) {
-      return;
+      return false;
     }
     // If the target is hovered soon after the mouse-out was received, we cancel the mouse-out behavior to hide the tooltip.
     this.mouseLeaveCall.cancelPrevious();
@@ -199,6 +202,34 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
       }
     }
   };
+
+  private updateSetters() {
+    for (const s of this.api.chart.series) {
+      if (!(s.setState as any)[SET_STATE_OVERRIDE_MARKER]) {
+        const original = s.setState;
+        s.setState = (...args) => {
+          if (this.get().pinned) {
+            return;
+          }
+          return original.call(s, ...args);
+        };
+        (s.setState as any)[SET_STATE_OVERRIDE_MARKER] = true;
+      }
+
+      for (const d of s.data) {
+        if (!(d.setState as any)[SET_STATE_OVERRIDE_MARKER]) {
+          const original = d.setState;
+          d.setState = (...args) => {
+            if (this.get().pinned) {
+              return;
+            }
+            return original.call(d, ...args);
+          };
+          (d.setState as any)[SET_STATE_OVERRIDE_MARKER] = true;
+        }
+      }
+    }
+  }
 
   private get api() {
     return this.getAPI();
