@@ -80,6 +80,7 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
     tooltip: BaseTooltipProps;
     legend: BaseLegendProps;
     emphasizeBaselineAxis: boolean;
+    onLegendPlacementChange: (placement: "block-end" | "inline-end") => void;
   };
   isEmpty: boolean;
 } {
@@ -154,6 +155,7 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
           : undefined,
       },
       emphasizeBaselineAxis: settings.emphasizeBaselineAxis,
+      onLegendPlacementChange: (placement) => setSettings({ legendPlacement: placement } as any),
     },
     isEmpty: settings.emptySeries || settings.seriesLoading || settings.seriesError,
   };

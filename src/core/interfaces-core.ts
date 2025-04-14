@@ -61,6 +61,10 @@ export interface CloudscapeHighchartsProps
    */
   onItemVisibilityChange?: (hiddenItems: string[]) => void;
   /**
+   * A callback triggered when user requests legend placement change.
+   */
+  onLegendPlacementChange?: (placement: "block-end" | "inline-end") => void;
+  /**
    * An object that contains all of the localized strings required by the component.
    * @i18n
    */
