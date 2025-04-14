@@ -86,6 +86,7 @@ export function ChartTooltip({
       footer={content.footer}
       size={size}
       position={placement === "bottom" ? "bottom" : undefined}
+      minHeight={200}
     >
       {content.body}
     </InternalChartTooltip>
