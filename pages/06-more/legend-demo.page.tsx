@@ -23,9 +23,6 @@ export default function () {
       settings={
         <PageSettingsForm
           selectedSettings={[
-            "emptySeries",
-            "seriesLoading",
-            "seriesError",
             "showLegend",
             "showLegendTitle",
             "showLegendFilter",
