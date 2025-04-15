@@ -14,14 +14,12 @@ import {
 } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
 import Button from "@cloudscape-design/components/button";
-import ButtonDropdown, { ButtonDropdownProps } from "@cloudscape-design/components/button-dropdown";
 import Checkbox from "@cloudscape-design/components/checkbox";
 import ColumnLayout from "@cloudscape-design/components/column-layout";
 import FormField from "@cloudscape-design/components/form-field";
-import { InternalChartFilter } from "@cloudscape-design/components/internal/do-not-use/chart-filter";
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
 import { InternalSortableArea } from "@cloudscape-design/components/internal/do-not-use/sortable-area";
-import Modal from "@cloudscape-design/components/modal";
+import Modal, { ModalProps } from "@cloudscape-design/components/modal";
 import Popover from "@cloudscape-design/components/popover";
 import RadioGroup from "@cloudscape-design/components/radio-group";
 import SpaceBetween from "@cloudscape-design/components/space-between";
@@ -50,23 +48,41 @@ interface ChartLegendItem {
 
 export interface ChartLegendProps {
   items: readonly ChartLegendItem[];
-  align?: "start" | "center";
   legendTitle?: string;
   ariaLabel?: string;
-  tooltip?: {
-    render: (itemId: string) => {
-      header: React.ReactNode;
-      body: React.ReactNode;
-      footer?: React.ReactNode;
-    };
-  };
-  filter?: boolean;
-  filterType?: "inline" | "dropdown" | "settings";
+  infoTooltip?: InfoTooltipProps;
+  tooltipMode?: boolean;
   placement?: "block-end" | "inline-end";
-  onPlacementChange?: (placement: "block-end" | "inline-end") => void;
+  preferences?: LegendPreferencesProps;
   onItemHighlightEnter?: (itemId: string) => void;
   onItemHighlightExit?: () => void;
   onItemVisibilityChange: (hiddenItems: string[]) => void;
+}
+
+export interface InfoTooltipProps {
+  render: (
+    itemId: string,
+    { context }: { context: "legend" | "preferences" },
+  ) => {
+    header: React.ReactNode;
+    body: React.ReactNode;
+    footer?: React.ReactNode;
+  };
+}
+
+export interface LegendPreferencesProps {
+  itemDisplayPreference?: boolean;
+  navigationPreference?: boolean;
+  legendPlacementPreference?: boolean;
+  renderer?: (props: LegendPreferencesRendererProps) => JSX.Element;
+  modalSize?: ModalProps.Size;
+  onApply: (nextState: LegendPreferencesState) => void | boolean;
+}
+
+export interface LegendPreferencesRendererProps {
+  itemDisplay: React.ReactNode;
+  navigation: React.ReactNode;
+  legendPlacement: React.ReactNode;
 }
 
 export default memo(ChartLegend) as typeof ChartLegend;
@@ -74,14 +90,12 @@ export default memo(ChartLegend) as typeof ChartLegend;
 // TODO: replace all indices with IDs
 function ChartLegend({
   items,
-  align = "start",
   legendTitle,
   ariaLabel,
-  tooltip,
-  filter: showFilter = false,
-  filterType = "inline",
+  infoTooltip,
+  tooltipMode = false,
   placement = "block-end",
-  onPlacementChange,
+  preferences,
   onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
@@ -89,11 +103,6 @@ function ChartLegend({
   const containerRef = useRef<HTMLDivElement>(null);
   const segmentsRef = useRef<Record<number, HTMLElement>>([]);
 
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [tempSelection, setTempSelection] = useState<string[]>([]);
-  const [tempFilteringText, setTempFilteringText] = useState("");
-  const [tempPlacement, setTempPlacement] = useState<"block-end" | "inline-end">(placement);
-  const [tempInfoPressed, setTempInfoPressed] = useState(false);
   const [tooltipPinned, setTooltipPinned] = useState(false);
   const highlightControl = useMemo(() => new DebouncedCall(), []);
   const tooltipControl = useMemo(() => new DebouncedCall(), []);
@@ -101,7 +110,7 @@ function ChartLegend({
   const noTooltipControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [tooltipItem, setTooltipItem] = useState<null | string>(null);
-  const tooltipContent = tooltipItem ? tooltip?.render(tooltipItem) : null;
+  const tooltipContent = tooltipItem ? infoTooltip?.render(tooltipItem, { context: "legend" }) : null;
   const showTooltip = (itemId: string) => {
     if (noTooltipRef.current) {
       return;
@@ -211,295 +220,27 @@ function ChartLegend({
     }
   };
 
-  const [filteringText, setFilteringText] = useState("");
-  const filteredItems = items.filter((i) => i.name.toLowerCase().includes(filteringText.toLowerCase()));
-  const tooltipItemIndex = filteredItems.findIndex((item) => item.id === tooltipItem);
+  const tooltipItemIndex = items.findIndex((item) => item.id === tooltipItem);
 
-  const [infoPressed, setInfoPressed] = useState(false);
-
-  const actionItems: ButtonDropdownProps.ItemOrGroup[] = [];
-  actionItems.push({
-    id: "show-all",
-    disabled: items.every((i) => i.active),
-    text: "Show all",
-  });
-  actionItems.push({
-    id: "hide-all",
-    disabled: items.every((i) => !i.active),
-    text: "Hide all",
-  });
-  if (tooltip) {
-    actionItems.push(
-      infoPressed
-        ? {
-            id: "info",
-            text: "Hide info tooltips",
-          }
-        : {
-            id: "info",
-            text: "Show item tooltips",
-          },
-    );
-  }
-  if (onPlacementChange) {
-    actionItems.push(
-      placement === "block-end"
-        ? {
-            id: "placement",
-            text: "Show on side",
-          }
-        : {
-            id: "placement",
-            text: "Show at bottom",
-          },
-    );
-  }
-
-  const actions =
-    filterType === "settings" ? null : (
-      <div>
-        <ButtonDropdown
-          variant="icon"
-          items={actionItems}
-          onItemClick={({ detail }) => {
-            switch (detail.id) {
-              case "info":
-                return setInfoPressed((prev) => !prev);
-              case "placement":
-                return onPlacementChange?.(placement === "block-end" ? "inline-end" : "block-end");
-              case "show-all":
-                return onItemVisibilityChange([]);
-              case "hide-all":
-                return onItemVisibilityChange(filteredItems.map((i) => i.id));
-            }
-          }}
-        />
-
-        <Popover
-          triggerType="custom"
-          position="top"
-          header="Navigation"
-          renderWithPortal={true}
-          content={
-            <SpaceBetween size="xs">
-              <Box color="text-body-secondary" fontSize="body-s">
-                <Box variant="code">Click</Box> on legend items to toggle series visibility.
-              </Box>
-              <Box color="text-body-secondary" fontSize="body-s">
-                <Box variant="code">Command+Click</Box> on legend items to isolate the respective series.
-              </Box>
-              <Box color="text-body-secondary" fontSize="body-s">
-                <Box variant="code">Option+Click</Box> on legend items to show additional item info.
-              </Box>
-            </SpaceBetween>
-          }
-        >
-          <Button variant="icon" iconName="status-info" />
-        </Popover>
-      </div>
-    );
-
-  const tempFilteredItems = items.filter((i) => i.name.toLowerCase().includes(tempFilteringText.toLowerCase()));
-
-  const filter =
-    filterType === "inline" ? (
-      <InlineLegendFilter
-        filteringText={filteringText}
-        onFilterChange={(filteringText) => setFilteringText(filteringText)}
-      />
-    ) : filterType === "dropdown" ? (
-      <InternalChartFilter
-        series={items.map((i) => ({ label: i.name, color: i.color, datum: i.id, type: "rectangle" }))}
-        selectedSeries={items.filter((i) => i.active).map((i) => i.id)}
-        onChange={(visible) => onItemVisibilityChange(items.filter((i) => !visible.includes(i.id)).map((i) => i.id))}
-      />
-    ) : (
-      <>
-        <Button
-          variant="icon"
-          iconName="settings"
-          onClick={() => {
-            setSettingsOpen(true);
-            setTempSelection(items.filter((i) => i.active).map((i) => i.id));
-            setTempFilteringText("");
-            setTempPlacement(placement);
-            setTempInfoPressed(infoPressed);
-          }}
-        />
-        {settingsOpen && (
-          <Modal
-            visible={true}
-            size="large"
-            onDismiss={() => setSettingsOpen(false)}
-            header="Chart display preferences"
-            footer={
-              <div style={{ display: "flex", gap: 8, justifySelf: "flex-end" }}>
-                <Button onClick={() => setSettingsOpen(false)}>Cancel</Button>
-                <Button
-                  variant="primary"
-                  onClick={() => {
-                    setSettingsOpen(false);
-                    onItemVisibilityChange(items.filter((i) => !tempSelection.includes(i.id)).map((i) => i.id));
-                    onPlacementChange?.(tempPlacement);
-                    setTempInfoPressed(infoPressed);
-                    setInfoPressed(tempInfoPressed);
-                  }}
-                >
-                  Apply
-                </Button>
-              </div>
-            }
-          >
-            <ColumnLayout columns={2} borders="all">
-              <SpaceBetween size="s">
-                <FormField label="Legend placement">
-                  <RadioGroup
-                    items={[
-                      { value: "block-end", label: "Bottom" },
-                      { value: "inline-end", label: "Side" },
-                    ]}
-                    value={tempPlacement}
-                    onChange={({ detail }) => setTempPlacement(detail.value as "block-end" | "inline-end")}
-                  />
-                </FormField>
-
-                <FormField label="Navigation">
-                  <SpaceBetween size="s">
-                    <Checkbox checked={tempInfoPressed} onChange={({ detail }) => setTempInfoPressed(detail.checked)}>
-                      Show legend item tooltips
-                    </Checkbox>
-
-                    {tempInfoPressed ? (
-                      <SpaceBetween size="xs">
-                        <Box color="text-body-secondary" fontSize="body-s">
-                          <Box variant="code">Click</Box> on legend items to pin info tooltip.
-                        </Box>
-                        <Box color="text-body-secondary" fontSize="body-s">
-                          <Box variant="code">Command+Click</Box> on legend items to isolate the respective series.
-                        </Box>
-                        <Box color="text-body-secondary" fontSize="body-s">
-                          <Box variant="code">Option+Click</Box> on legend items to toggle series visibility.
-                        </Box>
-                      </SpaceBetween>
-                    ) : (
-                      <SpaceBetween size="xs">
-                        <Box color="text-body-secondary" fontSize="body-s">
-                          <Box variant="code">Click</Box> on legend items to toggle series visibility.
-                        </Box>
-                        <Box color="text-body-secondary" fontSize="body-s">
-                          <Box variant="code">Command+Click</Box> on legend items to isolate the respective series.
-                        </Box>
-                        <Box color="text-body-secondary" fontSize="body-s">
-                          <Box variant="code">Option+Click</Box> on legend items to show additional item info.
-                        </Box>
-                      </SpaceBetween>
-                    )}
-                  </SpaceBetween>
-                </FormField>
-              </SpaceBetween>
-
-              <FormField label="Series preferences" description="Customize the visibility and order of the series.">
-                <SpaceBetween size="s">
-                  <TextFilter
-                    filteringText={tempFilteringText}
-                    filteringPlaceholder="Search"
-                    filteringAriaLabel="Search input"
-                    onChange={({ detail }) => setTempFilteringText(detail.filteringText)}
-                  />
-
-                  <div style={{ maxHeight: 400, overflowY: "auto" }}>
-                    <div
-                      style={{
-                        paddingBottom: 4,
-                        marginBottom: 4,
-                        borderBottom: `1px solid ${colorBorderDividerDefault}`,
-                      }}
-                    >
-                      <Checkbox
-                        checked={tempFilteredItems.every((i) => tempSelection.includes(i.id))}
-                        indeterminate={
-                          !tempFilteredItems.every((i) => tempSelection.includes(i.id)) &&
-                          tempFilteredItems.some((i) => tempSelection.includes(i.id))
-                        }
-                        onChange={() => {
-                          const allSelected = tempFilteredItems.every((i) => tempSelection.includes(i.id));
-                          if (!allSelected) {
-                            setTempSelection((prev) => {
-                              const next = new Set(prev);
-                              for (const i of tempFilteredItems) {
-                                next.add(i.id);
-                              }
-                              return [...next];
-                            });
-                          } else {
-                            setTempSelection((prev) => {
-                              const next = new Set(prev);
-                              for (const i of tempFilteredItems) {
-                                next.delete(i.id);
-                              }
-                              return [...next];
-                            });
-                          }
-                        }}
-                      >
-                        Select all
-                      </Checkbox>
-                    </div>
-
-                    <InternalSortableArea
-                      items={tempFilteredItems}
-                      itemDefinition={{ id: (item) => item.id, label: (item) => item.name }}
-                      onItemsChange={() => {}}
-                      renderItem={({ item, ref, className, style }) => {
-                        className = clsx(className, styles.option);
-                        return (
-                          <div
-                            ref={ref}
-                            className={className}
-                            style={{
-                              ...style,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                            }}
-                          >
-                            <Checkbox
-                              checked={tempSelection.includes(item.id)}
-                              onChange={({ detail }) => {
-                                setTempSelection((prev) =>
-                                  detail.checked ? [...prev, item.id] : prev.filter((i) => i !== item.id),
-                                );
-                              }}
-                            >
-                              {item.name}
-                            </Checkbox>
-
-                            <Popover
-                              triggerType="custom"
-                              header={tooltip ? (tooltip.render(item.id).header as any) : null}
-                              content={
-                                tooltip ? (
-                                  <div>
-                                    {tooltip.render(item.id).body}
-                                    {tooltip.render(item.id).footer}
-                                  </div>
-                                ) : null
-                              }
-                            >
-                              <Button variant="icon" iconName="status-info" disabled={!tooltip} />
-                            </Popover>
-                          </div>
-                        );
-                      }}
-                    />
-                  </div>
-                </SpaceBetween>
-              </FormField>
-            </ColumnLayout>
-          </Modal>
-        )}
-      </>
-    );
+  const renderedPreferences = preferences ? (
+    <ChartLegendPreferences
+      items={items}
+      tooltipMode={tooltipMode}
+      legendPlacement={placement}
+      infoTooltip={infoTooltip}
+      itemDisplayPreference={preferences.itemDisplayPreference}
+      navigationPreference={preferences.navigationPreference}
+      legendPlacementPreference={preferences.legendPlacementPreference}
+      renderer={preferences.renderer}
+      modalSize={preferences.modalSize}
+      onApply={(state) => {
+        const result = preferences.onApply(state);
+        if (result !== false) {
+          onItemVisibilityChange(items.filter((i) => !state.selectedItems.includes(i.id)).map((i) => i.id));
+        }
+      }}
+    />
+  ) : null;
 
   return (
     <SingleTabStopNavigationProvider
@@ -520,51 +261,37 @@ function ChartLegend({
           </Box>
         )}
 
-        {showFilter && placement === "inline-end" && (
+        {placement === "inline-end" && preferences && (
           <div
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: 8,
               position: "sticky",
               top: 0,
               background: colorBackgroundLayoutMain,
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-                justifyContent: "space-between",
-              }}
-            >
-              <div>{showFilter && filter}</div>
-
-              {actions}
-            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>{renderedPreferences}</div>
 
             <div style={{ background: colorBorderDividerDefault, width: "100%", height: 1 }} />
           </div>
         )}
 
-        <div className={clsx(styles.list, styles[`list-align-${align}`], styles[`list-placement-${placement}`])}>
-          {placement === "block-end" && (showFilter || tooltip) && (
+        <div className={clsx(styles.list, styles[`list-placement-${placement}`])}>
+          {placement === "block-end" && preferences && (
             <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-              {showFilter && filter}
-
-              {actions}
+              {renderedPreferences}
 
               <div style={{ background: colorBorderDividerDefault, width: 1, height: "80%" }} />
             </div>
           )}
 
-          {filteredItems.map((item, index) => {
+          {items.map((item, index) => {
             const handlers = {
               onMouseEnter: () => {
                 showHighlight(item.id);
 
-                if (!tooltipPinned && infoPressed) {
+                if (!tooltipPinned && tooltipMode) {
                   showTooltip(item.id);
                 }
               },
@@ -579,7 +306,7 @@ function ChartLegend({
                 onFocus(index);
                 showHighlight(item.id);
 
-                if (infoPressed) {
+                if (tooltipMode) {
                   showTooltip(item.id);
                 }
               },
@@ -608,7 +335,7 @@ function ChartLegend({
                 ref={thisTriggerRef}
                 onClick={(event) => {
                   const isAlt = event.getModifierState("Alt");
-                  const tooltipAction = (infoPressed && !isAlt) || (!infoPressed && isAlt);
+                  const tooltipAction = (tooltipMode && !isAlt) || (!tooltipMode && isAlt);
                   if (event.metaKey || event.ctrlKey) {
                     selectItem(item.id);
                     return;
@@ -631,7 +358,7 @@ function ChartLegend({
                 type={item.type}
                 status={item.status}
                 active={item.active}
-                infoMode={infoPressed}
+                infoMode={tooltipMode}
               />
             );
           })}
@@ -650,7 +377,7 @@ function ChartLegend({
               dismissButton={tooltipPinned}
               onDismiss={() => {
                 focusElement(
-                  filteredItems.findIndex((it) => it.id === tooltipItem),
+                  items.findIndex((it) => it.id === tooltipItem),
                   true,
                 );
                 hideTooltip();
@@ -682,55 +409,278 @@ function ChartLegend({
   );
 }
 
-function InlineLegendFilter({
-  filteringText,
-  onFilterChange,
-  onFilterExpand,
-  onFilterCollapse,
-}: {
-  filteringText: string;
-  onFilterChange: (filteringText: string) => void;
-  onFilterExpand?: () => void;
-  onFilterCollapse?: () => void;
+export interface LegendPreferencesState {
+  selectedItems: string[];
+  legendPlacement: "block-end" | "inline-end";
+  tooltipMode: boolean;
+}
+
+function ChartLegendPreferences({
+  items,
+  tooltipMode: tooltipModeState,
+  legendPlacement: legendPlacementState,
+  infoTooltip,
+  itemDisplayPreference,
+  navigationPreference,
+  legendPlacementPreference,
+  renderer: CustomRenderer,
+  modalSize,
+  onApply: onApplyExternal,
+}: LegendPreferencesProps & {
+  items: readonly ChartLegendItem[];
+  tooltipMode: boolean;
+  legendPlacement: "block-end" | "inline-end";
+  infoTooltip?: InfoTooltipProps;
 }) {
-  const [searchVisible, setSearchVisible] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [tempState, setTempState] = useState<LegendPreferencesState>({
+    selectedItems: items.filter((i) => i.active).map((i) => i.id),
+    tooltipMode: tooltipModeState,
+    legendPlacement: legendPlacementState,
+  });
+  const onModalOpen = () => {
+    setModalOpen(true);
+  };
+  const onModalDismiss = () => {
+    setModalOpen(false);
+  };
+  const onCancel = () => {
+    setModalOpen(false);
+  };
+  const onApply = () => {
+    onApplyExternal(tempState);
+    setModalOpen(false);
+  };
+  const [filteringText, setFilteringText] = useState("");
 
-  return (
-    <div style={{ display: "flex", gap: 4, alignItems: "center", height: "100%" }}>
-      {!searchVisible && (
-        <Button
-          iconName="search"
-          ariaLabel="Search"
-          variant="icon"
-          onClick={() => {
-            setSearchVisible(true);
-            onFilterExpand?.();
-          }}
+  const filteredItems = items.filter((i) => i.name.toLowerCase().includes(filteringText.toLowerCase()));
+
+  const legendPlacement = legendPlacementPreference ? (
+    <FormField label="Legend placement">
+      <RadioGroup
+        items={[
+          { value: "block-end", label: "Bottom" },
+          { value: "inline-end", label: "Side" },
+        ]}
+        value={tempState.legendPlacement ?? "block-end"}
+        onChange={({ detail }) =>
+          setTempState((prev) => ({ ...prev, legendPlacement: detail.value as "block-end" | "inline-end" }))
+        }
+      />
+    </FormField>
+  ) : null;
+
+  const navigation = navigationPreference ? (
+    <FormField label="Navigation">
+      <SpaceBetween size="s">
+        {infoTooltip ? (
+          <Checkbox
+            checked={tempState.tooltipMode ?? false}
+            onChange={({ detail }) => setTempState((prev) => ({ ...prev, tooltipMode: detail.checked }))}
+          >
+            Show legend item tooltips
+          </Checkbox>
+        ) : null}
+
+        {tempState.tooltipMode ? (
+          <SpaceBetween size="xs">
+            <Box color="text-body-secondary" fontSize="body-s">
+              <Box variant="code">Click</Box> on legend items to pin info tooltip.
+            </Box>
+            <Box color="text-body-secondary" fontSize="body-s">
+              <Box variant="code">Command+Click</Box> on legend items to isolate the respective series.
+            </Box>
+            <Box color="text-body-secondary" fontSize="body-s">
+              <Box variant="code">Option+Click</Box> on legend items to toggle series visibility.
+            </Box>
+          </SpaceBetween>
+        ) : (
+          <SpaceBetween size="xs">
+            <Box color="text-body-secondary" fontSize="body-s">
+              <Box variant="code">Click</Box> on legend items to toggle series visibility.
+            </Box>
+            <Box color="text-body-secondary" fontSize="body-s">
+              <Box variant="code">Command+Click</Box> on legend items to isolate the respective series.
+            </Box>
+            {infoTooltip ? (
+              <Box color="text-body-secondary" fontSize="body-s">
+                <Box variant="code">Option+Click</Box> on legend items to show additional item info.
+              </Box>
+            ) : null}
+          </SpaceBetween>
+        )}
+      </SpaceBetween>
+    </FormField>
+  ) : null;
+
+  const itemDisplay = itemDisplayPreference ? (
+    <FormField label="Series preferences" description="Customize the visibility and order of the series.">
+      <SpaceBetween size="s">
+        <TextFilter
+          filteringText={filteringText}
+          filteringPlaceholder="Search"
+          filteringAriaLabel="Search input"
+          onChange={({ detail }) => setFilteringText(detail.filteringText)}
         />
-      )}
 
-      {searchVisible && (
-        <>
-          <TextFilter
-            filteringText={filteringText}
-            filteringPlaceholder="Search"
-            filteringAriaLabel="Search input"
-            onChange={({ detail }) => onFilterChange(detail.filteringText)}
-          />
+        <div style={{ maxHeight: 400, overflowY: "auto" }}>
+          <div
+            style={{
+              paddingBottom: 4,
+              marginBottom: 4,
+              borderBottom: `1px solid ${colorBorderDividerDefault}`,
+            }}
+          >
+            <Checkbox
+              checked={filteredItems.every((i) => tempState.selectedItems.includes(i.id))}
+              indeterminate={
+                !filteredItems.every((i) => tempState.selectedItems.includes(i.id)) &&
+                filteredItems.some((i) => tempState.selectedItems.includes(i.id))
+              }
+              onChange={() => {
+                const allSelected = filteredItems.every((i) => tempState.selectedItems.includes(i.id));
+                if (!allSelected) {
+                  setTempState((prev) => {
+                    const next = new Set(prev.selectedItems);
+                    for (const i of filteredItems) {
+                      next.add(i.id);
+                    }
+                    return { ...prev, selectedItems: [...next] };
+                  });
+                } else {
+                  setTempState((prev) => {
+                    const next = new Set(prev.selectedItems);
+                    for (const i of filteredItems) {
+                      next.delete(i.id);
+                    }
+                    return { ...prev, selectedItems: [...next] };
+                  });
+                }
+              }}
+            >
+              Select all
+            </Checkbox>
+          </div>
 
-          <Button
-            iconName="close"
-            ariaLabel="Close search"
-            variant="icon"
-            onClick={() => {
-              setSearchVisible(false);
-              onFilterCollapse?.();
-              onFilterChange("");
+          <InternalSortableArea
+            items={filteredItems}
+            itemDefinition={{ id: (item) => item.id, label: (item) => item.name }}
+            onItemsChange={() => {}}
+            renderItem={({ item, ref, className, style }) => {
+              className = clsx(className, styles.option);
+              const tooltipContent = infoTooltip?.render(item.id, { context: "preferences" });
+              return (
+                <div
+                  ref={ref}
+                  className={className}
+                  style={{
+                    ...style,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Checkbox
+                    checked={tempState.selectedItems.includes(item.id)}
+                    onChange={({ detail }) => {
+                      setTempState((prev) => ({
+                        ...prev,
+                        selectedItems: detail.checked
+                          ? [...(prev.selectedItems ?? []), item.id]
+                          : (prev.selectedItems ?? []).filter((i) => i !== item.id),
+                      }));
+                    }}
+                  >
+                    <SpaceBetween size="xs" direction="horizontal">
+                      <ChartSeriesMarker {...item} />
+                      <Box>{item.name}</Box>
+                    </SpaceBetween>
+                  </Checkbox>
+
+                  {tooltipContent ? (
+                    <Popover
+                      triggerType="custom"
+                      header={tooltipContent.header as any}
+                      content={
+                        <div>
+                          {tooltipContent.body}
+                          {tooltipContent.footer}
+                        </div>
+                      }
+                    >
+                      <Button variant="icon" iconName="status-info" />
+                    </Popover>
+                  ) : null}
+                </div>
+              );
             }}
           />
-        </>
+        </div>
+      </SpaceBetween>
+    </FormField>
+  ) : null;
+
+  const Renderer = CustomRenderer ?? DefaultRenderer;
+
+  const defaultModalSize = itemDisplay && (navigation || legendPlacement) ? "large" : "medium";
+
+  return (
+    <>
+      <Button variant="icon" iconName="settings" onClick={onModalOpen} />
+      {modalOpen && (
+        <Modal
+          visible={true}
+          size={modalSize ?? defaultModalSize}
+          onDismiss={onModalDismiss}
+          header="Chart display preferences"
+          footer={
+            <div style={{ display: "flex", gap: 8, justifySelf: "flex-end" }}>
+              <Button onClick={onCancel}>Cancel</Button>
+              <Button variant="primary" onClick={onApply}>
+                Apply
+              </Button>
+            </div>
+          }
+        >
+          {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+          {/* @ts-ignore */}
+          <Renderer
+            itemDisplay={itemDisplay ?? null}
+            navigation={navigation ?? null}
+            legendPlacement={legendPlacement ?? null}
+          />
+        </Modal>
       )}
-    </div>
+    </>
+  );
+}
+
+function DefaultRenderer({
+  itemDisplay,
+  navigation,
+  legendPlacement,
+}: {
+  itemDisplay: null | React.ReactNode;
+  navigation: null | React.ReactNode;
+  legendPlacement: null | React.ReactNode;
+}) {
+  const left =
+    legendPlacement || navigation ? (
+      <SpaceBetween size="s">
+        {legendPlacement}
+        {navigation}
+      </SpaceBetween>
+    ) : null;
+
+  const right = itemDisplay;
+
+  return left && right ? (
+    <ColumnLayout columns={2} borders="all">
+      {left}
+      {right}
+    </ColumnLayout>
+  ) : (
+    (left ?? right)
   );
 }
 

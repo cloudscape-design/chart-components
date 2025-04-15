@@ -60,12 +60,6 @@ export interface CloudscapeHighchartsProps
    * A callback triggered when clicking on a legend item.
    */
   onItemVisibilityChange?: (hiddenItems: string[]) => void;
-
-  // TODO: move legend handlers to legend obj?
-  /**
-   * A callback triggered when user requests legend placement change.
-   */
-  onLegendPlacementChange?: (placement: "block-end" | "inline-end") => void;
   /**
    * An object that contains all of the localized strings required by the component.
    * @i18n

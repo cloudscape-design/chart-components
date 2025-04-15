@@ -136,8 +136,7 @@ function ExampleScatterSimple() {
       }}
       legend={{
         ...chartProps.legend,
-        align: "center",
-        tooltip: {
+        infoTooltip: {
           render: (itemId) => ({
             header: `Series ${itemId}`,
             body: "Series info",

@@ -40,7 +40,6 @@ export function CloudscapeHighcharts({
   callback,
   hiddenItems,
   onItemVisibilityChange,
-  onLegendPlacementChange,
   verticalAxisTitlePlacement = "top",
   i18nStrings,
   className,
@@ -65,7 +64,7 @@ export function CloudscapeHighcharts({
 
   // Provides custom legend, when `props.legend` is present.
   const isLegendEnabled = legendProps?.enabled !== false;
-  const legend = useLegend(getAPI, { ...legendProps, onItemVisibilityChange, onLegendPlacementChange });
+  const legend = useLegend(getAPI, { ...legendProps, onItemVisibilityChange });
 
   // Provides empty, no-match, loading, and error states handling, when `props.noData` is present.
   const noData = useNoData(getAPI, noDataProps);

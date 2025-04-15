@@ -26,9 +26,10 @@ export default function () {
             "verticalAxisTitlePlacement",
             "showLegend",
             "showLegendTitle",
-            "showLegendFilter",
             "showLegendTooltip",
-            "legendFilterType",
+            "preferencesItems",
+            "preferencesNavigation",
+            "preferencesPlacement",
             "legendPlacement",
             "tooltipSize",
             "tooltipPlacement",
@@ -128,13 +129,13 @@ function Component() {
         plotOptions: { series: { marker: { enabled: false }, stacking: "normal" } },
       }}
       series={{
-        getItemStatus: chartProps.legend.tooltip
+        getItemStatus: chartProps.legend.infoTooltip
           ? (itemId) => (itemId.includes("si") ? "warning" : "normal")
           : undefined,
       }}
       legend={{
         ...chartProps.legend,
-        tooltip: chartProps.legend.tooltip
+        infoTooltip: chartProps.legend.infoTooltip
           ? {
               render: (itemId) => ({
                 header: itemId.includes("si") ? (
