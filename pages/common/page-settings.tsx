@@ -40,7 +40,7 @@ export interface PageSettings {
   showLegendFilter: boolean;
   showLegendTooltip: boolean;
   showLegendTooltipAction: boolean;
-  legendFilterType: "dropdown" | "inline";
+  legendFilterType: "dropdown" | "inline" | "settings";
   legendPlacement: "block-end" | "inline-end";
   useFallback: boolean;
 }
@@ -174,7 +174,7 @@ const tooltipSizeOptions = [{ value: "small" }, { value: "medium" }, { value: "l
 
 const legendPlacementOptions = [{ value: "block-end" }, { value: "inline-end" }];
 
-const legendFilterTypeOptions = [{ value: "inline" }, { value: "dropdown" }];
+const legendFilterTypeOptions = [{ value: "inline" }, { value: "dropdown" }, { value: "settings" }];
 
 const verticalAxisTitlePlacementOptions = [{ value: "top" }, { value: "side" }];
 
@@ -382,7 +382,7 @@ export function PageSettingsForm({
                     }
                     onChange={({ detail }) =>
                       setSettings({
-                        legendFilterType: detail.selectedOption.value as string as "dropdown" | "inline",
+                        legendFilterType: detail.selectedOption.value as string as "dropdown" | "inline" | "settings",
                       })
                     }
                   />
