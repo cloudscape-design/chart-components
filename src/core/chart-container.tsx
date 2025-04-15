@@ -67,9 +67,9 @@ function ChartContainerWithInlineLegend({
   const [measuredTitleHeight, setTitleHeight] = useState<null | number>(null);
   const effectiveTitleHeight = title ? measuredTitleHeight : 0;
   const chartHeight =
-    measuredChartHeight === null || measuredTitleHeight === null || effectiveTitleHeight === null
+    measuredChartHeight === null || effectiveTitleHeight === null
       ? (chartMinHeight ?? null)
-      : Math.max(chartMinHeight ?? 0, measuredChartHeight - effectiveTitleHeight - measuredTitleHeight);
+      : Math.max(chartMinHeight ?? 0, measuredChartHeight - effectiveTitleHeight);
   const overflowX = chartMinWidth !== undefined ? "auto" : undefined;
   const innerWrapperStyle: React.CSSProperties = { display: "flex", gap: 16, inlineSize: "100%" };
   return (
@@ -78,7 +78,7 @@ function ChartContainerWithInlineLegend({
       <div style={chartMinWidth !== undefined ? { minWidth: chartMinWidth, ...innerWrapperStyle } : innerWrapperStyle}>
         <div style={{ flex: 1 }}>{chart(chartHeight)}</div>
         {legend ? (
-          <div style={{ width: 250, minWidth: 250, height: measuredChartHeight ?? 0, overflowY: "auto" }}>{legend}</div>
+          <div style={{ width: 250, minWidth: 250, height: chartHeight ?? 0, overflowY: "auto" }}>{legend}</div>
         ) : null}
       </div>
     </div>

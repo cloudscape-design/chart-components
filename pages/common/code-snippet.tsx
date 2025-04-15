@@ -7,5 +7,5 @@ import CodeView from "@cloudscape-design/code-view/code-view";
 import javascriptHighlight from "@cloudscape-design/code-view/highlight/javascript";
 
 export function CodeSnippet({ content }: { content: string }) {
-  return <CodeView highlight={javascriptHighlight} content={content} />;
+  return <CodeView highlight={javascriptHighlight} content={content} lineNumbers={true} />;
 }
