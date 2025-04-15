@@ -28,6 +28,7 @@ const CartesianChart = forwardRef((props: CartesianChartProps, ref: React.Ref<Ca
       visibleSeries={props.visibleSeries}
       onToggleVisibleSeries={props.onToggleVisibleSeries}
       emphasizeBaselineAxis={props.emphasizeBaselineAxis ?? true}
+      verticalAxisTitlePlacement={props.verticalAxisTitlePlacement}
       {...getDataAttributes(props)}
     />
   );

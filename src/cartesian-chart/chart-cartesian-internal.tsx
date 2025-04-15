@@ -36,6 +36,7 @@ interface InternalCartesianChartProps {
   onToggleVisibleSeries?: NonCancelableEventHandler<{ visibleSeries: string[] }>;
   onLegendPlacementChange?: (placement: "block-end" | "inline-end") => void;
   legend?: CoreLegendProps & { showFilter?: boolean };
+  verticalAxisTitlePlacement?: "top" | "side";
 }
 
 /**
@@ -160,6 +161,7 @@ export const InternalCartesianChart = forwardRef(
           setVisibleSeries(nextVisibleSeries);
         }}
         onLegendPlacementChange={props.onLegendPlacementChange}
+        verticalAxisTitlePlacement={props.verticalAxisTitlePlacement}
         className={testClasses.root}
         callback={(chart) => {
           apiRef.current = chart;
