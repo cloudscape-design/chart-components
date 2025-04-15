@@ -346,7 +346,7 @@ let newChart = (
       </PageSection>
 
       <PageSection
-        title="Axes formatters"
+        title="Axes formatters and datetime scale"
         docs={{
           implementation: {
             bullets: [
@@ -441,6 +441,123 @@ let newChart = (
                     },
                   ]}
                   xAxis={{ ...commonPropsNew.xAxis, type: "datetime" }}
+                  yAxis={{ ...commonPropsNew.yAxis, type: "logarithmic" }}
+                  verticalAxisTitlePlacement="top"
+                />
+              ),
+              containerHeight: 200,
+            },
+          ]}
+        />
+      </PageSection>
+
+      <PageSection
+        title="Category scale"
+        docs={{
+          implementation: {
+            bullets: [
+              `In the old charts, the "categorical" scale can be used with numeric, string, or Date tick- and domain types.
+              In the new charts, the categories can only be strings, while x values are always indices.`,
+            ],
+            after: (
+              <CodeSnippet
+                content={`let oldChart = (
+  <LineChart
+    {...restProps}
+    series={[
+      {
+        title: "S1",
+        type: "line",
+        data: [
+          { x: new Date("2020-01-01"), y: 10_000 },
+          { x: new Date("2021-01-01"), y: 100_000 },
+          { x: new Date("2022-01-01"), y: 1_000_000 },
+          { x: new Date("2023-01-01"), y: 10_000_000 },
+        ],
+      },
+    ]}
+    xScaleType="categorical"
+    xDomain={[
+      new Date("2020-01-01"),
+      new Date("2021-01-01"),
+      new Date("2022-01-01"),
+      new Date("2023-01-01"),
+    ]}
+    xTickFormatter={(x) => x.getFullYear()}
+    yScaleType="log"
+  />
+);
+
+let newChart = (
+  <CartesianChart
+    {...restProps}
+    series={[
+      {
+        name: "S1",
+        type: "line",
+        data: [
+          { x: 0, y: 10_000 },
+          { x: 1, y: 100_000 },
+          { x: 2, y: 1_000_000 },
+          { x: 3, y: 10_000_000 },
+        ],
+      },
+    ]}
+    xAxis={{ ...xAxisProps, type: "category", categories: ["2020", "2021", "2022", "2023"] }}
+    yAxis={{ ...yAxisProps, type: "logarithmic" }}
+  />
+);`}
+              />
+            ),
+          },
+        }}
+      >
+        <MigrationDemo
+          examples={[
+            {
+              tags: [],
+              old: (
+                <MixedLineBarChart
+                  {...commonPropsOld}
+                  series={[
+                    {
+                      title: "S1",
+                      type: "line",
+                      data: [
+                        { x: new Date("2020-01-01"), y: 10_000 },
+                        { x: new Date("2021-01-01"), y: 100_000 },
+                        { x: new Date("2022-01-01"), y: 1_000_000 },
+                        { x: new Date("2023-01-01"), y: 10_000_000 },
+                      ],
+                    },
+                  ]}
+                  xScaleType="categorical"
+                  xDomain={[
+                    new Date("2020-01-01"),
+                    new Date("2021-01-01"),
+                    new Date("2022-01-01"),
+                    new Date("2023-01-01"),
+                  ]}
+                  xTickFormatter={(x) => x.getFullYear()}
+                  yScaleType="log"
+                />
+              ),
+              new: (
+                <CartesianChart
+                  {...commonPropsNew}
+                  series={[
+                    {
+                      name: "S1",
+                      type: "line",
+                      data: [
+                        { x: 0, y: 10_000 },
+                        { x: 1, y: 100_000 },
+                        { x: 2, y: 1_000_000 },
+                        { x: 3, y: 10_000_000 },
+                      ],
+                    },
+                  ]}
+                  xAxis={{ ...commonPropsNew.xAxis, type: "category", categories: ["2020", "2021", "2022", "2023"] }}
                   yAxis={{ ...commonPropsNew.yAxis, type: "logarithmic" }}
                   verticalAxisTitlePlacement="top"
                 />
