@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef } from "react";
 import clsx from "clsx";
 import type Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
@@ -14,10 +14,10 @@ import { castArray } from "../internal/utils/utils";
 import { ChartContainer } from "./chart-container";
 import { ChartLegend, useLegend } from "./chart-legend";
 import { ChartNoData, useNoData } from "./chart-no-data";
+import { useChartSeries } from "./chart-series";
 import { ChartTooltip, useChartTooltip } from "./chart-tooltip";
 import { CloudscapeChartAPI, CloudscapeHighchartsProps } from "./interfaces-core";
 import * as Styles from "./styles";
-import { getPointId, getSeriesId } from "./utils";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -44,19 +44,17 @@ export function CloudscapeHighcharts({
   className,
   ...rest
 }: CloudscapeHighchartsProps) {
-  const [loadCounter, setLoadCounter] = useState(0);
-
   // The apiRef is expected to be available after the initial render.
   // The instance is used to get internal series and points detail, and run APIs such as series.setVisible() to
   // synchronize custom React state with Highcharts state.
   const apiRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
-  const getAPI = () => {
+  const getAPI = useCallback(() => {
     /* c8 ignore next */
     if (!apiRef.current) {
       throw new Error("Invariant violation: chart api is not available.");
     }
     return apiRef.current;
-  };
+  }, []);
 
   // Provides custom Cloudscape tooltip instead of Highcharts tooltip, when `props.tooltip` is present.
   // The custom tooltip provides Cloudscape styles and can be pinned.
@@ -70,24 +68,7 @@ export function CloudscapeHighcharts({
   // Provides empty, no-match, loading, and error states handling, when `props.noData` is present.
   const noData = useNoData(getAPI, noDataProps);
 
-  // When series or items visibility change, we call setVisible Highcharts method on series and/or items
-  // for the change to take an effect.
-  const hiddenItemsIndex = hiddenItems ? hiddenItems.join("::") : null;
-  useEffect(() => {
-    if (apiRef.current && hiddenItemsIndex !== null) {
-      const hiddenItemsIds = new Set(hiddenItemsIndex.split("::").filter(Boolean));
-      for (const series of apiRef.current.chart.series) {
-        series.setVisible(!hiddenItemsIds.has(getSeriesId(series)), false);
-        for (const point of series.data) {
-          if (typeof point.setVisible === "function") {
-            point.setVisible(!hiddenItemsIds.has(getPointId(point)), false);
-          }
-        }
-      }
-      // TODO: only redraw if visibility actually changed
-      apiRef.current.chart.redraw();
-    }
-  }, [apiRef, hiddenItemsIndex, loadCounter]);
+  const series = useChartSeries(getAPI, { options, hiddenItems });
 
   const rootClassName = clsx(styles.root, fitHeight && styles["root-fit-height"], className);
 
@@ -146,11 +127,6 @@ export function CloudscapeHighcharts({
               // If the event callbacks are present in the given options - we execute them, too.
               events: {
                 ...options.chart?.events,
-                load(event) {
-                  // We trigger update to ensure the visibility setting take effect after the load event.
-                  setLoadCounter((prev) => prev + 1);
-                  return options.chart?.events?.load?.call(this, event);
-                },
                 render(event) {
                   if (noDataProps) {
                     noData.options.chartRender.call(this, event);
@@ -239,9 +215,7 @@ export function CloudscapeHighcharts({
               title: { style: Styles.axisTitleCss, ...yAxis.title },
               labels: { style: Styles.axisLabelsCss, ...yAxis.labels },
             })),
-            tooltip: options.tooltip
-              ? options.tooltip
-              : { enabled: !!options.series?.some((s) => s.type === "column"), shared: true, style: { opacity: 0 } },
+            tooltip: options.tooltip ? options.tooltip : series.options.tooltip,
           };
           return (
             <HighchartsReact
@@ -255,6 +229,7 @@ export function CloudscapeHighcharts({
                   hideTooltip: () => tooltip.api.hideTooltip(),
                 };
                 callback?.(apiRef.current);
+                series.onChartReady();
               }}
             />
           );
