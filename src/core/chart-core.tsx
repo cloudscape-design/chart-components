@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import type Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
@@ -44,6 +44,8 @@ export function CloudscapeHighcharts({
   className,
   ...rest
 }: CloudscapeHighchartsProps) {
+  const [loadCounter, setLoadCounter] = useState(0);
+
   // The apiRef is expected to be available after the initial render.
   // The instance is used to get internal series and points detail, and run APIs such as series.setVisible() to
   // synchronize custom React state with Highcharts state.
@@ -85,7 +87,7 @@ export function CloudscapeHighcharts({
       // TODO: only redraw if visibility actually changed
       apiRef.current.chart.redraw();
     }
-  }, [apiRef, hiddenItemsIndex]);
+  }, [apiRef, hiddenItemsIndex, loadCounter]);
 
   const rootClassName = clsx(styles.root, fitHeight && styles["root-fit-height"], className);
 
@@ -144,22 +146,11 @@ export function CloudscapeHighcharts({
               // If the event callbacks are present in the given options - we execute them, too.
               events: {
                 ...options.chart?.events,
-                // load(event) {
-                //   // We set series and items visibility in the load event same as we do in the use-effect
-                //   // to make sure the initial render with controllable visibility is done correctly.
-                //   const hiddenItemsIds = new Set(hiddenItems);
-                //   for (const series of this.series) {
-                //     series.setVisible(!hiddenItemsIds.has(getSeriesId(series)), false);
-                //     for (const point of series.data) {
-                //       if (typeof point.setVisible === "function") {
-                //         point.setVisible(!hiddenItemsIds.has(getPointId(point)), false);
-                //       }
-                //     }
-                //     // TODO: only redraw if visibility actually changed
-                //     apiRef.current.chart.redraw();
-                //   }
-                //   return options.chart?.events?.load?.call(this, event);
-                // },
+                load(event) {
+                  // We trigger update to ensure the visibility setting take effect after the load event.
+                  setLoadCounter((prev) => prev + 1);
+                  return options.chart?.events?.load?.call(this, event);
+                },
                 render(event) {
                   if (noDataProps) {
                     noData.options.chartRender.call(this, event);
