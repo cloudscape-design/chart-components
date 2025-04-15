@@ -23,6 +23,7 @@ export default function () {
       settings={
         <PageSettingsForm
           selectedSettings={[
+            "verticalAxisTitlePlacement",
             "showLegend",
             "showLegendTitle",
             "showLegendFilter",

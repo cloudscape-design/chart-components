@@ -8,6 +8,7 @@ import { useStableCallback } from "@cloudscape-design/component-toolkit/internal
 
 interface ChartContainerBaseProps {
   chart: (height: null | number) => React.ReactNode;
+  title?: React.ReactNode;
   legend: React.ReactNode;
   fitHeight?: boolean;
   chartMinHeight?: number;
@@ -29,41 +30,51 @@ export function ChartContainer({
 
 function ChartContainerWithBlockLegend({
   chart,
+  title,
   legend,
   fitHeight,
   chartMinHeight,
   chartMinWidth,
 }: ChartContainerBaseProps) {
   const [measuredChartHeight, measureRef] = useContainerQuery((entry) => entry.contentBoxHeight);
+  const [measuredTitleHeight, setTitleHeight] = useState<null | number>(null);
+  const effectiveTitleHeight = title ? measuredTitleHeight : 0;
   const [measuredLegendHeight, setLegendHeight] = useState<null | number>(null);
   const effectiveLegendHeight = legend ? measuredLegendHeight : 0;
   const chartHeight =
-    measuredChartHeight === null || effectiveLegendHeight === null
+    measuredChartHeight === null || effectiveLegendHeight === null || effectiveTitleHeight === null
       ? (chartMinHeight ?? null)
-      : Math.max(chartMinHeight ?? 0, measuredChartHeight - effectiveLegendHeight);
+      : Math.max(chartMinHeight ?? 0, measuredChartHeight - effectiveTitleHeight - effectiveLegendHeight);
   const overflowX = chartMinWidth !== undefined ? "auto" : undefined;
   return (
     <div ref={measureRef} style={fitHeight ? { position: "absolute", inset: 0, overflowX } : { overflowX }}>
+      <MeasureBox onResize={setTitleHeight}>{title}</MeasureBox>
       <div style={chartMinWidth !== undefined ? { minWidth: chartMinWidth } : {}}>{chart(chartHeight)}</div>
-      <LegendBox onResize={setLegendHeight}>{legend}</LegendBox>
+      <MeasureBox onResize={setLegendHeight}>{legend}</MeasureBox>
     </div>
   );
 }
 
 function ChartContainerWithInlineLegend({
   chart,
+  title,
   legend,
   fitHeight,
   chartMinHeight,
   chartMinWidth,
 }: ChartContainerBaseProps) {
   const [measuredChartHeight, measureRef] = useContainerQuery((entry) => entry.contentBoxHeight);
+  const [measuredTitleHeight, setTitleHeight] = useState<null | number>(null);
+  const effectiveTitleHeight = title ? measuredTitleHeight : 0;
   const chartHeight =
-    measuredChartHeight === null ? (chartMinHeight ?? null) : Math.max(chartMinHeight ?? 0, measuredChartHeight);
+    measuredChartHeight === null || measuredTitleHeight === null || effectiveTitleHeight === null
+      ? (chartMinHeight ?? null)
+      : Math.max(chartMinHeight ?? 0, measuredChartHeight - effectiveTitleHeight - measuredTitleHeight);
   const overflowX = chartMinWidth !== undefined ? "auto" : undefined;
   const innerWrapperStyle: React.CSSProperties = { display: "flex", gap: 16, inlineSize: "100%" };
   return (
     <div ref={measureRef} style={fitHeight ? { position: "absolute", inset: 0, overflowX } : { overflowX }}>
+      <MeasureBox onResize={setTitleHeight}>{title}</MeasureBox>
       <div style={chartMinWidth !== undefined ? { minWidth: chartMinWidth, ...innerWrapperStyle } : innerWrapperStyle}>
         <div style={{ flex: 1 }}>{chart(chartHeight)}</div>
         {legend ? (
@@ -74,14 +85,14 @@ function ChartContainerWithInlineLegend({
   );
 }
 
-function LegendBox({ children, onResize }: { children: React.ReactNode; onResize: (legendHeight: number) => void }) {
+function MeasureBox({ children, onResize }: { children: React.ReactNode; onResize: (contentHeight: number) => void }) {
   const [height, measureRef] = useContainerQuery((entry) => entry.contentBoxHeight);
   const onResizeStable = useStableCallback(onResize);
-  const hasLegend = !!children;
+  const hasContent = !!children;
   useEffect(() => {
-    if (hasLegend && height !== null) {
+    if (hasContent && height !== null) {
       onResizeStable(height);
     }
-  }, [hasLegend, height, onResizeStable]);
+  }, [hasContent, height, onResizeStable]);
   return <div ref={measureRef}>{children}</div>;
 }

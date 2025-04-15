@@ -7,6 +7,7 @@ import type Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 
 import { isDevelopment } from "@cloudscape-design/component-toolkit/internal";
+import Box from "@cloudscape-design/components/box";
 import Spinner from "@cloudscape-design/components/spinner";
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
@@ -40,6 +41,7 @@ export function CloudscapeHighcharts({
   hiddenItems,
   onItemVisibilityChange,
   onLegendPlacementChange,
+  verticalAxisTitlePlacement = "top",
   i18nStrings,
   className,
   ...rest
@@ -93,6 +95,24 @@ export function CloudscapeHighcharts({
   function withMinHeight(height: number | string | undefined | null) {
     return typeof height === "number" ? Math.max(chartMinHeight ?? 0, height) : height;
   }
+
+  let titles: string[] = [];
+  if (options.chart?.inverted && verticalAxisTitlePlacement === "top") {
+    titles = (castArray(options.xAxis) ?? []).map((axis) => axis.title?.text ?? "").filter(Boolean);
+  }
+  if (!options.chart?.inverted && verticalAxisTitlePlacement === "top") {
+    titles = (castArray(options.yAxis) ?? []).map((axis) => axis.title?.text ?? "").filter(Boolean);
+  }
+  const verticalAxisTitle =
+    titles.length > 0 ? (
+      <div style={{ display: "flex", gap: 8, justifyContent: "space-between" }}>
+        {titles.map((text, index) => (
+          <Box key={index} fontWeight="bold" margin={{ bottom: "xxs" }}>
+            {text}
+          </Box>
+        ))}
+      </div>
+    ) : null;
 
   return (
     <div {...getDataAttributes(rest)} className={rootClassName}>
@@ -206,13 +226,28 @@ export function CloudscapeHighcharts({
             xAxis: castArray(options.xAxis)?.map((xAxis) => ({
               ...Styles.xAxisOptions,
               ...xAxis,
-              title: { style: Styles.axisTitleCss, ...xAxis.title },
+              title: {
+                style: {
+                  ...Styles.axisTitleCss,
+                  opacity: options.chart?.inverted && verticalAxisTitlePlacement === "top" ? 0 : undefined,
+                },
+                ...xAxis.title,
+                text: options.chart?.inverted && verticalAxisTitlePlacement === "top" ? "" : xAxis.title?.text,
+                reserveSpace: options.chart?.inverted && verticalAxisTitlePlacement === "top" ? false : undefined,
+              },
               labels: { style: Styles.axisLabelsCss, ...xAxis.labels },
             })),
             yAxis: castArray(options.yAxis)?.map((yAxis) => ({
               ...Styles.yAxisOptions,
               ...yAxis,
-              title: { style: Styles.axisTitleCss, ...yAxis.title },
+              title: {
+                style: {
+                  ...Styles.axisTitleCss,
+                  opacity: !options.chart?.inverted && verticalAxisTitlePlacement === "top" ? 0 : undefined,
+                },
+                ...yAxis.title,
+                reserveSpace: !options.chart?.inverted && verticalAxisTitlePlacement === "top" ? false : undefined,
+              },
               labels: { style: Styles.axisLabelsCss, ...yAxis.labels },
             })),
             tooltip: options.tooltip ? options.tooltip : series.options.tooltip,
@@ -236,6 +271,7 @@ export function CloudscapeHighcharts({
         }}
         legend={isLegendEnabled ? <ChartLegend {...legend.props} /> : null}
         legendPlacement={legendProps?.placement}
+        title={verticalAxisTitle}
       />
 
       {isTooltipEnabled && <ChartTooltip {...tooltip.props} />}
