@@ -70,7 +70,7 @@ function Component() {
         plotOptions: { series: { marker: { enabled: false }, stacking: "normal" } },
       }}
       series={{
-        getItemStatus: chartProps.legend.tooltip
+        getItemStatus: chartProps.legend.infoTooltip
           ? (itemId) => (itemId.includes("si") ? "warning" : "normal")
           : undefined,
       }}
