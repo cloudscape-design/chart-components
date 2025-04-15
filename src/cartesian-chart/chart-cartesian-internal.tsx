@@ -34,8 +34,7 @@ interface InternalCartesianChartProps {
   emphasizeBaselineAxis?: boolean;
   visibleSeries?: string[];
   onToggleVisibleSeries?: NonCancelableEventHandler<{ visibleSeries: string[] }>;
-  onLegendPlacementChange?: (placement: "block-end" | "inline-end") => void;
-  legend?: CoreLegendProps & { showFilter?: boolean };
+  legend?: CoreLegendProps;
   verticalAxisTitlePlacement?: "top" | "side";
 }
 
@@ -152,15 +151,12 @@ export const InternalCartesianChart = forwardRef(
         chartMinWidth={props.chartMinWidth}
         tooltip={tooltipProps}
         noData={props.noData}
-        legend={
-          props.legend ? { align: "start", ...props.legend, getItemStatus: props.series?.getItemStatus } : undefined
-        }
+        legend={props.legend ? { ...props.legend, getItemStatus: props.series?.getItemStatus } : undefined}
         hiddenItems={hiddenSeries}
         onItemVisibilityChange={(hiddenSeries) => {
           const nextVisibleSeries = allSeriesIds.filter((id) => !hiddenSeries.includes(id));
           setVisibleSeries(nextVisibleSeries);
         }}
-        onLegendPlacementChange={props.onLegendPlacementChange}
         verticalAxisTitlePlacement={props.verticalAxisTitlePlacement}
         className={testClasses.root}
         callback={(chart) => {

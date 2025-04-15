@@ -209,7 +209,7 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
       chartMinWidth={props.chartMinWidth}
       tooltip={tooltipProps}
       noData={props.noData}
-      legend={props.legend ? { align: "center", ...props.legend } : undefined}
+      legend={props.legend}
       hiddenItems={hiddenSegments}
       onItemVisibilityChange={(hiddenSegments) => {
         const nextVisibleSegments = allSegmentIds.filter((id) => !hiddenSegments.includes(id));

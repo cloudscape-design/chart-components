@@ -39,7 +39,7 @@ export default function () {
               old: <LineChartExample.ComponentOld />,
               new: (
                 <FilterOffsetBox>
-                  <LineChartExample.ComponentNew legendFilter={true} />
+                  <LineChartExample.ComponentNew />
                 </FilterOffsetBox>
               ),
               containerHeight: 450,
@@ -49,7 +49,7 @@ export default function () {
               old: <PieChartExample.ComponentOld />,
               new: (
                 <FilterOffsetBox>
-                  <PieChartExample.ComponentNew legendFilter={true} />
+                  <PieChartExample.ComponentNew />
                 </FilterOffsetBox>
               ),
               containerHeight: 450,

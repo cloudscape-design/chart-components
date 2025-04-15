@@ -28,14 +28,6 @@
   gap: cs.$space-scaled-xxs cs.$space-static-m;
 }
 
-.list-align-start {
-  justify-content: unset;
-}
-
-.list-align-center {
-  justify-content: center;
-}
-
 .list-placement-inline-end {
   flex-direction: column;
 }

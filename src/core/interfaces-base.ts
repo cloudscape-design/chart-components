@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { LegendPreferencesProps } from "../internal/components/chart-legend";
 import { NonCancelableEventHandler } from "../internal/events";
 
 export interface BaseChartProps {
@@ -83,17 +84,16 @@ export interface BaseTooltipProps {
 export interface BaseLegendProps {
   enabled?: boolean;
   title?: string;
-  filter?: boolean;
-  align?: "start" | "center";
   placement?: "block-end" | "inline-end";
-  filterType?: "dropdown" | "inline" | "settings";
-  tooltip?: {
+  preferences?: LegendPreferencesProps;
+  infoTooltip?: {
     render: (itemId: string) => {
       header: React.ReactNode;
       body: React.ReactNode;
       footer?: React.ReactNode;
     };
   };
+  tooltipMode?: boolean;
 }
 
 export interface BaseNoDataProps {
