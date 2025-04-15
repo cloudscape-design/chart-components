@@ -23,12 +23,17 @@ export interface DocsSectionProps {
   visualDesign?: DocsBlockProps;
   behavior?: DocsBlockProps;
   implementation?: DocsBlockProps;
+  custom?: TitledDocsBlockProps[];
 }
 
 export interface DocsBlockProps {
   before?: React.ReactNode;
   bullets?: DocsBulletPoint[];
   after?: React.ReactNode;
+}
+
+export interface TitledDocsBlockProps extends DocsBlockProps {
+  title: string;
 }
 
 export type DocsBulletPoint =
@@ -207,18 +212,21 @@ export function FramedDemo({ children }: { children: React.ReactNode }) {
   return <ChartFrame>{children}</ChartFrame>;
 }
 
-export function DocsSection({ functional, visualDesign, behavior, implementation }: DocsSectionProps) {
+export function DocsSection({ functional, visualDesign, behavior, implementation, custom = [] }: DocsSectionProps) {
   return (
     <SpaceBetween size="s">
       {functional ? <DocsBlock title="Functional" {...functional} /> : null}
       {visualDesign ? <DocsBlock title="Visual design" {...visualDesign} /> : null}
       {behavior ? <DocsBlock title="Behavior" {...behavior} /> : null}
       {implementation ? <DocsBlock title="Dev" {...implementation} /> : null}
+      {custom.map((block, index) => (
+        <DocsBlock key={index} {...block} />
+      ))}
     </SpaceBetween>
   );
 }
 
-function DocsBlock(props: DocsBlockProps & { title: string }) {
+function DocsBlock(props: TitledDocsBlockProps) {
   return (
     <SpaceBetween size="s">
       <Box variant="h4">{props.title}</Box>

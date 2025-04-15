@@ -11,26 +11,46 @@ import * as PieChartStatesExample from "./examples/pie-chart-no-data";
 
 const containerHeight = 300;
 
-const ErrorSlotDevGuidance = (
+const EmptyStatesDevGuidance = (
   <SpaceBetween size="s">
     <Box variant="span">
-      The <Box variant="code">errorText</Box> and <Box variant="code">onRecoveryClick</Box> of the legacy charts were
-      replaced by the <Box variant="code">error</Box> slot in the new charts.
+      In the new charts, the no data states are defined with <Box variant="code">noData</Box> property, that includes
+      status, and state content. If loading and error content is not explicitly defined, the text is taken from the{" "}
+      <Box variant="code">i18nStrings</Box> (built-in or explicitly provided).
     </Box>
 
     <CodeSnippet
-      content={`let oldChart = <PieChart {...props} statusType="error" errorText="The data couldn't be fetched. Try again later." onRecoveryClick={onRecoveryClick} />;
+      content={`let oldChart = (
+  <PieChart
+    {...props}
+    statusType="error"
+    empty={<EmptyStateIndicator />}
+    noMatch={<NoMatchStateIndicator />}
+    loadingText={i18n.loadingText} // Supported with built-in i18n
+    errorText={i18n.errorText} // Supported with built-in i18n
+    recoveryText={i18n.recoveryText} // Supported with built-in i18n
+    onRecoveryClick={onRecoveryClick}
+  />
+);
 
-let newChart = <PieChart {...props} noData={{ statusType: "error", error: <Error onRecoveryClick={onRecoveryClick} /> }} />;
-
-function Error({ onRecoveryClick }) {
-  return (
-    <span>
-      <StatusIndicator type="error">The data couldn't be fetched. Try again later.</StatusIndicator>{" "}
-      <Button variant="inline-link" onClick={onRecoveryClick}>Retry</Button>
-    </span>
-  );
-}`}
+let newChart = (
+  <PieChart
+    {...props}
+    i18nStrings={{
+      loadingText: i18n.loadingText, // Supported with built-in i18n
+      errorText: i18n.errorText, // Supported with built-in i18n
+      recoveryText: i18n.recoveryText, // Supported with built-in i18n
+    }}
+    noData={{
+      statusType: "error",
+      empty: <EmptyStateIndicator />,
+      noMatch: <NoMatchStateIndicator />,
+      loading: <LoadingStateIndicator />, // Overrides the default loading state indicator (that uses i18n strings)
+      error: <ErrorStateIndicator />, // Overrides the default error state indicator (that uses i18n strings)
+      onRecoveryClick: onRecoveryClick,
+    }}
+  />
+);`}
     />
   </SpaceBetween>
 );
@@ -56,6 +76,9 @@ export default function () {
               `In the old charts there is a bottom margin present when the chart is empty.
               This creates a small difference in vertical alignment of the no-data state indicator.`,
             ],
+          },
+          implementation: {
+            before: EmptyStatesDevGuidance,
           },
         }}
       />
@@ -135,12 +158,7 @@ export default function () {
         />
       </PageSection>
 
-      <PageSection
-        title="Error state"
-        docs={{
-          implementation: { bullets: [{ content: ErrorSlotDevGuidance }] },
-        }}
-      >
+      <PageSection title="Error state">
         <MigrationDemo
           examples={[
             {
