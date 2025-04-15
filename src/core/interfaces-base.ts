@@ -69,6 +69,9 @@ export interface BaseChartProps {
    * This property requires the `no-data-to-display` module.
    */
   noData?: BaseNoDataProps;
+
+  // TODO: document
+  verticalAxisTitlePlacement?: "top" | "side";
 }
 
 export interface BaseTooltipProps {

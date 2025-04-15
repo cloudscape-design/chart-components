@@ -28,6 +28,7 @@ export interface PageSettings {
   minWidth: number;
   containerHeight: string;
   containerWidth: string;
+  verticalAxisTitlePlacement: "top" | "side";
   emptySeries: boolean;
   seriesLoading: boolean;
   seriesError: boolean;
@@ -52,6 +53,7 @@ const DEFAULT_SETTINGS: PageSettings = {
   minWidth: 800,
   containerHeight: "400px",
   containerWidth: "100%",
+  verticalAxisTitlePlacement: "top",
   emptySeries: false,
   seriesLoading: false,
   seriesError: false,
@@ -83,6 +85,7 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
     legend: BaseLegendProps;
     emphasizeBaselineAxis: boolean;
     onLegendPlacementChange: (placement: "block-end" | "inline-end") => void;
+    verticalAxisTitlePlacement: "top" | "side";
   };
   isEmpty: boolean;
 } {
@@ -159,6 +162,7 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
       },
       emphasizeBaselineAxis: settings.emphasizeBaselineAxis,
       onLegendPlacementChange: (placement) => setSettings({ legendPlacement: placement } as any),
+      verticalAxisTitlePlacement: settings.verticalAxisTitlePlacement,
     },
     isEmpty: settings.emptySeries || settings.seriesLoading || settings.seriesError,
   };
@@ -171,6 +175,8 @@ const tooltipSizeOptions = [{ value: "small" }, { value: "medium" }, { value: "l
 const legendPlacementOptions = [{ value: "block-end" }, { value: "inline-end" }];
 
 const legendFilterTypeOptions = [{ value: "inline" }, { value: "dropdown" }];
+
+const verticalAxisTitlePlacementOptions = [{ value: "top" }, { value: "side" }];
 
 export function PageSettingsForm({
   selectedSettings,
@@ -231,6 +237,24 @@ export function PageSettingsForm({
                   <Input
                     value={settings.containerWidth}
                     onChange={({ detail }) => setSettings({ containerWidth: detail.value })}
+                  />
+                </FormField>
+              );
+            case "verticalAxisTitlePlacement":
+              return (
+                <FormField label="Vertical axis title placement">
+                  <Select
+                    options={verticalAxisTitlePlacementOptions}
+                    selectedOption={
+                      verticalAxisTitlePlacementOptions.find(
+                        (option) => option.value === settings.verticalAxisTitlePlacement,
+                      ) ?? verticalAxisTitlePlacementOptions[0]
+                    }
+                    onChange={({ detail }) =>
+                      setSettings({
+                        verticalAxisTitlePlacement: detail.selectedOption.value as string as "top" | "side",
+                      })
+                    }
                   />
                 </FormField>
               );

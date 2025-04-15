@@ -60,6 +60,8 @@ export interface CloudscapeHighchartsProps
    * A callback triggered when clicking on a legend item.
    */
   onItemVisibilityChange?: (hiddenItems: string[]) => void;
+
+  // TODO: move legend handlers to legend obj?
   /**
    * A callback triggered when user requests legend placement change.
    */
@@ -73,6 +75,9 @@ export interface CloudscapeHighchartsProps
    * This is used to provide a test-utils selector. Do not use this property to provide custom styles.
    */
   className?: string;
+
+  // TODO: document
+  verticalAxisTitlePlacement?: "top" | "side";
 }
 
 export interface CloudscapeChartAPI {

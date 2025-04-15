@@ -154,9 +154,9 @@ export function MigrationDemo({ examples }: { examples: MigrationDemoExample[] }
             <ColumnLayout columns={2}>
               <ChartFrame height={containerHeightOld ?? 400} annotation="Old">
                 {!urlParams.screenshotMode ? (
-                  example.old === "CW" ? (
+                  example.old === null ? (
                     <div className={styles["old-chart-placeholder"]}>
-                      <Box color="text-body-secondary">Legacy CloudWatch examples are not supported</Box>
+                      <Box color="text-body-secondary">No demo</Box>
                     </div>
                   ) : (
                     example.old
