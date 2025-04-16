@@ -440,6 +440,11 @@ function ChartLegendPreferences({
   });
   const onModalOpen = () => {
     setModalOpen(true);
+    setTempState({
+      selectedItems: items.filter((i) => i.active).map((i) => i.id),
+      tooltipMode: tooltipModeState,
+      legendPlacement: legendPlacementState,
+    });
   };
   const onModalDismiss = () => {
     setModalOpen(false);
