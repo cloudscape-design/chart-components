@@ -90,7 +90,7 @@ const seriesOld: LineChartProps<Date>["series"] = [
   },
 ];
 
-export function ComponentNew() {
+export function ComponentNew({ preferencesFilter }: { preferencesFilter?: boolean }) {
   const { chartProps } = usePageSettings();
   return (
     <InternalCartesianChart
@@ -112,7 +112,15 @@ export function ComponentNew() {
         yAxis: [{ title: "Bytes transferred", min: 0, max: 500000 }],
         plotOptions: { series: { marker: { enabled: false } } },
       }}
-      legend={chartProps.legend}
+      legend={{
+        ...chartProps.legend,
+        preferences: preferencesFilter
+          ? {
+              itemDisplayPreference: true,
+              onApply: () => {},
+            }
+          : undefined,
+      }}
     />
   );
 }
