@@ -8,9 +8,11 @@ import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-
 
 import AsyncStore, { useSelector } from "../internal/utils/async-store";
 import { DebouncedCall } from "../internal/utils/utils";
+import { LegendAPI } from "./chart-legend";
 import { Point } from "./interfaces-base";
 import { CloudscapeChartAPI, CoreTooltipProps } from "./interfaces-core";
 import * as Styles from "./styles";
+import { getPointId, getSeriesId } from "./utils";
 
 const MOUSE_LEAVE_DELAY = 300;
 const LAST_DISMISS_DELAY = 250;
@@ -21,9 +23,14 @@ const SET_STATE_OVERRIDE_MARKER = Symbol("awsui-set-state");
 // The tooltip can be hidden when we receive mouse-leave. It can also be pinned/unpinned on mouse click.
 // Despite event names, they events also fire on keyboard interactions.
 
-export function useChartTooltip(getAPI: () => CloudscapeChartAPI, tooltipProps?: CoreTooltipProps) {
+export function useChartTooltip(
+  getAPI: () => CloudscapeChartAPI,
+  legendAPI: LegendAPI,
+  tooltipProps?: CoreTooltipProps,
+) {
   const tooltipStore = useRef(new TooltipStore(getAPI)).current;
   tooltipStore.placement = tooltipProps?.placement ?? "target";
+  tooltipStore.legendAPI = legendAPI;
 
   const chartClick: Highcharts.ChartClickCallbackFunction = function () {
     const { hoverPoint } = this;
@@ -103,6 +110,7 @@ interface ReactiveTooltipState {
 class TooltipStore extends AsyncStore<ReactiveTooltipState> {
   public getTrack: () => null | HTMLElement | SVGElement = () => null;
   public placement: "target" | "bottom" = "target";
+  public legendAPI: LegendAPI = { highlightItem: () => {}, clearHighlight: () => {} };
 
   private getAPI: () => CloudscapeChartAPI;
   private targetElement: null | Highcharts.SVGElement = null;
@@ -239,6 +247,11 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
     this.resetHoverActions();
     this.dimColumns(target);
     this.createMarkers(target);
+    if (target.series.type === "pie") {
+      this.legendAPI.highlightItem(getPointId(target));
+    } else {
+      this.legendAPI.highlightItem(getSeriesId(target.series));
+    }
   };
 
   private createMarkers = (target: Highcharts.Point) => {
@@ -314,6 +327,7 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
   };
 
   private resetHoverActions = () => {
+    this.legendAPI.clearHighlight();
     this.resetHighlight();
     this.destroyMarkers();
   };
