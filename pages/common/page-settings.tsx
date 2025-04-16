@@ -176,7 +176,6 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
                 onApply: (state) => {
                   setTooltipMode(state.tooltipMode);
                   setSettings({ legendPlacement: state.legendPlacement } as any);
-                  return true;
                 },
               }
             : undefined,

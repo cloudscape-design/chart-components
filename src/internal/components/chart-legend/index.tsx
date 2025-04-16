@@ -56,7 +56,10 @@ export interface ChartLegendProps {
   preferences?: LegendPreferencesProps;
   onItemHighlightEnter?: (itemId: string) => void;
   onItemHighlightExit?: () => void;
-  onItemVisibilityChange: (hiddenItems: string[]) => void;
+  onItemVisibilityChange: (
+    hiddenItems: string[],
+    context: { method: "legend-toggle" | "legend-select" | "preferences" },
+  ) => void;
 }
 
 export interface InfoTooltipProps {
@@ -205,18 +208,24 @@ function ChartLegend({
   const toggleItem = (itemId: string) => {
     const hiddenItems = items.filter((i) => !i.active).map((i) => i.id);
     if (hiddenItems.includes(itemId)) {
-      onItemVisibilityChange(hiddenItems.filter((id) => id !== itemId));
+      onItemVisibilityChange(
+        hiddenItems.filter((id) => id !== itemId),
+        { method: "legend-toggle" },
+      );
     } else {
-      onItemVisibilityChange([...hiddenItems, itemId]);
+      onItemVisibilityChange([...hiddenItems, itemId], { method: "legend-toggle" });
     }
   };
 
   const selectItem = (itemId: string) => {
     const visibleItems = items.filter((i) => i.active).map((i) => i.id);
     if (visibleItems.length === 1 && visibleItems[0] === itemId) {
-      onItemVisibilityChange([]);
+      onItemVisibilityChange([], { method: "legend-select" });
     } else {
-      onItemVisibilityChange(items.map((i) => i.id).filter((id) => id !== itemId));
+      onItemVisibilityChange(
+        items.map((i) => i.id).filter((id) => id !== itemId),
+        { method: "legend-select" },
+      );
     }
   };
 
@@ -234,10 +243,11 @@ function ChartLegend({
       renderer={preferences.renderer}
       modalSize={preferences.modalSize}
       onApply={(state) => {
-        const result = preferences.onApply(state);
-        if (result !== false) {
-          onItemVisibilityChange(items.filter((i) => !state.selectedItems.includes(i.id)).map((i) => i.id));
-        }
+        preferences.onApply(state);
+        onItemVisibilityChange(
+          items.filter((i) => !state.selectedItems.includes(i.id)).map((i) => i.id),
+          { method: "preferences" },
+        );
       }}
     />
   ) : null;
@@ -519,7 +529,7 @@ function ChartLegendPreferences({
   ) : null;
 
   const itemDisplay = itemDisplayPreference ? (
-    <FormField label="Series preferences" description="Customize the visibility and order of the series.">
+    <FormField label="Series preferences" description="Customize the visibility of the series.">
       <SpaceBetween size="s">
         <TextFilter
           filteringText={filteringText}
