@@ -57,14 +57,14 @@ export function CloudscapeHighcharts({
     return apiRef.current;
   }, []);
 
-  // Provides custom Cloudscape tooltip instead of Highcharts tooltip, when `props.tooltip` is present.
-  // The custom tooltip provides Cloudscape styles and can be pinned.
-  const isTooltipEnabled = tooltipProps?.enabled !== false;
-  const tooltip = useChartTooltip(getAPI, tooltipProps);
-
   // Provides custom legend, when `props.legend` is present.
   const isLegendEnabled = legendProps?.enabled !== false;
   const legend = useLegend(getAPI, { ...legendProps, onItemVisibilityChange });
+
+  // Provides custom Cloudscape tooltip instead of Highcharts tooltip, when `props.tooltip` is present.
+  // The custom tooltip provides Cloudscape styles and can be pinned.
+  const isTooltipEnabled = tooltipProps?.enabled !== false;
+  const tooltip = useChartTooltip(getAPI, legend.api, tooltipProps);
 
   // Provides empty, no-match, loading, and error states handling, when `props.noData` is present.
   const noData = useNoData(getAPI, noDataProps);

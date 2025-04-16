@@ -113,7 +113,7 @@ function Component() {
     <InternalCartesianChart
       {...chartProps}
       options={{
-        chart: { height: 500 },
+        chart: { height: 400 },
         lang: { accessibility: { chartContainerLabel: "Line chart" } },
         series: series,
         xAxis: [

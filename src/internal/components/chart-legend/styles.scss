@@ -55,11 +55,15 @@
     @include styles.focus-highlight(2px);
   }
 
-  &.marker--dimmed {
+  &.marker--inactive {
     color: cs.$color-text-interactive-disabled;
     text-decoration: line-through;
     text-decoration-thickness: 2px;
     text-decoration-color: cs.$color-text-interactive-disabled;
+  }
+
+  &.marker--dimmed {
+    opacity: 0.35;
   }
 
   &.marker--highlighted {
