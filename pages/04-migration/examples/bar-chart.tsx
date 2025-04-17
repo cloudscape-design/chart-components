@@ -19,22 +19,22 @@ const series = [
   {
     name: "Severe",
     type: "column",
-    data: [12, 18, 15, 9, 18],
+    data: [22, 28, 25, 13, 28],
   },
   {
     name: "Moderate",
     type: "column",
-    data: [8, 11, 12, 11, 13],
+    data: [18, 21, 22, 0, 1],
   },
   {
     name: "Low",
     type: "column",
-    data: [7, 9, 8, 7, 5],
+    data: [17, 19, 18, 17, 15],
   },
   {
     name: "Unclassified",
     type: "column",
-    data: [14, 8, 6, 4, 6],
+    data: [24, 18, 16, 14, 16],
   },
 ] as const;
 
@@ -46,41 +46,59 @@ const seriesOld: BarChartProps<Date>["series"] = series.map((s) => ({
   data: s.data.map((y, index) => ({ x: domain[index], y })),
 }));
 
-export function ComponentNew() {
+export function ComponentNew({
+  single,
+  stacked,
+  inverted,
+}: {
+  single?: boolean;
+  stacked?: boolean;
+  inverted?: boolean;
+}) {
   const { chartProps } = usePageSettings();
   return (
     <CartesianChart
       {...chartProps}
       fitHeight={true}
-      chartMinHeight={200}
-      ariaLabel="Stacked bar chart"
-      plotOptions={{ series: { stacking: "normal" } }}
-      series={seriesNew}
+      chartMinHeight={100}
+      ariaLabel="Bar chart"
+      inverted={inverted}
+      plotOptions={stacked ? { series: { stacking: "normal" } } : {}}
+      series={single ? seriesNew.slice(1, 2) : seriesNew}
       xAxis={{
         type: "category",
         title: "Time (UTC)",
         categories: domain.map((date) => dateFormatter(date.getTime())),
       }}
-      yAxis={{ title: "Error count", min: 0, max: 50 }}
+      yAxis={{ title: "Error count" }}
+      tooltip={{}}
     />
   );
 }
 
-export function ComponentOld() {
+export function ComponentOld({
+  single,
+  stacked,
+  inverted,
+}: {
+  single?: boolean;
+  stacked?: boolean;
+  inverted?: boolean;
+}) {
   const { chartProps } = usePageSettings();
   return (
     <BarChart
       fitHeight={true}
       hideFilter={true}
-      height={200}
-      series={seriesOld}
+      height={100}
+      series={single ? seriesOld.slice(1, 2) : seriesOld}
       xDomain={domain}
-      yDomain={[0, 50]}
       i18nStrings={{
         xTickFormatter: (value) => dateFormatter(value.getTime()),
       }}
-      ariaLabel="Stacked bar chart"
-      stackedBars={true}
+      ariaLabel="Bar chart"
+      stackedBars={stacked}
+      horizontalBars={inverted}
       xTitle="Time (UTC)"
       yTitle="Error count"
       noMatch={chartProps.noData.noMatch}

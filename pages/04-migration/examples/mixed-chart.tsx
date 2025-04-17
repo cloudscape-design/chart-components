@@ -93,6 +93,7 @@ export function ComponentNew() {
         max: 20000,
         valueFormatter: numberFormatter,
       }}
+      tooltip={{}}
     />
   );
 }

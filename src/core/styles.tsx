@@ -67,7 +67,6 @@ export const yAxisOptions: Highcharts.YAxisOptions = {
   gridLineColor: colorChartsLineTick,
   lineWidth: 0,
   crosshair: false,
-  endOnTick: false,
 };
 
 export const chartPlotCss: Highcharts.CSSObject = {
@@ -81,6 +80,12 @@ export const chartPlotBackgroundColor = "transparent";
 export const seriesBorderColor = colorBackgroundLayoutMain;
 
 export const areaFillOpacity = 0.4;
+
+export const columnGroupPadding = 0.075;
+
+export const columnBorderRadius = 4;
+
+export const columnBorderWidth = 2;
 
 export const seriesDataLabelsCss: Highcharts.CSSObject = {
   font: fontFamilyBase,
