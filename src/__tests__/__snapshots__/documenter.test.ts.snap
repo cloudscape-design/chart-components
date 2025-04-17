@@ -2,6 +2,7 @@
 
 exports[`definition for cartesian-chart matches the snapshot > cartesian-chart 1`] = `
 {
+  "dashCaseName": "cartesian-chart",
   "events": [
     {
       "cancelable": false,
@@ -107,14 +108,24 @@ This property corresponds to [chart.inverted](https://api.highcharts.com/highcha
         "name": "BaseLegendProps",
         "properties": [
           {
-            "name": "align",
-            "optional": true,
-            "type": ""start" | "center"",
-          },
-          {
             "name": "enabled",
             "optional": true,
             "type": "boolean",
+          },
+          {
+            "name": "infoTooltip",
+            "optional": true,
+            "type": "{ render: (itemId: string) => { header: React.ReactNode; body: React.ReactNode; footer?: React.ReactNode; }; }",
+          },
+          {
+            "name": "placement",
+            "optional": true,
+            "type": ""block-end" | "inline-end"",
+          },
+          {
+            "name": "preferences",
+            "optional": true,
+            "type": "LegendPreferencesProps",
           },
           {
             "name": "title",
@@ -122,9 +133,9 @@ This property corresponds to [chart.inverted](https://api.highcharts.com/highcha
             "type": "string",
           },
           {
-            "name": "tooltip",
+            "name": "tooltipMode",
             "optional": true,
-            "type": "{ render: (itemId: string) => { header: React.ReactNode; body: React.ReactNode; footer?: React.ReactNode; }; }",
+            "type": "boolean",
           },
         ],
         "type": "object",
@@ -266,6 +277,19 @@ inject links, or add expandable items.",
       "type": "CartesianChartProps.TooltipProps",
     },
     {
+      "inlineType": {
+        "name": ""top" | "side"",
+        "type": "union",
+        "values": [
+          "top",
+          "side",
+        ],
+      },
+      "name": "verticalAxisTitlePlacement",
+      "optional": true,
+      "type": "string",
+    },
+    {
       "description": "List of series IDs to be visible. When unset, all series are visible by default, but can be hidden by clicking on the
 legend. When a series does not have an ID, a series name is used instead.
 When the property is provided, use \`onToggleVisibleSeries\` to update it when the legend series filtering is used.",
@@ -322,7 +346,7 @@ applies to the tooltip header.
           {
             "name": "type",
             "optional": true,
-            "type": ""category" | "datetime" | "linear" | "logarithmic"",
+            "type": ""linear" | "category" | "datetime" | "logarithmic"",
           },
           {
             "name": "valueDecimals",
@@ -391,7 +415,7 @@ applies to the tooltip header.
           {
             "name": "type",
             "optional": true,
-            "type": ""category" | "datetime" | "linear" | "logarithmic"",
+            "type": ""linear" | "category" | "datetime" | "logarithmic"",
           },
           {
             "name": "valueDecimals",
@@ -418,6 +442,7 @@ applies to the tooltip header.
 
 exports[`definition for pie-chart matches the snapshot > pie-chart 1`] = `
 {
+  "dashCaseName": "pie-chart",
   "events": [
     {
       "cancelable": false,
@@ -522,14 +547,24 @@ Supported Highcharts versions:
         "name": "BaseLegendProps",
         "properties": [
           {
-            "name": "align",
-            "optional": true,
-            "type": ""start" | "center"",
-          },
-          {
             "name": "enabled",
             "optional": true,
             "type": "boolean",
+          },
+          {
+            "name": "infoTooltip",
+            "optional": true,
+            "type": "{ render: (itemId: string) => { header: React.ReactNode; body: React.ReactNode; footer?: React.ReactNode; }; }",
+          },
+          {
+            "name": "placement",
+            "optional": true,
+            "type": ""block-end" | "inline-end"",
+          },
+          {
+            "name": "preferences",
+            "optional": true,
+            "type": "LegendPreferencesProps",
           },
           {
             "name": "title",
@@ -537,9 +572,9 @@ Supported Highcharts versions:
             "type": "string",
           },
           {
-            "name": "tooltip",
+            "name": "tooltipMode",
             "optional": true,
-            "type": "{ render: (itemId: string) => { header: React.ReactNode; body: React.ReactNode; footer?: React.ReactNode; }; }",
+            "type": "boolean",
           },
         ],
         "type": "object",
@@ -678,6 +713,19 @@ Supported properties:
       "name": "tooltip",
       "optional": true,
       "type": "PieChartProps.TooltipProps",
+    },
+    {
+      "inlineType": {
+        "name": ""top" | "side"",
+        "type": "union",
+        "values": [
+          "top",
+          "side",
+        ],
+      },
+      "name": "verticalAxisTitlePlacement",
+      "optional": true,
+      "type": "string",
     },
     {
       "description": "List of segments IDs to be visible. When unset, all segments are visible by default, but can be hidden by clicking on the
