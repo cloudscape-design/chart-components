@@ -245,6 +245,11 @@ inject links, or add expandable items.",
             "type": "((detail: CartesianChartProps.TooltipDetails) => React.ReactNode)",
           },
           {
+            "name": "enabled",
+            "optional": true,
+            "type": "boolean",
+          },
+          {
             "name": "footer",
             "optional": true,
             "type": "((detail: CartesianChartProps.TooltipDetails) => React.ReactNode)",
@@ -257,7 +262,7 @@ inject links, or add expandable items.",
           {
             "name": "placement",
             "optional": true,
-            "type": ""target" | "bottom"",
+            "type": ""target" | "bottom" | "middle"",
           },
           {
             "name": "series",
@@ -695,7 +700,7 @@ Supported properties:
           {
             "name": "placement",
             "optional": true,
-            "type": ""target" | "bottom"",
+            "type": ""target" | "bottom" | "middle"",
           },
           {
             "name": "size",
