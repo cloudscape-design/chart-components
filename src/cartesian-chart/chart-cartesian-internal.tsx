@@ -116,7 +116,11 @@ export const InternalCartesianChart = forwardRef(
             // We use custom formatters instead of Highcharts defaults to ensure consistent formatting
             // between x-axis ticks and tooltip header.
             formatter: function () {
-              return getDefaultFormatter(xAxisProps, getDataExtremes(this.chart.xAxis[index]))(this.value);
+              const formattedValue = getDefaultFormatter(
+                xAxisProps,
+                getDataExtremes(this.chart.xAxis[index]),
+              )(this.value);
+              return formattedValue.replace(/\n/g, "<br />");
             },
             ...highchartsProps.labels,
           },
@@ -133,7 +137,11 @@ export const InternalCartesianChart = forwardRef(
             // We use custom formatters instead of Highcharts defaults to ensure consistent formatting
             // between y-axis ticks and tooltip series values.
             formatter: function () {
-              return getDefaultFormatter(yAxisProps, getDataExtremes(this.chart.yAxis[index]))(this.value);
+              const formattedValue = getDefaultFormatter(
+                yAxisProps,
+                getDataExtremes(this.chart.yAxis[index]),
+              )(this.value);
+              return formattedValue.replace(/\n/g, "<br />");
             },
             ...highchartsProps.labels,
           },

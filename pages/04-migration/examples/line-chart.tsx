@@ -136,7 +136,7 @@ export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
       xDomain={[domain[0], domain[domain.length - 1]]}
       yDomain={[0, 500000]}
       i18nStrings={{
-        xTickFormatter: (value) => dateFormatter(value.getTime(), "\n"),
+        xTickFormatter: (value) => dateFormatter(value.getTime()),
       }}
       ariaLabel="Line chart"
       xScaleType="time"

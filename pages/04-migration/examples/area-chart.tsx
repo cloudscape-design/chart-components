@@ -4,7 +4,7 @@
 import AreaChart, { AreaChartProps } from "@cloudscape-design/components/area-chart";
 
 import { CartesianChart, CartesianChartProps } from "../../../lib/components";
-import { dateFormatter } from "../../common/formatters";
+import { dateFormatter, numberFormatter } from "../../common/formatters";
 import { usePageSettings } from "../../common/page-settings";
 
 const domain = [
@@ -127,7 +127,9 @@ export function ComponentNew() {
               <hr />
               <div style={{ display: "flex", justifyContent: "space-between", gap: "16px" }}>
                 <span>Total</span>
-                <span>{detail.items.reduce((sum, item) => sum + (item.type === "point" ? item.y : 0), 0)}</span>
+                <span>
+                  {numberFormatter(detail.items.reduce((sum, item) => sum + (item.type === "point" ? item.y : 0), 0))}
+                </span>
               </div>
             </div>
           );
@@ -149,8 +151,9 @@ export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
       xDomain={[domain[0], domain[domain.length - 1]]}
       yDomain={[0, 600000]}
       i18nStrings={{
-        xTickFormatter: (value) => dateFormatter(value.getTime(), "\n"),
+        xTickFormatter: (value) => dateFormatter(value.getTime()),
       }}
+      yTickFormatter={numberFormatter}
       ariaLabel="Area chart"
       xScaleType="time"
       xTitle="Time (UTC)"

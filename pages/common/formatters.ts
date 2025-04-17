@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-export function dateFormatter(value: number | string, separator = "<br/>") {
+export function dateFormatter(value: number | string) {
   if (typeof value === "string") {
     return value;
   }
@@ -14,7 +14,7 @@ export function dateFormatter(value: number | string, separator = "<br/>") {
       hour12: !1,
     })
     .split(",")
-    .join(separator);
+    .join("\n");
 }
 
 export function numberFormatter(value: number | string) {
