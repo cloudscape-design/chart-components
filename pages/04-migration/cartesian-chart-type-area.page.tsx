@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import Box from "@cloudscape-design/components/box";
+import Link from "@cloudscape-design/components/link";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
 import { CodeSnippet } from "../common/code-snippet";
@@ -49,6 +50,16 @@ export default function () {
               `In the old charts one can highlight a row if the cursor is not close enough to any of the points. In the new charts
               the highlight always lands on the point. The series that contains the highlighted point is then highlighted in the plot
               and the legend.`,
+              {
+                content: (
+                  <Box>
+                    In the old charts keyboard navigation allows iterating x values, and switch to iterating points that
+                    have the same x. In the new charts the focus always lands on some point. Iterating between series is
+                    unreliable due to a known bug (
+                    <Link href="https://github.com/highcharts/highcharts/issues/22948">highcharts/22948</Link>).
+                  </Box>
+                ),
+              },
             ],
           },
           visualDesign: {
