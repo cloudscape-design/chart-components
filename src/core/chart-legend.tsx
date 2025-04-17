@@ -55,9 +55,8 @@ export function ChartLegend({
   getItemStatus,
   title,
   infoTooltip,
-  tooltipMode,
   placement,
-  preferences,
+  actions,
   onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
@@ -82,9 +81,8 @@ export function ChartLegend({
           status: getItemStatus?.(item.id),
         }))}
         infoTooltip={infoTooltip}
-        tooltipMode={tooltipMode}
         placement={placement}
-        preferences={preferences}
+        actions={actions}
         onItemVisibilityChange={onItemVisibilityChange}
         onItemHighlightEnter={onItemHighlightEnter}
         onItemHighlightExit={onItemHighlightExit}
