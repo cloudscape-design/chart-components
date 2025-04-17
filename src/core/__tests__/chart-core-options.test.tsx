@@ -111,8 +111,12 @@ describe("CloudscapeHighcharts: options", () => {
     expect(HighchartsReact).toHaveBeenCalledWith(
       expect.objectContaining({
         options: expect.objectContaining({
-          xAxis: expect.arrayContaining([expect.objectContaining(xAxis1)]),
-          yAxis: expect.arrayContaining([expect.objectContaining(yAxis1)]),
+          xAxis: expect.arrayContaining([
+            expect.objectContaining({ ...xAxis1, title: expect.objectContaining(xAxis1.title) }),
+          ]),
+          yAxis: expect.arrayContaining([
+            expect.objectContaining({ ...yAxis1, title: expect.objectContaining(yAxis1.title) }),
+          ]),
         }),
       }),
       expect.anything(),
@@ -123,8 +127,14 @@ describe("CloudscapeHighcharts: options", () => {
     expect(HighchartsReact).toHaveBeenCalledWith(
       expect.objectContaining({
         options: expect.objectContaining({
-          xAxis: expect.arrayContaining([expect.objectContaining(xAxis1), expect.objectContaining(xAxis2)]),
-          yAxis: expect.arrayContaining([expect.objectContaining(yAxis1), expect.objectContaining(yAxis2)]),
+          xAxis: expect.arrayContaining([
+            expect.objectContaining({ ...xAxis1, title: expect.objectContaining(xAxis1.title) }),
+            expect.objectContaining({ ...xAxis2, title: expect.objectContaining(xAxis2.title) }),
+          ]),
+          yAxis: expect.arrayContaining([
+            expect.objectContaining({ ...yAxis1, title: expect.objectContaining(yAxis1.title) }),
+            expect.objectContaining({ ...yAxis2, title: expect.objectContaining(yAxis2.title) }),
+          ]),
         }),
       }),
       expect.anything(),
