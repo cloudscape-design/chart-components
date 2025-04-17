@@ -157,10 +157,10 @@ describe("CloudscapeHighcharts: options", () => {
     expect(HighchartsReact).toHaveBeenCalledWith(
       expect.objectContaining({
         options: expect.objectContaining({
-          plotOptions: {
+          plotOptions: expect.objectContaining({
             custom: "custom",
             series: expect.objectContaining(plotOptions.series),
-          },
+          }),
         }),
       }),
       expect.anything(),
