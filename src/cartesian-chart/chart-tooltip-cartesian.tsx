@@ -45,8 +45,7 @@ export function useChartTooltipCartesian(
     series.forEach((s) => findMatchedItem(s));
 
     function findMatchedXThreshold(series: CartesianChartProps.XThresholdSeries) {
-      const proximity = series.proximity ?? 0;
-      if (series.value - proximity <= point.x && point.x <= series.value + proximity) {
+      if (series.value <= point.x && point.x <= series.value) {
         matchedItems.push({ type: "threshold", x: series.value, series });
       }
     }

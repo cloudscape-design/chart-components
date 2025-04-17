@@ -249,7 +249,7 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
     this.createMarkers(target);
     if (target.series.type === "pie") {
       this.legendAPI.highlightItem(getPointId(target));
-    } else {
+    } else if (this.api.chart.series.every((s) => s.type !== "column")) {
       this.legendAPI.highlightItem(getSeriesId(target.series));
     }
   };

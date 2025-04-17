@@ -19,11 +19,6 @@ interface LegendItemProps {
   active: boolean;
 }
 
-export interface LegendAPI {
-  highlightItem: (itemId: string) => void;
-  clearHighlight: () => void;
-}
-
 export function useLegend(
   getChart: () => CloudscapeChartAPI,
   legendProps?: CoreLegendProps & {
@@ -49,9 +44,9 @@ export function useLegend(
       onItemHighlightExit,
     },
     api: {
-      highlightItem: (itemId: string) => legendStore.legendRef.highlightItem(itemId),
-      clearHighlight: () => legendStore.legendRef.clearHighlight(),
-    } as LegendAPI,
+      highlightLegendItem: (itemId: string) => legendStore.legendRef.highlightItem(itemId),
+      clearLegendHighlight: () => legendStore.legendRef.clearHighlight(),
+    },
   };
 }
 

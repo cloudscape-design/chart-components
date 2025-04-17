@@ -11,10 +11,10 @@ export default function () {
       <PageSection
         title="Filtering"
         docs={{
-          visualDesign: {
+          functional: {
             bullets: [
               `The legacy charts feature an optional series filter at the top-left. The new charts allow series filtering by clicking on the legend items instead.
-              The new charts also support an in-legend filter for use cases with many series or segments.`,
+              The new charts also support an in-legend preferences filter, for use cases with many series or segments.`,
             ],
           },
         }}
@@ -23,7 +23,7 @@ export default function () {
       <PageSection
         title="Legend"
         docs={{
-          functional: {
+          visualDesign: {
             bullets: [
               "The new charts legend items can be toggled, which is represented with the new inactive item state.",
             ],

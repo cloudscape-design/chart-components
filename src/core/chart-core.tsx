@@ -261,6 +261,8 @@ export function CloudscapeHighcharts({
                   highcharts: highcharts as typeof Highcharts,
                   showTooltipOnPoint: (point) => tooltip.api.showTooltipOnPoint(point),
                   hideTooltip: () => tooltip.api.hideTooltip(),
+                  highlightLegendItem: (itemId) => legend.api.highlightLegendItem(itemId),
+                  clearLegendHighlight: () => legend.api.clearLegendHighlight(),
                 };
                 callback?.(apiRef.current);
                 series.onChartReady();
