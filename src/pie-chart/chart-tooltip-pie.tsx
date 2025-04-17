@@ -1,9 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import type Highcharts from "highcharts";
+
 import Box from "@cloudscape-design/components/box";
 
-import { CloudscapeChartAPI, CoreTooltipContent } from "../core/interfaces-core";
+import { CloudscapeChartAPI, CoreTooltipProps } from "../core/interfaces-core";
+import { getPointId } from "../core/utils";
 import ChartSeriesDetails from "../internal/components/series-details";
 import { ChartSeriesMarker } from "../internal/components/series-marker";
 import { InternalPieChartOptions, PieChartProps } from "./interfaces-pie";
@@ -14,8 +17,8 @@ export function useChartTooltipPie(
     options: InternalPieChartOptions;
     tooltip?: PieChartProps.TooltipProps;
   },
-) {
-  const getContent = (point: { x: number; y: number }): null | CoreTooltipContent => {
+): CoreTooltipProps {
+  const getMatchedData = (point: Highcharts.Point) => {
     const chart = getAPI().chart;
     const series = props.options.series[0] as undefined | PieChartProps.Series;
     const matchedChartSeries = chart.series.find((s) => (s.userOptions.id ?? s.name) === (series?.id ?? series?.name));
@@ -23,7 +26,11 @@ export function useChartTooltipPie(
       console.warn("No matching pie series found.");
       return null;
     }
-    const matchedPieDatum = matchedChartSeries.data.find((d) => d.index === point.x);
+    return matchedChartSeries.data.find((d) => d.index === point.x);
+  };
+
+  const getTooltipContent: CoreTooltipProps["getTooltipContent"] = ({ point }) => {
+    const matchedPieDatum = getMatchedData(point);
     if (!matchedPieDatum) {
       console.warn("No matching pie datum found.");
       return null;
@@ -49,7 +56,7 @@ export function useChartTooltipPie(
       <ChartSeriesDetails
         details={[
           {
-            key: matchedChartSeries.name,
+            key: matchedPieDatum.series.name,
             value: matchedPieDatum.y ?? 0,
           },
         ]}
@@ -63,5 +70,35 @@ export function useChartTooltipPie(
     return { header, body, footer };
   };
 
-  return { getContent, size: props.tooltip?.size, placement: props.tooltip?.placement };
+  const getTargetFromPoint: CoreTooltipProps["getTargetFromPoint"] = (point) => {
+    const api = getAPI();
+    const placement = props.tooltip?.placement ?? "target";
+
+    // The pie series segments do not provide plotX, plotY.
+    // That's why we use the tooltipPos tuple, which is not covered by Typescript.
+    if (placement === "target") {
+      return { x: (point as any).tooltipPos[0], y: (point as any).tooltipPos[1], width: 0, height: 0 };
+    } else {
+      const [relativeX, relativeY, relativeDiameter] = point.series.center;
+      const plotLeft = api.chart.plotLeft;
+      const plotTop = api.chart.plotTop;
+      const centerX = plotLeft + (typeof relativeX === "number" ? relativeX : (relativeX / 100) * api.chart.plotWidth);
+      const centerY = plotTop + (typeof relativeY === "number" ? relativeY : (relativeY / 100) * api.chart.plotHeight);
+      const radius =
+        (typeof relativeDiameter === "number" ? relativeDiameter : (relativeDiameter / 100) * api.chart.plotWidth) / 2;
+      return { x: centerX, y: centerY - radius, width: 1, height: 2 * radius };
+    }
+  };
+
+  const onPointHighlight: CoreTooltipProps["onPointHighlight"] = ({ point }) => {
+    return { matchedLegendItems: [getPointId(point)] };
+  };
+
+  return {
+    getTooltipContent,
+    getTargetFromPoint,
+    onPointHighlight,
+    size: props.tooltip?.size,
+    placement: props.tooltip?.placement,
+  };
 }

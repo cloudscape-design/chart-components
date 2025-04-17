@@ -13,7 +13,7 @@ export function getDataExtremes(axis?: Highcharts.Axis): [number, number] {
 export function getCartesianDetailsItem(
   index: number,
   series: InternalSeriesOptions,
-): CartesianChartProps.TooltipSeriesDetailItem {
+): null | CartesianChartProps.TooltipSeriesDetailItem {
   const x = getSeriesXbyIndex(series, index);
   const y = getSeriesYbyIndex(series, index);
 
@@ -23,7 +23,10 @@ export function getCartesianDetailsItem(
   if (Array.isArray(y)) {
     return { type: "range", x: x as number, low: y[0], high: y[1], series: series as CartesianChartProps.Series };
   }
-  return { type: "threshold", x: x as number, series: series as CartesianChartProps.Series };
+  if (series.type === "awsui-y-threshold") {
+    return { type: "threshold", x: x as number, series: series as CartesianChartProps.Series };
+  }
+  return null;
 }
 
 function getSeriesXbyIndex(series: InternalSeriesOptions, index: number): number | string {

@@ -4,14 +4,7 @@
 import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerStatus } from "../internal/components/series-marker";
-import {
-  BaseChartProps,
-  BaseI18nStrings,
-  BaseLegendProps,
-  BaseNoDataProps,
-  BaseTooltipProps,
-  Point,
-} from "./interfaces-base";
+import { BaseChartProps, BaseI18nStrings, BaseLegendProps, BaseNoDataProps, BaseTooltipProps } from "./interfaces-base";
 
 export interface CloudscapeHighchartsProps
   extends Pick<BaseChartProps, "fitHeight" | "chartMinHeight" | "chartMinWidth"> {
@@ -79,12 +72,32 @@ export interface CloudscapeChartAPI {
   highcharts: typeof Highcharts;
   showTooltipOnPoint(point: Highcharts.Point): void;
   hideTooltip(): void;
-  highlightLegendItem: (itemId: string) => void;
+  highlightLegendItems: (ids: string[]) => void;
   clearLegendHighlight: () => void;
 }
 
 export interface CoreTooltipProps extends BaseTooltipProps {
-  getContent?: (point: Point) => null | CoreTooltipContent;
+  getTargetFromPoint?(point: Highcharts.Point): Target;
+  getTooltipContent?(props: { point: Highcharts.Point }): null | TooltipContent;
+  onPointHighlight?(props: { point: Highcharts.Point; target: Target }): null | PointHighlightDetail;
+  onClearHighlight?(): void;
+}
+
+export interface Target {
+  x: number;
+  y: number;
+  height: number;
+  width: number;
+}
+
+export interface PointHighlightDetail {
+  matchedLegendItems: string[];
+}
+
+export interface TooltipContent {
+  header: React.ReactNode;
+  body: React.ReactNode;
+  footer?: React.ReactNode;
 }
 
 export interface CoreLegendProps extends BaseLegendProps {
@@ -92,11 +105,5 @@ export interface CoreLegendProps extends BaseLegendProps {
 }
 
 export type CoreNoDataProps = BaseNoDataProps;
-
-export interface CoreTooltipContent {
-  header: React.ReactNode;
-  body: React.ReactNode;
-  footer?: React.ReactNode;
-}
 
 export type CoreI18nStrings = BaseI18nStrings;
