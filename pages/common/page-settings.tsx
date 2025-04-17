@@ -33,7 +33,7 @@ export interface PageSettings {
   seriesLoading: boolean;
   seriesError: boolean;
   emphasizeBaselineAxis: boolean;
-  tooltipPlacement: "target" | "bottom";
+  tooltipPlacement: "target" | "bottom" | "middle";
   tooltipSize: "small" | "medium" | "large";
   showLegend: boolean;
   showLegendTitle: boolean;
@@ -188,7 +188,7 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
   };
 }
 
-const tooltipPlacementOptions = [{ value: "target" }, { value: "bottom" }];
+const tooltipPlacementOptions = [{ value: "target" }, { value: "bottom" }, { value: "middle" }];
 
 const tooltipSizeOptions = [{ value: "small" }, { value: "medium" }, { value: "large" }];
 
@@ -322,7 +322,9 @@ export function PageSettingsForm({
                       tooltipPlacementOptions[0]
                     }
                     onChange={({ detail }) =>
-                      setSettings({ tooltipPlacement: detail.selectedOption.value as string as "target" | "bottom" })
+                      setSettings({
+                        tooltipPlacement: detail.selectedOption.value as string as "target" | "bottom" | "middle",
+                      })
                     }
                   />
                 </FormField>

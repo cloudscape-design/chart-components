@@ -160,13 +160,11 @@ export namespace CartesianChartProps {
     reversedStacks?: boolean;
   }
 
-  export interface TooltipProps {
+  export interface TooltipProps extends BaseTypes.BaseTooltipProps {
     series?: (detail: TooltipSeriesDetailItem) => TooltipSeriesFormatted;
     header?: (detail: TooltipDetails) => React.ReactNode;
     body?: (detail: TooltipDetails) => React.ReactNode;
     footer?: (detail: TooltipDetails) => React.ReactNode;
-    placement?: "target" | "bottom";
-    size?: "small" | "medium" | "large";
   }
 
   export interface TooltipDetails {
