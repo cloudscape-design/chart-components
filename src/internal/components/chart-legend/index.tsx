@@ -660,13 +660,13 @@ function ChartLegendPreferences({
 
   return (
     <>
-      <Button variant="icon" iconName="settings" onClick={onModalOpen} />
+      <Button variant="icon" iconName={navigation || legendPlacement ? "settings" : "search"} onClick={onModalOpen} />
       {modalOpen && (
         <Modal
           visible={true}
           size={modalSize ?? defaultModalSize}
           onDismiss={onModalDismiss}
-          header="Chart display preferences"
+          header="Preferences"
           footer={
             <div style={{ display: "flex", gap: 8, justifySelf: "flex-end" }}>
               <Button onClick={onCancel}>Cancel</Button>
