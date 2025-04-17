@@ -111,11 +111,6 @@ export interface BaseI18nStrings {
   recoveryText?: string;
 }
 
-export interface Point {
-  x: number;
-  y: number;
-}
-
 export interface AreaSeries extends AbstractSeries {
   type: "area";
   data: (number | [number, number] | PointDataItem)[];
