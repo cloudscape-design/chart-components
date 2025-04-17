@@ -23,3 +23,5 @@ export const chatPlotBaselineOptions: Partial<Highcharts.XAxisPlotLinesOptions> 
   width: 2,
   zIndex: 2,
 };
+
+export const colorChartCursor = colorChartsLineTick;

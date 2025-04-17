@@ -8,11 +8,8 @@ import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-
 
 import AsyncStore, { useSelector } from "../internal/utils/async-store";
 import { DebouncedCall } from "../internal/utils/utils";
-import { LegendAPI } from "./chart-legend";
-import { Point } from "./interfaces-base";
-import { CloudscapeChartAPI, CoreTooltipProps } from "./interfaces-core";
-import * as Styles from "./styles";
-import { getPointId, getSeriesId } from "./utils";
+import { BaseTooltipProps } from "./interfaces-base";
+import { CloudscapeChartAPI, CoreTooltipProps, Target } from "./interfaces-core";
 
 const MOUSE_LEAVE_DELAY = 300;
 const LAST_DISMISS_DELAY = 250;
@@ -23,14 +20,9 @@ const SET_STATE_OVERRIDE_MARKER = Symbol("awsui-set-state");
 // The tooltip can be hidden when we receive mouse-leave. It can also be pinned/unpinned on mouse click.
 // Despite event names, they events also fire on keyboard interactions.
 
-export function useChartTooltip(
-  getAPI: () => CloudscapeChartAPI,
-  legendAPI: LegendAPI,
-  tooltipProps?: CoreTooltipProps,
-) {
+export function useChartTooltip(getAPI: () => CloudscapeChartAPI, tooltipProps?: CoreTooltipProps) {
   const tooltipStore = useRef(new TooltipStore(getAPI)).current;
-  tooltipStore.placement = tooltipProps?.placement ?? "target";
-  tooltipStore.legendAPI = legendAPI;
+  tooltipStore.tooltipProps = tooltipProps ?? {};
 
   const chartClick: Highcharts.ChartClickCallbackFunction = function () {
     const { hoverPoint } = this;
@@ -56,7 +48,7 @@ export function useChartTooltip(
     options: { chartClick, seriesPointMouseOver, seriesPointMouseOut, seriesPointClick },
     props: {
       tooltipStore,
-      getContent: tooltipProps?.getContent ?? (() => null),
+      getContent: tooltipProps?.getTooltipContent ?? (() => null),
       placement: tooltipProps?.placement,
       size: tooltipProps?.size,
     },
@@ -72,12 +64,15 @@ export function ChartTooltip({
   getContent,
   placement,
   size,
-}: CoreTooltipProps & { tooltipStore: TooltipStore }) {
+}: BaseTooltipProps & { tooltipStore: TooltipStore; getContent: CoreTooltipProps["getTooltipContent"] }) {
   const tooltip = useSelector(tooltipStore, (s) => s);
   if (!tooltip.visible) {
     return null;
   }
-  const content = getContent?.(tooltip.point);
+  if (!tooltip.point) {
+    throw new Error("Invariant violation: visible tooltip does not have point data.");
+  }
+  const content = getContent?.({ point: tooltip.point });
   if (!content) {
     return null;
   }
@@ -104,28 +99,26 @@ export function ChartTooltip({
 interface ReactiveTooltipState {
   visible: boolean;
   pinned: boolean;
-  point: Point;
+  point: null | Highcharts.Point;
 }
 
 class TooltipStore extends AsyncStore<ReactiveTooltipState> {
   public getTrack: () => null | HTMLElement | SVGElement = () => null;
-  public placement: "target" | "bottom" = "target";
-  public legendAPI: LegendAPI = { highlightItem: () => {}, clearHighlight: () => {} };
+  public tooltipProps: CoreTooltipProps = {};
 
   private getAPI: () => CloudscapeChartAPI;
   private targetElement: null | Highcharts.SVGElement = null;
-  private cursorElement: null | Highcharts.SVGElement = null;
   private mouseLeaveCall = new DebouncedCall();
   private lastDismissTime = 0;
   private tooltipHovered = false;
 
   constructor(getAPI: () => CloudscapeChartAPI) {
-    super({ visible: false, pinned: false, point: { x: 0, y: 0 } });
+    super({ visible: false, pinned: false, point: null });
     this.getAPI = getAPI;
   }
 
   // When hovering (or focusing) over the target (point, bar, segment, etc.) we show the tooltip in the target coordinate.
-  public onMouseOverTarget = (target: Highcharts.Point) => {
+  public onMouseOverTarget = (point: Highcharts.Point) => {
     this.updateSetters();
 
     // The behavior is ignored if the tooltip is already shown and pinned.
@@ -135,33 +128,25 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
     // If the target is hovered soon after the mouse-out was received, we cancel the mouse-out behavior to hide the tooltip.
     this.mouseLeaveCall.cancelPrevious();
 
-    this.hoverActions(target);
-    this.set(() => {
-      const point = { x: target.x, y: target.y ?? 0 };
-      return { visible: true, pinned: false, point };
-    });
+    this.highlightActions(point);
+    this.set(() => ({ visible: true, pinned: false, point }));
   };
 
   // When the plot is clicked we pin the popover in its current position.
-  public onMouseClickPlot = (target: null | Highcharts.Point) => {
+  public onMouseClickPlot = (point: null | Highcharts.Point) => {
     // The behavior is ignored if the popover is already pinned.
     if (this.get().pinned) {
       return;
     }
     // If the click point is different from the current position - the tooltip is moved to the new position.
-    if (target && this.get().point.x !== target.x && this.get().point.y !== target.y) {
-      this.hoverActions(target);
-      this.set((prev) => {
-        const point = target ? { x: target.x, y: target.y ?? 0 } : prev.point;
-        return { visible: true, pinned: false, point };
-      });
+    const prevPoint = this.get().point;
+    if (point && point.x !== prevPoint?.x && point.y !== prevPoint?.y) {
+      this.highlightActions(point);
+      this.set(() => ({ visible: true, pinned: false, point: point ?? prevPoint }));
     }
     // If the click point is missing or matches the current position and it wasn't recently dismissed - it is pinned in this position.
     else if (new Date().getTime() - this.lastDismissTime > LAST_DISMISS_DELAY) {
-      this.set((prev) => {
-        const point = target ? { x: target.x, y: target.y ?? 0 } : prev.point;
-        return { visible: true, pinned: true, point };
-      });
+      this.set(() => ({ visible: true, pinned: true, point: point ?? prevPoint }));
     }
   };
 
@@ -176,7 +161,7 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
         if (this.tooltipHovered) {
           return;
         }
-        this.resetHoverActions();
+        this.clearHighlightActions();
         this.set((prev) => ({ ...prev, visible: false, pinned: false, content: null }));
       }, MOUSE_LEAVE_DELAY);
     }
@@ -190,7 +175,7 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
     if (!this.get().pinned) {
       this.mouseLeaveCall.cancelPrevious();
       this.mouseLeaveCall.call(() => {
-        this.resetHoverActions();
+        this.clearHighlightActions();
         this.set((prev) => ({ ...prev, visible: false, pinned: false, content: null }));
       }, MOUSE_LEAVE_DELAY);
     }
@@ -243,46 +228,40 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
     return this.getAPI();
   }
 
-  private hoverActions = (target: Highcharts.Point) => {
-    this.resetHoverActions();
-    this.dimColumns(target);
+  private highlightActions = (point: Highcharts.Point) => {
+    const target = this.getTarget(point);
+    const detail = this.tooltipProps.onPointHighlight?.({ point, target });
+    this.destroyMarkers();
     this.createMarkers(target);
-    if (target.series.type === "pie") {
-      this.legendAPI.highlightItem(getPointId(target));
-    } else if (this.api.chart.series.every((s) => s.type !== "column")) {
-      this.legendAPI.highlightItem(getSeriesId(target.series));
+
+    if (detail?.matchedLegendItems) {
+      this.api.highlightLegendItems(detail?.matchedLegendItems);
     }
   };
 
-  private createMarkers = (target: Highcharts.Point) => {
-    let markerTop = this.api.chart.plotTop;
-    let markerHeight = this.api.chart.plotHeight;
-    let x = (target.plotX ?? 0) + this.api.chart.plotLeft;
-    let y = (target.plotY ?? 0) + this.api.chart.plotTop;
-    if (this.api.chart.inverted) {
-      x = this.api.chart.plotWidth - (target.plotY ?? 0) + this.api.chart.plotLeft;
-      y = this.api.chart.plotHeight - (target.plotX ?? 0) + this.api.chart.plotTop;
-    }
-    // The pie series segments do not provide plotX, plotY.
-    // That's why we use the tooltipPos tuple, which is not covered by Typescript.
-    if (target.series.type === "pie" && this.placement === "target") {
-      x = (target as any).tooltipPos[0];
-      y = (target as any).tooltipPos[1];
-    }
-    if (target.series.type === "pie" && this.placement === "bottom") {
-      const { centerX, centerY, radius } = this.getPieCoordinates(target.series);
-      x = centerX;
-      y = centerY;
-      markerTop = centerY - radius;
-      markerHeight = 2 * radius;
-    }
+  private getTarget = (point: Highcharts.Point) => {
+    return this.tooltipProps.getTargetFromPoint?.(point) ?? this.getDefaultTarget(point);
+  };
 
-    this.cursorElement = this.api.chart.renderer
-      .rect(x, markerTop, 1, markerHeight)
-      .attr({ fill: target.series.type !== "pie" ? Styles.colorChartCursor : "transparent" })
+  private getDefaultTarget = (point: Highcharts.Point) => {
+    let x = (point.plotX ?? 0) + this.api.chart.plotLeft;
+    let y = (point.plotY ?? 0) + this.api.chart.plotTop;
+    if (this.api.chart.inverted) {
+      x = this.api.chart.plotWidth - (point.plotY ?? 0) + this.api.chart.plotLeft;
+      y = this.api.chart.plotHeight - (point.plotX ?? 0) + this.api.chart.plotTop;
+    }
+    const placement = this.tooltipProps.placement ?? "target";
+    if (placement === "target") {
+      return { x, y, width: 0, height: 0 };
+    }
+    return { x, y: this.api.chart.plotTop, width: 1, height: this.api.chart.plotHeight };
+  };
+
+  private createMarkers = (target: Target) => {
+    this.targetElement = this.api.chart.renderer
+      .rect(target.x, target.y, target.width, target.height)
+      .attr({ fill: "transparent" })
       .add();
-    this.targetElement =
-      this.placement === "target" ? this.api.chart.renderer.circle(x, y, 0).add() : this.cursorElement;
 
     // The targetElement.element can get invalidated by Highcharts, so we cannot use
     // trackRef.current = targetElement.element as it might get invalidated unexpectedly.
@@ -290,50 +269,13 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
     this.getTrack = () => this.targetElement?.element ?? null;
   };
 
-  private dimColumns = (target: Highcharts.Point) => {
-    for (const s of this.api.chart.series) {
-      if (s.type === "column") {
-        for (const p of s.data) {
-          if (p.x !== target.x) {
-            p.setState("inactive");
-          }
-        }
-      }
-    }
-  };
-
-  private resetHighlight = () => {
-    for (const s of this.api.chart.series) {
-      if (s.type === "column") {
-        for (const p of s.data) {
-          p.setState("normal");
-        }
-      }
-    }
-  };
-
-  private getPieCoordinates = (series: Highcharts.Series) => {
-    const [relativeX, relativeY, relativeDiameter] = series.center;
-    const plotLeft = this.api.chart.plotLeft;
-    const plotTop = this.api.chart.plotTop;
-    const centerX =
-      plotLeft + (typeof relativeX === "number" ? relativeX : (relativeX / 100) * this.api.chart.plotWidth);
-    const centerY =
-      plotTop + (typeof relativeY === "number" ? relativeY : (relativeY / 100) * this.api.chart.plotHeight);
-    const radius =
-      (typeof relativeDiameter === "number" ? relativeDiameter : (relativeDiameter / 100) * this.api.chart.plotWidth) /
-      2;
-    return { centerX, centerY, radius };
-  };
-
-  private resetHoverActions = () => {
-    this.legendAPI.clearHighlight();
-    this.resetHighlight();
+  private clearHighlightActions = () => {
+    this.tooltipProps.onClearHighlight?.();
     this.destroyMarkers();
+    this.api.clearLegendHighlight();
   };
 
   private destroyMarkers = () => {
     this.targetElement?.destroy();
-    this.cursorElement?.destroy();
   };
 }

@@ -102,5 +102,3 @@ export const noDataCss: React.CSSProperties = {
   alignItems: "center",
   justifyContent: "center",
 };
-
-export const colorChartCursor = colorChartsLineTick;

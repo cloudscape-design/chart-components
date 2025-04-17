@@ -1,14 +1,16 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import type Highcharts from "highcharts";
 
-import { CloudscapeChartAPI, CoreTooltipContent } from "../core/interfaces-core";
-import { getSeriesMarkerType } from "../core/utils";
+import { CloudscapeChartAPI, CoreTooltipProps, Target } from "../core/interfaces-core";
+import { getSeriesId, getSeriesMarkerType } from "../core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../internal/components/series-details";
 import { ChartSeriesMarkerStatus } from "../internal/components/series-marker";
 import { getDefaultFormatter } from "./default-formatters";
 import { CartesianChartProps, InternalCartesianChartOptions, InternalSeriesOptions } from "./interfaces-cartesian";
+import * as Styles from "./styles";
 import { getDataExtremes } from "./utils";
 import { getCartesianDetailsItem } from "./utils";
 
@@ -21,13 +23,12 @@ export function useChartTooltipCartesian(
       getItemStatus?: (itemId: string) => ChartSeriesMarkerStatus;
     };
   },
-) {
+): CoreTooltipProps {
   const { xAxis, series } = props.options;
   const [expandedSeries, setExpandedSeries] = useState<Record<string, Set<string>>>({});
+  const cursorRef = useRef<null | Highcharts.SVGElement>(null);
 
-  const getContent = (point: { x: number; y: number }): null | CoreTooltipContent => {
-    const chart = getAPI().chart;
-
+  const findMatchedItems = (point: Highcharts.Point) => {
     const matchedItems: CartesianChartProps.TooltipSeriesDetailItem[] = [];
     function findMatchedItem(series: InternalSeriesOptions) {
       if (series.type === "awsui-x-threshold" || series.type === "awsui-y-threshold") {
@@ -36,7 +37,7 @@ export function useChartTooltipCartesian(
       if ("data" in series && series.data && Array.isArray(series.data)) {
         for (let i = 0; i < series.data.length; i++) {
           const detail = getCartesianDetailsItem(i, series);
-          if (detail.x === point.x) {
+          if (detail?.x === point.x) {
             matchedItems.push(detail);
           }
         }
@@ -55,6 +56,14 @@ export function useChartTooltipCartesian(
       matchedItems.push({ type: "point", x: point.x, y: series.value, series });
     }
     series.forEach((s) => (s.type === "awsui-y-threshold" ? findMatchedYThreshold(s) : undefined));
+
+    return matchedItems;
+  };
+
+  const getTooltipContent: CoreTooltipProps["getTooltipContent"] = ({ point }) => {
+    const chart = getAPI().chart;
+
+    const matchedItems = findMatchedItems(point);
 
     const seriesToChartSeries = new Map<InternalSeriesOptions, Highcharts.Series>();
     for (const s of series) {
@@ -146,5 +155,55 @@ export function useChartTooltipCartesian(
     };
   };
 
-  return { getContent, size: props.tooltip?.size, placement: props.tooltip?.placement };
+  const destroyCursor = () => {
+    cursorRef.current?.destroy();
+  };
+
+  const createCursor = (target: Target) => {
+    const chart = getAPI().chart;
+    cursorRef.current?.destroy();
+    cursorRef.current = chart.renderer
+      .rect(target.x, chart.plotTop, 1, chart.plotHeight)
+      .attr({ fill: Styles.colorChartCursor, zIndex: 5 })
+      .add();
+  };
+
+  const onPointHighlight: CoreTooltipProps["onPointHighlight"] = ({ point, target }) => {
+    createCursor(target);
+
+    if (props.options.series.some((s) => s.type === "column")) {
+      for (const s of getAPI().chart.series) {
+        if (s.type === "column") {
+          for (const p of s.data) {
+            if (p.x !== point.x) {
+              p.setState("inactive");
+            }
+          }
+        }
+      }
+      return null;
+    }
+    return { matchedLegendItems: [getSeriesId(point.series)] };
+  };
+
+  const onClearHighlight: CoreTooltipProps["onClearHighlight"] = () => {
+    destroyCursor();
+
+    if (props.options.series.some((s) => s.type === "column")) {
+      for (const s of getAPI().chart.series) {
+        s.setState("normal");
+        for (const p of s.data) {
+          p.setState("normal");
+        }
+      }
+    }
+  };
+
+  return {
+    getTooltipContent,
+    onPointHighlight,
+    onClearHighlight,
+    size: props.tooltip?.size,
+    placement: props.tooltip?.placement,
+  };
 }

@@ -64,7 +64,7 @@ export function CloudscapeHighcharts({
   // Provides custom Cloudscape tooltip instead of Highcharts tooltip, when `props.tooltip` is present.
   // The custom tooltip provides Cloudscape styles and can be pinned.
   const isTooltipEnabled = tooltipProps?.enabled !== false;
-  const tooltip = useChartTooltip(getAPI, legend.api, tooltipProps);
+  const tooltip = useChartTooltip(getAPI, tooltipProps);
 
   // Provides empty, no-match, loading, and error states handling, when `props.noData` is present.
   const noData = useNoData(getAPI, noDataProps);
@@ -261,7 +261,7 @@ export function CloudscapeHighcharts({
                   highcharts: highcharts as typeof Highcharts,
                   showTooltipOnPoint: (point) => tooltip.api.showTooltipOnPoint(point),
                   hideTooltip: () => tooltip.api.hideTooltip(),
-                  highlightLegendItem: (itemId) => legend.api.highlightLegendItem(itemId),
+                  highlightLegendItems: (ids) => legend.api.highlightLegendItems(ids),
                   clearLegendHighlight: () => legend.api.clearLegendHighlight(),
                 };
                 callback?.(apiRef.current);

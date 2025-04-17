@@ -89,7 +89,7 @@ export interface LegendPreferencesRendererProps {
 }
 
 export interface ChartLegendRef {
-  highlightItem: (itemId: string) => void;
+  highlightItems: (ids: string[]) => void;
   clearHighlight: () => void;
 }
 
@@ -118,7 +118,7 @@ export const ChartLegend = forwardRef(
     const tooltipControl = useMemo(() => new DebouncedCall(), []);
     const noTooltipRef = useRef(false);
     const noTooltipControl = useMemo(() => new DebouncedCall(), []);
-    const [highlightedItem, setHighlightedItem] = useState<null | string>(null);
+    const [highlightedItems, setHighlightedItems] = useState<string[]>([]);
     const [selectedIndex, setSelectedIndex] = useState<number>(0);
     const [tooltipItem, setTooltipItem] = useState<null | string>(null);
     const tooltipContent = tooltipItem ? infoTooltip?.render(tooltipItem, { context: "legend" }) : null;
@@ -134,27 +134,27 @@ export const ChartLegend = forwardRef(
       tooltipControl.call(() => setTooltipItem(null), 50);
       onItemHighlightExit?.();
     };
-    const showHighlight = (itemId: string, callback = true) => {
-      setHighlightedItem(itemId);
+    const showHighlight = (itemId: string) => {
+      setHighlightedItems([itemId]);
       highlightControl.cancelPrevious();
-      if (callback) {
-        onItemHighlightEnter?.(itemId);
-      }
+      onItemHighlightEnter?.(itemId);
     };
-    const clearHighlight = (callback = true) => {
-      setHighlightedItem(null);
-      if (callback) {
-        highlightControl.call(() => onItemHighlightExit?.(), 50);
-      }
+    const clearHighlight = () => {
+      setHighlightedItems([]);
+      highlightControl.call(() => onItemHighlightExit?.(), 50);
     };
 
     useImperativeHandle(ref, () => ({
-      highlightItem: (itemId) => {
-        showHighlight(itemId, false);
-        const itemIndex = items.findIndex((i) => i.id === itemId);
-        segmentsRef.current[itemIndex]?.scrollIntoView({ behavior: "smooth" });
+      highlightItems: (ids: string[]) => {
+        setHighlightedItems(ids);
+        const firstItemIndex = items.findIndex((i) => ids.includes(i.id));
+        segmentsRef.current[firstItemIndex]?.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "nearest",
+        });
       },
-      clearHighlight: () => clearHighlight(false),
+      clearHighlight: () => setHighlightedItems([]),
     }));
 
     const navigationAPI = useRef<SingleTabStopNavigationAPI>(null);
@@ -377,7 +377,8 @@ export const ChartLegend = forwardRef(
                       toggleItem(item.id);
                     }
                   }}
-                  highlightedItem={highlightedItem}
+                  isHighlighted={highlightedItems.includes(item.id)}
+                  someHighlighted={highlightedItems.length > 0}
                   itemId={item.id}
                   label={item.name}
                   color={item.color}
@@ -720,7 +721,8 @@ function DefaultRenderer({
 const LegendItemTrigger = forwardRef(
   (
     {
-      highlightedItem,
+      isHighlighted,
+      someHighlighted,
       itemId,
       label,
       color,
@@ -737,7 +739,8 @@ const LegendItemTrigger = forwardRef(
       onKeyDown,
       infoMode,
     }: {
-      highlightedItem: null | string;
+      isHighlighted?: boolean;
+      someHighlighted?: boolean;
       itemId: string;
       label: string;
       color: string;
@@ -770,7 +773,7 @@ const LegendItemTrigger = forwardRef(
           styles.marker,
           {
             [styles["marker--inactive"]]: !active,
-            [styles["marker--dimmed"]]: highlightedItem && highlightedItem !== itemId,
+            [styles["marker--dimmed"]]: someHighlighted && !isHighlighted,
             [testClasses["hidden-item"]]: !active,
           },
           testClasses[`item-status-${status}`],

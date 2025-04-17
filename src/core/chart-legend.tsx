@@ -44,7 +44,7 @@ export function useLegend(
       onItemHighlightExit,
     },
     api: {
-      highlightLegendItem: (itemId: string) => legendStore.legendRef.highlightItem(itemId),
+      highlightLegendItems: (ids: string[]) => legendStore.legendRef.highlightItems(ids),
       clearLegendHighlight: () => legendStore.legendRef.clearHighlight(),
     },
   };
@@ -99,7 +99,7 @@ class LegendStore extends AsyncStore<{ legendItems: LegendItemProps[] }> {
   public legendRefCb = (ref: ChartLegendRef) => {
     this.legendRef = ref;
   };
-  public legendRef: ChartLegendRef = { highlightItem: () => {}, clearHighlight: () => {} };
+  public legendRef: ChartLegendRef = { highlightItems: () => {}, clearHighlight: () => {} };
 
   constructor(getAPI: () => CloudscapeChartAPI) {
     super({ legendItems: [] });
