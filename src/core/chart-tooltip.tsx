@@ -254,6 +254,12 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
     if (placement === "target") {
       return { x, y, width: 0, height: 0 };
     }
+    if (placement === "middle" && !this.api.chart.inverted) {
+      return { x, y: this.api.chart.plotTop + this.api.chart.plotHeight / 2, width: 0, height: 0 };
+    }
+    if (placement === "middle" && this.api.chart.inverted) {
+      return { x: this.api.chart.plotLeft + this.api.chart.plotWidth / 2, y, width: 0, height: 0 };
+    }
     return { x, y: this.api.chart.plotTop, width: 1, height: this.api.chart.plotHeight };
   };
 

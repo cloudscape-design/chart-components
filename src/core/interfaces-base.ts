@@ -77,7 +77,7 @@ export interface BaseChartProps {
 
 export interface BaseTooltipProps {
   enabled?: boolean;
-  placement?: "target" | "bottom";
+  placement?: "target" | "bottom" | "middle";
   size?: "small" | "medium" | "large";
 }
 
