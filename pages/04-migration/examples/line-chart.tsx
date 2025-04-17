@@ -121,10 +121,6 @@ export function ComponentNew({ preferencesFilter }: { preferencesFilter?: boolea
             }
           : undefined,
       }}
-      tooltip={{
-        ...chartProps.tooltip,
-        placement: "middle",
-      }}
     />
   );
 }
@@ -140,7 +136,7 @@ export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
       xDomain={[domain[0], domain[domain.length - 1]]}
       yDomain={[0, 500000]}
       i18nStrings={{
-        xTickFormatter: (value) => dateFormatter(value.getTime()),
+        xTickFormatter: (value) => dateFormatter(value.getTime(), "\n"),
       }}
       ariaLabel="Line chart"
       xScaleType="time"
