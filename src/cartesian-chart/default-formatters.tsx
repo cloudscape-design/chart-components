@@ -12,7 +12,7 @@ export function getDefaultFormatter(axis: CartesianChartProps.AxisProps, extreme
       return "";
     }
     if (axis.valueFormatter) {
-      return axis.valueFormatter(value);
+      return axis.valueFormatter(value).replace(/<\w+ ?\/>/g, " ");
     }
     if (axis.type === "category") {
       return axis.categories?.[value] ?? value.toString();

@@ -10,7 +10,10 @@ import * as AreaChartExample from "./examples/area-chart";
 
 const TotalFooterGuidance = (
   <SpaceBetween size="s">
-    <Box variant="span">See implementation of the custom total row tooltip footer in the new charts:</Box>
+    <Box variant="span">
+      In the old area chart the tooltip features a total value row. In the new area chart the total row can be added as
+      a custom tooltip footer, but it is not available by default.
+    </Box>
 
     <CodeSnippet
       content={`let areaChart = (
@@ -39,25 +42,19 @@ export default function () {
   return (
     <Page title="Migration: Area charts">
       <PageSection
-        title="Simple area chart"
+        title="Stacked area chart"
         docs={{
-          functional: {
+          behavior: {
             bullets: [
-              `In the old area chart the tooltip features a total value row. In the new area chart the total row
-                    can be added as a custom tooltip footer, but it is not available by default.`,
+              `In the old charts one can highlight a row if the cursor is not close enough to any of the points. In the new charts
+              the highlight always lands on the point. The series that contains the highlighted point is then highlighted in the plot
+              and the legend.`,
             ],
           },
           visualDesign: {
             bullets: [
               `In the old area- and line charts the series point markers are always circles. In the new charts
-              the markers the point markers can vary, and by default depend on the series order.`,
-            ],
-          },
-          behavior: {
-            bullets: [
-              `In the old area- and line charts it is possible to highlight the entire row, as well as individual data points.
-              When highlighting a row the hollow markers are shown for each matched series. In the new charts only the closest
-              marker is shown at a time, but all matched series are present in the tooltip.`,
+              the point markers can vary, this depends on the series order.`,
             ],
           },
           implementation: {
