@@ -121,6 +121,10 @@ export function ComponentNew({ preferencesFilter }: { preferencesFilter?: boolea
             }
           : undefined,
       }}
+      tooltip={{
+        ...chartProps.tooltip,
+        placement: "middle",
+      }}
     />
   );
 }
