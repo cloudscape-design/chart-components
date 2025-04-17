@@ -169,8 +169,6 @@ export function useChartTooltipCartesian(
   };
 
   const onPointHighlight: CoreTooltipProps["onPointHighlight"] = ({ point, target }) => {
-    createCursor(target);
-
     if (props.options.series.some((s) => s.type === "column")) {
       for (const s of getAPI().chart.series) {
         if (s.type === "column") {
@@ -182,7 +180,10 @@ export function useChartTooltipCartesian(
         }
       }
       return null;
+    } else {
+      createCursor(target);
     }
+
     return { matchedLegendItems: [getSeriesId(point.series)] };
   };
 

@@ -229,6 +229,12 @@ export function CloudscapeHighcharts({
                 fillOpacity: Styles.areaFillOpacity,
                 ...options.plotOptions?.areaspline,
               },
+              column: {
+                groupPadding: Styles.columnGroupPadding,
+                borderRadius: Styles.columnBorderRadius,
+                borderWidth: Styles.columnBorderWidth,
+                ...options.plotOptions?.column,
+              },
             },
             xAxis: castArray(options.xAxis)?.map((xAxis) => ({
               ...Styles.xAxisOptions,

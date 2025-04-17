@@ -121,6 +121,7 @@ export function ComponentNew({ preferencesFilter }: { preferencesFilter?: boolea
             }
           : undefined,
       }}
+      tooltip={{}}
     />
   );
 }

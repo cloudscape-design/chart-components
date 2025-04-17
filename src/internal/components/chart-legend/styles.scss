@@ -28,6 +28,10 @@
   gap: cs.$space-scaled-xxs cs.$space-static-m;
 }
 
+.list-placement-block-end {
+  padding-block-start: cs.$space-scaled-s;
+}
+
 .list-placement-inline-end {
   flex-direction: column;
 }
