@@ -175,7 +175,6 @@ export interface TreeMapSeries extends AbstractSeries {
 export interface XThresholdSeries extends AbstractSeries {
   type: "awsui-x-threshold";
   value: number;
-  proximity?: number;
 }
 
 export interface YThresholdSeries extends AbstractSeries {
