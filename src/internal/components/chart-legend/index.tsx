@@ -472,6 +472,7 @@ function ChartLegendPreferences({
       tooltipMode: tooltipModeState,
       legendPlacement: legendPlacementState,
     });
+    setFilteringText("");
   };
   const onModalDismiss = () => {
     setModalOpen(false);

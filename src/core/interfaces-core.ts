@@ -79,6 +79,8 @@ export interface CloudscapeChartAPI {
   highcharts: typeof Highcharts;
   showTooltipOnPoint(point: Highcharts.Point): void;
   hideTooltip(): void;
+  highlightLegendItem: (itemId: string) => void;
+  clearLegendHighlight: () => void;
 }
 
 export interface CoreTooltipProps extends BaseTooltipProps {
