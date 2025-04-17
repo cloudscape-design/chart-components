@@ -231,8 +231,8 @@ let newChart = (
             before: (
               <SpaceBetween size="s">
                 <Box>
-                  In the old charts the labels can be made multi-line by inserting {`"\\n"`} between formatted parts. In
-                  the new charts the same is achieved by inserting <Box variant="code">{`<br />`}</Box>.
+                  In both old and new charts charts the labels can be made multi-line by inserting {`"\\n"`} between
+                  formatted parts.
                 </Box>
 
                 <CodeSnippet
@@ -249,11 +249,11 @@ let newChart = (
     {...restProps}
     xAxis={{
       ...xAxisProps,
-      valueFormatter: (value) => \`\${value}<br />item label\`,
+      valueFormatter: (value) => \`\${value}\\nitem label\`,
     }}
     yAxis={{
       ...yAxisProps,
-      valueFormatter: (value) => \`\${value}<br />item label\`,
+      valueFormatter: (value) => \`\${value}\\nitem label\`,
     }}
   />
 );`}
@@ -301,11 +301,11 @@ let newChart = (
                   ]}
                   xAxis={{
                     title: "Very very very long X-axis title, that can wrap",
-                    valueFormatter: (value) => `${value}<br />item label`,
+                    valueFormatter: (value) => `${value}\nitem label`,
                   }}
                   yAxis={{
                     title: "Very very very long Y-axis title, that can wrap",
-                    valueFormatter: (value) => `${value}<br />item label`,
+                    valueFormatter: (value) => `${value}\nitem label`,
                   }}
                   verticalAxisTitlePlacement="top"
                 />
@@ -330,11 +330,11 @@ let newChart = (
                   ]}
                   xAxis={{
                     title: "Very very very long X-axis title, that can wrap",
-                    valueFormatter: (value) => `${value}<br />item label`,
+                    valueFormatter: (value) => `${value}\nitem label`,
                   }}
                   yAxis={{
                     title: "Very very very long Y-axis title, that can wrap",
-                    valueFormatter: (value) => `${value}<br />item label`,
+                    valueFormatter: (value) => `${value}\nitem label`,
                   }}
                   verticalAxisTitlePlacement="side"
                 />
