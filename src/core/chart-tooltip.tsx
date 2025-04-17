@@ -244,23 +244,31 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
   };
 
   private getDefaultTarget = (point: Highcharts.Point) => {
-    let x = (point.plotX ?? 0) + this.api.chart.plotLeft;
-    let y = (point.plotY ?? 0) + this.api.chart.plotTop;
-    if (this.api.chart.inverted) {
-      x = this.api.chart.plotWidth - (point.plotY ?? 0) + this.api.chart.plotLeft;
-      y = this.api.chart.plotHeight - (point.plotX ?? 0) + this.api.chart.plotTop;
-    }
     const placement = this.tooltipProps.placement ?? "target";
-    if (placement === "target") {
-      return { x, y, width: 0, height: 0 };
+    const { plotTop, plotLeft, plotWidth, plotHeight, inverted } = this.api.chart;
+    if (placement === "target" && !inverted) {
+      const x = (point.plotX ?? 0) + plotLeft;
+      const y = (point.plotY ?? 0) + plotTop;
+      return { x, y, width: 4, height: 1 };
     }
-    if (placement === "middle" && !this.api.chart.inverted) {
-      return { x, y: this.api.chart.plotTop + this.api.chart.plotHeight / 2, width: 0, height: 0 };
+    if (placement === "target" && inverted) {
+      const x = plotWidth - (point.plotY ?? 0) + plotLeft;
+      const y = plotHeight - (point.plotX ?? 0) + plotTop;
+      return { x, y, width: 1, height: 4 };
     }
-    if (placement === "middle" && this.api.chart.inverted) {
-      return { x: this.api.chart.plotLeft + this.api.chart.plotWidth / 2, y, width: 0, height: 0 };
+    if (placement === "middle" && !inverted) {
+      const x = (point.plotX ?? 0) + plotLeft;
+      return { x, y: plotTop + plotHeight / 2, width: 4, height: 1 };
     }
-    return { x, y: this.api.chart.plotTop, width: 1, height: this.api.chart.plotHeight };
+    if (placement === "middle" && inverted) {
+      const y = plotHeight - (point.plotX ?? 0) + plotTop;
+      return { x: plotLeft + plotWidth / 2, y, width: 1, height: 4 };
+    }
+    if (placement === "bottom") {
+      const x = (point.plotX ?? 0) + plotLeft;
+      return { x, y: plotTop, width: 1, height: plotHeight };
+    }
+    throw new Error("Invariant violation: unsupported tooltip placement option.");
   };
 
   private createMarkers = (target: Target) => {

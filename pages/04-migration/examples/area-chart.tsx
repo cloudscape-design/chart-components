@@ -149,7 +149,7 @@ export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
       xDomain={[domain[0], domain[domain.length - 1]]}
       yDomain={[0, 600000]}
       i18nStrings={{
-        xTickFormatter: (value) => dateFormatter(value.getTime()),
+        xTickFormatter: (value) => dateFormatter(value.getTime(), "\n"),
       }}
       ariaLabel="Area chart"
       xScaleType="time"

@@ -77,7 +77,7 @@ export function ComponentOld() {
       xDomain={domain}
       yDomain={[0, 50]}
       i18nStrings={{
-        xTickFormatter: (value) => dateFormatter(value.getTime()),
+        xTickFormatter: (value) => dateFormatter(value.getTime(), "\n"),
       }}
       ariaLabel="Stacked bar chart"
       stackedBars={true}
