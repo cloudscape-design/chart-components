@@ -83,8 +83,8 @@ export const useCartesianSeries = (
 };
 
 function updateSeriesData(chart: Highcharts.Chart) {
-  const xExtremes = chart.xAxis[0].getExtremes();
-  const yExtremes = chart.yAxis[0].getExtremes();
+  const xExtremes = chart.xAxis[0]?.getExtremes();
+  const yExtremes = chart.yAxis[0]?.getExtremes();
 
   for (const s of chart.series) {
     if (typeof s.options.custom === "object" && s.options.custom?.awsui.type === "awsui-x-threshold") {
