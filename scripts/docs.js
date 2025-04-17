@@ -9,8 +9,6 @@ import { dashCase, listPublicDirs, writeSourceFile } from "./utils.js";
 const publicDirs = listPublicDirs("src");
 const targetDir = "lib/components/internal/api-docs";
 
-const importedCoreComponents = ["icon"];
-
 componentDocs();
 testUtilDocs();
 
@@ -22,17 +20,11 @@ function validatePublicFiles(definitionFiles) {
   }
 }
 
-function getNodeModulesInterfacePath(componentName) {
-  return path.resolve("node_modules/@cloudscape-design/components", componentName, "interfaces.d.ts");
-}
-
 function componentDocs() {
-  const nodeModulesDependencyFilePaths = importedCoreComponents.map(getNodeModulesInterfacePath);
-  const definitions = documentComponents(
-    path.resolve("tsconfig.json"),
-    "src/*/index.tsx",
-    nodeModulesDependencyFilePaths,
-  );
+  const definitions = documentComponents({
+    tsconfigPath: path.resolve("tsconfig.json"),
+    publicFilesGlob: "src/*/index.tsx",
+  });
   const outDir = path.join(targetDir, "components");
   const fileNames = definitions
     .filter((definition) => {
