@@ -204,6 +204,6 @@ export function useChartTooltipCartesian(
     onPointHighlight,
     onClearHighlight,
     size: props.tooltip?.size,
-    placement: props.tooltip?.placement,
+    placement: props.tooltip?.placement ?? "middle",
   };
 }

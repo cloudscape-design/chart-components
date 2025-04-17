@@ -221,6 +221,14 @@ export function CloudscapeHighcharts({
                   },
                 },
               },
+              area: {
+                fillOpacity: Styles.areaFillOpacity,
+                ...options.plotOptions?.area,
+              },
+              areaspline: {
+                fillOpacity: Styles.areaFillOpacity,
+                ...options.plotOptions?.areaspline,
+              },
             },
             xAxis: castArray(options.xAxis)?.map((xAxis) => ({
               ...Styles.xAxisOptions,

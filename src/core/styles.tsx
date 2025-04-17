@@ -80,6 +80,8 @@ export const chartPlotBackgroundColor = "transparent";
 
 export const seriesBorderColor = colorBackgroundLayoutMain;
 
+export const areaFillOpacity = 0.4;
+
 export const seriesDataLabelsCss: Highcharts.CSSObject = {
   font: fontFamilyBase,
   color: colorTextBodyDefault,

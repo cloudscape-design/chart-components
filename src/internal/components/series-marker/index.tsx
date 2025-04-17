@@ -38,21 +38,6 @@ export function ChartSeriesMarker({ type = "line", color, status }: ChartSeriesM
           <line x1={0} y1={halfSize} x2={size} y2={halfSize} stroke={color} strokeWidth={2} strokeDasharray="6,2" />
         )}
 
-        {type === "area" && (
-          <>
-            <rect x={0} y={halfSize - 2} width={size} height={6} fill={color} fillOpacity="0.75" stroke="none" />
-            <line
-              x1={-0.5}
-              y1={halfSize - 2}
-              x2={0.5 + size}
-              y2={halfSize - 2}
-              stroke={color}
-              strokeWidth={2}
-              strokeLinecap="round"
-            />
-          </>
-        )}
-
         {type === "large-square" && (
           <rect x={0} y={0} width={size} height={size} fill={color} transform={scale(0.9)} rx={2} />
         )}
@@ -68,7 +53,7 @@ export function ChartSeriesMarker({ type = "line", color, status }: ChartSeriesM
             stroke={color}
             strokeWidth={2}
             fill={color}
-            fillOpacity="0.75"
+            fillOpacity="0.40"
             transform={scale(0.8)}
             rx={2}
           />
