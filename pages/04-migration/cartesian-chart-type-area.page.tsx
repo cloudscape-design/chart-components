@@ -25,7 +25,7 @@ const TotalFooterGuidance = (
             <hr />
             <div style={{ display: "flex", justifyContent: "space-between", gap: "16px" }}>
               <span>Total</span>
-              <span>{detail.items.reduce((sum, item) => sum + (item.type === "point" ? item.y : 0), 0)}</span>
+              <span>{numberFormatter(detail.items.reduce((sum, item) => sum + (item.type === "point" ? item.y : 0), 0))}</span>
             </div>
           </div>
         );
