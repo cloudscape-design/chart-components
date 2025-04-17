@@ -90,7 +90,7 @@ const seriesOld: LineChartProps<Date>["series"] = [
   },
 ];
 
-export function ComponentNew({ preferencesFilter }: { preferencesFilter?: boolean }) {
+export function ComponentNew({ legendFilter }: { legendFilter?: boolean }) {
   const { chartProps } = usePageSettings();
   return (
     <InternalCartesianChart
@@ -114,12 +114,7 @@ export function ComponentNew({ preferencesFilter }: { preferencesFilter?: boolea
       }}
       legend={{
         ...chartProps.legend,
-        preferences: preferencesFilter
-          ? {
-              itemDisplayPreference: true,
-              onApply: () => {},
-            }
-          : undefined,
+        actions: { seriesFilter: legendFilter },
       }}
       tooltip={{}}
     />

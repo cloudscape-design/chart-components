@@ -48,7 +48,7 @@ const dataOld: OldPieChartProps["data"] = [
   },
 ];
 
-export function ComponentNew({ preferencesFilter }: { preferencesFilter?: boolean }) {
+export function ComponentNew({ legendFilter }: { legendFilter?: boolean }) {
   const { chartProps } = usePageSettings();
   return (
     <PieChart
@@ -60,12 +60,7 @@ export function ComponentNew({ preferencesFilter }: { preferencesFilter?: boolea
       segmentOptions={{}}
       legend={{
         ...chartProps.legend,
-        preferences: preferencesFilter
-          ? {
-              itemDisplayPreference: true,
-              onApply: () => {},
-            }
-          : undefined,
+        actions: { seriesFilter: legendFilter },
       }}
     />
   );
