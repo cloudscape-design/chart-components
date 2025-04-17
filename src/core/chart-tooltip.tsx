@@ -290,10 +290,12 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
   };
 
   private resetHighlight = () => {
-    for (const s of this.api.chart.series) {
-      if (s.type === "column") {
-        for (const p of s.data) {
-          p.setState("normal");
+    if (this.api.chart.series) {
+      for (const s of this.api.chart.series) {
+        if (s.type === "column") {
+          for (const p of s.data) {
+            p.setState("normal");
+          }
         }
       }
     }
