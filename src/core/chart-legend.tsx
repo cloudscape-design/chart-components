@@ -45,7 +45,7 @@ export function useLegend(
     },
     api: {
       highlightLegendItems: (ids: string[]) => legendStore.legendRef.highlightItems(ids),
-      clearLegendHighlight: () => legendStore.legendRef.clearHighlight(),
+      clearLegendHighlight: () => legendStore.legendRef?.clearHighlight(),
     },
   };
 }
