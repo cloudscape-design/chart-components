@@ -39,10 +39,8 @@ export interface PageSettings {
   showLegendTitle: boolean;
   showLegendTooltip: boolean;
   showLegendTooltipAction: boolean;
+  showLegendFilter: boolean;
   legendPlacement: "block-end" | "inline-end";
-  preferencesItems: boolean;
-  preferencesNavigation: boolean;
-  preferencesPlacement: boolean;
   useFallback: boolean;
 }
 
@@ -65,10 +63,8 @@ const DEFAULT_SETTINGS: PageSettings = {
   showLegendTitle: false,
   showLegendTooltip: false,
   showLegendTooltipAction: false,
+  showLegendFilter: false,
   legendPlacement: "block-end",
-  preferencesItems: false,
-  preferencesNavigation: false,
-  preferencesPlacement: false,
   useFallback: false,
 };
 
@@ -112,9 +108,7 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
     showLegendTitle: parseBoolean(defaultSettings.showLegendTitle, urlParams.showLegendTitle),
     showLegendTooltip: parseBoolean(defaultSettings.showLegendTooltip, urlParams.showLegendTooltip),
     showLegendTooltipAction: parseBoolean(defaultSettings.showLegendTooltipAction, urlParams.showLegendTooltipAction),
-    preferencesItems: parseBoolean(defaultSettings.preferencesItems, urlParams.preferencesItems),
-    preferencesNavigation: parseBoolean(defaultSettings.preferencesNavigation, urlParams.preferencesNavigation),
-    preferencesPlacement: parseBoolean(defaultSettings.preferencesPlacement, urlParams.preferencesPlacement),
+    showLegendFilter: parseBoolean(defaultSettings.showLegendFilter, urlParams.showLegendFilter),
     useFallback: parseBoolean(defaultSettings.useFallback, urlParams.useFallback),
   } as PageSettings as SettingsType;
   const setSettings = (partial: Partial<SettingsType>) => {
@@ -123,7 +117,6 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
 
   const ref = useRef<ChartRef>(null);
   const onClearFilter = () => ref.current?.clearFilter();
-  const [tooltipMode, setTooltipMode] = useState(false);
   return {
     settings,
     setSettings,
@@ -157,7 +150,6 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
         enabled: settings.showLegend,
         title: settings.showLegendTitle ? "Legend title" : undefined,
         placement: settings.legendPlacement,
-        tooltipMode: tooltipMode,
         infoTooltip: settings.showLegendTooltip
           ? {
               render: (itemId) => ({
@@ -167,18 +159,7 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
               }),
             }
           : undefined,
-        preferences:
-          settings.preferencesItems || settings.preferencesNavigation || settings.preferencesPlacement
-            ? {
-                itemDisplayPreference: settings.preferencesItems,
-                navigationPreference: settings.preferencesNavigation,
-                legendPlacementPreference: settings.preferencesPlacement,
-                onApply: (state) => {
-                  setTooltipMode(state.tooltipMode);
-                  setSettings({ legendPlacement: state.legendPlacement } as any);
-                },
-              }
-            : undefined,
+        actions: { seriesFilter: settings.showLegendFilter },
       },
       emphasizeBaselineAxis: settings.emphasizeBaselineAxis,
       onLegendPlacementChange: (placement) => setSettings({ legendPlacement: placement } as any),
@@ -399,31 +380,13 @@ export function PageSettingsForm({
                   />
                 </FormField>
               );
-            case "preferencesItems":
+            case "showLegendFilter":
               return (
                 <Checkbox
-                  checked={settings.preferencesItems}
-                  onChange={({ detail }) => setSettings({ preferencesItems: detail.checked })}
+                  checked={settings.showLegendFilter}
+                  onChange={({ detail }) => setSettings({ showLegendFilter: detail.checked })}
                 >
-                  Legend preferences items
-                </Checkbox>
-              );
-            case "preferencesNavigation":
-              return (
-                <Checkbox
-                  checked={settings.preferencesNavigation}
-                  onChange={({ detail }) => setSettings({ preferencesNavigation: detail.checked })}
-                >
-                  Legend preferences navigation
-                </Checkbox>
-              );
-            case "preferencesPlacement":
-              return (
-                <Checkbox
-                  checked={settings.preferencesPlacement}
-                  onChange={({ detail }) => setSettings({ preferencesPlacement: detail.checked })}
-                >
-                  Legend preferences placement
+                  Show legend filter
                 </Checkbox>
               );
             case "useFallback":
