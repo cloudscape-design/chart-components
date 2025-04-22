@@ -17,7 +17,6 @@ import Button from "@cloudscape-design/components/button";
 import Checkbox from "@cloudscape-design/components/checkbox";
 import FormField from "@cloudscape-design/components/form-field";
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
-import { InternalSortableArea } from "@cloudscape-design/components/internal/do-not-use/sortable-area";
 import Modal from "@cloudscape-design/components/modal";
 import Popover from "@cloudscape-design/components/popover";
 import SpaceBetween from "@cloudscape-design/components/space-between";
@@ -483,60 +482,52 @@ function ChartLegendFilter({
             </Box>
           )}
 
-          <InternalSortableArea
-            items={filteredItems}
-            itemDefinition={{ id: (item) => item.id, label: (item) => item.name }}
-            onItemsChange={() => {}}
-            renderItem={({ item, ref, className, style }) => {
-              className = clsx(className, styles.option);
-              const tooltipContent = infoTooltip?.render(item.id, { context: "filter" });
-              return (
-                <div
-                  ref={ref}
-                  className={className}
-                  style={{
-                    ...style,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    borderBottom: `1px solid ${colorBorderDividerSecondary}`,
+          {filteredItems.map((item) => {
+            const tooltipContent = infoTooltip?.render(item.id, { context: "filter" });
+            return (
+              <div
+                key={item.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  borderBottom: `1px solid ${colorBorderDividerSecondary}`,
+                }}
+              >
+                <Checkbox
+                  checked={tempState.selectedItems.includes(item.id)}
+                  onChange={({ detail }) => {
+                    setTempState((prev) => ({
+                      ...prev,
+                      selectedItems: detail.checked
+                        ? [...(prev.selectedItems ?? []), item.id]
+                        : (prev.selectedItems ?? []).filter((i) => i !== item.id),
+                    }));
                   }}
                 >
-                  <Checkbox
-                    checked={tempState.selectedItems.includes(item.id)}
-                    onChange={({ detail }) => {
-                      setTempState((prev) => ({
-                        ...prev,
-                        selectedItems: detail.checked
-                          ? [...(prev.selectedItems ?? []), item.id]
-                          : (prev.selectedItems ?? []).filter((i) => i !== item.id),
-                      }));
-                    }}
-                  >
-                    <SpaceBetween size="xs" direction="horizontal">
-                      <ChartSeriesMarker {...item} />
-                      <Box>{item.name}</Box>
-                    </SpaceBetween>
-                  </Checkbox>
+                  <SpaceBetween size="xs" direction="horizontal">
+                    <ChartSeriesMarker {...item} />
+                    <Box>{item.name}</Box>
+                  </SpaceBetween>
+                </Checkbox>
 
-                  {tooltipContent ? (
-                    <Popover
-                      triggerType="custom"
-                      header={tooltipContent.header as any}
-                      content={
-                        <div>
-                          {tooltipContent.body}
-                          {tooltipContent.footer}
-                        </div>
-                      }
-                    >
-                      <Button variant="icon" iconName="status-info" />
-                    </Popover>
-                  ) : null}
-                </div>
-              );
-            }}
-          />
+                {tooltipContent ? (
+                  <Popover
+                    triggerType="custom"
+                    header={tooltipContent.header as any}
+                    content={
+                      <div>
+                        {tooltipContent.body}
+                        {tooltipContent.footer}
+                      </div>
+                    }
+                  >
+                    <Button variant="icon" iconName="status-info" />
+                  </Popover>
+                ) : null}
+              </div>
+            );
+          })}
         </div>
       </div>
     </FormField>
