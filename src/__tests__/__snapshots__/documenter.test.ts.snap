@@ -2,10 +2,10 @@
 
 exports[`definition for sample matches the snapshot > sample 1`] = `
 {
+  "dashCaseName": "sample",
   "events": [
     {
       "cancelable": false,
-      "detailType": "undefined",
       "name": "onClick",
     },
   ],
