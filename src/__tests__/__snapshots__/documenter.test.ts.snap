@@ -48,8 +48,7 @@ and requires the [accessibility module](https://www.highcharts.com/docs/accessib
       "type": "string",
     },
     {
-      "description": "The chart hight in pixels, it includes chart plot, labels, and legend.
-This property corresponds to [chart.height](https://api.highcharts.com/highcharts/chart.height).",
+      "description": "The height of the chart plot in pixels. It does not include legend, header, and footer.",
       "name": "chartHeight",
       "optional": true,
       "type": "number",
@@ -69,8 +68,7 @@ width value, the horizontal scrollbar is automatically added.",
       "type": "number",
     },
     {
-      "description": "An array of default series colors. Only use it when you want to override the Cloudscape-provided set of colors.
-This property corresponds to [colors](https://api.highcharts.com/highcharts/colors).",
+      "description": "An array of default series colors. Only use it when you want to override the Cloudscape-provided set of colors.",
       "name": "colors",
       "optional": true,
       "type": "Array<string>",
@@ -88,6 +86,40 @@ This property corresponds to [colors](https://api.highcharts.com/highcharts/colo
       "type": "boolean",
     },
     {
+      "description": "Use header to render custom content below the chart (under the legend if present).",
+      "inlineType": {
+        "name": "BaseFooterProps",
+        "properties": [
+          {
+            "name": "render",
+            "optional": true,
+            "type": "((props: BaseFooterRenderProps) => React.ReactNode)",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "footer",
+      "optional": true,
+      "type": "BaseFooterProps",
+    },
+    {
+      "description": "Use header to render custom content above the chart, such as chart series filter.",
+      "inlineType": {
+        "name": "BaseHeaderProps",
+        "properties": [
+          {
+            "name": "render",
+            "optional": true,
+            "type": "((props: BaseHeaderRenderProps) => React.ReactNode)",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "header",
+      "optional": true,
+      "type": "BaseHeaderProps",
+    },
+    {
       "description": "The Highcharts instance, that can be obtained as \`import Highcharts from 'highcharts'\`.
 Supported Highcharts versions:
 * \`v12\`",
@@ -103,39 +135,24 @@ This property corresponds to [chart.inverted](https://api.highcharts.com/highcha
       "type": "boolean",
     },
     {
-      "description": "Chart series legend props.",
+      "description": "Chart legend props.",
       "inlineType": {
         "name": "BaseLegendProps",
         "properties": [
+          {
+            "name": "actions",
+            "optional": true,
+            "type": "{ render?(props: LegendActionsRenderProps): React.ReactNode; }",
+          },
           {
             "name": "enabled",
             "optional": true,
             "type": "boolean",
           },
           {
-            "name": "infoTooltip",
-            "optional": true,
-            "type": "{ render: (itemId: string) => { header: React.ReactNode; body: React.ReactNode; footer?: React.ReactNode; }; }",
-          },
-          {
-            "name": "placement",
-            "optional": true,
-            "type": ""block-end" | "inline-end"",
-          },
-          {
-            "name": "preferences",
-            "optional": true,
-            "type": "LegendPreferencesProps",
-          },
-          {
             "name": "title",
             "optional": true,
             "type": "string",
-          },
-          {
-            "name": "tooltipMode",
-            "optional": true,
-            "type": "boolean",
           },
         ],
         "type": "object",
@@ -145,8 +162,8 @@ This property corresponds to [chart.inverted](https://api.highcharts.com/highcha
       "type": "BaseLegendProps",
     },
     {
-      "description": "The empty, no-match, loading, or error state of the chart, rendered as [chart.noData](https://api.highcharts.com/highcharts/noData).
-This property requires the \`no-data-to-display\` module.",
+      "description": "The empty, no-match, loading, or error state of the chart.
+It requires the \`no-data-to-display\` module.",
       "inlineType": {
         "name": "BaseNoDataProps",
         "properties": [
@@ -188,28 +205,6 @@ This property requires the \`no-data-to-display\` module.",
       "type": "BaseNoDataProps",
     },
     {
-      "description": "Chart plot options.
-This property corresponds to [plotOptions](https://api.highcharts.com/highcharts/plotOptions).
-
-Supported settings:
-* \`series\` - Series options that apply to all series at once.
-* * \`stacking\` (optional, 'normal') - Specifies series stacking behavior. Use it for stacked columns and areas.",
-      "inlineType": {
-        "name": "{ series?: { stacking?: "normal" | undefined; } | undefined; }",
-        "properties": [
-          {
-            "name": "series",
-            "optional": true,
-            "type": "{ stacking?: "normal" | undefined; }",
-          },
-        ],
-        "type": "object",
-      },
-      "name": "plotOptions",
-      "optional": true,
-      "type": "{ series?: { stacking?: "normal" | undefined; } | undefined; }",
-    },
-    {
       "description": "Chart series and data.
 This property corresponds to [series](https://api.highcharts.com/highcharts/series).
 
@@ -226,6 +221,12 @@ Supported series types:
       "name": "series",
       "optional": false,
       "type": "Array<CartesianChartProps.Series>",
+    },
+    {
+      "description": "Specifies series stacking behavior. Use it for column- or area- series.",
+      "name": "stacked",
+      "optional": true,
+      "type": "boolean",
     },
     {
       "description": "Chart tooltip that replaces [tooltip](https://api.highcharts.com/highcharts/tooltip).
@@ -282,6 +283,7 @@ inject links, or add expandable items.",
       "type": "CartesianChartProps.TooltipProps",
     },
     {
+      "description": "Defines placement of the vertical axis (can be either Y or X depending on \`inverted\`).",
       "inlineType": {
         "name": ""top" | "side"",
         "type": "union",
@@ -351,7 +353,7 @@ applies to the tooltip header.
           {
             "name": "type",
             "optional": true,
-            "type": ""linear" | "category" | "datetime" | "logarithmic"",
+            "type": ""category" | "datetime" | "linear" | "logarithmic"",
           },
           {
             "name": "valueDecimals",
@@ -420,7 +422,7 @@ applies to the tooltip header.
           {
             "name": "type",
             "optional": true,
-            "type": ""linear" | "category" | "datetime" | "logarithmic"",
+            "type": ""category" | "datetime" | "linear" | "logarithmic"",
           },
           {
             "name": "valueDecimals",
@@ -438,6 +440,46 @@ applies to the tooltip header.
       "name": "yAxis",
       "optional": true,
       "type": "CartesianChartProps.AxisProps",
+    },
+  ],
+  "regions": [],
+  "releaseStatus": "stable",
+}
+`;
+
+exports[`definition for chart-series-filter matches the snapshot > chart-series-filter 1`] = `
+{
+  "dashCaseName": "chart-series-filter",
+  "events": [
+    {
+      "cancelable": false,
+      "detailInlineType": {
+        "name": "{ selectedItems: ReadonlyArray<string>; }",
+        "properties": [
+          {
+            "name": "selectedItems",
+            "optional": false,
+            "type": "ReadonlyArray<string>",
+          },
+        ],
+        "type": "object",
+      },
+      "detailType": "{ selectedItems: ReadonlyArray<string>; }",
+      "name": "onChange",
+    },
+  ],
+  "functions": [],
+  "name": "ChartSeriesFilter",
+  "properties": [
+    {
+      "name": "items",
+      "optional": false,
+      "type": "ReadonlyArray<ChartLegendItem>",
+    },
+    {
+      "name": "selectedItems",
+      "optional": false,
+      "type": "ReadonlyArray<string>",
     },
   ],
   "regions": [],
@@ -493,8 +535,7 @@ and requires the [accessibility module](https://www.highcharts.com/docs/accessib
       "type": "string",
     },
     {
-      "description": "The chart hight in pixels, it includes chart plot, labels, and legend.
-This property corresponds to [chart.height](https://api.highcharts.com/highcharts/chart.height).",
+      "description": "The height of the chart plot in pixels. It does not include legend, header, and footer.",
       "name": "chartHeight",
       "optional": true,
       "type": "number",
@@ -514,8 +555,7 @@ width value, the horizontal scrollbar is automatically added.",
       "type": "number",
     },
     {
-      "description": "An array of default series colors. Only use it when you want to override the Cloudscape-provided set of colors.
-This property corresponds to [colors](https://api.highcharts.com/highcharts/colors).",
+      "description": "An array of default series colors. Only use it when you want to override the Cloudscape-provided set of colors.",
       "name": "colors",
       "optional": true,
       "type": "Array<string>",
@@ -525,6 +565,40 @@ This property corresponds to [colors](https://api.highcharts.com/highcharts/colo
       "name": "fitHeight",
       "optional": true,
       "type": "boolean",
+    },
+    {
+      "description": "Use header to render custom content below the chart (under the legend if present).",
+      "inlineType": {
+        "name": "BaseFooterProps",
+        "properties": [
+          {
+            "name": "render",
+            "optional": true,
+            "type": "((props: BaseFooterRenderProps) => React.ReactNode)",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "footer",
+      "optional": true,
+      "type": "BaseFooterProps",
+    },
+    {
+      "description": "Use header to render custom content above the chart, such as chart series filter.",
+      "inlineType": {
+        "name": "BaseHeaderProps",
+        "properties": [
+          {
+            "name": "render",
+            "optional": true,
+            "type": "((props: BaseHeaderRenderProps) => React.ReactNode)",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "header",
+      "optional": true,
+      "type": "BaseHeaderProps",
     },
     {
       "description": "The Highcharts instance, that can be obtained as \`import Highcharts from 'highcharts'\`.
@@ -547,39 +621,24 @@ Supported Highcharts versions:
       "type": "string",
     },
     {
-      "description": "Chart series legend props.",
+      "description": "Chart legend props.",
       "inlineType": {
         "name": "BaseLegendProps",
         "properties": [
+          {
+            "name": "actions",
+            "optional": true,
+            "type": "{ render?(props: LegendActionsRenderProps): React.ReactNode; }",
+          },
           {
             "name": "enabled",
             "optional": true,
             "type": "boolean",
           },
           {
-            "name": "infoTooltip",
-            "optional": true,
-            "type": "{ render: (itemId: string) => { header: React.ReactNode; body: React.ReactNode; footer?: React.ReactNode; }; }",
-          },
-          {
-            "name": "placement",
-            "optional": true,
-            "type": ""block-end" | "inline-end"",
-          },
-          {
-            "name": "preferences",
-            "optional": true,
-            "type": "LegendPreferencesProps",
-          },
-          {
             "name": "title",
             "optional": true,
             "type": "string",
-          },
-          {
-            "name": "tooltipMode",
-            "optional": true,
-            "type": "boolean",
           },
         ],
         "type": "object",
@@ -589,8 +648,8 @@ Supported Highcharts versions:
       "type": "BaseLegendProps",
     },
     {
-      "description": "The empty, no-match, loading, or error state of the chart, rendered as [chart.noData](https://api.highcharts.com/highcharts/noData).
-This property requires the \`no-data-to-display\` module.",
+      "description": "The empty, no-match, loading, or error state of the chart.
+It requires the \`no-data-to-display\` module.",
       "inlineType": {
         "name": "BaseNoDataProps",
         "properties": [
@@ -718,19 +777,6 @@ Supported properties:
       "name": "tooltip",
       "optional": true,
       "type": "PieChartProps.TooltipProps",
-    },
-    {
-      "inlineType": {
-        "name": ""top" | "side"",
-        "type": "union",
-        "values": [
-          "top",
-          "side",
-        ],
-      },
-      "name": "verticalAxisTitlePlacement",
-      "optional": true,
-      "type": "string",
     },
     {
       "description": "List of segments IDs to be visible. When unset, all segments are visible by default, but can be hidden by clicking on the

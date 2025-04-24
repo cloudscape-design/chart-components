@@ -141,7 +141,7 @@ export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: bo
                     <ChartSeriesFilter
                       items={legendItems}
                       selectedItems={visibleSeries}
-                      onChange={(visibleSeries) => setVisibleSeries([...visibleSeries])}
+                      onChange={({ detail }) => setVisibleSeries([...detail.selectedItems])}
                     />
                   }
                   additionalFilters={

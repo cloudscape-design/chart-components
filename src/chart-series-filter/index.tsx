@@ -4,11 +4,12 @@
 import { InternalChartFilter } from "@cloudscape-design/components/internal/do-not-use/chart-filter";
 
 import { ChartLegendItem } from "../core/interfaces-base.js";
+import { fireNonCancelableEvent, NonCancelableEventHandler } from "../internal/events";
 
 interface ChartSeriesFilterProps {
   items: readonly ChartLegendItem[];
   selectedItems: readonly string[];
-  onChange: (selectedItems: readonly string[]) => void;
+  onChange: NonCancelableEventHandler<{ selectedItems: readonly string[] }>;
 }
 
 const ChartSeriesFilter = (props: ChartSeriesFilterProps) => {
@@ -20,7 +21,7 @@ const ChartSeriesFilter = (props: ChartSeriesFilterProps) => {
         marker: item.marker,
       }))}
       selectedSeries={props.selectedItems}
-      onChange={props.onChange}
+      onChange={(selectedItems) => fireNonCancelableEvent(props.onChange, { selectedItems })}
     />
   );
 };
