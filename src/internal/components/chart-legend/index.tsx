@@ -76,9 +76,12 @@ export const ChartLegend = forwardRef(
     const [highlightedItems, setHighlightedItems] = useState<string[]>([]);
     const [selectedIndex, setSelectedIndex] = useState<number>(0);
     const showHighlight = (itemId: string) => {
-      setHighlightedItems([itemId]);
-      highlightControl.cancelPrevious();
-      onItemHighlightEnter?.(itemId);
+      const item = items.find((item) => item.id === itemId);
+      if (item?.visible) {
+        setHighlightedItems([itemId]);
+        highlightControl.cancelPrevious();
+        onItemHighlightEnter?.(itemId);
+      }
     };
     const clearHighlight = () => {
       setHighlightedItems([]);
