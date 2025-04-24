@@ -58,7 +58,7 @@ function validateOptions(props: CartesianChartProps): InternalCartesianChartOpti
     },
     plotOptions: {
       series: {
-        stacking: props.plotOptions?.series?.stacking,
+        stacking: props.stacked ? "normal" : undefined,
         marker: {
           enabled: false,
         },

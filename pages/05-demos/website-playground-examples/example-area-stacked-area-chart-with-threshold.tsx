@@ -145,7 +145,7 @@ export function ExampleAreaChartStackedAreaChartWithThreshold() {
         {...chartProps}
         chartHeight={379}
         ariaLabel="Stacked area chart, with threshold"
-        plotOptions={{ series: { stacking: "normal" } }}
+        stacked={true}
         series={isEmpty ? [] : series}
         tooltip={{
           ...chartProps.tooltip,

@@ -56,7 +56,7 @@ export function ExampleBarChartWithSubItems() {
         {...chartProps}
         chartHeight={423}
         ariaLabel="Costs chart"
-        plotOptions={{ series: { stacking: "normal" } }}
+        stacked={true}
         series={isEmpty ? [] : series}
         tooltip={{
           ...chartProps.tooltip,

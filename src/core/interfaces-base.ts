@@ -12,8 +12,7 @@ export interface BaseChartProps {
   highcharts: null | object;
 
   /**
-   * The chart hight in pixels, it includes chart plot, labels, and legend.
-   * This property corresponds to [chart.height](https://api.highcharts.com/highcharts/chart.height).
+   * The height of the chart plot in pixels. It does not include legend, header, and footer.
    */
   chartHeight?: number;
 
@@ -50,7 +49,6 @@ export interface BaseChartProps {
 
   /**
    * An array of default series colors. Only use it when you want to override the Cloudscape-provided set of colors.
-   * This property corresponds to [colors](https://api.highcharts.com/highcharts/colors).
    */
   colors?: string[];
 
@@ -60,22 +58,24 @@ export interface BaseChartProps {
   tooltip?: BaseTooltipProps;
 
   /**
-   * Chart series legend props.
+   * Chart legend props.
    */
   legend?: BaseLegendProps;
 
   /**
-   * The empty, no-match, loading, or error state of the chart, rendered as [chart.noData](https://api.highcharts.com/highcharts/noData).
-   * This property requires the `no-data-to-display` module.
+   * The empty, no-match, loading, or error state of the chart.
+   * It requires the `no-data-to-display` module.
    */
   noData?: BaseNoDataProps;
 
-  // TODO: document
-  verticalAxisTitlePlacement?: "top" | "side";
-
-  // TODO: add description
+  /**
+   * Use header to render custom content above the chart, such as chart series filter.
+   */
   header?: BaseHeaderProps;
-  // TODO: add description
+
+  /**
+   * Use header to render custom content below the chart (under the legend if present).
+   */
   footer?: BaseFooterProps;
 }
 
