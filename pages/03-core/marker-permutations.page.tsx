@@ -46,18 +46,13 @@ const permutationsForColors = [
         "triangle-down",
       ],
       color: [color],
-      status: ["normal", "warning"],
     },
   ]),
 );
 
 export default function MarkerPermutations() {
   return (
-    <Page
-      title="Marker permutations"
-      subtitle="This page lists all markers that we currently support. Each marker can have any color,
-      and can be combined with a warning indicator."
-    >
+    <Page title="Marker permutations" subtitle="This page lists all markers that we currently support.">
       <SpaceBetween size="m">
         {permutationsForColors.map((permutations, index) => (
           <PermutationsView

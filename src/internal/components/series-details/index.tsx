@@ -9,7 +9,7 @@ import { InternalExpandableSection } from "@cloudscape-design/components/interna
 
 import { getDataAttributes } from "../../base-component/get-data-attributes";
 import { useMergeRefs } from "../../utils/use-merge-refs";
-import { ChartSeriesMarker, ChartSeriesMarkerStatus, ChartSeriesMarkerType } from "../series-marker";
+import { ChartSeriesMarker, ChartSeriesMarkerType } from "../series-marker";
 import getSeriesDetailsText from "./series-details-text";
 
 import styles from "./styles.css.js";
@@ -24,13 +24,11 @@ interface ListItemProps {
   value: ReactNode;
   subItems?: ReadonlyArray<ChartDetailPair>;
   markerType?: ChartSeriesMarkerType;
-  markerStatus?: ChartSeriesMarkerStatus;
   color?: string;
 }
 
 export interface ChartSeriesDetailItem extends ChartDetailPair {
   markerType?: ChartSeriesMarkerType;
-  markerStatus?: ChartSeriesMarkerStatus;
   color?: string;
   isDimmed?: boolean;
   subItems?: ReadonlyArray<ChartDetailPair>;
@@ -75,7 +73,7 @@ function ChartSeriesDetails(
   return (
     <div {...baseProps} className={className} ref={mergedRef}>
       <ul className={clsx(styles.list, compactList && styles.compact)}>
-        {details.map(({ key, value, markerType, markerStatus, color, isDimmed, subItems, expandableId }, index) => (
+        {details.map(({ key, value, markerType, color, isDimmed, subItems, expandableId }, index) => (
           <li
             key={index}
             className={clsx({
@@ -90,7 +88,6 @@ function ChartSeriesDetails(
                 itemKey={key}
                 value={value}
                 markerType={markerType}
-                markerStatus={markerStatus}
                 color={color}
                 subItems={subItems}
                 expanded={isExpanded(expandableId)}
@@ -101,7 +98,6 @@ function ChartSeriesDetails(
                 itemKey={key}
                 value={value}
                 markerType={markerType}
-                markerStatus={markerStatus}
                 color={color}
                 subItems={subItems}
               />
@@ -146,7 +142,6 @@ function ExpandableSeries({
   value,
   subItems,
   markerType,
-  markerStatus,
   color,
   expanded,
   setExpandedState,
@@ -159,7 +154,7 @@ function ExpandableSeries({
     <div className={styles["expandable-section"]}>
       {markerType && color && (
         <div style={{ blockSize: "20px", inlineSize: "20px", marginInlineEnd: "2px" }}>
-          <ChartSeriesMarker type={markerType} status={markerStatus} color={color} />
+          <ChartSeriesMarker type={markerType} color={color} />
         </div>
       )}
       <div className={styles["full-width"]}>
@@ -177,14 +172,14 @@ function ExpandableSeries({
   );
 }
 
-function NonExpandableSeries({ itemKey, value, subItems, markerType, markerStatus, color }: ListItemProps) {
+function NonExpandableSeries({ itemKey, value, subItems, markerType, color }: ListItemProps) {
   return (
     <>
       <div className={clsx(styles["key-value-pair"], styles.announced)}>
         <div className={styles.key}>
           {markerType && color && (
             <div style={{ blockSize: "20px", inlineSize: "20px", marginInlineEnd: "2px" }}>
-              <ChartSeriesMarker type={markerType} status={markerStatus} color={color} />
+              <ChartSeriesMarker type={markerType} color={color} />
             </div>
           )}
           <span>{itemKey}</span>

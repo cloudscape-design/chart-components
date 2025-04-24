@@ -70,7 +70,8 @@ export function ChartTooltip({
     return null;
   }
   if (!tooltip.point) {
-    throw new Error("Invariant violation: visible tooltip does not have point data.");
+    return null;
+    // throw new Error("Invariant violation: visible tooltip does not have point data.");
   }
   const content = getContent?.({ point: tooltip.point });
   if (!content) {

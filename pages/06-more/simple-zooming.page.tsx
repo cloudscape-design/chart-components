@@ -125,7 +125,6 @@ export default function () {
         <PageSettingsForm
           selectedSettings={[
             "showLegend",
-            "showLegendTooltip",
             "tooltipSize",
             "tooltipPlacement",
             {

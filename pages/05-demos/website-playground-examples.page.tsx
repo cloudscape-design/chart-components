@@ -34,8 +34,6 @@ export default function () {
             "seriesError",
             "showLegend",
             "showLegendTitle",
-            "showLegendTooltip",
-            "showLegendTooltipAction",
             "tooltipSize",
             "tooltipPlacement",
             "emphasizeBaselineAxis",

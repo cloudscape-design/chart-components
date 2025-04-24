@@ -1,9 +1,16 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import OldPieChart, { PieChartProps as OldPieChartProps } from "@cloudscape-design/components/pie-chart";
+import { useState } from "react";
 
-import { PieChart, PieChartProps } from "../../../lib/components";
+import Button from "@cloudscape-design/components/button";
+import FormField from "@cloudscape-design/components/form-field";
+import OldPieChart, { PieChartProps as OldPieChartProps } from "@cloudscape-design/components/pie-chart";
+import Popover from "@cloudscape-design/components/popover";
+import Select from "@cloudscape-design/components/select";
+
+import { ChartSeriesFilter, PieChart, PieChartProps } from "../../../lib/components";
+import { HeaderFilterLayout } from "../../common/layout";
 import { usePageSettings } from "../../common/page-settings";
 
 const seriesNew: PieChartProps.Series = {
@@ -48,8 +55,9 @@ const dataOld: OldPieChartProps["data"] = [
   },
 ];
 
-export function ComponentNew({ legendFilter }: { legendFilter?: boolean }) {
+export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: boolean; legendFilter?: boolean }) {
   const { chartProps } = usePageSettings();
+  const [visibleSegments, setVisibleSegments] = useState(seriesNew.data.map((i) => i.name));
   return (
     <PieChart
       {...chartProps}
@@ -58,10 +66,42 @@ export function ComponentNew({ legendFilter }: { legendFilter?: boolean }) {
       ariaLabel="Pie chart"
       series={seriesNew}
       segmentOptions={{}}
+      header={
+        headerFilter
+          ? {
+              render: ({ legendItems }) => (
+                <HeaderFilterLayout
+                  defaultFilter={
+                    <ChartSeriesFilter
+                      items={legendItems}
+                      selectedItems={visibleSegments}
+                      onChange={(visibleSegments) => setVisibleSegments([...visibleSegments])}
+                    />
+                  }
+                  additionalFilters={
+                    <FormField label="Additional filter">
+                      <Select options={[]} selectedOption={null} disabled={true} placeholder="Filter time range" />
+                    </FormField>
+                  }
+                />
+              ),
+            }
+          : undefined
+      }
       legend={{
         ...chartProps.legend,
-        actions: { seriesFilter: legendFilter },
+        actions: {
+          render: legendFilter
+            ? () => (
+                <Popover triggerType="custom" content="Custom in-context filter" position="top">
+                  <Button variant="icon" iconName="search" />
+                </Popover>
+              )
+            : undefined,
+        },
       }}
+      visibleSegments={visibleSegments}
+      onChangeVisibleSegments={({ detail }) => setVisibleSegments(detail.visibleSegments)}
     />
   );
 }
@@ -72,6 +112,13 @@ export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
     <OldPieChart
       fitHeight={true}
       hideFilter={hideFilter}
+      additionalFilters={
+        !hideFilter && (
+          <FormField label="Additional filter">
+            <Select options={[]} selectedOption={null} disabled={true} placeholder="Filter time range" />
+          </FormField>
+        )
+      }
       size="small"
       data={dataOld}
       ariaLabel="Pie chart"
