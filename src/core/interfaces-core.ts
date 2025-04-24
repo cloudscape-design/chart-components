@@ -3,8 +3,15 @@
 
 import type Highcharts from "highcharts";
 
-import { ChartSeriesMarkerStatus } from "../internal/components/series-marker";
-import { BaseChartProps, BaseI18nStrings, BaseLegendProps, BaseNoDataProps, BaseTooltipProps } from "./interfaces-base";
+import {
+  BaseChartProps,
+  BaseFooterProps,
+  BaseHeaderProps,
+  BaseI18nStrings,
+  BaseLegendProps,
+  BaseNoDataProps,
+  BaseTooltipProps,
+} from "./interfaces-base";
 
 export interface CloudscapeHighchartsProps
   extends Pick<BaseChartProps, "fitHeight" | "chartMinHeight" | "chartMinWidth"> {
@@ -28,11 +35,15 @@ export interface CloudscapeHighchartsProps
    * The Cloudscape legend, that is rendered outside the Highcharts container. It uses Cloudscape markers
    * and menu actions.
    */
-  legend?: CoreLegendProps;
+  legend?: BaseLegendProps;
   /**
    * Represents chart's empty, no-match, loading, and error states. It requires the Highcharts nodata module.
    */
   noData?: CoreNoDataProps;
+  // TODO: add description
+  header?: BaseHeaderProps;
+  // TODO: add description
+  footer?: BaseFooterProps;
   /**
    * Custom content to be rendered when `highcharts=null`. It defaults to a spinner.
    */
@@ -98,10 +109,6 @@ export interface TooltipContent {
   header: React.ReactNode;
   body: React.ReactNode;
   footer?: React.ReactNode;
-}
-
-export interface CoreLegendProps extends BaseLegendProps {
-  getItemStatus?: (seriesOrItemId: string) => ChartSeriesMarkerStatus;
 }
 
 export type CoreNoDataProps = BaseNoDataProps;

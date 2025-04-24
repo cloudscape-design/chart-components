@@ -3,12 +3,13 @@
 
 import { useRef } from "react";
 
-import Box from "@cloudscape-design/components/box";
+import { colorTextInteractiveDisabled } from "@cloudscape-design/design-tokens";
 
 import { ChartLegend as ChartLegendComponent, ChartLegendRef } from "../internal/components/chart-legend";
-import { ChartSeriesMarkerStatus, ChartSeriesMarkerType } from "../internal/components/series-marker";
+import { ChartSeriesMarker, ChartSeriesMarkerType } from "../internal/components/series-marker";
 import AsyncStore, { useSelector } from "../internal/utils/async-store";
-import { CloudscapeChartAPI, CoreLegendProps } from "./interfaces-core";
+import { BaseLegendProps } from "./interfaces-base";
+import { CloudscapeChartAPI } from "./interfaces-core";
 import { getPointId, getSeriesId, getSeriesMarkerType } from "./utils";
 
 interface LegendItemProps {
@@ -21,8 +22,7 @@ interface LegendItemProps {
 
 export function useLegend(
   getChart: () => CloudscapeChartAPI,
-  legendProps?: CoreLegendProps & {
-    getItemStatus?: (itemId: string) => ChartSeriesMarkerStatus;
+  legendProps?: BaseLegendProps & {
     onItemVisibilityChange?: (hiddenItems: string[]) => void;
   },
 ) {
@@ -52,15 +52,12 @@ export function useLegend(
 
 export function ChartLegend({
   legendStore,
-  getItemStatus,
   title,
-  infoTooltip,
-  placement,
   actions,
   onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
-}: CoreLegendProps & {
+}: BaseLegendProps & {
   legendStore: LegendStore;
   onItemVisibilityChange: (visibleItems: string[]) => void;
   onItemHighlightEnter: (itemId: string) => void;
@@ -68,30 +65,30 @@ export function ChartLegend({
 }) {
   const legendItems = useSelector(legendStore, (state) => state.legendItems);
   return (
-    <Box padding={{ horizontal: "m" }}>
-      <ChartLegendComponent
-        ref={legendStore.legendRefCb}
-        legendTitle={title}
-        items={legendItems.map((item) => ({
-          id: item.id,
-          name: item.name,
-          color: item.color,
-          active: item.active,
-          type: item.markerType,
-          status: getItemStatus?.(item.id),
-        }))}
-        infoTooltip={infoTooltip}
-        placement={placement}
-        actions={actions}
-        onItemVisibilityChange={onItemVisibilityChange}
-        onItemHighlightEnter={onItemHighlightEnter}
-        onItemHighlightExit={onItemHighlightExit}
-      />
-    </Box>
+    <ChartLegendComponent
+      ref={legendStore.legendRefCb}
+      legendTitle={title}
+      items={legendItems.map((item) => ({
+        id: item.id,
+        name: item.name,
+        visible: item.active,
+        marker: (
+          <ChartSeriesMarker
+            key={item.id}
+            color={item.active ? item.color : colorTextInteractiveDisabled}
+            type={item.markerType}
+          />
+        ),
+      }))}
+      actions={actions}
+      onItemVisibilityChange={onItemVisibilityChange}
+      onItemHighlightEnter={onItemHighlightEnter}
+      onItemHighlightExit={onItemHighlightExit}
+    />
   );
 }
 
-class LegendStore extends AsyncStore<{ legendItems: LegendItemProps[] }> {
+export class LegendStore extends AsyncStore<{ legendItems: LegendItemProps[] }> {
   private getAPI: () => CloudscapeChartAPI;
   public onItemVisibilityChangeCb?: (hiddenItems: string[]) => void;
   public legendRefCb = (ref: ChartLegendRef) => {
@@ -181,7 +178,7 @@ class LegendStore extends AsyncStore<{ legendItems: LegendItemProps[] }> {
             id: getPointId(point),
             name: point.name,
             color: typeof point.color === "string" ? point.color : "black",
-            markerType: "large-circle",
+            markerType: getSeriesMarkerType(s),
             active: point.visible,
           });
         }

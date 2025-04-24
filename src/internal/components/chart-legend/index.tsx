@@ -13,45 +13,21 @@ import {
   useSingleTabStopNavigation,
 } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
-import Button from "@cloudscape-design/components/button";
-import Checkbox from "@cloudscape-design/components/checkbox";
-import FormField from "@cloudscape-design/components/form-field";
-import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
-import Modal from "@cloudscape-design/components/modal";
-import Popover from "@cloudscape-design/components/popover";
-import SpaceBetween from "@cloudscape-design/components/space-between";
-import TextFilter from "@cloudscape-design/components/text-filter";
-import {
-  colorBackgroundLayoutMain,
-  colorBorderDividerDefault,
-  colorBorderDividerSecondary,
-  colorTextInteractiveDisabled,
-} from "@cloudscape-design/design-tokens";
+import { colorBorderDividerDefault } from "@cloudscape-design/design-tokens";
 
+import { ChartLegendItem, LegendActionsRenderProps } from "../../../core/interfaces-base";
 import { useMergeRefs } from "../../utils/use-merge-refs";
 import { DebouncedCall } from "../../utils/utils";
-import { ChartSeriesMarker, ChartSeriesMarkerStatus, ChartSeriesMarkerType } from "../series-marker";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
-
-interface ChartLegendItem {
-  id: string;
-  name: string;
-  color: string;
-  active: boolean;
-  type: ChartSeriesMarkerType;
-  status?: ChartSeriesMarkerStatus;
-}
 
 export interface ChartLegendProps {
   items: readonly ChartLegendItem[];
   legendTitle?: string;
   ariaLabel?: string;
-  infoTooltip?: InfoTooltipProps;
-  placement?: "block-end" | "inline-end";
   actions?: {
-    seriesFilter?: boolean;
+    render?(props: LegendActionsRenderProps): React.ReactNode;
   };
   onItemHighlightEnter?: (itemId: string) => void;
   onItemHighlightExit?: () => void;
@@ -84,8 +60,6 @@ export const ChartLegend = forwardRef(
       items,
       legendTitle,
       ariaLabel,
-      infoTooltip,
-      placement = "block-end",
       actions,
       onItemVisibilityChange,
       onItemHighlightEnter,
@@ -96,27 +70,11 @@ export const ChartLegend = forwardRef(
     const containerRef = useRef<HTMLDivElement>(null);
     const segmentsRef = useRef<Record<number, HTMLElement>>([]);
 
-    const [tooltipPinned, setTooltipPinned] = useState(false);
     const highlightControl = useMemo(() => new DebouncedCall(), []);
-    const tooltipControl = useMemo(() => new DebouncedCall(), []);
     const noTooltipRef = useRef(false);
     const noTooltipControl = useMemo(() => new DebouncedCall(), []);
     const [highlightedItems, setHighlightedItems] = useState<string[]>([]);
     const [selectedIndex, setSelectedIndex] = useState<number>(0);
-    const [tooltipItem, setTooltipItem] = useState<null | string>(null);
-    const tooltipContent = tooltipItem ? infoTooltip?.render(tooltipItem, { context: "legend" }) : null;
-    const showTooltip = (itemId: string) => {
-      if (noTooltipRef.current) {
-        return;
-      }
-      tooltipControl.cancelPrevious();
-      setTooltipItem(itemId);
-      showHighlight(itemId);
-    };
-    const hideTooltip = () => {
-      tooltipControl.call(() => setTooltipItem(null), 50);
-      onItemHighlightExit?.();
-    };
     const showHighlight = (itemId: string) => {
       setHighlightedItems([itemId]);
       highlightControl.cancelPrevious();
@@ -130,12 +88,6 @@ export const ChartLegend = forwardRef(
     useImperativeHandle(ref, () => ({
       highlightItems: (ids: string[]) => {
         setHighlightedItems(ids);
-        const firstItemIndex = items.findIndex((i) => ids.includes(i.id));
-        segmentsRef.current[firstItemIndex]?.scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-          inline: "nearest",
-        });
       },
       clearHighlight: () => setHighlightedItems([]),
     }));
@@ -212,7 +164,7 @@ export const ChartLegend = forwardRef(
     });
 
     const toggleItem = (itemId: string) => {
-      const hiddenItems = items.filter((i) => !i.active).map((i) => i.id);
+      const hiddenItems = items.filter((i) => !i.visible).map((i) => i.id);
       if (hiddenItems.includes(itemId)) {
         onItemVisibilityChange(
           hiddenItems.filter((id) => id !== itemId),
@@ -224,7 +176,7 @@ export const ChartLegend = forwardRef(
     };
 
     const selectItem = (itemId: string) => {
-      const visibleItems = items.filter((i) => i.active).map((i) => i.id);
+      const visibleItems = items.filter((i) => i.visible).map((i) => i.id);
       if (visibleItems.length === 1 && visibleItems[0] === itemId) {
         onItemVisibilityChange([], { method: "legend-select" });
       } else {
@@ -235,20 +187,7 @@ export const ChartLegend = forwardRef(
       }
     };
 
-    const tooltipItemIndex = items.findIndex((item) => item.id === tooltipItem);
-
-    const renderedFilter = actions?.seriesFilter ? (
-      <ChartLegendFilter
-        items={items}
-        infoTooltip={infoTooltip}
-        onApply={(state) => {
-          onItemVisibilityChange(
-            items.filter((i) => !state.selectedItems.includes(i.id)).map((i) => i.id),
-            { method: "filter" },
-          );
-        }}
-      />
-    ) : null;
+    const renderedFilter = actions?.render ? actions?.render({ legendItems: items }) : null;
 
     return (
       <SingleTabStopNavigationProvider
@@ -269,16 +208,8 @@ export const ChartLegend = forwardRef(
             </Box>
           )}
 
-          {placement === "inline-end" && renderedFilter && (
-            <div style={{ position: "sticky", zIndex: 1, top: 0, background: colorBackgroundLayoutMain }}>
-              <div style={{ display: "flex", justifyContent: "flex-end" }}>{renderedFilter}</div>
-
-              <div style={{ background: colorBorderDividerDefault, width: "100%", height: 1 }} />
-            </div>
-          )}
-
-          <div className={clsx(styles.list, styles[`list-placement-${placement}`])}>
-            {placement === "block-end" && renderedFilter && (
+          <div className={styles.list}>
+            {renderedFilter && (
               <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
                 {renderedFilter}
 
@@ -290,30 +221,17 @@ export const ChartLegend = forwardRef(
               const handlers = {
                 onMouseEnter: () => {
                   showHighlight(item.id);
-
-                  if (!tooltipPinned) {
-                    showTooltip(item.id);
-                  }
                 },
                 onMouseLeave: () => {
                   clearHighlight();
-
-                  if (!tooltipPinned) {
-                    hideTooltip();
-                  }
                 },
                 onFocus: () => {
                   onFocus(index);
                   showHighlight(item.id);
-                  showTooltip(item.id);
                 },
                 onBlur: () => {
                   onBlur();
                   clearHighlight();
-
-                  if (!tooltipPinned) {
-                    hideTooltip();
-                  }
                 },
                 onKeyDown,
               };
@@ -341,223 +259,17 @@ export const ChartLegend = forwardRef(
                   someHighlighted={highlightedItems.length > 0}
                   itemId={item.id}
                   label={item.name}
-                  color={item.color}
-                  type={item.type}
-                  status={item.status}
-                  active={item.active}
+                  visible={item.visible}
+                  marker={item.marker}
                 />
               );
             })}
           </div>
-
-          {tooltipContent && tooltipItem && (
-            <div
-              onFocus={() => {
-                showTooltip(tooltipItem);
-              }}
-            >
-              <InternalChartTooltip
-                key={tooltipItem}
-                trackKey={tooltipItem}
-                getTrack={() => segmentsRef.current[tooltipItemIndex]}
-                dismissButton={tooltipPinned}
-                onDismiss={() => {
-                  focusElement(
-                    items.findIndex((it) => it.id === tooltipItem),
-                    true,
-                  );
-                  hideTooltip();
-                  setTooltipPinned(false);
-                }}
-                onMouseEnter={() => showTooltip(tooltipItem)}
-                onMouseLeave={() => !tooltipPinned && hideTooltip()}
-                container={segmentsRef.current[tooltipItemIndex]}
-                title={tooltipContent.header}
-                footer={tooltipContent.footer}
-                position={placement === "block-end" ? "bottom" : "left"}
-              >
-                {tooltipContent.body}
-              </InternalChartTooltip>
-            </div>
-          )}
         </div>
       </SingleTabStopNavigationProvider>
     );
   },
 );
-
-export interface LegendFilterState {
-  selectedItems: string[];
-}
-
-function ChartLegendFilter({
-  items,
-  infoTooltip,
-  onApply: onApplyExternal,
-}: {
-  items: readonly ChartLegendItem[];
-  infoTooltip?: InfoTooltipProps;
-  onApply: ({ selectedItems }: { selectedItems: string[] }) => void;
-}) {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [tempState, setTempState] = useState<LegendFilterState>({
-    selectedItems: items.filter((i) => i.active).map((i) => i.id),
-  });
-  const onModalOpen = () => {
-    setModalOpen(true);
-    setTempState({ selectedItems: items.filter((i) => i.active).map((i) => i.id) });
-    setFilteringText("");
-  };
-  const onModalDismiss = () => {
-    setModalOpen(false);
-  };
-  const onCancel = () => {
-    setModalOpen(false);
-  };
-  const onApply = () => {
-    onApplyExternal(tempState);
-    setModalOpen(false);
-  };
-  const [filteringText, setFilteringText] = useState("");
-
-  const filteredItems = items.filter((i) => i.name.toLowerCase().includes(filteringText.toLowerCase()));
-
-  const itemDisplay = (
-    <FormField label="Series display" description="Customize series visibility.">
-      <div>
-        <TextFilter
-          filteringText={filteringText}
-          filteringPlaceholder="Search series"
-          onChange={({ detail }) => setFilteringText(detail.filteringText)}
-        />
-
-        <div
-          style={{
-            marginTop: 8,
-            paddingBottom: 4,
-            marginBottom: 4,
-            borderBottom: `1px solid ${colorBorderDividerDefault}`,
-          }}
-        >
-          <Checkbox
-            disabled={filteredItems.length === 0}
-            checked={filteredItems.every((i) => tempState.selectedItems.includes(i.id))}
-            indeterminate={
-              !filteredItems.every((i) => tempState.selectedItems.includes(i.id)) &&
-              filteredItems.some((i) => tempState.selectedItems.includes(i.id))
-            }
-            onChange={() => {
-              const allSelected = filteredItems.every((i) => tempState.selectedItems.includes(i.id));
-              if (!allSelected) {
-                setTempState((prev) => {
-                  const next = new Set(prev.selectedItems);
-                  for (const i of filteredItems) {
-                    next.add(i.id);
-                  }
-                  return { ...prev, selectedItems: [...next] };
-                });
-              } else {
-                setTempState((prev) => {
-                  const next = new Set(prev.selectedItems);
-                  for (const i of filteredItems) {
-                    next.delete(i.id);
-                  }
-                  return { ...prev, selectedItems: [...next] };
-                });
-              }
-            }}
-          >
-            Select all
-          </Checkbox>
-        </div>
-
-        <div style={{ maxHeight: 400, overflowY: "auto", padding: 4, paddingLeft: 24, position: "relative" }}>
-          {filteredItems.length === 0 && (
-            <Box textAlign="center" color="inherit" padding="s">
-              <b>No matching series</b>
-              <Box variant="p" color="inherit">
-                There is no matching series to display
-              </Box>
-              <Button onClick={() => setFilteringText("")}>Clear filter</Button>
-            </Box>
-          )}
-
-          {filteredItems.map((item) => {
-            const tooltipContent = infoTooltip?.render(item.id, { context: "filter" });
-            return (
-              <div
-                key={item.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  borderBottom: `1px solid ${colorBorderDividerSecondary}`,
-                }}
-              >
-                <Checkbox
-                  checked={tempState.selectedItems.includes(item.id)}
-                  onChange={({ detail }) => {
-                    setTempState((prev) => ({
-                      ...prev,
-                      selectedItems: detail.checked
-                        ? [...(prev.selectedItems ?? []), item.id]
-                        : (prev.selectedItems ?? []).filter((i) => i !== item.id),
-                    }));
-                  }}
-                >
-                  <SpaceBetween size="xs" direction="horizontal">
-                    <ChartSeriesMarker {...item} />
-                    <Box>{item.name}</Box>
-                  </SpaceBetween>
-                </Checkbox>
-
-                {tooltipContent ? (
-                  <Popover
-                    triggerType="custom"
-                    header={tooltipContent.header as any}
-                    content={
-                      <div>
-                        {tooltipContent.body}
-                        {tooltipContent.footer}
-                      </div>
-                    }
-                  >
-                    <Button variant="icon" iconName="status-info" />
-                  </Popover>
-                ) : null}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </FormField>
-  );
-
-  // TODO: i18n
-  return (
-    <>
-      <Button variant="icon" iconName="search" onClick={onModalOpen} />
-      {modalOpen && (
-        <Modal
-          visible={true}
-          size="medium"
-          onDismiss={onModalDismiss}
-          header="Series filter"
-          footer={
-            <div style={{ display: "flex", gap: 8, justifySelf: "flex-end" }}>
-              <Button onClick={onCancel}>Cancel</Button>
-              <Button variant="primary" onClick={onApply}>
-                Apply
-              </Button>
-            </div>
-          }
-        >
-          {itemDisplay}
-        </Modal>
-      )}
-    </>
-  );
-}
 
 const LegendItemTrigger = forwardRef(
   (
@@ -566,10 +278,8 @@ const LegendItemTrigger = forwardRef(
       someHighlighted,
       itemId,
       label,
-      color,
-      type,
-      status = "normal",
-      active,
+      marker,
+      visible,
       onClick,
       ariaExpanded,
       triggerRef,
@@ -583,10 +293,8 @@ const LegendItemTrigger = forwardRef(
       someHighlighted?: boolean;
       itemId: string;
       label: string;
-      color: string;
-      type: ChartSeriesMarkerType;
-      status?: ChartSeriesMarkerStatus;
-      active: boolean;
+      marker?: React.ReactNode;
+      visible: boolean;
       onClick: (event: React.MouseEvent) => void;
       onMarkerClick?: () => void;
       ariaExpanded?: boolean;
@@ -611,9 +319,9 @@ const LegendItemTrigger = forwardRef(
           testClasses.item,
           styles.marker,
           {
-            [styles["marker--inactive"]]: !active,
+            [styles["marker--inactive"]]: !visible,
             [styles["marker--dimmed"]]: someHighlighted && !isHighlighted,
-            [testClasses["hidden-item"]]: !active,
+            [testClasses["hidden-item"]]: !visible,
           },
           testClasses[`item-status-${status}`],
         )}
@@ -626,7 +334,7 @@ const LegendItemTrigger = forwardRef(
         onBlur={onBlur}
         onKeyDown={onKeyDown}
       >
-        <ChartSeriesMarker color={active ? color : colorTextInteractiveDisabled} type={type} status={status} />
+        {marker}
         <span>{label}</span>
       </button>
     );

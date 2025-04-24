@@ -7,10 +7,10 @@ import type Highcharts from "highcharts";
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
 import { CloudscapeHighcharts } from "../core/chart-core";
-import { CloudscapeChartAPI, CoreLegendProps } from "../core/interfaces-core";
+import { BaseFooterProps, BaseHeaderProps, BaseLegendProps } from "../core/interfaces-base";
+import { CloudscapeChartAPI } from "../core/interfaces-core";
 import { getOptionsId } from "../core/utils";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
-import { ChartSeriesMarkerStatus } from "../internal/components/series-marker";
 import { fireNonCancelableEvent, NonCancelableEventHandler } from "../internal/events";
 import { useCartesianSeries } from "./chart-series-cartesian";
 import { useChartTooltipCartesian } from "./chart-tooltip-cartesian";
@@ -26,16 +26,15 @@ interface InternalCartesianChartProps {
   fitHeight?: boolean;
   chartMinHeight?: number;
   chartMinWidth?: number;
-  series?: {
-    getItemStatus?: (itemId: string) => ChartSeriesMarkerStatus;
-  };
   tooltip?: CartesianChartProps.TooltipProps;
   noData?: CartesianChartProps.NoDataProps;
   emphasizeBaselineAxis?: boolean;
   visibleSeries?: string[];
   onToggleVisibleSeries?: NonCancelableEventHandler<{ visibleSeries: string[] }>;
-  legend?: CoreLegendProps;
+  legend?: BaseLegendProps;
   verticalAxisTitlePlacement?: "top" | "side";
+  header?: BaseHeaderProps;
+  footer?: BaseFooterProps;
 }
 
 /**
@@ -159,13 +158,15 @@ export const InternalCartesianChart = forwardRef(
         chartMinWidth={props.chartMinWidth}
         tooltip={tooltipProps}
         noData={props.noData}
-        legend={props.legend ? { ...props.legend, getItemStatus: props.series?.getItemStatus } : undefined}
+        legend={props.legend}
         hiddenItems={hiddenSeries}
         onItemVisibilityChange={(hiddenSeries) => {
           const nextVisibleSeries = allSeriesIds.filter((id) => !hiddenSeries.includes(id));
           setVisibleSeries(nextVisibleSeries);
         }}
         verticalAxisTitlePlacement={props.verticalAxisTitlePlacement}
+        header={props.header}
+        footer={props.footer}
         className={testClasses.root}
         callback={(chart) => {
           apiRef.current = chart;

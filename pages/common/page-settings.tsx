@@ -37,10 +37,10 @@ export interface PageSettings {
   tooltipSize: "small" | "medium" | "large";
   showLegend: boolean;
   showLegendTitle: boolean;
-  showLegendTooltip: boolean;
-  showLegendTooltipAction: boolean;
-  showLegendFilter: boolean;
-  legendPlacement: "block-end" | "inline-end";
+  showLegendActions: boolean;
+  showCustomHeader: boolean;
+  showHeaderFilter: boolean;
+  showCustomFooter: boolean;
   useFallback: boolean;
 }
 
@@ -61,10 +61,10 @@ const DEFAULT_SETTINGS: PageSettings = {
   tooltipSize: "medium",
   showLegend: true,
   showLegendTitle: false,
-  showLegendTooltip: false,
-  showLegendTooltipAction: false,
-  showLegendFilter: false,
-  legendPlacement: "block-end",
+  showLegendActions: false,
+  showCustomHeader: false,
+  showHeaderFilter: false,
+  showCustomFooter: false,
   useFallback: false,
 };
 
@@ -86,7 +86,6 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
     tooltip: BaseTooltipProps;
     legend: BaseLegendProps;
     emphasizeBaselineAxis: boolean;
-    onLegendPlacementChange: (placement: "block-end" | "inline-end") => void;
     verticalAxisTitlePlacement: "top" | "side";
   };
   isEmpty: boolean;
@@ -106,9 +105,10 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
     emphasizeBaselineAxis: parseBoolean(defaultSettings.emphasizeBaselineAxis, urlParams.emphasizeBaselineAxis),
     showLegend: parseBoolean(defaultSettings.showLegend, urlParams.showLegend),
     showLegendTitle: parseBoolean(defaultSettings.showLegendTitle, urlParams.showLegendTitle),
-    showLegendTooltip: parseBoolean(defaultSettings.showLegendTooltip, urlParams.showLegendTooltip),
-    showLegendTooltipAction: parseBoolean(defaultSettings.showLegendTooltipAction, urlParams.showLegendTooltipAction),
-    showLegendFilter: parseBoolean(defaultSettings.showLegendFilter, urlParams.showLegendFilter),
+    showLegendActions: parseBoolean(defaultSettings.showLegendActions, urlParams.showLegendActions),
+    showCustomHeader: parseBoolean(defaultSettings.showCustomHeader, urlParams.showCustomHeader),
+    showHeaderFilter: parseBoolean(defaultSettings.showHeaderFilter, urlParams.showHeaderFilter),
+    showCustomFooter: parseBoolean(defaultSettings.showCustomFooter, urlParams.showCustomFooter),
     useFallback: parseBoolean(defaultSettings.useFallback, urlParams.useFallback),
   } as PageSettings as SettingsType;
   const setSettings = (partial: Partial<SettingsType>) => {
@@ -149,20 +149,9 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
       legend: {
         enabled: settings.showLegend,
         title: settings.showLegendTitle ? "Legend title" : undefined,
-        placement: settings.legendPlacement,
-        infoTooltip: settings.showLegendTooltip
-          ? {
-              render: (itemId) => ({
-                header: itemId,
-                body: "Item details",
-                footer: settings.showLegendTooltipAction ? <Button>Legend tooltip action</Button> : null,
-              }),
-            }
-          : undefined,
-        actions: { seriesFilter: settings.showLegendFilter },
+        actions: { render: settings.showLegendActions ? () => <Button variant="icon" iconName="search" /> : undefined },
       },
       emphasizeBaselineAxis: settings.emphasizeBaselineAxis,
-      onLegendPlacementChange: (placement) => setSettings({ legendPlacement: placement } as any),
       verticalAxisTitlePlacement: settings.verticalAxisTitlePlacement,
     },
     isEmpty: settings.emptySeries || settings.seriesLoading || settings.seriesError,
@@ -172,8 +161,6 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
 const tooltipPlacementOptions = [{ value: "target" }, { value: "bottom" }, { value: "middle" }];
 
 const tooltipSizeOptions = [{ value: "small" }, { value: "medium" }, { value: "large" }];
-
-const legendPlacementOptions = [{ value: "block-end" }, { value: "inline-end" }];
 
 const verticalAxisTitlePlacementOptions = [{ value: "top" }, { value: "side" }];
 
@@ -345,48 +332,40 @@ export function PageSettingsForm({
                   Show legend title
                 </Checkbox>
               );
-            case "showLegendTooltip":
+            case "showLegendActions":
               return (
                 <Checkbox
-                  checked={settings.showLegendTooltip}
-                  onChange={({ detail }) => setSettings({ showLegendTooltip: detail.checked })}
+                  checked={settings.showLegendActions}
+                  onChange={({ detail }) => setSettings({ showLegendActions: detail.checked })}
                 >
-                  Show legend tooltip
+                  Show legend actions
                 </Checkbox>
               );
-            case "showLegendTooltipAction":
+            case "showCustomHeader":
               return (
                 <Checkbox
-                  checked={settings.showLegendTooltipAction}
-                  onChange={({ detail }) => setSettings({ showLegendTooltipAction: detail.checked })}
+                  checked={settings.showCustomHeader}
+                  onChange={({ detail }) => setSettings({ showCustomHeader: detail.checked })}
                 >
-                  Show legend tooltip action
+                  Show custom header
                 </Checkbox>
               );
-            case "legendPlacement":
-              return (
-                <FormField label="Legend placement">
-                  <Select
-                    options={legendPlacementOptions}
-                    selectedOption={
-                      legendPlacementOptions.find((option) => option.value === settings.legendPlacement) ??
-                      legendPlacementOptions[0]
-                    }
-                    onChange={({ detail }) =>
-                      setSettings({
-                        legendPlacement: detail.selectedOption.value as string as "block-end" | "inline-end",
-                      })
-                    }
-                  />
-                </FormField>
-              );
-            case "showLegendFilter":
+            case "showHeaderFilter":
               return (
                 <Checkbox
-                  checked={settings.showLegendFilter}
-                  onChange={({ detail }) => setSettings({ showLegendFilter: detail.checked })}
+                  checked={settings.showHeaderFilter}
+                  onChange={({ detail }) => setSettings({ showHeaderFilter: detail.checked })}
                 >
-                  Show legend filter
+                  Show header filter
+                </Checkbox>
+              );
+            case "showCustomFooter":
+              return (
+                <Checkbox
+                  checked={settings.showCustomFooter}
+                  onChange={({ detail }) => setSettings({ showCustomFooter: detail.checked })}
+                >
+                  Show custom footer
                 </Checkbox>
               );
             case "useFallback":

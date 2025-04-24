@@ -8,7 +8,8 @@ import type Highcharts from "highcharts";
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
 import { CloudscapeHighcharts } from "../core/chart-core";
-import { CloudscapeChartAPI, CoreLegendProps } from "../core/interfaces-core";
+import { BaseFooterProps, BaseHeaderProps, BaseLegendProps } from "../core/interfaces-base";
+import { CloudscapeChartAPI } from "../core/interfaces-core";
 import { getOptionsId } from "../core/utils";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { fireNonCancelableEvent, NonCancelableEventHandler } from "../internal/events";
@@ -25,13 +26,15 @@ interface InternalPieChartProps {
   chartMinHeight?: number;
   chartMinWidth?: number;
   tooltip?: PieChartProps.TooltipProps;
-  legend?: CoreLegendProps;
+  legend?: BaseLegendProps;
   noData?: PieChartProps.NoDataProps;
   segmentOptions?: PieChartProps.SegmentOptions;
   visibleSegments?: string[];
   onChangeVisibleSegments?: NonCancelableEventHandler<{ visibleSegments: string[] }>;
   innerValue?: string;
   innerDescription?: string;
+  header?: BaseHeaderProps;
+  footer?: BaseFooterProps;
 }
 
 /**
@@ -215,6 +218,8 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
         const nextVisibleSegments = allSegmentIds.filter((id) => !hiddenSegments.includes(id));
         setVisibleSegments(nextVisibleSegments);
       }}
+      header={props.header}
+      footer={props.footer}
       className={testClasses.root}
       callback={(chart) => {
         apiRef.current = chart;

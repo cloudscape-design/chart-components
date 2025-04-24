@@ -1,8 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import Alert from "@cloudscape-design/components/alert";
-
 import { CartesianChartProps } from "../../lib/components";
 import { InternalCartesianChart } from "../../lib/components/cartesian-chart/chart-cartesian-internal";
 import { dateFormatter } from "../common/formatters";
@@ -22,7 +20,6 @@ export default function () {
             "seriesError",
             "showLegend",
             "showLegendTitle",
-            "showLegendTooltip",
             "tooltipSize",
             "tooltipPlacement",
           ]}
@@ -133,21 +130,6 @@ function ExampleScatterSimple() {
           },
         ],
         yAxis: [{ title: "Events" }],
-      }}
-      legend={{
-        ...chartProps.legend,
-        infoTooltip: {
-          render: (itemId) => ({
-            header: `Series ${itemId}`,
-            body: "Series info",
-            footer: itemId === "B" ? <Alert type="warning">This series has a warning</Alert> : null,
-          }),
-        },
-      }}
-      series={{
-        getItemStatus(itemId: string) {
-          return itemId === "B" ? "warning" : "normal";
-        },
       }}
     />
   );

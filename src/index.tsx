@@ -5,3 +5,6 @@ export { default as CartesianChart } from "./cartesian-chart";
 export type { CartesianChartProps } from "./cartesian-chart";
 export { default as PieChart } from "./pie-chart";
 export type { PieChartProps } from "./pie-chart";
+
+export { default as ChartSeriesFilter } from "./series-filter";
+export type { ChartSeriesFilterProps } from "./series-filter";

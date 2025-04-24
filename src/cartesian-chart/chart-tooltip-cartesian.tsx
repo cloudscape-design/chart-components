@@ -7,7 +7,6 @@ import type Highcharts from "highcharts";
 import { CloudscapeChartAPI, CoreTooltipProps, Target } from "../core/interfaces-core";
 import { getSeriesId, getSeriesMarkerType } from "../core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../internal/components/series-details";
-import { ChartSeriesMarkerStatus } from "../internal/components/series-marker";
 import { getDefaultFormatter } from "./default-formatters";
 import { CartesianChartProps, InternalCartesianChartOptions, InternalSeriesOptions } from "./interfaces-cartesian";
 import * as Styles from "./styles";
@@ -19,9 +18,6 @@ export function useChartTooltipCartesian(
   props: {
     options: InternalCartesianChartOptions;
     tooltip?: CartesianChartProps.TooltipProps;
-    series?: {
-      getItemStatus?: (itemId: string) => ChartSeriesMarkerStatus;
-    };
   },
 ): CoreTooltipProps {
   const { xAxis, series } = props.options;
@@ -109,7 +105,6 @@ export function useChartTooltipCartesian(
         key: formatted.key,
         value: formatted.value,
         markerType: chartSeries ? getSeriesMarkerType(chartSeries) : "circle",
-        markerStatus: props.series?.getItemStatus?.(matched.series.id ?? matched.series.name),
         color: getItemColor(matched),
         subItems: formatted.subItems,
         expandableId: formatted.expandable ? matched.series.name : undefined,

@@ -1,10 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import Box from "@cloudscape-design/components/box";
-import Button from "@cloudscape-design/components/button";
-import StatusIndicator from "@cloudscape-design/components/status-indicator";
-
 import { CartesianChartProps } from "../../lib/components";
 import { InternalCartesianChart } from "../../lib/components/cartesian-chart/chart-cartesian-internal";
 import { dateFormatter } from "../common/formatters";
@@ -26,9 +22,6 @@ export default function () {
             "verticalAxisTitlePlacement",
             "showLegend",
             "showLegendTitle",
-            "showLegendTooltip",
-            "showLegendFilter",
-            "legendPlacement",
             "tooltipSize",
             "tooltipPlacement",
           ]}
@@ -125,38 +118,6 @@ function Component() {
         ],
         yAxis: [{ title: "Bytes transferred" }],
         plotOptions: { series: { marker: { enabled: false }, stacking: "normal" } },
-      }}
-      series={{
-        getItemStatus: chartProps.legend.infoTooltip
-          ? (itemId) => (itemId.includes("si") ? "warning" : "normal")
-          : undefined,
-      }}
-      legend={{
-        ...chartProps.legend,
-        infoTooltip: chartProps.legend.infoTooltip
-          ? {
-              render: (itemId) => ({
-                header: itemId.includes("si") ? (
-                  <StatusIndicator type="warning">
-                    <Box fontWeight="bold" color="inherit" variant="span">
-                      {itemId}
-                    </Box>
-                  </StatusIndicator>
-                ) : (
-                  itemId
-                ),
-                body: "Tooltip content",
-                footer: (
-                  <>
-                    <hr />
-                    <div>
-                      Tooltip footer with <Button variant="inline-link">action</Button>
-                    </div>
-                  </>
-                ),
-              }),
-            }
-          : undefined,
       }}
     />
   );

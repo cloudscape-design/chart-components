@@ -117,9 +117,7 @@ export default function () {
     <Page
       title="Synched charts demo"
       subtitle="This page demonstrates how charts can have a synchronized tooltip and legend"
-      settings={
-        <PageSettingsForm selectedSettings={["showLegend", "showLegendTooltip", "tooltipSize", "tooltipPlacement"]} />
-      }
+      settings={<PageSettingsForm selectedSettings={["showLegend", "tooltipSize", "tooltipPlacement"]} />}
     >
       <Charts />
     </Page>

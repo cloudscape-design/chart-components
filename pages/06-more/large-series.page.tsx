@@ -69,11 +69,6 @@ function Component() {
         yAxis: [{ title: "Bytes transferred", min: 0, max: 300000 }],
         plotOptions: { series: { marker: { enabled: false }, stacking: "normal" } },
       }}
-      series={{
-        getItemStatus: chartProps.legend.infoTooltip
-          ? (itemId) => (itemId.includes("si") ? "warning" : "normal")
-          : undefined,
-      }}
       tooltip={{
         placement: "bottom",
       }}

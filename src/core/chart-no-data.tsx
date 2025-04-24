@@ -90,7 +90,7 @@ export function ChartNoData({
   );
 }
 
-class NoDataStore extends AsyncStore<{ container: null | Element; noMatch: boolean }> {
+export class NoDataStore extends AsyncStore<{ container: null | Element; noMatch: boolean }> {
   private getAPI: () => CloudscapeChartAPI;
   private noDataId: string;
 
