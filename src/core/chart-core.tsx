@@ -311,7 +311,7 @@ function ChartSlot({
 
 function VerticalAxisTitle({ titles, noDataStore }: { titles: string[]; noDataStore: NoDataStore }) {
   const state = useSelector(noDataStore, (s) => s);
-  return state.container ? null : (
+  return state.container && !state.noMatch ? null : (
     <div style={{ display: "flex", gap: 8, justifyContent: "space-between" }}>
       {titles.map((text, index) => (
         <Box key={index} fontWeight="bold" margin={{ bottom: "xxs" }}>
