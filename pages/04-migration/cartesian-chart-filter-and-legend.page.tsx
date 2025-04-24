@@ -14,7 +14,7 @@ export default function () {
           functional: {
             bullets: [
               `The legacy charts feature an optional series filter at the top-left. The new charts allow series filtering by clicking on the legend items instead.
-              The new charts also support an in-legend actions filter, for use cases with many series or segments.`,
+              The new charts additionally support in-legend actions slot, that can be used for in-context filter.`,
             ],
           },
         }}
@@ -35,37 +35,32 @@ export default function () {
         <MigrationDemo
           examples={[
             {
-              tags: ["line chart"],
+              tags: ["line chart", "header filter"],
               old: <LineChartExample.ComponentOld />,
-              new: (
-                <FilterOffsetBox>
-                  <LineChartExample.ComponentNew legendFilter={true} />
-                </FilterOffsetBox>
-              ),
+              new: <LineChartExample.ComponentNew headerFilter={true} />,
               containerHeight: 450,
             },
             {
-              tags: ["pie chart"],
+              tags: ["line chart", "legend filter"],
+              old: null,
+              new: <LineChartExample.ComponentNew legendFilter={true} />,
+              containerHeight: 375,
+            },
+            {
+              tags: ["pie chart", "header filter"],
               old: <PieChartExample.ComponentOld />,
-              new: (
-                <FilterOffsetBox>
-                  <PieChartExample.ComponentNew legendFilter={true} />
-                </FilterOffsetBox>
-              ),
+              new: <PieChartExample.ComponentNew headerFilter={true} />,
               containerHeight: 450,
+            },
+            {
+              tags: ["pie chart", "legend filter"],
+              old: <PieChartExample.ComponentOld />,
+              new: <PieChartExample.ComponentNew legendFilter={true} />,
+              containerHeight: 375,
             },
           ]}
         />
       </PageSection>
     </Page>
-  );
-}
-
-function FilterOffsetBox({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ blockSize: "100%", display: "flex", flexDirection: "column" }}>
-      <div style={{ blockSize: "75px" }}></div>
-      <div style={{ flex: 1 }}>{children}</div>
-    </div>
   );
 }

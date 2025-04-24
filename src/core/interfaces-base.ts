@@ -72,6 +72,11 @@ export interface BaseChartProps {
 
   // TODO: document
   verticalAxisTitlePlacement?: "top" | "side";
+
+  // TODO: add description
+  header?: BaseHeaderProps;
+  // TODO: add description
+  footer?: BaseFooterProps;
 }
 
 export interface BaseTooltipProps {
@@ -83,16 +88,8 @@ export interface BaseTooltipProps {
 export interface BaseLegendProps {
   enabled?: boolean;
   title?: string;
-  placement?: "block-end" | "inline-end";
   actions?: {
-    seriesFilter?: boolean;
-  };
-  infoTooltip?: {
-    render: (itemId: string) => {
-      header: React.ReactNode;
-      body: React.ReactNode;
-      footer?: React.ReactNode;
-    };
+    render?(props: LegendActionsRenderProps): React.ReactNode;
   };
 }
 
@@ -103,6 +100,33 @@ export interface BaseNoDataProps {
   loading?: React.ReactNode;
   noMatch?: React.ReactNode;
   onRecoveryClick?: NonCancelableEventHandler;
+}
+
+export interface BaseHeaderProps {
+  render?(props: BaseHeaderRenderProps): React.ReactNode;
+}
+
+export interface BaseHeaderRenderProps {
+  legendItems: ChartLegendItem[];
+}
+
+export interface BaseFooterProps {
+  render?(props: BaseFooterRenderProps): React.ReactNode;
+}
+
+export interface BaseFooterRenderProps {
+  legendItems: ChartLegendItem[];
+}
+
+export interface LegendActionsRenderProps {
+  legendItems: readonly ChartLegendItem[];
+}
+
+export interface ChartLegendItem {
+  id: string;
+  name: string;
+  marker: React.ReactNode;
+  visible: boolean;
 }
 
 export interface BaseI18nStrings {

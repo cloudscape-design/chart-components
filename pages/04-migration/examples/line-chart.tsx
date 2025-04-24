@@ -1,11 +1,18 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import LineChart, { LineChartProps } from "@cloudscape-design/components/line-chart";
+import { useState } from "react";
 
-import { CartesianChartProps } from "../../../lib/components";
+import Button from "@cloudscape-design/components/button";
+import FormField from "@cloudscape-design/components/form-field";
+import LineChart, { LineChartProps } from "@cloudscape-design/components/line-chart";
+import Popover from "@cloudscape-design/components/popover";
+import Select from "@cloudscape-design/components/select";
+
+import { CartesianChartProps, ChartSeriesFilter } from "../../../lib/components";
 import { InternalCartesianChart } from "../../../lib/components/cartesian-chart/chart-cartesian-internal";
 import { dateFormatter } from "../../common/formatters";
+import { HeaderFilterLayout } from "../../common/layout";
 import { usePageSettings } from "../../common/page-settings";
 
 const domain = [
@@ -90,8 +97,9 @@ const seriesOld: LineChartProps<Date>["series"] = [
   },
 ];
 
-export function ComponentNew({ legendFilter }: { legendFilter?: boolean }) {
+export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: boolean; legendFilter?: boolean }) {
   const { chartProps } = usePageSettings();
+  const [visibleSeries, setVisibleSeries] = useState(seriesNew.map((s) => s.name));
   return (
     <InternalCartesianChart
       {...chartProps}
@@ -114,9 +122,41 @@ export function ComponentNew({ legendFilter }: { legendFilter?: boolean }) {
       }}
       legend={{
         ...chartProps.legend,
-        actions: { seriesFilter: legendFilter },
+        actions: {
+          render: legendFilter
+            ? () => (
+                <Popover triggerType="custom" content="Custom in-context filter" position="top">
+                  <Button variant="icon" iconName="search" />
+                </Popover>
+              )
+            : undefined,
+        },
       }}
+      header={
+        headerFilter
+          ? {
+              render: ({ legendItems }) => (
+                <HeaderFilterLayout
+                  defaultFilter={
+                    <ChartSeriesFilter
+                      items={legendItems}
+                      selectedItems={visibleSeries}
+                      onChange={(visibleSeries) => setVisibleSeries([...visibleSeries])}
+                    />
+                  }
+                  additionalFilters={
+                    <FormField label="Additional filter">
+                      <Select options={[]} selectedOption={null} disabled={true} placeholder="Filter time range" />
+                    </FormField>
+                  }
+                />
+              ),
+            }
+          : undefined
+      }
       tooltip={{}}
+      visibleSeries={visibleSeries}
+      onToggleVisibleSeries={({ detail }) => setVisibleSeries(detail.visibleSeries)}
     />
   );
 }
@@ -127,6 +167,13 @@ export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
     <LineChart
       fitHeight={true}
       hideFilter={hideFilter}
+      additionalFilters={
+        !hideFilter && (
+          <FormField label="Additional filter">
+            <Select options={[]} selectedOption={null} disabled={true} placeholder="Filter time range" />
+          </FormField>
+        )
+      }
       height={200}
       series={seriesOld}
       xDomain={[domain[0], domain[domain.length - 1]]}

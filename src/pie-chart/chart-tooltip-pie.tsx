@@ -6,7 +6,7 @@ import type Highcharts from "highcharts";
 import Box from "@cloudscape-design/components/box";
 
 import { CloudscapeChartAPI, CoreTooltipProps } from "../core/interfaces-core";
-import { getPointId } from "../core/utils";
+import { getPointId, getSeriesMarkerType } from "../core/utils";
 import ChartSeriesDetails from "../internal/components/series-details";
 import { ChartSeriesMarker } from "../internal/components/series-marker";
 import { InternalPieChartOptions, PieChartProps } from "./interfaces-pie";
@@ -45,7 +45,7 @@ export function useChartTooltipPie(
 
     const header = props.tooltip?.title?.(tooltipDetails) ?? (
       <div style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-        <ChartSeriesMarker color={matchedPieDatum.color as string} type="large-circle" />{" "}
+        <ChartSeriesMarker color={matchedPieDatum.color as string} type={getSeriesMarkerType(matchedPieDatum.series)} />{" "}
         <Box variant="span" fontWeight="bold">
           {matchedPieDatum.name}
         </Box>

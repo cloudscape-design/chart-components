@@ -49,9 +49,8 @@ export function getSeriesMarkerType(series: Highcharts.Series): ChartSeriesMarke
           return "circle";
       }
     case "column":
-      return "large-square";
     case "pie":
-      return "large-circle";
+      return "large-square";
     case "errorbar":
     default:
       return "large-circle";

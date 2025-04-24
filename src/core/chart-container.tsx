@@ -9,6 +9,10 @@ import { useStableCallback } from "@cloudscape-design/component-toolkit/internal
 interface ChartContainerBaseProps {
   chart: (height: null | number) => React.ReactNode;
   title?: React.ReactNode;
+  header?: React.ReactNode;
+  defaultFilter?: React.ReactNode;
+  additionalFilters?: React.ReactNode;
+  footer?: React.ReactNode;
   legend: React.ReactNode;
   fitHeight?: boolean;
   chartMinHeight?: number;
@@ -16,71 +20,39 @@ interface ChartContainerBaseProps {
 }
 
 export function ChartContainer({
-  legendPlacement = "block-end",
-  ...props
-}: ChartContainerBaseProps & {
-  legendPlacement?: "block-end" | "inline-end";
-}) {
-  return legendPlacement === "block-end" ? (
-    <ChartContainerWithBlockLegend {...props} />
-  ) : (
-    <ChartContainerWithInlineLegend {...props} />
-  );
-}
-
-function ChartContainerWithBlockLegend({
   chart,
   title,
+  header,
+  footer,
   legend,
   fitHeight,
   chartMinHeight,
   chartMinWidth,
 }: ChartContainerBaseProps) {
   const [measuredChartHeight, measureRef] = useContainerQuery((entry) => entry.contentBoxHeight);
-  const [measuredTitleHeight, setTitleHeight] = useState<null | number>(null);
-  const effectiveTitleHeight = title ? measuredTitleHeight : 0;
-  const [measuredLegendHeight, setLegendHeight] = useState<null | number>(null);
-  const effectiveLegendHeight = legend ? measuredLegendHeight : 0;
+  const [measuredHeaderHeight, setHeaderHeight] = useState<null | number>(null);
+  const effectiveHeaderHeight = header || title ? measuredHeaderHeight : 0;
+  const [measuredFooterHeight, setFooterHeight] = useState<null | number>(null);
+  const effectiveFooterHeight = legend || footer ? measuredFooterHeight : 0;
   const chartHeight =
-    measuredChartHeight === null || effectiveLegendHeight === null || effectiveTitleHeight === null
+    measuredChartHeight === null || effectiveHeaderHeight === null || effectiveFooterHeight === null
       ? (chartMinHeight ?? null)
-      : Math.max(chartMinHeight ?? 0, measuredChartHeight - effectiveTitleHeight - effectiveLegendHeight);
+      : Math.max(chartMinHeight ?? 0, measuredChartHeight - effectiveHeaderHeight - effectiveFooterHeight);
   const overflowX = chartMinWidth !== undefined ? "auto" : undefined;
+
   return (
     <div ref={measureRef} style={fitHeight ? { position: "absolute", inset: 0, overflowX } : { overflowX }}>
-      <MeasureBox onResize={setTitleHeight}>{title}</MeasureBox>
+      <MeasureBox onResize={setHeaderHeight}>
+        {header && <div>{header}</div>}
+        {title && <div>{title}</div>}
+      </MeasureBox>
+
       <div style={chartMinWidth !== undefined ? { minWidth: chartMinWidth } : {}}>{chart(chartHeight)}</div>
-      <MeasureBox onResize={setLegendHeight}>{legend}</MeasureBox>
-    </div>
-  );
-}
 
-function ChartContainerWithInlineLegend({
-  chart,
-  title,
-  legend,
-  fitHeight,
-  chartMinHeight,
-  chartMinWidth,
-}: ChartContainerBaseProps) {
-  const [measuredChartHeight, measureRef] = useContainerQuery((entry) => entry.contentBoxHeight);
-  const [measuredTitleHeight, setTitleHeight] = useState<null | number>(null);
-  const effectiveTitleHeight = title ? measuredTitleHeight : 0;
-  const chartHeight =
-    measuredChartHeight === null || effectiveTitleHeight === null
-      ? (chartMinHeight ?? null)
-      : Math.max(chartMinHeight ?? 0, measuredChartHeight - effectiveTitleHeight);
-  const overflowX = chartMinWidth !== undefined ? "auto" : undefined;
-  const innerWrapperStyle: React.CSSProperties = { display: "flex", gap: 16, inlineSize: "100%" };
-  return (
-    <div ref={measureRef} style={fitHeight ? { position: "absolute", inset: 0, overflowX } : { overflowX }}>
-      <MeasureBox onResize={setTitleHeight}>{title}</MeasureBox>
-      <div style={chartMinWidth !== undefined ? { minWidth: chartMinWidth, ...innerWrapperStyle } : innerWrapperStyle}>
-        <div style={{ flex: 1 }}>{chart(chartHeight)}</div>
-        {legend ? (
-          <div style={{ width: 250, minWidth: 250, height: chartHeight ?? 0, overflowY: "auto" }}>{legend}</div>
-        ) : null}
-      </div>
+      <MeasureBox onResize={setFooterHeight}>
+        {legend && <div>{legend}</div>}
+        {footer && <div>{footer}</div>}
+      </MeasureBox>
     </div>
   );
 }
