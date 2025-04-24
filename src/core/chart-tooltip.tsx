@@ -8,7 +8,7 @@ import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-
 
 import AsyncStore, { useSelector } from "../internal/utils/async-store";
 import { DebouncedCall } from "../internal/utils/utils";
-import { BaseTooltipProps } from "./interfaces-base";
+import { ChartTooltipOptions } from "./interfaces-base";
 import { CloudscapeChartAPI, CoreTooltipProps, Target } from "./interfaces-core";
 
 const MOUSE_LEAVE_DELAY = 300;
@@ -64,7 +64,7 @@ export function ChartTooltip({
   getContent,
   placement,
   size,
-}: BaseTooltipProps & { tooltipStore: TooltipStore; getContent: CoreTooltipProps["getTooltipContent"] }) {
+}: ChartTooltipOptions & { tooltipStore: TooltipStore; getContent: CoreTooltipProps["getTooltipContent"] }) {
   const tooltip = useSelector(tooltipStore, (s) => s);
   if (!tooltip.visible) {
     return null;

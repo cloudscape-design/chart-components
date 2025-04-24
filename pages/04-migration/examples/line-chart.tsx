@@ -72,7 +72,7 @@ const seriesNew: CartesianChartProps.Series[] = [
     data: site2Data.map((y, index) => ({ x: domain[index].getTime(), y })),
   },
   {
-    type: "awsui-y-threshold",
+    type: "y-threshold",
     name: "Performance goal",
     value: 250000,
   },
@@ -131,7 +131,7 @@ export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: bo
             : undefined,
         },
       }}
-      header={
+      filter={
         headerFilter
           ? {
               seriesFilter: true,

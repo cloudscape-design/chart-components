@@ -74,7 +74,7 @@ const seriesNew: CartesianChartProps.Series[] = [
     data: network3Data.map((y, index) => ({ x: domain[index].getTime(), y })),
   },
   {
-    type: "awsui-y-threshold",
+    type: "y-threshold",
     name: "Target",
     value: 350000,
   },

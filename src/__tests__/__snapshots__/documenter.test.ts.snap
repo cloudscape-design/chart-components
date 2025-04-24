@@ -104,7 +104,7 @@ width value, the horizontal scrollbar is automatically added.",
     {
       "description": "Use header to render custom content below the chart (under the legend if present).",
       "inlineType": {
-        "name": "BaseFooterProps",
+        "name": "ChartFooterOptions",
         "properties": [
           {
             "name": "render",
@@ -116,12 +116,12 @@ width value, the horizontal scrollbar is automatically added.",
       },
       "name": "footer",
       "optional": true,
-      "type": "BaseFooterProps",
+      "type": "ChartFooterOptions",
     },
     {
       "description": "Use header to render custom content above the chart, such as chart series filter.",
       "inlineType": {
-        "name": "BaseHeaderProps",
+        "name": "ChartHeaderOptions",
         "properties": [
           {
             "name": "render",
@@ -133,7 +133,7 @@ width value, the horizontal scrollbar is automatically added.",
       },
       "name": "header",
       "optional": true,
-      "type": "BaseHeaderProps",
+      "type": "ChartHeaderOptions",
     },
     {
       "description": "The Highcharts instance, that can be obtained as \`import Highcharts from 'highcharts'\`.
@@ -232,8 +232,8 @@ Supported series types:
 * [line](https://api.highcharts.com/highcharts/series.line).
 * [scatter](https://api.highcharts.com/highcharts/series.scatter).
 * [spline](https://api.highcharts.com/highcharts/series.spline).
-* awsui-x-threshold - The line-like series to represent x-axis threshold (vertical, when \`inverted=false\`).
-* awsui-y-threshold - The line-like series to represent y-axis threshold (horizontal, when \`inverted=false\`).",
+* x-threshold - The line-like series to represent x-axis threshold (vertical, when \`inverted=false\`).
+* y-threshold - The line-like series to represent y-axis threshold (horizontal, when \`inverted=false\`).",
       "name": "series",
       "optional": false,
       "type": "Array<CartesianChartProps.Series>",
@@ -585,7 +585,7 @@ width value, the horizontal scrollbar is automatically added.",
     {
       "description": "Use header to render custom content below the chart (under the legend if present).",
       "inlineType": {
-        "name": "BaseFooterProps",
+        "name": "ChartFooterOptions",
         "properties": [
           {
             "name": "render",
@@ -597,12 +597,12 @@ width value, the horizontal scrollbar is automatically added.",
       },
       "name": "footer",
       "optional": true,
-      "type": "BaseFooterProps",
+      "type": "ChartFooterOptions",
     },
     {
       "description": "Use header to render custom content above the chart, such as chart series filter.",
       "inlineType": {
-        "name": "BaseHeaderProps",
+        "name": "ChartHeaderOptions",
         "properties": [
           {
             "name": "render",
@@ -614,7 +614,7 @@ width value, the horizontal scrollbar is automatically added.",
       },
       "name": "header",
       "optional": true,
-      "type": "BaseHeaderProps",
+      "type": "ChartHeaderOptions",
     },
     {
       "description": "The Highcharts instance, that can be obtained as \`import Highcharts from 'highcharts'\`.

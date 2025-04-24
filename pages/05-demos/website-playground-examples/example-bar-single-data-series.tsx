@@ -15,7 +15,7 @@ const series: CartesianChartProps.Series[] = [
     data: [34503, 25832, 4012, -5602, 17839],
   },
   {
-    type: "awsui-y-threshold",
+    type: "y-threshold",
     name: "Average revenue",
     value: 19104,
   },

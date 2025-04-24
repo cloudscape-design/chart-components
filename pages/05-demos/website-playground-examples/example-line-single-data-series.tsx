@@ -54,7 +54,7 @@ const series: CartesianChartProps.Series[] = [
     ],
   },
   {
-    type: "awsui-x-threshold",
+    type: "x-threshold",
     name: "Peak hours",
     value: 1601003400000,
   },

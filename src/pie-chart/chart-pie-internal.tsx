@@ -8,7 +8,12 @@ import type Highcharts from "highcharts";
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
 import { CloudscapeHighcharts } from "../core/chart-core";
-import { BaseFooterProps, BaseHeaderProps, BaseLegendProps } from "../core/interfaces-base";
+import {
+  ChartFilterOptions,
+  ChartFooterOptions,
+  ChartHeaderOptions,
+  ChartLegendOptions,
+} from "../core/interfaces-base";
 import { CloudscapeChartAPI } from "../core/interfaces-core";
 import { getOptionsId } from "../core/utils";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
@@ -26,15 +31,16 @@ interface InternalPieChartProps {
   chartMinHeight?: number;
   chartMinWidth?: number;
   tooltip?: PieChartProps.TooltipProps;
-  legend?: BaseLegendProps;
+  legend?: ChartLegendOptions;
   noData?: PieChartProps.NoDataProps;
   segmentOptions?: PieChartProps.SegmentOptions;
   visibleSegments?: string[];
   onChangeVisibleSegments?: NonCancelableEventHandler<{ visibleSegments: string[] }>;
   innerValue?: string;
   innerDescription?: string;
-  header?: BaseHeaderProps;
-  footer?: BaseFooterProps;
+  header?: ChartHeaderOptions;
+  footer?: ChartFooterOptions;
+  filter?: ChartFilterOptions;
 }
 
 /**
@@ -89,7 +95,7 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
     if (s.type === "pie") {
       series.push({ ...s });
     }
-    if (s.type === "awsui-donut") {
+    if (s.type === "donut") {
       series.push({ ...s, type: "pie", innerSize: "80%" });
     }
   }
@@ -220,6 +226,7 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
       }}
       header={props.header}
       footer={props.footer}
+      filter={props.filter}
       className={testClasses.root}
       callback={(chart) => {
         apiRef.current = chart;

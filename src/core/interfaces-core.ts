@@ -5,12 +5,13 @@ import type Highcharts from "highcharts";
 
 import {
   BaseChartProps,
-  BaseFooterProps,
-  BaseHeaderProps,
   BaseI18nStrings,
-  BaseLegendProps,
-  BaseNoDataProps,
-  BaseTooltipProps,
+  ChartFilterOptions,
+  ChartFooterOptions,
+  ChartHeaderOptions,
+  ChartLegendOptions,
+  ChartNoDataOptions,
+  ChartTooltipOptions,
 } from "./interfaces-base";
 
 export interface CloudscapeHighchartsProps
@@ -35,15 +36,16 @@ export interface CloudscapeHighchartsProps
    * The Cloudscape legend, that is rendered outside the Highcharts container. It uses Cloudscape markers
    * and menu actions.
    */
-  legend?: BaseLegendProps;
+  legend?: ChartLegendOptions;
   /**
    * Represents chart's empty, no-match, loading, and error states. It requires the Highcharts nodata module.
    */
   noData?: CoreNoDataProps;
   // TODO: add description
-  header?: BaseHeaderProps;
+  header?: ChartHeaderOptions;
   // TODO: add description
-  footer?: BaseFooterProps;
+  footer?: ChartFooterOptions;
+  filter?: ChartFilterOptions;
   /**
    * Custom content to be rendered when `highcharts=null`. It defaults to a spinner.
    */
@@ -87,7 +89,7 @@ export interface CloudscapeChartAPI {
   clearLegendHighlight: () => void;
 }
 
-export interface CoreTooltipProps extends BaseTooltipProps {
+export interface CoreTooltipProps extends ChartTooltipOptions {
   getTargetFromPoint?(point: Highcharts.Point): Target;
   getTooltipContent?(props: { point: Highcharts.Point }): null | TooltipContent;
   onPointHighlight?(props: { point: Highcharts.Point; target: Target }): null | PointHighlightDetail;
@@ -111,6 +113,6 @@ export interface TooltipContent {
   footer?: React.ReactNode;
 }
 
-export type CoreNoDataProps = BaseNoDataProps;
+export type CoreNoDataProps = ChartNoDataOptions;
 
 export type CoreI18nStrings = BaseI18nStrings;

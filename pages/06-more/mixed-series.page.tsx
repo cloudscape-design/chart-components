@@ -32,13 +32,13 @@ const allSeries: CartesianChartProps.Series[] = [
     data: [25555, 28888, -4444, 9999, 11111],
   },
   {
-    type: "awsui-x-threshold",
+    type: "x-threshold",
     id: "x-threshold-1",
     name: "x-threshold-1",
     value: 2,
   },
   {
-    type: "awsui-y-threshold",
+    type: "y-threshold",
     id: "y-threshold-1",
     name: "y-threshold-1",
     value: 19104,

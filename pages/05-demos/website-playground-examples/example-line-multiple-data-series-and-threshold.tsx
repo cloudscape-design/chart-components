@@ -90,7 +90,7 @@ const series: CartesianChartProps.Series[] = [
     ],
   },
   {
-    type: "awsui-y-threshold",
+    type: "y-threshold",
     name: "Performance goal",
     value: 250000,
   },
