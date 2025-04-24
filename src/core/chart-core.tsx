@@ -91,8 +91,7 @@ export function CloudscapeHighcharts({
               {fallback}
             </div>
           )}
-          legend={null}
-        ></ChartContainer>
+        />
       </div>
     );
   }

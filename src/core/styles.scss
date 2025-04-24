@@ -20,8 +20,14 @@
   opacity: 0.9;
 }
 
-.has-default-filter {
-  & > :first-child {
+.header-filters {
+  padding-block-end: cs.$space-scaled-l;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: cs.$space-scaled-l;
+
+  &-series {
     flex: 280px 0 1;
   }
 }
