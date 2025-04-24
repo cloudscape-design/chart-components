@@ -10,6 +10,7 @@ import { isDevelopment } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
 import Spinner from "@cloudscape-design/components/spinner";
 
+import ChartSeriesFilter from "../chart-series-filter";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { ChartSeriesMarker } from "../internal/components/series-marker";
 import { useSelector } from "../internal/utils/async-store";
@@ -284,12 +285,46 @@ export function CloudscapeHighcharts({
         title={verticalAxisTitle}
         header={header ? <ChartSlot legendStore={legend.props.legendStore} {...header} /> : null}
         footer={footer ? <ChartSlot legendStore={legend.props.legendStore} {...footer} /> : null}
+        seriesFilter={
+          header?.seriesFilter ? (
+            <ChartFilter
+              legendStore={legend.props.legendStore}
+              onChange={(nextHiddenItems) => onItemVisibilityChange?.(nextHiddenItems)}
+            />
+          ) : null
+        }
+        additionalFilters={header?.additionalFilters}
       />
 
       {isTooltipEnabled && <ChartTooltip {...tooltip.props} />}
 
       {noDataProps && <ChartNoData {...noData.props} i18nStrings={i18nStrings} />}
     </div>
+  );
+}
+
+function ChartFilter({
+  legendStore,
+  onChange,
+}: {
+  legendStore: LegendStore;
+  onChange: (hiddenItems: string[]) => void;
+}) {
+  const storeLegendItems = useSelector(legendStore, (state) => state.legendItems);
+  const legendItems = storeLegendItems.map((item) => ({
+    id: item.id,
+    name: item.name,
+    marker: <ChartSeriesMarker color={item.color} key={item.id} type={item.markerType} />,
+    visible: item.active,
+  }));
+  return (
+    <ChartSeriesFilter
+      items={legendItems}
+      selectedItems={legendItems.filter((i) => i.visible).map((i) => i.id)}
+      onChange={({ detail }) =>
+        onChange(legendItems.filter((i) => !detail.selectedItems.includes(i.id)).map((i) => i.id))
+      }
+    />
   );
 }
 

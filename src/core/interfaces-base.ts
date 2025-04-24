@@ -104,6 +104,8 @@ export interface BaseNoDataProps {
 
 export interface BaseHeaderProps {
   render?(props: BaseHeaderRenderProps): React.ReactNode;
+  seriesFilter?: boolean;
+  additionalFilters?: React.ReactNode;
 }
 
 export interface BaseHeaderRenderProps {

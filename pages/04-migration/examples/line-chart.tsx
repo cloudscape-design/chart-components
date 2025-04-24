@@ -9,10 +9,9 @@ import LineChart, { LineChartProps } from "@cloudscape-design/components/line-ch
 import Popover from "@cloudscape-design/components/popover";
 import Select from "@cloudscape-design/components/select";
 
-import { CartesianChartProps, ChartSeriesFilter } from "../../../lib/components";
+import { CartesianChartProps } from "../../../lib/components";
 import { InternalCartesianChart } from "../../../lib/components/cartesian-chart/chart-cartesian-internal";
 import { dateFormatter } from "../../common/formatters";
-import { HeaderFilterLayout } from "../../common/layout";
 import { usePageSettings } from "../../common/page-settings";
 
 const domain = [
@@ -135,21 +134,11 @@ export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: bo
       header={
         headerFilter
           ? {
-              render: ({ legendItems }) => (
-                <HeaderFilterLayout
-                  defaultFilter={
-                    <ChartSeriesFilter
-                      items={legendItems}
-                      selectedItems={visibleSeries}
-                      onChange={({ detail }) => setVisibleSeries([...detail.selectedItems])}
-                    />
-                  }
-                  additionalFilters={
-                    <FormField label="Additional filter">
-                      <Select options={[]} selectedOption={null} disabled={true} placeholder="Filter time range" />
-                    </FormField>
-                  }
-                />
+              seriesFilter: true,
+              additionalFilters: (
+                <FormField label="Additional filter">
+                  <Select options={[]} selectedOption={null} disabled={true} placeholder="Filter time range" />
+                </FormField>
               ),
             }
           : undefined
