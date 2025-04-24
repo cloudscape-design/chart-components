@@ -3,6 +3,9 @@
 
 import { NonCancelableEventHandler } from "../internal/events";
 
+/**
+ * This interface includes common public chart properties, applicable for all chart types.
+ */
 export interface BaseChartProps {
   /**
    * The Highcharts instance, that can be obtained as `import Highcharts from 'highcharts'`.
@@ -55,37 +58,42 @@ export interface BaseChartProps {
   /**
    * Chart tooltip props.
    */
-  tooltip?: BaseTooltipProps;
+  tooltip?: ChartTooltipOptions;
 
   /**
    * Chart legend props.
    */
-  legend?: BaseLegendProps;
+  legend?: ChartLegendOptions;
 
   /**
    * The empty, no-match, loading, or error state of the chart.
    * It requires the `no-data-to-display` module.
    */
-  noData?: BaseNoDataProps;
+  noData?: ChartNoDataOptions;
 
   /**
-   * Use header to render custom content above the chart, such as chart series filter.
+   * Use header to render custom content above the chart.
    */
-  header?: BaseHeaderProps;
+  header?: ChartHeaderOptions;
 
   /**
    * Use header to render custom content below the chart (under the legend if present).
    */
-  footer?: BaseFooterProps;
+  footer?: ChartFooterOptions;
+
+  /**
+   * Use filter to render default series filter, custom series filter, and/or additional filters.
+   */
+  filter?: ChartFilterOptions;
 }
 
-export interface BaseTooltipProps {
+export interface ChartTooltipOptions {
   enabled?: boolean;
   placement?: "target" | "bottom" | "middle";
   size?: "small" | "medium" | "large";
 }
 
-export interface BaseLegendProps {
+export interface ChartLegendOptions {
   enabled?: boolean;
   title?: string;
   actions?: {
@@ -93,7 +101,7 @@ export interface BaseLegendProps {
   };
 }
 
-export interface BaseNoDataProps {
+export interface ChartNoDataOptions {
   statusType?: "finished" | "loading" | "error";
   empty?: React.ReactNode;
   error?: React.ReactNode;
@@ -102,17 +110,15 @@ export interface BaseNoDataProps {
   onRecoveryClick?: NonCancelableEventHandler;
 }
 
-export interface BaseHeaderProps {
+export interface ChartHeaderOptions {
   render?(props: BaseHeaderRenderProps): React.ReactNode;
-  seriesFilter?: boolean;
-  additionalFilters?: React.ReactNode;
 }
 
 export interface BaseHeaderRenderProps {
   legendItems: ChartLegendItem[];
 }
 
-export interface BaseFooterProps {
+export interface ChartFooterOptions {
   render?(props: BaseFooterRenderProps): React.ReactNode;
 }
 
@@ -135,6 +141,11 @@ export interface BaseI18nStrings {
   loadingText?: string;
   errorText?: string;
   recoveryText?: string;
+}
+
+export interface ChartFilterOptions {
+  seriesFilter?: boolean;
+  additionalFilters?: React.ReactNode;
 }
 
 export interface AreaSeries extends AbstractSeries {
@@ -172,7 +183,7 @@ export interface PieSeries extends AbstractSeries {
 }
 
 export interface DonutSeries extends AbstractSeries {
-  type: "awsui-donut";
+  type: "donut";
   data: PieDataItem[];
 }
 
@@ -194,12 +205,12 @@ export interface TreeMapSeries extends AbstractSeries {
 }
 
 export interface XThresholdSeries extends AbstractSeries {
-  type: "awsui-x-threshold";
+  type: "x-threshold";
   value: number;
 }
 
 export interface YThresholdSeries extends AbstractSeries {
-  type: "awsui-y-threshold";
+  type: "y-threshold";
   value: number;
 }
 

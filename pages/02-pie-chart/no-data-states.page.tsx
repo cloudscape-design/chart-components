@@ -14,10 +14,10 @@ import { PageSettings, PageSettingsForm, usePageSettings } from "../common/page-
 import { FramedDemo, Page, PageSection } from "../common/templates";
 
 interface ThisPageSettings extends PageSettings {
-  chartType: "pie" | "awsui-donut";
+  chartType: "pie" | "donut";
 }
 
-const chartTypeOptions = [{ value: "pie" }, { value: "awsui-donut" }];
+const chartTypeOptions = [{ value: "pie" }, { value: "donut" }];
 
 export default function () {
   const { settings, setSettings, chartProps } = usePageSettings<ThisPageSettings>();

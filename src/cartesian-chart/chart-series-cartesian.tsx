@@ -25,7 +25,7 @@ export const useCartesianSeries = (
   const series: Highcharts.SeriesOptionsType[] = options.series.map((s) => {
     // The awsui-threshold series are added as a combination of plot lines and empty series.
     // This makes them available in the chart's legend.
-    if (s.type === "awsui-x-threshold" || s.type === "awsui-y-threshold") {
+    if (s.type === "x-threshold" || s.type === "y-threshold") {
       return {
         type: "line",
         id: s.id,
@@ -48,7 +48,7 @@ export const useCartesianSeries = (
   const yPlotLines: Highcharts.YAxisPlotLinesOptions[] = [];
   for (const s of options.series) {
     const seriesId = getOptionsId(s);
-    if (s.type === "awsui-x-threshold" && visibleSeries.includes(seriesId)) {
+    if (s.type === "x-threshold" && visibleSeries.includes(seriesId)) {
       xPlotLines.push({
         id: seriesId,
         value: s.value,
@@ -56,7 +56,7 @@ export const useCartesianSeries = (
         ...Styles.thresholdPlotLineOptions,
       });
     }
-    if (s.type === "awsui-y-threshold" && visibleSeries.includes(seriesId)) {
+    if (s.type === "y-threshold" && visibleSeries.includes(seriesId)) {
       yPlotLines.push({
         id: seriesId,
         value: s.value,
@@ -87,13 +87,13 @@ function updateSeriesData(chart: Highcharts.Chart) {
   const yExtremes = chart.yAxis[0]?.getExtremes();
 
   for (const s of chart.series) {
-    if (typeof s.options.custom === "object" && s.options.custom?.awsui.type === "awsui-x-threshold") {
+    if (typeof s.options.custom === "object" && s.options.custom?.awsui.type === "x-threshold") {
       updateDataIfNeeded(s, [
         { x: s.options.custom.awsui.threshold, y: yExtremes.min },
         { x: s.options.custom.awsui.threshold, y: yExtremes.max },
       ]);
     }
-    if (typeof s.options.custom === "object" && s.options.custom?.awsui.type === "awsui-y-threshold") {
+    if (typeof s.options.custom === "object" && s.options.custom?.awsui.type === "y-threshold") {
       updateDataIfNeeded(s, [
         { x: xExtremes.min, y: s.options.custom.awsui.threshold },
         { x: xExtremes.max, y: s.options.custom.awsui.threshold },

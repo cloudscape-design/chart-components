@@ -90,12 +90,12 @@ function LinearLinear() {
           data: range(0, 50).map((i) => [i * 10, Math.floor((pseudoRandom() + i / 25) * 50)]),
         },
         {
-          type: "awsui-x-threshold",
+          type: "x-threshold",
           name: "X threshold",
           value: 250,
         },
         {
-          type: "awsui-y-threshold",
+          type: "y-threshold",
           name: "Y threshold",
           value: 75,
         },
@@ -131,12 +131,12 @@ function LinearLog() {
           data: range(0, 50).map((i) => [i * 10, i * i]),
         },
         {
-          type: "awsui-x-threshold",
+          type: "x-threshold",
           name: "X threshold",
           value: 100,
         },
         {
-          type: "awsui-y-threshold",
+          type: "y-threshold",
           name: "Y threshold",
           value: 100,
         },
@@ -168,12 +168,12 @@ function LogLinear() {
           data: range(0, 50).map((i) => [i * i, i * 20]),
         },
         {
-          type: "awsui-x-threshold",
+          type: "x-threshold",
           name: "X threshold",
           value: 100,
         },
         {
-          type: "awsui-y-threshold",
+          type: "y-threshold",
           name: "Y threshold",
           value: 500,
         },
@@ -205,12 +205,12 @@ function LogLog() {
           data: range(0, 50).map((i) => [i * i, Math.pow(2, i / 2)]),
         },
         {
-          type: "awsui-x-threshold",
+          type: "x-threshold",
           name: "X threshold",
           value: 100,
         },
         {
-          type: "awsui-y-threshold",
+          type: "y-threshold",
           name: "Y threshold",
           value: 5000,
         },
@@ -240,12 +240,12 @@ function CategoryLinear() {
           data: range(0, 10).map((i) => Math.floor((pseudoRandom() + i / 25) * 50)),
         },
         {
-          type: "awsui-x-threshold",
+          type: "x-threshold",
           name: "X threshold",
           value: 4,
         },
         {
-          type: "awsui-y-threshold",
+          type: "y-threshold",
           name: "Y threshold",
           value: 50,
         },
@@ -278,12 +278,12 @@ function LinearCategory() {
           data: range(0, 50).map((i) => [i * 2, Math.floor(pseudoRandom() * 10)]),
         },
         {
-          type: "awsui-x-threshold",
+          type: "x-threshold",
           name: "X threshold",
           value: 50,
         },
         {
-          type: "awsui-y-threshold",
+          type: "y-threshold",
           name: "Y threshold",
           value: 4,
         },
@@ -319,12 +319,12 @@ function CategoryCategory() {
             }) as any,
         ),
         {
-          type: "awsui-x-threshold",
+          type: "x-threshold",
           name: "X threshold",
           value: 8,
         },
         {
-          type: "awsui-y-threshold",
+          type: "y-threshold",
           name: "Y threshold",
           value: 8,
         },
@@ -356,12 +356,12 @@ function DatetimeLinear() {
           data: range(0, 50).map((i) => [addDays(new Date(), i).getTime(), Math.floor((pseudoRandom() + i / 25) * 50)]),
         },
         {
-          type: "awsui-x-threshold",
+          type: "x-threshold",
           name: "X threshold",
           value: addDays(new Date(), 25).getTime(),
         },
         {
-          type: "awsui-y-threshold",
+          type: "y-threshold",
           name: "Y threshold",
           value: 75,
         },
@@ -393,12 +393,12 @@ function LinearDatetime() {
           data: range(0, 50).map((i) => [Math.floor((pseudoRandom() + i / 25) * 50), addDays(new Date(), i).getTime()]),
         },
         {
-          type: "awsui-x-threshold",
+          type: "x-threshold",
           name: "X threshold",
           value: 75,
         },
         {
-          type: "awsui-y-threshold",
+          type: "y-threshold",
           name: "Y threshold",
           value: addDays(new Date(), 25).getTime(),
         },
@@ -442,12 +442,12 @@ function DatetimeDatetime() {
             ),
         },
         {
-          type: "awsui-x-threshold",
+          type: "x-threshold",
           name: "X threshold",
           value: addDays(new Date(), 5).getTime(),
         },
         {
-          type: "awsui-y-threshold",
+          type: "y-threshold",
           name: "Y threshold",
           value: subYears(addDays(new Date(), 5), 1).getTime(),
         },
@@ -479,12 +479,12 @@ function LogCategory() {
           data: range(0, 50).map((i) => [i * 5, (i - i * 0.2) % 5]),
         },
         {
-          type: "awsui-x-threshold",
+          type: "x-threshold",
           name: "X threshold",
           value: 100,
         },
         {
-          type: "awsui-y-threshold",
+          type: "y-threshold",
           name: "Y threshold",
           value: 3,
         },
@@ -514,12 +514,12 @@ function CategoryLog() {
           data: range(0, 5).map((i) => [i, 13 + i * 2 * (i + i)]),
         },
         {
-          type: "awsui-x-threshold",
+          type: "x-threshold",
           name: "X threshold",
           value: 3,
         },
         {
-          type: "awsui-y-threshold",
+          type: "y-threshold",
           name: "Y threshold",
           value: 50,
         },
@@ -549,12 +549,12 @@ function DatetimeLog() {
           data: range(0, 50).map((i) => [addDays(new Date(), i).getTime(), Math.floor((pseudoRandom() + i / 25) * 50)]),
         },
         {
-          type: "awsui-x-threshold",
+          type: "x-threshold",
           name: "X threshold",
           value: addDays(new Date(), 25).getTime(),
         },
         {
-          type: "awsui-y-threshold",
+          type: "y-threshold",
           name: "Y threshold",
           value: 45,
         },
@@ -584,12 +584,12 @@ function LogDatetime() {
           data: range(0, 50).map((i) => [Math.floor((pseudoRandom() + i / 25) * 50), addDays(new Date(), i).getTime()]),
         },
         {
-          type: "awsui-x-threshold",
+          type: "x-threshold",
           name: "X threshold",
           value: 45,
         },
         {
-          type: "awsui-y-threshold",
+          type: "y-threshold",
           name: "Y threshold",
           value: addDays(new Date(), 25).getTime(),
         },
@@ -619,12 +619,12 @@ function DatetimeCategory() {
           data: range(0, 10).map((i) => [addDays(new Date(), i).getTime(), Math.abs(i - 5)]),
         },
         {
-          type: "awsui-x-threshold",
+          type: "x-threshold",
           name: "X threshold",
           value: addDays(new Date(), 5).getTime(),
         },
         {
-          type: "awsui-y-threshold",
+          type: "y-threshold",
           name: "Y threshold",
           value: 3,
         },
@@ -654,12 +654,12 @@ function CategoryDatetime() {
           data: range(0, 10).map((i) => [Math.abs(i - 5), addDays(new Date(), i).getTime()]),
         },
         {
-          type: "awsui-x-threshold",
+          type: "x-threshold",
           name: "X threshold",
           value: 3,
         },
         {
-          type: "awsui-y-threshold",
+          type: "y-threshold",
           name: "Y threshold",
           value: addDays(new Date(), 5).getTime(),
         },

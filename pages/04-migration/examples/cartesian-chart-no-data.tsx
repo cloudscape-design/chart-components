@@ -22,8 +22,8 @@ const seriesNew: CartesianChartProps.Series[] = [
 const seriesNewNoData: CartesianChartProps.Series[] = [{ name: "Events", type: "line", data: [] }];
 
 const seriesNewThreshold: CartesianChartProps.Series[] = [
-  { name: "Timestamp", type: "awsui-x-threshold", value: domain[2].getTime() },
-  { name: "Alarm", type: "awsui-y-threshold", value: 30 },
+  { name: "Timestamp", type: "x-threshold", value: domain[2].getTime() },
+  { name: "Alarm", type: "y-threshold", value: 30 },
 ];
 
 const seriesOld: LineChartProps<Date>["series"] = [

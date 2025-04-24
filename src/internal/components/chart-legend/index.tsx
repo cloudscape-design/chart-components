@@ -22,7 +22,7 @@ import { DebouncedCall } from "../../utils/utils";
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
 
-export interface ChartLegendProps {
+export interface ChartLegendOptions {
   items: readonly ChartLegendItem[];
   legendTitle?: string;
   ariaLabel?: string;
@@ -64,7 +64,7 @@ export const ChartLegend = forwardRef(
       onItemVisibilityChange,
       onItemHighlightEnter,
       onItemHighlightExit,
-    }: ChartLegendProps,
+    }: ChartLegendOptions,
     ref: React.Ref<ChartLegendRef>,
   ) => {
     const containerRef = useRef<HTMLDivElement>(null);

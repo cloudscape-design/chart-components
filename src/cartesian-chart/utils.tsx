@@ -23,7 +23,7 @@ export function getCartesianDetailsItem(
   if (Array.isArray(y)) {
     return { type: "range", x: x as number, low: y[0], high: y[1], series: series as CartesianChartProps.Series };
   }
-  if (series.type === "awsui-y-threshold") {
+  if (series.type === "y-threshold") {
     return { type: "threshold", x: x as number, series: series as CartesianChartProps.Series };
   }
   return null;
