@@ -7,7 +7,12 @@ import type Highcharts from "highcharts";
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
 import { CloudscapeHighcharts } from "../core/chart-core";
-import { BaseFooterProps, BaseHeaderProps, BaseLegendProps } from "../core/interfaces-base";
+import {
+  ChartFilterOptions,
+  ChartFooterOptions,
+  ChartHeaderOptions,
+  ChartLegendOptions,
+} from "../core/interfaces-base";
 import { CloudscapeChartAPI } from "../core/interfaces-core";
 import { getOptionsId } from "../core/utils";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
@@ -31,10 +36,11 @@ interface InternalCartesianChartProps {
   emphasizeBaselineAxis?: boolean;
   visibleSeries?: string[];
   onToggleVisibleSeries?: NonCancelableEventHandler<{ visibleSeries: string[] }>;
-  legend?: BaseLegendProps;
+  legend?: ChartLegendOptions;
   verticalAxisTitlePlacement?: "top" | "side";
-  header?: BaseHeaderProps;
-  footer?: BaseFooterProps;
+  header?: ChartHeaderOptions;
+  footer?: ChartFooterOptions;
+  filter?: ChartFilterOptions;
 }
 
 /**
@@ -167,6 +173,7 @@ export const InternalCartesianChart = forwardRef(
         verticalAxisTitlePlacement={props.verticalAxisTitlePlacement}
         header={props.header}
         footer={props.footer}
+        filter={props.filter}
         className={testClasses.root}
         callback={(chart) => {
           apiRef.current = chart;

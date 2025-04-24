@@ -10,7 +10,7 @@ import { PageSection } from "../../common/templates";
 
 const series: PieChartProps.Series = {
   name: "Value",
-  type: "awsui-donut",
+  type: "donut",
   data: [
     { name: "Item A", y: 40 },
     { name: "Item B", y: 25 },

@@ -15,12 +15,12 @@ import { Page } from "../common/templates";
 interface ThisPageSettings extends PageSettings {
   segmentDistribution: "proportional" | "growing" | "fast growing";
   reverseSegmentDirection: boolean;
-  chartType: "pie" | "awsui-donut";
+  chartType: "pie" | "donut";
   showTitles: boolean;
   showDescriptions: boolean;
 }
 
-const chartTypeOptions = [{ value: "pie" }, { value: "awsui-donut" }];
+const chartTypeOptions = [{ value: "pie" }, { value: "donut" }];
 
 const segmentDistributionOptions = [{ value: "proportional" }, { value: "growing" }, { value: "fast growing" }];
 

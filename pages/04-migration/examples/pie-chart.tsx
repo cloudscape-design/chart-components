@@ -65,7 +65,7 @@ export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: bo
       ariaLabel="Pie chart"
       series={seriesNew}
       segmentOptions={{}}
-      header={
+      filter={
         headerFilter
           ? {
               seriesFilter: true,

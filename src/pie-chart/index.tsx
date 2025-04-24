@@ -64,7 +64,7 @@ function validateSeries(s: PieChartProps.Series): PieChartProps.Series[] {
   switch (s.type) {
     case "pie":
       return [{ type: s.type, id: s.id, name: s.name, color: s.color, innerSize: s.innerSize, data: s.data }];
-    case "awsui-donut":
+    case "donut":
       return [{ type: s.type, id: s.id, name: s.name, color: s.color, data: s.data }];
     default:
       return [];

@@ -20,12 +20,12 @@ const series: CartesianChartProps.Series[] = [
     data: [5373, 7563, 7900, 12342, 14311, 11830, 8505],
   },
   {
-    type: "awsui-x-threshold",
+    type: "x-threshold",
     name: "Peak cost",
     value: 3,
   },
   {
-    type: "awsui-y-threshold",
+    type: "y-threshold",
     name: "Budget",
     value: 12000,
   },

@@ -92,9 +92,9 @@ function validateSeries(unvalidatedSeries: CartesianChartProps.Series[]): Cartes
         return { type: s.type, ...getBaseProps(s), data: s.data };
       case "spline":
         return { type: s.type, ...getBaseProps(s), data: s.data };
-      case "awsui-x-threshold":
+      case "x-threshold":
         return { type: s.type, ...getBaseProps(s), value: s.value };
-      case "awsui-y-threshold":
+      case "y-threshold":
         return { type: s.type, ...getBaseProps(s), value: s.value };
       default:
         return null;

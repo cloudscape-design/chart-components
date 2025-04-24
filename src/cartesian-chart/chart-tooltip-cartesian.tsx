@@ -27,7 +27,7 @@ export function useChartTooltipCartesian(
   const findMatchedItems = (point: Highcharts.Point) => {
     const matchedItems: CartesianChartProps.TooltipSeriesDetailItem[] = [];
     function findMatchedItem(series: InternalSeriesOptions) {
-      if (series.type === "awsui-x-threshold" || series.type === "awsui-y-threshold") {
+      if (series.type === "x-threshold" || series.type === "y-threshold") {
         return;
       }
       if ("data" in series && series.data && Array.isArray(series.data)) {
@@ -46,12 +46,12 @@ export function useChartTooltipCartesian(
         matchedItems.push({ type: "threshold", x: series.value, series });
       }
     }
-    series.forEach((s) => (s.type === "awsui-x-threshold" ? findMatchedXThreshold(s) : undefined));
+    series.forEach((s) => (s.type === "x-threshold" ? findMatchedXThreshold(s) : undefined));
 
     function findMatchedYThreshold(series: CartesianChartProps.YThresholdSeries) {
       matchedItems.push({ type: "point", x: point.x, y: series.value, series });
     }
-    series.forEach((s) => (s.type === "awsui-y-threshold" ? findMatchedYThreshold(s) : undefined));
+    series.forEach((s) => (s.type === "y-threshold" ? findMatchedYThreshold(s) : undefined));
 
     return matchedItems;
   };

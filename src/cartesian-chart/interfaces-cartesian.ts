@@ -28,8 +28,8 @@ export interface CartesianChartProps extends BaseTypes.BaseChartProps {
    * * [line](https://api.highcharts.com/highcharts/series.line).
    * * [scatter](https://api.highcharts.com/highcharts/series.scatter).
    * * [spline](https://api.highcharts.com/highcharts/series.spline).
-   * * awsui-x-threshold - The line-like series to represent x-axis threshold (vertical, when `inverted=false`).
-   * * awsui-y-threshold - The line-like series to represent y-axis threshold (horizontal, when `inverted=false`).
+   * * x-threshold - The line-like series to represent x-axis threshold (vertical, when `inverted=false`).
+   * * y-threshold - The line-like series to represent y-axis threshold (horizontal, when `inverted=false`).
    */
   series: CartesianChartProps.Series[];
 
@@ -156,7 +156,7 @@ export namespace CartesianChartProps {
     reversedStacks?: boolean;
   }
 
-  export interface TooltipProps extends BaseTypes.BaseTooltipProps {
+  export interface TooltipProps extends BaseTypes.ChartTooltipOptions {
     series?: (detail: TooltipSeriesDetailItem) => TooltipSeriesFormatted;
     header?: (detail: TooltipDetails) => React.ReactNode;
     body?: (detail: TooltipDetails) => React.ReactNode;
@@ -201,7 +201,7 @@ export namespace CartesianChartProps {
     subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
   }
 
-  export type NoDataProps = BaseTypes.BaseNoDataProps;
+  export type NoDataProps = BaseTypes.ChartNoDataOptions;
 }
 
 // The internal chart options allow propagation of all Highcharts properties, including series types and axes options,

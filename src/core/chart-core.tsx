@@ -7,7 +7,6 @@ import type Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 
 import { isDevelopment } from "@cloudscape-design/component-toolkit/internal";
-import Box from "@cloudscape-design/components/box";
 import Spinner from "@cloudscape-design/components/spinner";
 
 import ChartSeriesFilter from "../chart-series-filter";
@@ -17,10 +16,11 @@ import { useSelector } from "../internal/utils/async-store";
 import { castArray } from "../internal/utils/utils";
 import { ChartContainer } from "./chart-container";
 import { ChartLegend, LegendStore, useLegend } from "./chart-legend";
-import { ChartNoData, NoDataStore, useNoData } from "./chart-no-data";
+import { ChartNoData, useNoData } from "./chart-no-data";
 import { useChartSeries } from "./chart-series";
 import { ChartTooltip, useChartTooltip } from "./chart-tooltip";
-import { BaseFooterProps, BaseHeaderProps } from "./interfaces-base";
+import { useChartVerticalAxisTitle } from "./chart-vertical-axis-title";
+import { ChartFooterOptions, ChartHeaderOptions } from "./interfaces-base";
 import { CloudscapeChartAPI, CloudscapeHighchartsProps } from "./interfaces-core";
 import * as Styles from "./styles";
 
@@ -49,6 +49,7 @@ export function CloudscapeHighcharts({
   className,
   header,
   footer,
+  filter,
   ...rest
 }: CloudscapeHighchartsProps) {
   // The apiRef is expected to be available after the initial render.
@@ -77,6 +78,8 @@ export function CloudscapeHighcharts({
 
   const series = useChartSeries(getAPI, { options, hiddenItems });
 
+  const verticalAxisTitle = useChartVerticalAxisTitle(getAPI, { verticalAxisTitlePlacement });
+
   const rootClassName = clsx(styles.root, fitHeight && styles["root-fit-height"], className);
 
   if (!highcharts) {
@@ -99,15 +102,6 @@ export function CloudscapeHighcharts({
   function withMinHeight(height: number | string | undefined | null) {
     return typeof height === "number" ? Math.max(chartMinHeight ?? 0, height) : height;
   }
-
-  let titles: string[] = [];
-  if (options.chart?.inverted && verticalAxisTitlePlacement === "top") {
-    titles = (castArray(options.xAxis) ?? []).map((axis) => axis.title?.text ?? "").filter(Boolean);
-  }
-  if (!options.chart?.inverted && verticalAxisTitlePlacement === "top") {
-    titles = (castArray(options.yAxis) ?? []).map((axis) => axis.title?.text ?? "").filter(Boolean);
-  }
-  const verticalAxisTitle = titles.length > 0 ? <VerticalAxisTitle titles={titles} {...noData.props} /> : null;
 
   return (
     <div {...getDataAttributes(rest)} className={rootClassName}>
@@ -149,6 +143,7 @@ export function CloudscapeHighcharts({
                   if (isLegendEnabled) {
                     legend.options.onChartRender();
                   }
+                  verticalAxisTitle.options.chartRender.call(this, event);
                   return options.chart?.events?.render?.call(this, event);
                 },
                 click(event) {
@@ -281,18 +276,18 @@ export function CloudscapeHighcharts({
           );
         }}
         legend={isLegendEnabled ? <ChartLegend {...legend.props} /> : null}
-        title={verticalAxisTitle}
+        title={verticalAxisTitle.rendered}
         header={header ? <ChartSlot legendStore={legend.props.legendStore} {...header} /> : null}
         footer={footer ? <ChartSlot legendStore={legend.props.legendStore} {...footer} /> : null}
         seriesFilter={
-          header?.seriesFilter ? (
+          filter?.seriesFilter ? (
             <ChartFilter
               legendStore={legend.props.legendStore}
               onChange={(nextHiddenItems) => onItemVisibilityChange?.(nextHiddenItems)}
             />
           ) : null
         }
-        additionalFilters={header?.additionalFilters}
+        additionalFilters={filter?.additionalFilters}
       />
 
       {isTooltipEnabled && <ChartTooltip {...tooltip.props} />}
@@ -314,7 +309,7 @@ function ChartFilter({
     id: item.id,
     name: item.name,
     marker: <ChartSeriesMarker color={item.color} key={item.id} type={item.markerType} />,
-    visible: item.active,
+    visible: item.visible,
   }));
   return (
     <ChartSeriesFilter
@@ -330,7 +325,7 @@ function ChartFilter({
 function ChartSlot({
   legendStore,
   render,
-}: (BaseHeaderProps | BaseFooterProps) & {
+}: (ChartHeaderOptions | ChartFooterOptions) & {
   legendStore: LegendStore;
 }) {
   const storeLegendItems = useSelector(legendStore, (state) => state.legendItems);
@@ -338,20 +333,7 @@ function ChartSlot({
     id: item.id,
     name: item.name,
     marker: <ChartSeriesMarker color={item.color} key={item.id} type={item.markerType} />,
-    visible: item.active,
+    visible: item.visible,
   }));
   return <>{render ? render({ legendItems }) : null}</>;
-}
-
-function VerticalAxisTitle({ titles, noDataStore }: { titles: string[]; noDataStore: NoDataStore }) {
-  const state = useSelector(noDataStore, (s) => s);
-  return state.container && !state.noMatch ? null : (
-    <div style={{ display: "flex", gap: 8, justifyContent: "space-between" }}>
-      {titles.map((text, index) => (
-        <Box key={index} fontWeight="bold" margin={{ bottom: "xxs" }}>
-          {text}
-        </Box>
-      ))}
-    </div>
-  );
 }

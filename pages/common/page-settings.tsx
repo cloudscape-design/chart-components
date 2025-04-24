@@ -14,7 +14,7 @@ import Multiselect from "@cloudscape-design/components/multiselect";
 import Select from "@cloudscape-design/components/select";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
-import { BaseLegendProps, BaseNoDataProps, BaseTooltipProps } from "../../lib/components/core/interfaces-base";
+import { ChartLegendOptions, ChartNoDataOptions, ChartTooltipOptions } from "../../lib/components/core/interfaces-base";
 import AppContext, { AppContextType } from "../app/app-context";
 import { useHighcharts } from "./use-highcharts";
 
@@ -82,9 +82,9 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
   chartProps: {
     ref: React.Ref<ChartRef>;
     highcharts: null | typeof Highcharts;
-    noData: BaseNoDataProps;
-    tooltip: BaseTooltipProps;
-    legend: BaseLegendProps;
+    noData: ChartNoDataOptions;
+    tooltip: ChartTooltipOptions;
+    legend: ChartLegendOptions;
     emphasizeBaselineAxis: boolean;
     verticalAxisTitlePlacement: "top" | "side";
   };

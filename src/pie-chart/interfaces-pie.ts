@@ -66,9 +66,9 @@ export namespace PieChartProps {
 
   export type PieDataItem = BaseTypes.PieDataItem;
 
-  export type NoDataProps = BaseTypes.BaseNoDataProps;
+  export type NoDataProps = BaseTypes.ChartNoDataOptions;
 
-  export interface TooltipProps extends BaseTypes.BaseTooltipProps {
+  export interface TooltipProps extends BaseTypes.ChartTooltipOptions {
     title?: (detail: PieChartProps.TooltipDetails) => React.ReactNode;
     body?: (detail: PieChartProps.TooltipDetails) => React.ReactNode;
     footer?: (detail: PieChartProps.TooltipDetails) => React.ReactNode;
