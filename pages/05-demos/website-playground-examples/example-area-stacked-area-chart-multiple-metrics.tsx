@@ -830,7 +830,7 @@ export function ExampleAreaChartStackedAreaChartMultipleMetrics() {
         {...chartProps}
         chartHeight={379}
         ariaLabel="Stacked area chart, multiple metrics"
-        plotOptions={{ series: { stacking: "normal" } }}
+        stacked={true}
         series={isEmpty ? [] : series}
         tooltip={{
           ...chartProps.tooltip,

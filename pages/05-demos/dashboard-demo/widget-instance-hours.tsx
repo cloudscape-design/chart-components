@@ -60,7 +60,7 @@ export function WidgetInstanceHours() {
       fitHeight={true}
       chartMinHeight={200}
       series={isEmpty ? [] : series}
-      plotOptions={{ series: { stacking: "normal" } }}
+      stacked={true}
       xAxis={{
         title: "Date",
         type: "category",

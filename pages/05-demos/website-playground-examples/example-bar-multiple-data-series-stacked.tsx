@@ -46,7 +46,7 @@ export function ExampleBarChartMultipleDataSeriesStacked() {
         {...chartProps}
         chartHeight={423}
         ariaLabel="Stacked bar chart"
-        plotOptions={{ series: { stacking: "normal" } }}
+        stacked={true}
         series={isEmpty ? [] : series}
         xAxis={{
           type: "category",

@@ -53,7 +53,7 @@ export function ExampleBarChartMultipleDataSeriesStackedHorizontal() {
         chartHeight={423}
         inverted={true}
         ariaLabel="Stacked, horizontal bar chart"
-        plotOptions={{ series: { stacking: "normal" } }}
+        stacked={true}
         series={isEmpty ? [] : series}
         tooltip={{
           ...chartProps.tooltip,

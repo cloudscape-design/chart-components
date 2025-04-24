@@ -75,7 +75,7 @@ export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: bo
                     <ChartSeriesFilter
                       items={legendItems}
                       selectedItems={visibleSegments}
-                      onChange={(visibleSegments) => setVisibleSegments([...visibleSegments])}
+                      onChange={({ detail }) => setVisibleSegments([...detail.selectedItems])}
                     />
                   }
                   additionalFilters={

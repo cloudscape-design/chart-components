@@ -12,18 +12,9 @@ export interface CartesianChartProps extends BaseTypes.BaseChartProps {
   inverted?: boolean;
 
   /**
-   * Chart plot options.
-   * This property corresponds to [plotOptions](https://api.highcharts.com/highcharts/plotOptions).
-   *
-   * Supported settings:
-   * * `series` - Series options that apply to all series at once.
-   * * * `stacking` (optional, 'normal') - Specifies series stacking behavior. Use it for stacked columns and areas.
+   * Specifies series stacking behavior. Use it for column- or area- series.
    */
-  plotOptions?: {
-    series?: {
-      stacking?: "normal";
-    };
-  };
+  stacked?: boolean;
 
   /**
    * Chart series and data.
@@ -96,6 +87,11 @@ export interface CartesianChartProps extends BaseTypes.BaseChartProps {
    * * `valueDecimals` (optional, number) - The number of decimal digits the axis values have, defaults to 2.
    */
   yAxis?: CartesianChartProps.AxisProps;
+
+  /**
+   * Defines placement of the vertical axis (can be either Y or X depending on `inverted`).
+   */
+  verticalAxisTitlePlacement?: "top" | "side";
 
   /**
    * List of series IDs to be visible. When unset, all series are visible by default, but can be hidden by clicking on the
