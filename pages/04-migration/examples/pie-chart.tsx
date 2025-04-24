@@ -9,8 +9,7 @@ import OldPieChart, { PieChartProps as OldPieChartProps } from "@cloudscape-desi
 import Popover from "@cloudscape-design/components/popover";
 import Select from "@cloudscape-design/components/select";
 
-import { ChartSeriesFilter, PieChart, PieChartProps } from "../../../lib/components";
-import { HeaderFilterLayout } from "../../common/layout";
+import { PieChart, PieChartProps } from "../../../lib/components";
 import { usePageSettings } from "../../common/page-settings";
 
 const seriesNew: PieChartProps.Series = {
@@ -69,21 +68,11 @@ export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: bo
       header={
         headerFilter
           ? {
-              render: ({ legendItems }) => (
-                <HeaderFilterLayout
-                  defaultFilter={
-                    <ChartSeriesFilter
-                      items={legendItems}
-                      selectedItems={visibleSegments}
-                      onChange={({ detail }) => setVisibleSegments([...detail.selectedItems])}
-                    />
-                  }
-                  additionalFilters={
-                    <FormField label="Additional filter">
-                      <Select options={[]} selectedOption={null} disabled={true} placeholder="Filter time range" />
-                    </FormField>
-                  }
-                />
+              seriesFilter: true,
+              additionalFilters: (
+                <FormField label="Additional filter">
+                  <Select options={[]} selectedOption={null} disabled={true} placeholder="Filter time range" />
+                </FormField>
               ),
             }
           : undefined

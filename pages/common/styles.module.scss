@@ -47,9 +47,3 @@
 }
 
 /* stylelint-enable */
-
-.has-default-filter {
-  & > :first-child {
-    flex: 280px 0 1;
-  }
-}
