@@ -56,3 +56,11 @@ export function getSeriesMarkerType(series: Highcharts.Series): ChartSeriesMarke
       return "large-circle";
   }
 }
+
+// We reset color counter so that when a series is removed and then added back - it will
+// have the same color as before, not the next one in the color sequence.
+export function resetColorCounter(chart: Highcharts.Chart, seriesCount: number) {
+  if ("colorCounter" in chart && typeof chart.colorCounter === "number") {
+    chart.colorCounter = seriesCount;
+  }
+}

@@ -3,6 +3,10 @@
 
 import { NonCancelableEventHandler } from "../internal/events";
 
+// All charts take `highcharts` instance, that can be served statically or dynamically.
+// Although it has to be of type Highcharts, the TS type we use is `null | object`, so
+// that it is ignored by the documenter.
+
 /**
  * This interface includes common public chart properties, applicable for all chart types.
  */

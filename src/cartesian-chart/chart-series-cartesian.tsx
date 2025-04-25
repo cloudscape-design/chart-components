@@ -68,15 +68,7 @@ export const useCartesianSeries = (
 
   // This makes the baseline better prominent in the plot.
   if (emphasizeBaselineAxis) {
-    yPlotLines.push({ value: 0, ...Styles.chatPlotBaselineOptions, zIndex: 5 });
-  }
-
-  // For scatter series type we enable markers by default, unless explicit markers settings provided.
-  // Without markers, the scatter series are not visible by default.
-  for (const s of series) {
-    if (s.type === "scatter" && !s.marker) {
-      // s.marker = { enabled: true };
-    }
+    yPlotLines.push({ value: 0, ...Styles.chatPlotBaselineOptions });
   }
 
   return { series, xPlotLines, yPlotLines, onChartRender };
