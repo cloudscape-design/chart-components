@@ -3,8 +3,8 @@
 
 import { InternalChartFilter } from "@cloudscape-design/components/internal/do-not-use/chart-filter";
 
-import { ChartLegendItem } from "../core/interfaces-base.js";
-import { fireNonCancelableEvent, NonCancelableEventHandler } from "../internal/events";
+import { ChartLegendItem } from "../../../core/interfaces-base.js";
+import { fireNonCancelableEvent, NonCancelableEventHandler } from "../../../internal/events";
 
 interface ChartSeriesFilterProps {
   items: readonly ChartLegendItem[];

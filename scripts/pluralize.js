@@ -4,7 +4,6 @@
 const pluralizationMap = {
   CartesianChart: "CartesianCharts",
   PieChart: "PieCharts",
-  ChartSeriesFilter: "ChartSeriesFilters",
 };
 
 function pluralizeComponentName(componentName) {

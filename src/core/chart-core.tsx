@@ -9,8 +9,8 @@ import HighchartsReact from "highcharts-react-official";
 import { isDevelopment } from "@cloudscape-design/component-toolkit/internal";
 import Spinner from "@cloudscape-design/components/spinner";
 
-import ChartSeriesFilter from "../chart-series-filter";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
+import ChartSeriesFilter from "../internal/components/chart-series-filter";
 import { ChartSeriesMarker } from "../internal/components/series-marker";
 import { useSelector } from "../internal/utils/async-store";
 import { castArray } from "../internal/utils/utils";

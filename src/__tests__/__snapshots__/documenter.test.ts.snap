@@ -447,46 +447,6 @@ applies to the tooltip header.
 }
 `;
 
-exports[`definition for chart-series-filter matches the snapshot > chart-series-filter 1`] = `
-{
-  "dashCaseName": "chart-series-filter",
-  "events": [
-    {
-      "cancelable": false,
-      "detailInlineType": {
-        "name": "{ selectedItems: ReadonlyArray<string>; }",
-        "properties": [
-          {
-            "name": "selectedItems",
-            "optional": false,
-            "type": "ReadonlyArray<string>",
-          },
-        ],
-        "type": "object",
-      },
-      "detailType": "{ selectedItems: ReadonlyArray<string>; }",
-      "name": "onChange",
-    },
-  ],
-  "functions": [],
-  "name": "ChartSeriesFilter",
-  "properties": [
-    {
-      "name": "items",
-      "optional": false,
-      "type": "ReadonlyArray<ChartLegendItem>",
-    },
-    {
-      "name": "selectedItems",
-      "optional": false,
-      "type": "ReadonlyArray<string>",
-    },
-  ],
-  "regions": [],
-  "releaseStatus": "stable",
-}
-`;
-
 exports[`definition for pie-chart matches the snapshot > pie-chart 1`] = `
 {
   "dashCaseName": "pie-chart",
