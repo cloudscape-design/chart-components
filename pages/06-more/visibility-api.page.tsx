@@ -8,7 +8,7 @@ import Link from "@cloudscape-design/components/link";
 
 import { CartesianChart, CartesianChartProps, PieChart, PieChartProps } from "../../lib/components";
 import { moneyFormatter, numberFormatter } from "../common/formatters";
-import { PageSettings, PageSettingsForm, SeriesFilter, usePageSettings } from "../common/page-settings";
+import { PageSettings, PageSettingsForm, SeriesFilter, useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
 
 interface ThisPageSettings extends PageSettings {
@@ -55,7 +55,7 @@ const pieChartSeries: PieChartProps.SeriesOptions = {
 const defaultVisibleItems = "Costs,Costs last year,Peak cost";
 
 export default function () {
-  const { settings, setSettings } = usePageSettings<ThisPageSettings>();
+  const { settings, setSettings } = useChartSettings<ThisPageSettings>();
   const visibleSeries = (settings.visibleItems ?? defaultVisibleItems).split(",");
   return (
     <Page
@@ -90,11 +90,11 @@ export default function () {
 }
 
 function ExampleMixedChart() {
-  const { settings, setSettings, chartProps } = usePageSettings<ThisPageSettings>();
+  const { settings, setSettings, chartProps } = useChartSettings<ThisPageSettings>();
   const visibleSeries = (settings.visibleItems ?? defaultVisibleItems).split(",");
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       chartHeight={379}
       ariaLabel="Mixed bar chart"
       series={mixedChartSeries}
@@ -140,11 +140,11 @@ function ExampleMixedChart() {
 }
 
 function ExamplePieChart() {
-  const { settings, setSettings, chartProps } = usePageSettings<ThisPageSettings>();
+  const { settings, setSettings, chartProps } = useChartSettings<ThisPageSettings>();
   const visibleSegments = (settings.visibleItems ?? defaultVisibleItems).split(",");
   return (
     <PieChart
-      {...chartProps}
+      {...chartProps.pie}
       chartHeight={500}
       ariaLabel="Pie chart"
       series={pieChartSeries}

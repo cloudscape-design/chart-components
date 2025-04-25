@@ -56,11 +56,6 @@ export interface BaseChartProps {
   colors?: string[];
 
   /**
-   * Chart tooltip props.
-   */
-  tooltip?: ChartTooltipOptions;
-
-  /**
    * Chart legend props.
    */
   legend?: ChartLegendOptions;

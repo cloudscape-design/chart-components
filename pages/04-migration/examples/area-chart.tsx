@@ -5,7 +5,7 @@ import AreaChart, { AreaChartProps } from "@cloudscape-design/components/area-ch
 
 import { CartesianChart, CartesianChartProps } from "../../../lib/components";
 import { dateFormatter, numberFormatter } from "../../common/formatters";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 
 const domain = [
   new Date(1600984800000),
@@ -104,10 +104,10 @@ const seriesOld: AreaChartProps<Date>["series"] = [
 ];
 
 export function ComponentNew() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       fitHeight={true}
       chartMinHeight={200}
       ariaLabel="Area chart"
@@ -141,7 +141,7 @@ export function ComponentNew() {
 }
 
 export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <AreaChart
       fitHeight={true}
@@ -158,7 +158,7 @@ export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
       xScaleType="time"
       xTitle="Time (UTC)"
       yTitle="Bytes transferred"
-      noMatch={chartProps.noData.noMatch}
+      noMatch={chartProps.cartesian.noData!.noMatch}
     />
   );
 }

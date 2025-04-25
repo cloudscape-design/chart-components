@@ -5,7 +5,7 @@ import Link from "@cloudscape-design/components/link";
 
 import { CartesianChart, CartesianChartProps } from "../../../lib/components";
 import { dateFormatter, numberFormatter } from "../../common/formatters";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 import { PageSection } from "../../common/templates";
 
 const series: CartesianChartProps.SeriesOptions[] = [
@@ -90,7 +90,7 @@ const series: CartesianChartProps.SeriesOptions[] = [
 ];
 
 export function ExampleAreaChartStackedAreaChart() {
-  const { chartProps, isEmpty } = usePageSettings();
+  const { chartProps, isEmpty } = useChartSettings();
   return (
     <PageSection
       title="Area chart: Stacked area chart"
@@ -101,13 +101,13 @@ export function ExampleAreaChartStackedAreaChart() {
       }
     >
       <CartesianChart
-        {...chartProps}
+        {...chartProps.cartesian}
         chartHeight={379}
         ariaLabel="Stacked area chart"
         stacked={true}
         series={isEmpty ? [] : series}
         tooltip={{
-          ...chartProps.tooltip,
+          ...chartProps.cartesian.tooltip,
           footer: ({ x }) => {
             const total = findY(x as number, series[0])! + findY(x as number, series[1])!;
             return (

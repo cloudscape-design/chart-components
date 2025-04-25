@@ -55,7 +55,7 @@ export const InternalCartesianChart = forwardRef(
         propertyName: "visibleSeries",
         changeHandlerName: "onToggleVisibleSeries",
       },
-      (value, handler) => fireNonCancelableEvent(handler, { visibleSeries: value ?? [] }),
+      (value, handler) => fireNonCancelableEvent(handler, { visibleSeries: value ? [...value] : [] }),
     );
     const allSeriesIds = props.options.series.map((s) => getOptionsId(s));
     const visibleSeries = visibleSeriesState ?? allSeriesIds;
@@ -64,11 +64,7 @@ export const InternalCartesianChart = forwardRef(
     const { series, xPlotLines, yPlotLines, onChartRender } = useCartesianSeries(getAPI, { ...props, visibleSeries });
 
     useImperativeHandle(ref, () => ({
-      // The clear filter API allows to programmatically make all series visible, even when the controllable
-      // visibility API is not used. This can be used for a custom clear-filter action of the no-match state or elsewhere.
-      clearFilter() {
-        setVisibleSeries(allSeriesIds);
-      },
+      setVisibleSeries: setVisibleSeries,
     }));
 
     // The below code transforms Cloudscape-extended series into Highcharts series and plot lines.

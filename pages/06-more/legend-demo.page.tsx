@@ -4,7 +4,7 @@
 import { CartesianChartProps } from "../../lib/components";
 import { InternalCartesianChart } from "../../lib/components/cartesian-chart/chart-cartesian-internal";
 import { dateFormatter } from "../common/formatters";
-import { PageSettingsForm, usePageSettings } from "../common/page-settings";
+import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
 
@@ -99,10 +99,10 @@ for (let index = 0; index < 20; index++) {
 }
 
 function Component() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <InternalCartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       options={{
         chart: { height: 400 },
         lang: { accessibility: { chartContainerLabel: "Line chart" } },

@@ -4,7 +4,7 @@
 import OldPieChart, { PieChartProps as OldPieChartProps } from "@cloudscape-design/components/pie-chart";
 
 import { PieChart, PieChartProps } from "../../../lib/components";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 
 const seriesNew: PieChartProps.SeriesOptions = {
   name: "Resource count",
@@ -38,11 +38,11 @@ interface ComponentProps {
 }
 
 export function ComponentNew({ statusType, series, hideSeries }: ComponentProps) {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <PieChart
-      {...chartProps}
-      noData={{ ...chartProps.noData, statusType }}
+      {...chartProps.pie}
+      noData={{ ...chartProps.pie.noData, statusType }}
       fitHeight={true}
       chartMinHeight={150}
       ariaLabel="Pie chart"
@@ -53,7 +53,7 @@ export function ComponentNew({ statusType, series, hideSeries }: ComponentProps)
 }
 
 export function ComponentOld({ statusType, series, hideSeries }: ComponentProps) {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <OldPieChart
       fitHeight={true}
@@ -62,7 +62,7 @@ export function ComponentOld({ statusType, series, hideSeries }: ComponentProps)
       data={{ none: [], empty: dataOldEmpty, data: dataOld }[series]}
       visibleSegments={hideSeries ? [] : undefined}
       ariaLabel="Pie chart"
-      {...chartProps.noData}
+      {...chartProps.pie.noData}
       onRecoveryClick={() => {}}
       statusType={statusType}
     />

@@ -10,7 +10,7 @@ import Popover from "@cloudscape-design/components/popover";
 import Select from "@cloudscape-design/components/select";
 
 import { PieChart, PieChartProps } from "../../../lib/components";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 
 const seriesNew: PieChartProps.SeriesOptions = {
   name: "Resource count",
@@ -55,11 +55,11 @@ const dataOld: OldPieChartProps["data"] = [
 ];
 
 export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: boolean; legendFilter?: boolean }) {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   const [visibleSegments, setVisibleSegments] = useState(seriesNew.data.map((i) => i.name));
   return (
     <PieChart
-      {...chartProps}
+      {...chartProps.pie}
       fitHeight={true}
       chartMinHeight={200}
       ariaLabel="Pie chart"
@@ -78,7 +78,7 @@ export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: bo
           : undefined
       }
       legend={{
-        ...chartProps.legend,
+        ...chartProps.pie.legend,
         actions: {
           render: legendFilter
             ? () => (
@@ -96,7 +96,7 @@ export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: bo
 }
 
 export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <OldPieChart
       fitHeight={true}
@@ -111,7 +111,7 @@ export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
       size="small"
       data={dataOld}
       ariaLabel="Pie chart"
-      noMatch={chartProps.noData.noMatch}
+      noMatch={chartProps.pie.noData!.noMatch}
     />
   );
 }

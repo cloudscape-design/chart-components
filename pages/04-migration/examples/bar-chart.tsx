@@ -5,7 +5,7 @@ import BarChart, { BarChartProps } from "@cloudscape-design/components/bar-chart
 
 import { CartesianChart, CartesianChartProps } from "../../../lib/components";
 import { dateFormatter } from "../../common/formatters";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 
 const domain = [
   new Date(1601071200000),
@@ -55,10 +55,10 @@ export function ComponentNew({
   stacked?: boolean;
   inverted?: boolean;
 }) {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       fitHeight={true}
       chartMinHeight={100}
       ariaLabel="Bar chart"
@@ -85,7 +85,7 @@ export function ComponentOld({
   stacked?: boolean;
   inverted?: boolean;
 }) {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <BarChart
       fitHeight={true}
@@ -101,7 +101,7 @@ export function ComponentOld({
       horizontalBars={inverted}
       xTitle="Time (UTC)"
       yTitle="Error count"
-      noMatch={chartProps.noData.noMatch}
+      noMatch={chartProps.cartesian.noData!.noMatch}
     />
   );
 }

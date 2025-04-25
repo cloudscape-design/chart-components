@@ -53,7 +53,7 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
       propertyName: "visibleSegments",
       changeHandlerName: "onChangeVisibleSegments",
     },
-    (value, handler) => fireNonCancelableEvent(handler, { visibleSegments: value ?? [] }),
+    (value, handler) => fireNonCancelableEvent(handler, { visibleSegments: value ? [...value] : [] }),
   );
   const allSegmentIds = props.options.series.flatMap((s) => {
     const itemIds: string[] = [];
@@ -81,11 +81,7 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
   }
 
   useImperativeHandle(ref, () => ({
-    // The clear filter API allows to programmatically make all segments visible, even when the controllable
-    // visibility API is not used. This can be used for a custom clear-filter action of the no-match state or elsewhere.
-    clearFilter() {
-      setVisibleSegments(allSegmentIds);
-    },
+    setVisibleSegments: setVisibleSegments,
   }));
 
   const innerValueRef = useRef<null | Highcharts.SVGElement>(null);

@@ -16,7 +16,7 @@ import { CoreChartAPI } from "../../lib/components/core/interfaces-core";
 import { getSeriesMarkerType } from "../../lib/components/core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../lib/components/internal/components/series-details";
 import { dateFormatter, numberFormatter } from "../common/formatters";
-import { PageSettings, PageSettingsForm, usePageSettings } from "../common/page-settings";
+import { PageSettings, PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
 
@@ -116,7 +116,7 @@ export default function () {
   const {
     settings: { keepZoomingFrame = false },
     setSettings,
-  } = usePageSettings<ThisPageSettings>();
+  } = useChartSettings<ThisPageSettings>();
   return (
     <Page
       title="Simple zooming demo"
@@ -155,7 +155,7 @@ function Charts() {
   const {
     settings: { keepZoomingFrame = false },
     chartProps,
-  } = usePageSettings<ThisPageSettings>({ more: true });
+  } = useChartSettings<ThisPageSettings>({ more: true });
   const scatterChartRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
   const getScatterChart = () => scatterChartRef.current!;
   const navigatorChartRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
@@ -202,7 +202,7 @@ function Charts() {
         callback={(chart) => {
           scatterChartRef.current = chart;
         }}
-        {...omit(chartProps, "ref")}
+        {...omit(chartProps.cartesian, "ref")}
         options={{
           chart: {
             height: 379,
@@ -271,7 +271,7 @@ function Charts() {
         callback={(chart) => {
           navigatorChartRef.current = chart;
         }}
-        {...omit(chartProps, "ref")}
+        {...omit(chartProps.cartesian, "ref")}
         options={{
           chart: {
             height: 150,
