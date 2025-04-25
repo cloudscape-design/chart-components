@@ -35,9 +35,7 @@
     "build:src:environment": "node scripts/environment",
     "build:themeable": "node scripts/themeable-source",
     "build:pages:vite": "vite build",
-    "build:pages:tsc": "tsc -p pages/tsconfig.json",
-    "postinstall": "npm run postinstall:components",
-    "postinstall:components": "node ./scripts/install-peer-dependency.js components:charts-design-tokens"
+    "build:pages:tsc": "tsc -p pages/tsconfig.json"
   },
   "exports": {
     ".": "./index.js",
