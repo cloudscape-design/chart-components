@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PieChart, PieChartProps } from "../../lib/components";
-import { PageSettingsForm, usePageSettings } from "../common/page-settings";
+import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { FitSizeDemo, Page, PageSection } from "../common/templates";
 
 const pieSeries: PieChartProps.SeriesOptions = {
@@ -29,9 +29,9 @@ const pieSeries: PieChartProps.SeriesOptions = {
 };
 
 export default function () {
-  const { settings, chartProps } = usePageSettings();
+  const { settings, chartProps } = useChartSettings();
   const commonChartProps: PieChartProps = {
-    ...chartProps,
+    ...chartProps.pie,
     series: pieSeries,
     segmentOptions: {
       description: ({ segmentValue, totalValue }) =>

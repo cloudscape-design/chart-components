@@ -5,7 +5,7 @@ import Link from "@cloudscape-design/components/link";
 
 import { CartesianChart, CartesianChartProps } from "../../../lib/components";
 import { moneyFormatter, numberFormatter } from "../../common/formatters";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 import { PageSection } from "../../common/templates";
 
 const series: CartesianChartProps.SeriesOptions[] = [
@@ -32,7 +32,7 @@ const series: CartesianChartProps.SeriesOptions[] = [
 ];
 
 export function ExampleMixedLineAndBarChart() {
-  const { chartProps, isEmpty } = usePageSettings();
+  const { chartProps, isEmpty } = useChartSettings();
   return (
     <PageSection
       title="Mixed line and bar chart: Mixed bar chart"
@@ -43,12 +43,12 @@ export function ExampleMixedLineAndBarChart() {
       }
     >
       <CartesianChart
-        {...chartProps}
+        {...chartProps.cartesian}
         chartHeight={379}
         ariaLabel="Mixed bar chart"
         series={isEmpty ? [] : series}
         tooltip={{
-          ...chartProps.tooltip,
+          ...chartProps.cartesian.tooltip,
           series: (detail) => {
             switch (detail.type) {
               case "point":

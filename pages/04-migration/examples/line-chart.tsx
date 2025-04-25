@@ -12,7 +12,7 @@ import Select from "@cloudscape-design/components/select";
 import { CartesianChartProps } from "../../../lib/components";
 import { InternalCartesianChart } from "../../../lib/components/cartesian-chart/chart-cartesian-internal";
 import { dateFormatter } from "../../common/formatters";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 
 const domain = [
   new Date(1600984800000),
@@ -97,11 +97,11 @@ const seriesOld: LineChartProps<Date>["series"] = [
 ];
 
 export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: boolean; legendFilter?: boolean }) {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   const [visibleSeries, setVisibleSeries] = useState(seriesNew.map((s) => s.name));
   return (
     <InternalCartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       fitHeight={true}
       chartMinHeight={200}
       options={{
@@ -120,7 +120,7 @@ export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: bo
         plotOptions: { series: { marker: { enabled: false } } },
       }}
       legend={{
-        ...chartProps.legend,
+        ...chartProps.cartesian.legend,
         actions: {
           render: legendFilter
             ? () => (
@@ -151,7 +151,7 @@ export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: bo
 }
 
 export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <LineChart
       fitHeight={true}
@@ -174,7 +174,7 @@ export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
       xScaleType="time"
       xTitle="Time (UTC)"
       yTitle="Bytes transferred"
-      noMatch={chartProps.noData.noMatch}
+      noMatch={chartProps.cartesian.noData!.noMatch}
     />
   );
 }

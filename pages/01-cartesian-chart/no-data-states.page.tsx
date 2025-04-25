@@ -9,14 +9,14 @@ import StatusIndicator from "@cloudscape-design/components/status-indicator";
 
 import { CartesianChart, CartesianChartProps } from "../../lib/components";
 import { percentageFormatter } from "../common/formatters";
-import { PageSettingsForm, usePageSettings } from "../common/page-settings";
+import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { FramedDemo, Page, PageSection } from "../common/templates";
 
 export default function () {
-  const { settings, chartProps } = usePageSettings();
+  const { settings, chartProps } = useChartSettings();
 
   const defaultProps: CartesianChartProps = {
-    ...chartProps,
+    ...chartProps.cartesian,
     series: [],
     chartHeight: settings.height,
     xAxis: { title: "X axis", min: 0, max: 1000 },

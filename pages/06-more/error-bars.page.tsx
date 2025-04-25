@@ -5,7 +5,7 @@ import Link from "@cloudscape-design/components/link";
 
 import { CartesianChart, CartesianChartProps } from "../../lib/components";
 import { moneyFormatter, numberFormatter } from "../common/formatters";
-import { usePageSettings } from "../common/page-settings";
+import { useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
 
 function errorRange(value: number, delta: number) {
@@ -36,12 +36,12 @@ const series: CartesianChartProps.SeriesOptions[] = [
 ];
 
 export default function () {
-  const { chartProps } = usePageSettings({ more: true });
+  const { chartProps } = useChartSettings({ more: true });
   return (
     <Page title="Error bars" subtitle="This pages demonstrates the use of error bars for columns and line series.">
       <PageSection title="Mixed bar chart with error bars">
         <CartesianChart
-          {...chartProps}
+          {...chartProps.cartesian}
           chartHeight={379}
           ariaLabel="Mixed bar chart"
           series={series}

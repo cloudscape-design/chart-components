@@ -6,7 +6,7 @@ import ColumnLayout from "@cloudscape-design/components/column-layout";
 import Container from "@cloudscape-design/components/container";
 import Header from "@cloudscape-design/components/header";
 
-import { PageSettingsForm, usePageSettings } from "../common/page-settings";
+import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
 import { WidgetInstanceHours } from "./dashboard-demo/widget-instance-hours";
 import { NetworkTrafficWidget } from "./dashboard-demo/widget-network-traffic";
@@ -14,7 +14,7 @@ import { WidgetOperationalMetrics } from "./dashboard-demo/widget-operational-me
 import { ZoneStatusWidget } from "./dashboard-demo/widget-zone-status";
 
 export default function () {
-  const { settings } = usePageSettings();
+  const { settings } = useChartSettings();
   return (
     <Page
       title="Dashboard demo"

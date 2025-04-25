@@ -6,7 +6,7 @@ import Link from "@cloudscape-design/components/link";
 
 import { CartesianChart, CartesianChartProps } from "../../../lib/components";
 import { percentageFormatter } from "../../common/formatters";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 import { PageSection } from "../../common/templates";
 
 const series: CartesianChartProps.SeriesOptions[] = [
@@ -38,7 +38,7 @@ const series: CartesianChartProps.SeriesOptions[] = [
 ];
 
 export function ExampleBarChartMultipleDataSeriesStackedHorizontal() {
-  const { chartProps, isEmpty } = usePageSettings();
+  const { chartProps, isEmpty } = useChartSettings();
   return (
     <PageSection
       title="Bar chart: Multiple data series, stacked, horizontal"
@@ -49,14 +49,14 @@ export function ExampleBarChartMultipleDataSeriesStackedHorizontal() {
       }
     >
       <CartesianChart
-        {...chartProps}
+        {...chartProps.cartesian}
         chartHeight={423}
         inverted={true}
         ariaLabel="Stacked, horizontal bar chart"
         stacked={true}
         series={isEmpty ? [] : series}
         tooltip={{
-          ...chartProps.tooltip,
+          ...chartProps.cartesian.tooltip,
           series: (detail) => {
             switch (detail.type) {
               case "point": {

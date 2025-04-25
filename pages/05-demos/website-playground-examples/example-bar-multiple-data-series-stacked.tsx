@@ -5,7 +5,7 @@ import Link from "@cloudscape-design/components/link";
 
 import { CartesianChart, CartesianChartProps } from "../../../lib/components";
 import { dateFormatter } from "../../common/formatters";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 import { PageSection } from "../../common/templates";
 
 const series: CartesianChartProps.SeriesOptions[] = [
@@ -32,7 +32,7 @@ const series: CartesianChartProps.SeriesOptions[] = [
 ];
 
 export function ExampleBarChartMultipleDataSeriesStacked() {
-  const { chartProps, isEmpty } = usePageSettings();
+  const { chartProps, isEmpty } = useChartSettings();
   return (
     <PageSection
       title="Bar chart: Multiple data series, stacked"
@@ -43,7 +43,7 @@ export function ExampleBarChartMultipleDataSeriesStacked() {
       }
     >
       <CartesianChart
-        {...chartProps}
+        {...chartProps.cartesian}
         chartHeight={423}
         ariaLabel="Stacked bar chart"
         stacked={true}

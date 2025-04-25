@@ -3,7 +3,7 @@
 
 import { CartesianChart, CartesianChartProps } from "../../lib/components";
 import { dateFormatter, numberFormatter, priceFormatter } from "../common/formatters";
-import { PageSettings, SeriesSelector, usePageSettings } from "../common/page-settings";
+import { PageSettings, SeriesSelector, useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
 
 interface ThisPageSettings extends PageSettings {
@@ -50,7 +50,7 @@ const seriesOptions = allSeries.map((s) => s.name);
 const defaultSelectedSeries = "column-1";
 
 export default function () {
-  const { settings, setSettings } = usePageSettings<ThisPageSettings>();
+  const { settings, setSettings } = useChartSettings<ThisPageSettings>();
   const selectedSeries = (settings.selectedSeries ?? defaultSelectedSeries).split(",");
   return (
     <Page
@@ -73,12 +73,12 @@ export default function () {
 }
 
 function ExampleMixedChart() {
-  const { settings, chartProps } = usePageSettings<ThisPageSettings>();
+  const { settings, chartProps } = useChartSettings<ThisPageSettings>();
   const selectedSeries = (settings.selectedSeries ?? defaultSelectedSeries).split(",");
   const series = getSelected(allSeries, selectedSeries);
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       chartHeight={423}
       inverted={series.some((s) => s.name.startsWith("bar"))}
       ariaLabel="Mixed series chart"

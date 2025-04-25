@@ -5,7 +5,7 @@ import LineChart, { LineChartProps } from "@cloudscape-design/components/line-ch
 
 import { CartesianChart, CartesianChartProps } from "../../../lib/components";
 import { dateFormatter } from "../../common/formatters";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 
 const domain = [
   new Date(1601071200000),
@@ -44,11 +44,11 @@ interface ComponentProps {
 }
 
 export function ComponentNew({ statusType, series, hideSeries }: ComponentProps) {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
-      noData={{ ...chartProps.noData, statusType }}
+      {...chartProps.cartesian}
+      noData={{ ...chartProps.cartesian.noData, statusType }}
       fitHeight={true}
       chartMinHeight={150}
       ariaLabel="Line chart"
@@ -68,7 +68,7 @@ export function ComponentNew({ statusType, series, hideSeries }: ComponentProps)
 }
 
 export function ComponentOld({ statusType, series, hideSeries }: ComponentProps) {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <LineChart
       fitHeight={true}
@@ -85,7 +85,7 @@ export function ComponentOld({ statusType, series, hideSeries }: ComponentProps)
       xScaleType="time"
       xTitle="Time (UTC)"
       yTitle="Error count"
-      {...chartProps.noData}
+      {...chartProps.cartesian.noData}
       onRecoveryClick={() => {}}
       statusType={statusType}
     />

@@ -17,7 +17,7 @@ export const useCartesianSeries = (
     emphasizeBaselineAxis,
   }: {
     options: InternalCartesianChartOptions;
-    visibleSeries: string[];
+    visibleSeries: readonly string[];
     emphasizeBaselineAxis?: boolean;
   },
 ) => {

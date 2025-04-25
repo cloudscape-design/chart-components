@@ -101,7 +101,7 @@ export interface CartesianChartProps extends BaseTypes.BaseChartProps {
    * legend. When a series does not have an ID, a series name is used instead.
    * When the property is provided, use `onToggleVisibleSeries` to update it when the legend series filtering is used.
    */
-  visibleSeries?: string[];
+  visibleSeries?: readonly string[];
 
   /**
    * A callback, executed when series visibility is toggled by clicking on legend items.
@@ -116,9 +116,9 @@ export interface CartesianChartProps extends BaseTypes.BaseChartProps {
 
 export namespace CartesianChartProps {
   export interface Ref {
-    // Makes all series visible when series visibility is not controlled.
-    // This is useful for implementing "Clear filter" action of the no-match state.
-    clearFilter(): void;
+    // Controls series visibility that works with both controlled and uncontrolled visibility mode.
+    // This is useful to clear selected series from no-match state.
+    setVisibleSeries(visibleSeries: readonly string[]): void;
   }
 
   export type SeriesOptions =
