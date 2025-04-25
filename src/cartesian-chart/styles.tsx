@@ -21,7 +21,7 @@ export const thresholdPlotLineOptions: Partial<Highcharts.XAxisPlotLinesOptions 
 export const chatPlotBaselineOptions: Partial<Highcharts.XAxisPlotLinesOptions> = {
   color: colorChartsLineTick,
   width: 2,
-  zIndex: 2,
+  zIndex: 3,
 };
 
 export const colorChartCursor = colorChartsLineTick;

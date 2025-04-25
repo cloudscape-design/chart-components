@@ -23,6 +23,7 @@ import { useChartVerticalAxisTitle } from "./chart-vertical-axis-title";
 import { ChartFooterOptions, ChartHeaderOptions } from "./interfaces-base";
 import { CloudscapeHighchartsProps, CoreChartAPI } from "./interfaces-core";
 import * as Styles from "./styles";
+import { resetColorCounter } from "./utils";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -32,7 +33,6 @@ import testClasses from "./test-classes/styles.css.js";
  * with Cloudscape props to define custom tooltip, no-data, formatters, items visibility, and more.
  */
 export function CloudscapeHighcharts({
-  highcharts,
   options,
   fitHeight,
   chartMinHeight,
@@ -52,6 +52,7 @@ export function CloudscapeHighcharts({
   filter,
   ...rest
 }: CloudscapeHighchartsProps) {
+  const highcharts = rest.highcharts as null | typeof Highcharts;
   // The apiRef is expected to be available after the initial render.
   // The instance is used to get internal series and points detail, and run APIs such as series.setVisible() to
   // synchronize custom React state with Highcharts state.
@@ -137,6 +138,9 @@ export function CloudscapeHighcharts({
               events: {
                 ...options.chart?.events,
                 render(event) {
+                  if (highcharts && event.target instanceof highcharts.Chart) {
+                    resetColorCounter(event.target, options.series?.length ?? 0);
+                  }
                   if (noDataProps) {
                     noData.options.chartRender.call(this, event);
                   }
@@ -295,6 +299,24 @@ export function CloudscapeHighcharts({
       {noDataProps && <ChartNoData {...noData.props} i18nStrings={i18nStrings} />}
     </div>
   );
+}
+
+// The core API gives access to core and Highcharts methods.
+export function useCoreAPI() {
+  const apiRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
+  const getAPI = useCallback(() => {
+    /* c8 ignore next */
+    if (!apiRef.current) {
+      // The API is expected to be present for all user interactions (but not during the initial render).
+      // The error ensures visibility for when it is misused, and allows to avoid null-checks in the downstream code.
+      throw new Error("Invariant violation: chart instance is not available.");
+    }
+    return apiRef.current;
+  }, []);
+  const callback = (chart: CoreChartAPI) => {
+    apiRef.current = chart;
+  };
+  return [callback, getAPI] as const;
 }
 
 function ChartFilter({
