@@ -38,7 +38,7 @@ const series = [
   },
 ] as const;
 
-const seriesNew: CartesianChartProps.Series[] = series.map((s) => ({ ...s, data: [...s.data] }));
+const seriesNew: CartesianChartProps.SeriesOptions[] = series.map((s) => ({ ...s, data: [...s.data] }));
 
 const seriesOld: BarChartProps<Date>["series"] = series.map((s) => ({
   title: s.name,

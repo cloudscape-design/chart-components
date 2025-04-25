@@ -3,7 +3,7 @@
 
 import { forwardRef } from "react";
 
-import { AbstractSeries } from "../core/interfaces-base";
+import { AbstractSeriesOptions } from "../core/interfaces-base";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { getAllowedProps } from "../internal/utils/utils";
 import { InternalCartesianChart } from "./chart-cartesian-internal";
@@ -11,7 +11,7 @@ import { CartesianChartProps, InternalCartesianChartOptions } from "./interfaces
 
 /**
  * CartesianChart is a public Cloudscape component. It features a custom API, which resembles the Highcharts API where appropriate,
- * and adds extra features such as additional series types (thresholds), alternative tooltip, no-data, and more.
+ * and adds extra features such as additional series types (thresholds), alternative tooltip, no-data, legend, and more.
  */
 const CartesianChart = forwardRef((props: CartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
   return (
@@ -71,11 +71,11 @@ function validateOptions(props: CartesianChartProps): InternalCartesianChartOpti
   };
 }
 
-function validateSeries(unvalidatedSeries: CartesianChartProps.Series[]): CartesianChartProps.Series[] {
-  const validatedSeries: CartesianChartProps.Series[] = [];
+function validateSeries(unvalidatedSeries: CartesianChartProps.SeriesOptions[]): CartesianChartProps.SeriesOptions[] {
+  const validatedSeries: CartesianChartProps.SeriesOptions[] = [];
 
-  function getValidatedSeries(s: CartesianChartProps.Series): null | CartesianChartProps.Series {
-    const getBaseProps = (s: AbstractSeries) => ({ id: s.id, name: s.name, color: s.color });
+  function getValidatedSeries(s: CartesianChartProps.SeriesOptions): null | CartesianChartProps.SeriesOptions {
+    const getBaseProps = (s: AbstractSeriesOptions) => ({ id: s.id, name: s.name, color: s.color });
 
     switch (s.type) {
       case "area":
@@ -111,18 +111,20 @@ function validateSeries(unvalidatedSeries: CartesianChartProps.Series[]): Cartes
   return validatedSeries;
 }
 
-function validateXAxis(axis: CartesianChartProps.XAxisProps): CartesianChartProps.XAxisProps {
+function validateXAxis(axis: CartesianChartProps.XAxisOptions): CartesianChartProps.XAxisOptions {
   return validateAxis(axis);
 }
 
-function validateYAxis(axis: CartesianChartProps.YAxisProps): CartesianChartProps.YAxisProps {
+function validateYAxis(axis: CartesianChartProps.YAxisOptions): CartesianChartProps.YAxisOptions {
   return {
     ...validateAxis(axis),
     reversedStacks: axis.reversedStacks,
   };
 }
 
-function validateAxis(axis: CartesianChartProps.AxisProps): CartesianChartProps.AxisProps {
+function validateAxis(
+  axis: CartesianChartProps.XAxisOptions | CartesianChartProps.YAxisOptions,
+): CartesianChartProps.XAxisOptions | CartesianChartProps.YAxisOptions {
   return {
     type: axis.type,
     title: axis.title,

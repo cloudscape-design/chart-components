@@ -5,7 +5,7 @@ import { CartesianChart, CartesianChartProps } from "../../lib/components";
 import { usePageSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "line-1",
     type: "line",

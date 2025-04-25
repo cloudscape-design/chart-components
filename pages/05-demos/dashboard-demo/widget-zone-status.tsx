@@ -8,7 +8,7 @@ import { PieChart, PieChartProps } from "../../../lib/components";
 import { percentageFormatter } from "../../common/formatters";
 import { usePageSettings } from "../../common/page-settings";
 
-const series: PieChartProps.Series = {
+const series: PieChartProps.SeriesOptions = {
   type: "pie",
   name: "Zone status",
   data: [

@@ -27,7 +27,7 @@ const cpuData = [
 
 const domain = cpuData.map(({ date }) => date.getTime());
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "m1.large",
     type: "column",

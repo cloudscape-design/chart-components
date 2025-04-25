@@ -8,7 +8,7 @@ import { dateFormatter, numberFormatter, percentageFormatter } from "../../commo
 import { usePageSettings } from "../../common/page-settings";
 import { PageSection } from "../../common/templates";
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "CPU1",
     type: "area",
@@ -870,7 +870,7 @@ export function ExampleAreaChartStackedAreaChartMultipleMetrics() {
   );
 }
 
-function findY(x: number, series: CartesianChartProps.Series) {
+function findY(x: number, series: CartesianChartProps.SeriesOptions) {
   if (!("data" in series)) {
     return null;
   }

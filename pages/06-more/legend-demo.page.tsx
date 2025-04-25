@@ -81,7 +81,7 @@ const site2Data = [
   179130, 185951, 144091, 152975, 157299,
 ].map((v) => v * 0.9);
 
-const series: CartesianChartProps.Series[] = [];
+const series: CartesianChartProps.SeriesOptions[] = [];
 for (let index = 0; index < 20; index++) {
   const data = index < 10 ? site1Data : site2Data;
   series.push({

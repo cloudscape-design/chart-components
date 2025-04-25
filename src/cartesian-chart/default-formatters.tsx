@@ -3,7 +3,10 @@
 
 import { CartesianChartProps } from "./interfaces-cartesian";
 
-export function getDefaultFormatter(axis: CartesianChartProps.AxisProps, extremes: [number, number]) {
+export function getDefaultFormatter(
+  axis: CartesianChartProps.XAxisOptions | CartesianChartProps.YAxisOptions,
+  extremes: [number, number],
+) {
   return (value: unknown): string => {
     if (typeof value === "string") {
       return value;

@@ -5,7 +5,7 @@ import { PieChart, PieChartProps } from "../../lib/components";
 import { PageSettingsForm, usePageSettings } from "../common/page-settings";
 import { FitSizeDemo, Page, PageSection } from "../common/templates";
 
-const pieSeries: PieChartProps.Series = {
+const pieSeries: PieChartProps.SeriesOptions = {
   name: "Resource count",
   type: "pie",
   data: [

@@ -8,7 +8,7 @@ import { dateFormatter, numberFormatter } from "../../common/formatters";
 import { usePageSettings } from "../../common/page-settings";
 import { PageSection } from "../../common/templates";
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "Site 1",
     type: "line",

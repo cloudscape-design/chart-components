@@ -148,82 +148,82 @@ export interface ChartFilterOptions {
   additionalFilters?: React.ReactNode;
 }
 
-export interface AreaSeries extends AbstractSeries {
+export interface AreaSeriesOptions extends AbstractSeriesOptions {
   type: "area";
-  data: (number | [number, number] | PointDataItem)[];
-  marker?: PointMarker;
+  data: (number | [number, number] | PointDataItemOptions)[];
+  marker?: PointMarkerOptions;
 }
 
-export interface AreaSplineSeries extends AbstractSeries {
+export interface AreaSplineSeriesOptions extends AbstractSeriesOptions {
   type: "areaspline";
-  data: (number | [number, number] | PointDataItem)[];
-  marker?: PointMarker;
+  data: (number | [number, number] | PointDataItemOptions)[];
+  marker?: PointMarkerOptions;
 }
 
-export interface ColumnSeries extends AbstractSeries {
+export interface ColumnSeriesOptions extends AbstractSeriesOptions {
   type: "column";
-  data: (null | number | [number, number | null] | PointDataItem)[];
+  data: (null | number | [number, number | null] | PointDataItemOptions)[];
 }
 
-export interface ErrorBarSeries extends AbstractSeries {
+export interface ErrorBarSeriesOptions extends AbstractSeriesOptions {
   type: "errorbar";
-  data: ([number, number] | [number, number, number] | RangeDataItem)[];
+  data: ([number, number] | [number, number, number] | RangeDataItemOptions)[];
 }
 
-export interface LineSeries extends AbstractSeries {
+export interface LineSeriesOptions extends AbstractSeriesOptions {
   type: "line";
-  data: (number | [number, number] | PointDataItem)[];
-  marker?: PointMarker;
+  data: (number | [number, number] | PointDataItemOptions)[];
+  marker?: PointMarkerOptions;
 }
 
-export interface PieSeries extends AbstractSeries {
+export interface PieSeriesOptions extends AbstractSeriesOptions {
   type: "pie";
   innerSize?: string;
-  data: PieDataItem[];
+  data: PieDataItemOptions[];
 }
 
-export interface DonutSeries extends AbstractSeries {
+export interface DonutSeriesOptions extends AbstractSeriesOptions {
   type: "donut";
-  data: PieDataItem[];
+  data: PieDataItemOptions[];
 }
 
-export interface ScatterSeries extends AbstractSeries {
+export interface ScatterSeriesOptions extends AbstractSeriesOptions {
   type: "scatter";
-  data: (number | [number, number] | PointDataItem)[];
-  marker?: PointMarker;
+  data: (number | [number, number] | PointDataItemOptions)[];
+  marker?: PointMarkerOptions;
 }
 
-export interface SplineSeries extends AbstractSeries {
+export interface SplineSeriesOptions extends AbstractSeriesOptions {
   type: "spline";
-  data: (number | [number, number] | PointDataItem)[];
-  marker?: PointMarker;
+  data: (number | [number, number] | PointDataItemOptions)[];
+  marker?: PointMarkerOptions;
 }
 
-export interface TreeMapSeries extends AbstractSeries {
+export interface TreeMapSeriesOptions extends AbstractSeriesOptions {
   type: "treemap";
-  data: (number | TreeMapDataItem)[];
+  data: (number | TreeMapDataItemOptions)[];
 }
 
-export interface XThresholdSeries extends AbstractSeries {
+export interface XThresholdSeriesOptions extends AbstractSeriesOptions {
   type: "x-threshold";
   value: number;
 }
 
-export interface YThresholdSeries extends AbstractSeries {
+export interface YThresholdSeriesOptions extends AbstractSeriesOptions {
   type: "y-threshold";
   value: number;
 }
 
 // The data items are simpler versions of Highcharts.PointOptionsObject
 
-export interface PieDataItem {
+export interface PieDataItemOptions {
   y: number | null;
   id?: string;
   name: string;
   color?: string;
 }
 
-export interface PointDataItem {
+export interface PointDataItemOptions {
   x: number;
   y: number;
   id?: string;
@@ -231,7 +231,7 @@ export interface PointDataItem {
   color?: string;
 }
 
-export interface RangeDataItem {
+export interface RangeDataItemOptions {
   x?: number;
   low: number;
   high: number;
@@ -240,21 +240,21 @@ export interface RangeDataItem {
   color?: string;
 }
 
-export interface TreeMapDataItem {
+export interface TreeMapDataItemOptions {
   value: number;
   id?: string;
   name: string;
   color?: string;
 }
 
-export interface AbstractSeries {
+export interface AbstractSeriesOptions {
   id?: string;
   name: string;
   color?: string;
 }
 
 // The simpler version of Highcharts.PointMarkerOptionsObject
-export interface PointMarker {
+export interface PointMarkerOptions {
   color?: string;
   enabled?: boolean;
   enabledThreshold?: number;

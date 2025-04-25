@@ -8,39 +8,19 @@ import type Highcharts from "highcharts";
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
 import { CloudscapeHighcharts } from "../core/chart-core";
-import {
-  ChartFilterOptions,
-  ChartFooterOptions,
-  ChartHeaderOptions,
-  ChartLegendOptions,
-} from "../core/interfaces-base";
-import { CloudscapeChartAPI } from "../core/interfaces-core";
+import { CoreChartAPI } from "../core/interfaces-core";
 import { getOptionsId } from "../core/utils";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
-import { fireNonCancelableEvent, NonCancelableEventHandler } from "../internal/events";
+import { fireNonCancelableEvent } from "../internal/events";
 import { useChartTooltipPie } from "./chart-tooltip-pie";
 import { InternalPieChartOptions, PieChartProps } from "./interfaces-pie";
 import * as Styles from "./styles";
 
 import testClasses from "./test-classes/styles.css.js";
 
-interface InternalPieChartProps {
+interface InternalPieChartProps extends Omit<PieChartProps, "series"> {
   highcharts: null | object;
   options: InternalPieChartOptions;
-  fitHeight?: boolean;
-  chartMinHeight?: number;
-  chartMinWidth?: number;
-  tooltip?: PieChartProps.TooltipProps;
-  legend?: ChartLegendOptions;
-  noData?: PieChartProps.NoDataProps;
-  segmentOptions?: PieChartProps.SegmentOptions;
-  visibleSegments?: string[];
-  onChangeVisibleSegments?: NonCancelableEventHandler<{ visibleSegments: string[] }>;
-  innerValue?: string;
-  innerDescription?: string;
-  header?: ChartHeaderOptions;
-  footer?: ChartFooterOptions;
-  filter?: ChartFilterOptions;
 }
 
 /**
@@ -49,7 +29,7 @@ interface InternalPieChartProps {
  */
 export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: React.Ref<PieChartProps.Ref>) => {
   const highcharts = props.highcharts as null | typeof Highcharts;
-  const apiRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
+  const apiRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
   const getAPI = () => {
     /* c8 ignore next */
     if (!apiRef.current) {

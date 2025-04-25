@@ -12,7 +12,7 @@ function errorRange(value: number, delta: number) {
   return { low: value - delta, high: value + delta };
 }
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "Costs",
     type: "column",
