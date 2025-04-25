@@ -14,7 +14,7 @@ import { CoreChartAPI } from "../../lib/components/core/interfaces-core";
 import { getSeriesMarkerType } from "../../lib/components/core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../lib/components/internal/components/series-details";
 import { dateFormatter, numberFormatter } from "../common/formatters";
-import { PageSettingsForm, usePageSettings } from "../common/page-settings";
+import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
 
@@ -125,7 +125,7 @@ export default function () {
 }
 
 function Charts() {
-  const { chartProps } = usePageSettings({ xrange: true });
+  const { chartProps } = useChartSettings({ xrange: true });
   const scatterChartRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
   const getScatterChart = () => scatterChartRef.current!;
   const xrangeChartRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
@@ -136,7 +136,7 @@ function Charts() {
         callback={(chart) => {
           scatterChartRef.current = chart;
         }}
-        {...omit(chartProps, "ref")}
+        {...omit(chartProps.cartesian, "ref")}
         options={{
           chart: {
             height: 379,
@@ -218,7 +218,7 @@ function Charts() {
         callback={(chart) => {
           xrangeChartRef.current = chart;
         }}
-        {...omit(chartProps, "ref")}
+        {...omit(chartProps.cartesian, "ref")}
         options={{
           chart: {
             height: 150,

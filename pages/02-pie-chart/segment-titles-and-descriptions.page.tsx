@@ -9,7 +9,7 @@ import FormField from "@cloudscape-design/components/form-field";
 import Select from "@cloudscape-design/components/select";
 
 import { PieChart, PieChartProps } from "../../lib/components";
-import { PageSettings, PageSettingsForm, usePageSettings } from "../common/page-settings";
+import { PageSettings, PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
 
 interface ThisPageSettings extends PageSettings {
@@ -25,7 +25,7 @@ const chartTypeOptions = [{ value: "pie" }, { value: "donut" }];
 const segmentDistributionOptions = [{ value: "proportional" }, { value: "growing" }, { value: "fast growing" }];
 
 export default function () {
-  const { settings, setSettings, chartProps } = usePageSettings<ThisPageSettings>();
+  const { settings, setSettings, chartProps } = useChartSettings<ThisPageSettings>();
   const {
     chartType = "pie",
     showTitles = true,
@@ -131,7 +131,7 @@ export default function () {
         {range(0, 10).map((index) => (
           <PieChart
             key={index}
-            {...chartProps}
+            {...chartProps.pie}
             chartHeight={settings.height}
             ariaLabel={`Pie chart with ${index + 1} segments`}
             series={getPieSeries(index + 1)}

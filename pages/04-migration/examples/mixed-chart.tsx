@@ -5,7 +5,7 @@ import MixedLineBarChart, { MixedLineBarChartProps } from "@cloudscape-design/co
 
 import { CartesianChart, CartesianChartProps } from "../../../lib/components";
 import { numberFormatter } from "../../common/formatters";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 
 const domain = ["Jun 2019", "Jul 2019", "Aug 2019", "Sep 2019", "Oct 2019", "Nov 2019", "Dec 2019"];
 
@@ -72,10 +72,10 @@ const seriesOld: MixedLineBarChartProps<string>["series"] = [
 ];
 
 export function ComponentNew() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       fitHeight={true}
       chartMinHeight={200}
       ariaLabel="Mixed chart"
@@ -99,7 +99,7 @@ export function ComponentNew() {
 }
 
 export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <MixedLineBarChart
       fitHeight={true}
@@ -112,7 +112,7 @@ export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
       xScaleType="categorical"
       xTitle="Budget month"
       yTitle="Costs (USD)"
-      noMatch={chartProps.noData.noMatch}
+      noMatch={chartProps.cartesian.noData!.noMatch}
     />
   );
 }

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { createContext, Fragment, useContext, useRef, useState } from "react";
-import type Highcharts from "highcharts";
 
 import Autosuggest from "@cloudscape-design/components/autosuggest";
 import Box from "@cloudscape-design/components/box";
@@ -14,13 +13,9 @@ import Multiselect from "@cloudscape-design/components/multiselect";
 import Select from "@cloudscape-design/components/select";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
-import { ChartLegendOptions, ChartNoDataOptions, ChartTooltipOptions } from "../../lib/components/core/interfaces-base";
+import { CartesianChartProps, PieChartProps } from "../../lib/components";
 import AppContext, { AppContextType } from "../app/app-context";
 import { useHighcharts } from "./use-highcharts";
-
-interface ChartRef {
-  clearFilter(): void;
-}
 
 export interface PageSettings {
   height: number;
@@ -70,7 +65,7 @@ const DEFAULT_SETTINGS: PageSettings = {
 
 export const PageSettingsContext = createContext<PageSettings>(DEFAULT_SETTINGS);
 
-export function usePageSettings<SettingsType extends PageSettings = PageSettings>(
+export function useChartSettings<SettingsType extends PageSettings = PageSettings>(
   options: {
     more?: boolean;
     treemap?: boolean;
@@ -80,17 +75,12 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
   settings: SettingsType;
   setSettings: (settings: Partial<SettingsType>) => void;
   chartProps: {
-    ref: React.Ref<ChartRef>;
-    highcharts: null | typeof Highcharts;
-    noData: ChartNoDataOptions;
-    tooltip: ChartTooltipOptions;
-    legend: ChartLegendOptions;
-    emphasizeBaselineAxis: boolean;
-    verticalAxisTitlePlacement: "top" | "side";
+    cartesian: Omit<CartesianChartProps, "series"> & { ref: React.Ref<CartesianChartProps.Ref> };
+    pie: Omit<PieChartProps, "series"> & { ref: React.Ref<PieChartProps.Ref> };
   };
   isEmpty: boolean;
 } {
-  const highcharts = useHighcharts(options);
+  const highchartsLib = useHighcharts(options);
   const defaultSettings = useContext(PageSettingsContext);
   const { urlParams, setUrlParams } = useContext(AppContext as PageContext<SettingsType>);
   const settings = {
@@ -115,44 +105,57 @@ export function usePageSettings<SettingsType extends PageSettings = PageSettings
     setUrlParams(partial as any);
   };
 
-  const ref = useRef<ChartRef>(null);
-  const onClearFilter = () => ref.current?.clearFilter();
+  const cartesianChartRef = useRef<CartesianChartProps.Ref>(null);
+  const pieChartRef = useRef<PieChartProps.Ref>(null);
+  const onClearFilter = () => {
+    cartesianChartRef.current?.setVisibleSeries([]);
+    pieChartRef.current?.setVisibleSegments([]);
+  };
+  const highcharts = settings.useFallback ? null : highchartsLib;
+  const noData: CartesianChartProps.NoDataOptions | PieChartProps.NoDataOptions = {
+    statusType: settings.seriesLoading ? "loading" : settings.seriesError ? "error" : "finished",
+    empty: (
+      <Box textAlign="center">
+        <b>No data available</b>
+        <Box variant="p">There is no data available</Box>
+      </Box>
+    ),
+    noMatch: (
+      <Box textAlign="center">
+        <b>No matching data</b>
+        <Box variant="p">There is no matching data to display</Box>
+        <Button onClick={onClearFilter}>Clear filter</Button>
+      </Box>
+    ),
+    // Not including loading and empty states to let those be served from i18n.
+    // Adding an empty recovery click handler to make the default recovery button appear.
+    onRecoveryClick: () => {},
+  };
+  const tooltip = {
+    placement: settings.tooltipPlacement,
+    size: settings.tooltipSize,
+  };
+  const legend = {
+    enabled: settings.showLegend,
+    title: settings.showLegendTitle ? "Legend title" : undefined,
+    actions: {
+      render: settings.showLegendActions ? () => <Button variant="icon" iconName="search" /> : undefined,
+    },
+  };
   return {
     settings,
     setSettings,
     chartProps: {
-      ref,
-      highcharts: settings.useFallback ? null : highcharts,
-      noData: {
-        statusType: settings.seriesLoading ? "loading" : settings.seriesError ? "error" : "finished",
-        empty: (
-          <Box textAlign="center">
-            <b>No data available</b>
-            <Box variant="p">There is no data available</Box>
-          </Box>
-        ),
-        noMatch: (
-          <Box textAlign="center">
-            <b>No matching data</b>
-            <Box variant="p">There is no matching data to display</Box>
-            <Button onClick={onClearFilter}>Clear filter</Button>
-          </Box>
-        ),
-        // Not including loading and empty states to let those be served from i18n.
-        // Adding an empty recovery click handler to make the default recovery button appear.
-        onRecoveryClick: () => {},
+      cartesian: {
+        ref: cartesianChartRef,
+        highcharts,
+        noData,
+        tooltip,
+        legend,
+        emphasizeBaselineAxis: settings.emphasizeBaselineAxis,
+        verticalAxisTitlePlacement: settings.verticalAxisTitlePlacement,
       },
-      tooltip: {
-        placement: settings.tooltipPlacement,
-        size: settings.tooltipSize,
-      },
-      legend: {
-        enabled: settings.showLegend,
-        title: settings.showLegendTitle ? "Legend title" : undefined,
-        actions: { render: settings.showLegendActions ? () => <Button variant="icon" iconName="search" /> : undefined },
-      },
-      emphasizeBaselineAxis: settings.emphasizeBaselineAxis,
-      verticalAxisTitlePlacement: settings.verticalAxisTitlePlacement,
+      pie: { ref: pieChartRef, highcharts, noData, tooltip, legend },
     },
     isEmpty: settings.emptySeries || settings.seriesLoading || settings.seriesError,
   };
@@ -169,7 +172,7 @@ export function PageSettingsForm({
 }: {
   selectedSettings: (keyof PageSettings | { content: React.ReactNode })[];
 }) {
-  const { settings, setSettings } = usePageSettings();
+  const { settings, setSettings } = useChartSettings();
   return (
     <SpaceBetween size="s">
       {selectedSettings.map((setting, index) => {

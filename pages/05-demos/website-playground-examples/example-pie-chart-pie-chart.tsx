@@ -5,7 +5,7 @@ import Box from "@cloudscape-design/components/box";
 import Link from "@cloudscape-design/components/link";
 
 import { PieChart, PieChartProps } from "../../../lib/components";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 import { PageSection } from "../../common/templates";
 
 const series: PieChartProps.SeriesOptions = {
@@ -39,7 +39,7 @@ const lastUpdatesMap = new Map([
 ]);
 
 export function ExamplePieChartPieChart() {
-  const { chartProps, isEmpty } = usePageSettings();
+  const { chartProps, isEmpty } = useChartSettings();
   return (
     <PageSection
       title="Pie and donut charts: Pie chart"
@@ -50,13 +50,13 @@ export function ExamplePieChartPieChart() {
       }
     >
       <PieChart
-        {...chartProps}
+        {...chartProps.pie}
         chartHeight={379}
         ariaLabel="Pie chart"
         ariaDescription="Pie chart showing how many resources are currently in which state."
         series={isEmpty ? null : series}
         tooltip={{
-          ...chartProps.tooltip,
+          ...chartProps.pie.tooltip,
           body(details) {
             return (
               <div>

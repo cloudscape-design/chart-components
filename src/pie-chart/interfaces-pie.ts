@@ -19,6 +19,9 @@ export interface PieChartProps extends BaseTypes.BaseChartProps {
    * Chart tooltip that replaces [tooltip](https://api.highcharts.com/highcharts/tooltip).
    *
    * Supported properties:
+   * * `enabled` - (optional, boolean) - Use it to hide the tooltip.
+   * * `size` - (optional, "small" | "medium" | "large") - Use it to specify max tooltip size.
+   * * `placement` - (optional, "target" | "middle" | "bottom") - Use it to specify preferred tooltip placement.
    * * `title` - (optional, function) - Use it to provide a custom tooltip title.
    * * `content` - (optional, function) - Use it to provide a custom tooltip content.
    * * `footer` - (optional, function) - Use it to add a tooltip footer.
@@ -35,7 +38,7 @@ export interface PieChartProps extends BaseTypes.BaseChartProps {
    * legend. When a segment does not have an ID, a segment name is used instead.
    * When the property is provided, use `onToggleVisibleSegment` to update it when the legend segment filtering is used.
    */
-  visibleSegments?: string[];
+  visibleSegments?: readonly string[];
 
   /**
    * A callback, executed when segments visibility is toggled by clicking on legend items.
@@ -55,7 +58,9 @@ export interface PieChartProps extends BaseTypes.BaseChartProps {
 
 export namespace PieChartProps {
   export interface Ref {
-    clearFilter(): void;
+    // Controls series visibility that works with both controlled and uncontrolled visibility mode.
+    // This is useful to clear selected series from no-match state.
+    setVisibleSegments(visibleSegments: readonly string[]): void;
   }
 
   export type SeriesOptions = PieSeriesOptions | DonutSeriesOptions;
@@ -69,14 +74,14 @@ export namespace PieChartProps {
   export type NoDataOptions = BaseTypes.ChartNoDataOptions;
 
   export interface TooltipOptions extends BaseTypes.ChartTooltipOptions {
-    header?: (detail: PieChartProps.TooltipHeaderRenderProps) => React.ReactNode;
-    body?: (detail: PieChartProps.TooltipBodyRenderProps) => React.ReactNode;
-    footer?: (detail: PieChartProps.TooltipFooterRenderProps) => React.ReactNode;
+    header?: (props: PieChartProps.TooltipHeaderRenderProps) => React.ReactNode;
+    body?: (props: PieChartProps.TooltipBodyRenderProps) => React.ReactNode;
+    footer?: (props: PieChartProps.TooltipFooterRenderProps) => React.ReactNode;
   }
 
   export interface SegmentOptions {
-    title?: null | ((detail: PieChartProps.SegmentDescriptionTitleProps) => string);
-    description?: null | ((detail: PieChartProps.SegmentDescriptionRenderProps) => string);
+    title?: null | ((props: PieChartProps.SegmentDescriptionTitleProps) => string);
+    description?: null | ((props: PieChartProps.SegmentDescriptionRenderProps) => string);
   }
 
   export type TooltipHeaderRenderProps = TooltipSlotRenderProps;

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { CartesianChart, CartesianChartProps } from "../../lib/components";
-import { usePageSettings } from "../common/page-settings";
+import { useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
 
 const series: CartesianChartProps.SeriesOptions[] = [
@@ -31,10 +31,10 @@ export default function () {
 }
 
 function ExampleMixedChart() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       chartHeight={423}
       ariaLabel="Simple line chart with a mistake in series definition"
       series={series}

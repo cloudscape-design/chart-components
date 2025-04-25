@@ -8,7 +8,7 @@ import ColumnLayout from "@cloudscape-design/components/column-layout";
 
 import { CartesianChart } from "../../lib/components";
 import { dateFormatter } from "../common/formatters";
-import { usePageSettings } from "../common/page-settings";
+import { useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
 
@@ -78,10 +78,10 @@ const defaultSettings = {
 };
 
 function LinearLinear() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       {...defaultSettings}
       series={[
         {
@@ -119,10 +119,10 @@ function LinearLinear() {
 }
 
 function LinearLog() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       {...defaultSettings}
       series={[
         {
@@ -156,10 +156,10 @@ function LinearLog() {
 }
 
 function LogLinear() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       {...defaultSettings}
       series={[
         {
@@ -193,10 +193,10 @@ function LogLinear() {
 }
 
 function LogLog() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       {...defaultSettings}
       series={[
         {
@@ -228,10 +228,10 @@ function LogLog() {
 }
 
 function CategoryLinear() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       {...defaultSettings}
       series={[
         {
@@ -266,10 +266,10 @@ function CategoryLinear() {
 }
 
 function LinearCategory() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       {...defaultSettings}
       series={[
         {
@@ -304,10 +304,10 @@ function LinearCategory() {
 }
 
 function CategoryCategory() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       {...defaultSettings}
       series={[
         ...range(0, 5).map(
@@ -344,10 +344,10 @@ function CategoryCategory() {
 }
 
 function DatetimeLinear() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       {...defaultSettings}
       series={[
         {
@@ -381,10 +381,10 @@ function DatetimeLinear() {
 }
 
 function LinearDatetime() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       {...defaultSettings}
       series={[
         {
@@ -418,10 +418,10 @@ function LinearDatetime() {
 }
 
 function DatetimeDatetime() {
-  const { chartProps } = usePageSettings({ more: true });
+  const { chartProps } = useChartSettings({ more: true });
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       {...defaultSettings}
       series={[
         {
@@ -467,10 +467,10 @@ function DatetimeDatetime() {
 }
 
 function LogCategory() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       {...defaultSettings}
       series={[
         {
@@ -502,10 +502,10 @@ function LogCategory() {
 }
 
 function CategoryLog() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       {...defaultSettings}
       series={[
         {
@@ -537,10 +537,10 @@ function CategoryLog() {
 }
 
 function DatetimeLog() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       {...defaultSettings}
       series={[
         {
@@ -572,10 +572,10 @@ function DatetimeLog() {
 }
 
 function LogDatetime() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       {...defaultSettings}
       series={[
         {
@@ -607,10 +607,10 @@ function LogDatetime() {
 }
 
 function DatetimeCategory() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       {...defaultSettings}
       series={[
         {
@@ -642,10 +642,10 @@ function DatetimeCategory() {
 }
 
 function CategoryDatetime() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       {...defaultSettings}
       series={[
         {
