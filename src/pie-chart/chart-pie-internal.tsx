@@ -7,8 +7,7 @@ import type Highcharts from "highcharts";
 
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
-import { CloudscapeHighcharts } from "../core/chart-core";
-import { CoreChartAPI } from "../core/interfaces-core";
+import { CloudscapeHighcharts, useCoreAPI } from "../core/chart-core";
 import { getOptionsId } from "../core/utils";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { fireNonCancelableEvent } from "../internal/events";
@@ -24,19 +23,12 @@ interface InternalPieChartProps extends Omit<PieChartProps, "series"> {
 }
 
 /**
- * The InternalPieChart component is a wrapper for CloudscapeHighcharts that implements default tooltip content,
- * adds segment detail, inner title and description.
+ * The InternalPieChart component takes public PieChart properties, but also Highcharts options.
+ * This allows using it as a Highcharts wrapper to mix Cloudscape and Highcharts features.
  */
 export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: React.Ref<PieChartProps.Ref>) => {
   const highcharts = props.highcharts as null | typeof Highcharts;
-  const apiRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
-  const getAPI = () => {
-    /* c8 ignore next */
-    if (!apiRef.current) {
-      throw new Error("Invariant violation: chart instance is not available.");
-    }
-    return apiRef.current;
-  };
+  const [callback, getAPI] = useCoreAPI();
 
   // Obtaining tooltip content, specific for pie charts.
   // By default, it renders the selected content name, and allows to extend and override its contents.
@@ -55,6 +47,7 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
     },
     (value, handler) => fireNonCancelableEvent(handler, { visibleSegments: value ? [...value] : [] }),
   );
+  // Unless visible segments are explicitly set, we start from all segments being visible.
   const allSegmentIds = props.options.series.flatMap((s) => {
     const itemIds: string[] = [];
     if ("data" in s && Array.isArray(s.data)) {
@@ -70,6 +63,7 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
   const visibleSegments = visibleSegmentsState ?? allSegmentIds;
   const hiddenSegments = allSegmentIds.filter((id) => !visibleSegments.includes(id));
 
+  // Converting donut series to Highcharts pie series.
   const series: Highcharts.SeriesOptionsRegistry["SeriesPieOptions"][] = [];
   for (const s of props.options.series) {
     if (s.type === "pie") {
@@ -80,6 +74,7 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
     }
   }
 
+  // Pie chart imperative API.
   useImperativeHandle(ref, () => ({
     setVisibleSegments: setVisibleSegments,
   }));
@@ -87,8 +82,8 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
   const innerValueRef = useRef<null | Highcharts.SVGElement>(null);
   const innerDescriptionRef = useRef<null | Highcharts.SVGElement>(null);
 
-  // The Highcharts options takes all provided Highcharts options and custom properties and merges them together, so that
-  // the Cloudscape features and custom Highcharts extensions can co-exist.
+  // Merging Highcharts options defined by the component and those provided explicitly as `options`, the latter has
+  // precedence, so that it is possible to override or extend all Highcharts settings from the outside.
   const highchartsOptions: Highcharts.Options = {
     ...props.options,
     chart: {
@@ -97,8 +92,6 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
         ...props.options.chart?.events,
         render(event) {
           if (highcharts && event.target instanceof highcharts.Chart) {
-            (event.target as any).colorCounter = props.options.series.length;
-
             const nVisibleSeries = event.target.series.filter(
               (s) => s.visible && (s.type !== "pie" || s.data.some((d) => d.y !== null && d.visible)),
             ).length;
@@ -196,17 +189,14 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
       noData={props.noData}
       legend={props.legend}
       hiddenItems={hiddenSegments}
-      onItemVisibilityChange={(hiddenSegments) => {
-        const nextVisibleSegments = allSegmentIds.filter((id) => !hiddenSegments.includes(id));
-        setVisibleSegments(nextVisibleSegments);
-      }}
+      onItemVisibilityChange={(hiddenSegments) =>
+        setVisibleSegments(allSegmentIds.filter((id) => !hiddenSegments.includes(id)))
+      }
       header={props.header}
       footer={props.footer}
       filter={props.filter}
       className={testClasses.root}
-      callback={(chart) => {
-        apiRef.current = chart;
-      }}
+      callback={callback}
       {...getDataAttributes(props)}
     />
   );

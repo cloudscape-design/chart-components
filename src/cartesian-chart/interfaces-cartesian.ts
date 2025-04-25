@@ -161,9 +161,9 @@ export namespace CartesianChartProps {
 
   export interface TooltipOptions extends BaseTypes.ChartTooltipOptions {
     series?: (props: TooltipSeriesRenderProps) => TooltipSeriesFormatted;
-    header?: (detail: TooltipHeaderRenderProps) => React.ReactNode;
-    body?: (detail: TooltipBodyRenderProps) => React.ReactNode;
-    footer?: (detail: TooltipFooterRenderProps) => React.ReactNode;
+    header?: (props: TooltipHeaderRenderProps) => React.ReactNode;
+    body?: (props: TooltipBodyRenderProps) => React.ReactNode;
+    footer?: (props: TooltipFooterRenderProps) => React.ReactNode;
   }
 
   export type TooltipHeaderRenderProps = TooltipSlotRenderProps;
