@@ -10,7 +10,7 @@ import StatusIndicator from "@cloudscape-design/components/status-indicator";
 import { colorChartsGreen300, colorChartsRed500 } from "@cloudscape-design/design-tokens";
 
 import { CloudscapeHighcharts } from "../../lib/components/core/chart-core";
-import { CloudscapeChartAPI } from "../../lib/components/core/interfaces-core";
+import { CoreChartAPI } from "../../lib/components/core/interfaces-core";
 import { getSeriesMarkerType } from "../../lib/components/core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../lib/components/internal/components/series-details";
 import { dateFormatter, numberFormatter } from "../common/formatters";
@@ -126,9 +126,9 @@ export default function () {
 
 function Charts() {
   const { chartProps } = usePageSettings({ xrange: true });
-  const scatterChartRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
+  const scatterChartRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
   const getScatterChart = () => scatterChartRef.current!;
-  const xrangeChartRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
+  const xrangeChartRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
   const getXrangeChart = () => xrangeChartRef.current!;
   return (
     <SpaceBetween size="s">

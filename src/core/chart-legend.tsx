@@ -9,7 +9,7 @@ import { ChartLegend as ChartLegendComponent, ChartLegendRef } from "../internal
 import { ChartSeriesMarker, ChartSeriesMarkerType } from "../internal/components/series-marker";
 import AsyncStore, { useSelector } from "../internal/utils/async-store";
 import { ChartLegendOptions } from "./interfaces-base";
-import { CloudscapeChartAPI } from "./interfaces-core";
+import { CoreChartAPI } from "./interfaces-core";
 import { getPointId, getSeriesId, getSeriesMarkerType } from "./utils";
 
 interface LegendStateItemProps {
@@ -21,7 +21,7 @@ interface LegendStateItemProps {
 }
 
 export function useLegend(
-  getChart: () => CloudscapeChartAPI,
+  getChart: () => CoreChartAPI,
   legendProps?: ChartLegendOptions & {
     onItemVisibilityChange?: (hiddenItems: string[]) => void;
   },
@@ -89,14 +89,14 @@ export function ChartLegend({
 }
 
 export class LegendStore extends AsyncStore<{ legendItems: LegendStateItemProps[] }> {
-  private getAPI: () => CloudscapeChartAPI;
+  private getAPI: () => CoreChartAPI;
   public onItemVisibilityChangeCb?: (hiddenItems: string[]) => void;
   public legendRefCb = (ref: ChartLegendRef) => {
     this.legendRef = ref;
   };
   public legendRef: ChartLegendRef = { highlightItems: () => {}, clearHighlight: () => {} };
 
-  constructor(getAPI: () => CloudscapeChartAPI) {
+  constructor(getAPI: () => CoreChartAPI) {
     super({ legendItems: [] });
     this.getAPI = getAPI;
   }

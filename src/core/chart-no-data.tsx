@@ -15,7 +15,7 @@ import Portal from "../internal/components/portal";
 import { fireNonCancelableEvent } from "../internal/events";
 import AsyncStore, { useSelector } from "../internal/utils/async-store";
 import { useUniqueId } from "../internal/utils/unique-id";
-import { CloudscapeChartAPI, CoreI18nStrings, CoreNoDataProps } from "./interfaces-core";
+import { CoreChartAPI, CoreI18nStrings, CoreNoDataProps } from "./interfaces-core";
 import * as Styles from "./styles";
 
 import styles from "./styles.css.js";
@@ -24,7 +24,7 @@ import testClasses from "./test-classes/styles.css.js";
 // The custom no-data implementation relies on the Highcharts noData module.
 // We render a custom empty DIV as `lang.noData` and then provide actual content using React portal.
 
-export function useNoData(getAPI: () => CloudscapeChartAPI, noDataProps?: CoreNoDataProps) {
+export function useNoData(getAPI: () => CoreChartAPI, noDataProps?: CoreNoDataProps) {
   const noDataId = useUniqueId("no-data");
   const noDataStore = useRef(new NoDataStore(getAPI, noDataId)).current;
 
@@ -91,10 +91,10 @@ export function ChartNoData({
 }
 
 export class NoDataStore extends AsyncStore<{ container: null | Element; noMatch: boolean }> {
-  private getAPI: () => CloudscapeChartAPI;
+  private getAPI: () => CoreChartAPI;
   private noDataId: string;
 
-  constructor(getAPI: () => CloudscapeChartAPI, noDataId: string) {
+  constructor(getAPI: () => CoreChartAPI, noDataId: string) {
     super({ container: null, noMatch: false });
     this.getAPI = getAPI;
     this.noDataId = noDataId;

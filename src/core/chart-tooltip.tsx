@@ -9,7 +9,7 @@ import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-
 import AsyncStore, { useSelector } from "../internal/utils/async-store";
 import { DebouncedCall } from "../internal/utils/utils";
 import { ChartTooltipOptions } from "./interfaces-base";
-import { CloudscapeChartAPI, CoreTooltipProps, Target } from "./interfaces-core";
+import { CoreChartAPI, CoreTooltipOptions, Target } from "./interfaces-core";
 
 const MOUSE_LEAVE_DELAY = 300;
 const LAST_DISMISS_DELAY = 250;
@@ -20,7 +20,7 @@ const SET_STATE_OVERRIDE_MARKER = Symbol("awsui-set-state");
 // The tooltip can be hidden when we receive mouse-leave. It can also be pinned/unpinned on mouse click.
 // Despite event names, they events also fire on keyboard interactions.
 
-export function useChartTooltip(getAPI: () => CloudscapeChartAPI, tooltipProps?: CoreTooltipProps) {
+export function useChartTooltip(getAPI: () => CoreChartAPI, tooltipProps?: CoreTooltipOptions) {
   const tooltipStore = useRef(new TooltipStore(getAPI)).current;
   tooltipStore.tooltipProps = tooltipProps ?? {};
 
@@ -64,7 +64,7 @@ export function ChartTooltip({
   getContent,
   placement,
   size,
-}: ChartTooltipOptions & { tooltipStore: TooltipStore; getContent: CoreTooltipProps["getTooltipContent"] }) {
+}: ChartTooltipOptions & { tooltipStore: TooltipStore; getContent: CoreTooltipOptions["getTooltipContent"] }) {
   const tooltip = useSelector(tooltipStore, (s) => s);
   if (!tooltip.visible) {
     return null;
@@ -105,15 +105,15 @@ interface ReactiveTooltipState {
 
 class TooltipStore extends AsyncStore<ReactiveTooltipState> {
   public getTrack: () => null | HTMLElement | SVGElement = () => null;
-  public tooltipProps: CoreTooltipProps = {};
+  public tooltipProps: CoreTooltipOptions = {};
 
-  private getAPI: () => CloudscapeChartAPI;
+  private getAPI: () => CoreChartAPI;
   private targetElement: null | Highcharts.SVGElement = null;
   private mouseLeaveCall = new DebouncedCall();
   private lastDismissTime = 0;
   private tooltipHovered = false;
 
-  constructor(getAPI: () => CloudscapeChartAPI) {
+  constructor(getAPI: () => CoreChartAPI) {
     super({ visible: false, pinned: false, point: null });
     this.getAPI = getAPI;
   }

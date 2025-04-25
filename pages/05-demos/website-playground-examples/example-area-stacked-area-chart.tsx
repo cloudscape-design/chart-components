@@ -8,7 +8,7 @@ import { dateFormatter, numberFormatter } from "../../common/formatters";
 import { usePageSettings } from "../../common/page-settings";
 import { PageSection } from "../../common/templates";
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "Network 1",
     type: "area",
@@ -144,7 +144,7 @@ export function ExampleAreaChartStackedAreaChart() {
   );
 }
 
-function findY(x: number, series: CartesianChartProps.Series) {
+function findY(x: number, series: CartesianChartProps.SeriesOptions) {
   if (!("data" in series)) {
     return null;
   }

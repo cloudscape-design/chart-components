@@ -15,7 +15,7 @@ import { usePageSettings } from "../../common/page-settings";
 
 import styles from "./responsive-layout.module.scss";
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "Value",
     type: "column",

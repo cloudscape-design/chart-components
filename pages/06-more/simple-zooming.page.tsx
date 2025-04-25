@@ -12,7 +12,7 @@ import SpaceBetween from "@cloudscape-design/components/space-between";
 import { colorChartsBlue1400, colorChartsLineTick } from "@cloudscape-design/design-tokens";
 
 import { CloudscapeHighcharts } from "../../lib/components/core/chart-core";
-import { CloudscapeChartAPI } from "../../lib/components/core/interfaces-core";
+import { CoreChartAPI } from "../../lib/components/core/interfaces-core";
 import { getSeriesMarkerType } from "../../lib/components/core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../lib/components/internal/components/series-details";
 import { dateFormatter, numberFormatter } from "../common/formatters";
@@ -156,9 +156,9 @@ function Charts() {
     settings: { keepZoomingFrame = false },
     chartProps,
   } = usePageSettings<ThisPageSettings>({ more: true });
-  const scatterChartRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
+  const scatterChartRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
   const getScatterChart = () => scatterChartRef.current!;
-  const navigatorChartRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
+  const navigatorChartRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
   const getNavigatorChart = () => navigatorChartRef.current!;
   const setZoom = (range: null | [number, number]) => {
     getScatterChart().chart.xAxis[0].setExtremes(range?.[0], range?.[1]);

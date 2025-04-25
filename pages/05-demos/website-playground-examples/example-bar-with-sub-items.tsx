@@ -8,7 +8,7 @@ import { moneyFormatter } from "../../common/formatters";
 import { usePageSettings } from "../../common/page-settings";
 import { PageSection } from "../../common/templates";
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "Amazon Simple Storage Service",
     type: "column",

@@ -74,7 +74,7 @@ const baseline = [
   { x: 1601013600000, y: 293910 },
 ];
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "A",
     type: "scatter",

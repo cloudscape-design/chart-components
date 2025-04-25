@@ -8,13 +8,13 @@ import Box from "@cloudscape-design/components/box";
 
 import AsyncStore, { useSelector } from "../internal/utils/async-store";
 import { castArray } from "../internal/utils/utils";
-import { CloudscapeChartAPI } from "./interfaces-core";
+import { CoreChartAPI } from "./interfaces-core";
 
 // The custom no-data implementation relies on the Highcharts noData module.
 // We render a custom empty DIV as `lang.noData` and then provide actual content using React portal.
 
 export function useChartVerticalAxisTitle(
-  getAPI: () => CloudscapeChartAPI,
+  getAPI: () => CoreChartAPI,
   { verticalAxisTitlePlacement }: { verticalAxisTitlePlacement?: "top" | "side" },
 ) {
   const verticalAxisTitleStore = useRef(new VerticalAxisTitleStore(getAPI)).current;
@@ -55,9 +55,9 @@ export function VerticalAxisTitle({
 }
 
 class VerticalAxisTitleStore extends AsyncStore<{ visible: boolean; titles: string[] }> {
-  private getAPI: () => CloudscapeChartAPI;
+  private getAPI: () => CoreChartAPI;
 
-  constructor(getAPI: () => CloudscapeChartAPI) {
+  constructor(getAPI: () => CoreChartAPI) {
     super({ visible: false, titles: [] });
     this.getAPI = getAPI;
   }

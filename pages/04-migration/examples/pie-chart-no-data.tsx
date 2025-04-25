@@ -6,7 +6,7 @@ import OldPieChart, { PieChartProps as OldPieChartProps } from "@cloudscape-desi
 import { PieChart, PieChartProps } from "../../../lib/components";
 import { usePageSettings } from "../../common/page-settings";
 
-const seriesNew: PieChartProps.Series = {
+const seriesNew: PieChartProps.SeriesOptions = {
   name: "Resource count",
   type: "pie",
   data: [
@@ -14,7 +14,7 @@ const seriesNew: PieChartProps.Series = {
     { name: "Failed", y: 40 },
   ],
 };
-const seriesNewNoData: PieChartProps.Series = {
+const seriesNewNoData: PieChartProps.SeriesOptions = {
   name: "Resource count",
   type: "pie",
   data: [

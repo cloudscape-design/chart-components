@@ -4,11 +4,11 @@
 import { useCallback, useEffect, useRef } from "react";
 import type Highcharts from "highcharts";
 
-import { CloudscapeChartAPI } from "./interfaces-core";
+import { CoreChartAPI } from "./interfaces-core";
 import { getPointId, getSeriesId } from "./utils";
 
 export function useChartSeries(
-  getAPI: () => CloudscapeChartAPI,
+  getAPI: () => CoreChartAPI,
   { options, hiddenItems }: { options: Highcharts.Options; hiddenItems?: string[] },
 ) {
   const readyRef = useRef(false);

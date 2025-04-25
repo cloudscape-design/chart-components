@@ -8,7 +8,7 @@ import { PageSettingsForm, usePageSettings } from "../common/page-settings";
 import { FitSizeDemo, Page, PageSection } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
 
-const splineSeries: CartesianChartProps.Series[] = [
+const splineSeries: CartesianChartProps.SeriesOptions[] = [
   {
     type: "spline",
     name: "Demo spline fifty",

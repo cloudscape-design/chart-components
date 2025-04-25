@@ -21,7 +21,7 @@ import { useChartSeries } from "./chart-series";
 import { ChartTooltip, useChartTooltip } from "./chart-tooltip";
 import { useChartVerticalAxisTitle } from "./chart-vertical-axis-title";
 import { ChartFooterOptions, ChartHeaderOptions } from "./interfaces-base";
-import { CloudscapeChartAPI, CloudscapeHighchartsProps } from "./interfaces-core";
+import { CloudscapeHighchartsProps, CoreChartAPI } from "./interfaces-core";
 import * as Styles from "./styles";
 
 import styles from "./styles.css.js";
@@ -55,7 +55,7 @@ export function CloudscapeHighcharts({
   // The apiRef is expected to be available after the initial render.
   // The instance is used to get internal series and points detail, and run APIs such as series.setVisible() to
   // synchronize custom React state with Highcharts state.
-  const apiRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
+  const apiRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
   const getAPI = useCallback(() => {
     /* c8 ignore next */
     if (!apiRef.current) {

@@ -57,7 +57,7 @@ const network3Data = [
   175584, 230042, 293879,
 ];
 
-const seriesNew: CartesianChartProps.Series[] = [
+const seriesNew: CartesianChartProps.SeriesOptions[] = [
   {
     name: "Network 1",
     type: "area",

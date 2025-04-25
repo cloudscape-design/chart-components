@@ -15,13 +15,13 @@ const domain = [
   new Date(1601100000000),
 ];
 
-const seriesNew: CartesianChartProps.Series[] = [
+const seriesNew: CartesianChartProps.SeriesOptions[] = [
   { name: "Events", type: "line", data: [2, 4, 6, 8, 16].map((y, index) => ({ x: domain[index].getTime(), y })) },
 ];
 
-const seriesNewNoData: CartesianChartProps.Series[] = [{ name: "Events", type: "line", data: [] }];
+const seriesNewNoData: CartesianChartProps.SeriesOptions[] = [{ name: "Events", type: "line", data: [] }];
 
-const seriesNewThreshold: CartesianChartProps.Series[] = [
+const seriesNewThreshold: CartesianChartProps.SeriesOptions[] = [
   { name: "Timestamp", type: "x-threshold", value: domain[2].getTime() },
   { name: "Alarm", type: "y-threshold", value: 30 },
 ];

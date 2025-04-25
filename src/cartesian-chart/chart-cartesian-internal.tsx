@@ -7,16 +7,10 @@ import type Highcharts from "highcharts";
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
 import { CloudscapeHighcharts } from "../core/chart-core";
-import {
-  ChartFilterOptions,
-  ChartFooterOptions,
-  ChartHeaderOptions,
-  ChartLegendOptions,
-} from "../core/interfaces-base";
-import { CloudscapeChartAPI } from "../core/interfaces-core";
+import { CoreChartAPI } from "../core/interfaces-core";
 import { getOptionsId } from "../core/utils";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
-import { fireNonCancelableEvent, NonCancelableEventHandler } from "../internal/events";
+import { fireNonCancelableEvent } from "../internal/events";
 import { useCartesianSeries } from "./chart-series-cartesian";
 import { useChartTooltipCartesian } from "./chart-tooltip-cartesian";
 import { getDefaultFormatter } from "./default-formatters";
@@ -25,22 +19,9 @@ import { getDataExtremes } from "./utils";
 
 import testClasses from "./test-classes/styles.css.js";
 
-interface InternalCartesianChartProps {
+interface InternalCartesianChartProps extends Omit<CartesianChartProps, "series"> {
   highcharts: null | object;
   options: InternalCartesianChartOptions;
-  fitHeight?: boolean;
-  chartMinHeight?: number;
-  chartMinWidth?: number;
-  tooltip?: CartesianChartProps.TooltipProps;
-  noData?: CartesianChartProps.NoDataProps;
-  emphasizeBaselineAxis?: boolean;
-  visibleSeries?: string[];
-  onToggleVisibleSeries?: NonCancelableEventHandler<{ visibleSeries: string[] }>;
-  legend?: ChartLegendOptions;
-  verticalAxisTitlePlacement?: "top" | "side";
-  header?: ChartHeaderOptions;
-  footer?: ChartFooterOptions;
-  filter?: ChartFilterOptions;
 }
 
 /**
@@ -50,7 +31,7 @@ interface InternalCartesianChartProps {
 export const InternalCartesianChart = forwardRef(
   (props: InternalCartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
     const highcharts = props.highcharts as null | typeof Highcharts;
-    const apiRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
+    const apiRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
     const getAPI = useCallback(() => {
       /* c8 ignore next */
       if (!apiRef.current) {
