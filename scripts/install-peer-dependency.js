@@ -47,7 +47,7 @@ if (args.length < 1) {
 const [packageName, targetBranch] = args[0].split(":");
 const targetRepository = `https://github.com/cloudscape-design/${packageName}.git`;
 const nodeModulesPath = path.join(process.cwd(), "node_modules", "@cloudscape-design");
-const tempDir = path.join(os.tmpdir(), `temp-${packageName}`);
+const tempDir = path.join(os.tmpdir(), `temp-${packageName}-${targetBranch}`);
 
 // Clone the repository and checkout the branch
 console.log(`Cloning ${packageName}:${targetBranch}...`);
