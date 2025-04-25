@@ -29,7 +29,7 @@ for (
   domain.push(time);
 }
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "Site 1",
     type: "spline",

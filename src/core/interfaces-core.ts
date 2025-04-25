@@ -31,7 +31,7 @@ export interface CloudscapeHighchartsProps
    * The tooltip content is only shown when `getContent` property is defined, which is called
    * for each visited { x, y } point.
    */
-  tooltip?: CoreTooltipProps;
+  tooltip?: CoreTooltipOptions;
   /**
    * The Cloudscape legend, that is rendered outside the Highcharts container. It uses Cloudscape markers
    * and menu actions.
@@ -56,7 +56,7 @@ export interface CloudscapeHighchartsProps
    * - `showTooltipOnPoint(Highcharts.Point)` - shows Cloudscape tooltip for the given point, if tooltip content is defined.
    * - `hideTooltip()` - hides Cloudscape tooltip until the next user event or `showTooltipOnPoint(point)` call.
    */
-  callback?: (chart: CloudscapeChartAPI) => void;
+  callback?: (chart: CoreChartAPI) => void;
   /**
    * The list of series or points IDs that should be hidden (using Highcharts `item.setVisible(false)`).
    * When the item ID is not set, the name is used instead.
@@ -80,7 +80,7 @@ export interface CloudscapeHighchartsProps
   verticalAxisTitlePlacement?: "top" | "side";
 }
 
-export interface CloudscapeChartAPI {
+export interface CoreChartAPI {
   chart: Highcharts.Chart;
   highcharts: typeof Highcharts;
   showTooltipOnPoint(point: Highcharts.Point): void;
@@ -89,7 +89,7 @@ export interface CloudscapeChartAPI {
   clearLegendHighlight: () => void;
 }
 
-export interface CoreTooltipProps extends ChartTooltipOptions {
+export interface CoreTooltipOptions extends ChartTooltipOptions {
   getTargetFromPoint?(point: Highcharts.Point): Target;
   getTooltipContent?(props: { point: Highcharts.Point }): null | TooltipContent;
   onPointHighlight?(props: { point: Highcharts.Point; target: Target }): null | PointHighlightDetail;

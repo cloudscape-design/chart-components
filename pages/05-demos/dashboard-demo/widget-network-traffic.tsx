@@ -117,7 +117,7 @@ const networkTrafficData = [
 
 const domain = [networkTrafficData[0].date, networkTrafficData[networkTrafficData.length - 1].date];
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "i-03736447",
     type: "line",

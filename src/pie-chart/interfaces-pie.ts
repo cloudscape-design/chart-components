@@ -13,7 +13,7 @@ export interface PieChartProps extends BaseTypes.BaseChartProps {
    * * [pie](https://api.highcharts.com/highcharts/series.pie).
    * * donut - the pie series with predefined inner radius.
    */
-  series: null | PieChartProps.Series;
+  series: null | PieChartProps.SeriesOptions;
 
   /**
    * Chart tooltip that replaces [tooltip](https://api.highcharts.com/highcharts/tooltip).
@@ -23,7 +23,7 @@ export interface PieChartProps extends BaseTypes.BaseChartProps {
    * * `content` - (optional, function) - Use it to provide a custom tooltip content.
    * * `footer` - (optional, function) - Use it to add a tooltip footer.
    */
-  tooltip?: PieChartProps.TooltipProps;
+  tooltip?: PieChartProps.TooltipOptions;
 
   /**
    * Chart segment options.
@@ -58,35 +58,39 @@ export namespace PieChartProps {
     clearFilter(): void;
   }
 
-  export type Series = PieSeries | DonutSeries;
+  export type SeriesOptions = PieSeriesOptions | DonutSeriesOptions;
 
-  export type PieSeries = BaseTypes.PieSeries;
+  export type PieSeriesOptions = BaseTypes.PieSeriesOptions;
 
-  export type DonutSeries = BaseTypes.DonutSeries;
+  export type DonutSeriesOptions = BaseTypes.DonutSeriesOptions;
 
-  export type PieDataItem = BaseTypes.PieDataItem;
+  export type PieDataItem = BaseTypes.PieDataItemOptions;
 
-  export type NoDataProps = BaseTypes.ChartNoDataOptions;
+  export type NoDataOptions = BaseTypes.ChartNoDataOptions;
 
-  export interface TooltipProps extends BaseTypes.ChartTooltipOptions {
-    title?: (detail: PieChartProps.TooltipDetails) => React.ReactNode;
-    body?: (detail: PieChartProps.TooltipDetails) => React.ReactNode;
-    footer?: (detail: PieChartProps.TooltipDetails) => React.ReactNode;
+  export interface TooltipOptions extends BaseTypes.ChartTooltipOptions {
+    header?: (detail: PieChartProps.TooltipHeaderRenderProps) => React.ReactNode;
+    body?: (detail: PieChartProps.TooltipBodyRenderProps) => React.ReactNode;
+    footer?: (detail: PieChartProps.TooltipFooterRenderProps) => React.ReactNode;
   }
 
   export interface SegmentOptions {
-    title?: null | ((detail: PieChartProps.SegmentDescriptionDetail) => string);
-    description?: null | ((detail: PieChartProps.SegmentDescriptionDetail) => string);
+    title?: null | ((detail: PieChartProps.SegmentDescriptionTitleProps) => string);
+    description?: null | ((detail: PieChartProps.SegmentDescriptionRenderProps) => string);
   }
 
-  export interface TooltipDetails {
+  export type TooltipHeaderRenderProps = TooltipSlotRenderProps;
+  export type TooltipBodyRenderProps = TooltipSlotRenderProps;
+  export type TooltipFooterRenderProps = TooltipSlotRenderProps;
+  interface TooltipSlotRenderProps {
     segmentId?: string;
     segmentName: string;
     segmentValue: number;
     totalValue: number;
   }
 
-  export interface SegmentDescriptionDetail {
+  export type SegmentDescriptionTitleProps = SegmentDescriptionRenderProps;
+  export interface SegmentDescriptionRenderProps {
     segmentId?: string;
     segmentName: string;
     segmentValue: number;
@@ -100,4 +104,4 @@ export type InternalPieChartOptions = Omit<Highcharts.Options, "series"> & {
   series: InternalSeriesOptions[];
 };
 
-export type InternalSeriesOptions = PieChartProps.Series | Highcharts.SeriesOptionsType;
+export type InternalSeriesOptions = PieChartProps.SeriesOptions | Highcharts.SeriesOptionsType;

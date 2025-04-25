@@ -9,7 +9,7 @@ import { usePageSettings } from "../../common/page-settings";
 
 const domain = ["Jun 2019", "Jul 2019", "Aug 2019", "Sep 2019", "Oct 2019", "Nov 2019", "Dec 2019"];
 
-const seriesNew: CartesianChartProps.Series[] = [
+const seriesNew: CartesianChartProps.SeriesOptions[] = [
   {
     name: "Costs",
     type: "column",

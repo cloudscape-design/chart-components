@@ -12,7 +12,7 @@ import Select from "@cloudscape-design/components/select";
 import { PieChart, PieChartProps } from "../../../lib/components";
 import { usePageSettings } from "../../common/page-settings";
 
-const seriesNew: PieChartProps.Series = {
+const seriesNew: PieChartProps.SeriesOptions = {
   name: "Resource count",
   type: "pie",
   data: [

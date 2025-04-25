@@ -31,19 +31,22 @@ export interface CartesianChartProps extends BaseTypes.BaseChartProps {
    * * x-threshold - The line-like series to represent x-axis threshold (vertical, when `inverted=false`).
    * * y-threshold - The line-like series to represent y-axis threshold (horizontal, when `inverted=false`).
    */
-  series: CartesianChartProps.Series[];
+  series: CartesianChartProps.SeriesOptions[];
 
   /**
    * Chart tooltip that replaces [tooltip](https://api.highcharts.com/highcharts/tooltip).
    *
    * Supported properties:
+   * * `enabled` - (optional, boolean) - Use it to hide the tooltip.
+   * * `size` - (optional, "small" | "medium" | "large") - Use it to specify max tooltip size.
+   * * `placement` - (optional, "target" | "middle" | "bottom") - Use it to specify preferred tooltip placement.
    * * `title` - (optional, function) - Use it to provide a custom tooltip title.
    * * `content` - (optional, function) - Use it to provide a custom tooltip content.
    * * `footer` - (optional, function) - Use it to add a tooltip footer.
    * * `series` - (optional, function) - Use it to extend the default series list, in order to use custom value formatting,
    * inject links, or add expandable items.
    */
-  tooltip?: CartesianChartProps.TooltipProps;
+  tooltip?: CartesianChartProps.TooltipOptions;
 
   /**
    * X-axis options that extend [xAxis](https://api.highcharts.com/highcharts/xAxis).
@@ -64,7 +67,7 @@ export interface CartesianChartProps extends BaseTypes.BaseChartProps {
    * applies to the tooltip header.
    * * `valueDecimals` (optional, number) - The number of decimal digits the axis values have, defaults to 2.
    */
-  xAxis?: CartesianChartProps.AxisProps;
+  xAxis?: CartesianChartProps.XAxisOptions;
 
   /**
    * Y-axis options that extend [xAxis](https://api.highcharts.com/highcharts/yAxis).
@@ -86,7 +89,7 @@ export interface CartesianChartProps extends BaseTypes.BaseChartProps {
    * applies to the tooltip header.
    * * `valueDecimals` (optional, number) - The number of decimal digits the axis values have, defaults to 2.
    */
-  yAxis?: CartesianChartProps.AxisProps;
+  yAxis?: CartesianChartProps.YAxisOptions;
 
   /**
    * Defines placement of the vertical axis (can be either Y or X depending on `inverted`).
@@ -118,28 +121,28 @@ export namespace CartesianChartProps {
     clearFilter(): void;
   }
 
-  export type Series =
-    | AreaSeries
-    | AreaSplineSeries
-    | ColumnSeries
-    | ErrorBarSeries
-    | LineSeries
-    | ScatterSeries
-    | SplineSeries
-    | XThresholdSeries
-    | YThresholdSeries;
+  export type SeriesOptions =
+    | AreaSeriesOptions
+    | AreaSplineSeriesOptions
+    | ColumnSeriesOptions
+    | ErrorBarSeriesOptions
+    | LineSeriesOptions
+    | ScatterSeriesOptions
+    | SplineSeriesOptions
+    | XThresholdSeriesOptions
+    | YThresholdSeriesOptions;
 
-  export type AreaSeries = BaseTypes.AreaSeries;
-  export type AreaSplineSeries = BaseTypes.AreaSplineSeries;
-  export type ColumnSeries = BaseTypes.ColumnSeries;
-  export type ErrorBarSeries = BaseTypes.ErrorBarSeries;
-  export type LineSeries = BaseTypes.LineSeries;
-  export type ScatterSeries = BaseTypes.ScatterSeries;
-  export type SplineSeries = BaseTypes.SplineSeries;
-  export type XThresholdSeries = BaseTypes.XThresholdSeries;
-  export type YThresholdSeries = BaseTypes.YThresholdSeries;
+  export type AreaSeriesOptions = BaseTypes.AreaSeriesOptions;
+  export type AreaSplineSeriesOptions = BaseTypes.AreaSplineSeriesOptions;
+  export type ColumnSeriesOptions = BaseTypes.ColumnSeriesOptions;
+  export type ErrorBarSeriesOptions = BaseTypes.ErrorBarSeriesOptions;
+  export type LineSeriesOptions = BaseTypes.LineSeriesOptions;
+  export type ScatterSeriesOptions = BaseTypes.ScatterSeriesOptions;
+  export type SplineSeriesOptions = BaseTypes.SplineSeriesOptions;
+  export type XThresholdSeriesOptions = BaseTypes.XThresholdSeriesOptions;
+  export type YThresholdSeriesOptions = BaseTypes.YThresholdSeriesOptions;
 
-  export interface AxisProps {
+  interface AxisOptions {
     title?: string;
     type?: "linear" | "datetime" | "category" | "logarithmic";
     min?: number;
@@ -150,48 +153,51 @@ export namespace CartesianChartProps {
     valueDecimals?: number;
   }
 
-  export type XAxisProps = AxisProps;
+  export type XAxisOptions = AxisOptions;
 
-  export interface YAxisProps extends AxisProps {
+  export interface YAxisOptions extends AxisOptions {
     reversedStacks?: boolean;
   }
 
-  export interface TooltipProps extends BaseTypes.ChartTooltipOptions {
-    series?: (detail: TooltipSeriesDetailItem) => TooltipSeriesFormatted;
-    header?: (detail: TooltipDetails) => React.ReactNode;
-    body?: (detail: TooltipDetails) => React.ReactNode;
-    footer?: (detail: TooltipDetails) => React.ReactNode;
+  export interface TooltipOptions extends BaseTypes.ChartTooltipOptions {
+    series?: (props: TooltipSeriesRenderProps) => TooltipSeriesFormatted;
+    header?: (detail: TooltipHeaderRenderProps) => React.ReactNode;
+    body?: (detail: TooltipBodyRenderProps) => React.ReactNode;
+    footer?: (detail: TooltipFooterRenderProps) => React.ReactNode;
   }
 
-  export interface TooltipDetails {
+  export type TooltipHeaderRenderProps = TooltipSlotRenderProps;
+  export type TooltipBodyRenderProps = TooltipSlotRenderProps;
+  export type TooltipFooterRenderProps = TooltipSlotRenderProps;
+  interface TooltipSlotRenderProps {
     x: number;
-    items: TooltipSeriesDetailItem[];
+    items: TooltipSeriesRenderProps[];
   }
 
-  export type TooltipSeriesDetailItem =
-    | TooltipSeriesDetailItemPoint
-    | TooltipSeriesDetailItemRange
-    | TooltipSeriesDetailItemThreshold;
+  export type TooltipSeriesRenderProps =
+    | TooltipSeriesRenderPropsPoint
+    | TooltipSeriesRenderPropsRange
+    | TooltipSeriesRenderPropsThreshold;
 
-  interface TooltipSeriesDetailItemPoint {
+  interface TooltipSeriesRenderPropsPoint {
     type: "point";
     x: number;
     y: number;
-    series: CartesianChartProps.Series;
+    series: CartesianChartProps.SeriesOptions;
   }
 
-  interface TooltipSeriesDetailItemRange {
+  interface TooltipSeriesRenderPropsRange {
     type: "range";
     x: number;
     low: number;
     high: number;
-    series: CartesianChartProps.Series;
+    series: CartesianChartProps.SeriesOptions;
   }
 
-  interface TooltipSeriesDetailItemThreshold {
-    type: "threshold";
+  interface TooltipSeriesRenderPropsThreshold {
+    type: "all";
     x: number;
-    series: CartesianChartProps.Series;
+    series: CartesianChartProps.SeriesOptions;
   }
 
   export interface TooltipSeriesFormatted {
@@ -201,7 +207,7 @@ export namespace CartesianChartProps {
     subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
   }
 
-  export type NoDataProps = BaseTypes.ChartNoDataOptions;
+  export type NoDataOptions = BaseTypes.ChartNoDataOptions;
 }
 
 // The internal chart options allow propagation of all Highcharts properties, including series types and axes options,
@@ -213,8 +219,8 @@ export type InternalCartesianChartOptions = Omit<Highcharts.Options, "series" | 
   yAxis: InternalYAxisOptions[];
 };
 
-export type InternalSeriesOptions = CartesianChartProps.Series | Highcharts.SeriesOptionsType;
+export type InternalSeriesOptions = CartesianChartProps.SeriesOptions | Highcharts.SeriesOptionsType;
 
-export type InternalXAxisOptions = CartesianChartProps.XAxisProps & Highcharts.XAxisOptions;
+export type InternalXAxisOptions = CartesianChartProps.XAxisOptions & Highcharts.XAxisOptions;
 
-export type InternalYAxisOptions = CartesianChartProps.YAxisProps & Highcharts.YAxisOptions;
+export type InternalYAxisOptions = CartesianChartProps.YAxisOptions & Highcharts.YAxisOptions;

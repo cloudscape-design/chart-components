@@ -15,7 +15,7 @@ interface ThisPageSettings extends PageSettings {
   visibleItems: string;
 }
 
-const mixedChartSeries: CartesianChartProps.Series[] = [
+const mixedChartSeries: CartesianChartProps.SeriesOptions[] = [
   {
     id: "Costs",
     name: "Costs",
@@ -42,7 +42,7 @@ const mixedChartSeries: CartesianChartProps.Series[] = [
   },
 ];
 
-const pieChartSeries: PieChartProps.Series = {
+const pieChartSeries: PieChartProps.SeriesOptions = {
   name: "Value",
   type: "pie",
   data: [

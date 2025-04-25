@@ -34,7 +34,7 @@ export default function () {
     reverseSegmentDirection = false,
   } = settings;
 
-  const getPieSeries = (segments: number): PieChartProps.Series => {
+  const getPieSeries = (segments: number): PieChartProps.SeriesOptions => {
     const letters = "ABCDEFGHIJKLMNOP";
     const data = range(0, segments).map((i) => {
       switch (segmentDistribution) {

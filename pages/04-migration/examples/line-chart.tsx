@@ -60,7 +60,7 @@ const site2Data = [
   179130, 185951, 144091, 152975, 157299,
 ];
 
-const seriesNew: CartesianChartProps.Series[] = [
+const seriesNew: CartesianChartProps.SeriesOptions[] = [
   {
     name: "Site 1",
     type: "line",

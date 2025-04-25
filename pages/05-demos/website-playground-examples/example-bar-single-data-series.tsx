@@ -8,7 +8,7 @@ import { dateFormatter, numberFormatter, priceFormatter } from "../../common/for
 import { usePageSettings } from "../../common/page-settings";
 import { PageSection } from "../../common/templates";
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "Site 1",
     type: "column",

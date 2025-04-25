@@ -8,7 +8,7 @@ import { PieChart, PieChartProps } from "../../../lib/components";
 import { usePageSettings } from "../../common/page-settings";
 import { PageSection } from "../../common/templates";
 
-const series: PieChartProps.Series = {
+const series: PieChartProps.SeriesOptions = {
   name: "Value",
   type: "donut",
   data: [

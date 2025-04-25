@@ -4,13 +4,13 @@
 import { useCallback } from "react";
 import type Highcharts from "highcharts";
 
-import { CloudscapeChartAPI } from "../core/interfaces-core";
+import { CoreChartAPI } from "../core/interfaces-core";
 import { getOptionsId } from "../core/utils";
 import { InternalCartesianChartOptions } from "./interfaces-cartesian";
 import * as Styles from "./styles";
 
 export const useCartesianSeries = (
-  getAPI: () => CloudscapeChartAPI,
+  getAPI: () => CoreChartAPI,
   {
     options,
     visibleSeries,

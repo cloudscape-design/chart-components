@@ -8,7 +8,7 @@ import { moneyFormatter, numberFormatter } from "../../common/formatters";
 import { usePageSettings } from "../../common/page-settings";
 import { PageSection } from "../../common/templates";
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "Costs",
     type: "column",
@@ -64,7 +64,7 @@ export function ExampleMixedLineAndBarChart() {
                     </Link>
                   ),
                 };
-              case "threshold":
+              case "all":
                 return { key: detail.series.name, value: "" };
               default:
                 return { key: "?", value: "?" };
