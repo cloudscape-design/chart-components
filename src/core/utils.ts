@@ -22,7 +22,10 @@ function noIdPlaceholder(): string {
   return "awsui-no-id-placeholder-" + rand;
 }
 
-export function getSeriesMarkerType(series: Highcharts.Series): ChartSeriesMarkerType {
+export function getSeriesMarkerType(series?: Highcharts.Series): ChartSeriesMarkerType {
+  if (!series) {
+    return "large-square";
+  }
   const seriesSymbol = "symbol" in series && typeof series.symbol === "string" ? series.symbol : "circle";
   if ("dashStyle" in series.options && series.options.dashStyle) {
     return "dashed";
@@ -63,4 +66,12 @@ export function resetColorCounter(chart: Highcharts.Chart, seriesCount: number) 
   if ("colorCounter" in chart && typeof chart.colorCounter === "number") {
     chart.colorCounter = seriesCount;
   }
+}
+
+export function getSeriesColor(series?: Highcharts.Series): string {
+  return series?.color?.toString() ?? "black";
+}
+
+export function getPointColor(point?: Highcharts.Point): string {
+  return point?.color?.toString() ?? "black";
 }

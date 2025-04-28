@@ -4,28 +4,32 @@
 import { useRef, useState } from "react";
 import type Highcharts from "highcharts";
 
-import { CoreChartAPI, CoreTooltipOptions, Target } from "../core/interfaces-core";
-import { getOptionsId, getSeriesId, getSeriesMarkerType } from "../core/utils";
+import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
+
+import { CoreTooltipOptions, Target } from "../core/interfaces-core";
+import { getOptionsId, getSeriesColor, getSeriesId, getSeriesMarkerType } from "../core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../internal/components/series-details";
 import { ChartSeriesMarker } from "../internal/components/series-marker";
 import { getDefaultFormatter } from "./default-formatters";
-import { CartesianChartProps, InternalCartesianChartOptions, InternalSeriesOptions } from "./interfaces-cartesian";
+import {
+  CartesianChartProps,
+  InternalCartesianChartOptions,
+  InternalSeriesOptions,
+  InternalTooltipMatchedItem,
+} from "./interfaces-cartesian";
 import * as Styles from "./styles";
-import { findMatchedTooltipItems, getDataExtremes } from "./utils";
+import { getDataExtremes } from "./utils";
 
-export function useChartTooltipCartesian(
-  getAPI: () => CoreChartAPI,
-  props: {
-    options: InternalCartesianChartOptions;
-    tooltip?: CartesianChartProps.TooltipOptions;
-  },
-): CoreTooltipOptions {
+export function useChartTooltipCartesian(props: {
+  options: InternalCartesianChartOptions;
+  tooltip?: CartesianChartProps.TooltipOptions;
+}): CoreTooltipOptions {
   const { xAxis, series } = props.options;
   const [expandedSeries, setExpandedSeries] = useState<Record<string, Set<string>>>({});
   const cursorRef = useRef(new HighlightCursor());
 
   const getTooltipContent: CoreTooltipOptions["getTooltipContent"] = ({ point }) => {
-    const chart = getAPI().chart;
+    const chart = point.series.chart;
 
     const seriesToChartSeries = new Map<InternalSeriesOptions, Highcharts.Series>();
     for (const s of series) {
@@ -36,9 +40,7 @@ export function useChartTooltipCartesian(
     }
     const getSeriesMarker = (series: CartesianChartProps.SeriesOptions) => {
       const hcSeries = seriesToChartSeries.get(series);
-      const markerType = hcSeries ? getSeriesMarkerType(hcSeries) : "large-square";
-      const markerColor = hcSeries?.color?.toString() ?? "black";
-      return <ChartSeriesMarker type={markerType} color={markerColor} />;
+      return <ChartSeriesMarker type={getSeriesMarkerType(hcSeries)} color={getSeriesColor(hcSeries)} />;
     };
 
     const matchedItemsInternal = findMatchedTooltipItems(point, series);
@@ -123,20 +125,12 @@ export function useChartTooltipCartesian(
     };
   };
 
-  const destroyCursor = () => {
-    cursorRef.current?.destroy();
-  };
-
-  const createCursor = (target: Target) => {
-    cursorRef.current.create(target, getAPI().chart);
-  };
-
   const onPointHighlight: CoreTooltipOptions["onPointHighlight"] = ({ point, target }) => {
     // Highcharts highlights the entire series when the cursor lands on it. However, for column series
     // we want only a single column be highlighted. This is achieved by issuing inactive state for all columns series
     // with coordinates not matched the highlighted one.
     if (props.options.series.some((s) => s.type === "column")) {
-      for (const s of getAPI().chart.series) {
+      for (const s of point.series.chart.series) {
         if (s.type === "column") {
           for (const p of s.data) {
             if (p.x !== point.x) {
@@ -151,18 +145,18 @@ export function useChartTooltipCartesian(
     // that do not include "column" series. That is because the cursor is not necessary for columns, assuming the number of
     // x data points is not very high.
     else {
-      createCursor(target);
+      cursorRef.current.create(target, point.series.chart);
     }
 
     return { matchedLegendItems: [getSeriesId(point.series)] };
   };
 
-  const onClearHighlight: CoreTooltipOptions["onClearHighlight"] = () => {
-    destroyCursor();
+  const onClearHighlight: CoreTooltipOptions["onClearHighlight"] = (chart) => {
+    cursorRef.current?.destroy();
 
     // Clear all column series point state overrides created in `onPointHighlight`.
     if (props.options.series.some((s) => s.type === "column")) {
-      for (const s of getAPI().chart.series) {
+      for (const s of chart.series) {
         s.setState("normal");
         for (const p of s.data) {
           p.setState("normal");
@@ -193,5 +187,135 @@ class HighlightCursor {
 
   public destroy() {
     this.instance?.destroy();
+  }
+}
+
+export function findMatchedTooltipItems(point: Highcharts.Point, series: InternalSeriesOptions[]) {
+  const matchedItems: InternalTooltipMatchedItem[] = [];
+  function findMatchedItem(series: InternalSeriesOptions) {
+    if (series.type === "x-threshold" || series.type === "y-threshold") {
+      return;
+    }
+    if ("data" in series && series.data && Array.isArray(series.data)) {
+      for (let i = 0; i < series.data.length; i++) {
+        const detail = getMatchedTooltipItemForIndex(i, series);
+        if (detail?.x === point.x) {
+          matchedItems.push(detail);
+        }
+      }
+    }
+  }
+  series.forEach((s) => findMatchedItem(s));
+
+  function findMatchedXThreshold(series: CartesianChartProps.XThresholdSeriesOptions) {
+    if (series.value <= point.x && point.x <= series.value) {
+      matchedItems.push({ type: "all", x: series.value, series });
+    }
+  }
+  series.forEach((s) => (s.type === "x-threshold" ? findMatchedXThreshold(s) : undefined));
+
+  function findMatchedYThreshold(series: CartesianChartProps.YThresholdSeriesOptions) {
+    matchedItems.push({ type: "point", x: point.x, y: series.value, series });
+  }
+  series.forEach((s) => (s.type === "y-threshold" ? findMatchedYThreshold(s) : undefined));
+
+  return matchedItems;
+}
+
+function getMatchedTooltipItemForIndex(
+  index: number,
+  series: InternalSeriesOptions,
+): null | InternalTooltipMatchedItem {
+  const x = getSeriesXbyIndex(series, index);
+  const y = getSeriesYbyIndex(series, index);
+  if (x === null) {
+    return null;
+  }
+  if (typeof y === "number") {
+    return { type: "point", x: x, y, series };
+  }
+  if (Array.isArray(y)) {
+    return { type: "range", x: x, low: y[0], high: y[1], series };
+  }
+  if (series.type === "y-threshold") {
+    return { type: "all", x: x, series };
+  }
+  return null;
+}
+
+function getSeriesXbyIndex(series: InternalSeriesOptions, index: number): number | null {
+  if (!("data" in series) || !Array.isArray(series.data)) {
+    warnOnce("CartesianChart", "Series data cannot be parsed.");
+    return null;
+  }
+  switch (series.type) {
+    case "area":
+    case "areaspline":
+    case "column":
+    case "line":
+    case "scatter":
+    case "spline": {
+      const item = series.data[index];
+      if (Array.isArray(item) && typeof item[0] === "number") {
+        return item[0];
+      }
+      if (item && typeof item === "object" && !Array.isArray(item) && typeof item.x === "number") {
+        return item.x;
+      }
+      return index;
+    }
+    case "errorbar": {
+      const item = series.data[index];
+      if (Array.isArray(item) && typeof item[0] === "number") {
+        return item.length === 3 ? item[0] : index;
+      }
+      if (item && typeof item === "object" && !Array.isArray(item) && typeof item.x === "number") {
+        return item.x ?? index;
+      }
+      return index;
+    }
+    default:
+      return index;
+  }
+}
+
+function getSeriesYbyIndex(series: InternalSeriesOptions, index: number): null | number | [number, number] {
+  if (!("data" in series) || !Array.isArray(series.data)) {
+    warnOnce("CartesianChart", "Series data cannot be parsed.");
+    return null;
+  }
+  switch (series.type) {
+    case "area":
+    case "areaspline":
+    case "column":
+    case "line":
+    case "scatter":
+    case "spline": {
+      const item = series.data[index];
+      if (Array.isArray(item)) {
+        return item[1];
+      }
+      if (typeof item === "number") {
+        return item;
+      }
+      if (item && typeof item === "object") {
+        return item.y ?? null;
+      }
+      return null;
+    }
+    case "errorbar": {
+      const item = series.data[index];
+      if (Array.isArray(item)) {
+        const [low, high] = item.length === 2 ? [item[0], item[1]] : [item[1], item[2]];
+        return typeof low === "number" ? [low, high] : null;
+      }
+      if (item && typeof item === "object") {
+        const [low, high] = [item.low, item.high];
+        return typeof low === "number" && typeof high === "number" ? [low, high] : null;
+      }
+      return null;
+    }
+    default:
+      return null;
   }
 }

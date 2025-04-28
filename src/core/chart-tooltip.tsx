@@ -285,7 +285,7 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
   };
 
   private clearHighlightActions = () => {
-    this.tooltipProps.onClearHighlight?.();
+    this.tooltipProps.onClearHighlight?.(this.api.chart);
     this.destroyMarkers();
     this.api.clearLegendHighlight();
   };

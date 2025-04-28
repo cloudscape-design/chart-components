@@ -4,23 +4,19 @@
 import { useCallback } from "react";
 import type Highcharts from "highcharts";
 
-import { CoreChartAPI } from "../core/interfaces-core";
 import { getOptionsId } from "../core/utils";
 import { InternalCartesianChartOptions } from "./interfaces-cartesian";
 import * as Styles from "./styles";
 
-export const useCartesianSeries = (
-  getAPI: () => CoreChartAPI,
-  {
-    options,
-    visibleSeries,
-    emphasizeBaselineAxis,
-  }: {
-    options: InternalCartesianChartOptions;
-    visibleSeries: readonly string[];
-    emphasizeBaselineAxis?: boolean;
-  },
-) => {
+export const useCartesianSeries = ({
+  options,
+  visibleSeries,
+  emphasizeBaselineAxis,
+}: {
+  options: InternalCartesianChartOptions;
+  visibleSeries: readonly string[];
+  emphasizeBaselineAxis?: boolean;
+}) => {
   // The threshold series are added as a combination of series and plot lines.
   // The series are hidden in the plot area, but are visible in the legend.
   const series: Highcharts.SeriesOptionsType[] = options.series.map((s) => {
@@ -40,9 +36,9 @@ export const useCartesianSeries = (
 
   // When chart is re-rendered, there is a chance its thresholds series data or extremes changed.
   // We compare the new state against the already rendered one and make adjustments if needed.
-  const onChartRender: Highcharts.ChartRenderCallbackFunction = useCallback(() => {
-    updateSeriesData(getAPI().chart);
-  }, [getAPI]);
+  const onChartRender: Highcharts.ChartRenderCallbackFunction = useCallback(function () {
+    updateSeriesData(this);
+  }, []);
 
   // The plot lines for threshold series are visible in the chart plot area. Unlike the line series,
   // the plot lines render across the entire chart plot height or width.
