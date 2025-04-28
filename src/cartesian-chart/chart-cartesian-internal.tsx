@@ -6,7 +6,7 @@ import type Highcharts from "highcharts";
 
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
-import { CloudscapeHighcharts, useCoreAPI } from "../core/chart-core";
+import { CoreChart, useCoreAPI } from "../core/chart-core";
 import { getOptionsId } from "../core/utils";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { fireNonCancelableEvent } from "../internal/events";
@@ -123,7 +123,7 @@ export const InternalCartesianChart = forwardRef(
     };
 
     return (
-      <CloudscapeHighcharts
+      <CoreChart
         highcharts={highcharts}
         callback={callback}
         options={highchartsOptions}

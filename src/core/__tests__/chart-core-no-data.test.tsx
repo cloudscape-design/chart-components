@@ -17,7 +17,7 @@ const noDataContent = {
   error: "no-data: error",
 };
 
-describe("CloudscapeHighcharts: no-data", () => {
+describe("CoreChart: no-data", () => {
   test('does not render no-data when statusType="finished"', () => {
     const { wrapper } = renderChart({
       highcharts,

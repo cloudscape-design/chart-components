@@ -5,7 +5,7 @@ import highcharts from "highcharts";
 
 import { renderChart } from "./common";
 
-describe("CloudscapeHighcharts: rendering", () => {
+describe("CoreChart: rendering", () => {
   test("renders default fallback with highcharts=null", () => {
     const { wrapper } = renderChart({ highcharts: null });
     expect(wrapper.findFallback()).not.toBe(null);

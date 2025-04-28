@@ -57,8 +57,8 @@ export function ExampleBarChartMultipleDataSeriesStackedHorizontal() {
         series={isEmpty ? [] : series}
         tooltip={{
           ...chartProps.cartesian.tooltip,
-          series: (detail) => {
-            switch (detail.type) {
+          series: ({ item }) => {
+            switch (item.type) {
               case "point": {
                 const valueLink = ({ key, value }: { key: string; value: number }) => (
                   <Link
@@ -70,72 +70,72 @@ export function ExampleBarChartMultipleDataSeriesStackedHorizontal() {
                   </Link>
                 );
                 return {
-                  key: detail.series.name,
+                  key: item.series.name,
                   value: valueLink({
-                    key: detail.series.name ?? "",
-                    value: detail.y,
+                    key: item.series.name ?? "",
+                    value: item.y,
                   }),
-                  expandable: detail.series.name === "Desktop" || detail.series.name === "Mobile",
+                  expandable: item.series.name === "Desktop" || item.series.name === "Mobile",
                   subItems:
-                    detail.series.name === "Desktop"
+                    item.series.name === "Desktop"
                       ? [
                           {
                             key: "Chrome",
                             value: valueLink({
                               key: "Desktop Chrome",
-                              value: detail.x === 0 ? 0.19 : 0.15,
+                              value: item.x === 0 ? 0.19 : 0.15,
                             }),
                           },
                           {
                             key: "Safari",
                             value: valueLink({
                               key: "Desktop Safari",
-                              value: detail.x === 0 ? 0.07 : 0.05,
+                              value: item.x === 0 ? 0.07 : 0.05,
                             }),
                           },
                           {
                             key: "Edge",
                             value: valueLink({
                               key: "Desktop Edge",
-                              value: detail.x === 0 ? 0.02 : 0.02,
+                              value: item.x === 0 ? 0.02 : 0.02,
                             }),
                           },
                           {
                             key: "Firefox",
                             value: valueLink({
                               key: "Desktop Firefox",
-                              value: detail.x === 0 ? 0.02 : 0.02,
+                              value: item.x === 0 ? 0.02 : 0.02,
                             }),
                           },
                           {
                             key: "Others",
                             value: valueLink({
                               key: "Other desktop browsers",
-                              value: detail.x === 0 ? 0.02 : 0.02,
+                              value: item.x === 0 ? 0.02 : 0.02,
                             }),
                           },
                         ]
-                      : detail.series.name === "Mobile"
+                      : item.series.name === "Mobile"
                         ? [
                             {
                               key: "Chrome",
                               value: valueLink({
                                 key: "Mobile Chrome",
-                                value: detail.x === 0 ? 0.18 : 0.3,
+                                value: item.x === 0 ? 0.18 : 0.3,
                               }),
                             },
                             {
                               key: "Safari",
                               value: valueLink({
                                 key: "Mobile Safari",
-                                value: detail.x === 0 ? 0.04 : 0.08,
+                                value: item.x === 0 ? 0.04 : 0.08,
                               }),
                             },
                             {
                               key: "Others",
                               value: valueLink({
                                 key: "Other mobile browsers",
-                                value: detail.x === 0 ? 0.04 : 0.07,
+                                value: item.x === 0 ? 0.04 : 0.07,
                               }),
                             },
                           ]

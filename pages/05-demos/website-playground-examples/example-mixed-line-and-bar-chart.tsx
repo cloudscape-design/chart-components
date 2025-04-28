@@ -49,23 +49,23 @@ export function ExampleMixedLineAndBarChart() {
         series={isEmpty ? [] : series}
         tooltip={{
           ...chartProps.cartesian.tooltip,
-          series: (detail) => {
-            switch (detail.type) {
+          series: ({ item }) => {
+            switch (item.type) {
               case "point":
                 return {
-                  key: detail.series.name,
+                  key: item.series.name,
                   value: (
                     <Link
                       external={true}
                       href="#"
-                      ariaLabel={`See details for ${moneyFormatter(detail.y)} on ${detail.series.name} (opens in a new tab)`}
+                      ariaLabel={`See details for ${moneyFormatter(item.y)} on ${item.series.name} (opens in a new tab)`}
                     >
-                      {moneyFormatter(detail.y)}
+                      {moneyFormatter(item.y)}
                     </Link>
                   ),
                 };
               case "all":
-                return { key: detail.series.name, value: "" };
+                return { key: item.series.name, value: "" };
               default:
                 return { key: "?", value: "?" };
             }

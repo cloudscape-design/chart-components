@@ -7,7 +7,7 @@ import type Highcharts from "highcharts";
 
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
-import { CloudscapeHighcharts, useCoreAPI } from "../core/chart-core";
+import { CoreChart, useCoreAPI } from "../core/chart-core";
 import { getOptionsId } from "../core/utils";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { fireNonCancelableEvent } from "../internal/events";
@@ -179,7 +179,7 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
   };
 
   return (
-    <CloudscapeHighcharts
+    <CoreChart
       highcharts={highcharts}
       options={highchartsOptions}
       fitHeight={props.fitHeight}

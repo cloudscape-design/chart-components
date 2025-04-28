@@ -70,18 +70,18 @@ export function WidgetInstanceHours() {
       yAxis={{ title: "Total instance hours", min: 0, max: 2000 }}
       tooltip={{
         ...chartProps.cartesian.tooltip,
-        series(detail) {
-          switch (detail.type) {
+        series({ item }) {
+          switch (item.type) {
             case "point":
               return {
-                key: detail.series.name,
+                key: item.series.name,
                 value: (
                   <Link
                     external={true}
                     href="#"
-                    ariaLabel={`See details for ${detail.y} hours on ${detail.series.name} (opens in a new tab)`}
+                    ariaLabel={`See details for ${item.y} hours on ${item.series.name} (opens in a new tab)`}
                   >
-                    {detail.y}
+                    {item.y}
                   </Link>
                 ),
               };

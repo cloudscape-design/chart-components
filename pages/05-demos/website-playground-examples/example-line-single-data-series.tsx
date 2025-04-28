@@ -78,20 +78,20 @@ export function ExampleLineChartSingleDataSeries() {
         series={isEmpty ? [] : series}
         tooltip={{
           ...chartProps.cartesian.tooltip,
-          series: (detail) => {
-            switch (detail.type) {
+          series: ({ item }) => {
+            switch (item.type) {
               case "point":
                 return {
                   key: (
                     <Link external={true} href="#">
-                      {detail.series.name}
+                      {item.series.name}
                     </Link>
                   ),
-                  value: numberFormatter(detail.y),
+                  value: numberFormatter(item.y),
                 };
               case "all":
                 return {
-                  key: detail.series.name,
+                  key: item.series.name,
                   value: "",
                 };
               default:

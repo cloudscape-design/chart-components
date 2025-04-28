@@ -21,7 +21,7 @@ import { useChartSeries } from "./chart-series";
 import { ChartTooltip, useChartTooltip } from "./chart-tooltip";
 import { useChartVerticalAxisTitle } from "./chart-vertical-axis-title";
 import { ChartFooterOptions, ChartHeaderOptions } from "./interfaces-base";
-import { CloudscapeHighchartsProps, CoreChartAPI } from "./interfaces-core";
+import { CoreChartAPI, CoreChartProps } from "./interfaces-core";
 import * as Styles from "./styles";
 import { resetColorCounter } from "./utils";
 
@@ -29,10 +29,10 @@ import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
 
 /**
- * CloudscapeHighcharts is the core internal abstraction that accepts the entire set of Highcharts options along
+ * CoreChart is the core internal abstraction that accepts the entire set of Highcharts options along
  * with Cloudscape props to define custom tooltip, no-data, formatters, items visibility, and more.
  */
-export function CloudscapeHighcharts({
+export function CoreChart({
   options,
   fitHeight,
   chartMinHeight,
@@ -51,7 +51,7 @@ export function CloudscapeHighcharts({
   footer,
   filter,
   ...rest
-}: CloudscapeHighchartsProps) {
+}: CoreChartProps) {
   const highcharts = rest.highcharts as null | typeof Highcharts;
   // The apiRef is expected to be available after the initial render.
   // The instance is used to get internal series and points detail, and run APIs such as series.setVisible() to
