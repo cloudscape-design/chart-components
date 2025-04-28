@@ -11,11 +11,50 @@ on:
 permissions:
   id-token: write
   contents: read
+  actions: read
 
 jobs:
   release:
-    uses: cloudscape-design/actions/.github/workflows/release.yml@main
-    secrets: inherit
-    with:
-      publish-packages: lib/components,lib/components-themeable
-      skip-test: true
+    concurrency: release-${{ github.ref }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install
+      - run: npm run build
+      - name: Upload release artifacts
+        id: upload-release
+        uses: actions/upload-artifact@v4
+        with:
+          name: release
+          path: lib
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ inputs.role-to-assume || secrets.AWS_CODEARTIFACT_ROLE }}
+          aws-region: us-west-2
+      - name: Run CodeBuild
+        uses: aws-actions/aws-codebuild-run-build@v1
+        with:
+          project-name: ${{ inputs.project-name || secrets.AWS_CODEBUILD_PROJECT_NAME ||  'Importer-v2' }}
+          disable-source-override: true
+          hide-cloudwatch-logs: true
+          env-vars-for-codebuild: |
+            AWSUI_GITHUB_ARTIFACT_ID,
+            AWSUI_GITHUB_BRANCH_NAME,
+            AWSUI_GITHUB_COMMIT_SHA,
+            AWSUI_GITHUB_COMMIT_MESSAGE,
+            AWSUI_GITHUB_REPOSITORY_NAME,
+            AWSUI_GITHUB_TOKEN
+        env:
+          AWSUI_GITHUB_ARTIFACT_ID: ${{ steps.upload-release.outputs.artifact-id }}
+          AWSUI_GITHUB_BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+          AWSUI_GITHUB_COMMIT_SHA: ${{ github.sha }}
+          AWSUI_GITHUB_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          AWSUI_GITHUB_REPOSITORY_NAME: ${{ github.event.repository.full_name }}
+          AWSUI_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
