@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - main
+      - charts-0.1
       - "dev-v3-*"
 
 permissions:
