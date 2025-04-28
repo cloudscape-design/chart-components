@@ -5,7 +5,7 @@ import AreaChart, { AreaChartProps } from "@cloudscape-design/components/area-ch
 
 import { CartesianChart, CartesianChartProps } from "../../../lib/components";
 import { dateFormatter, numberFormatter } from "../../common/formatters";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 
 const domain = [
   new Date(1600984800000),
@@ -57,7 +57,7 @@ const network3Data = [
   175584, 230042, 293879,
 ];
 
-const seriesNew: CartesianChartProps.Series[] = [
+const seriesNew: CartesianChartProps.SeriesOptions[] = [
   {
     name: "Network 1",
     type: "area",
@@ -74,7 +74,7 @@ const seriesNew: CartesianChartProps.Series[] = [
     data: network3Data.map((y, index) => ({ x: domain[index].getTime(), y })),
   },
   {
-    type: "awsui-y-threshold",
+    type: "y-threshold",
     name: "Target",
     value: 350000,
   },
@@ -104,15 +104,15 @@ const seriesOld: AreaChartProps<Date>["series"] = [
 ];
 
 export function ComponentNew() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       fitHeight={true}
       chartMinHeight={200}
       ariaLabel="Area chart"
       series={seriesNew}
-      plotOptions={{ series: { stacking: "normal" } }}
+      stacked={true}
       xAxis={{
         type: "datetime",
         title: "Time (UTC)",
@@ -141,7 +141,7 @@ export function ComponentNew() {
 }
 
 export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <AreaChart
       fitHeight={true}
@@ -158,7 +158,7 @@ export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
       xScaleType="time"
       xTitle="Time (UTC)"
       yTitle="Bytes transferred"
-      noMatch={chartProps.noData.noMatch}
+      noMatch={chartProps.cartesian.noData!.noMatch}
     />
   );
 }

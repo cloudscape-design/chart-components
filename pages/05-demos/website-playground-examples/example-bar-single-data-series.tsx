@@ -5,24 +5,24 @@ import Link from "@cloudscape-design/components/link";
 
 import { CartesianChart, CartesianChartProps } from "../../../lib/components";
 import { dateFormatter, numberFormatter, priceFormatter } from "../../common/formatters";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 import { PageSection } from "../../common/templates";
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "Site 1",
     type: "column",
     data: [34503, 25832, 4012, -5602, 17839],
   },
   {
-    type: "awsui-y-threshold",
+    type: "y-threshold",
     name: "Average revenue",
     value: 19104,
   },
 ];
 
 export function ExampleBarChartSingleDataSeries() {
-  const { chartProps, isEmpty } = usePageSettings();
+  const { chartProps, isEmpty } = useChartSettings();
   return (
     <PageSection
       title="Bar chart: Single data series"
@@ -33,12 +33,12 @@ export function ExampleBarChartSingleDataSeries() {
       }
     >
       <CartesianChart
-        {...chartProps}
+        {...chartProps.cartesian}
         chartHeight={423}
         ariaLabel="Single data series bar chart"
         series={isEmpty ? [] : series}
         tooltip={{
-          ...chartProps.tooltip,
+          ...chartProps.cartesian.tooltip,
           series(detail) {
             switch (detail.type) {
               case "point":

@@ -3,26 +3,26 @@
 
 import { useRef } from "react";
 
-import Box from "@cloudscape-design/components/box";
+import { colorTextInteractiveDisabled } from "@cloudscape-design/design-tokens";
 
 import { ChartLegend as ChartLegendComponent, ChartLegendRef } from "../internal/components/chart-legend";
-import { ChartSeriesMarkerStatus, ChartSeriesMarkerType } from "../internal/components/series-marker";
+import { ChartSeriesMarker, ChartSeriesMarkerType } from "../internal/components/series-marker";
 import AsyncStore, { useSelector } from "../internal/utils/async-store";
-import { CloudscapeChartAPI, CoreLegendProps } from "./interfaces-core";
+import { ChartLegendOptions } from "./interfaces-base";
+import { CoreChartAPI } from "./interfaces-core";
 import { getPointId, getSeriesId, getSeriesMarkerType } from "./utils";
 
-interface LegendItemProps {
+interface LegendStateItemProps {
   id: string;
   name: string;
   color: string;
   markerType: ChartSeriesMarkerType;
-  active: boolean;
+  visible: boolean;
 }
 
 export function useLegend(
-  getChart: () => CloudscapeChartAPI,
-  legendProps?: CoreLegendProps & {
-    getItemStatus?: (itemId: string) => ChartSeriesMarkerStatus;
+  getChart: () => CoreChartAPI,
+  legendProps?: ChartLegendOptions & {
     onItemVisibilityChange?: (hiddenItems: string[]) => void;
   },
 ) {
@@ -52,15 +52,12 @@ export function useLegend(
 
 export function ChartLegend({
   legendStore,
-  getItemStatus,
   title,
-  infoTooltip,
-  placement,
   actions,
   onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
-}: CoreLegendProps & {
+}: ChartLegendOptions & {
   legendStore: LegendStore;
   onItemVisibilityChange: (visibleItems: string[]) => void;
   onItemHighlightEnter: (itemId: string) => void;
@@ -68,38 +65,38 @@ export function ChartLegend({
 }) {
   const legendItems = useSelector(legendStore, (state) => state.legendItems);
   return (
-    <Box padding={{ horizontal: "m" }}>
-      <ChartLegendComponent
-        ref={legendStore.legendRefCb}
-        legendTitle={title}
-        items={legendItems.map((item) => ({
-          id: item.id,
-          name: item.name,
-          color: item.color,
-          active: item.active,
-          type: item.markerType,
-          status: getItemStatus?.(item.id),
-        }))}
-        infoTooltip={infoTooltip}
-        placement={placement}
-        actions={actions}
-        onItemVisibilityChange={onItemVisibilityChange}
-        onItemHighlightEnter={onItemHighlightEnter}
-        onItemHighlightExit={onItemHighlightExit}
-      />
-    </Box>
+    <ChartLegendComponent
+      ref={legendStore.legendRefCb}
+      legendTitle={title}
+      items={legendItems.map((item) => ({
+        id: item.id,
+        name: item.name,
+        visible: item.visible,
+        marker: (
+          <ChartSeriesMarker
+            key={item.id}
+            color={item.visible ? item.color : colorTextInteractiveDisabled}
+            type={item.markerType}
+          />
+        ),
+      }))}
+      actions={actions}
+      onItemVisibilityChange={onItemVisibilityChange}
+      onItemHighlightEnter={onItemHighlightEnter}
+      onItemHighlightExit={onItemHighlightExit}
+    />
   );
 }
 
-class LegendStore extends AsyncStore<{ legendItems: LegendItemProps[] }> {
-  private getAPI: () => CloudscapeChartAPI;
+export class LegendStore extends AsyncStore<{ legendItems: LegendStateItemProps[] }> {
+  private getAPI: () => CoreChartAPI;
   public onItemVisibilityChangeCb?: (hiddenItems: string[]) => void;
   public legendRefCb = (ref: ChartLegendRef) => {
     this.legendRef = ref;
   };
   public legendRef: ChartLegendRef = { highlightItems: () => {}, clearHighlight: () => {} };
 
-  constructor(getAPI: () => CloudscapeChartAPI) {
+  constructor(getAPI: () => CoreChartAPI) {
     super({ legendItems: [] });
     this.getAPI = getAPI;
   }
@@ -162,7 +159,7 @@ class LegendStore extends AsyncStore<{ legendItems: LegendItemProps[] }> {
 
   private computeLegendItems() {
     const chart = this.api.chart;
-    const legendItems: LegendItemProps[] = [];
+    const legendItems: LegendStateItemProps[] = [];
 
     for (const s of chart.series) {
       if (s.type !== "pie") {
@@ -171,7 +168,7 @@ class LegendStore extends AsyncStore<{ legendItems: LegendItemProps[] }> {
           name: s.name,
           color: typeof s.color === "string" ? s.color : "black",
           markerType: getSeriesMarkerType(s),
-          active: s.visible,
+          visible: s.visible,
         });
       }
 
@@ -181,8 +178,8 @@ class LegendStore extends AsyncStore<{ legendItems: LegendItemProps[] }> {
             id: getPointId(point),
             name: point.name,
             color: typeof point.color === "string" ? point.color : "black",
-            markerType: "large-circle",
-            active: point.visible,
+            markerType: getSeriesMarkerType(s),
+            visible: point.visible,
           });
         }
       }
@@ -204,8 +201,12 @@ function isEqualArrays<T>(a: T[], b: T[], eq: (a: T, b: T) => boolean) {
   return true;
 }
 
-function isEqualLegendItems(a: LegendItemProps, b: LegendItemProps) {
+function isEqualLegendItems(a: LegendStateItemProps, b: LegendStateItemProps) {
   return (
-    a.id === b.id && a.name === b.name && a.color === b.color && a.markerType === b.markerType && a.active === b.active
+    a.id === b.id &&
+    a.name === b.name &&
+    a.color === b.color &&
+    a.markerType === b.markerType &&
+    a.visible === b.visible
   );
 }

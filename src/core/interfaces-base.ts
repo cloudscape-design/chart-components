@@ -3,6 +3,13 @@
 
 import { NonCancelableEventHandler } from "../internal/events";
 
+// All charts take `highcharts` instance, that can be served statically or dynamically.
+// Although it has to be of type Highcharts, the TS type we use is `null | object`, so
+// that it is ignored by the documenter.
+
+/**
+ * This interface includes common public chart properties, applicable for all chart types.
+ */
 export interface BaseChartProps {
   /**
    * The Highcharts instance, that can be obtained as `import Highcharts from 'highcharts'`.
@@ -12,8 +19,7 @@ export interface BaseChartProps {
   highcharts: null | object;
 
   /**
-   * The chart hight in pixels, it includes chart plot, labels, and legend.
-   * This property corresponds to [chart.height](https://api.highcharts.com/highcharts/chart.height).
+   * The height of the chart plot in pixels. It does not include legend, header, and footer.
    */
   chartHeight?: number;
 
@@ -50,53 +56,51 @@ export interface BaseChartProps {
 
   /**
    * An array of default series colors. Only use it when you want to override the Cloudscape-provided set of colors.
-   * This property corresponds to [colors](https://api.highcharts.com/highcharts/colors).
    */
   colors?: string[];
 
   /**
-   * Chart tooltip props.
+   * Chart legend props.
    */
-  tooltip?: BaseTooltipProps;
+  legend?: ChartLegendOptions;
 
   /**
-   * Chart series legend props.
+   * The empty, no-match, loading, or error state of the chart.
+   * It requires the `no-data-to-display` module.
    */
-  legend?: BaseLegendProps;
+  noData?: ChartNoDataOptions;
 
   /**
-   * The empty, no-match, loading, or error state of the chart, rendered as [chart.noData](https://api.highcharts.com/highcharts/noData).
-   * This property requires the `no-data-to-display` module.
+   * Use header to render custom content above the chart.
    */
-  noData?: BaseNoDataProps;
+  header?: ChartHeaderOptions;
 
-  // TODO: document
-  verticalAxisTitlePlacement?: "top" | "side";
+  /**
+   * Use header to render custom content below the chart (under the legend if present).
+   */
+  footer?: ChartFooterOptions;
+
+  /**
+   * Use filter to render default series filter, custom series filter, and/or additional filters.
+   */
+  filter?: ChartFilterOptions;
 }
 
-export interface BaseTooltipProps {
+export interface ChartTooltipOptions {
   enabled?: boolean;
   placement?: "target" | "bottom" | "middle";
   size?: "small" | "medium" | "large";
 }
 
-export interface BaseLegendProps {
+export interface ChartLegendOptions {
   enabled?: boolean;
   title?: string;
-  placement?: "block-end" | "inline-end";
   actions?: {
-    seriesFilter?: boolean;
-  };
-  infoTooltip?: {
-    render: (itemId: string) => {
-      header: React.ReactNode;
-      body: React.ReactNode;
-      footer?: React.ReactNode;
-    };
+    render?(props: LegendActionsRenderProps): React.ReactNode;
   };
 }
 
-export interface BaseNoDataProps {
+export interface ChartNoDataOptions {
   statusType?: "finished" | "loading" | "error";
   empty?: React.ReactNode;
   error?: React.ReactNode;
@@ -105,88 +109,120 @@ export interface BaseNoDataProps {
   onRecoveryClick?: NonCancelableEventHandler;
 }
 
+export interface ChartHeaderOptions {
+  render?(props: BaseHeaderRenderProps): React.ReactNode;
+}
+
+export interface BaseHeaderRenderProps {
+  legendItems: ChartLegendItem[];
+}
+
+export interface ChartFooterOptions {
+  render?(props: BaseFooterRenderProps): React.ReactNode;
+}
+
+export interface BaseFooterRenderProps {
+  legendItems: ChartLegendItem[];
+}
+
+export interface LegendActionsRenderProps {
+  legendItems: readonly ChartLegendItem[];
+}
+
+export interface ChartLegendItem {
+  id: string;
+  name: string;
+  marker: React.ReactNode;
+  visible: boolean;
+}
+
 export interface BaseI18nStrings {
   loadingText?: string;
   errorText?: string;
   recoveryText?: string;
 }
 
-export interface AreaSeries extends AbstractSeries {
+export interface ChartFilterOptions {
+  seriesFilter?: boolean;
+  additionalFilters?: React.ReactNode;
+}
+
+export interface AreaSeriesOptions extends AbstractSeriesOptions {
   type: "area";
-  data: (number | [number, number] | PointDataItem)[];
-  marker?: PointMarker;
+  data: (number | [number, number] | PointDataItemOptions)[];
+  marker?: PointMarkerOptions;
 }
 
-export interface AreaSplineSeries extends AbstractSeries {
+export interface AreaSplineSeriesOptions extends AbstractSeriesOptions {
   type: "areaspline";
-  data: (number | [number, number] | PointDataItem)[];
-  marker?: PointMarker;
+  data: (number | [number, number] | PointDataItemOptions)[];
+  marker?: PointMarkerOptions;
 }
 
-export interface ColumnSeries extends AbstractSeries {
+export interface ColumnSeriesOptions extends AbstractSeriesOptions {
   type: "column";
-  data: (null | number | [number, number | null] | PointDataItem)[];
+  data: (null | number | [number, number | null] | PointDataItemOptions)[];
 }
 
-export interface ErrorBarSeries extends AbstractSeries {
+export interface ErrorBarSeriesOptions extends AbstractSeriesOptions {
   type: "errorbar";
-  data: ([number, number] | [number, number, number] | RangeDataItem)[];
+  data: ([number, number] | [number, number, number] | RangeDataItemOptions)[];
 }
 
-export interface LineSeries extends AbstractSeries {
+export interface LineSeriesOptions extends AbstractSeriesOptions {
   type: "line";
-  data: (number | [number, number] | PointDataItem)[];
-  marker?: PointMarker;
+  data: (number | [number, number] | PointDataItemOptions)[];
+  marker?: PointMarkerOptions;
 }
 
-export interface PieSeries extends AbstractSeries {
+export interface PieSeriesOptions extends AbstractSeriesOptions {
   type: "pie";
   innerSize?: string;
-  data: PieDataItem[];
+  data: PieDataItemOptions[];
 }
 
-export interface DonutSeries extends AbstractSeries {
-  type: "awsui-donut";
-  data: PieDataItem[];
+export interface DonutSeriesOptions extends AbstractSeriesOptions {
+  type: "donut";
+  data: PieDataItemOptions[];
 }
 
-export interface ScatterSeries extends AbstractSeries {
+export interface ScatterSeriesOptions extends AbstractSeriesOptions {
   type: "scatter";
-  data: (number | [number, number] | PointDataItem)[];
-  marker?: PointMarker;
+  data: (number | [number, number] | PointDataItemOptions)[];
+  marker?: PointMarkerOptions;
 }
 
-export interface SplineSeries extends AbstractSeries {
+export interface SplineSeriesOptions extends AbstractSeriesOptions {
   type: "spline";
-  data: (number | [number, number] | PointDataItem)[];
-  marker?: PointMarker;
+  data: (number | [number, number] | PointDataItemOptions)[];
+  marker?: PointMarkerOptions;
 }
 
-export interface TreeMapSeries extends AbstractSeries {
+export interface TreeMapSeriesOptions extends AbstractSeriesOptions {
   type: "treemap";
-  data: (number | TreeMapDataItem)[];
+  data: (number | TreeMapDataItemOptions)[];
 }
 
-export interface XThresholdSeries extends AbstractSeries {
-  type: "awsui-x-threshold";
+export interface XThresholdSeriesOptions extends AbstractSeriesOptions {
+  type: "x-threshold";
   value: number;
 }
 
-export interface YThresholdSeries extends AbstractSeries {
-  type: "awsui-y-threshold";
+export interface YThresholdSeriesOptions extends AbstractSeriesOptions {
+  type: "y-threshold";
   value: number;
 }
 
 // The data items are simpler versions of Highcharts.PointOptionsObject
 
-export interface PieDataItem {
+export interface PieDataItemOptions {
   y: number | null;
   id?: string;
   name: string;
   color?: string;
 }
 
-export interface PointDataItem {
+export interface PointDataItemOptions {
   x: number;
   y: number;
   id?: string;
@@ -194,7 +230,7 @@ export interface PointDataItem {
   color?: string;
 }
 
-export interface RangeDataItem {
+export interface RangeDataItemOptions {
   x?: number;
   low: number;
   high: number;
@@ -203,21 +239,21 @@ export interface RangeDataItem {
   color?: string;
 }
 
-export interface TreeMapDataItem {
+export interface TreeMapDataItemOptions {
   value: number;
   id?: string;
   name: string;
   color?: string;
 }
 
-export interface AbstractSeries {
+export interface AbstractSeriesOptions {
   id?: string;
   name: string;
   color?: string;
 }
 
 // The simpler version of Highcharts.PointMarkerOptionsObject
-export interface PointMarker {
+export interface PointMarkerOptions {
   color?: string;
   enabled?: boolean;
   enabledThreshold?: number;

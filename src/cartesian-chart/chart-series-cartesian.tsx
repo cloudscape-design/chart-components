@@ -4,20 +4,20 @@
 import { useCallback } from "react";
 import type Highcharts from "highcharts";
 
-import { CloudscapeChartAPI } from "../core/interfaces-core";
+import { CoreChartAPI } from "../core/interfaces-core";
 import { getOptionsId } from "../core/utils";
 import { InternalCartesianChartOptions } from "./interfaces-cartesian";
 import * as Styles from "./styles";
 
 export const useCartesianSeries = (
-  getAPI: () => CloudscapeChartAPI,
+  getAPI: () => CoreChartAPI,
   {
     options,
     visibleSeries,
     emphasizeBaselineAxis,
   }: {
     options: InternalCartesianChartOptions;
-    visibleSeries: string[];
+    visibleSeries: readonly string[];
     emphasizeBaselineAxis?: boolean;
   },
 ) => {
@@ -25,7 +25,7 @@ export const useCartesianSeries = (
   const series: Highcharts.SeriesOptionsType[] = options.series.map((s) => {
     // The awsui-threshold series are added as a combination of plot lines and empty series.
     // This makes them available in the chart's legend.
-    if (s.type === "awsui-x-threshold" || s.type === "awsui-y-threshold") {
+    if (s.type === "x-threshold" || s.type === "y-threshold") {
       return {
         type: "line",
         id: s.id,
@@ -48,7 +48,7 @@ export const useCartesianSeries = (
   const yPlotLines: Highcharts.YAxisPlotLinesOptions[] = [];
   for (const s of options.series) {
     const seriesId = getOptionsId(s);
-    if (s.type === "awsui-x-threshold" && visibleSeries.includes(seriesId)) {
+    if (s.type === "x-threshold" && visibleSeries.includes(seriesId)) {
       xPlotLines.push({
         id: seriesId,
         value: s.value,
@@ -56,7 +56,7 @@ export const useCartesianSeries = (
         ...Styles.thresholdPlotLineOptions,
       });
     }
-    if (s.type === "awsui-y-threshold" && visibleSeries.includes(seriesId)) {
+    if (s.type === "y-threshold" && visibleSeries.includes(seriesId)) {
       yPlotLines.push({
         id: seriesId,
         value: s.value,
@@ -68,15 +68,7 @@ export const useCartesianSeries = (
 
   // This makes the baseline better prominent in the plot.
   if (emphasizeBaselineAxis) {
-    yPlotLines.push({ value: 0, ...Styles.chatPlotBaselineOptions, zIndex: 5 });
-  }
-
-  // For scatter series type we enable markers by default, unless explicit markers settings provided.
-  // Without markers, the scatter series are not visible by default.
-  for (const s of series) {
-    if (s.type === "scatter" && !s.marker) {
-      // s.marker = { enabled: true };
-    }
+    yPlotLines.push({ value: 0, ...Styles.chatPlotBaselineOptions });
   }
 
   return { series, xPlotLines, yPlotLines, onChartRender };
@@ -87,13 +79,13 @@ function updateSeriesData(chart: Highcharts.Chart) {
   const yExtremes = chart.yAxis[0]?.getExtremes();
 
   for (const s of chart.series) {
-    if (typeof s.options.custom === "object" && s.options.custom?.awsui.type === "awsui-x-threshold") {
+    if (typeof s.options.custom === "object" && s.options.custom?.awsui.type === "x-threshold") {
       updateDataIfNeeded(s, [
         { x: s.options.custom.awsui.threshold, y: yExtremes.min },
         { x: s.options.custom.awsui.threshold, y: yExtremes.max },
       ]);
     }
-    if (typeof s.options.custom === "object" && s.options.custom?.awsui.type === "awsui-y-threshold") {
+    if (typeof s.options.custom === "object" && s.options.custom?.awsui.type === "y-threshold") {
       updateDataIfNeeded(s, [
         { x: xExtremes.min, y: s.options.custom.awsui.threshold },
         { x: xExtremes.max, y: s.options.custom.awsui.threshold },

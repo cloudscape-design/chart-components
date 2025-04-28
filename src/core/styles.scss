@@ -8,6 +8,7 @@
 .root {
   position: relative;
 }
+
 .root-fit-height {
   block-size: 100%;
 }
@@ -17,4 +18,16 @@
   background-color: cs.$color-background-layout-main;
   border-radius: 8px;
   opacity: 0.9;
+}
+
+.header-filters {
+  padding-block-end: cs.$space-scaled-l;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: cs.$space-scaled-l;
+
+  &-series {
+    flex: 280px 0 1;
+  }
 }

@@ -3,14 +3,14 @@
 
 import { CartesianChart, CartesianChartProps } from "../../lib/components";
 import { dateFormatter, numberFormatter, priceFormatter } from "../common/formatters";
-import { PageSettings, SeriesSelector, usePageSettings } from "../common/page-settings";
+import { PageSettings, SeriesSelector, useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
 
 interface ThisPageSettings extends PageSettings {
   selectedSeries: string;
 }
 
-const allSeries: CartesianChartProps.Series[] = [
+const allSeries: CartesianChartProps.SeriesOptions[] = [
   {
     name: "column-1",
     type: "column",
@@ -32,13 +32,13 @@ const allSeries: CartesianChartProps.Series[] = [
     data: [25555, 28888, -4444, 9999, 11111],
   },
   {
-    type: "awsui-x-threshold",
+    type: "x-threshold",
     id: "x-threshold-1",
     name: "x-threshold-1",
     value: 2,
   },
   {
-    type: "awsui-y-threshold",
+    type: "y-threshold",
     id: "y-threshold-1",
     name: "y-threshold-1",
     value: 19104,
@@ -50,7 +50,7 @@ const seriesOptions = allSeries.map((s) => s.name);
 const defaultSelectedSeries = "column-1";
 
 export default function () {
-  const { settings, setSettings } = usePageSettings<ThisPageSettings>();
+  const { settings, setSettings } = useChartSettings<ThisPageSettings>();
   const selectedSeries = (settings.selectedSeries ?? defaultSelectedSeries).split(",");
   return (
     <Page
@@ -73,12 +73,12 @@ export default function () {
 }
 
 function ExampleMixedChart() {
-  const { settings, chartProps } = usePageSettings<ThisPageSettings>();
+  const { settings, chartProps } = useChartSettings<ThisPageSettings>();
   const selectedSeries = (settings.selectedSeries ?? defaultSelectedSeries).split(",");
   const series = getSelected(allSeries, selectedSeries);
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       chartHeight={423}
       inverted={series.some((s) => s.name.startsWith("bar"))}
       ariaLabel="Mixed series chart"
@@ -114,7 +114,7 @@ function ExampleMixedChart() {
   );
 }
 
-function getSelected<T extends CartesianChartProps.Series>(series: T[], selectedSeries: string[]) {
+function getSelected<T extends CartesianChartProps.SeriesOptions>(series: T[], selectedSeries: string[]) {
   const seriesToIndex = selectedSeries.reduce((map, s, index) => map.set(s, index), new Map<string, number>());
   return series
     .filter((s) => selectedSeries.includes(s.name))

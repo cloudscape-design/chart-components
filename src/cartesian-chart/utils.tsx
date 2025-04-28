@@ -13,18 +13,24 @@ export function getDataExtremes(axis?: Highcharts.Axis): [number, number] {
 export function getCartesianDetailsItem(
   index: number,
   series: InternalSeriesOptions,
-): null | CartesianChartProps.TooltipSeriesDetailItem {
+): null | CartesianChartProps.TooltipSeriesRenderProps {
   const x = getSeriesXbyIndex(series, index);
   const y = getSeriesYbyIndex(series, index);
 
   if (typeof y === "number") {
-    return { type: "point", x: x as number, y, series: series as CartesianChartProps.Series };
+    return { type: "point", x: x as number, y, series: series as CartesianChartProps.SeriesOptions };
   }
   if (Array.isArray(y)) {
-    return { type: "range", x: x as number, low: y[0], high: y[1], series: series as CartesianChartProps.Series };
+    return {
+      type: "range",
+      x: x as number,
+      low: y[0],
+      high: y[1],
+      series: series as CartesianChartProps.SeriesOptions,
+    };
   }
-  if (series.type === "awsui-y-threshold") {
-    return { type: "threshold", x: x as number, series: series as CartesianChartProps.Series };
+  if (series.type === "y-threshold") {
+    return { type: "all", x: x as number, series: series as CartesianChartProps.SeriesOptions };
   }
   return null;
 }

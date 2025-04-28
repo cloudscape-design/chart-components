@@ -5,7 +5,7 @@ import Link from "@cloudscape-design/components/link";
 
 import { CartesianChart, CartesianChartProps } from "../../../lib/components";
 import { dateFormatter } from "../../common/formatters";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 
 const cpuData = [
   { date: new Date(2020, 8, 16), "m1.large": 878, "m1.xlarge": 491, "m1.medium": 284, "m1.small": 70 },
@@ -27,7 +27,7 @@ const cpuData = [
 
 const domain = cpuData.map(({ date }) => date.getTime());
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "m1.large",
     type: "column",
@@ -51,16 +51,16 @@ const series: CartesianChartProps.Series[] = [
 ];
 
 export function WidgetInstanceHours() {
-  const { chartProps, isEmpty } = usePageSettings();
+  const { chartProps, isEmpty } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       ariaLabel="Instance hours"
       ariaDescription="Bar chart showing total instance hours per instance type over the last 15 days."
       fitHeight={true}
       chartMinHeight={200}
       series={isEmpty ? [] : series}
-      plotOptions={{ series: { stacking: "normal" } }}
+      stacked={true}
       xAxis={{
         title: "Date",
         type: "category",
@@ -69,7 +69,7 @@ export function WidgetInstanceHours() {
       }}
       yAxis={{ title: "Total instance hours", min: 0, max: 2000 }}
       tooltip={{
-        ...chartProps.tooltip,
+        ...chartProps.cartesian.tooltip,
         series(detail) {
           switch (detail.type) {
             case "point":

@@ -6,7 +6,6 @@ import { BaseComponentProps } from "@cloudscape-design/components/internal/base-
 export type ChartSeriesMarkerType =
   | "line"
   | "dashed"
-  | "area"
   | "square"
   | "large-square"
   | "hollow-square"
@@ -16,15 +15,12 @@ export type ChartSeriesMarkerType =
   | "large-circle"
   | "circle";
 
-export type ChartSeriesMarkerStatus = "normal" | "warning";
-
 export interface ChartSeriesMarkerProps extends BaseComponentProps {
   type: ChartSeriesMarkerType;
-  status?: ChartSeriesMarkerStatus;
   color: string;
 }
 
-export function ChartSeriesMarker({ type = "line", color, status }: ChartSeriesMarkerProps) {
+export function ChartSeriesMarker({ type = "line", color }: ChartSeriesMarkerProps) {
   const size = 14;
   const halfSize = size / 2;
   const scale = (value: number) =>
@@ -80,24 +76,7 @@ export function ChartSeriesMarker({ type = "line", color, status }: ChartSeriesM
         )}
 
         {type === "circle" && <circle cx={halfSize} cy={halfSize} r={halfSize} fill={color} transform={scale(0.65)} />}
-
-        {status === "warning" && (
-          <g transform={`translate(2, 0)`}>
-            <WarningIcon />
-          </g>
-        )}
       </g>
     </svg>
-  );
-}
-
-export function WarningIcon() {
-  return (
-    <g transform={`translate(3, 3) scale(0.75)`}>
-      <path d="M8 1L15 14H1Z" stroke="white" strokeWidth={3} fill="none" />
-      <path d="M8 1L15 14H1Z" fill="orange" stroke="black" strokeWidth={0.5} />
-      <line x1="8" y1="5" x2="8" y2="9" stroke="black" strokeWidth={1} />
-      <line x1="8" y1="10" x2="8" y2="12" stroke="black" strokeWidth={1} />
-    </g>
   );
 }

@@ -7,18 +7,23 @@ import type Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 
 import { isDevelopment } from "@cloudscape-design/component-toolkit/internal";
-import Box from "@cloudscape-design/components/box";
 import Spinner from "@cloudscape-design/components/spinner";
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
+import ChartSeriesFilter from "../internal/components/chart-series-filter";
+import { ChartSeriesMarker } from "../internal/components/series-marker";
+import { useSelector } from "../internal/utils/async-store";
 import { castArray } from "../internal/utils/utils";
 import { ChartContainer } from "./chart-container";
-import { ChartLegend, useLegend } from "./chart-legend";
+import { ChartLegend, LegendStore, useLegend } from "./chart-legend";
 import { ChartNoData, useNoData } from "./chart-no-data";
 import { useChartSeries } from "./chart-series";
 import { ChartTooltip, useChartTooltip } from "./chart-tooltip";
-import { CloudscapeChartAPI, CloudscapeHighchartsProps } from "./interfaces-core";
+import { useChartVerticalAxisTitle } from "./chart-vertical-axis-title";
+import { ChartFooterOptions, ChartHeaderOptions } from "./interfaces-base";
+import { CloudscapeHighchartsProps, CoreChartAPI } from "./interfaces-core";
 import * as Styles from "./styles";
+import { resetColorCounter } from "./utils";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -28,7 +33,6 @@ import testClasses from "./test-classes/styles.css.js";
  * with Cloudscape props to define custom tooltip, no-data, formatters, items visibility, and more.
  */
 export function CloudscapeHighcharts({
-  highcharts,
   options,
   fitHeight,
   chartMinHeight,
@@ -43,12 +47,16 @@ export function CloudscapeHighcharts({
   verticalAxisTitlePlacement = "top",
   i18nStrings,
   className,
+  header,
+  footer,
+  filter,
   ...rest
 }: CloudscapeHighchartsProps) {
+  const highcharts = rest.highcharts as null | typeof Highcharts;
   // The apiRef is expected to be available after the initial render.
   // The instance is used to get internal series and points detail, and run APIs such as series.setVisible() to
   // synchronize custom React state with Highcharts state.
-  const apiRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
+  const apiRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
   const getAPI = useCallback(() => {
     /* c8 ignore next */
     if (!apiRef.current) {
@@ -71,6 +79,8 @@ export function CloudscapeHighcharts({
 
   const series = useChartSeries(getAPI, { options, hiddenItems });
 
+  const verticalAxisTitle = useChartVerticalAxisTitle(getAPI, { verticalAxisTitlePlacement });
+
   const rootClassName = clsx(styles.root, fitHeight && styles["root-fit-height"], className);
 
   if (!highcharts) {
@@ -85,8 +95,7 @@ export function CloudscapeHighcharts({
               {fallback}
             </div>
           )}
-          legend={null}
-        ></ChartContainer>
+        />
       </div>
     );
   }
@@ -94,24 +103,6 @@ export function CloudscapeHighcharts({
   function withMinHeight(height: number | string | undefined | null) {
     return typeof height === "number" ? Math.max(chartMinHeight ?? 0, height) : height;
   }
-
-  let titles: string[] = [];
-  if (options.chart?.inverted && verticalAxisTitlePlacement === "top") {
-    titles = (castArray(options.xAxis) ?? []).map((axis) => axis.title?.text ?? "").filter(Boolean);
-  }
-  if (!options.chart?.inverted && verticalAxisTitlePlacement === "top") {
-    titles = (castArray(options.yAxis) ?? []).map((axis) => axis.title?.text ?? "").filter(Boolean);
-  }
-  const verticalAxisTitle =
-    titles.length > 0 ? (
-      <div style={{ display: "flex", gap: 8, justifyContent: "space-between" }}>
-        {titles.map((text, index) => (
-          <Box key={index} fontWeight="bold" margin={{ bottom: "xxs" }}>
-            {text}
-          </Box>
-        ))}
-      </div>
-    ) : null;
 
   return (
     <div {...getDataAttributes(rest)} className={rootClassName}>
@@ -147,12 +138,16 @@ export function CloudscapeHighcharts({
               events: {
                 ...options.chart?.events,
                 render(event) {
+                  if (highcharts && event.target instanceof highcharts.Chart) {
+                    resetColorCounter(event.target, options.series?.length ?? 0);
+                  }
                   if (noDataProps) {
                     noData.options.chartRender.call(this, event);
                   }
                   if (isLegendEnabled) {
                     legend.options.onChartRender();
                   }
+                  verticalAxisTitle.options.chartRender.call(this, event);
                   return options.chart?.events?.render?.call(this, event);
                 },
                 click(event) {
@@ -285,8 +280,18 @@ export function CloudscapeHighcharts({
           );
         }}
         legend={isLegendEnabled ? <ChartLegend {...legend.props} /> : null}
-        legendPlacement={legendProps?.placement}
-        title={verticalAxisTitle}
+        title={verticalAxisTitle.rendered}
+        header={header ? <ChartSlot legendStore={legend.props.legendStore} {...header} /> : null}
+        footer={footer ? <ChartSlot legendStore={legend.props.legendStore} {...footer} /> : null}
+        seriesFilter={
+          filter?.seriesFilter ? (
+            <ChartFilter
+              legendStore={legend.props.legendStore}
+              onChange={(nextHiddenItems) => onItemVisibilityChange?.(nextHiddenItems)}
+            />
+          ) : null
+        }
+        additionalFilters={filter?.additionalFilters}
       />
 
       {isTooltipEnabled && <ChartTooltip {...tooltip.props} />}
@@ -294,4 +299,63 @@ export function CloudscapeHighcharts({
       {noDataProps && <ChartNoData {...noData.props} i18nStrings={i18nStrings} />}
     </div>
   );
+}
+
+// The core API gives access to core and Highcharts methods.
+export function useCoreAPI() {
+  const apiRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
+  const getAPI = useCallback(() => {
+    /* c8 ignore next */
+    if (!apiRef.current) {
+      // The API is expected to be present for all user interactions (but not during the initial render).
+      // The error ensures visibility for when it is misused, and allows to avoid null-checks in the downstream code.
+      throw new Error("Invariant violation: chart instance is not available.");
+    }
+    return apiRef.current;
+  }, []);
+  const callback = (chart: CoreChartAPI) => {
+    apiRef.current = chart;
+  };
+  return [callback, getAPI] as const;
+}
+
+function ChartFilter({
+  legendStore,
+  onChange,
+}: {
+  legendStore: LegendStore;
+  onChange: (hiddenItems: string[]) => void;
+}) {
+  const storeLegendItems = useSelector(legendStore, (state) => state.legendItems);
+  const legendItems = storeLegendItems.map((item) => ({
+    id: item.id,
+    name: item.name,
+    marker: <ChartSeriesMarker color={item.color} key={item.id} type={item.markerType} />,
+    visible: item.visible,
+  }));
+  return (
+    <ChartSeriesFilter
+      items={legendItems}
+      selectedItems={legendItems.filter((i) => i.visible).map((i) => i.id)}
+      onChange={({ detail }) =>
+        onChange(legendItems.filter((i) => !detail.selectedItems.includes(i.id)).map((i) => i.id))
+      }
+    />
+  );
+}
+
+function ChartSlot({
+  legendStore,
+  render,
+}: (ChartHeaderOptions | ChartFooterOptions) & {
+  legendStore: LegendStore;
+}) {
+  const storeLegendItems = useSelector(legendStore, (state) => state.legendItems);
+  const legendItems = storeLegendItems.map((item) => ({
+    id: item.id,
+    name: item.name,
+    marker: <ChartSeriesMarker color={item.color} key={item.id} type={item.markerType} />,
+    visible: item.visible,
+  }));
+  return <>{render ? render({ legendItems }) : null}</>;
 }

@@ -11,11 +11,11 @@ import StatusIndicator from "@cloudscape-design/components/status-indicator";
 
 import { CartesianChart, CartesianChartProps } from "../../../lib/components";
 import { dateFormatter } from "../../common/formatters";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 
 import styles from "./responsive-layout.module.scss";
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "Value",
     type: "column",
@@ -24,7 +24,7 @@ const series: CartesianChartProps.Series[] = [
 ];
 
 export function WidgetOperationalMetrics() {
-  const { chartProps, isEmpty } = usePageSettings();
+  const { chartProps, isEmpty } = useChartSettings();
   return (
     <ResponsiveLayout
       filters={
@@ -67,7 +67,7 @@ export function WidgetOperationalMetrics() {
 
       <ResponsiveLayoutColumn header={<Header variant="h3">Breakdown</Header>}>
         <CartesianChart
-          {...chartProps}
+          {...chartProps.cartesian}
           ariaLabel="Operational metrics"
           ariaDescription="Bar chart showing operational metrics."
           fitHeight={true}

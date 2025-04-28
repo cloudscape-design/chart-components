@@ -5,12 +5,12 @@ import Box from "@cloudscape-design/components/box";
 import Link from "@cloudscape-design/components/link";
 
 import { PieChart, PieChartProps } from "../../../lib/components";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 import { PageSection } from "../../common/templates";
 
-const series: PieChartProps.Series = {
+const series: PieChartProps.SeriesOptions = {
   name: "Units",
-  type: "awsui-donut",
+  type: "donut",
   data: [
     { name: "Complete", y: 160 },
     { name: "Incomplete", y: 40 },
@@ -18,7 +18,7 @@ const series: PieChartProps.Series = {
 };
 
 export function ExamplePieChartSmallDonutChart() {
-  const { chartProps, isEmpty } = usePageSettings();
+  const { chartProps, isEmpty } = useChartSettings();
   return (
     <PageSection
       title="Pie and donut charts: Small donut chart"
@@ -29,13 +29,13 @@ export function ExamplePieChartSmallDonutChart() {
       }
     >
       <PieChart
-        {...chartProps}
+        {...chartProps.pie}
         chartHeight={200}
         ariaLabel="Small donut chart"
         ariaDescription="Donut chart showing generic progress."
         series={isEmpty ? null : series}
         tooltip={{
-          ...chartProps.tooltip,
+          ...chartProps.pie.tooltip,
           body(details) {
             return (
               <div>

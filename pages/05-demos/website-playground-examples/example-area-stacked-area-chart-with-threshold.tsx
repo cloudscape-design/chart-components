@@ -5,10 +5,10 @@ import Link from "@cloudscape-design/components/link";
 
 import { CartesianChart, CartesianChartProps } from "../../../lib/components";
 import { dateFormatter, numberFormatter } from "../../common/formatters";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 import { PageSection } from "../../common/templates";
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "Network 1",
     type: "area",
@@ -124,14 +124,14 @@ const series: CartesianChartProps.Series[] = [
     ],
   },
   {
-    type: "awsui-y-threshold",
+    type: "y-threshold",
     name: "Target",
     value: 350000,
   },
 ];
 
 export function ExampleAreaChartStackedAreaChartWithThreshold() {
-  const { chartProps, isEmpty } = usePageSettings();
+  const { chartProps, isEmpty } = useChartSettings();
   return (
     <PageSection
       title="Area chart: Stacked area chart, with threshold"
@@ -142,13 +142,13 @@ export function ExampleAreaChartStackedAreaChartWithThreshold() {
       }
     >
       <CartesianChart
-        {...chartProps}
+        {...chartProps.cartesian}
         chartHeight={379}
         ariaLabel="Stacked area chart, with threshold"
-        plotOptions={{ series: { stacking: "normal" } }}
+        stacked={true}
         series={isEmpty ? [] : series}
         tooltip={{
-          ...chartProps.tooltip,
+          ...chartProps.cartesian.tooltip,
           footer: ({ x }) => {
             const total = findY(x as number, series[0])! + findY(x as number, series[1])!;
             return (
@@ -185,7 +185,7 @@ export function ExampleAreaChartStackedAreaChartWithThreshold() {
   );
 }
 
-function findY(x: number, series: CartesianChartProps.Series) {
+function findY(x: number, series: CartesianChartProps.SeriesOptions) {
   if (!("data" in series)) {
     return null;
   }

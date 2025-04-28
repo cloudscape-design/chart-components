@@ -1,17 +1,15 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
+import { forwardRef, useImperativeHandle } from "react";
 import type Highcharts from "highcharts";
 
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
-import { CloudscapeHighcharts } from "../core/chart-core";
-import { CloudscapeChartAPI, CoreLegendProps } from "../core/interfaces-core";
+import { CloudscapeHighcharts, useCoreAPI } from "../core/chart-core";
 import { getOptionsId } from "../core/utils";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
-import { ChartSeriesMarkerStatus } from "../internal/components/series-marker";
-import { fireNonCancelableEvent, NonCancelableEventHandler } from "../internal/events";
+import { fireNonCancelableEvent } from "../internal/events";
 import { useCartesianSeries } from "./chart-series-cartesian";
 import { useChartTooltipCartesian } from "./chart-tooltip-cartesian";
 import { getDefaultFormatter } from "./default-formatters";
@@ -20,39 +18,19 @@ import { getDataExtremes } from "./utils";
 
 import testClasses from "./test-classes/styles.css.js";
 
-interface InternalCartesianChartProps {
+interface InternalCartesianChartProps extends Omit<CartesianChartProps, "series"> {
   highcharts: null | object;
   options: InternalCartesianChartOptions;
-  fitHeight?: boolean;
-  chartMinHeight?: number;
-  chartMinWidth?: number;
-  series?: {
-    getItemStatus?: (itemId: string) => ChartSeriesMarkerStatus;
-  };
-  tooltip?: CartesianChartProps.TooltipProps;
-  noData?: CartesianChartProps.NoDataProps;
-  emphasizeBaselineAxis?: boolean;
-  visibleSeries?: string[];
-  onToggleVisibleSeries?: NonCancelableEventHandler<{ visibleSeries: string[] }>;
-  legend?: CoreLegendProps;
-  verticalAxisTitlePlacement?: "top" | "side";
 }
 
 /**
- * The InternalCartesianChart component is a wrapper for CloudscapeHighcharts that implements default tooltip content,
- * adds threshold series and emphasized baseline.
+ * The InternalCartesianChart component takes public CartesianChart properties, but also Highcharts options.
+ * This allows using it as a Highcharts wrapper to mix Cloudscape and Highcharts features.
  */
 export const InternalCartesianChart = forwardRef(
   (props: InternalCartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
     const highcharts = props.highcharts as null | typeof Highcharts;
-    const apiRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
-    const getAPI = useCallback(() => {
-      /* c8 ignore next */
-      if (!apiRef.current) {
-        throw new Error("Invariant violation: chart instance is not available.");
-      }
-      return apiRef.current;
-    }, []);
+    const [callback, getAPI] = useCoreAPI();
 
     // Obtaining tooltip content, specific for cartesian charts.
     // By default, it renders a list of series under the cursor, and allows to extend and override its contents.
@@ -69,27 +47,24 @@ export const InternalCartesianChart = forwardRef(
         propertyName: "visibleSeries",
         changeHandlerName: "onToggleVisibleSeries",
       },
-      (value, handler) => fireNonCancelableEvent(handler, { visibleSeries: value ?? [] }),
+      (value, handler) => fireNonCancelableEvent(handler, { visibleSeries: value ? [...value] : [] }),
     );
+    // Unless visible series are explicitly set, we start from all series being visible.
     const allSeriesIds = props.options.series.map((s) => getOptionsId(s));
     const visibleSeries = visibleSeriesState ?? allSeriesIds;
     const hiddenSeries = allSeriesIds.filter((id) => !visibleSeries.includes(id));
 
+    // Converting threshold series and baseline setting to Highcharts options.
     const { series, xPlotLines, yPlotLines, onChartRender } = useCartesianSeries(getAPI, { ...props, visibleSeries });
-
-    useImperativeHandle(ref, () => ({
-      // The clear filter API allows to programmatically make all series visible, even when the controllable
-      // visibility API is not used. This can be used for a custom clear-filter action of the no-match state or elsewhere.
-      clearFilter() {
-        setVisibleSeries(allSeriesIds);
-      },
-    }));
-
-    // The below code transforms Cloudscape-extended series into Highcharts series and plot lines.
     const { xAxis, yAxis, ...options } = props.options;
 
-    // The Highcharts options takes all provided Highcharts options and custom properties and merges them together, so that
-    // the Cloudscape features and custom Highcharts extensions can co-exist.
+    // Cartesian chart imperative API.
+    useImperativeHandle(ref, () => ({
+      setVisibleSeries: setVisibleSeries,
+    }));
+
+    // Merging Highcharts options defined by the component and those provided explicitly as `options`, the latter has
+    // precedence, so that it is possible to override or extend all Highcharts settings from the outside.
     const highchartsOptions: Highcharts.Options = {
       ...options,
       chart: {
@@ -97,9 +72,6 @@ export const InternalCartesianChart = forwardRef(
         events: {
           ...options.chart?.events,
           render(event) {
-            if (highcharts && event.target instanceof highcharts.Chart) {
-              (event.target as any).colorCounter = series.length;
-            }
             onChartRender?.call(this, event);
             options.chart?.events?.render?.call(this, event);
           },
@@ -153,23 +125,23 @@ export const InternalCartesianChart = forwardRef(
     return (
       <CloudscapeHighcharts
         highcharts={highcharts}
+        callback={callback}
         options={highchartsOptions}
         fitHeight={props.fitHeight}
         chartMinHeight={props.chartMinHeight}
         chartMinWidth={props.chartMinWidth}
         tooltip={tooltipProps}
         noData={props.noData}
-        legend={props.legend ? { ...props.legend, getItemStatus: props.series?.getItemStatus } : undefined}
+        legend={props.legend}
         hiddenItems={hiddenSeries}
-        onItemVisibilityChange={(hiddenSeries) => {
-          const nextVisibleSeries = allSeriesIds.filter((id) => !hiddenSeries.includes(id));
-          setVisibleSeries(nextVisibleSeries);
-        }}
+        onItemVisibilityChange={(hiddenSeries) =>
+          setVisibleSeries(allSeriesIds.filter((id) => !hiddenSeries.includes(id)))
+        }
         verticalAxisTitlePlacement={props.verticalAxisTitlePlacement}
+        header={props.header}
+        footer={props.footer}
+        filter={props.filter}
         className={testClasses.root}
-        callback={(chart) => {
-          apiRef.current = chart;
-        }}
         {...getDataAttributes(props)}
       />
     );

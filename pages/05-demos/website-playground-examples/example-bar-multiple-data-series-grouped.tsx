@@ -5,10 +5,10 @@ import Link from "@cloudscape-design/components/link";
 
 import { CartesianChart, CartesianChartProps } from "../../../lib/components";
 import { dateFormatter, numberFormatter } from "../../common/formatters";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 import { PageSection } from "../../common/templates";
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "Site 1",
     type: "column",
@@ -42,7 +42,7 @@ const series: CartesianChartProps.Series[] = [
 ];
 
 export function ExampleBarChartMultipleDataSeriesGrouped() {
-  const { chartProps, isEmpty } = usePageSettings();
+  const { chartProps, isEmpty } = useChartSettings();
   return (
     <PageSection
       title="Bar chart: Multiple data series, grouped"
@@ -53,12 +53,12 @@ export function ExampleBarChartMultipleDataSeriesGrouped() {
       }
     >
       <CartesianChart
-        {...chartProps}
+        {...chartProps.cartesian}
         chartHeight={423}
         ariaLabel="Multiple data series bar chart"
         series={isEmpty ? [] : series}
         tooltip={{
-          ...chartProps.tooltip,
+          ...chartProps.cartesian.tooltip,
           series: (detail) => {
             switch (detail.type) {
               case "point": {

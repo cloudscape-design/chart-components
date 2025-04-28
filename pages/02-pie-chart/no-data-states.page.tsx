@@ -10,19 +10,19 @@ import SpaceBetween from "@cloudscape-design/components/space-between";
 import StatusIndicator from "@cloudscape-design/components/status-indicator";
 
 import { PieChart, PieChartProps } from "../../lib/components";
-import { PageSettings, PageSettingsForm, usePageSettings } from "../common/page-settings";
+import { PageSettings, PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { FramedDemo, Page, PageSection } from "../common/templates";
 
 interface ThisPageSettings extends PageSettings {
-  chartType: "pie" | "awsui-donut";
+  chartType: "pie" | "donut";
 }
 
-const chartTypeOptions = [{ value: "pie" }, { value: "awsui-donut" }];
+const chartTypeOptions = [{ value: "pie" }, { value: "donut" }];
 
 export default function () {
-  const { settings, setSettings, chartProps } = usePageSettings<ThisPageSettings>();
+  const { settings, setSettings, chartProps } = useChartSettings<ThisPageSettings>();
   const { chartType = "pie" } = settings;
-  const defaultProps: PieChartProps = { ...chartProps, series: null, chartHeight: settings.height };
+  const defaultProps: PieChartProps = { ...chartProps.pie, series: null, chartHeight: settings.height };
   return (
     <Page
       title="Pie chart: no data states"

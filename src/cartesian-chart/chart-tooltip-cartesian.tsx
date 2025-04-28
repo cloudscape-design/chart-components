@@ -4,10 +4,9 @@
 import { useRef, useState } from "react";
 import type Highcharts from "highcharts";
 
-import { CloudscapeChartAPI, CoreTooltipProps, Target } from "../core/interfaces-core";
+import { CoreChartAPI, CoreTooltipOptions, Target } from "../core/interfaces-core";
 import { getSeriesId, getSeriesMarkerType } from "../core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../internal/components/series-details";
-import { ChartSeriesMarkerStatus } from "../internal/components/series-marker";
 import { getDefaultFormatter } from "./default-formatters";
 import { CartesianChartProps, InternalCartesianChartOptions, InternalSeriesOptions } from "./interfaces-cartesian";
 import * as Styles from "./styles";
@@ -15,23 +14,20 @@ import { getDataExtremes } from "./utils";
 import { getCartesianDetailsItem } from "./utils";
 
 export function useChartTooltipCartesian(
-  getAPI: () => CloudscapeChartAPI,
+  getAPI: () => CoreChartAPI,
   props: {
     options: InternalCartesianChartOptions;
-    tooltip?: CartesianChartProps.TooltipProps;
-    series?: {
-      getItemStatus?: (itemId: string) => ChartSeriesMarkerStatus;
-    };
+    tooltip?: CartesianChartProps.TooltipOptions;
   },
-): CoreTooltipProps {
+): CoreTooltipOptions {
   const { xAxis, series } = props.options;
   const [expandedSeries, setExpandedSeries] = useState<Record<string, Set<string>>>({});
   const cursorRef = useRef<null | Highcharts.SVGElement>(null);
 
   const findMatchedItems = (point: Highcharts.Point) => {
-    const matchedItems: CartesianChartProps.TooltipSeriesDetailItem[] = [];
+    const matchedItems: CartesianChartProps.TooltipSeriesRenderProps[] = [];
     function findMatchedItem(series: InternalSeriesOptions) {
-      if (series.type === "awsui-x-threshold" || series.type === "awsui-y-threshold") {
+      if (series.type === "x-threshold" || series.type === "y-threshold") {
         return;
       }
       if ("data" in series && series.data && Array.isArray(series.data)) {
@@ -45,22 +41,22 @@ export function useChartTooltipCartesian(
     }
     series.forEach((s) => findMatchedItem(s));
 
-    function findMatchedXThreshold(series: CartesianChartProps.XThresholdSeries) {
+    function findMatchedXThreshold(series: CartesianChartProps.XThresholdSeriesOptions) {
       if (series.value <= point.x && point.x <= series.value) {
-        matchedItems.push({ type: "threshold", x: series.value, series });
+        matchedItems.push({ type: "all", x: series.value, series });
       }
     }
-    series.forEach((s) => (s.type === "awsui-x-threshold" ? findMatchedXThreshold(s) : undefined));
+    series.forEach((s) => (s.type === "x-threshold" ? findMatchedXThreshold(s) : undefined));
 
-    function findMatchedYThreshold(series: CartesianChartProps.YThresholdSeries) {
+    function findMatchedYThreshold(series: CartesianChartProps.YThresholdSeriesOptions) {
       matchedItems.push({ type: "point", x: point.x, y: series.value, series });
     }
-    series.forEach((s) => (s.type === "awsui-y-threshold" ? findMatchedYThreshold(s) : undefined));
+    series.forEach((s) => (s.type === "y-threshold" ? findMatchedYThreshold(s) : undefined));
 
     return matchedItems;
   };
 
-  const getTooltipContent: CoreTooltipProps["getTooltipContent"] = ({ point }) => {
+  const getTooltipContent: CoreTooltipOptions["getTooltipContent"] = ({ point }) => {
     const chart = getAPI().chart;
 
     const matchedItems = findMatchedItems(point);
@@ -72,7 +68,7 @@ export function useChartTooltipCartesian(
         seriesToChartSeries.set(s, chartSeries);
       }
     }
-    const getItemColor = (item: CartesianChartProps.TooltipSeriesDetailItem) =>
+    const getItemColor = (item: CartesianChartProps.TooltipSeriesRenderProps) =>
       seriesToChartSeries.get(item.series)?.color?.toString() ?? "black";
 
     const details: ChartSeriesDetailItem[] = [];
@@ -98,7 +94,7 @@ export function useChartTooltipCartesian(
           key: matched.series.name,
           value: `${valueFormatter(matched.low)} : ${valueFormatter(matched.high)}`,
         };
-      } else if (matched.type === "threshold") {
+      } else if (matched.type === "all") {
         formatted = {
           key: matched.series.name,
           value: null,
@@ -109,7 +105,6 @@ export function useChartTooltipCartesian(
         key: formatted.key,
         value: formatted.value,
         markerType: chartSeries ? getSeriesMarkerType(chartSeries) : "circle",
-        markerStatus: props.series?.getItemStatus?.(matched.series.id ?? matched.series.name),
         color: getItemColor(matched),
         subItems: formatted.subItems,
         expandableId: formatted.expandable ? matched.series.name : undefined,
@@ -168,7 +163,7 @@ export function useChartTooltipCartesian(
       .add();
   };
 
-  const onPointHighlight: CoreTooltipProps["onPointHighlight"] = ({ point, target }) => {
+  const onPointHighlight: CoreTooltipOptions["onPointHighlight"] = ({ point, target }) => {
     if (props.options.series.some((s) => s.type === "column")) {
       for (const s of getAPI().chart.series) {
         if (s.type === "column") {
@@ -187,7 +182,7 @@ export function useChartTooltipCartesian(
     return { matchedLegendItems: [getSeriesId(point.series)] };
   };
 
-  const onClearHighlight: CoreTooltipProps["onClearHighlight"] = () => {
+  const onClearHighlight: CoreTooltipOptions["onClearHighlight"] = () => {
     destroyCursor();
 
     if (props.options.series.some((s) => s.type === "column")) {

@@ -1,0 +1,31 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
+import { InternalChartFilter } from "@cloudscape-design/components/internal/do-not-use/chart-filter";
+
+import { ChartLegendItem } from "../../../core/interfaces-base.js";
+import { fireNonCancelableEvent, NonCancelableEventHandler } from "../../../internal/events";
+
+interface ChartSeriesFilterProps {
+  items: readonly ChartLegendItem[];
+  selectedItems: readonly string[];
+  onChange: NonCancelableEventHandler<{ selectedItems: readonly string[] }>;
+}
+
+const ChartSeriesFilter = (props: ChartSeriesFilterProps) => {
+  return (
+    <InternalChartFilter
+      series={props.items.map((item) => ({
+        label: item.name,
+        datum: item.id,
+        marker: item.marker,
+      }))}
+      selectedSeries={props.selectedItems}
+      onChange={(selectedItems) => fireNonCancelableEvent(props.onChange, { selectedItems })}
+    />
+  );
+};
+
+export type { ChartSeriesFilterProps };
+
+export default ChartSeriesFilter;

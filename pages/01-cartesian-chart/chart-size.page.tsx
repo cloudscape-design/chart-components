@@ -4,11 +4,11 @@
 import { range } from "lodash";
 
 import { CartesianChart, CartesianChartProps } from "../../lib/components";
-import { PageSettingsForm, usePageSettings } from "../common/page-settings";
+import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { FitSizeDemo, Page, PageSection } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
 
-const splineSeries: CartesianChartProps.Series[] = [
+const splineSeries: CartesianChartProps.SeriesOptions[] = [
   {
     type: "spline",
     name: "Demo spline fifty",
@@ -37,9 +37,9 @@ const splineSeries: CartesianChartProps.Series[] = [
 ];
 
 export default function () {
-  const { settings, chartProps } = usePageSettings();
+  const { settings, chartProps } = useChartSettings();
   const commonChartProps: CartesianChartProps = {
-    ...chartProps,
+    ...chartProps.cartesian,
     series: splineSeries,
     xAxis: {
       title: "X values",

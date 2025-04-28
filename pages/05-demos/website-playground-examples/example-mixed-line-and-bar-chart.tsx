@@ -5,10 +5,10 @@ import Link from "@cloudscape-design/components/link";
 
 import { CartesianChart, CartesianChartProps } from "../../../lib/components";
 import { moneyFormatter, numberFormatter } from "../../common/formatters";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 import { PageSection } from "../../common/templates";
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "Costs",
     type: "column",
@@ -20,19 +20,19 @@ const series: CartesianChartProps.Series[] = [
     data: [5373, 7563, 7900, 12342, 14311, 11830, 8505],
   },
   {
-    type: "awsui-x-threshold",
+    type: "x-threshold",
     name: "Peak cost",
     value: 3,
   },
   {
-    type: "awsui-y-threshold",
+    type: "y-threshold",
     name: "Budget",
     value: 12000,
   },
 ];
 
 export function ExampleMixedLineAndBarChart() {
-  const { chartProps, isEmpty } = usePageSettings();
+  const { chartProps, isEmpty } = useChartSettings();
   return (
     <PageSection
       title="Mixed line and bar chart: Mixed bar chart"
@@ -43,12 +43,12 @@ export function ExampleMixedLineAndBarChart() {
       }
     >
       <CartesianChart
-        {...chartProps}
+        {...chartProps.cartesian}
         chartHeight={379}
         ariaLabel="Mixed bar chart"
         series={isEmpty ? [] : series}
         tooltip={{
-          ...chartProps.tooltip,
+          ...chartProps.cartesian.tooltip,
           series: (detail) => {
             switch (detail.type) {
               case "point":
@@ -64,7 +64,7 @@ export function ExampleMixedLineAndBarChart() {
                     </Link>
                   ),
                 };
-              case "threshold":
+              case "all":
                 return { key: detail.series.name, value: "" };
               default:
                 return { key: "?", value: "?" };

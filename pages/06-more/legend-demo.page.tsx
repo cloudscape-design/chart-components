@@ -1,14 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import Box from "@cloudscape-design/components/box";
-import Button from "@cloudscape-design/components/button";
-import StatusIndicator from "@cloudscape-design/components/status-indicator";
-
 import { CartesianChartProps } from "../../lib/components";
 import { InternalCartesianChart } from "../../lib/components/cartesian-chart/chart-cartesian-internal";
 import { dateFormatter } from "../common/formatters";
-import { PageSettingsForm, usePageSettings } from "../common/page-settings";
+import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
 
@@ -26,9 +22,6 @@ export default function () {
             "verticalAxisTitlePlacement",
             "showLegend",
             "showLegendTitle",
-            "showLegendTooltip",
-            "showLegendFilter",
-            "legendPlacement",
             "tooltipSize",
             "tooltipPlacement",
           ]}
@@ -88,7 +81,7 @@ const site2Data = [
   179130, 185951, 144091, 152975, 157299,
 ].map((v) => v * 0.9);
 
-const series: CartesianChartProps.Series[] = [];
+const series: CartesianChartProps.SeriesOptions[] = [];
 for (let index = 0; index < 20; index++) {
   const data = index < 10 ? site1Data : site2Data;
   series.push({
@@ -106,10 +99,10 @@ for (let index = 0; index < 20; index++) {
 }
 
 function Component() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <InternalCartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       options={{
         chart: { height: 400 },
         lang: { accessibility: { chartContainerLabel: "Line chart" } },
@@ -125,38 +118,6 @@ function Component() {
         ],
         yAxis: [{ title: "Bytes transferred" }],
         plotOptions: { series: { marker: { enabled: false }, stacking: "normal" } },
-      }}
-      series={{
-        getItemStatus: chartProps.legend.infoTooltip
-          ? (itemId) => (itemId.includes("si") ? "warning" : "normal")
-          : undefined,
-      }}
-      legend={{
-        ...chartProps.legend,
-        infoTooltip: chartProps.legend.infoTooltip
-          ? {
-              render: (itemId) => ({
-                header: itemId.includes("si") ? (
-                  <StatusIndicator type="warning">
-                    <Box fontWeight="bold" color="inherit" variant="span">
-                      {itemId}
-                    </Box>
-                  </StatusIndicator>
-                ) : (
-                  itemId
-                ),
-                body: "Tooltip content",
-                footer: (
-                  <>
-                    <hr />
-                    <div>
-                      Tooltip footer with <Button variant="inline-link">action</Button>
-                    </div>
-                  </>
-                ),
-              }),
-            }
-          : undefined,
       }}
     />
   );

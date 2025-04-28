@@ -5,7 +5,7 @@ import Link from "@cloudscape-design/components/link";
 
 import { CartesianChart, CartesianChartProps } from "../../../lib/components";
 import { dateFormatter } from "../../common/formatters";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 
 const networkTrafficData = [
   { date: new Date(1600984800000), "i-03736447": 68003, "i-06f70d90": 46560, "i-02924ba6": 25865, "i-0e36f15f": 21350 },
@@ -117,7 +117,7 @@ const networkTrafficData = [
 
 const domain = [networkTrafficData[0].date, networkTrafficData[networkTrafficData.length - 1].date];
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "i-03736447",
     type: "line",
@@ -141,10 +141,10 @@ const series: CartesianChartProps.Series[] = [
 ];
 
 export function NetworkTrafficWidget() {
-  const { chartProps, isEmpty } = usePageSettings();
+  const { chartProps, isEmpty } = useChartSettings();
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       ariaLabel="Network traffic"
       ariaDescription="Line chart showing transferred data of all your instances."
       fitHeight={true}
@@ -158,7 +158,7 @@ export function NetworkTrafficWidget() {
       }}
       yAxis={{ title: "Data transferred", min: 0, max: 200000 }}
       tooltip={{
-        ...chartProps.tooltip,
+        ...chartProps.cartesian.tooltip,
         series(detail) {
           switch (detail.type) {
             case "point":

@@ -26,14 +26,7 @@
   padding-block: 0;
   padding-inline: 0;
   gap: cs.$space-scaled-xxs cs.$space-static-m;
-}
-
-.list-placement-block-end {
   padding-block-start: cs.$space-scaled-s;
-}
-
-.list-placement-inline-end {
-  flex-direction: column;
 }
 
 .marker {

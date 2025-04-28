@@ -13,17 +13,20 @@ export interface PieChartProps extends BaseTypes.BaseChartProps {
    * * [pie](https://api.highcharts.com/highcharts/series.pie).
    * * donut - the pie series with predefined inner radius.
    */
-  series: null | PieChartProps.Series;
+  series: null | PieChartProps.SeriesOptions;
 
   /**
    * Chart tooltip that replaces [tooltip](https://api.highcharts.com/highcharts/tooltip).
    *
    * Supported properties:
+   * * `enabled` - (optional, boolean) - Use it to hide the tooltip.
+   * * `size` - (optional, "small" | "medium" | "large") - Use it to specify max tooltip size.
+   * * `placement` - (optional, "target" | "middle" | "bottom") - Use it to specify preferred tooltip placement.
    * * `title` - (optional, function) - Use it to provide a custom tooltip title.
    * * `content` - (optional, function) - Use it to provide a custom tooltip content.
    * * `footer` - (optional, function) - Use it to add a tooltip footer.
    */
-  tooltip?: PieChartProps.TooltipProps;
+  tooltip?: PieChartProps.TooltipOptions;
 
   /**
    * Chart segment options.
@@ -35,7 +38,7 @@ export interface PieChartProps extends BaseTypes.BaseChartProps {
    * legend. When a segment does not have an ID, a segment name is used instead.
    * When the property is provided, use `onToggleVisibleSegment` to update it when the legend segment filtering is used.
    */
-  visibleSegments?: string[];
+  visibleSegments?: readonly string[];
 
   /**
    * A callback, executed when segments visibility is toggled by clicking on legend items.
@@ -55,38 +58,44 @@ export interface PieChartProps extends BaseTypes.BaseChartProps {
 
 export namespace PieChartProps {
   export interface Ref {
-    clearFilter(): void;
+    // Controls series visibility that works with both controlled and uncontrolled visibility mode.
+    // This is useful to clear selected series from no-match state.
+    setVisibleSegments(visibleSegments: readonly string[]): void;
   }
 
-  export type Series = PieSeries | DonutSeries;
+  export type SeriesOptions = PieSeriesOptions | DonutSeriesOptions;
 
-  export type PieSeries = BaseTypes.PieSeries;
+  export type PieSeriesOptions = BaseTypes.PieSeriesOptions;
 
-  export type DonutSeries = BaseTypes.DonutSeries;
+  export type DonutSeriesOptions = BaseTypes.DonutSeriesOptions;
 
-  export type PieDataItem = BaseTypes.PieDataItem;
+  export type PieDataItem = BaseTypes.PieDataItemOptions;
 
-  export type NoDataProps = BaseTypes.BaseNoDataProps;
+  export type NoDataOptions = BaseTypes.ChartNoDataOptions;
 
-  export interface TooltipProps extends BaseTypes.BaseTooltipProps {
-    title?: (detail: PieChartProps.TooltipDetails) => React.ReactNode;
-    body?: (detail: PieChartProps.TooltipDetails) => React.ReactNode;
-    footer?: (detail: PieChartProps.TooltipDetails) => React.ReactNode;
+  export interface TooltipOptions extends BaseTypes.ChartTooltipOptions {
+    header?: (props: PieChartProps.TooltipHeaderRenderProps) => React.ReactNode;
+    body?: (props: PieChartProps.TooltipBodyRenderProps) => React.ReactNode;
+    footer?: (props: PieChartProps.TooltipFooterRenderProps) => React.ReactNode;
   }
 
   export interface SegmentOptions {
-    title?: null | ((detail: PieChartProps.SegmentDescriptionDetail) => string);
-    description?: null | ((detail: PieChartProps.SegmentDescriptionDetail) => string);
+    title?: null | ((props: PieChartProps.SegmentDescriptionTitleProps) => string);
+    description?: null | ((props: PieChartProps.SegmentDescriptionRenderProps) => string);
   }
 
-  export interface TooltipDetails {
+  export type TooltipHeaderRenderProps = TooltipSlotRenderProps;
+  export type TooltipBodyRenderProps = TooltipSlotRenderProps;
+  export type TooltipFooterRenderProps = TooltipSlotRenderProps;
+  interface TooltipSlotRenderProps {
     segmentId?: string;
     segmentName: string;
     segmentValue: number;
     totalValue: number;
   }
 
-  export interface SegmentDescriptionDetail {
+  export type SegmentDescriptionTitleProps = SegmentDescriptionRenderProps;
+  export interface SegmentDescriptionRenderProps {
     segmentId?: string;
     segmentName: string;
     segmentValue: number;
@@ -100,4 +109,4 @@ export type InternalPieChartOptions = Omit<Highcharts.Options, "series"> & {
   series: InternalSeriesOptions[];
 };
 
-export type InternalSeriesOptions = PieChartProps.Series | Highcharts.SeriesOptionsType;
+export type InternalSeriesOptions = PieChartProps.SeriesOptions | Highcharts.SeriesOptionsType;

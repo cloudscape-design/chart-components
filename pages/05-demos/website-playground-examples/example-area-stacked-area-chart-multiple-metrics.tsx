@@ -5,10 +5,10 @@ import Link from "@cloudscape-design/components/link";
 
 import { CartesianChart, CartesianChartProps } from "../../../lib/components";
 import { dateFormatter, numberFormatter, percentageFormatter } from "../../common/formatters";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 import { PageSection } from "../../common/templates";
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "CPU1",
     type: "area",
@@ -816,7 +816,7 @@ const series: CartesianChartProps.Series[] = [
 ];
 
 export function ExampleAreaChartStackedAreaChartMultipleMetrics() {
-  const { chartProps, isEmpty } = usePageSettings();
+  const { chartProps, isEmpty } = useChartSettings();
   return (
     <PageSection
       title="Area chart: Stacked area chart, multiple metrics"
@@ -827,13 +827,13 @@ export function ExampleAreaChartStackedAreaChartMultipleMetrics() {
       }
     >
       <CartesianChart
-        {...chartProps}
+        {...chartProps.cartesian}
         chartHeight={379}
         ariaLabel="Stacked area chart, multiple metrics"
-        plotOptions={{ series: { stacking: "normal" } }}
+        stacked={true}
         series={isEmpty ? [] : series}
         tooltip={{
-          ...chartProps.tooltip,
+          ...chartProps.cartesian.tooltip,
           footer: ({ x }) => {
             const total = findY(x as number, series[0])! + findY(x as number, series[1])!;
             return (
@@ -870,7 +870,7 @@ export function ExampleAreaChartStackedAreaChartMultipleMetrics() {
   );
 }
 
-function findY(x: number, series: CartesianChartProps.Series) {
+function findY(x: number, series: CartesianChartProps.SeriesOptions) {
   if (!("data" in series)) {
     return null;
   }

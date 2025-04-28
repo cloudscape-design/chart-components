@@ -5,10 +5,10 @@ import Link from "@cloudscape-design/components/link";
 
 import { CartesianChart, CartesianChartProps } from "../../../lib/components";
 import { dateFormatter, numberFormatter } from "../../common/formatters";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 import { PageSection } from "../../common/templates";
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "Site 1",
     type: "line",
@@ -54,14 +54,14 @@ const series: CartesianChartProps.Series[] = [
     ],
   },
   {
-    type: "awsui-x-threshold",
+    type: "x-threshold",
     name: "Peak hours",
     value: 1601003400000,
   },
 ];
 
 export function ExampleLineChartSingleDataSeries() {
-  const { chartProps, isEmpty } = usePageSettings();
+  const { chartProps, isEmpty } = useChartSettings();
   return (
     <PageSection
       title="Line chart: Single data series"
@@ -72,12 +72,12 @@ export function ExampleLineChartSingleDataSeries() {
       }
     >
       <CartesianChart
-        {...chartProps}
+        {...chartProps.cartesian}
         chartHeight={379}
         ariaLabel="Single data series line chart"
         series={isEmpty ? [] : series}
         tooltip={{
-          ...chartProps.tooltip,
+          ...chartProps.cartesian.tooltip,
           series: (detail) => {
             switch (detail.type) {
               case "point":
@@ -89,7 +89,7 @@ export function ExampleLineChartSingleDataSeries() {
                   ),
                   value: numberFormatter(detail.y),
                 };
-              case "threshold":
+              case "all":
                 return {
                   key: detail.series.name,
                   value: "",

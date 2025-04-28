@@ -10,11 +10,11 @@ import StatusIndicator from "@cloudscape-design/components/status-indicator";
 import { colorChartsGreen300, colorChartsRed500 } from "@cloudscape-design/design-tokens";
 
 import { CloudscapeHighcharts } from "../../lib/components/core/chart-core";
-import { CloudscapeChartAPI } from "../../lib/components/core/interfaces-core";
+import { CoreChartAPI } from "../../lib/components/core/interfaces-core";
 import { getSeriesMarkerType } from "../../lib/components/core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../lib/components/internal/components/series-details";
 import { dateFormatter, numberFormatter } from "../common/formatters";
-import { PageSettingsForm, usePageSettings } from "../common/page-settings";
+import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
 
@@ -117,9 +117,7 @@ export default function () {
     <Page
       title="Synched charts demo"
       subtitle="This page demonstrates how charts can have a synchronized tooltip and legend"
-      settings={
-        <PageSettingsForm selectedSettings={["showLegend", "showLegendTooltip", "tooltipSize", "tooltipPlacement"]} />
-      }
+      settings={<PageSettingsForm selectedSettings={["showLegend", "tooltipSize", "tooltipPlacement"]} />}
     >
       <Charts />
     </Page>
@@ -127,10 +125,10 @@ export default function () {
 }
 
 function Charts() {
-  const { chartProps } = usePageSettings({ xrange: true });
-  const scatterChartRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
+  const { chartProps } = useChartSettings({ xrange: true });
+  const scatterChartRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
   const getScatterChart = () => scatterChartRef.current!;
-  const xrangeChartRef = useRef<CloudscapeChartAPI>(null) as React.MutableRefObject<CloudscapeChartAPI>;
+  const xrangeChartRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
   const getXrangeChart = () => xrangeChartRef.current!;
   return (
     <SpaceBetween size="s">
@@ -138,7 +136,7 @@ function Charts() {
         callback={(chart) => {
           scatterChartRef.current = chart;
         }}
-        {...omit(chartProps, "ref")}
+        {...omit(chartProps.cartesian, "ref")}
         options={{
           chart: {
             height: 379,
@@ -220,7 +218,7 @@ function Charts() {
         callback={(chart) => {
           xrangeChartRef.current = chart;
         }}
-        {...omit(chartProps, "ref")}
+        {...omit(chartProps.cartesian, "ref")}
         options={{
           chart: {
             height: 150,

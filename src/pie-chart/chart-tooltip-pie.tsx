@@ -5,22 +5,22 @@ import type Highcharts from "highcharts";
 
 import Box from "@cloudscape-design/components/box";
 
-import { CloudscapeChartAPI, CoreTooltipProps } from "../core/interfaces-core";
-import { getPointId } from "../core/utils";
+import { CoreChartAPI, CoreTooltipOptions } from "../core/interfaces-core";
+import { getPointId, getSeriesMarkerType } from "../core/utils";
 import ChartSeriesDetails from "../internal/components/series-details";
 import { ChartSeriesMarker } from "../internal/components/series-marker";
 import { InternalPieChartOptions, PieChartProps } from "./interfaces-pie";
 
 export function useChartTooltipPie(
-  getAPI: () => CloudscapeChartAPI,
+  getAPI: () => CoreChartAPI,
   props: {
     options: InternalPieChartOptions;
-    tooltip?: PieChartProps.TooltipProps;
+    tooltip?: PieChartProps.TooltipOptions;
   },
-): CoreTooltipProps {
+): CoreTooltipOptions {
   const getMatchedData = (point: Highcharts.Point) => {
     const chart = getAPI().chart;
-    const series = props.options.series[0] as undefined | PieChartProps.Series;
+    const series = props.options.series[0] as undefined | PieChartProps.SeriesOptions;
     const matchedChartSeries = chart.series.find((s) => (s.userOptions.id ?? s.name) === (series?.id ?? series?.name));
     if (!matchedChartSeries) {
       console.warn("No matching pie series found.");
@@ -29,23 +29,26 @@ export function useChartTooltipPie(
     return matchedChartSeries.data.find((d) => d.index === point.x);
   };
 
-  const getTooltipContent: CoreTooltipProps["getTooltipContent"] = ({ point }) => {
+  const getTooltipContent: CoreTooltipOptions["getTooltipContent"] = ({ point }) => {
     const matchedPieDatum = getMatchedData(point);
     if (!matchedPieDatum) {
       console.warn("No matching pie datum found.");
       return null;
     }
 
-    const tooltipDetails: PieChartProps.TooltipDetails = {
+    const tooltipDetails:
+      | PieChartProps.TooltipHeaderRenderProps
+      | PieChartProps.TooltipBodyRenderProps
+      | PieChartProps.TooltipFooterRenderProps = {
       totalValue: matchedPieDatum.total ?? 0,
       segmentValue: matchedPieDatum.y ?? 0,
       segmentId: matchedPieDatum.options.id,
       segmentName: matchedPieDatum.name ?? "",
     };
 
-    const header = props.tooltip?.title?.(tooltipDetails) ?? (
+    const header = props.tooltip?.header?.(tooltipDetails) ?? (
       <div style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-        <ChartSeriesMarker color={matchedPieDatum.color as string} type="large-circle" />{" "}
+        <ChartSeriesMarker color={matchedPieDatum.color as string} type={getSeriesMarkerType(matchedPieDatum.series)} />{" "}
         <Box variant="span" fontWeight="bold">
           {matchedPieDatum.name}
         </Box>
@@ -70,7 +73,7 @@ export function useChartTooltipPie(
     return { header, body, footer };
   };
 
-  const getTargetFromPoint: CoreTooltipProps["getTargetFromPoint"] = (point) => {
+  const getTargetFromPoint: CoreTooltipOptions["getTargetFromPoint"] = (point) => {
     const api = getAPI();
     const placement = props.tooltip?.placement ?? "target";
 
@@ -90,7 +93,7 @@ export function useChartTooltipPie(
     }
   };
 
-  const onPointHighlight: CoreTooltipProps["onPointHighlight"] = ({ point }) => {
+  const onPointHighlight: CoreTooltipOptions["onPointHighlight"] = ({ point }) => {
     return { matchedLegendItems: [getPointId(point)] };
   };
 

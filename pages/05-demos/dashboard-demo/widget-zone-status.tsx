@@ -6,9 +6,9 @@ import { colorChartsStatusHigh, colorChartsStatusPositive } from "@cloudscape-de
 
 import { PieChart, PieChartProps } from "../../../lib/components";
 import { percentageFormatter } from "../../common/formatters";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 
-const series: PieChartProps.Series = {
+const series: PieChartProps.SeriesOptions = {
   type: "pie",
   name: "Zone status",
   data: [
@@ -18,10 +18,10 @@ const series: PieChartProps.Series = {
 };
 
 export function ZoneStatusWidget() {
-  const { chartProps, isEmpty } = usePageSettings();
+  const { chartProps, isEmpty } = useChartSettings();
   return (
     <PieChart
-      {...chartProps}
+      {...chartProps.pie}
       fitHeight={true}
       chartMinHeight={200}
       series={isEmpty ? null : series}
@@ -33,7 +33,7 @@ export function ZoneStatusWidget() {
         },
       }}
       tooltip={{
-        ...chartProps.tooltip,
+        ...chartProps.pie.tooltip,
         body(details) {
           return (
             <div>

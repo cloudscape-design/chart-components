@@ -8,14 +8,14 @@ import Link from "@cloudscape-design/components/link";
 
 import { CartesianChart, CartesianChartProps, PieChart, PieChartProps } from "../../lib/components";
 import { moneyFormatter, numberFormatter } from "../common/formatters";
-import { PageSettings, PageSettingsForm, SeriesFilter, usePageSettings } from "../common/page-settings";
+import { PageSettings, PageSettingsForm, SeriesFilter, useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
 
 interface ThisPageSettings extends PageSettings {
   visibleItems: string;
 }
 
-const mixedChartSeries: CartesianChartProps.Series[] = [
+const mixedChartSeries: CartesianChartProps.SeriesOptions[] = [
   {
     id: "Costs",
     name: "Costs",
@@ -29,20 +29,20 @@ const mixedChartSeries: CartesianChartProps.Series[] = [
     data: [5373, 7563, 7900, 12342, 14311, 11830, 8505],
   },
   {
-    type: "awsui-x-threshold",
+    type: "x-threshold",
     id: "Peak cost",
     name: "Peak cost",
     value: 3,
   },
   {
-    type: "awsui-y-threshold",
+    type: "y-threshold",
     id: "Budget",
     name: "Budget",
     value: 12000,
   },
 ];
 
-const pieChartSeries: PieChartProps.Series = {
+const pieChartSeries: PieChartProps.SeriesOptions = {
   name: "Value",
   type: "pie",
   data: [
@@ -55,7 +55,7 @@ const pieChartSeries: PieChartProps.Series = {
 const defaultVisibleItems = "Costs,Costs last year,Peak cost";
 
 export default function () {
-  const { settings, setSettings } = usePageSettings<ThisPageSettings>();
+  const { settings, setSettings } = useChartSettings<ThisPageSettings>();
   const visibleSeries = (settings.visibleItems ?? defaultVisibleItems).split(",");
   return (
     <Page
@@ -90,11 +90,11 @@ export default function () {
 }
 
 function ExampleMixedChart() {
-  const { settings, setSettings, chartProps } = usePageSettings<ThisPageSettings>();
+  const { settings, setSettings, chartProps } = useChartSettings<ThisPageSettings>();
   const visibleSeries = (settings.visibleItems ?? defaultVisibleItems).split(",");
   return (
     <CartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       chartHeight={379}
       ariaLabel="Mixed bar chart"
       series={mixedChartSeries}
@@ -140,11 +140,11 @@ function ExampleMixedChart() {
 }
 
 function ExamplePieChart() {
-  const { settings, setSettings, chartProps } = usePageSettings<ThisPageSettings>();
+  const { settings, setSettings, chartProps } = useChartSettings<ThisPageSettings>();
   const visibleSegments = (settings.visibleItems ?? defaultVisibleItems).split(",");
   return (
     <PieChart
-      {...chartProps}
+      {...chartProps.pie}
       chartHeight={500}
       ariaLabel="Pie chart"
       series={pieChartSeries}

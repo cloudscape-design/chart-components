@@ -1,12 +1,18 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { useState } from "react";
+
+import Button from "@cloudscape-design/components/button";
+import FormField from "@cloudscape-design/components/form-field";
 import LineChart, { LineChartProps } from "@cloudscape-design/components/line-chart";
+import Popover from "@cloudscape-design/components/popover";
+import Select from "@cloudscape-design/components/select";
 
 import { CartesianChartProps } from "../../../lib/components";
 import { InternalCartesianChart } from "../../../lib/components/cartesian-chart/chart-cartesian-internal";
 import { dateFormatter } from "../../common/formatters";
-import { usePageSettings } from "../../common/page-settings";
+import { useChartSettings } from "../../common/page-settings";
 
 const domain = [
   new Date(1600984800000),
@@ -54,7 +60,7 @@ const site2Data = [
   179130, 185951, 144091, 152975, 157299,
 ];
 
-const seriesNew: CartesianChartProps.Series[] = [
+const seriesNew: CartesianChartProps.SeriesOptions[] = [
   {
     name: "Site 1",
     type: "line",
@@ -66,7 +72,7 @@ const seriesNew: CartesianChartProps.Series[] = [
     data: site2Data.map((y, index) => ({ x: domain[index].getTime(), y })),
   },
   {
-    type: "awsui-y-threshold",
+    type: "y-threshold",
     name: "Performance goal",
     value: 250000,
   },
@@ -90,11 +96,12 @@ const seriesOld: LineChartProps<Date>["series"] = [
   },
 ];
 
-export function ComponentNew({ legendFilter }: { legendFilter?: boolean }) {
-  const { chartProps } = usePageSettings();
+export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: boolean; legendFilter?: boolean }) {
+  const { chartProps } = useChartSettings();
+  const [visibleSeries, setVisibleSeries] = useState(seriesNew.map((s) => s.name));
   return (
     <InternalCartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       fitHeight={true}
       chartMinHeight={200}
       options={{
@@ -113,20 +120,49 @@ export function ComponentNew({ legendFilter }: { legendFilter?: boolean }) {
         plotOptions: { series: { marker: { enabled: false } } },
       }}
       legend={{
-        ...chartProps.legend,
-        actions: { seriesFilter: legendFilter },
+        ...chartProps.cartesian.legend,
+        actions: {
+          render: legendFilter
+            ? () => (
+                <Popover triggerType="custom" content="Custom in-context filter" position="top">
+                  <Button variant="icon" iconName="search" />
+                </Popover>
+              )
+            : undefined,
+        },
       }}
+      filter={
+        headerFilter
+          ? {
+              seriesFilter: true,
+              additionalFilters: (
+                <FormField label="Additional filter">
+                  <Select options={[]} selectedOption={null} disabled={true} placeholder="Filter time range" />
+                </FormField>
+              ),
+            }
+          : undefined
+      }
       tooltip={{}}
+      visibleSeries={visibleSeries}
+      onToggleVisibleSeries={({ detail }) => setVisibleSeries(detail.visibleSeries)}
     />
   );
 }
 
 export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <LineChart
       fitHeight={true}
       hideFilter={hideFilter}
+      additionalFilters={
+        !hideFilter && (
+          <FormField label="Additional filter">
+            <Select options={[]} selectedOption={null} disabled={true} placeholder="Filter time range" />
+          </FormField>
+        )
+      }
       height={200}
       series={seriesOld}
       xDomain={[domain[0], domain[domain.length - 1]]}
@@ -138,7 +174,7 @@ export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
       xScaleType="time"
       xTitle="Time (UTC)"
       yTitle="Bytes transferred"
-      noMatch={chartProps.noData.noMatch}
+      noMatch={chartProps.cartesian.noData!.noMatch}
     />
   );
 }

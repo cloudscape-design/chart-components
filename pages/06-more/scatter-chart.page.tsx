@@ -1,12 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import Alert from "@cloudscape-design/components/alert";
-
 import { CartesianChartProps } from "../../lib/components";
 import { InternalCartesianChart } from "../../lib/components/cartesian-chart/chart-cartesian-internal";
 import { dateFormatter } from "../common/formatters";
-import { PageSettingsForm, usePageSettings } from "../common/page-settings";
+import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
 
@@ -22,7 +20,6 @@ export default function () {
             "seriesError",
             "showLegend",
             "showLegendTitle",
-            "showLegendTooltip",
             "tooltipSize",
             "tooltipPlacement",
           ]}
@@ -77,7 +74,7 @@ const baseline = [
   { x: 1601013600000, y: 293910 },
 ];
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "A",
     type: "scatter",
@@ -111,10 +108,10 @@ const series: CartesianChartProps.Series[] = [
 ];
 
 function ExampleScatterSimple() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <InternalCartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       options={{
         chart: {
           height: 379,
@@ -133,21 +130,6 @@ function ExampleScatterSimple() {
           },
         ],
         yAxis: [{ title: "Events" }],
-      }}
-      legend={{
-        ...chartProps.legend,
-        infoTooltip: {
-          render: (itemId) => ({
-            header: `Series ${itemId}`,
-            body: "Series info",
-            footer: itemId === "B" ? <Alert type="warning">This series has a warning</Alert> : null,
-          }),
-        },
-      }}
-      series={{
-        getItemStatus(itemId: string) {
-          return itemId === "B" ? "warning" : "normal";
-        },
       }}
     />
   );

@@ -4,7 +4,7 @@
 import { CartesianChartProps } from "../../lib/components";
 import { InternalCartesianChart } from "../../lib/components/cartesian-chart/chart-cartesian-internal";
 import { dateFormatter } from "../common/formatters";
-import { PageSettingsForm, usePageSettings } from "../common/page-settings";
+import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
 
@@ -29,7 +29,7 @@ for (
   domain.push(time);
 }
 
-const series: CartesianChartProps.Series[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "Site 1",
     type: "spline",
@@ -49,10 +49,10 @@ const series: CartesianChartProps.Series[] = [
 ];
 
 function Component() {
-  const { chartProps } = usePageSettings();
+  const { chartProps } = useChartSettings();
   return (
     <InternalCartesianChart
-      {...chartProps}
+      {...chartProps.cartesian}
       options={{
         chart: { height: 500 },
         lang: { accessibility: { chartContainerLabel: "Line chart" } },
@@ -69,15 +69,9 @@ function Component() {
         yAxis: [{ title: "Bytes transferred", min: 0, max: 300000 }],
         plotOptions: { series: { marker: { enabled: false }, stacking: "normal" } },
       }}
-      series={{
-        getItemStatus: chartProps.legend.infoTooltip
-          ? (itemId) => (itemId.includes("si") ? "warning" : "normal")
-          : undefined,
-      }}
       tooltip={{
         placement: "bottom",
       }}
-      legend={{ ...chartProps.legend }}
     />
   );
 }

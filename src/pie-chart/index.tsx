@@ -29,6 +29,8 @@ const PieChart = forwardRef((props: PieChartProps, ref: React.Ref<PieChartProps.
       onChangeVisibleSegments={props.onChangeVisibleSegments}
       innerValue={props.innerValue}
       innerDescription={props.innerDescription}
+      header={getAllowedProps(props.header)}
+      footer={getAllowedProps(props.footer)}
       {...getDataAttributes(props)}
     />
   );
@@ -58,11 +60,11 @@ function validateOptions(props: PieChartProps): InternalPieChartOptions {
   };
 }
 
-function validateSeries(s: PieChartProps.Series): PieChartProps.Series[] {
+function validateSeries(s: PieChartProps.SeriesOptions): PieChartProps.SeriesOptions[] {
   switch (s.type) {
     case "pie":
       return [{ type: s.type, id: s.id, name: s.name, color: s.color, innerSize: s.innerSize, data: s.data }];
-    case "awsui-donut":
+    case "donut":
       return [{ type: s.type, id: s.id, name: s.name, color: s.color, data: s.data }];
     default:
       return [];
