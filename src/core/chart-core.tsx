@@ -301,24 +301,6 @@ export function CoreChart({
   );
 }
 
-// The core API gives access to core and Highcharts methods.
-export function useCoreAPI() {
-  const apiRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
-  const getAPI = useCallback(() => {
-    /* c8 ignore next */
-    if (!apiRef.current) {
-      // The API is expected to be present for all user interactions (but not during the initial render).
-      // The error ensures visibility for when it is misused, and allows to avoid null-checks in the downstream code.
-      throw new Error("Invariant violation: chart instance is not available.");
-    }
-    return apiRef.current;
-  }, []);
-  const callback = (chart: CoreChartAPI) => {
-    apiRef.current = chart;
-  };
-  return [callback, getAPI] as const;
-}
-
 function ChartFilter({
   legendStore,
   onChange,

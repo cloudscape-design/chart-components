@@ -11,8 +11,9 @@ import { colorChartsGreen300, colorChartsRed500 } from "@cloudscape-design/desig
 
 import { CoreChart } from "../../lib/components/core/chart-core";
 import { CoreChartAPI } from "../../lib/components/core/interfaces-core";
-import { getSeriesMarkerType } from "../../lib/components/core/utils";
+import { getSeriesColor, getSeriesMarkerType } from "../../lib/components/core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../lib/components/internal/components/series-details";
+import { ChartSeriesMarker } from "../../lib/components/internal/components/series-marker";
 import { dateFormatter, numberFormatter } from "../common/formatters";
 import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
@@ -198,8 +199,7 @@ function Charts() {
                 if (p.x === x) {
                   details.push({
                     key: p.name,
-                    color: p.color as unknown as string,
-                    markerType: getSeriesMarkerType(s),
+                    marker: <ChartSeriesMarker color={getSeriesColor(s)} type={getSeriesMarkerType(s)} />,
                     value: numberFormatter(p.y!),
                   });
                 }

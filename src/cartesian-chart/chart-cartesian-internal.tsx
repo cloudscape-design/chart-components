@@ -6,7 +6,7 @@ import type Highcharts from "highcharts";
 
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
-import { CoreChart, useCoreAPI } from "../core/chart-core";
+import { CoreChart } from "../core/chart-core";
 import { getOptionsId } from "../core/utils";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { fireNonCancelableEvent } from "../internal/events";
@@ -30,11 +30,10 @@ interface InternalCartesianChartProps extends Omit<CartesianChartProps, "series"
 export const InternalCartesianChart = forwardRef(
   (props: InternalCartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
     const highcharts = props.highcharts as null | typeof Highcharts;
-    const [callback, getAPI] = useCoreAPI();
 
     // Obtaining tooltip content, specific for cartesian charts.
     // By default, it renders a list of series under the cursor, and allows to extend and override its contents.
-    const tooltipProps = useChartTooltipCartesian(getAPI, props);
+    const tooltipProps = useChartTooltipCartesian(props);
 
     // When visibleSeries and onToggleVisibleSeries are provided - the series visibility can be controlled from the outside.
     // Otherwise - the component handles series visibility using its internal state.
@@ -55,7 +54,7 @@ export const InternalCartesianChart = forwardRef(
     const hiddenSeries = allSeriesIds.filter((id) => !visibleSeries.includes(id));
 
     // Converting threshold series and baseline setting to Highcharts options.
-    const { series, xPlotLines, yPlotLines, onChartRender } = useCartesianSeries(getAPI, { ...props, visibleSeries });
+    const { series, xPlotLines, yPlotLines, onChartRender } = useCartesianSeries({ ...props, visibleSeries });
     const { xAxis, yAxis, ...options } = props.options;
 
     // Cartesian chart imperative API.
@@ -125,7 +124,6 @@ export const InternalCartesianChart = forwardRef(
     return (
       <CoreChart
         highcharts={highcharts}
-        callback={callback}
         options={highchartsOptions}
         fitHeight={props.fitHeight}
         chartMinHeight={props.chartMinHeight}

@@ -92,7 +92,7 @@ export interface CoreTooltipOptions extends ChartTooltipOptions {
   getTargetFromPoint?(point: Highcharts.Point): Target;
   getTooltipContent?(props: { point: Highcharts.Point }): null | TooltipContent;
   onPointHighlight?(props: { point: Highcharts.Point; target: Target }): null | PointHighlightDetail;
-  onClearHighlight?(): void;
+  onClearHighlight?(chart: Highcharts.Chart): void;
 }
 
 export interface Target {
