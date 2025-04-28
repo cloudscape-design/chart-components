@@ -16,6 +16,7 @@ import Box from "@cloudscape-design/components/box";
 import { colorBorderDividerDefault } from "@cloudscape-design/design-tokens";
 
 import { ChartLegendItem, LegendActionsRenderProps } from "../../../core/interfaces-base";
+import { ChartLegendRef } from "../../../core/interfaces-core";
 import { useMergeRefs } from "../../utils/use-merge-refs";
 import { DebouncedCall } from "../../utils/utils";
 
@@ -48,11 +49,6 @@ export interface InfoTooltipProps {
   };
 }
 
-export interface ChartLegendRef {
-  highlightItems: (ids: string[]) => void;
-  clearHighlight: () => void;
-}
-
 // TODO: replace all indices with IDs
 export const ChartLegend = forwardRef(
   (
@@ -73,7 +69,7 @@ export const ChartLegend = forwardRef(
     const highlightControl = useMemo(() => new DebouncedCall(), []);
     const noTooltipRef = useRef(false);
     const noTooltipControl = useMemo(() => new DebouncedCall(), []);
-    const [highlightedItems, setHighlightedItems] = useState<string[]>([]);
+    const [highlightedItems, setHighlightedItems] = useState<readonly string[]>([]);
     const [selectedIndex, setSelectedIndex] = useState<number>(0);
     const showHighlight = (itemId: string) => {
       const item = items.find((item) => item.id === itemId);
@@ -89,7 +85,7 @@ export const ChartLegend = forwardRef(
     };
 
     useImperativeHandle(ref, () => ({
-      highlightItems: (ids: string[]) => {
+      highlightItems: (ids) => {
         setHighlightedItems(ids);
       },
       clearHighlight: () => setHighlightedItems([]),

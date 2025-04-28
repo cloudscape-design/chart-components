@@ -6,7 +6,7 @@ import type Highcharts from "highcharts";
 
 import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
 
-import { CoreTooltipOptions, Target } from "../core/interfaces-core";
+import { CoreTooltipOptions, Rect } from "../core/interfaces-core";
 import { getOptionsId, getSeriesColor, getSeriesId, getSeriesMarkerType } from "../core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../internal/components/series-details";
 import { ChartSeriesMarker } from "../internal/components/series-marker";
@@ -177,7 +177,7 @@ export function useChartTooltipCartesian(props: {
 class HighlightCursor {
   private instance: null | Highcharts.SVGElement = null;
 
-  public create(target: Target, chart: Highcharts.Chart) {
+  public create(target: Rect, chart: Highcharts.Chart) {
     this.instance?.destroy();
     this.instance = chart.renderer
       .rect(target.x, chart.plotTop, 1, chart.plotHeight)

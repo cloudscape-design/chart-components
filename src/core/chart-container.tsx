@@ -8,7 +8,13 @@ import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
 
+// Chart container implements the layout for top-level components, including chart plot, legend, and more.
+// It also implements the height- and width overflow behaviors.
+
 interface ChartContainerProps {
+  // The header, footer, title, and legend are rendered as is, and we measure the height of these components to compute
+  // the available height for the chart plot when fitHeight=true. When there is not enough vertical space, the container
+  // will ensure the overflow behavior.
   chart: (height: null | number) => React.ReactNode;
   title?: React.ReactNode;
   header?: React.ReactNode;

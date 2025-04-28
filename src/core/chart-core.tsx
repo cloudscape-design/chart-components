@@ -1,7 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useCallback, useRef } from "react";
 import clsx from "clsx";
 import type Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
@@ -10,18 +9,15 @@ import { isDevelopment } from "@cloudscape-design/component-toolkit/internal";
 import Spinner from "@cloudscape-design/components/spinner";
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
-import ChartSeriesFilter from "../internal/components/chart-series-filter";
-import { ChartSeriesMarker } from "../internal/components/series-marker";
-import { useSelector } from "../internal/utils/async-store";
 import { castArray } from "../internal/utils/utils";
 import { ChartContainer } from "./chart-container";
-import { ChartLegend, LegendStore, useLegend } from "./chart-legend";
-import { ChartNoData, useNoData } from "./chart-no-data";
+import { useLegend } from "./chart-legend";
+import { useNoData } from "./chart-no-data";
 import { useChartSeries } from "./chart-series";
-import { ChartTooltip, useChartTooltip } from "./chart-tooltip";
+import { useChartTooltip } from "./chart-tooltip";
 import { useChartVerticalAxisTitle } from "./chart-vertical-axis-title";
-import { ChartFooterOptions, ChartHeaderOptions } from "./interfaces-base";
-import { CoreChartAPI, CoreChartProps } from "./interfaces-core";
+import { ChartFilter, ChartLegend, ChartNoData, ChartSlot, ChartTooltip, VerticalAxisTitle } from "./components";
+import { CoreChartProps } from "./interfaces-core";
 import * as Styles from "./styles";
 import { resetColorCounter } from "./utils";
 
@@ -53,33 +49,22 @@ export function CoreChart({
   ...rest
 }: CoreChartProps) {
   const highcharts = rest.highcharts as null | typeof Highcharts;
-  // The apiRef is expected to be available after the initial render.
-  // The instance is used to get internal series and points detail, and run APIs such as series.setVisible() to
-  // synchronize custom React state with Highcharts state.
-  const apiRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
-  const getAPI = useCallback(() => {
-    /* c8 ignore next */
-    if (!apiRef.current) {
-      throw new Error("Invariant violation: chart api is not available.");
-    }
-    return apiRef.current;
-  }, []);
 
   // Provides custom legend, when `props.legend` is present.
   const isLegendEnabled = legendProps?.enabled !== false;
-  const legend = useLegend(getAPI, { ...legendProps, onItemVisibilityChange });
+  const legend = useLegend({ ...legendProps, onItemVisibilityChange });
 
   // Provides custom Cloudscape tooltip instead of Highcharts tooltip, when `props.tooltip` is present.
   // The custom tooltip provides Cloudscape styles and can be pinned.
   const isTooltipEnabled = tooltipProps?.enabled !== false;
-  const tooltip = useChartTooltip(getAPI, tooltipProps);
+  const tooltip = useChartTooltip({ ...tooltipProps, legendAPI: legend.api });
 
   // Provides empty, no-match, loading, and error states handling, when `props.noData` is present.
-  const noData = useNoData(getAPI, noDataProps);
+  const noData = useNoData();
 
-  const series = useChartSeries(getAPI, { options, hiddenItems });
+  const series = useChartSeries({ options, hiddenItems });
 
-  const verticalAxisTitle = useChartVerticalAxisTitle(getAPI, { verticalAxisTitlePlacement });
+  const verticalAxisTitle = useChartVerticalAxisTitle();
 
   const rootClassName = clsx(styles.root, fitHeight && styles["root-fit-height"], className);
 
@@ -141,18 +126,21 @@ export function CoreChart({
                   if (highcharts && event.target instanceof highcharts.Chart) {
                     resetColorCounter(event.target, options.series?.length ?? 0);
                   }
+                  if (tooltipProps) {
+                    tooltip.options.onRenderChart.call(this, event);
+                  }
                   if (noDataProps) {
-                    noData.options.chartRender.call(this, event);
+                    noData.options.onChartRender.call(this, event);
                   }
                   if (isLegendEnabled) {
-                    legend.options.onChartRender();
+                    legend.options.onChartRender.call(this, event);
                   }
                   verticalAxisTitle.options.chartRender.call(this, event);
                   return options.chart?.events?.render?.call(this, event);
                 },
                 click(event) {
                   if (isTooltipEnabled) {
-                    tooltip.options.chartClick.call(this, event);
+                    tooltip.options.onChartClick.call(this, event);
                   }
                   return options.chart?.events?.click?.call(this, event);
                 },
@@ -197,19 +185,19 @@ export function CoreChart({
                     ...options.plotOptions?.series?.point?.events,
                     mouseOver(event) {
                       if (isTooltipEnabled) {
-                        tooltip.options.seriesPointMouseOver.call(this, event);
+                        tooltip.options.onSeriesPointMouseOver.call(this, event);
                       }
                       return options.plotOptions?.series?.point?.events?.mouseOver?.call(this, event);
                     },
                     mouseOut(event) {
                       if (isTooltipEnabled) {
-                        tooltip.options.seriesPointMouseOut.call(this, event);
+                        tooltip.options.onSeriesPointMouseOut.call(this, event);
                       }
                       return options.plotOptions?.series?.point?.events?.mouseOut?.call(this, event);
                     },
                     click(event) {
                       if (isTooltipEnabled) {
-                        tooltip.options.seriesPointClick.call(this, event);
+                        tooltip.options.onSeriesPointClick.call(this, event);
                       }
                       return options.plotOptions?.series?.point?.events?.click?.call(this, event);
                     },
@@ -265,28 +253,35 @@ export function CoreChart({
               highcharts={highcharts}
               options={highchartsOptions}
               callback={(chart: Highcharts.Chart) => {
-                apiRef.current = {
+                callback?.({
                   chart,
                   highcharts: highcharts as typeof Highcharts,
                   showTooltipOnPoint: (point) => tooltip.api.showTooltipOnPoint(point),
                   hideTooltip: () => tooltip.api.hideTooltip(),
-                  highlightLegendItems: (ids) => legend.api.highlightLegendItems(ids),
-                  clearLegendHighlight: () => legend.api.clearLegendHighlight(),
-                };
-                callback?.(apiRef.current);
-                series.onChartReady();
+                  onItemVisibilityChange: (hiddenItems) => legend.api.onItemVisibilityChange(hiddenItems),
+                  onItemHighlightEnter: (itemId) => legend.api.onItemHighlightEnter(itemId),
+                  onItemHighlightExit: () => legend.api.onItemHighlightExit(),
+                });
+                series.onChartReady(chart);
               }}
             />
           );
         }}
-        legend={isLegendEnabled ? <ChartLegend {...legend.props} /> : null}
-        title={verticalAxisTitle.rendered}
-        header={header ? <ChartSlot legendStore={legend.props.legendStore} {...header} /> : null}
-        footer={footer ? <ChartSlot legendStore={legend.props.legendStore} {...footer} /> : null}
+        legend={isLegendEnabled ? <ChartLegend {...legendProps} legendAPI={legend.api} /> : null}
+        title={
+          verticalAxisTitlePlacement === "top" ? (
+            <VerticalAxisTitle
+              verticalAxisTitlePlacement={verticalAxisTitlePlacement}
+              verticalAxisTitleAPI={verticalAxisTitle.api}
+            />
+          ) : null
+        }
+        header={header ? <ChartSlot legendAPI={legend.api} {...header} /> : null}
+        footer={footer ? <ChartSlot legendAPI={legend.api} {...footer} /> : null}
         seriesFilter={
           filter?.seriesFilter ? (
             <ChartFilter
-              legendStore={legend.props.legendStore}
+              legendAPI={legend.api}
               onChange={(nextHiddenItems) => onItemVisibilityChange?.(nextHiddenItems)}
             />
           ) : null
@@ -294,50 +289,9 @@ export function CoreChart({
         additionalFilters={filter?.additionalFilters}
       />
 
-      {isTooltipEnabled && <ChartTooltip {...tooltip.props} />}
+      {isTooltipEnabled && <ChartTooltip {...tooltipProps} tooltipAPI={tooltip.api} />}
 
-      {noDataProps && <ChartNoData {...noData.props} i18nStrings={i18nStrings} />}
+      {noDataProps && <ChartNoData {...noDataProps} i18nStrings={i18nStrings} noDataAPI={noData.api} />}
     </div>
   );
-}
-
-function ChartFilter({
-  legendStore,
-  onChange,
-}: {
-  legendStore: LegendStore;
-  onChange: (hiddenItems: string[]) => void;
-}) {
-  const storeLegendItems = useSelector(legendStore, (state) => state.legendItems);
-  const legendItems = storeLegendItems.map((item) => ({
-    id: item.id,
-    name: item.name,
-    marker: <ChartSeriesMarker color={item.color} key={item.id} type={item.markerType} />,
-    visible: item.visible,
-  }));
-  return (
-    <ChartSeriesFilter
-      items={legendItems}
-      selectedItems={legendItems.filter((i) => i.visible).map((i) => i.id)}
-      onChange={({ detail }) =>
-        onChange(legendItems.filter((i) => !detail.selectedItems.includes(i.id)).map((i) => i.id))
-      }
-    />
-  );
-}
-
-function ChartSlot({
-  legendStore,
-  render,
-}: (ChartHeaderOptions | ChartFooterOptions) & {
-  legendStore: LegendStore;
-}) {
-  const storeLegendItems = useSelector(legendStore, (state) => state.legendItems);
-  const legendItems = storeLegendItems.map((item) => ({
-    id: item.id,
-    name: item.name,
-    marker: <ChartSeriesMarker color={item.color} key={item.id} type={item.markerType} />,
-    visible: item.visible,
-  }));
-  return <>{render ? render({ legendItems }) : null}</>;
 }
