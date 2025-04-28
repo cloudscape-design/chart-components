@@ -39,10 +39,10 @@ export function ExampleBarChartSingleDataSeries() {
         series={isEmpty ? [] : series}
         tooltip={{
           ...chartProps.cartesian.tooltip,
-          series(detail) {
-            switch (detail.type) {
+          series({ item }) {
+            switch (item.type) {
               case "point":
-                return { key: detail.series.name, value: priceFormatter(detail.y) };
+                return { key: item.series.name, value: priceFormatter(item.y) };
               default:
                 return { key: "?", value: "?" };
             }

@@ -159,16 +159,16 @@ export function NetworkTrafficWidget() {
       yAxis={{ title: "Data transferred", min: 0, max: 200000 }}
       tooltip={{
         ...chartProps.cartesian.tooltip,
-        series(detail) {
-          switch (detail.type) {
+        series({ item }) {
+          switch (item.type) {
             case "point":
               return {
                 key: (
                   <Link external={true} href="#">
-                    {detail.series.name}
+                    {item.series.name}
                   </Link>
                 ),
-                value: detail.y,
+                value: item.y,
               };
             default:
               return { key: "", value: "" };

@@ -21,10 +21,9 @@ export const useCartesianSeries = (
     emphasizeBaselineAxis?: boolean;
   },
 ) => {
-  // Threshold series are converted to empty lines series to be visible in the legend.
+  // The threshold series are added as a combination of series and plot lines.
+  // The series are hidden in the plot area, but are visible in the legend.
   const series: Highcharts.SeriesOptionsType[] = options.series.map((s) => {
-    // The awsui-threshold series are added as a combination of plot lines and empty series.
-    // This makes them available in the chart's legend.
     if (s.type === "x-threshold" || s.type === "y-threshold") {
       return {
         type: "line",
@@ -39,11 +38,14 @@ export const useCartesianSeries = (
     return { ...s };
   });
 
+  // When chart is re-rendered, there is a chance its thresholds series data or extremes changed.
+  // We compare the new state against the already rendered one and make adjustments if needed.
   const onChartRender: Highcharts.ChartRenderCallbackFunction = useCallback(() => {
     updateSeriesData(getAPI().chart);
   }, [getAPI]);
 
-  // Threshold series are added to the plot as x- or y-axis plot lines.
+  // The plot lines for threshold series are visible in the chart plot area. Unlike the line series,
+  // the plot lines render across the entire chart plot height or width.
   const xPlotLines: Highcharts.XAxisPlotLinesOptions[] = [];
   const yPlotLines: Highcharts.YAxisPlotLinesOptions[] = [];
   for (const s of options.series) {

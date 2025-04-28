@@ -6,14 +6,14 @@ import HighchartsReact from "highcharts-react-official";
 import { omit } from "lodash";
 import { vi } from "vitest";
 
-import { CloudscapeHighchartsProps } from "../../../lib/components/core/interfaces-core";
+import { CoreChartProps } from "../../../lib/components/core/interfaces-core";
 import { renderChart } from "./common";
 
 vi.mock("highcharts-react-official", () => ({ __esModule: true, default: vi.fn(() => null) }));
 
 // These tests ensure the Highcharts options can be passed down to the underlying Highcharts component,
 // overriding the Cloudscape defaults.
-describe("CloudscapeHighcharts: options", () => {
+describe("CoreChart: options", () => {
   afterEach(() => {
     vi.mocked(HighchartsReact).mockRestore();
   });
@@ -185,7 +185,7 @@ describe("CloudscapeHighcharts: options", () => {
         },
       },
     };
-    const inputs: CloudscapeHighchartsProps[] = [
+    const inputs: CoreChartProps[] = [
       { highcharts, options },
       { highcharts, options, tooltip: { getContent: () => ({ header: "", body: "" }) } },
     ];
@@ -237,7 +237,7 @@ describe("CloudscapeHighcharts: options", () => {
         events: { load, render, click, redraw },
       },
     };
-    const inputs: CloudscapeHighchartsProps[] = [
+    const inputs: CoreChartProps[] = [
       { highcharts, options },
       { highcharts, options, noData: { statusType: "error" } },
       { highcharts, options, tooltip: { getContent: () => ({ header: "", body: "" }) } },

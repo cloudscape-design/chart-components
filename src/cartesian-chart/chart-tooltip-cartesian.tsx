@@ -5,13 +5,13 @@ import { useRef, useState } from "react";
 import type Highcharts from "highcharts";
 
 import { CoreChartAPI, CoreTooltipOptions, Target } from "../core/interfaces-core";
-import { getSeriesId, getSeriesMarkerType } from "../core/utils";
+import { getOptionsId, getSeriesId, getSeriesMarkerType } from "../core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../internal/components/series-details";
+import { ChartSeriesMarker } from "../internal/components/series-marker";
 import { getDefaultFormatter } from "./default-formatters";
 import { CartesianChartProps, InternalCartesianChartOptions, InternalSeriesOptions } from "./interfaces-cartesian";
 import * as Styles from "./styles";
-import { getDataExtremes } from "./utils";
-import { getCartesianDetailsItem } from "./utils";
+import { findMatchedTooltipItems, getDataExtremes } from "./utils";
 
 export function useChartTooltipCartesian(
   getAPI: () => CoreChartAPI,
@@ -22,131 +22,104 @@ export function useChartTooltipCartesian(
 ): CoreTooltipOptions {
   const { xAxis, series } = props.options;
   const [expandedSeries, setExpandedSeries] = useState<Record<string, Set<string>>>({});
-  const cursorRef = useRef<null | Highcharts.SVGElement>(null);
-
-  const findMatchedItems = (point: Highcharts.Point) => {
-    const matchedItems: CartesianChartProps.TooltipSeriesRenderProps[] = [];
-    function findMatchedItem(series: InternalSeriesOptions) {
-      if (series.type === "x-threshold" || series.type === "y-threshold") {
-        return;
-      }
-      if ("data" in series && series.data && Array.isArray(series.data)) {
-        for (let i = 0; i < series.data.length; i++) {
-          const detail = getCartesianDetailsItem(i, series);
-          if (detail?.x === point.x) {
-            matchedItems.push(detail);
-          }
-        }
-      }
-    }
-    series.forEach((s) => findMatchedItem(s));
-
-    function findMatchedXThreshold(series: CartesianChartProps.XThresholdSeriesOptions) {
-      if (series.value <= point.x && point.x <= series.value) {
-        matchedItems.push({ type: "all", x: series.value, series });
-      }
-    }
-    series.forEach((s) => (s.type === "x-threshold" ? findMatchedXThreshold(s) : undefined));
-
-    function findMatchedYThreshold(series: CartesianChartProps.YThresholdSeriesOptions) {
-      matchedItems.push({ type: "point", x: point.x, y: series.value, series });
-    }
-    series.forEach((s) => (s.type === "y-threshold" ? findMatchedYThreshold(s) : undefined));
-
-    return matchedItems;
-  };
+  const cursorRef = useRef(new HighlightCursor());
 
   const getTooltipContent: CoreTooltipOptions["getTooltipContent"] = ({ point }) => {
     const chart = getAPI().chart;
 
-    const matchedItems = findMatchedItems(point);
-
     const seriesToChartSeries = new Map<InternalSeriesOptions, Highcharts.Series>();
     for (const s of series) {
-      const chartSeries = chart.series.find((cs) => (cs.userOptions.id ?? cs.name) === (s.id ?? s.name));
+      const chartSeries = chart.series.find((cs) => getOptionsId(cs.userOptions) === getOptionsId(s));
       if (chartSeries) {
         seriesToChartSeries.set(s, chartSeries);
       }
     }
-    const getItemColor = (item: CartesianChartProps.TooltipSeriesRenderProps) =>
-      seriesToChartSeries.get(item.series)?.color?.toString() ?? "black";
+    const getSeriesMarker = (series: CartesianChartProps.SeriesOptions) => {
+      const hcSeries = seriesToChartSeries.get(series);
+      const markerType = hcSeries ? getSeriesMarkerType(hcSeries) : "large-square";
+      const markerColor = hcSeries?.color?.toString() ?? "black";
+      return <ChartSeriesMarker type={markerType} color={markerColor} />;
+    };
 
-    const details: ChartSeriesDetailItem[] = [];
+    const matchedItemsInternal = findMatchedTooltipItems(point, series);
+    const matchedItems: CartesianChartProps.TooltipMatchedItem[] = matchedItemsInternal.map((matchedItem) => {
+      const series = matchedItem.series as CartesianChartProps.SeriesOptions;
+      const marker = getSeriesMarker(series);
+      switch (matchedItem.type) {
+        case "all": {
+          const marker = getSeriesMarker(series);
+          return { type: "all", x: matchedItem.x, series, marker };
+        }
+        case "point":
+          return { type: "point", x: matchedItem.x, y: matchedItem.y, series, marker };
+        case "range":
+          return { type: "range", x: matchedItem.x, low: matchedItem.low, high: matchedItem.high, series, marker };
+      }
+    });
 
-    for (const matched of matchedItems) {
-      const chartSeries = seriesToChartSeries.get(matched.series);
+    const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
       const yAxisProps = chart.yAxis[0];
       const valueFormatter = yAxisProps
         ? getDefaultFormatter(yAxisProps, getDataExtremes(chart.xAxis[0]))
-        : (value: any) => value;
+        : (value: number) => value;
 
-      let formatted: CartesianChartProps.TooltipSeriesFormatted = { key: "", value: "" };
+      const formatted: CartesianChartProps.TooltipSeriesFormatted = (() => {
+        // Using consumer-defined details.
+        if (props.tooltip?.series) {
+          return props.tooltip.series({ item });
+        }
+        switch (item.type) {
+          case "all":
+            return { key: item.series.name, value: null };
+          case "point":
+            return { key: item.series.name, value: valueFormatter(item.y) };
+          case "range":
+            return { key: item.series.name, value: `${valueFormatter(item.low)} : ${valueFormatter(item.high)}` };
+        }
+      })();
 
-      if (props.tooltip?.series) {
-        formatted = props.tooltip.series(matched);
-      } else if (matched.type === "point") {
-        formatted = {
-          key: matched.series.name,
-          value: valueFormatter(matched.y),
-        };
-      } else if (matched.type === "range") {
-        formatted = {
-          key: matched.series.name,
-          value: `${valueFormatter(matched.low)} : ${valueFormatter(matched.high)}`,
-        };
-      } else if (matched.type === "all") {
-        formatted = {
-          key: matched.series.name,
-          value: null,
-        };
-      }
-
-      details.push({
+      return {
         key: formatted.key,
         value: formatted.value,
-        markerType: chartSeries ? getSeriesMarkerType(chartSeries) : "circle",
-        color: getItemColor(matched),
+        marker: item.marker,
         subItems: formatted.subItems,
-        expandableId: formatted.expandable ? matched.series.name : undefined,
-      });
-    }
+        expandableId: formatted.expandable ? item.series.name : undefined,
+      };
+    });
 
     const xAxisProps = xAxis[0];
     const titleFormatter = xAxisProps
       ? getDefaultFormatter(xAxisProps, getDataExtremes(chart.xAxis[0]))
-      : (value: any) => value;
+      : (value: number) => value;
 
-    const tooltipDetails = { x: point.x, items: matchedItems };
-
-    const content = props.tooltip?.body?.(tooltipDetails) ?? (
-      <ChartSeriesDetails
-        details={details}
-        expandedSeries={expandedSeries[point.x]}
-        setExpandedState={(id, isExpanded) => {
-          setExpandedSeries((oldState) => {
-            const expandedSeriesInCurrentCoordinate = new Set(oldState[point.x]);
-            if (isExpanded) {
-              expandedSeriesInCurrentCoordinate.add(id);
-            } else {
-              expandedSeriesInCurrentCoordinate.delete(id);
-            }
-            return {
-              ...oldState,
-              [point.x]: expandedSeriesInCurrentCoordinate,
-            };
-          });
-        }}
-      />
-    );
-
-    const footer = props.tooltip?.footer?.(tooltipDetails);
-
-    const body = content;
+    const slotRenderProps:
+      | CartesianChartProps.TooltipHeaderRenderProps
+      | CartesianChartProps.TooltipBodyRenderProps
+      | CartesianChartProps.TooltipFooterRenderProps = {
+      x: point.x,
+      items: matchedItems,
+    };
 
     return {
-      header: props.tooltip?.header?.(tooltipDetails) ?? titleFormatter(point.x),
-      body,
-      footer,
+      header: props.tooltip?.header?.(slotRenderProps) ?? titleFormatter(point.x),
+      body: props.tooltip?.body?.(slotRenderProps) ?? (
+        <ChartSeriesDetails
+          details={detailItems}
+          expandedSeries={expandedSeries[point.x]}
+          setExpandedState={(id, isExpanded) => {
+            setExpandedSeries((oldState) => {
+              const expandedSeriesInCurrentCoordinate = new Set(oldState[point.x]);
+              if (isExpanded) {
+                expandedSeriesInCurrentCoordinate.add(id);
+              } else {
+                expandedSeriesInCurrentCoordinate.delete(id);
+              }
+              return { ...oldState, [point.x]: expandedSeriesInCurrentCoordinate };
+            });
+          }}
+        />
+      ),
+      footer: props.tooltip?.footer?.(slotRenderProps),
     };
   };
 
@@ -155,15 +128,13 @@ export function useChartTooltipCartesian(
   };
 
   const createCursor = (target: Target) => {
-    const chart = getAPI().chart;
-    cursorRef.current?.destroy();
-    cursorRef.current = chart.renderer
-      .rect(target.x, chart.plotTop, 1, chart.plotHeight)
-      .attr({ fill: Styles.colorChartCursor, zIndex: 5 })
-      .add();
+    cursorRef.current.create(target, getAPI().chart);
   };
 
   const onPointHighlight: CoreTooltipOptions["onPointHighlight"] = ({ point, target }) => {
+    // Highcharts highlights the entire series when the cursor lands on it. However, for column series
+    // we want only a single column be highlighted. This is achieved by issuing inactive state for all columns series
+    // with coordinates not matched the highlighted one.
     if (props.options.series.some((s) => s.type === "column")) {
       for (const s of getAPI().chart.series) {
         if (s.type === "column") {
@@ -175,7 +146,11 @@ export function useChartTooltipCartesian(
         }
       }
       return null;
-    } else {
+    }
+    // The cursor (vertical or horizontal line to make the highlighted point better prominent) is only added for charts
+    // that do not include "column" series. That is because the cursor is not necessary for columns, assuming the number of
+    // x data points is not very high.
+    else {
       createCursor(target);
     }
 
@@ -185,6 +160,7 @@ export function useChartTooltipCartesian(
   const onClearHighlight: CoreTooltipOptions["onClearHighlight"] = () => {
     destroyCursor();
 
+    // Clear all column series point state overrides created in `onPointHighlight`.
     if (props.options.series.some((s) => s.type === "column")) {
       for (const s of getAPI().chart.series) {
         s.setState("normal");
@@ -202,4 +178,20 @@ export function useChartTooltipCartesian(
     size: props.tooltip?.size,
     placement: props.tooltip?.placement ?? "middle",
   };
+}
+
+class HighlightCursor {
+  private instance: null | Highcharts.SVGElement = null;
+
+  public create(target: Target, chart: Highcharts.Chart) {
+    this.instance?.destroy();
+    this.instance = chart.renderer
+      .rect(target.x, chart.plotTop, 1, chart.plotHeight)
+      .attr({ fill: Styles.colorChartCursor, zIndex: 5 })
+      .add();
+  }
+
+  public destroy() {
+    this.instance?.destroy();
+  }
 }

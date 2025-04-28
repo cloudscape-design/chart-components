@@ -45,7 +45,7 @@ const series: Highcharts.SeriesOptionsType[] = [
   },
 ];
 
-describe("CloudscapeHighcharts: tooltip", () => {
+describe("CoreChart: tooltip", () => {
   test("renders highcharts tooltip", () => {
     const { wrapper } = renderChart({
       highcharts,

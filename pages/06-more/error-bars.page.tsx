@@ -47,25 +47,25 @@ export default function () {
           series={series}
           tooltip={{
             // TODO: embedded error bars as detail type
-            series: (detail) => {
-              if (detail.series.type === "errorbar") {
+            series: ({ item }) => {
+              if (item.series.type === "errorbar") {
                 return {
-                  key: detail.series.name,
+                  key: item.series.name,
                   value: "[-$250, +$250]",
                 };
               }
-              if (detail.type !== "point") {
+              if (item.type !== "point") {
                 return { key: "?", value: "?" };
               }
               return {
-                key: detail.series.name,
+                key: item.series.name,
                 value: (
                   <Link
                     external={true}
                     href="#"
-                    ariaLabel={`See details for ${moneyFormatter(detail.y)} on ${detail.series.name} (opens in a new tab)`}
+                    ariaLabel={`See details for ${moneyFormatter(item.y)} on ${item.series.name} (opens in a new tab)`}
                   >
-                    {moneyFormatter(detail.y)}
+                    {moneyFormatter(item.y)}
                   </Link>
                 ),
               };

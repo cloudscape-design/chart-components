@@ -31,7 +31,7 @@ const pieSeries: Highcharts.SeriesOptionsType[] = [
   },
 ];
 
-describe("CloudscapeHighcharts: legend", () => {
+describe("CoreChart: legend", () => {
   test("renders legend warning for line series", () => {
     const { rerender } = renderChart({
       highcharts,

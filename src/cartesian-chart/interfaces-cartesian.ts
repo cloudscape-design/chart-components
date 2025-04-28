@@ -171,33 +171,36 @@ export namespace CartesianChartProps {
   export type TooltipFooterRenderProps = TooltipSlotRenderProps;
   interface TooltipSlotRenderProps {
     x: number;
-    items: TooltipSeriesRenderProps[];
+    items: TooltipMatchedItem[];
+  }
+  interface TooltipSeriesRenderProps {
+    item: TooltipMatchedItem;
   }
 
-  export type TooltipSeriesRenderProps =
-    | TooltipSeriesRenderPropsPoint
-    | TooltipSeriesRenderPropsRange
-    | TooltipSeriesRenderPropsThreshold;
+  export type TooltipMatchedItem = TooltipMatchedItemPoint | TooltipMatchedItemRange | TooltipMatchedItemThreshold;
 
-  interface TooltipSeriesRenderPropsPoint {
+  interface TooltipMatchedItemPoint {
     type: "point";
     x: number;
     y: number;
     series: CartesianChartProps.SeriesOptions;
+    marker: React.ReactNode;
   }
 
-  interface TooltipSeriesRenderPropsRange {
+  interface TooltipMatchedItemRange {
     type: "range";
     x: number;
     low: number;
     high: number;
     series: CartesianChartProps.SeriesOptions;
+    marker: React.ReactNode;
   }
 
-  interface TooltipSeriesRenderPropsThreshold {
+  interface TooltipMatchedItemThreshold {
     type: "all";
     x: number;
     series: CartesianChartProps.SeriesOptions;
+    marker: React.ReactNode;
   }
 
   export interface TooltipSeriesFormatted {
@@ -224,3 +227,29 @@ export type InternalSeriesOptions = CartesianChartProps.SeriesOptions | Highchar
 export type InternalXAxisOptions = CartesianChartProps.XAxisOptions & Highcharts.XAxisOptions;
 
 export type InternalYAxisOptions = CartesianChartProps.YAxisOptions & Highcharts.YAxisOptions;
+
+export type InternalTooltipMatchedItem =
+  | InternalTooltipMatchedItemPoint
+  | InternalTooltipMatchedItemRange
+  | InternalTooltipMatchedItemThreshold;
+
+interface InternalTooltipMatchedItemPoint {
+  type: "point";
+  x: number;
+  y: number;
+  series: InternalSeriesOptions;
+}
+
+interface InternalTooltipMatchedItemRange {
+  type: "range";
+  x: number;
+  low: number;
+  high: number;
+  series: InternalSeriesOptions;
+}
+
+interface InternalTooltipMatchedItemThreshold {
+  type: "all";
+  x: number;
+  series: InternalSeriesOptions;
+}

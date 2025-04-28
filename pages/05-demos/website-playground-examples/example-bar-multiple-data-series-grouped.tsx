@@ -59,17 +59,17 @@ export function ExampleBarChartMultipleDataSeriesGrouped() {
         series={isEmpty ? [] : series}
         tooltip={{
           ...chartProps.cartesian.tooltip,
-          series: (detail) => {
-            switch (detail.type) {
+          series: ({ item }) => {
+            switch (item.type) {
               case "point": {
-                const formattedValue = numberFormatter(detail.y);
+                const formattedValue = numberFormatter(item.y);
                 return {
-                  key: detail.series.name,
+                  key: item.series.name,
                   value: (
                     <Link
                       external={true}
                       href="#"
-                      ariaLabel={`See details for ${formattedValue} on ${detail.series.name} (opens in a new tab)`}
+                      ariaLabel={`See details for ${formattedValue} on ${item.series.name} (opens in a new tab)`}
                     >
                       {formattedValue}
                     </Link>

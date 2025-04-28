@@ -63,7 +63,7 @@ const pieSeries: Highcharts.SeriesOptionsType[] = [
   },
 ];
 
-describe("CloudscapeHighcharts: visibility", () => {
+describe("CoreChart: visibility", () => {
   test.each([false, true])("hides series on the first render, legend=%s", (legend) => {
     renderStatefulChart({
       ...defaultProps,

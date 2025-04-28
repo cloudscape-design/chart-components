@@ -14,8 +14,7 @@ import {
   ChartTooltipOptions,
 } from "./interfaces-base";
 
-export interface CloudscapeHighchartsProps
-  extends Pick<BaseChartProps, "fitHeight" | "chartMinHeight" | "chartMinWidth"> {
+export interface CoreChartProps extends Pick<BaseChartProps, "fitHeight" | "chartMinHeight" | "chartMinWidth"> {
   /**
    * The Highcharts instance. When null, the fallback() is rendered instead.
    */

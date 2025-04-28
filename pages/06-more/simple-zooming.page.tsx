@@ -11,7 +11,7 @@ import Checkbox from "@cloudscape-design/components/checkbox";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import { colorChartsBlue1400, colorChartsLineTick } from "@cloudscape-design/design-tokens";
 
-import { CloudscapeHighcharts } from "../../lib/components/core/chart-core";
+import { CoreChart } from "../../lib/components/core/chart-core";
 import { CoreChartAPI } from "../../lib/components/core/interfaces-core";
 import { getSeriesMarkerType } from "../../lib/components/core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../lib/components/internal/components/series-details";
@@ -198,7 +198,7 @@ function Charts() {
         }}
       />
 
-      <CloudscapeHighcharts
+      <CoreChart
         callback={(chart) => {
           scatterChartRef.current = chart;
         }}
@@ -267,7 +267,7 @@ function Charts() {
         }}
       />
 
-      <CloudscapeHighcharts
+      <CoreChart
         callback={(chart) => {
           navigatorChartRef.current = chart;
         }}

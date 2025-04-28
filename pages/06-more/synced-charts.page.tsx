@@ -9,7 +9,7 @@ import SpaceBetween from "@cloudscape-design/components/space-between";
 import StatusIndicator from "@cloudscape-design/components/status-indicator";
 import { colorChartsGreen300, colorChartsRed500 } from "@cloudscape-design/design-tokens";
 
-import { CloudscapeHighcharts } from "../../lib/components/core/chart-core";
+import { CoreChart } from "../../lib/components/core/chart-core";
 import { CoreChartAPI } from "../../lib/components/core/interfaces-core";
 import { getSeriesMarkerType } from "../../lib/components/core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../lib/components/internal/components/series-details";
@@ -132,7 +132,7 @@ function Charts() {
   const getXrangeChart = () => xrangeChartRef.current!;
   return (
     <SpaceBetween size="s">
-      <CloudscapeHighcharts
+      <CoreChart
         callback={(chart) => {
           scatterChartRef.current = chart;
         }}
@@ -214,7 +214,7 @@ function Charts() {
         }}
       />
 
-      <CloudscapeHighcharts
+      <CoreChart
         callback={(chart) => {
           xrangeChartRef.current = chart;
         }}
