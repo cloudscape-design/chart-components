@@ -1,120 +1,83 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
+import type Highcharts from "highcharts";
 
+import { useStableCallback } from "@cloudscape-design/component-toolkit/internal";
 import { colorTextInteractiveDisabled } from "@cloudscape-design/design-tokens";
 
-import { ChartLegend as ChartLegendComponent, ChartLegendRef } from "../internal/components/chart-legend";
 import { ChartSeriesMarker, ChartSeriesMarkerType } from "../internal/components/series-marker";
-import AsyncStore, { useSelector } from "../internal/utils/async-store";
-import { ChartLegendOptions } from "./interfaces-base";
-import { CoreChartAPI } from "./interfaces-core";
-import { getPointId, getSeriesId, getSeriesMarkerType } from "./utils";
-
-interface LegendStateItemProps {
-  id: string;
-  name: string;
-  color: string;
-  markerType: ChartSeriesMarkerType;
-  visible: boolean;
-}
+import AsyncStore from "../internal/utils/async-store";
+import { ChartLegendItem, ChartLegendOptions } from "./interfaces-base";
+import { ChartLegendRef, InternalCoreChartLegendAPI } from "./interfaces-core";
+import { getPointColor, getPointId, getSeriesColor, getSeriesId, getSeriesMarkerType } from "./utils";
 
 export function useLegend(
-  getChart: () => CoreChartAPI,
   legendProps?: ChartLegendOptions & {
     onItemVisibilityChange?: (hiddenItems: string[]) => void;
   },
 ) {
-  const legendStore = useRef(new LegendStore(getChart)).current;
-  legendStore.onItemVisibilityChangeCb = legendProps?.onItemVisibilityChange;
+  const onItemVisibilityChangeCb = useStableCallback(legendProps?.onItemVisibilityChange ?? (() => {}));
+  const legendStore = useRef(new LegendStore({ onItemVisibilityChange: onItemVisibilityChangeCb })).current;
 
-  const onChartRender = legendStore.onChartRender;
-  const onItemVisibilityChange = legendStore.onItemVisibilityChange;
-  const onItemHighlightEnter = legendStore.onItemHighlightEnter;
-  const onItemHighlightExit = legendStore.onItemHighlightExit;
+  const legendRef = useRef<ChartLegendRef>(null) as React.MutableRefObject<null | ChartLegendRef>;
 
-  return {
-    options: { onChartRender },
-    props: {
-      legendStore,
-      ...legendProps,
-      onItemVisibilityChange,
-      onItemHighlightEnter,
-      onItemHighlightExit,
-    },
-    api: {
-      highlightLegendItems: (ids: string[]) => legendStore.legendRef.highlightItems(ids),
-      clearLegendHighlight: () => legendStore.legendRef?.clearHighlight(),
-    },
+  const onChartRender: Highcharts.ChartRenderCallbackFunction = function () {
+    legendStore.onChartRender(this);
   };
-}
 
-export function ChartLegend({
-  legendStore,
-  title,
-  actions,
-  onItemVisibilityChange,
-  onItemHighlightEnter,
-  onItemHighlightExit,
-}: ChartLegendOptions & {
-  legendStore: LegendStore;
-  onItemVisibilityChange: (visibleItems: string[]) => void;
-  onItemHighlightEnter: (itemId: string) => void;
-  onItemHighlightExit: () => void;
-}) {
-  const legendItems = useSelector(legendStore, (state) => state.legendItems);
-  return (
-    <ChartLegendComponent
-      ref={legendStore.legendRefCb}
-      legendTitle={title}
-      items={legendItems.map((item) => ({
-        id: item.id,
-        name: item.name,
-        visible: item.visible,
-        marker: (
-          <ChartSeriesMarker
-            key={item.id}
-            color={item.visible ? item.color : colorTextInteractiveDisabled}
-            type={item.markerType}
-          />
-        ),
-      }))}
-      actions={actions}
-      onItemVisibilityChange={onItemVisibilityChange}
-      onItemHighlightEnter={onItemHighlightEnter}
-      onItemHighlightExit={onItemHighlightExit}
-    />
+  const legendAPI: InternalCoreChartLegendAPI = useMemo(
+    () => ({
+      ref: (legend) => (legendRef.current = legend),
+      store: legendStore,
+      legend: {
+        highlightItems: (ids) => legendRef.current?.highlightItems(ids),
+        clearHighlight: () => legendRef.current?.clearHighlight(),
+      },
+      onItemVisibilityChange: legendStore.onItemVisibilityChange,
+      onItemHighlightEnter: legendStore.onItemHighlightEnter,
+      onItemHighlightExit: legendStore.onItemHighlightExit,
+    }),
+    [legendStore],
   );
+
+  return { options: { onChartRender }, api: legendAPI };
 }
 
-export class LegendStore extends AsyncStore<{ legendItems: LegendStateItemProps[] }> {
-  private getAPI: () => CoreChartAPI;
-  public onItemVisibilityChangeCb?: (hiddenItems: string[]) => void;
-  public legendRefCb = (ref: ChartLegendRef) => {
-    this.legendRef = ref;
-  };
-  public legendRef: ChartLegendRef = { highlightItems: () => {}, clearHighlight: () => {} };
+class LegendStore extends AsyncStore<{ items: readonly ChartLegendItem[] }> {
+  private _chart: null | Highcharts.Chart = null;
+  private onItemVisibilityChangeCb?: (hiddenItems: string[]) => void;
+  private markersCache = new Map<string, React.ReactNode>();
 
-  constructor(getAPI: () => CoreChartAPI) {
-    super({ legendItems: [] });
-    this.getAPI = getAPI;
+  constructor({ onItemVisibilityChange }: { onItemVisibilityChange: (hiddenItems: string[]) => void }) {
+    super({ items: [] });
+    this.onItemVisibilityChangeCb = onItemVisibilityChange;
   }
 
-  private get api() {
-    return this.getAPI();
-  }
-
-  public onChartRender = () => {
-    const legendItems = this.computeLegendItems();
-
-    if (!isEqualArrays(legendItems, this.get().legendItems, isEqualLegendItems)) {
-      this.set(() => ({ legendItems }));
+  private get chart() {
+    if (!this._chart) {
+      throw new Error("Invariant violation: using legend API before initializing chart.");
     }
+    return this._chart;
+  }
+
+  // The chart markers derive from type and color and are cached to avoid unnecessary renders,
+  // and allow comparing them by reference.
+  private renderMarker(type: ChartSeriesMarkerType, color: string): React.ReactNode {
+    const key = `${type}:${color}`;
+    const marker = this.markersCache.get(key) ?? <ChartSeriesMarker type={type} color={color} />;
+    this.markersCache.set(key, marker);
+    return marker;
+  }
+
+  public onChartRender = (chart: Highcharts.Chart) => {
+    this._chart = chart;
+    this.updateItemsIfNeeded(this.computeLegendItems());
   };
 
   public onItemHighlightEnter = (itemId: string) => {
-    for (const s of this.api.chart.series) {
+    for (const s of this.chart.series) {
       if (s.type !== "pie") {
         s.setState(getSeriesId(s) !== itemId ? "inactive" : "normal");
       }
@@ -124,7 +87,7 @@ export class LegendStore extends AsyncStore<{ legendItems: LegendStateItemProps[
         }
       }
     }
-    this.api.chart.axes.forEach((axis) => {
+    this.chart.axes.forEach((axis) => {
       (axis as any).plotLinesAndBands?.forEach((line: Highcharts.PlotLineOrBand) => {
         if (line.options.id && line.options.id !== itemId) {
           line.svgElem?.attr({ opacity: 0.4 });
@@ -134,13 +97,13 @@ export class LegendStore extends AsyncStore<{ legendItems: LegendStateItemProps[
   };
 
   public onItemHighlightExit = () => {
-    for (const s of this.api.chart.series) {
+    for (const s of this.chart.series) {
       s.setState("normal");
       for (const p of s.data) {
         p.setState("normal");
       }
     }
-    this.api.chart.axes.forEach((axis) => {
+    this.chart.axes.forEach((axis) => {
       (axis as any).plotLinesAndBands?.forEach((line: Highcharts.PlotLineOrBand) => {
         if (line.options.id) {
           line.svgElem?.attr({ opacity: 1 });
@@ -151,34 +114,34 @@ export class LegendStore extends AsyncStore<{ legendItems: LegendStateItemProps[
 
   public onItemVisibilityChange = (hiddenItems: string[]) => {
     this.onItemVisibilityChangeCb?.(hiddenItems);
-    const legendItems = this.computeLegendItems();
-    if (!isEqualArrays(legendItems, this.get().legendItems, isEqualLegendItems)) {
-      this.set(() => ({ legendItems }));
+    const items = this.computeLegendItems();
+    if (!isEqualArrays(items, this.get().items, isEqualLegendItems)) {
+      this.set(() => ({ items }));
     }
   };
 
   private computeLegendItems() {
-    const chart = this.api.chart;
-    const legendItems: LegendStateItemProps[] = [];
+    const chart = this.chart;
+    const legendItems: ChartLegendItem[] = [];
 
     for (const s of chart.series) {
       if (s.type !== "pie") {
+        const color = s.visible ? getSeriesColor(s) : colorTextInteractiveDisabled;
         legendItems.push({
           id: getSeriesId(s),
           name: s.name,
-          color: typeof s.color === "string" ? s.color : "black",
-          markerType: getSeriesMarkerType(s),
+          marker: this.renderMarker(getSeriesMarkerType(s), color),
           visible: s.visible,
         });
       }
 
       for (const point of s.data) {
         if (s.type === "pie") {
+          const color = s.visible ? getPointColor(point) : colorTextInteractiveDisabled;
           legendItems.push({
             id: getPointId(point),
             name: point.name,
-            color: typeof point.color === "string" ? point.color : "black",
-            markerType: getSeriesMarkerType(s),
+            marker: this.renderMarker(getSeriesMarkerType(s), color),
             visible: point.visible,
           });
         }
@@ -187,9 +150,16 @@ export class LegendStore extends AsyncStore<{ legendItems: LegendStateItemProps[
 
     return legendItems;
   }
+
+  private updateItemsIfNeeded(nextItems: readonly ChartLegendItem[]) {
+    const currentItems = this.get().items;
+    if (!isEqualArrays(nextItems, currentItems, isEqualLegendItems)) {
+      this.set(() => ({ items: nextItems }));
+    }
+  }
 }
 
-function isEqualArrays<T>(a: T[], b: T[], eq: (a: T, b: T) => boolean) {
+function isEqualArrays<T>(a: readonly T[], b: readonly T[], eq: (a: T, b: T) => boolean) {
   if (a.length !== b.length) {
     return false;
   }
@@ -201,12 +171,6 @@ function isEqualArrays<T>(a: T[], b: T[], eq: (a: T, b: T) => boolean) {
   return true;
 }
 
-function isEqualLegendItems(a: LegendStateItemProps, b: LegendStateItemProps) {
-  return (
-    a.id === b.id &&
-    a.name === b.name &&
-    a.color === b.color &&
-    a.markerType === b.markerType &&
-    a.visible === b.visible
-  );
+function isEqualLegendItems(a: ChartLegendItem, b: ChartLegendItem) {
+  return a.id === b.id && a.name === b.name && a.marker === b.marker && a.visible === b.visible;
 }

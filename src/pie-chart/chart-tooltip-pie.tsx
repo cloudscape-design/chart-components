@@ -4,7 +4,7 @@
 import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
 
-import { CoreTooltipOptions, Target } from "../core/interfaces-core";
+import { CoreTooltipOptions, Rect } from "../core/interfaces-core";
 import { getOptionsId, getPointColor, getPointId, getSeriesMarkerType } from "../core/utils";
 import ChartSeriesDetails from "../internal/components/series-details";
 import { ChartSeriesMarker } from "../internal/components/series-marker";
@@ -65,7 +65,7 @@ export function useChartTooltipPie(props: {
   };
 }
 
-function getPieChartTargetPlacement(point: Highcharts.Point): Target {
+function getPieChartTargetPlacement(point: Highcharts.Point): Rect {
   // The pie series segments do not provide plotX, plotY to compute the tooltip placement.
   // Instead, there is a `tooltipPos` tuple, which is not covered by TS.
   if ("tooltipPos" in point && Array.isArray(point.tooltipPos)) {
@@ -75,7 +75,7 @@ function getPieChartTargetPlacement(point: Highcharts.Point): Target {
   return getPieMiddlePlacement(point);
 }
 
-function getPieMiddlePlacement(point: Highcharts.Point): Target {
+function getPieMiddlePlacement(point: Highcharts.Point): Rect {
   const chart = point.series.chart;
   const [relativeX, relativeY, relativeDiameter] = point.series.center;
   const plotLeft = chart.plotLeft;

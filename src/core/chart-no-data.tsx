@@ -3,132 +3,61 @@
 
 import { useRef } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import clsx from "clsx";
 import type Highcharts from "highcharts";
 
-import Button from "@cloudscape-design/components/button";
-import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-use/i18n";
-import LiveRegion from "@cloudscape-design/components/live-region";
-import StatusIndicator from "@cloudscape-design/components/status-indicator";
-
-import Portal from "../internal/components/portal";
-import { fireNonCancelableEvent } from "../internal/events";
-import AsyncStore, { useSelector } from "../internal/utils/async-store";
+import AsyncStore from "../internal/utils/async-store";
 import { useUniqueId } from "../internal/utils/unique-id";
-import { CoreChartAPI, CoreI18nStrings, CoreNoDataProps } from "./interfaces-core";
+import { InternalCoreChartNoDataAPI } from "./interfaces-core";
 import * as Styles from "./styles";
-
-import styles from "./styles.css.js";
-import testClasses from "./test-classes/styles.css.js";
 
 // The custom no-data implementation relies on the Highcharts noData module.
 // We render a custom empty DIV as `lang.noData` and then provide actual content using React portal.
 
-export function useNoData(getAPI: () => CoreChartAPI, noDataProps?: CoreNoDataProps) {
+export function useNoData() {
   const noDataId = useUniqueId("no-data");
-  const noDataStore = useRef(new NoDataStore(getAPI, noDataId)).current;
+  const noDataStore = useRef(new NoDataStore(noDataId)).current;
 
-  const chartRender: Highcharts.ChartRenderCallbackFunction = noDataStore.onChartRender;
+  const onChartRender: Highcharts.ChartRenderCallbackFunction = function () {
+    noDataStore.onChartRender(this);
+  };
   const noData: Highcharts.NoDataOptions = { position: Styles.noDataPosition, useHTML: true };
   const langNoData = renderToStaticMarkup(<div style={Styles.noDataCss} id={noDataId}></div>);
 
-  return { options: { chartRender, noData, langNoData }, props: { ...noDataProps, noDataStore } };
+  const noDataAPI: InternalCoreChartNoDataAPI = { store: noDataStore };
+
+  return { options: { onChartRender, noData, langNoData }, api: noDataAPI };
 }
 
-export function ChartNoData({
-  noDataStore,
-  statusType = "finished",
-  loading,
-  empty,
-  error,
-  noMatch,
-  onRecoveryClick,
-  i18nStrings,
-}: CoreNoDataProps & {
-  i18nStrings?: CoreI18nStrings;
-  noDataStore: AsyncStore<{ container: null | Element; noMatch: boolean }>;
-}) {
-  const i18n = useInternalI18n("[charts]");
-  const state = useSelector(noDataStore, (s) => s);
-  if (!state.container) {
-    return null;
-  }
-  let content = null;
-  if (statusType === "loading") {
-    const loadingText = i18n("loadingText", i18nStrings?.loadingText);
-    content = loading ?? <StatusIndicator type="loading">{loadingText}</StatusIndicator>;
-  } else if (statusType === "error") {
-    const errorText = i18n("errorText", i18nStrings?.errorText);
-    const recoveryText = i18n("recoveryText", i18nStrings?.recoveryText);
-    content = error ?? (
-      <span>
-        <StatusIndicator type="error">{i18n("errorText", errorText)}</StatusIndicator>{" "}
-        {!!recoveryText && !!onRecoveryClick && (
-          <Button
-            onFollow={(event: CustomEvent) => {
-              event.preventDefault();
-              fireNonCancelableEvent(onRecoveryClick);
-            }}
-            variant="inline-link"
-          >
-            {recoveryText}
-          </Button>
-        )}
-      </span>
-    );
-  } else if (state.noMatch) {
-    content = noMatch;
-  } else {
-    content = empty;
-  }
-  return (
-    <Portal container={state.container}>
-      <div className={clsx(testClasses["no-data"], styles["no-data"])}>
-        <LiveRegion>{content}</LiveRegion>
-      </div>
-    </Portal>
-  );
-}
-
-export class NoDataStore extends AsyncStore<{ container: null | Element; noMatch: boolean }> {
-  private getAPI: () => CoreChartAPI;
+class NoDataStore extends AsyncStore<{ container: null | Element; noMatch: boolean }> {
   private noDataId: string;
 
-  constructor(getAPI: () => CoreChartAPI, noDataId: string) {
+  constructor(noDataId: string) {
     super({ container: null, noMatch: false });
-    this.getAPI = getAPI;
     this.noDataId = noDataId;
   }
 
-  public onChartRender: Highcharts.ChartRenderCallbackFunction = (event) => {
-    const api = this.getAPI();
-    if (event.target instanceof api.highcharts.Chart) {
-      const allSeries = event.target.series.filter((s) => {
-        if (s.type === "pie") {
-          return s.data && s.data.filter((d) => d.y !== null).length > 0;
-        }
-        return s.data && s.data.length > 0;
-      });
-      const visibleSeries = allSeries.filter(
-        (s) => s.visible && (s.type !== "pie" || s.data.some((d) => d.y !== null && d.visible)),
-      );
-      if (visibleSeries.length > 0) {
-        this.set(() => ({ container: null, noMatch: false }));
-      } else {
-        // We use timeout to make sure the no-data container is rendered.
-        setTimeout(() => {
-          if (event.target instanceof api.highcharts.Chart) {
-            const noDataContainer = event.target.container?.querySelector(
-              `[id="${this.noDataId}"]`,
-            ) as null | HTMLElement;
-            if (noDataContainer) {
-              noDataContainer.style.width = `${event.target.plotWidth}px`;
-              noDataContainer.style.height = `${event.target.plotHeight}px`;
-            }
-            this.set(() => ({ container: noDataContainer, noMatch: allSeries.length > 0 }));
-          }
-        }, 0);
+  public onChartRender = (chart: Highcharts.Chart) => {
+    const allSeries = chart.series.filter((s) => {
+      if (s.type === "pie") {
+        return s.data && s.data.filter((d) => d.y !== null).length > 0;
       }
+      return s.data && s.data.length > 0;
+    });
+    const visibleSeries = allSeries.filter(
+      (s) => s.visible && (s.type !== "pie" || s.data.some((d) => d.y !== null && d.visible)),
+    );
+    if (visibleSeries.length > 0) {
+      this.set(() => ({ container: null, noMatch: false }));
+    } else {
+      // We use timeout to make sure the no-data container is rendered.
+      setTimeout(() => {
+        const noDataContainer = chart.container?.querySelector(`[id="${this.noDataId}"]`) as null | HTMLElement;
+        if (noDataContainer) {
+          noDataContainer.style.width = `${chart.plotWidth}px`;
+          noDataContainer.style.height = `${chart.plotHeight}px`;
+        }
+        this.set(() => ({ container: noDataContainer, noMatch: allSeries.length > 0 }));
+      }, 0);
     }
   };
 }

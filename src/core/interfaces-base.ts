@@ -114,7 +114,7 @@ export interface ChartHeaderOptions {
 }
 
 export interface BaseHeaderRenderProps {
-  legendItems: ChartLegendItem[];
+  legendItems: readonly ChartLegendItem[];
 }
 
 export interface ChartFooterOptions {
@@ -122,7 +122,7 @@ export interface ChartFooterOptions {
 }
 
 export interface BaseFooterRenderProps {
-  legendItems: ChartLegendItem[];
+  legendItems: readonly ChartLegendItem[];
 }
 
 export interface LegendActionsRenderProps {
