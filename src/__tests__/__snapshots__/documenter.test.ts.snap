@@ -40,8 +40,13 @@ and adds extra features such as additional series types (thresholds), alternativ
   ],
   "functions": [
     {
-      "name": "clearFilter",
-      "parameters": [],
+      "name": "setVisibleSeries",
+      "parameters": [
+        {
+          "name": "visibleSeries",
+          "type": "ReadonlyArray<string>",
+        },
+      ],
       "returnType": "void",
     },
   ],
@@ -96,6 +101,28 @@ width value, the horizontal scrollbar is automatically added.",
       "type": "boolean",
     },
     {
+      "description": "Use filter to render default series filter, custom series filter, and/or additional filters.",
+      "inlineType": {
+        "name": "ChartFilterOptions",
+        "properties": [
+          {
+            "name": "additionalFilters",
+            "optional": true,
+            "type": "React.ReactNode",
+          },
+          {
+            "name": "seriesFilter",
+            "optional": true,
+            "type": "boolean",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "filter",
+      "optional": true,
+      "type": "ChartFilterOptions",
+    },
+    {
       "description": "When set, the chart grows automatically to fill the parent container.",
       "name": "fitHeight",
       "optional": true,
@@ -119,7 +146,7 @@ width value, the horizontal scrollbar is automatically added.",
       "type": "ChartFooterOptions",
     },
     {
-      "description": "Use header to render custom content above the chart, such as chart series filter.",
+      "description": "Use header to render custom content above the chart.",
       "inlineType": {
         "name": "ChartHeaderOptions",
         "properties": [
@@ -153,7 +180,7 @@ This property corresponds to [chart.inverted](https://api.highcharts.com/highcha
     {
       "description": "Chart legend props.",
       "inlineType": {
-        "name": "BaseLegendProps",
+        "name": "ChartLegendOptions",
         "properties": [
           {
             "name": "actions",
@@ -175,13 +202,13 @@ This property corresponds to [chart.inverted](https://api.highcharts.com/highcha
       },
       "name": "legend",
       "optional": true,
-      "type": "BaseLegendProps",
+      "type": "ChartLegendOptions",
     },
     {
       "description": "The empty, no-match, loading, or error state of the chart.
 It requires the \`no-data-to-display\` module.",
       "inlineType": {
-        "name": "BaseNoDataProps",
+        "name": "ChartNoDataOptions",
         "properties": [
           {
             "name": "empty",
@@ -218,7 +245,7 @@ It requires the \`no-data-to-display\` module.",
       },
       "name": "noData",
       "optional": true,
-      "type": "BaseNoDataProps",
+      "type": "ChartNoDataOptions",
     },
     {
       "description": "Chart series and data.
@@ -236,7 +263,7 @@ Supported series types:
 * y-threshold - The line-like series to represent y-axis threshold (horizontal, when \`inverted=false\`).",
       "name": "series",
       "optional": false,
-      "type": "Array<CartesianChartProps.Series>",
+      "type": "Array<CartesianChartProps.SeriesOptions>",
     },
     {
       "description": "Specifies series stacking behavior. Use it for column- or area- series.",
@@ -248,18 +275,21 @@ Supported series types:
       "description": "Chart tooltip that replaces [tooltip](https://api.highcharts.com/highcharts/tooltip).
 
 Supported properties:
+* \`enabled\` - (optional, boolean) - Use it to hide the tooltip.
+* \`size\` - (optional, "small" | "medium" | "large") - Use it to specify max tooltip size.
+* \`placement\` - (optional, "target" | "middle" | "bottom") - Use it to specify preferred tooltip placement.
 * \`title\` - (optional, function) - Use it to provide a custom tooltip title.
 * \`content\` - (optional, function) - Use it to provide a custom tooltip content.
 * \`footer\` - (optional, function) - Use it to add a tooltip footer.
 * \`series\` - (optional, function) - Use it to extend the default series list, in order to use custom value formatting,
 inject links, or add expandable items.",
       "inlineType": {
-        "name": "CartesianChartProps.TooltipProps",
+        "name": "CartesianChartProps.TooltipOptions",
         "properties": [
           {
             "name": "body",
             "optional": true,
-            "type": "((detail: CartesianChartProps.TooltipDetails) => React.ReactNode)",
+            "type": "((props: TooltipSlotRenderProps) => React.ReactNode)",
           },
           {
             "name": "enabled",
@@ -269,12 +299,12 @@ inject links, or add expandable items.",
           {
             "name": "footer",
             "optional": true,
-            "type": "((detail: CartesianChartProps.TooltipDetails) => React.ReactNode)",
+            "type": "((props: TooltipSlotRenderProps) => React.ReactNode)",
           },
           {
             "name": "header",
             "optional": true,
-            "type": "((detail: CartesianChartProps.TooltipDetails) => React.ReactNode)",
+            "type": "((props: TooltipSlotRenderProps) => React.ReactNode)",
           },
           {
             "name": "placement",
@@ -284,7 +314,7 @@ inject links, or add expandable items.",
           {
             "name": "series",
             "optional": true,
-            "type": "((detail: CartesianChartProps.TooltipSeriesDetailItem) => CartesianChartProps.TooltipSeriesFormatted)",
+            "type": "((props: TooltipSeriesRenderProps) => CartesianChartProps.TooltipSeriesFormatted)",
           },
           {
             "name": "size",
@@ -296,7 +326,7 @@ inject links, or add expandable items.",
       },
       "name": "tooltip",
       "optional": true,
-      "type": "CartesianChartProps.TooltipProps",
+      "type": "CartesianChartProps.TooltipOptions",
     },
     {
       "description": "Defines placement of the vertical axis (can be either Y or X depending on \`inverted\`).",
@@ -318,7 +348,7 @@ legend. When a series does not have an ID, a series name is used instead.
 When the property is provided, use \`onToggleVisibleSeries\` to update it when the legend series filtering is used.",
       "name": "visibleSeries",
       "optional": true,
-      "type": "Array<string>",
+      "type": "ReadonlyArray<string>",
     },
     {
       "description": "X-axis options that extend [xAxis](https://api.highcharts.com/highcharts/xAxis).
@@ -339,7 +369,7 @@ Additional properties (Cloudscape):
 applies to the tooltip header.
 * \`valueDecimals\` (optional, number) - The number of decimal digits the axis values have, defaults to 2.",
       "inlineType": {
-        "name": "CartesianChartProps.AxisProps",
+        "name": "AxisOptions",
         "properties": [
           {
             "name": "categories",
@@ -386,7 +416,7 @@ applies to the tooltip header.
       },
       "name": "xAxis",
       "optional": true,
-      "type": "CartesianChartProps.AxisProps",
+      "type": "AxisOptions",
     },
     {
       "description": "Y-axis options that extend [xAxis](https://api.highcharts.com/highcharts/yAxis).
@@ -408,7 +438,7 @@ Additional properties (Cloudscape):
 applies to the tooltip header.
 * \`valueDecimals\` (optional, number) - The number of decimal digits the axis values have, defaults to 2.",
       "inlineType": {
-        "name": "CartesianChartProps.AxisProps",
+        "name": "CartesianChartProps.YAxisOptions",
         "properties": [
           {
             "name": "categories",
@@ -424,6 +454,11 @@ applies to the tooltip header.
             "name": "min",
             "optional": true,
             "type": "number",
+          },
+          {
+            "name": "reversedStacks",
+            "optional": true,
+            "type": "boolean",
           },
           {
             "name": "tickInterval",
@@ -455,7 +490,7 @@ applies to the tooltip header.
       },
       "name": "yAxis",
       "optional": true,
-      "type": "CartesianChartProps.AxisProps",
+      "type": "CartesianChartProps.YAxisOptions",
     },
   ],
   "regions": [],
@@ -487,8 +522,13 @@ exports[`definition for pie-chart matches the snapshot > pie-chart 1`] = `
   ],
   "functions": [
     {
-      "name": "clearFilter",
-      "parameters": [],
+      "name": "setVisibleSegments",
+      "parameters": [
+        {
+          "name": "visibleSegments",
+          "type": "ReadonlyArray<string>",
+        },
+      ],
       "returnType": "void",
     },
   ],
@@ -537,6 +577,28 @@ width value, the horizontal scrollbar is automatically added.",
       "type": "Array<string>",
     },
     {
+      "description": "Use filter to render default series filter, custom series filter, and/or additional filters.",
+      "inlineType": {
+        "name": "ChartFilterOptions",
+        "properties": [
+          {
+            "name": "additionalFilters",
+            "optional": true,
+            "type": "React.ReactNode",
+          },
+          {
+            "name": "seriesFilter",
+            "optional": true,
+            "type": "boolean",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "filter",
+      "optional": true,
+      "type": "ChartFilterOptions",
+    },
+    {
       "description": "When set, the chart grows automatically to fill the parent container.",
       "name": "fitHeight",
       "optional": true,
@@ -560,7 +622,7 @@ width value, the horizontal scrollbar is automatically added.",
       "type": "ChartFooterOptions",
     },
     {
-      "description": "Use header to render custom content above the chart, such as chart series filter.",
+      "description": "Use header to render custom content above the chart.",
       "inlineType": {
         "name": "ChartHeaderOptions",
         "properties": [
@@ -599,7 +661,7 @@ Supported Highcharts versions:
     {
       "description": "Chart legend props.",
       "inlineType": {
-        "name": "BaseLegendProps",
+        "name": "ChartLegendOptions",
         "properties": [
           {
             "name": "actions",
@@ -621,13 +683,13 @@ Supported Highcharts versions:
       },
       "name": "legend",
       "optional": true,
-      "type": "BaseLegendProps",
+      "type": "ChartLegendOptions",
     },
     {
       "description": "The empty, no-match, loading, or error state of the chart.
 It requires the \`no-data-to-display\` module.",
       "inlineType": {
-        "name": "BaseNoDataProps",
+        "name": "ChartNoDataOptions",
         "properties": [
           {
             "name": "empty",
@@ -664,7 +726,7 @@ It requires the \`no-data-to-display\` module.",
       },
       "name": "noData",
       "optional": true,
-      "type": "BaseNoDataProps",
+      "type": "ChartNoDataOptions",
     },
     {
       "description": "Chart segment options.",
@@ -674,12 +736,12 @@ It requires the \`no-data-to-display\` module.",
           {
             "name": "description",
             "optional": true,
-            "type": "((detail: PieChartProps.SegmentDescriptionDetail) => string) | null",
+            "type": "((props: PieChartProps.SegmentDescriptionRenderProps) => string) | null",
           },
           {
             "name": "title",
             "optional": true,
-            "type": "((detail: PieChartProps.SegmentDescriptionDetail) => string) | null",
+            "type": "((props: PieChartProps.SegmentDescriptionRenderProps) => string) | null",
           },
         ],
         "type": "object",
@@ -696,31 +758,34 @@ Supported series types:
 * [pie](https://api.highcharts.com/highcharts/series.pie).
 * donut - the pie series with predefined inner radius.",
       "inlineType": {
-        "name": "PieChartProps.Series",
+        "name": "PieChartProps.SeriesOptions",
         "type": "union",
         "values": [
-          "PieSeries",
-          "DonutSeries",
+          "PieSeriesOptions",
+          "DonutSeriesOptions",
         ],
       },
       "name": "series",
       "optional": false,
-      "type": "PieChartProps.Series",
+      "type": "PieChartProps.SeriesOptions",
     },
     {
       "description": "Chart tooltip that replaces [tooltip](https://api.highcharts.com/highcharts/tooltip).
 
 Supported properties:
+* \`enabled\` - (optional, boolean) - Use it to hide the tooltip.
+* \`size\` - (optional, "small" | "medium" | "large") - Use it to specify max tooltip size.
+* \`placement\` - (optional, "target" | "middle" | "bottom") - Use it to specify preferred tooltip placement.
 * \`title\` - (optional, function) - Use it to provide a custom tooltip title.
 * \`content\` - (optional, function) - Use it to provide a custom tooltip content.
 * \`footer\` - (optional, function) - Use it to add a tooltip footer.",
       "inlineType": {
-        "name": "PieChartProps.TooltipProps",
+        "name": "PieChartProps.TooltipOptions",
         "properties": [
           {
             "name": "body",
             "optional": true,
-            "type": "((detail: PieChartProps.TooltipDetails) => React.ReactNode)",
+            "type": "((props: TooltipSlotRenderProps) => React.ReactNode)",
           },
           {
             "name": "enabled",
@@ -730,7 +795,12 @@ Supported properties:
           {
             "name": "footer",
             "optional": true,
-            "type": "((detail: PieChartProps.TooltipDetails) => React.ReactNode)",
+            "type": "((props: TooltipSlotRenderProps) => React.ReactNode)",
+          },
+          {
+            "name": "header",
+            "optional": true,
+            "type": "((props: TooltipSlotRenderProps) => React.ReactNode)",
           },
           {
             "name": "placement",
@@ -742,17 +812,12 @@ Supported properties:
             "optional": true,
             "type": ""small" | "medium" | "large"",
           },
-          {
-            "name": "title",
-            "optional": true,
-            "type": "((detail: PieChartProps.TooltipDetails) => React.ReactNode)",
-          },
         ],
         "type": "object",
       },
       "name": "tooltip",
       "optional": true,
-      "type": "PieChartProps.TooltipProps",
+      "type": "PieChartProps.TooltipOptions",
     },
     {
       "description": "List of segments IDs to be visible. When unset, all segments are visible by default, but can be hidden by clicking on the
@@ -760,7 +825,7 @@ legend. When a segment does not have an ID, a segment name is used instead.
 When the property is provided, use \`onToggleVisibleSegment\` to update it when the legend segment filtering is used.",
       "name": "visibleSegments",
       "optional": true,
-      "type": "Array<string>",
+      "type": "ReadonlyArray<string>",
     },
   ],
   "regions": [],

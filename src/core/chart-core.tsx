@@ -52,7 +52,7 @@ export function CoreChart({
 
   // Provides custom legend, when `props.legend` is present.
   const isLegendEnabled = legendProps?.enabled !== false;
-  const legend = useLegend({ ...legendProps, onItemVisibilityChange });
+  const legend = useLegend();
 
   // Provides custom Cloudscape tooltip instead of Highcharts tooltip, when `props.tooltip` is present.
   // The custom tooltip provides Cloudscape styles and can be pinned.
@@ -253,16 +253,24 @@ export function CoreChart({
                   highcharts: highcharts as typeof Highcharts,
                   showTooltipOnPoint: (point) => tooltip.api.showTooltipOnPoint(point),
                   hideTooltip: () => tooltip.api.hideTooltip(),
-                  onItemVisibilityChange: (hiddenItems) => legend.api.onItemVisibilityChange(hiddenItems),
-                  onItemHighlightEnter: (itemId) => legend.api.onItemHighlightEnter(itemId),
-                  onItemHighlightExit: () => legend.api.onItemHighlightExit(),
+                  registerLegend: (ref) => legend.api.registerLegend(ref),
+                  unregisterLegend: () => legend.api.unregisterLegend(),
                 });
                 series.onChartReady(chart);
               }}
             />
           );
         }}
-        legend={isLegendEnabled ? <ChartLegend {...legendProps} legendAPI={legend.api} /> : null}
+        legend={
+          isLegendEnabled ? (
+            <ChartLegend
+              {...legendProps}
+              onItemVisibilityChange={onItemVisibilityChange}
+              legendAPI={legend.api}
+              seriesAPI={series.api}
+            />
+          ) : null
+        }
         title={
           verticalAxisTitlePlacement === "top" ? (
             <VerticalAxisTitle verticalAxisTitlePlacement={verticalAxisTitlePlacement} axesAPI={axes.api} />

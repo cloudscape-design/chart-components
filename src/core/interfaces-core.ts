@@ -112,21 +112,24 @@ export interface InternalCoreChartTooltipAPI extends CoreChartTooltipAPI {
   getTrack(): null | SVGElement;
 }
 
-export interface ChartLegendRef {
+export interface RegisteredLegendAPI {
   highlightItems: (ids: readonly string[]) => void;
   clearHighlight: () => void;
 }
 
 export interface CoreChartLegendAPI {
-  onItemVisibilityChange(hiddenItems: string[]): void;
-  onItemHighlightEnter(itemId: string): void;
-  onItemHighlightExit(): void;
+  registerLegend(legend: RegisteredLegendAPI): void;
+  unregisterLegend(): void;
 }
 
 export interface InternalCoreChartLegendAPI extends CoreChartLegendAPI {
-  ref(ref: null | ChartLegendRef): void;
   store: ReadonlyAsyncStore<{ items: readonly ChartLegendItem[] }>;
-  legend: ChartLegendRef;
+  legend: RegisteredLegendAPI;
+}
+
+export interface InternalCoreChartSeriesAPI {
+  highlightMatchedItems(itemId: string): void;
+  clearItemsHighlight(): void;
 }
 
 export interface InternalCoreChartNoDataAPI {

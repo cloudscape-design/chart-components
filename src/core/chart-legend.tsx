@@ -8,31 +8,19 @@ import { colorTextInteractiveDisabled } from "@cloudscape-design/design-tokens";
 
 import { ChartSeriesMarker, ChartSeriesMarkerType } from "../internal/components/series-marker";
 import AsyncStore from "../internal/utils/async-store";
-import { ChartLegendItem, ChartLegendOptions } from "./interfaces-base";
-import { ChartLegendRef, InternalCoreChartLegendAPI } from "./interfaces-core";
-import {
-  getPointColor,
-  getPointId,
-  getSeriesColor,
-  getSeriesId,
-  getSeriesMarkerType,
-  useStableCallbackNullable,
-} from "./utils";
+import { ChartLegendItem } from "./interfaces-base";
+import { InternalCoreChartLegendAPI, RegisteredLegendAPI } from "./interfaces-core";
+import { getPointColor, getPointId, getSeriesColor, getSeriesId, getSeriesMarkerType } from "./utils";
 
 // The custom legend implementation does not rely on the Highcharts legend. When Highcharts legend is disabled,
 // the chart object does not include information on legend items. Instead, we assume that all series but pie are
 // shown in the legend, and all pie series points are shown in the legend. Each item be it a series or a point should
 // have an ID, and all items with non-matched IDs are dimmed.
 
-export function useLegend(
-  legendProps?: ChartLegendOptions & {
-    onItemVisibilityChange?: (hiddenItems: readonly string[]) => void;
-  },
-) {
-  const onItemVisibilityChangeCb = useStableCallbackNullable(legendProps?.onItemVisibilityChange);
-  const legendStore = useRef(new LegendStore({ onItemVisibilityChange: onItemVisibilityChangeCb })).current;
+export function useLegend() {
+  const legendStore = useRef(new LegendStore()).current;
 
-  const legendRef = useRef<ChartLegendRef>(null) as React.MutableRefObject<null | ChartLegendRef>;
+  const legendRef = useRef<RegisteredLegendAPI>(null) as React.MutableRefObject<null | RegisteredLegendAPI>;
 
   const onChartRender: Highcharts.ChartRenderCallbackFunction = function () {
     legendStore.onChartRender(this);
@@ -40,15 +28,13 @@ export function useLegend(
 
   const legendAPI: InternalCoreChartLegendAPI = useMemo(
     () => ({
-      ref: (legend) => (legendRef.current = legend),
+      registerLegend: (legend) => (legendRef.current = legend),
+      unregisterLegend: () => (legendRef.current = null),
       store: legendStore,
       legend: {
         highlightItems: (ids) => legendRef.current?.highlightItems(ids),
         clearHighlight: () => legendRef.current?.clearHighlight(),
       },
-      onItemVisibilityChange: legendStore.onItemVisibilityChange,
-      onItemHighlightEnter: legendStore.onItemHighlightEnter,
-      onItemHighlightExit: legendStore.onItemHighlightExit,
     }),
     [legendStore],
   );
@@ -58,12 +44,10 @@ export function useLegend(
 
 class LegendStore extends AsyncStore<{ items: readonly ChartLegendItem[] }> {
   private _chart: null | Highcharts.Chart = null;
-  private onItemVisibilityChangeCb?: (hiddenItems: readonly string[]) => void;
   private markersCache = new Map<string, React.ReactNode>();
 
-  constructor({ onItemVisibilityChange }: { onItemVisibilityChange?: (hiddenItems: readonly string[]) => void }) {
+  constructor() {
     super({ items: [] });
-    this.onItemVisibilityChangeCb = onItemVisibilityChange;
   }
 
   private get chart() {
@@ -84,48 +68,6 @@ class LegendStore extends AsyncStore<{ items: readonly ChartLegendItem[] }> {
 
   public onChartRender = (chart: Highcharts.Chart) => {
     this._chart = chart;
-    this.updateItemsIfNeeded();
-  };
-
-  // Called when a legend item is highlighted.
-  public onItemHighlightEnter = (itemId: string) => {
-    for (const s of this.chart.series) {
-      if (s.type !== "pie") {
-        s.setState(getSeriesId(s) !== itemId ? "inactive" : "normal");
-      }
-      if (s.type === "pie") {
-        for (const p of s.data) {
-          p.setState(getPointId(p) !== itemId ? "inactive" : "normal");
-        }
-      }
-    }
-    // All plot lines that define ID, and this ID does not match the highlighted item are dimmed.
-    iteratePlotLines(this.chart, (line) => {
-      if (line.options.id && line.options.id !== itemId) {
-        line.svgElem?.attr({ opacity: 0.4 });
-      }
-    });
-  };
-
-  // Called when a legend item highlight is removed.
-  public onItemHighlightExit = () => {
-    // When a legend item loses highlight we assume no series should be highlighted at that point,
-    // so removing inactive state from all series, points, and plot lines.
-    for (const s of this.chart.series) {
-      s.setState("normal");
-      for (const p of s.data) {
-        p.setState("normal");
-      }
-    }
-    iteratePlotLines(this.chart, (line) => {
-      if (line.options.id) {
-        line.svgElem?.attr({ opacity: 1 });
-      }
-    });
-  };
-
-  public onItemVisibilityChange = (hiddenItems: string[]) => {
-    this.onItemVisibilityChangeCb?.(hiddenItems);
     this.updateItemsIfNeeded();
   };
 
@@ -182,13 +124,4 @@ function isEqualArrays<T>(a: readonly T[], b: readonly T[], eq: (a: T, b: T) => 
 
 function isEqualLegendItems(a: ChartLegendItem, b: ChartLegendItem) {
   return a.id === b.id && a.name === b.name && a.marker === b.marker && a.visible === b.visible;
-}
-
-// The `axis.plotLinesAndBands` API is not covered with TS.
-function iteratePlotLines(chart: Highcharts.Chart, cb: (line: Highcharts.PlotLineOrBand) => void) {
-  chart.axes.forEach((axis) => {
-    if ("plotLinesAndBands" in axis && Array.isArray(axis.plotLinesAndBands)) {
-      axis.plotLinesAndBands.forEach((line: Highcharts.PlotLineOrBand) => cb(line));
-    }
-  });
 }
