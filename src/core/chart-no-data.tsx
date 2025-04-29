@@ -9,6 +9,7 @@ import AsyncStore from "../internal/utils/async-store";
 import { useUniqueId } from "../internal/utils/unique-id";
 import { InternalCoreChartNoDataAPI } from "./interfaces-core";
 import * as Styles from "./styles";
+import { findAllSeriesWithData, findAllVisibleSeries } from "./utils";
 
 // The custom no-data implementation relies on the Highcharts noData module.
 // We render a custom empty DIV as `lang.noData` and then provide actual content using React portal.
@@ -37,17 +38,8 @@ class NoDataStore extends AsyncStore<{ container: null | Element; noMatch: boole
   }
 
   public onChartRender = (chart: Highcharts.Chart) => {
-    const allSeriesWithData = chart.series.filter((s) => {
-      switch (s.type) {
-        case "pie":
-          return s.data && s.data.filter((d) => d.y !== null).length > 0;
-        default:
-          return s.data && s.data.length > 0;
-      }
-    });
-    const visibleSeries = allSeriesWithData.filter(
-      (s) => s.visible && (s.type !== "pie" || s.data.some((d) => d.y !== null && d.visible)),
-    );
+    const allSeriesWithData = findAllSeriesWithData(chart);
+    const visibleSeries = findAllVisibleSeries(chart);
     // The no-data is not shown when there is at least one series or point (for pie series) non-empty and visible.
     if (visibleSeries.length > 0) {
       this.set(() => ({ container: null, noMatch: false }));
