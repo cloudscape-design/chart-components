@@ -25,6 +25,8 @@ export const segmentDescriptionCss: React.CSSProperties = {
 
 export const segmentBorderWidth = 2;
 
+export const pieSeriesSize = "80%";
+export const donutSeriesSize = "80%";
 export const donutSeriesInnerSize = "80%";
 
 export const innerDescriptionZIndex = 5;
