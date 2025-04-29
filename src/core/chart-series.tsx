@@ -6,10 +6,10 @@ import type Highcharts from "highcharts";
 
 import { getPointId, getSeriesId } from "./utils";
 
-export function useChartSeries({ options, hiddenItems }: { options: Highcharts.Options; hiddenItems?: string[] }) {
+export function useChartSeries({ hiddenItems }: { hiddenItems?: readonly string[] }) {
   const chartRef = useRef<null | Highcharts.Chart>(null);
 
-  const updateVisibility = useCallback((hiddenItemsIds: string[]) => {
+  const updateVisibility = useCallback((hiddenItemsIds: readonly string[]) => {
     if (!chartRef.current) {
       throw new Error("Invariant violation: updating series visibility before chart is ready.");
     }
@@ -32,6 +32,8 @@ export function useChartSeries({ options, hiddenItems }: { options: Highcharts.O
       }
     }
 
+    // The call `seriesOrPoint.setVisible(visible, false)` does not trigger the chart redraw, as it would otherwise
+    // impact the performance. Instead, we trigger the redraw explicitly, if any change to visibility has been made.
     if (updatesCounter > 0) {
       chartRef.current.redraw();
     }
@@ -54,9 +56,6 @@ export function useChartSeries({ options, hiddenItems }: { options: Highcharts.O
       if (hiddenItems) {
         updateVisibility(hiddenItems);
       }
-    },
-    options: {
-      tooltip: { enabled: !!options.series?.some((s) => s.type === "column"), shared: true, style: { opacity: 0 } },
     },
   };
 }

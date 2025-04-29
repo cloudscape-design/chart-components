@@ -59,12 +59,8 @@ export function ChartTooltip({
   tooltipAPI: InternalCoreChartTooltipAPI;
 }) {
   const tooltip = useSelector(tooltipAPI.store, (s) => s);
-  if (!tooltip.visible) {
+  if (!tooltip.visible || !tooltip.point) {
     return null;
-  }
-  if (!tooltip.point) {
-    return null;
-    // throw new Error("Invariant violation: visible tooltip does not have point data.");
   }
   const content = getTooltipContent?.({ point: tooltip.point });
   if (!content) {

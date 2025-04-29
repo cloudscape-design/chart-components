@@ -8,8 +8,8 @@ import AsyncStore from "../internal/utils/async-store";
 import { castArray } from "../internal/utils/utils";
 import { InternalCoreVerticalAxisTitleAPI } from "./interfaces-core";
 
-// The custom no-data implementation relies on the Highcharts noData module.
-// We render a custom empty DIV as `lang.noData` and then provide actual content using React portal.
+// In Highcharts, the title of the vertical axis (can be either y or x) is titled by 90 degrees and displayed along the axis.
+// The utility allows to hide this title to then render it above the chart instead.
 
 export function useChartVerticalAxisTitle() {
   const verticalAxisTitleStore = useRef(new VerticalAxisTitleStore()).current;
@@ -31,6 +31,8 @@ class VerticalAxisTitleStore extends AsyncStore<{ visible: boolean; titles: stri
   public onChartRender = (chart: Highcharts.Chart) => {
     const isInverted = !!chart.options.chart?.inverted;
 
+    // We extract multiple titles as there can be multiple axes. This supports up to 2 axes by
+    // using space-between placement of the labels in the corresponding component.
     let titles: string[] = [];
     if (isInverted) {
       titles = (castArray(chart.options.xAxis) ?? [])

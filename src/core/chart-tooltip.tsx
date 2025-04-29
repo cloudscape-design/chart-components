@@ -1,25 +1,40 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 import type Highcharts from "highcharts";
 
 import AsyncStore from "../internal/utils/async-store";
 import { DebouncedCall } from "../internal/utils/utils";
 import { CoreTooltipOptions, InternalCoreChartLegendAPI, InternalCoreChartTooltipAPI, Rect } from "./interfaces-core";
+import { useStableCallbackNullable } from "./utils";
 
 const MOUSE_LEAVE_DELAY = 300;
 const LAST_DISMISS_DELAY = 250;
 const SET_STATE_OVERRIDE_MARKER = Symbol("awsui-set-state");
 
 // The custom tooltip does not rely on the Highcharts tooltip. Instead, we listen to the mouse-over event on series points,
-// and then render a fake invisible target element to compute the Cloudscape chart popover position against.
+// and then render a fake invisible target element to compute the custom tooltip position against.
 // The tooltip can be hidden when we receive mouse-leave. It can also be pinned/unpinned on mouse click.
 // Despite event names, they events also fire on keyboard interactions.
 
-export function useChartTooltip(props: CoreTooltipOptions & { legendAPI: InternalCoreChartLegendAPI }) {
-  const tooltipStore = useRef(new TooltipStore(props.legendAPI)).current;
-  tooltipStore.tooltipProps = props ?? {};
+export function useChartTooltip({
+  placement,
+  legendAPI,
+  ...options
+}: CoreTooltipOptions & { legendAPI: InternalCoreChartLegendAPI }) {
+  const getTargetFromPoint = useStableCallbackNullable(options.getTargetFromPoint);
+  const getTooltipContent = useStableCallbackNullable(options.getTooltipContent);
+  const onPointHighlight = useStableCallbackNullable(options.onPointHighlight);
+  const onClearHighlight = useStableCallbackNullable(options.onClearHighlight);
+  const tooltipStore = useMemo(
+    () =>
+      new TooltipStore(
+        { placement, getTargetFromPoint, getTooltipContent, onPointHighlight, onClearHighlight },
+        legendAPI,
+      ),
+    [placement, getTargetFromPoint, getTooltipContent, onPointHighlight, onClearHighlight, legendAPI],
+  );
 
   const onRenderChart: Highcharts.ChartRenderCallbackFunction = function () {
     tooltipStore.onRenderChart(this);
@@ -61,25 +76,26 @@ export function useChartTooltip(props: CoreTooltipOptions & { legendAPI: Interna
   };
 }
 
-interface ReactiveTooltipState {
+interface AsyncTooltipState {
   visible: boolean;
   pinned: boolean;
   point: null | Highcharts.Point;
 }
 
-class TooltipStore extends AsyncStore<ReactiveTooltipState> {
+class TooltipStore extends AsyncStore<AsyncTooltipState> {
   public getTrack: () => null | SVGElement = () => null;
-  public tooltipProps: CoreTooltipOptions = {};
 
   private _chart: null | Highcharts.Chart = null;
   private legendAPI: InternalCoreChartLegendAPI;
+  private tooltipOptions: CoreTooltipOptions = {};
   private targetElement: null | Highcharts.SVGElement = null;
   private mouseLeaveCall = new DebouncedCall();
   private lastDismissTime = 0;
   private tooltipHovered = false;
 
-  constructor(legendAPI: InternalCoreChartLegendAPI) {
+  constructor(tooltipOptions: CoreTooltipOptions, legendAPI: InternalCoreChartLegendAPI) {
     super({ visible: false, pinned: false, point: null });
+    this.tooltipOptions = tooltipOptions;
     this.legendAPI = legendAPI;
   }
 
@@ -173,8 +189,13 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
     }
   };
 
+  // We replace `setState` method on Highcharts series and points with a custom implementation,
+  // that does not cause the state to update when the tooltip is pinned. That is to avoid hover effect:
+  // only the matched series/points of the pinned tooltip must be in active state.ƒ
   private updateSetters() {
     for (const s of this.chart.series) {
+      // We ensure the replacement is done only once by assigning a custom property to the function.
+      // If the property is present - it means the method was already replaced.
       if (!(s.setState as any)[SET_STATE_OVERRIDE_MARKER]) {
         const original = s.setState;
         s.setState = (...args) => {
@@ -185,7 +206,6 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
         };
         (s.setState as any)[SET_STATE_OVERRIDE_MARKER] = true;
       }
-
       for (const d of s.data) {
         if (!(d.setState as any)[SET_STATE_OVERRIDE_MARKER]) {
           const original = d.setState;
@@ -203,7 +223,7 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
 
   private highlightActions = (point: Highcharts.Point) => {
     const target = this.getTarget(point);
-    const detail = this.tooltipProps.onPointHighlight?.({ point, target });
+    const detail = this.tooltipOptions.onPointHighlight?.({ point, target });
     this.destroyMarkers();
     this.createMarkers(target);
 
@@ -213,11 +233,11 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
   };
 
   private getTarget = (point: Highcharts.Point) => {
-    return this.tooltipProps.getTargetFromPoint?.(point) ?? this.getDefaultTarget(point);
+    return this.tooltipOptions.getTargetFromPoint?.(point) ?? this.getDefaultTarget(point);
   };
 
   private getDefaultTarget = (point: Highcharts.Point) => {
-    const placement = this.tooltipProps.placement ?? "target";
+    const placement = this.tooltipOptions.placement ?? "target";
     const { plotTop, plotLeft, plotWidth, plotHeight, inverted } = this.chart;
     if (placement === "target" && !inverted) {
       const x = (point.plotX ?? 0) + plotLeft;
@@ -257,7 +277,7 @@ class TooltipStore extends AsyncStore<ReactiveTooltipState> {
   };
 
   private clearHighlightActions = () => {
-    this.tooltipProps.onClearHighlight?.(this.chart);
+    this.tooltipOptions.onClearHighlight?.(this.chart);
     this.destroyMarkers();
     this.legendAPI.legend.clearHighlight();
   };

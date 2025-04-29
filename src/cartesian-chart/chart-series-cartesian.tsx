@@ -69,7 +69,16 @@ export const useCartesianSeries = ({
     yPlotLines.push({ value: 0, ...Styles.chatPlotBaselineOptions });
   }
 
-  return { series, xPlotLines, yPlotLines, onChartRender };
+  // By default, Highcharts highlights data points that are closest to the cursor. However, for charts that include column
+  // series, we need the entire stack (everything matching x-coordinate) to be highlighted instead. This is achieved by enabling
+  // the `shared=true` behavior, which is defined in Highcharts tooltip. The tooltip itself is then hidden with styles.
+  const tooltip: Highcharts.TooltipOptions = {
+    enabled: !!options.series?.some((s) => s.type === "column"),
+    shared: true,
+    style: { opacity: 0 },
+  };
+
+  return { series, xPlotLines, yPlotLines, onChartRender, tooltip };
 };
 
 function updateSeriesData(chart: Highcharts.Chart) {

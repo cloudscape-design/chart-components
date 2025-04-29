@@ -71,11 +71,11 @@ export interface CoreChartProps extends Pick<BaseChartProps, "fitHeight" | "char
    * The list of series or points IDs that should be hidden (using Highcharts `item.setVisible(false)`).
    * When the item ID is not set, the name is used instead.
    */
-  hiddenItems?: string[];
+  hiddenItems?: readonly string[];
   /**
    * A callback triggered when clicking on a legend item.
    */
-  onItemVisibilityChange?: (hiddenItems: string[]) => void;
+  onItemVisibilityChange?: (hiddenItems: readonly string[]) => void;
   /**
    * An object that contains all of the localized strings required by the component.
    * @i18n
@@ -97,8 +97,6 @@ export interface CoreChartProps extends Pick<BaseChartProps, "fitHeight" | "char
 export interface CoreChartAPI extends CoreChartLegendAPI, CoreChartTooltipAPI {
   chart: Highcharts.Chart;
   highcharts: typeof Highcharts;
-  showTooltipOnPoint(point: Highcharts.Point): void;
-  hideTooltip(): void;
 }
 
 export interface CoreChartTooltipAPI {
