@@ -63,6 +63,11 @@ function validateOptions(props: CartesianChartProps): InternalCartesianChartOpti
           enabled: false,
         },
       },
+      scatter: {
+        marker: {
+          enabled: true,
+        },
+      },
     },
     colors: props.colors,
     series: validateSeries(props.series),
@@ -76,7 +81,6 @@ function validateSeries(unvalidatedSeries: CartesianChartProps.SeriesOptions[]):
 
   function getValidatedSeries(s: CartesianChartProps.SeriesOptions): null | CartesianChartProps.SeriesOptions {
     const getBaseProps = (s: AbstractSeriesOptions) => ({ id: s.id, name: s.name, color: s.color });
-
     switch (s.type) {
       case "area":
         return { type: s.type, ...getBaseProps(s), data: s.data };
@@ -89,7 +93,7 @@ function validateSeries(unvalidatedSeries: CartesianChartProps.SeriesOptions[]):
       case "line":
         return { type: s.type, ...getBaseProps(s), data: s.data };
       case "scatter":
-        return { type: s.type, ...getBaseProps(s), data: s.data };
+        return { type: s.type, ...getBaseProps(s), data: s.data, marker: s.marker || {} };
       case "spline":
         return { type: s.type, ...getBaseProps(s), data: s.data };
       case "x-threshold":

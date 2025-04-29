@@ -254,7 +254,6 @@ export interface AbstractSeriesOptions {
 
 // The simpler version of Highcharts.PointMarkerOptionsObject
 export interface PointMarkerOptions {
-  color?: string;
   enabled?: boolean;
   enabledThreshold?: number;
   height?: number;

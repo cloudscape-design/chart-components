@@ -1,8 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { CartesianChartProps } from "../../lib/components";
-import { InternalCartesianChart } from "../../lib/components/cartesian-chart/chart-cartesian-internal";
+import { CartesianChart, CartesianChartProps } from "../../lib/components";
 import { dateFormatter } from "../common/formatters";
 import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
@@ -26,9 +25,7 @@ export default function () {
         />
       }
     >
-      <PageSection>
-        <ExampleScatterSimple />
-      </PageSection>
+      <ExampleScatterSimple />
     </Page>
   );
 }
@@ -74,63 +71,59 @@ const baseline = [
   { x: 1601013600000, y: 293910 },
 ];
 
-const series: CartesianChartProps.SeriesOptions[] = [
+const series: CartesianChartProps.ScatterSeriesOptions[] = [
   {
     name: "A",
     type: "scatter",
     data: baseline.map(({ x, y }) => ({ name: "A" + x, x, y })),
-    marker: { enabled: true },
   },
   {
     name: "B",
     type: "scatter",
     data: baseline.map(({ x, y }) => ({ name: "B" + x, x, y: y + randomInt(-100000, 100000) })),
-    marker: { enabled: true },
   },
   {
     name: "C",
     type: "scatter",
     data: baseline.map(({ x, y }) => ({ name: "C" + x, x, y: y + randomInt(-150000, 50000) })),
-    marker: { enabled: true },
   },
   {
     name: "D",
     type: "scatter",
     data: baseline.map(({ x, y }) => ({ name: "D" + x, x, y: y + randomInt(-200000, -100000) })),
-    marker: { enabled: true },
   },
   {
     name: "E",
     type: "scatter",
     data: baseline.map(({ x, y }) => ({ name: "E" + x, x, y: y + randomInt(50000, 75000) })),
-    marker: { enabled: true },
   },
+];
+
+const seriesWithCustomMarkers: CartesianChartProps.ScatterSeriesOptions[] = [
+  { ...series[0], color: "#91e8e1", marker: { symbol: "triangle" } },
+  { ...series[1], color: "#feb56a", marker: { symbol: "callout" } },
+  { ...series[2], color: "#fa4b42", marker: { symbol: "diamond" } },
+  { ...series[3], color: "#2ee0ca", marker: { symbol: "circle" } },
+  { ...series[4], color: "#d568fb", marker: { symbol: "square" } },
 ];
 
 function ExampleScatterSimple() {
   const { chartProps } = useChartSettings();
+  const commonProps = {
+    ...chartProps.cartesian,
+    chartHeight: 379,
+    ariaLabel: "Scatter chart",
+    xAxis: { type: "datetime", title: "Time (UTC)", valueFormatter: dateFormatter },
+    yAxis: { title: "Events" },
+  } as const;
   return (
-    <InternalCartesianChart
-      {...chartProps.cartesian}
-      options={{
-        chart: {
-          height: 379,
-        },
-        lang: {
-          accessibility: {
-            chartContainerLabel: "Scatter chart",
-          },
-        },
-        series,
-        xAxis: [
-          {
-            type: "datetime",
-            title: "Time (UTC)",
-            valueFormatter: dateFormatter,
-          },
-        ],
-        yAxis: [{ title: "Events" }],
-      }}
-    />
+    <>
+      <PageSection title="Scatter chart">
+        <CartesianChart {...commonProps} series={series} />
+      </PageSection>
+      <PageSection title="Scatter chart with custom markers">
+        <CartesianChart {...commonProps} series={seriesWithCustomMarkers} />
+      </PageSection>
+    </>
   );
 }
