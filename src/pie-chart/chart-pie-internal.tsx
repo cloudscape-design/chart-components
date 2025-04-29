@@ -56,10 +56,10 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
   const series: Highcharts.SeriesOptionsRegistry["SeriesPieOptions"][] = [];
   for (const s of props.options.series) {
     if (s.type === "pie") {
-      series.push({ ...s });
+      series.push({ ...s, size: Styles.pieSeriesSize });
     }
     if (s.type === "donut") {
-      series.push({ ...s, type: "pie", innerSize: Styles.donutSeriesInnerSize });
+      series.push({ ...s, type: "pie", size: Styles.donutSeriesSize, innerSize: Styles.donutSeriesInnerSize });
     }
   }
 
