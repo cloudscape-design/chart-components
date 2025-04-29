@@ -133,7 +133,7 @@ export interface InternalCoreChartNoDataAPI {
   store: ReadonlyAsyncStore<{ container: null | Element; noMatch: boolean }>;
 }
 
-export interface InternalCoreVerticalAxisTitleAPI {
+export interface InternalCoreAxesAPI {
   store: ReadonlyAsyncStore<{ visible: boolean; titles: string[] }>;
 }
 

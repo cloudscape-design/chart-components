@@ -90,3 +90,21 @@ export function useStableCallbackNullable<Callback extends (...args: any[]) => a
 
   return fn ? stable : undefined;
 }
+
+export function findAllSeriesWithData(chart: Highcharts.Chart) {
+  return chart.series.filter((s) => {
+    switch (s.type) {
+      case "pie":
+        return s.data && s.data.filter((d) => d.y !== null).length > 0;
+      default:
+        return s.data && s.data.length > 0;
+    }
+  });
+}
+
+export function findAllVisibleSeries(chart: Highcharts.Chart) {
+  const allSeriesWithData = findAllSeriesWithData(chart);
+  return allSeriesWithData.filter(
+    (s) => s.visible && (s.type !== "pie" || s.data.some((d) => d.y !== null && d.visible)),
+  );
+}

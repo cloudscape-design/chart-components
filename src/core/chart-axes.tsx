@@ -6,21 +6,44 @@ import type Highcharts from "highcharts";
 
 import AsyncStore from "../internal/utils/async-store";
 import { castArray } from "../internal/utils/utils";
-import { InternalCoreVerticalAxisTitleAPI } from "./interfaces-core";
+import { InternalCoreAxesAPI } from "./interfaces-core";
+import * as Styles from "./styles";
 
 // In Highcharts, the title of the vertical axis (can be either y or x) is titled by 90 degrees and displayed along the axis.
 // The utility allows to hide this title to then render it above the chart instead.
 
-export function useChartVerticalAxisTitle() {
+export function useChartAxes({
+  inverted,
+  verticalAxisTitlePlacement,
+}: {
+  inverted: boolean;
+  verticalAxisTitlePlacement: "top" | "side";
+}) {
   const verticalAxisTitleStore = useRef(new VerticalAxisTitleStore()).current;
 
   const chartRender: Highcharts.ChartRenderCallbackFunction = function () {
     verticalAxisTitleStore.onChartRender(this);
   };
 
-  const api: InternalCoreVerticalAxisTitleAPI = { store: verticalAxisTitleStore };
+  const api: InternalCoreAxesAPI = { store: verticalAxisTitleStore };
 
-  return { options: { chartRender }, api };
+  const xAxisTitle: Highcharts.XAxisTitleOptions = {
+    style: {
+      ...Styles.axisTitleCss,
+      opacity: inverted && verticalAxisTitlePlacement === "top" ? 0 : undefined,
+    },
+    reserveSpace: inverted && verticalAxisTitlePlacement === "top" ? false : undefined,
+  };
+
+  const yAxisTitle: Highcharts.XAxisTitleOptions = {
+    style: {
+      ...Styles.axisTitleCss,
+      opacity: !inverted && verticalAxisTitlePlacement === "top" ? 0 : undefined,
+    },
+    reserveSpace: !inverted && verticalAxisTitlePlacement === "top" ? false : undefined,
+  };
+
+  return { options: { chartRender, xAxisTitle, yAxisTitle }, api };
 }
 
 class VerticalAxisTitleStore extends AsyncStore<{ visible: boolean; titles: string[] }> {
@@ -30,17 +53,18 @@ class VerticalAxisTitleStore extends AsyncStore<{ visible: boolean; titles: stri
 
   public onChartRender = (chart: Highcharts.Chart) => {
     const isInverted = !!chart.options.chart?.inverted;
+    const hasSeries = chart.series.filter((s) => s.type !== "pie").length > 0;
 
     // We extract multiple titles as there can be multiple axes. This supports up to 2 axes by
     // using space-between placement of the labels in the corresponding component.
     let titles: string[] = [];
-    if (isInverted) {
+    if (hasSeries && isInverted) {
       titles = (castArray(chart.options.xAxis) ?? [])
         .filter((axis) => axis.visible)
         .map((axis) => axis.title?.text ?? "")
         .filter(Boolean);
     }
-    if (!isInverted) {
+    if (hasSeries && !isInverted) {
       titles = (castArray(chart.options.yAxis) ?? [])
         .filter((axis) => axis.visible)
         .map((axis) => axis.title?.text ?? "")

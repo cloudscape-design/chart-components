@@ -10,12 +10,12 @@ import Spinner from "@cloudscape-design/components/spinner";
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { castArray } from "../internal/utils/utils";
+import { useChartAxes } from "./chart-axes";
 import { ChartContainer } from "./chart-container";
 import { useLegend } from "./chart-legend";
 import { useNoData } from "./chart-no-data";
 import { useChartSeries } from "./chart-series";
 import { useChartTooltip } from "./chart-tooltip";
-import { useChartVerticalAxisTitle } from "./chart-vertical-axis-title";
 import { ChartFilter, ChartLegend, ChartNoData, ChartSlot, ChartTooltip, VerticalAxisTitle } from "./components";
 import { CoreChartProps } from "./interfaces-core";
 import * as Styles from "./styles";
@@ -66,7 +66,7 @@ export function CoreChart({
   const series = useChartSeries({ hiddenItems });
 
   // Provides support for customized vertical axis title placement.
-  const verticalAxisTitle = useChartVerticalAxisTitle();
+  const axes = useChartAxes({ inverted: !!options.chart?.inverted, verticalAxisTitlePlacement });
 
   const rootClassName = clsx(styles.root, fitHeight && styles["root-fit-height"], className);
 
@@ -138,7 +138,7 @@ export function CoreChart({
                     legend.options.onChartRender.call(this, event);
                   }
                   if (verticalAxisTitlePlacement === "top") {
-                    verticalAxisTitle.options.chartRender.call(this, event);
+                    axes.options.chartRender.call(this, event);
                   }
                   return options.chart?.events?.render?.call(this, event);
                 },
@@ -227,13 +227,8 @@ export function CoreChart({
               ...Styles.xAxisOptions,
               ...xAxis,
               title: {
-                style: {
-                  ...Styles.axisTitleCss,
-                  opacity: options.chart?.inverted && verticalAxisTitlePlacement === "top" ? 0 : undefined,
-                },
+                ...axes.options.xAxisTitle,
                 ...xAxis.title,
-                text: options.chart?.inverted && verticalAxisTitlePlacement === "top" ? "" : xAxis.title?.text,
-                reserveSpace: options.chart?.inverted && verticalAxisTitlePlacement === "top" ? false : undefined,
               },
               labels: { style: Styles.axisLabelsCss, ...xAxis.labels },
             })),
@@ -241,12 +236,8 @@ export function CoreChart({
               ...Styles.yAxisOptions,
               ...yAxis,
               title: {
-                style: {
-                  ...Styles.axisTitleCss,
-                  opacity: !options.chart?.inverted && verticalAxisTitlePlacement === "top" ? 0 : undefined,
-                },
+                ...axes.options.yAxisTitle,
                 ...yAxis.title,
-                reserveSpace: !options.chart?.inverted && verticalAxisTitlePlacement === "top" ? false : undefined,
               },
               labels: { style: Styles.axisLabelsCss, ...yAxis.labels },
             })),
@@ -274,10 +265,7 @@ export function CoreChart({
         legend={isLegendEnabled ? <ChartLegend {...legendProps} legendAPI={legend.api} /> : null}
         title={
           verticalAxisTitlePlacement === "top" ? (
-            <VerticalAxisTitle
-              verticalAxisTitlePlacement={verticalAxisTitlePlacement}
-              verticalAxisTitleAPI={verticalAxisTitle.api}
-            />
+            <VerticalAxisTitle verticalAxisTitlePlacement={verticalAxisTitlePlacement} axesAPI={axes.api} />
           ) : null
         }
         header={header ? <ChartSlot legendAPI={legend.api} {...header} /> : null}

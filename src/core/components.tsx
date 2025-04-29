@@ -20,10 +20,10 @@ import {
   CoreI18nStrings,
   CoreNoDataProps,
   CoreTooltipOptions,
+  InternalCoreAxesAPI,
   InternalCoreChartLegendAPI,
   InternalCoreChartNoDataAPI,
   InternalCoreChartTooltipAPI,
-  InternalCoreVerticalAxisTitleAPI,
 } from "./interfaces-core";
 
 import styles from "./styles.css.js";
@@ -172,12 +172,12 @@ export function ChartSlot({
 
 export function VerticalAxisTitle({
   verticalAxisTitlePlacement = "top",
-  verticalAxisTitleAPI,
+  axesAPI,
 }: {
   verticalAxisTitlePlacement?: "top" | "side";
-  verticalAxisTitleAPI: InternalCoreVerticalAxisTitleAPI;
+  axesAPI: InternalCoreAxesAPI;
 }) {
-  const titles = useSelector(verticalAxisTitleAPI.store, (s) => s.titles);
+  const titles = useSelector(axesAPI.store, (s) => s.titles);
   if (verticalAxisTitlePlacement === "side") {
     return null;
   }
