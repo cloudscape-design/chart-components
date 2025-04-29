@@ -187,7 +187,7 @@ describe("CoreChart: options", () => {
     };
     const inputs: CoreChartProps[] = [
       { highcharts, options },
-      { highcharts, options, tooltip: { getContent: () => ({ header: "", body: "" }) } },
+      { highcharts, options, tooltip: { getTooltipContent: () => ({ header: "", body: "" }) } },
     ];
     renderChart(inputs[index]);
 
@@ -240,7 +240,7 @@ describe("CoreChart: options", () => {
     const inputs: CoreChartProps[] = [
       { highcharts, options },
       { highcharts, options, noData: { statusType: "error" } },
-      { highcharts, options, tooltip: { getContent: () => ({ header: "", body: "" }) } },
+      { highcharts, options, tooltip: { getTooltipContent: () => ({ header: "", body: "" }) } },
     ];
     renderChart(inputs[index]);
 

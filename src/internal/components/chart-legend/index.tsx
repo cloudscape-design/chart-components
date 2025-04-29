@@ -15,8 +15,8 @@ import {
 import Box from "@cloudscape-design/components/box";
 import { colorBorderDividerDefault } from "@cloudscape-design/design-tokens";
 
-import { ChartLegendItem, LegendActionsRenderProps } from "../../../core/interfaces-base";
-import { ChartLegendRef } from "../../../core/interfaces-core";
+import { ChartLegendItem } from "../../../core/interfaces-base";
+import { RegisteredLegendAPI } from "../../../core/interfaces-core";
 import { useMergeRefs } from "../../utils/use-merge-refs";
 import { DebouncedCall } from "../../utils/utils";
 
@@ -27,15 +27,10 @@ export interface ChartLegendOptions {
   items: readonly ChartLegendItem[];
   legendTitle?: string;
   ariaLabel?: string;
-  actions?: {
-    render?(props: LegendActionsRenderProps): React.ReactNode;
-  };
+  actions?: React.ReactNode;
   onItemHighlightEnter?: (itemId: string) => void;
   onItemHighlightExit?: () => void;
-  onItemVisibilityChange: (
-    hiddenItems: string[],
-    context: { method: "legend-toggle" | "legend-select" | "filter" },
-  ) => void;
+  onItemVisibilityChange?: (hiddenItems: string[]) => void;
 }
 
 export interface InfoTooltipProps {
@@ -61,7 +56,7 @@ export const ChartLegend = forwardRef(
       onItemHighlightEnter,
       onItemHighlightExit,
     }: ChartLegendOptions,
-    ref: React.Ref<ChartLegendRef>,
+    ref: React.Ref<RegisteredLegendAPI>,
   ) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const segmentsRef = useRef<Record<number, HTMLElement>>([]);
@@ -85,9 +80,7 @@ export const ChartLegend = forwardRef(
     };
 
     useImperativeHandle(ref, () => ({
-      highlightItems: (ids) => {
-        setHighlightedItems(ids);
-      },
+      highlightItems: (ids) => setHighlightedItems(ids),
       clearHighlight: () => setHighlightedItems([]),
     }));
 
@@ -165,28 +158,20 @@ export const ChartLegend = forwardRef(
     const toggleItem = (itemId: string) => {
       const hiddenItems = items.filter((i) => !i.visible).map((i) => i.id);
       if (hiddenItems.includes(itemId)) {
-        onItemVisibilityChange(
-          hiddenItems.filter((id) => id !== itemId),
-          { method: "legend-toggle" },
-        );
+        onItemVisibilityChange?.(hiddenItems.filter((id) => id !== itemId));
       } else {
-        onItemVisibilityChange([...hiddenItems, itemId], { method: "legend-toggle" });
+        onItemVisibilityChange?.([...hiddenItems, itemId]);
       }
     };
 
     const selectItem = (itemId: string) => {
       const visibleItems = items.filter((i) => i.visible).map((i) => i.id);
       if (visibleItems.length === 1 && visibleItems[0] === itemId) {
-        onItemVisibilityChange([], { method: "legend-select" });
+        onItemVisibilityChange?.([]);
       } else {
-        onItemVisibilityChange(
-          items.map((i) => i.id).filter((id) => id !== itemId),
-          { method: "legend-select" },
-        );
+        onItemVisibilityChange?.(items.map((i) => i.id).filter((id) => id !== itemId));
       }
     };
-
-    const renderedFilter = actions?.render ? actions?.render({ legendItems: items }) : null;
 
     return (
       <SingleTabStopNavigationProvider
@@ -208,9 +193,9 @@ export const ChartLegend = forwardRef(
           )}
 
           <div className={styles.list}>
-            {renderedFilter && (
-              <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-                {renderedFilter}
+            {actions && (
+              <div style={{ display: "flex", gap: 4, alignItems: "center" }} className={testClasses.actions}>
+                {actions}
 
                 <div style={{ background: colorBorderDividerDefault, width: 1, height: "80%" }} />
               </div>
@@ -314,16 +299,12 @@ const LegendItemTrigger = forwardRef(
         data-itemid={itemId}
         aria-haspopup={typeof ariaExpanded === "boolean"}
         aria-expanded={ariaExpanded}
-        className={clsx(
-          testClasses.item,
-          styles.marker,
-          {
-            [styles["marker--inactive"]]: !visible,
-            [styles["marker--dimmed"]]: someHighlighted && !isHighlighted,
-            [testClasses["hidden-item"]]: !visible,
-          },
-          testClasses[`item-status-${status}`],
-        )}
+        className={clsx(testClasses.item, styles.marker, {
+          [styles["marker--inactive"]]: !visible,
+          [testClasses["hidden-item"]]: !visible,
+          [styles["marker--dimmed"]]: someHighlighted && !isHighlighted,
+          [testClasses["dimmed-item"]]: someHighlighted && !isHighlighted,
+        })}
         ref={mergedRef}
         tabIndex={tabIndex}
         onClick={onClick}

@@ -16,7 +16,7 @@ export class ExtendedTestWrapper extends CoreChartWrapper {
 }
 
 export function StatefulChart(props: CoreChartProps) {
-  const [hiddenItems, setHiddenItems] = useState<string[]>(props.hiddenItems ?? []);
+  const [hiddenItems, setHiddenItems] = useState<readonly string[]>(props.hiddenItems ?? []);
   return (
     <CoreChart
       {...props}

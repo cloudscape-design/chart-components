@@ -15,7 +15,7 @@ import ChartSeriesFilter from "../internal/components/chart-series-filter";
 import Portal from "../internal/components/portal";
 import { fireNonCancelableEvent } from "../internal/events";
 import { useSelector } from "../internal/utils/async-store";
-import { ChartFooterOptions, ChartHeaderOptions, ChartLegendOptions } from "./interfaces-base";
+import { ChartFooterOptions, ChartHeaderOptions, LegendActionsRenderProps } from "./interfaces-base";
 import {
   CoreI18nStrings,
   CoreNoDataProps,
@@ -23,29 +23,45 @@ import {
   InternalCoreAxesAPI,
   InternalCoreChartLegendAPI,
   InternalCoreChartNoDataAPI,
+  InternalCoreChartSeriesAPI,
   InternalCoreChartTooltipAPI,
 } from "./interfaces-core";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
 
-export function ChartLegend({
-  legendAPI,
-  title,
-  actions,
-}: ChartLegendOptions & {
+export interface ChartLegendProps {
+  title?: string;
+  actions?: {
+    render?(props: LegendActionsRenderProps): React.ReactNode;
+  };
+  onItemVisibilityChange?(hiddenItems: readonly string[]): void;
   legendAPI: InternalCoreChartLegendAPI;
-}) {
+  seriesAPI: InternalCoreChartSeriesAPI;
+}
+
+export interface ChartLegendRef {
+  highlightItems: (ids: readonly string[]) => void;
+  clearHighlight: () => void;
+}
+
+export function ChartLegend({ title, actions, onItemVisibilityChange, legendAPI, seriesAPI }: ChartLegendProps) {
   const legendItems = useSelector(legendAPI.store, (s) => s.items);
   return (
     <ChartLegendComponent
-      ref={legendAPI.ref}
+      ref={(legend) => {
+        if (legend) {
+          legendAPI.registerLegend(legend);
+        } else {
+          legendAPI.unregisterLegend();
+        }
+      }}
       legendTitle={title}
       items={legendItems}
-      actions={actions}
-      onItemVisibilityChange={legendAPI.onItemVisibilityChange}
-      onItemHighlightEnter={legendAPI.onItemHighlightEnter}
-      onItemHighlightExit={legendAPI.onItemHighlightExit}
+      actions={actions?.render?.({ legendItems })}
+      onItemVisibilityChange={onItemVisibilityChange}
+      onItemHighlightEnter={seriesAPI.highlightMatchedItems}
+      onItemHighlightExit={seriesAPI.clearItemsHighlight}
     />
   );
 }
@@ -167,7 +183,7 @@ export function ChartSlot({
   legendAPI: InternalCoreChartLegendAPI;
 }) {
   const legendItems = useSelector(legendAPI.store, (s) => s.items);
-  return <>{render ? render({ legendItems }) : null}</>;
+  return <>{render?.({ legendItems }) ?? null}</>;
 }
 
 export function VerticalAxisTitle({

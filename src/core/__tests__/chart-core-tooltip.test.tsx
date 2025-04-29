@@ -62,7 +62,9 @@ describe("CoreChart: tooltip", () => {
     const { wrapper } = renderChart({
       highcharts,
       options: { series },
-      tooltip: { getContent: () => ({ header: "Tooltip title", body: "Tooltip body", footer: "Tooltip footer" }) },
+      tooltip: {
+        getTooltipContent: () => ({ header: "Tooltip title", body: "Tooltip body", footer: "Tooltip footer" }),
+      },
     });
 
     hoverPoint(0);
@@ -86,7 +88,7 @@ describe("CoreChart: tooltip", () => {
       highcharts,
       options: { series },
       tooltip: {
-        getContent: () => ({ header: "", body: "" }),
+        getTooltipContent: () => ({ header: "", body: "" }),
       },
     });
 
@@ -115,7 +117,7 @@ describe("CoreChart: tooltip", () => {
       highcharts,
       options: { series },
       tooltip: {
-        getContent: (point) => ({ header: `y${point.y}`, body: "" }),
+        getTooltipContent: ({ point }) => ({ header: `y${point.y}`, body: "" }),
       },
     });
 
@@ -152,14 +154,14 @@ describe("CoreChart: tooltip", () => {
   });
 
   test("provides point for tooltip.getContent", async () => {
-    const getContent = vi.fn();
-    renderChart({ highcharts, options: { series }, tooltip: { getContent } });
+    const getTooltipContent = vi.fn();
+    renderChart({ highcharts, options: { series }, tooltip: { getTooltipContent } });
 
     for (let i = 0; i < data.length; i++) {
       hoverPoint(i);
 
       await waitFor(() => {
-        expect(getContent).toHaveBeenCalledWith({ x: i, y: data[i].y });
+        expect(getTooltipContent).toHaveBeenCalledWith({ x: i, y: data[i].y });
       });
     }
   });

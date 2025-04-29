@@ -29,7 +29,7 @@ export default class CoreChartWrapper extends ComponentWrapper {
 
 interface ItemOptions {
   hidden?: boolean;
-  status?: "normal" | "warning";
+  dimmed?: boolean;
 }
 
 export class CoreChartLegendWrapper extends ComponentWrapper {
@@ -39,13 +39,23 @@ export class CoreChartLegendWrapper extends ComponentWrapper {
     return this.findByClassName(legendTestClasses.title);
   }
 
+  findActions(): ElementWrapper | null {
+    return this.findByClassName(legendTestClasses.actions);
+  }
+
   findItems(options?: ItemOptions): Array<ElementWrapper> {
     let selector = `.${legendTestClasses.item}`;
-    if (options?.hidden) {
+    if (options?.hidden === true) {
       selector += `.${legendTestClasses["hidden-item"]}`;
     }
-    if (options?.status) {
-      selector += `.${legendTestClasses[`item-status-${options.status}`]}`;
+    if (options?.hidden === false) {
+      selector += `:not(.${legendTestClasses["hidden-item"]})`;
+    }
+    if (options?.dimmed === true) {
+      selector += `.${legendTestClasses["dimmed-item"]}`;
+    }
+    if (options?.dimmed === false) {
+      selector += `:not(.${legendTestClasses["dimmed-item"]})`;
     }
     return this.findAll(selector);
   }
