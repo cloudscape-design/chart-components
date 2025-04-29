@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { useCallback, useEffect, useRef } from "react";
 import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
@@ -74,4 +75,18 @@ export function getSeriesColor(series?: Highcharts.Series): string {
 
 export function getPointColor(point?: Highcharts.Point): string {
   return point?.color?.toString() ?? "black";
+}
+
+export function useStableCallbackNullable<Callback extends (...args: any[]) => any>(
+  fn?: Callback,
+): Callback | undefined {
+  const ref = useRef<Callback>();
+
+  useEffect(() => {
+    ref.current = fn;
+  });
+
+  const stable = useCallback((...args: any[]) => ref.current?.apply(undefined, args), []) as Callback;
+
+  return fn ? stable : undefined;
 }

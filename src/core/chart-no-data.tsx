@@ -37,26 +37,31 @@ class NoDataStore extends AsyncStore<{ container: null | Element; noMatch: boole
   }
 
   public onChartRender = (chart: Highcharts.Chart) => {
-    const allSeries = chart.series.filter((s) => {
-      if (s.type === "pie") {
-        return s.data && s.data.filter((d) => d.y !== null).length > 0;
+    const allSeriesWithData = chart.series.filter((s) => {
+      switch (s.type) {
+        case "pie":
+          return s.data && s.data.filter((d) => d.y !== null).length > 0;
+        default:
+          return s.data && s.data.length > 0;
       }
-      return s.data && s.data.length > 0;
     });
-    const visibleSeries = allSeries.filter(
+    const visibleSeries = allSeriesWithData.filter(
       (s) => s.visible && (s.type !== "pie" || s.data.some((d) => d.y !== null && d.visible)),
     );
+    // The no-data is not shown when there is at least one series or point (for pie series) non-empty and visible.
     if (visibleSeries.length > 0) {
       this.set(() => ({ container: null, noMatch: false }));
-    } else {
-      // We use timeout to make sure the no-data container is rendered.
+    }
+    // Otherwise, we rely on the Highcharts to render the no-data node, for which the no-data module must be available.
+    // We use timeout to make sure the no-data container is rendered.
+    else {
       setTimeout(() => {
         const noDataContainer = chart.container?.querySelector(`[id="${this.noDataId}"]`) as null | HTMLElement;
         if (noDataContainer) {
           noDataContainer.style.width = `${chart.plotWidth}px`;
           noDataContainer.style.height = `${chart.plotHeight}px`;
         }
-        this.set(() => ({ container: noDataContainer, noMatch: allSeries.length > 0 }));
+        this.set(() => ({ container: noDataContainer, noMatch: allSeriesWithData.length > 0 }));
       }, 0);
     }
   };

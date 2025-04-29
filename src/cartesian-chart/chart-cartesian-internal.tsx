@@ -54,7 +54,7 @@ export const InternalCartesianChart = forwardRef(
     const hiddenSeries = allSeriesIds.filter((id) => !visibleSeries.includes(id));
 
     // Converting threshold series and baseline setting to Highcharts options.
-    const { series, xPlotLines, yPlotLines, onChartRender } = useCartesianSeries({ ...props, visibleSeries });
+    const { series, xPlotLines, yPlotLines, onChartRender, tooltip } = useCartesianSeries({ ...props, visibleSeries });
     const { xAxis, yAxis, ...options } = props.options;
 
     // Cartesian chart imperative API.
@@ -119,6 +119,7 @@ export const InternalCartesianChart = forwardRef(
         };
       }),
       series,
+      tooltip,
     };
 
     return (

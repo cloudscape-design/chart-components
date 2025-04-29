@@ -62,8 +62,10 @@ export function CoreChart({
   // Provides empty, no-match, loading, and error states handling, when `props.noData` is present.
   const noData = useNoData();
 
-  const series = useChartSeries({ options, hiddenItems });
+  // Provides support for controlled series/points visibility.
+  const series = useChartSeries({ hiddenItems });
 
+  // Provides support for customized vertical axis title placement.
   const verticalAxisTitle = useChartVerticalAxisTitle();
 
   const rootClassName = clsx(styles.root, fitHeight && styles["root-fit-height"], className);
@@ -135,7 +137,9 @@ export function CoreChart({
                   if (isLegendEnabled) {
                     legend.options.onChartRender.call(this, event);
                   }
-                  verticalAxisTitle.options.chartRender.call(this, event);
+                  if (verticalAxisTitlePlacement === "top") {
+                    verticalAxisTitle.options.chartRender.call(this, event);
+                  }
                   return options.chart?.events?.render?.call(this, event);
                 },
                 click(event) {
@@ -246,7 +250,7 @@ export function CoreChart({
               },
               labels: { style: Styles.axisLabelsCss, ...yAxis.labels },
             })),
-            tooltip: options.tooltip ? options.tooltip : series.options.tooltip,
+            tooltip: { enabled: false, ...options.tooltip },
           };
           return (
             <HighchartsReact
