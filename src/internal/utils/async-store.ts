@@ -15,18 +15,18 @@ export interface ReadonlyAsyncStore<S> {
 }
 
 export default class AsyncStore<S> implements ReadonlyAsyncStore<S> {
-  _state: S;
-  _listeners: [Selector<S, unknown>, Listener<S>][] = [];
+  private _state: S;
+  private _listeners: [Selector<S, unknown>, Listener<S>][] = [];
 
   constructor(state: S) {
     this._state = state;
   }
 
-  get(): S {
+  public get(): S {
     return this._state;
   }
 
-  set(cb: (state: S) => S): void {
+  public set(cb: (state: S) => S): void {
     const prevState = this._state;
     const newState = cb(prevState);
 
@@ -39,13 +39,13 @@ export default class AsyncStore<S> implements ReadonlyAsyncStore<S> {
     }
   }
 
-  subscribe<R>(selector: Selector<S, R>, listener: Listener<S>): () => void {
+  public subscribe<R>(selector: Selector<S, R>, listener: Listener<S>): () => void {
     this._listeners.push([selector, listener]);
 
     return () => this.unsubscribe(listener);
   }
 
-  unsubscribe(listener: Listener<S>): void {
+  public unsubscribe(listener: Listener<S>): void {
     for (let index = 0; index < this._listeners.length; index++) {
       const [, storedListener] = this._listeners[index];
 

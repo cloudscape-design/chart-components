@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseComponentProps } from "@cloudscape-design/components/internal/base-component";
+import { colorTextInteractiveDisabled } from "@cloudscape-design/design-tokens";
 
 export type ChartSeriesMarkerType =
   | "line"
@@ -18,9 +19,11 @@ export type ChartSeriesMarkerType =
 export interface ChartSeriesMarkerProps extends BaseComponentProps {
   type: ChartSeriesMarkerType;
   color: string;
+  visible?: boolean;
 }
 
-export function ChartSeriesMarker({ type = "line", color }: ChartSeriesMarkerProps) {
+export function ChartSeriesMarker({ type = "line", color, visible = true }: ChartSeriesMarkerProps) {
+  color = visible ? color : colorTextInteractiveDisabled;
   const size = 14;
   const halfSize = size / 2;
   const scale = (value: number) =>

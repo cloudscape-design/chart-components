@@ -10,12 +10,8 @@ import Spinner from "@cloudscape-design/components/spinner";
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { castArray } from "../internal/utils/utils";
-import { useChartAxes } from "./chart-axes";
+import { useChartAPI } from "./chart-api";
 import { ChartContainer } from "./chart-container";
-import { useLegend } from "./chart-legend";
-import { useNoData } from "./chart-no-data";
-import { useChartSeries } from "./chart-series";
-import { useChartTooltip } from "./chart-tooltip";
 import { ChartFilter, ChartLegend, ChartNoData, ChartSlot, ChartTooltip, VerticalAxisTitle } from "./components";
 import { CoreChartProps } from "./interfaces-core";
 import * as Styles from "./styles";
@@ -33,9 +29,9 @@ export function CoreChart({
   fitHeight,
   chartMinHeight,
   chartMinWidth,
-  tooltip: tooltipProps,
-  noData: noDataProps,
-  legend: legendProps,
+  tooltip: tooltipOptions,
+  noData: noDataOptions,
+  legend: legendOptions,
   fallback = <Spinner />,
   callback,
   hiddenItems,
@@ -50,23 +46,9 @@ export function CoreChart({
 }: CoreChartProps) {
   const highcharts = rest.highcharts as null | typeof Highcharts;
 
-  // Provides custom legend, when `props.legend` is present.
-  const isLegendEnabled = legendProps?.enabled !== false;
-  const legend = useLegend();
-
-  // Provides custom Cloudscape tooltip instead of Highcharts tooltip, when `props.tooltip` is present.
-  // The custom tooltip provides Cloudscape styles and can be pinned.
-  const isTooltipEnabled = tooltipProps?.enabled !== false;
-  const tooltip = useChartTooltip({ ...tooltipProps, legendAPI: legend.api });
-
-  // Provides empty, no-match, loading, and error states handling, when `props.noData` is present.
-  const noData = useNoData();
-
-  // Provides support for controlled series/points visibility.
-  const series = useChartSeries({ hiddenItems });
-
-  // Provides support for customized vertical axis title placement.
-  const axes = useChartAxes({ inverted: !!options.chart?.inverted, verticalAxisTitlePlacement });
+  const isLegendEnabled = legendOptions?.enabled !== false;
+  const isTooltipEnabled = tooltipOptions?.enabled !== false;
+  const api = useChartAPI({ hiddenItems, tooltipOptions });
 
   const rootClassName = clsx(styles.root, fitHeight && styles["root-fit-height"], className);
 
@@ -128,25 +110,11 @@ export function CoreChart({
                   if (highcharts && event.target instanceof highcharts.Chart) {
                     resetColorCounter(event.target, options.series?.length ?? 0);
                   }
-                  series.options.onChartRender.call(this, event);
-                  if (tooltipProps) {
-                    tooltip.options.onRenderChart.call(this, event);
-                  }
-                  if (noDataProps) {
-                    noData.options.onChartRender.call(this, event);
-                  }
-                  if (isLegendEnabled) {
-                    legend.options.onChartRender.call(this, event);
-                  }
-                  if (verticalAxisTitlePlacement === "top") {
-                    axes.options.onChartRender.call(this, event);
-                  }
+                  api.options.onChartRender.call(this, event);
                   return options.chart?.events?.render?.call(this, event);
                 },
                 click(event) {
-                  if (isTooltipEnabled) {
-                    tooltip.options.onChartClick.call(this, event);
-                  }
+                  api.options.onChartClick.call(this, event);
                   return options.chart?.events?.click?.call(this, event);
                 },
               },
@@ -154,10 +122,10 @@ export function CoreChart({
             series: options.series,
             legend: { enabled: false, ...options.legend },
             // We override noData options if Cloudscape noData props is used instead.
-            noData: noDataProps ? noData.options.noData : options.noData,
+            noData: noDataOptions ? api.options.noData : options.noData,
             lang: {
               ...options.lang,
-              noData: noDataProps ? noData.options.langNoData : options.lang?.noData,
+              noData: noDataOptions ? api.options.langNoData : options.lang?.noData,
             },
             accessibility: {
               ...options.accessibility,
@@ -189,21 +157,15 @@ export function CoreChart({
                   events: {
                     ...options.plotOptions?.series?.point?.events,
                     mouseOver(event) {
-                      if (isTooltipEnabled) {
-                        tooltip.options.onSeriesPointMouseOver.call(this, event);
-                      }
+                      api.options.onSeriesPointMouseOver.call(this, event);
                       return options.plotOptions?.series?.point?.events?.mouseOver?.call(this, event);
                     },
                     mouseOut(event) {
-                      if (isTooltipEnabled) {
-                        tooltip.options.onSeriesPointMouseOut.call(this, event);
-                      }
+                      api.options.onSeriesPointMouseOut.call(this, event);
                       return options.plotOptions?.series?.point?.events?.mouseOut?.call(this, event);
                     },
                     click(event) {
-                      if (isTooltipEnabled) {
-                        tooltip.options.onSeriesPointClick.call(this, event);
-                      }
+                      api.options.onSeriesPointClick.call(this, event);
                       return options.plotOptions?.series?.point?.events?.click?.call(this, event);
                     },
                   },
@@ -228,7 +190,11 @@ export function CoreChart({
               ...Styles.xAxisOptions,
               ...xAxis,
               title: {
-                ...axes.options.xAxisTitle,
+                style: {
+                  ...Styles.axisTitleCss,
+                  opacity: options.chart?.inverted && verticalAxisTitlePlacement === "top" ? 0 : undefined,
+                },
+                reserveSpace: options.chart?.inverted && verticalAxisTitlePlacement === "top" ? false : undefined,
                 ...xAxis.title,
               },
               labels: { style: Styles.axisLabelsCss, ...xAxis.labels },
@@ -237,7 +203,11 @@ export function CoreChart({
               ...Styles.yAxisOptions,
               ...yAxis,
               title: {
-                ...axes.options.yAxisTitle,
+                style: {
+                  ...Styles.axisTitleCss,
+                  opacity: !options.chart?.inverted && verticalAxisTitlePlacement === "top" ? 0 : undefined,
+                },
+                reserveSpace: !options.chart?.inverted && verticalAxisTitlePlacement === "top" ? false : undefined,
                 ...yAxis.title,
               },
               labels: { style: Styles.axisLabelsCss, ...yAxis.labels },
@@ -252,10 +222,10 @@ export function CoreChart({
                 callback?.({
                   chart,
                   highcharts: highcharts as typeof Highcharts,
-                  showTooltipOnPoint: (point) => tooltip.api.showTooltipOnPoint(point),
-                  hideTooltip: () => tooltip.api.hideTooltip(),
-                  registerLegend: (ref) => legend.api.registerLegend(ref),
-                  unregisterLegend: () => legend.api.unregisterLegend(),
+                  showTooltipOnPoint: (point) => api.showTooltipOnPoint(point),
+                  hideTooltip: () => api.hideTooltip(),
+                  registerLegend: (legend) => api.registerLegend(legend),
+                  unregisterLegend: () => api.unregisterLegend(),
                 });
               }}
             />
@@ -263,35 +233,27 @@ export function CoreChart({
         }}
         legend={
           isLegendEnabled ? (
-            <ChartLegend
-              {...legendProps}
-              onItemVisibilityChange={onItemVisibilityChange}
-              legendAPI={legend.api}
-              seriesAPI={series.api}
-            />
+            <ChartLegend {...legendOptions} onItemVisibilityChange={onItemVisibilityChange} api={api} />
           ) : null
         }
         title={
           verticalAxisTitlePlacement === "top" ? (
-            <VerticalAxisTitle verticalAxisTitlePlacement={verticalAxisTitlePlacement} axesAPI={axes.api} />
+            <VerticalAxisTitle verticalAxisTitlePlacement={verticalAxisTitlePlacement} api={api} />
           ) : null
         }
-        header={header ? <ChartSlot legendAPI={legend.api} {...header} /> : null}
-        footer={footer ? <ChartSlot legendAPI={legend.api} {...footer} /> : null}
+        header={header ? <ChartSlot api={api} {...header} /> : null}
+        footer={footer ? <ChartSlot api={api} {...footer} /> : null}
         seriesFilter={
           filter?.seriesFilter ? (
-            <ChartFilter
-              legendAPI={legend.api}
-              onChange={(nextHiddenItems) => onItemVisibilityChange?.(nextHiddenItems)}
-            />
+            <ChartFilter api={api} onChange={(nextHiddenItems) => onItemVisibilityChange?.(nextHiddenItems)} />
           ) : null
         }
         additionalFilters={filter?.additionalFilters}
       />
 
-      {isTooltipEnabled && <ChartTooltip {...tooltipProps} tooltipAPI={tooltip.api} />}
+      {isTooltipEnabled && <ChartTooltip {...tooltipOptions} api={api} />}
 
-      {noDataProps && <ChartNoData {...noDataProps} i18nStrings={i18nStrings} noDataAPI={noData.api} />}
+      {noDataOptions && <ChartNoData {...noDataOptions} i18nStrings={i18nStrings} api={api} />}
     </div>
   );
 }

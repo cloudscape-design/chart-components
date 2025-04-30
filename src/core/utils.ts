@@ -1,10 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useCallback, useEffect, useRef } from "react";
 import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
+import { castArray } from "../internal/utils/utils";
+import { ChartLegendItemSpec } from "./interfaces-core";
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
 // We expect that items requiring referencing (e.g. in order to control their visibility) have the unique identifier defined.
@@ -77,20 +78,6 @@ export function getPointColor(point?: Highcharts.Point): string {
   return point?.color?.toString() ?? "black";
 }
 
-export function useStableCallbackNullable<Callback extends (...args: any[]) => any>(
-  fn?: Callback,
-): Callback | undefined {
-  const ref = useRef<Callback>();
-
-  useEffect(() => {
-    ref.current = fn;
-  });
-
-  const stable = useCallback((...args: any[]) => ref.current?.apply(undefined, args), []) as Callback;
-
-  return fn ? stable : undefined;
-}
-
 export function findAllSeriesWithData(chart: Highcharts.Chart) {
   return chart.series.filter((s) => {
     switch (s.type) {
@@ -107,4 +94,154 @@ export function findAllVisibleSeries(chart: Highcharts.Chart) {
   return allSeriesWithData.filter(
     (s) => s.visible && (s.type !== "pie" || s.data.some((d) => d.y !== null && d.visible)),
   );
+}
+
+// The custom legend implementation does not rely on the Highcharts legend. When Highcharts legend is disabled,
+// the chart object does not include information on legend items. Instead, we assume that all series but pie are
+// shown in the legend, and all pie series points are shown in the legend. Each item be it a series or a point should
+// have an ID, and all items with non-matched IDs are dimmed.
+export function getChartLegendItems(chart: Highcharts.Chart): readonly ChartLegendItemSpec[] {
+  const legendItems: ChartLegendItemSpec[] = [];
+  for (const s of chart.series) {
+    if (s.type !== "pie") {
+      legendItems.push({
+        id: getSeriesId(s),
+        name: s.name,
+        markerType: getSeriesMarkerType(s),
+        color: getSeriesColor(s),
+        visible: s.visible,
+      });
+    }
+    for (const point of s.data) {
+      if (s.type === "pie") {
+        legendItems.push({
+          id: getPointId(point),
+          name: point.name,
+          markerType: getSeriesMarkerType(s),
+          color: getPointColor(point),
+          visible: point.visible,
+        });
+      }
+    }
+  }
+  return legendItems;
+}
+
+export function highlightChartItems(chart: Highcharts.Chart, itemIds: readonly string[]) {
+  for (const s of chart.series) {
+    if (s.type !== "pie") {
+      s.setState(itemIds.includes(getSeriesId(s)) ? "inactive" : "normal");
+    }
+    if (s.type === "pie") {
+      for (const p of s.data) {
+        p.setState(itemIds.includes(getPointId(p)) ? "inactive" : "normal");
+      }
+    }
+  }
+  // All plot lines that define ID, and this ID does not match the highlighted item are dimmed.
+  iteratePlotLines(chart, (line) => {
+    if (line.options.id && itemIds.includes(line.options.id)) {
+      line.svgElem?.attr({ opacity: 0.4 });
+    }
+  });
+}
+
+export function clearChartItemsHighlight(chart: Highcharts.Chart) {
+  // When a legend item loses highlight we assume no series should be highlighted at that point,
+  // so removing inactive state from all series, points, and plot lines.
+  for (const s of chart.series) {
+    s.setState("normal");
+    for (const p of s.data) {
+      p.setState("normal");
+    }
+  }
+  iteratePlotLines(chart, (line) => {
+    if (line.options.id) {
+      line.svgElem?.attr({ opacity: 1 });
+    }
+  });
+}
+
+export function updateChartItemsVisibility(chart: Highcharts.Chart, hiddenItems?: readonly string[]) {
+  const hiddenItemsSet = new Set(hiddenItems);
+
+  let updatesCounter = 0;
+  const getVisibleAndCount = (id: string, visible: boolean) => {
+    const nextVisible = !hiddenItemsSet.has(id);
+    updatesCounter += nextVisible !== visible ? 1 : 0;
+    return nextVisible;
+  };
+
+  for (const series of chart.series) {
+    series.setVisible(getVisibleAndCount(getSeriesId(series), series.visible), false);
+    for (const point of series.data) {
+      if (typeof point.setVisible === "function") {
+        point.setVisible(getVisibleAndCount(getPointId(point), point.visible), false);
+      }
+    }
+  }
+
+  // The call `seriesOrPoint.setVisible(visible, false)` does not trigger the chart redraw, as it would otherwise
+  // impact the performance. Instead, we trigger the redraw explicitly, if any change to visibility has been made.
+  if (updatesCounter > 0) {
+    chart.redraw();
+  }
+}
+
+export function getVerticalAxesTitles(chart: Highcharts.Chart) {
+  const isInverted = !!chart.options.chart?.inverted;
+  const hasSeries = chart.series.filter((s) => s.type !== "pie").length > 0;
+
+  // We extract multiple titles as there can be multiple axes. This supports up to 2 axes by
+  // using space-between placement of the labels in the corresponding component.
+  let titles: string[] = [];
+  if (hasSeries && isInverted) {
+    titles = (castArray(chart.options.xAxis) ?? [])
+      .filter((axis) => axis.visible)
+      .map((axis) => axis.title?.text ?? "")
+      .filter(Boolean);
+  }
+  if (hasSeries && !isInverted) {
+    titles = (castArray(chart.options.yAxis) ?? [])
+      .filter((axis) => axis.visible)
+      .map((axis) => axis.title?.text ?? "")
+      .filter(Boolean);
+  }
+  return titles;
+}
+
+export function getDefaultTooltipTarget(point: Highcharts.Point, placement: "target" | "bottom" | "middle") {
+  const { plotTop, plotLeft, plotWidth, plotHeight, inverted } = point.series.chart;
+  if (placement === "target" && !inverted) {
+    const x = (point.plotX ?? 0) + plotLeft;
+    const y = (point.plotY ?? 0) + plotTop;
+    return { x, y, width: 4, height: 1 };
+  }
+  if (placement === "target" && inverted) {
+    const x = plotWidth - (point.plotY ?? 0) + plotLeft;
+    const y = plotHeight - (point.plotX ?? 0) + plotTop;
+    return { x, y, width: 1, height: 4 };
+  }
+  if (placement === "middle" && !inverted) {
+    const x = (point.plotX ?? 0) + plotLeft;
+    return { x, y: plotTop + plotHeight / 2, width: 4, height: 1 };
+  }
+  if (placement === "middle" && inverted) {
+    const y = plotHeight - (point.plotX ?? 0) + plotTop;
+    return { x: plotLeft + plotWidth / 2, y, width: 1, height: 4 };
+  }
+  if (placement === "bottom") {
+    const x = (point.plotX ?? 0) + plotLeft;
+    return { x, y: plotTop, width: 1, height: plotHeight };
+  }
+  throw new Error("Invariant violation: unsupported tooltip placement option.");
+}
+
+// The `axis.plotLinesAndBands` API is not covered with TS.
+function iteratePlotLines(chart: Highcharts.Chart, cb: (line: Highcharts.PlotLineOrBand) => void) {
+  chart.axes.forEach((axis) => {
+    if ("plotLinesAndBands" in axis && Array.isArray(axis.plotLinesAndBands)) {
+      axis.plotLinesAndBands.forEach((line: Highcharts.PlotLineOrBand) => cb(line));
+    }
+  });
 }

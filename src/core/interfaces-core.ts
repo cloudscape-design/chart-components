@@ -3,7 +3,7 @@
 
 import type Highcharts from "highcharts";
 
-import { ReadonlyAsyncStore } from "../internal/utils/async-store";
+import { ChartSeriesMarkerType } from "../internal/components/series-marker";
 import {
   BaseChartProps,
   BaseI18nStrings,
@@ -94,50 +94,18 @@ export interface CoreChartProps extends Pick<BaseChartProps, "fitHeight" | "char
 
 // The API methods allow programmatic triggering of chart's behaviors, some of which are not accessible via React state.
 // This enables advanced integration scenarios, such as building a custom legend, or making multiple charts synchronized.
-export interface CoreChartAPI extends CoreChartLegendAPI, CoreChartTooltipAPI {
+export interface CoreChartAPI {
   chart: Highcharts.Chart;
   highcharts: typeof Highcharts;
-}
-
-export interface CoreChartTooltipAPI {
   showTooltipOnPoint(point: Highcharts.Point): void;
   hideTooltip(): void;
-}
-
-export interface InternalCoreChartTooltipAPI extends CoreChartTooltipAPI {
-  store: ReadonlyAsyncStore<{ visible: boolean; pinned: boolean; point: null | Highcharts.Point }>;
-  onMouseEnterTooltip(): void;
-  onMouseLeaveTooltip(): void;
-  onDismissTooltip(): void;
-  getTrack(): null | SVGElement;
+  registerLegend(legend: RegisteredLegendAPI): void;
+  unregisterLegend(): void;
 }
 
 export interface RegisteredLegendAPI {
   highlightItems: (ids: readonly string[]) => void;
   clearHighlight: () => void;
-}
-
-export interface CoreChartLegendAPI {
-  registerLegend(legend: RegisteredLegendAPI): void;
-  unregisterLegend(): void;
-}
-
-export interface InternalCoreChartLegendAPI extends CoreChartLegendAPI {
-  store: ReadonlyAsyncStore<{ items: readonly ChartLegendItem[] }>;
-  legend: RegisteredLegendAPI;
-}
-
-export interface InternalCoreChartSeriesAPI {
-  highlightMatchedItems(itemId: string): void;
-  clearItemsHighlight(): void;
-}
-
-export interface InternalCoreChartNoDataAPI {
-  store: ReadonlyAsyncStore<{ container: null | Element; noMatch: boolean }>;
-}
-
-export interface InternalCoreAxesAPI {
-  store: ReadonlyAsyncStore<{ visible: boolean; titles: string[] }>;
 }
 
 export interface CoreTooltipOptions extends ChartTooltipOptions {
@@ -167,3 +135,29 @@ export interface TooltipContent {
 export type CoreNoDataProps = ChartNoDataOptions;
 
 export type CoreI18nStrings = BaseI18nStrings;
+
+export interface ReactiveChartState {
+  tooltip: {
+    visible: boolean;
+    pinned: boolean;
+    point: null | Highcharts.Point;
+  };
+  legend: {
+    items: readonly ChartLegendItem[];
+  };
+  noData: {
+    container: null | Element;
+    noMatch: boolean;
+  };
+  axes: {
+    verticalAxesTitles: readonly string[];
+  };
+}
+
+export interface ChartLegendItemSpec {
+  id: string;
+  name: string;
+  color: string;
+  markerType: ChartSeriesMarkerType;
+  visible: boolean;
+}
