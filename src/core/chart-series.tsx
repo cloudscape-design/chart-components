@@ -95,17 +95,16 @@ export function useChartSeries({ hiddenItems }: { hiddenItems?: readonly string[
     }
   }, [hiddenItemsIndex, updateVisibility]);
 
-  return {
-    onChartReady: (chart: Highcharts.Chart) => {
-      chartRef.current = chart;
+  const onChartRender: Highcharts.ChartRenderCallbackFunction = function () {
+    chartRef.current = this;
 
-      // The chart becomes ready after the first useEffect fires, so the initial visibility update must happen here.
-      if (hiddenItems) {
-        updateVisibility(hiddenItems);
-      }
-    },
-    api: seriesAPI,
+    // The chart becomes ready after the first useEffect fires, so the initial visibility update must happen here.
+    if (hiddenItems) {
+      updateVisibility(hiddenItems);
+    }
   };
+
+  return { options: { onChartRender }, api: seriesAPI };
 }
 
 // The `axis.plotLinesAndBands` API is not covered with TS.

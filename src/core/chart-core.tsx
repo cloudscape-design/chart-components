@@ -128,6 +128,7 @@ export function CoreChart({
                   if (highcharts && event.target instanceof highcharts.Chart) {
                     resetColorCounter(event.target, options.series?.length ?? 0);
                   }
+                  series.options.onChartRender.call(this, event);
                   if (tooltipProps) {
                     tooltip.options.onRenderChart.call(this, event);
                   }
@@ -138,7 +139,7 @@ export function CoreChart({
                     legend.options.onChartRender.call(this, event);
                   }
                   if (verticalAxisTitlePlacement === "top") {
-                    axes.options.chartRender.call(this, event);
+                    axes.options.onChartRender.call(this, event);
                   }
                   return options.chart?.events?.render?.call(this, event);
                 },
@@ -256,7 +257,6 @@ export function CoreChart({
                   registerLegend: (ref) => legend.api.registerLegend(ref),
                   unregisterLegend: () => legend.api.unregisterLegend(),
                 });
-                series.onChartReady(chart);
               }}
             />
           );
