@@ -21,7 +21,7 @@ export function useChartAxes({
 }) {
   const verticalAxisTitleStore = useRef(new VerticalAxisTitleStore()).current;
 
-  const chartRender: Highcharts.ChartRenderCallbackFunction = function () {
+  const onChartRender: Highcharts.ChartRenderCallbackFunction = function () {
     verticalAxisTitleStore.onChartRender(this);
   };
 
@@ -43,7 +43,7 @@ export function useChartAxes({
     reserveSpace: !inverted && verticalAxisTitlePlacement === "top" ? false : undefined,
   };
 
-  return { options: { chartRender, xAxisTitle, yAxisTitle }, api };
+  return { options: { onChartRender, xAxisTitle, yAxisTitle }, api };
 }
 
 class VerticalAxisTitleStore extends AsyncStore<{ visible: boolean; titles: string[] }> {
