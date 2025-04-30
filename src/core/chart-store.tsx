@@ -56,7 +56,7 @@ export class ChartStore {
   // The chart markers derive from type and color and are cached to avoid unnecessary renders,
   // and allow comparing them by reference.
   private renderMarker(type: ChartSeriesMarkerType, color: string, visible: boolean): React.ReactNode {
-    const key = `${type}:${color}`;
+    const key = `${type}:${color}:${visible}`;
     const marker = this.markersCache.get(key) ?? <ChartSeriesMarker type={type} color={color} visible={visible} />;
     this.markersCache.set(key, marker);
     return marker;
