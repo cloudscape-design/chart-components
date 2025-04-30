@@ -15,17 +15,9 @@ import ChartSeriesFilter from "../internal/components/chart-series-filter";
 import Portal from "../internal/components/portal";
 import { fireNonCancelableEvent } from "../internal/events";
 import { useSelector } from "../internal/utils/async-store";
+import { ChartAPI } from "./chart-api";
 import { ChartFooterOptions, ChartHeaderOptions, LegendActionsRenderProps } from "./interfaces-base";
-import {
-  CoreI18nStrings,
-  CoreNoDataProps,
-  CoreTooltipOptions,
-  InternalCoreAxesAPI,
-  InternalCoreChartLegendAPI,
-  InternalCoreChartNoDataAPI,
-  InternalCoreChartSeriesAPI,
-  InternalCoreChartTooltipAPI,
-} from "./interfaces-core";
+import { CoreI18nStrings, CoreNoDataProps, CoreTooltipOptions } from "./interfaces-core";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -36,8 +28,7 @@ export interface ChartLegendProps {
     render?(props: LegendActionsRenderProps): React.ReactNode;
   };
   onItemVisibilityChange?(hiddenItems: readonly string[]): void;
-  legendAPI: InternalCoreChartLegendAPI;
-  seriesAPI: InternalCoreChartSeriesAPI;
+  api: ChartAPI;
 }
 
 export interface ChartLegendRef {
@@ -45,36 +36,36 @@ export interface ChartLegendRef {
   clearHighlight: () => void;
 }
 
-export function ChartLegend({ title, actions, onItemVisibilityChange, legendAPI, seriesAPI }: ChartLegendProps) {
-  const legendItems = useSelector(legendAPI.store, (s) => s.items);
+export function ChartLegend({ title, actions, onItemVisibilityChange, api }: ChartLegendProps) {
+  const legendItems = useSelector(api.store, (s) => s.legend.items);
   return (
     <ChartLegendComponent
       ref={(legend) => {
         if (legend) {
-          legendAPI.registerLegend(legend);
+          api.registerLegend(legend);
         } else {
-          legendAPI.unregisterLegend();
+          api.unregisterLegend();
         }
       }}
       legendTitle={title}
       items={legendItems}
       actions={actions?.render?.({ legendItems })}
       onItemVisibilityChange={onItemVisibilityChange}
-      onItemHighlightEnter={seriesAPI.highlightMatchedItems}
-      onItemHighlightExit={seriesAPI.clearItemsHighlight}
+      onItemHighlightEnter={(itemId) => api.highlightChartItems([itemId])}
+      onItemHighlightExit={() => api.clearChartItemsHighlight()}
     />
   );
 }
 
 export function ChartTooltip({
-  tooltipAPI,
   getTooltipContent,
   placement,
   size,
+  api,
 }: CoreTooltipOptions & {
-  tooltipAPI: InternalCoreChartTooltipAPI;
+  api: ChartAPI;
 }) {
-  const tooltip = useSelector(tooltipAPI.store, (s) => s);
+  const tooltip = useSelector(api.store, (s) => s.tooltip);
   if (!tooltip.visible || !tooltip.point) {
     return null;
   }
@@ -84,13 +75,13 @@ export function ChartTooltip({
   }
   return (
     <InternalChartTooltip
-      getTrack={tooltipAPI.getTrack}
+      getTrack={api.getTooltipTrack}
       trackKey={tooltip.point.x + ":" + tooltip.point.y}
       container={null}
       dismissButton={tooltip.pinned}
-      onDismiss={tooltipAPI.onDismissTooltip}
-      onMouseEnter={tooltipAPI.onMouseEnterTooltip}
-      onMouseLeave={tooltipAPI.onMouseLeaveTooltip}
+      onDismiss={api.onDismissTooltip}
+      onMouseEnter={api.onMouseEnterTooltip}
+      onMouseLeave={api.onMouseLeaveTooltip}
       title={content.header}
       footer={content.footer}
       size={size}
@@ -103,7 +94,6 @@ export function ChartTooltip({
 }
 
 export function ChartNoData({
-  noDataAPI,
   statusType = "finished",
   loading,
   empty,
@@ -111,12 +101,13 @@ export function ChartNoData({
   noMatch,
   onRecoveryClick,
   i18nStrings,
+  api,
 }: CoreNoDataProps & {
   i18nStrings?: CoreI18nStrings;
-  noDataAPI: InternalCoreChartNoDataAPI;
+  api: ChartAPI;
 }) {
   const i18n = useInternalI18n("[charts]");
-  const state = useSelector(noDataAPI.store, (s) => s);
+  const state = useSelector(api.store, (s) => s.noData);
   if (!state.container) {
     return null;
   }
@@ -157,14 +148,8 @@ export function ChartNoData({
   );
 }
 
-export function ChartFilter({
-  legendAPI,
-  onChange,
-}: {
-  legendAPI: InternalCoreChartLegendAPI;
-  onChange: (hiddenItems: string[]) => void;
-}) {
-  const legendItems = useSelector(legendAPI.store, (s) => s.items);
+export function ChartFilter({ api, onChange }: { api: ChartAPI; onChange: (hiddenItems: string[]) => void }) {
+  const legendItems = useSelector(api.store, (s) => s.legend.items);
   return (
     <ChartSeriesFilter
       items={legendItems}
@@ -177,23 +162,23 @@ export function ChartFilter({
 }
 
 export function ChartSlot({
-  legendAPI,
+  api,
   render,
 }: (ChartHeaderOptions | ChartFooterOptions) & {
-  legendAPI: InternalCoreChartLegendAPI;
+  api: ChartAPI;
 }) {
-  const legendItems = useSelector(legendAPI.store, (s) => s.items);
+  const legendItems = useSelector(api.store, (s) => s.legend.items);
   return <>{render?.({ legendItems }) ?? null}</>;
 }
 
 export function VerticalAxisTitle({
   verticalAxisTitlePlacement = "top",
-  axesAPI,
+  api,
 }: {
   verticalAxisTitlePlacement?: "top" | "side";
-  axesAPI: InternalCoreAxesAPI;
+  api: ChartAPI;
 }) {
-  const titles = useSelector(axesAPI.store, (s) => s.titles);
+  const titles = useSelector(api.store, (s) => s.axes.verticalAxesTitles);
   if (verticalAxisTitlePlacement === "side") {
     return null;
   }

@@ -24,6 +24,18 @@ export function castArray<T>(valueOrArray?: T | T[]): undefined | T[] {
   return [valueOrArray];
 }
 
+export function isEqualArrays<T>(a: readonly T[], b: readonly T[], eq: (a: T, b: T) => boolean) {
+  if (a.length !== b.length) {
+    return false;
+  }
+  for (let i = 0; i < a.length; i++) {
+    if (!eq(a[i], b[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export class DebouncedCall {
   private timeoutRef = setTimeout(() => {}, 0);
 
