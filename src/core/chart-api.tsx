@@ -27,6 +27,7 @@ import {
   getDefaultTooltipTarget,
   getVerticalAxesTitles,
   highlightChartItems,
+  matchLegendItems,
   updateChartItemsVisibility,
 } from "./utils";
 
@@ -337,9 +338,8 @@ export class ChartAPI {
     this.destroyMarkers();
     this.createMarkers(target);
 
-    if (detail?.matchedLegendItems) {
-      this.registeredLegend?.highlightItems(detail?.matchedLegendItems);
-    }
+    const matchedLegendItems = detail?.matchedLegendItems ?? matchLegendItems(this.store.get().legend.items, point);
+    this.registeredLegend?.highlightItems(matchedLegendItems);
   };
 
   private getTarget = (point: Highcharts.Point) => {
