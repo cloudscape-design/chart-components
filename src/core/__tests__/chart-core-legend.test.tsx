@@ -63,7 +63,7 @@ describe("CoreChart: legend", () => {
   });
 
   test("renders expected legend items", () => {
-    renderChart({ highcharts, options: { series }, legend: { visibleItems: ["L1", "P1"] } });
+    renderChart({ highcharts, options: { series }, visibleItems: ["L1", "P1"] });
 
     expect(getItems().map((w) => w.getElement().textContent)).toEqual(["L1", "L2", "Line 3", "P1", "P2", "Pie 3"]);
     expect(getItems({ hidden: false }).map((w) => w.getElement().textContent)).toEqual(["L1", "P1"]);
@@ -95,7 +95,8 @@ describe("CoreChart: legend", () => {
     renderChart({
       highcharts,
       options: { series },
-      legend: { actions: { content: "Legend actions" }, visibleItems: ["L1", "P1"] },
+      legend: { actions: { content: "Legend actions" } },
+      visibleItems: ["L1", "P1"],
     });
 
     expect(createChartWrapper().findLegend()).not.toBe(null);
@@ -106,7 +107,7 @@ describe("CoreChart: legend", () => {
     renderChart({
       highcharts,
       options: { series: series.filter((s) => s.type === "line") },
-      legend: { visibleItems: ["L1", "L3"] },
+      visibleItems: ["L1", "L3"],
     });
 
     expect(createChartWrapper().findLegend()).not.toBe(null);
@@ -136,7 +137,7 @@ describe("CoreChart: legend", () => {
     renderChart({
       highcharts,
       options: { series: series.filter((s) => s.type === "pie") },
-      legend: { visibleItems: ["P1", "P3"] },
+      visibleItems: ["P1", "P3"],
     });
 
     expect(createChartWrapper().findLegend()).not.toBe(null);
@@ -166,7 +167,7 @@ describe("CoreChart: legend", () => {
     renderChart({
       highcharts,
       options: { series: series.filter((s) => s.type === "line") },
-      legend: { visibleItems: ["L1", "L3"] },
+      visibleItems: ["L1", "L3"],
     });
 
     expect(createChartWrapper().findLegend()).not.toBe(null);
@@ -188,7 +189,7 @@ describe("CoreChart: legend", () => {
     renderChart({
       highcharts,
       options: { series: series.filter((s) => s.type === "pie") },
-      legend: { visibleItems: ["P1", "P3"] },
+      visibleItems: ["P1", "P3"],
     });
 
     expect(createChartWrapper().findLegend()).not.toBe(null);

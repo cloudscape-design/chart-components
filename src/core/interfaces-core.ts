@@ -29,12 +29,12 @@ export interface CoreChartProps
    * The tooltip content is only shown when `getContent` property is defined, which is called
    * for each visited { x, y } point.
    */
-  tooltip?: CoreTooltipOptions;
+  tooltip?: ChartTooltipOptions;
   /**
    * The Cloudscape legend, that is rendered outside the Highcharts container. It uses Cloudscape markers
    * and menu actions.
    */
-  legend?: CoreLegendOptions;
+  legend?: ChartLegendOptions;
   /**
    * Represents chart's empty, no-match, loading, and error states. It requires the Highcharts nodata module.
    */
@@ -78,6 +78,36 @@ export interface CoreChartProps
    * is shown right above the chart plot.
    */
   verticalAxisTitlePlacement?: "top" | "side";
+  /**
+   * IDs of visible series or points.
+   */
+  visibleItems?: readonly string[];
+  /**
+   * Called when series/points visibility changes due to user interaction with legend or filter.
+   */
+  onItemVisibilityChange?: (visibleItems: readonly string[]) => void;
+  /**
+   * Called on every chart render to extract series/points to be shown in legend, with ability to customize
+   * item names and markers. By default, all cartesian series and all pie segments are taken as legend items.
+   */
+  getChartLegendItems?(props: { chart: Highcharts.Chart }): readonly ChartLegendItemSpec[];
+  /**
+   * Called whenever chart point is highlighted to extract the relevant series to be highlighted in the legend.
+   * Be default, only one series or pie segment corresponding the selection is taken.
+   */
+  getMatchedLegendItems?(props: { point: Highcharts.Point }): readonly string[];
+  /**
+   * Called whenever chart tooltip is rendered to provide content for tooltip's header, body, and (optional) footer.
+   */
+  getTooltipContent?(props: { point: Highcharts.Point }): null | TooltipContent;
+  /**
+   * Called whenever chart point is highlighted and allows to specify custom tooltip target for the given point.
+   */
+  onPointHighlight?(props: { point: Highcharts.Point; target: Rect }): void | { target: Rect };
+  /**
+   * Called whenever chart point loses highlight.
+   */
+  onClearHighlight?(): void;
 }
 
 // The API methods allow programmatic triggering of chart's behaviors, some of which are not accessible via React state.
@@ -85,28 +115,13 @@ export interface CoreChartProps
 export interface CoreChartAPI {
   chart: Highcharts.Chart;
   highcharts: typeof Highcharts;
-  showTooltipOnPoint(point: Highcharts.Point): void;
-  hideTooltip(): void;
-  registerLegend(legend: RegisteredLegendAPI): void;
-  unregisterLegend(): void;
+  highlightChartPoint(point: Highcharts.Point): void;
+  clearChartHighlight(): void;
 }
 
 export interface RegisteredLegendAPI {
   highlightItems: (ids: readonly string[]) => void;
   clearHighlight: () => void;
-}
-
-export interface CoreTooltipOptions extends ChartTooltipOptions {
-  getTargetFromPoint?(point: Highcharts.Point): Rect;
-  getTooltipContent?(props: { point: Highcharts.Point }): null | TooltipContent;
-  onPointHighlight?(props: { point: Highcharts.Point; target: Rect }): null | PointHighlightDetail;
-  onClearHighlight?(): void;
-}
-
-export interface CoreLegendOptions extends ChartLegendOptions {
-  visibleItems?: readonly string[];
-  getChartLegendItems?(props: { chart: Highcharts.Chart }): readonly ChartLegendItemSpec[];
-  onItemVisibilityChange?: (visibleItems: readonly string[]) => void;
 }
 
 export interface ChartLegendItemSpec {
@@ -129,10 +144,6 @@ export interface Rect {
   y: number;
   height: number;
   width: number;
-}
-
-export interface PointHighlightDetail {
-  matchedLegendItems: string[];
 }
 
 export interface TooltipContent {

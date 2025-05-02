@@ -232,38 +232,36 @@ function Charts() {
                     if (event.target instanceof Highcharts.Point) {
                       const minPoint = findMinPoint(event.target, getNavigatorChart().chart);
                       if (minPoint) {
-                        getNavigatorChart().showTooltipOnPoint(minPoint);
+                        getNavigatorChart().highlightChartPoint(minPoint);
                       }
                     }
                   },
                   mouseOut() {
-                    getNavigatorChart().hideTooltip();
+                    getNavigatorChart().clearChartHighlight();
                   },
                 },
               },
             },
           },
         }}
-        tooltip={{
-          getTooltipContent({ point: { x } }) {
-            const header = dateFormatter(x);
-            const details: ChartSeriesDetailItem[] = [];
-            for (const s of getScatterChart().chart.series) {
-              for (const p of s.data) {
-                if (p.x === x) {
-                  details.push({
-                    key: p.name,
-                    marker: <ChartSeriesMarker color={getSeriesColor(s)} type={getSeriesMarkerType(s)} />,
-                    value: numberFormatter(p.y!),
-                  });
-                }
+        getTooltipContent={({ point: { x } }) => {
+          const header = dateFormatter(x);
+          const details: ChartSeriesDetailItem[] = [];
+          for (const s of getScatterChart().chart.series) {
+            for (const p of s.data) {
+              if (p.x === x) {
+                details.push({
+                  key: p.name,
+                  marker: <ChartSeriesMarker color={getSeriesColor(s)} type={getSeriesMarkerType(s)} />,
+                  value: numberFormatter(p.y!),
+                });
               }
             }
-            return {
-              header,
-              body: <ChartSeriesDetails details={details} />,
-            };
-          },
+          }
+          return {
+            header,
+            body: <ChartSeriesDetails details={details} />,
+          };
         }}
       />
 
@@ -326,7 +324,7 @@ function Charts() {
                       if (event.target instanceof Highcharts.Point) {
                         const minPoint = findMinPoint(event.target, getScatterChart().chart);
                         if (minPoint) {
-                          getScatterChart().showTooltipOnPoint(minPoint);
+                          getScatterChart().highlightChartPoint(minPoint);
                         }
                       }
 
@@ -341,7 +339,7 @@ function Charts() {
                     }
                   },
                   mouseOut() {
-                    getScatterChart().hideTooltip();
+                    getScatterChart().clearChartHighlight();
                   },
                   click(event) {
                     if (zoomStateRef.current === null) {

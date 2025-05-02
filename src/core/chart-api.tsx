@@ -8,16 +8,7 @@ import type Highcharts from "highcharts";
 import { ReadonlyAsyncStore } from "../internal/utils/async-store";
 import { DebouncedCall } from "../internal/utils/utils";
 import { ChartStore } from "./chart-store";
-import {
-  ChartLegendItemSpec,
-  CoreLegendOptions,
-  CoreTooltipOptions,
-  PointHighlightDetail,
-  ReactiveChartState,
-  Rect,
-  RegisteredLegendAPI,
-  TooltipContent,
-} from "./interfaces-core";
+import { ChartLegendItemSpec, ReactiveChartState, Rect, RegisteredLegendAPI } from "./interfaces-core";
 import * as Styles from "./styles";
 import {
   clearChartItemsHighlight,
@@ -36,52 +27,25 @@ const LAST_DISMISS_DELAY = 250;
 const SET_STATE_OVERRIDE_MARKER = Symbol("awsui-set-state");
 
 interface ChartAPIContext {
-  legend: {
-    enabled: boolean;
-    visibleItems?: readonly string[];
-    getChartLegendItems?(props: { chart: Highcharts.Chart }): readonly ChartLegendItemSpec[];
-    onItemVisibilityChange?: (visibleItems: readonly string[]) => void;
-  };
-  tooltip: {
-    enabled: boolean;
-    placement: "target" | "bottom" | "middle";
-    getTargetFromPoint?(point: Highcharts.Point): Rect;
-    getTooltipContent?(props: { point: Highcharts.Point }): null | TooltipContent;
-    onPointHighlight?(props: { point: Highcharts.Point; target: Rect }): null | PointHighlightDetail;
-    onClearHighlight?(): void;
-  };
+  visibleItems?: readonly string[];
+  getChartLegendItems?(props: { chart: Highcharts.Chart }): readonly ChartLegendItemSpec[];
+  getMatchedLegendItems?(props: { point: Highcharts.Point }): readonly string[];
+  onItemVisibilityChange?: (visibleItems: readonly string[]) => void;
+  isTooltipEnabled: boolean;
+  tooltipPlacement: "target" | "bottom" | "middle";
+  onPointHighlight?(props: { point: Highcharts.Point; target: Rect }): void | { target: Rect };
+  onClearHighlight?(): void;
 }
 
-export function useChartAPI({
-  legendOptions,
-  tooltipOptions,
-}: {
-  legendOptions?: CoreLegendOptions;
-  tooltipOptions?: CoreTooltipOptions;
-}) {
+export function useChartAPI(context: ChartAPIContext) {
   const chartId = useId();
   const contextRef = useRef<ChartAPIContext>();
-  contextRef.current = {
-    legend: {
-      enabled: legendOptions?.enabled ?? true,
-      visibleItems: legendOptions?.visibleItems,
-      getChartLegendItems: legendOptions?.getChartLegendItems,
-      onItemVisibilityChange: legendOptions?.onItemVisibilityChange,
-    },
-    tooltip: {
-      enabled: tooltipOptions?.enabled ?? true,
-      placement: tooltipOptions?.placement ?? "target",
-      getTargetFromPoint: tooltipOptions?.getTargetFromPoint,
-      getTooltipContent: tooltipOptions?.getTooltipContent,
-      onPointHighlight: tooltipOptions?.onPointHighlight,
-      onClearHighlight: tooltipOptions?.onClearHighlight,
-    },
-  };
+  contextRef.current = context;
   const api = useRef(new ChartAPI(chartId, () => contextRef.current!)).current;
 
   // When series or items visibility change, we call setVisible Highcharts method on series and/or items
   // for the change to take an effect.
-  const visibleItemsIndex = legendOptions?.visibleItems ? legendOptions.visibleItems.join("::") : null;
+  const visibleItemsIndex = context?.visibleItems ? context.visibleItems.join("::") : null;
   useEffect(() => {
     if (api.ready && visibleItemsIndex !== null) {
       api.updateChartItemsVisibility(visibleItemsIndex.split("::").filter(Boolean));
@@ -140,7 +104,7 @@ export class ChartAPI {
       chartAPI.onChartRender();
     };
     const onChartClick: Highcharts.ChartClickCallbackFunction = function () {
-      if (chartAPI.context.tooltip.enabled) {
+      if (chartAPI.context.isTooltipEnabled) {
         const { hoverPoint } = this;
         if (hoverPoint) {
           chartAPI.onChartClick(hoverPoint);
@@ -150,17 +114,17 @@ export class ChartAPI {
       }
     };
     const onSeriesPointMouseOver: Highcharts.PointMouseOverCallbackFunction = function () {
-      if (chartAPI.context.tooltip.enabled) {
-        chartAPI.showTooltipOnPoint(this);
+      if (chartAPI.context.isTooltipEnabled) {
+        chartAPI.highlightChartPoint(this);
       }
     };
     const onSeriesPointMouseOut: Highcharts.PointMouseOutCallbackFunction = function () {
-      if (chartAPI.context.tooltip.enabled) {
-        chartAPI.hideTooltip();
+      if (chartAPI.context.isTooltipEnabled) {
+        chartAPI.clearChartHighlight();
       }
     };
     const onSeriesPointClick: Highcharts.PointClickCallbackFunction = function () {
-      if (chartAPI.context.tooltip.enabled) {
+      if (chartAPI.context.isTooltipEnabled) {
         chartAPI.onChartClick(this);
       }
     };
@@ -228,7 +192,7 @@ export class ChartAPI {
   };
 
   // When hovering (or focusing) over the target (point, bar, segment, etc.) we show the tooltip in the target coordinate.
-  public showTooltipOnPoint = (point: Highcharts.Point) => {
+  public highlightChartPoint = (point: Highcharts.Point) => {
     this.updateSetters();
 
     // The behavior is ignored if the tooltip is already shown and pinned.
@@ -242,7 +206,7 @@ export class ChartAPI {
     this._store.setTooltip({ visible: true, pinned: false, point });
   };
 
-  public hideTooltip = () => {
+  public clearChartHighlight = () => {
     // The behavior is ignored if user hovers over the tooltip.
     if (this.tooltipHovered) {
       return;
@@ -260,18 +224,18 @@ export class ChartAPI {
   };
 
   public onItemVisibilityChange = (visibleItems: readonly string[]) => {
-    this.context.legend.onItemVisibilityChange?.(visibleItems);
+    this.context.onItemVisibilityChange?.(visibleItems);
   };
 
   private onChartRender() {
     this.initLegend();
     this.initVerticalAxisTitles();
     this.initNoData();
-    this.updateChartItemsVisibility(this.context.legend.visibleItems);
+    this.updateChartItemsVisibility(this.context.visibleItems);
   }
 
   private initLegend() {
-    const customLegendItems = this.context.legend.getChartLegendItems?.({ chart: this.chart });
+    const customLegendItems = this.context.getChartLegendItems?.({ chart: this.chart });
     const legendItems = getChartLegendItems(this.chart, customLegendItems);
     this._store.setLegendItems(legendItems);
   }
@@ -352,18 +316,13 @@ export class ChartAPI {
   }
 
   private highlightActions = (point: Highcharts.Point) => {
-    const target = this.getTarget(point);
-    const detail = this.context.tooltip.onPointHighlight?.({ point, target });
-    this.destroyMarkers();
-    this.createMarkers(target);
-
-    const matchedLegendItems = detail?.matchedLegendItems ?? matchLegendItems(this.store.get().legend.items, point);
+    const defaultTarget = getDefaultTooltipTarget(point, this.context.tooltipPlacement);
+    const pointHighlightResult = this.context.onPointHighlight?.({ point, target: defaultTarget });
+    const customMatchedLegendItems = this.context.getMatchedLegendItems?.({ point });
+    const matchedLegendItems = customMatchedLegendItems ?? matchLegendItems(this.store.get().legend.items, point);
     this.registeredLegend?.highlightItems(matchedLegendItems);
-  };
-
-  private getTarget = (point: Highcharts.Point) => {
-    const { getTargetFromPoint, placement } = this.context.tooltip;
-    return getTargetFromPoint?.(point) ?? getDefaultTooltipTarget(point, placement);
+    this.destroyMarkers();
+    this.createMarkers(pointHighlightResult?.target ?? defaultTarget);
   };
 
   private createMarkers = (target: Rect) => {
@@ -379,7 +338,7 @@ export class ChartAPI {
   };
 
   private clearHighlightActions = () => {
-    this.context.tooltip.onClearHighlight?.();
+    this.context.onClearHighlight?.();
     this.destroyMarkers();
     this.registeredLegend?.clearHighlight();
   };

@@ -16,8 +16,8 @@ import Portal from "../internal/components/portal";
 import { fireNonCancelableEvent } from "../internal/events";
 import { useSelector } from "../internal/utils/async-store";
 import { ChartAPI } from "./chart-api";
-import { ChartI18nStrings } from "./interfaces-base";
-import { CoreI18nStrings, CoreNoDataProps, CoreTooltipOptions } from "./interfaces-core";
+import { ChartI18nStrings, ChartTooltipOptions } from "./interfaces-base";
+import { CoreI18nStrings, CoreNoDataProps, TooltipContent } from "./interfaces-core";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -61,7 +61,8 @@ export function ChartTooltip({
   placement,
   size,
   api,
-}: CoreTooltipOptions & {
+}: ChartTooltipOptions & {
+  getTooltipContent?: (props: { point: Highcharts.Point }) => null | TooltipContent;
   api: ChartAPI;
 }) {
   const tooltip = useSelector(api.store, (s) => s.tooltip);

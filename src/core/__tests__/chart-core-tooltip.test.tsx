@@ -6,13 +6,16 @@ import { waitFor } from "@testing-library/react";
 import highcharts from "highcharts";
 import { vi } from "vitest";
 
+import { CoreChartAPI } from "../../../lib/components/core/interfaces-core";
 import {
   clickChartPoint,
   createChartWrapper,
+  findChart,
   findChartPoint,
   highlightChartPoint,
   leaveChartPoint,
   renderChart,
+  TestChartRenderer,
 } from "./common";
 
 function hoverTooltip() {
@@ -59,11 +62,9 @@ describe("CoreChart: tooltip", () => {
     const { wrapper } = renderChart({
       highcharts,
       options: { series },
-      tooltip: {
-        getTooltipContent: () => ({ header: "Tooltip title", body: "Tooltip body", footer: "Tooltip footer" }),
-        onPointHighlight,
-        onClearHighlight,
-      },
+      onPointHighlight,
+      onClearHighlight,
+      getTooltipContent: () => ({ header: "Tooltip title", body: "Tooltip body", footer: "Tooltip footer" }),
     });
 
     act(() => highlightChartPoint(0, 0));
@@ -87,34 +88,65 @@ describe("CoreChart: tooltip", () => {
     });
   });
 
-  test("shows tooltip on hover with custom target", () => {
-    const getTargetFromPoint = () => ({ x: 1001, y: 1002, width: 1003, height: 1004 });
+  test("shows tooltip with api", async () => {
+    let api: null | CoreChartAPI = null;
     const onPointHighlight = vi.fn();
-    renderChart({
+    const onClearHighlight = vi.fn();
+    const { wrapper } = renderChart({
       highcharts,
       options: { series },
-      tooltip: {
-        getTooltipContent: () => ({ header: "Tooltip title", body: "Tooltip body", footer: "Tooltip footer" }),
-        getTargetFromPoint,
-        onPointHighlight,
-      },
+      onPointHighlight,
+      onClearHighlight,
+      getTooltipContent: () => ({ header: "Tooltip title", body: "Tooltip body", footer: "Tooltip footer" }),
+      callback: (apiRef) => (api = apiRef),
     });
 
-    act(() => highlightChartPoint(0, 0));
+    act(() => api!.highlightChartPoint(findChartPoint(0, 0)));
 
     expect(onPointHighlight).toHaveBeenCalledWith({
       point: findChartPoint(0, 0),
-      target: expect.objectContaining({ x: 1001, y: 1002, width: 1003, height: 1004 }),
+      target: expect.objectContaining({ x: 0, y: 10, height: expect.any(Number), width: expect.any(Number) }),
     });
+    await waitFor(() => {
+      expect(wrapper.findTooltip()).not.toBe(null);
+      expect(wrapper.findTooltip()!.findHeader()!.getElement().textContent).toBe("Tooltip title");
+      expect(wrapper.findTooltip()!.findBody()!.getElement().textContent).toBe("Tooltip body");
+      expect(wrapper.findTooltip()!.findFooter()!.getElement().textContent).toBe("Tooltip footer");
+    });
+
+    act(() => api!.clearChartHighlight());
+
+    await waitFor(() => {
+      expect(onClearHighlight).toHaveBeenCalled();
+      expect(wrapper.findTooltip()).toBe(null);
+    });
+  });
+
+  test("shows tooltip on hover with custom target", () => {
+    const mockRenderer = new TestChartRenderer();
+    renderChart({
+      highcharts,
+      options: { series },
+      getTooltipContent: () => ({ header: "Tooltip title", body: "Tooltip body", footer: "Tooltip footer" }),
+      onPointHighlight: () => ({ target: { x: 1001, y: 1002, width: 1003, height: 1004 } }),
+    });
+
+    const originalRenderer = findChart().renderer;
+    findChart().renderer = mockRenderer as unknown as Highcharts.SVGRenderer;
+
+    try {
+      act(() => highlightChartPoint(0, 0));
+      expect(mockRenderer._rect).toEqual([[1001, 1002, 1003, 1004]]);
+    } finally {
+      findChart().renderer = originalRenderer;
+    }
   });
 
   test("keeps showing tooltip when cursor is over the tooltip", async () => {
     const { wrapper } = renderChart({
       highcharts,
       options: { series },
-      tooltip: {
-        getTooltipContent: () => ({ header: "", body: "" }),
-      },
+      getTooltipContent: () => ({ header: "", body: "" }),
     });
 
     act(() => highlightChartPoint(0, 0));
@@ -143,9 +175,7 @@ describe("CoreChart: tooltip", () => {
     const { wrapper } = renderChart({
       highcharts,
       options: { series },
-      tooltip: {
-        getTooltipContent: ({ point }) => ({ header: `y${point.y}`, body: "" }),
-      },
+      getTooltipContent: ({ point }) => ({ header: `y${point.y}`, body: "" }),
     });
 
     // Hover point 1 to show the popover.
@@ -184,7 +214,7 @@ describe("CoreChart: tooltip", () => {
 
   test("provides point for tooltip.getContent", async () => {
     const getTooltipContent = vi.fn();
-    renderChart({ highcharts, options: { series }, tooltip: { getTooltipContent } });
+    renderChart({ highcharts, options: { series }, getTooltipContent });
 
     for (let i = 0; i < data.length; i++) {
       act(() => highlightChartPoint(0, i));

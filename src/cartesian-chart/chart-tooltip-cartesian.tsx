@@ -6,7 +6,7 @@ import type Highcharts from "highcharts";
 
 import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
 
-import { CoreTooltipOptions, Rect } from "../core/interfaces-core";
+import { CoreChartProps, Rect } from "../core/interfaces-core";
 import { getOptionsId, getSeriesColor, getSeriesId, getSeriesMarkerType } from "../core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../internal/components/series-details";
 import { ChartSeriesMarker } from "../internal/components/series-marker";
@@ -23,13 +23,13 @@ import { getDataExtremes } from "./utils";
 export function useChartTooltipCartesian(props: {
   options: InternalCartesianChartOptions;
   tooltip?: CartesianChartProps.TooltipOptions;
-}): CoreTooltipOptions {
+}): Partial<CoreChartProps> {
   const { xAxis, series } = props.options;
   const [expandedSeries, setExpandedSeries] = useState<Record<string, Set<string>>>({});
   const cursorRef = useRef(new HighlightCursor());
   const chartRef = useRef<null | Highcharts.Chart>(null);
 
-  const getTooltipContent: CoreTooltipOptions["getTooltipContent"] = ({ point }) => {
+  const getTooltipContent: CoreChartProps["getTooltipContent"] = ({ point }) => {
     const chart = point.series.chart;
 
     const seriesToChartSeries = new Map<InternalSeriesOptions, Highcharts.Series>();
@@ -126,7 +126,7 @@ export function useChartTooltipCartesian(props: {
     };
   };
 
-  const onPointHighlight: CoreTooltipOptions["onPointHighlight"] = ({ point, target }) => {
+  const onPointHighlight: CoreChartProps["onPointHighlight"] = ({ point, target }) => {
     chartRef.current = point.series.chart;
 
     // Highcharts highlights the entire series when the cursor lands on it. However, for column series
@@ -142,7 +142,6 @@ export function useChartTooltipCartesian(props: {
           }
         }
       }
-      return null;
     }
     // The cursor (vertical or horizontal line to make the highlighted point better prominent) is only added for charts
     // that do not include "column" series. That is because the cursor is not necessary for columns, assuming the number of
@@ -150,11 +149,17 @@ export function useChartTooltipCartesian(props: {
     else {
       cursorRef.current.create(target, point.series.chart);
     }
-
-    return { matchedLegendItems: [getSeriesId(point.series)] };
   };
 
-  const onClearHighlight: CoreTooltipOptions["onClearHighlight"] = () => {
+  const getMatchedLegendItems: CoreChartProps["getMatchedLegendItems"] = ({ point }) => {
+    if (props.options.series.some((s) => s.type === "column")) {
+      return props.options.series.map(getOptionsId);
+    } else {
+      return [getSeriesId(point.series)];
+    }
+  };
+
+  const onClearHighlight: CoreChartProps["onClearHighlight"] = () => {
     cursorRef.current?.destroy();
 
     // Clear all column series point state overrides created in `onPointHighlight`.
@@ -172,8 +177,7 @@ export function useChartTooltipCartesian(props: {
     getTooltipContent,
     onPointHighlight,
     onClearHighlight,
-    size: props.tooltip?.size,
-    placement: props.tooltip?.placement ?? "middle",
+    getMatchedLegendItems,
   };
 }
 

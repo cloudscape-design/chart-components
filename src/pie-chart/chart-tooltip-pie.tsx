@@ -4,7 +4,7 @@
 import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
 
-import { CoreTooltipOptions, Rect } from "../core/interfaces-core";
+import { CoreChartProps, Rect } from "../core/interfaces-core";
 import { getOptionsId, getPointColor, getSeriesMarkerType } from "../core/utils";
 import ChartSeriesDetails from "../internal/components/series-details";
 import { ChartSeriesMarker } from "../internal/components/series-marker";
@@ -15,8 +15,8 @@ import styles from "./styles.css.js";
 export function useChartTooltipPie(props: {
   options: InternalPieChartOptions;
   tooltip?: PieChartProps.TooltipOptions;
-}): CoreTooltipOptions {
-  const getTooltipContent: CoreTooltipOptions["getTooltipContent"] = ({ point }) => {
+}): Partial<CoreChartProps> {
+  const getTooltipContent: CoreChartProps["getTooltipContent"] = ({ point }) => {
     const tooltipDetails:
       | PieChartProps.TooltipHeaderRenderProps
       | PieChartProps.TooltipBodyRenderProps
@@ -43,21 +43,16 @@ export function useChartTooltipPie(props: {
     };
   };
 
-  const getTargetFromPoint: CoreTooltipOptions["getTargetFromPoint"] = (point) => {
+  const onPointHighlight: CoreChartProps["onPointHighlight"] = ({ point }) => {
     const placement = props.tooltip?.placement ?? "target";
     if (placement === "target") {
-      return getPieChartTargetPlacement(point);
+      return { target: getPieChartTargetPlacement(point) };
     } else {
-      return getPieMiddlePlacement(point);
+      return { target: getPieMiddlePlacement(point) };
     }
   };
 
-  return {
-    getTooltipContent,
-    getTargetFromPoint,
-    size: props.tooltip?.size,
-    placement: props.tooltip?.placement,
-  };
+  return { getTooltipContent, onPointHighlight };
 }
 
 function getPieChartTargetPlacement(point: Highcharts.Point): Rect {

@@ -55,7 +55,7 @@ describe("CoreChart: series filter", () => {
       highcharts,
       options: { series },
       filter: { seriesFilter: true },
-      legend: { onItemVisibilityChange },
+      onItemVisibilityChange,
     });
     createChartWrapper().findFilter()!.findSeriesFilter()!.findMultiselect()!.openDropdown();
     createChartWrapper().findFilter()!.findSeriesFilter()!.findMultiselect()!.selectOption(1);

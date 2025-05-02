@@ -35,10 +35,8 @@ describe("CoreChart: rendering", () => {
     expect(callback).toHaveBeenCalledWith({
       chart: findChart(),
       highcharts,
-      showTooltipOnPoint: expect.any(Function),
-      hideTooltip: expect.any(Function),
-      registerLegend: expect.any(Function),
-      unregisterLegend: expect.any(Function),
+      highlightChartPoint: expect.any(Function),
+      clearChartHighlight: expect.any(Function),
     });
   });
 });

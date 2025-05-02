@@ -55,7 +55,7 @@ export function CoreChart({
 
   const isLegendEnabled = legendOptions?.enabled !== false;
   const isTooltipEnabled = tooltipOptions?.enabled !== false;
-  const api = useChartAPI({ legendOptions, tooltipOptions });
+  const api = useChartAPI({ ...rest, isTooltipEnabled, tooltipPlacement: tooltipOptions?.placement ?? "target" });
 
   const rootClassName = clsx(styles.root, fitHeight && styles["root-fit-height"], className);
 
@@ -234,10 +234,8 @@ export function CoreChart({
                 callback?.({
                   chart,
                   highcharts: highcharts as typeof Highcharts,
-                  showTooltipOnPoint: (point) => api.showTooltipOnPoint(point),
-                  hideTooltip: () => api.hideTooltip(),
-                  registerLegend: (legend) => api.registerLegend(legend),
-                  unregisterLegend: () => api.unregisterLegend(),
+                  highlightChartPoint: (point) => api.highlightChartPoint(point),
+                  clearChartHighlight: () => api.clearChartHighlight(),
                 });
               }}
             />
@@ -255,7 +253,7 @@ export function CoreChart({
         additionalFilters={filter?.additionalFilters}
       />
 
-      {isTooltipEnabled && <ChartTooltip {...tooltipOptions} api={api} />}
+      {isTooltipEnabled && <ChartTooltip {...tooltipOptions} getTooltipContent={rest.getTooltipContent} api={api} />}
 
       {noDataOptions && <ChartNoData {...noDataOptions} i18nStrings={i18nStrings} api={api} />}
     </div>

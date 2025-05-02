@@ -196,7 +196,7 @@ describe("CoreChart: no-data", () => {
       highcharts,
       options: { series },
       noData: { statusType: "finished", ...slots },
-      legend: { visibleItems: [] },
+      visibleItems: [],
     });
     await waitFor(() => {
       expect(getNoDataText()).toBe("slot: no-match");
