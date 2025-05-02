@@ -217,6 +217,7 @@ export class ChartAPI {
 
   // When hovering (or focusing) over the target (point, bar, segment, etc.) we show the tooltip in the target coordinate.
   public showTooltipOnPoint = (point: Highcharts.Point) => {
+    console.log("point", point);
     this.updateSetters();
 
     // The behavior is ignored if the tooltip is already shown and pinned.
