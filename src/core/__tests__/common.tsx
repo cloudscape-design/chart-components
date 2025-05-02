@@ -68,3 +68,22 @@ export function clickChartPoint(seriesIndex: number, index: number) {
     new MouseEvent("click", { bubbles: true, cancelable: true }),
   );
 }
+
+export class TestChartRenderer {
+  public _rect: unknown[] = [];
+  public _attr: unknown[] = [];
+
+  rect(props: unknown) {
+    this._rect.push(props);
+    return this;
+  }
+
+  attr(props: unknown) {
+    this._attr.push(props);
+    return this;
+  }
+
+  add() {
+    return null;
+  }
+}

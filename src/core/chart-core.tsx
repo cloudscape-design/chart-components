@@ -107,9 +107,7 @@ export function CoreChart({
               events: {
                 ...options.chart?.events,
                 render(event) {
-                  if (highcharts && event.target instanceof highcharts.Chart) {
-                    resetColorCounter(event.target, options.series?.length ?? 0);
-                  }
+                  resetColorCounter(this, options.series?.length ?? 0);
                   api.options.onChartRender.call(this, event);
                   return options.chart?.events?.render?.call(this, event);
                 },

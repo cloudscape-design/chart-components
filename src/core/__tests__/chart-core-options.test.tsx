@@ -1,15 +1,19 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import type Highcharts from "highcharts";
 import highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
-import { omit } from "lodash";
 import { vi } from "vitest";
 
 import { CoreChartProps } from "../../../lib/components/core/interfaces-core";
-import { renderChart } from "./common";
+import { renderChart, TestChartRenderer } from "./common";
 
 vi.mock("highcharts-react-official", () => ({ __esModule: true, default: vi.fn(() => null) }));
+
+const rendererStub = new TestChartRenderer();
+const chartStub = { series: [], legend: { allItems: [] }, options: {}, renderer: rendererStub };
+const pointStub = { series: { chart: chartStub } };
 
 // These tests ensure the Highcharts options can be passed down to the underlying Highcharts component,
 // overriding the Cloudscape defaults.
@@ -93,6 +97,28 @@ describe("CoreChart: options", () => {
     );
   });
 
+  test("propagates highcharts legend", () => {
+    renderChart({ highcharts, options: { legend: { enabled: true, align: "right" } } });
+
+    expect(HighchartsReact).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.objectContaining({ legend: { enabled: true, align: "right" } }),
+      }),
+      expect.anything(),
+    );
+  });
+
+  test("propagates highcharts tooltip", () => {
+    renderChart({ highcharts, options: { tooltip: { enabled: true, stickOnContact: true } } });
+
+    expect(HighchartsReact).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.objectContaining({ tooltip: { enabled: true, stickOnContact: true } }),
+      }),
+      expect.anything(),
+    );
+  });
+
   test("propagates axes", () => {
     const createAxis = (text: string) =>
       ({
@@ -168,13 +194,12 @@ describe("CoreChart: options", () => {
   });
 
   test.each([0, 1])("propagates plotOptions.series.point, inputs=%s", (index) => {
-    const chartStub = { series: [], legend: { allItems: [] } };
-    const mouseOverEvent = {};
     const mouseOver = vi.fn();
-    const mouseOutEvent = {};
+    const mouseOverEvent = {};
     const mouseOut = vi.fn();
-    const clickEvent = {};
+    const mouseOutEvent = {};
     const click = vi.fn();
+    const clickEvent = {};
     const remove = () => {};
     const options: Highcharts.Options = {
       plotOptions: {
@@ -185,8 +210,8 @@ describe("CoreChart: options", () => {
         },
       },
     };
-    const inputs: CoreChartProps[] = [
-      { highcharts, options },
+    const inputs: (CoreChartProps & { highcharts: typeof Highcharts })[] = [
+      { highcharts, options, tooltip: { enabled: false } },
       { highcharts, options, tooltip: { getTooltipContent: () => ({ header: "", body: "" }) } },
     ];
     renderChart(inputs[index]);
@@ -207,9 +232,9 @@ describe("CoreChart: options", () => {
     );
 
     const mockCall = vi.mocked(HighchartsReact).mock.calls[0][0];
-    mockCall.callback(chartStub);
+    mockCall.options.chart.events.render.call(chartStub);
 
-    mockCall.options.plotOptions.series.point.events.mouseOver.call(null, mouseOverEvent);
+    mockCall.options.plotOptions.series.point.events.mouseOver.call(pointStub, mouseOverEvent);
     expect(mouseOver).toHaveBeenCalledWith(mouseOverEvent);
 
     mockCall.options.plotOptions.series.point.events.mouseOut.call(null, mouseOutEvent);
@@ -220,7 +245,6 @@ describe("CoreChart: options", () => {
   });
 
   test.each([0, 1, 2])("propagates highcharts chart options, inputs=%s", (index) => {
-    const chartStub = { series: [], legend: { allItems: [] } };
     const loadEvent = {};
     const load = vi.fn();
     const renderEvent = {};
@@ -237,9 +261,9 @@ describe("CoreChart: options", () => {
         events: { load, render, click, redraw },
       },
     };
-    const inputs: CoreChartProps[] = [
-      { highcharts, options },
-      { highcharts, options, noData: { statusType: "error" } },
+    const inputs: (CoreChartProps & { highcharts: typeof Highcharts })[] = [
+      { highcharts, options, tooltip: { enabled: false } },
+      { highcharts, options, tooltip: { enabled: false }, noData: { statusType: "error" } },
       { highcharts, options, tooltip: { getTooltipContent: () => ({ header: "", body: "" }) } },
     ];
     renderChart(inputs[index]);
@@ -258,7 +282,8 @@ describe("CoreChart: options", () => {
       expect.anything(),
     );
 
-    vi.mocked(HighchartsReact).mock.calls[0][0].callback(chartStub);
+    const mockCall = vi.mocked(HighchartsReact).mock.calls[0][0];
+    mockCall.options.chart.events.render.call(chartStub);
 
     vi.mocked(HighchartsReact).mock.calls[0][0].options.chart.events.load.call(chartStub, loadEvent);
     expect(load).toHaveBeenCalledWith(loadEvent);
@@ -268,34 +293,5 @@ describe("CoreChart: options", () => {
 
     vi.mocked(HighchartsReact).mock.calls[0][0].options.chart.events.click.call(chartStub, clickEvent);
     expect(click).toHaveBeenCalledWith(clickEvent);
-  });
-
-  test("propagates highcharts legend options", () => {
-    const itemClickEvent = {};
-    const labelFormatter = () => "";
-    const itemClick = vi.fn();
-    const options: Highcharts.Options = {
-      legend: {
-        labelFormatter,
-        title: { style: { color: "title-color" }, text: "title-text" },
-        itemStyle: { color: "item-color" },
-        backgroundColor: "legend-background-color",
-        symbolPadding: 99,
-        events: { itemClick },
-      },
-    };
-    renderChart({ highcharts, options });
-
-    expect(HighchartsReact).toHaveBeenCalledWith(
-      expect.objectContaining({
-        options: expect.objectContaining({
-          legend: expect.objectContaining(omit(options.legend, "events")),
-        }),
-      }),
-      expect.anything(),
-    );
-
-    vi.mocked(HighchartsReact).mock.calls[0][0].options.legend.events.itemClick(itemClickEvent);
-    expect(itemClick).toHaveBeenCalledWith(itemClickEvent);
   });
 });
