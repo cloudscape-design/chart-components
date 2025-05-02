@@ -24,13 +24,13 @@ function getVisibilityState() {
   };
 }
 
-const onItemVisibilityChange = vi.fn();
+const onLegendItemsChange = vi.fn();
 
 afterEach(() => {
-  onItemVisibilityChange.mockReset();
+  onLegendItemsChange.mockReset();
 });
 
-const defaultProps = { highcharts, onItemVisibilityChange };
+const defaultProps = { highcharts, onLegendItemsChange };
 
 const lineSeries: Highcharts.SeriesOptionsType[] = [
   {
@@ -109,7 +109,10 @@ describe("CoreChart: visibility", () => {
       hiddenPoints: [],
     });
 
-    expect(onItemVisibilityChange).toHaveBeenCalledWith(["L2"]);
+    expect(onLegendItemsChange).toHaveBeenCalledWith([
+      { id: "L1", name: "L1", marker: expect.anything(), visible: false },
+      { id: "L2", name: "L2", marker: expect.anything(), visible: true },
+    ]);
   });
 
   test("changes series visibility from the outside", () => {
@@ -184,11 +187,17 @@ describe("CoreChart: visibility", () => {
 
     wrapper.findLegend()!.findItems()[0].click();
 
-    expect(onItemVisibilityChange).toHaveBeenCalledWith(["2", "1"]);
+    expect(onLegendItemsChange).toHaveBeenCalledWith([
+      { id: "1", name: "Line", marker: expect.anything(), visible: true },
+      { id: "2", name: "Line", marker: expect.anything(), visible: true },
+    ]);
 
     wrapper.findLegend()!.findItems()[1].click();
 
-    expect(onItemVisibilityChange).toHaveBeenCalledWith([]);
+    expect(onLegendItemsChange).toHaveBeenCalledWith([
+      { id: "1", name: "Line", marker: expect.anything(), visible: false },
+      { id: "2", name: "Line", marker: expect.anything(), visible: false },
+    ]);
   });
 
   test.each([false, true])("hides items on the first render, legend=%s", (legend) => {
@@ -236,7 +245,10 @@ describe("CoreChart: visibility", () => {
       hiddenPoints: ["B"],
     });
 
-    expect(onItemVisibilityChange).toHaveBeenCalledWith(["A"]);
+    expect(onLegendItemsChange).toHaveBeenCalledWith([
+      { id: "A", name: "A", marker: expect.anything(), visible: true },
+      { id: "B", name: "B", marker: expect.anything(), visible: false },
+    ]);
   });
 
   test("changes items visibility from the outside", () => {
@@ -318,11 +330,17 @@ describe("CoreChart: visibility", () => {
 
     wrapper.findLegend()!.findItems()[0].click();
 
-    expect(onItemVisibilityChange).toHaveBeenCalledWith(["2", "1"]);
+    expect(onLegendItemsChange).toHaveBeenCalledWith([
+      { id: "1", name: "Segment", marker: expect.anything(), visible: true },
+      { id: "2", name: "Segment", marker: expect.anything(), visible: true },
+    ]);
 
     wrapper.findLegend()!.findItems()[1].click();
 
-    expect(onItemVisibilityChange).toHaveBeenCalledWith([]);
+    expect(onLegendItemsChange).toHaveBeenCalledWith([
+      { id: "1", name: "Segment", marker: expect.anything(), visible: false },
+      { id: "2", name: "Segment", marker: expect.anything(), visible: false },
+    ]);
   });
 
   test("uses customized set of legend items", () => {

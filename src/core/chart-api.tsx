@@ -8,6 +8,7 @@ import type Highcharts from "highcharts";
 import { ReadonlyAsyncStore } from "../internal/utils/async-store";
 import { DebouncedCall } from "../internal/utils/utils";
 import { ChartStore } from "./chart-store";
+import { ChartLegendItem } from "./interfaces-base";
 import { ChartLegendItemSpec, ReactiveChartState, Rect, RegisteredLegendAPI } from "./interfaces-core";
 import * as Styles from "./styles";
 import {
@@ -30,7 +31,7 @@ interface ChartAPIContext {
   visibleItems?: readonly string[];
   getChartLegendItems?(props: { chart: Highcharts.Chart }): readonly ChartLegendItemSpec[];
   getMatchedLegendItems?(props: { point: Highcharts.Point }): readonly string[];
-  onItemVisibilityChange?: (visibleItems: readonly string[]) => void;
+  onLegendItemsChange?: (legendItems: readonly ChartLegendItem[]) => void;
   isTooltipEnabled: boolean;
   tooltipPlacement: "target" | "bottom" | "middle";
   onPointHighlight?(props: { point: Highcharts.Point; target: Rect }): void | { target: Rect };
@@ -224,7 +225,9 @@ export class ChartAPI {
   };
 
   public onItemVisibilityChange = (visibleItems: readonly string[]) => {
-    this.context.onItemVisibilityChange?.(visibleItems);
+    const legendItems = this.store.get().legend.items;
+    const updatedLegendItems = legendItems.map((item) => ({ ...item, visible: visibleItems.includes(item.id) }));
+    this.context.onLegendItemsChange?.(updatedLegendItems);
   };
 
   private onChartRender() {

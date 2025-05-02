@@ -114,7 +114,7 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
       noData={props.noData}
       legend={props.legend}
       visibleItems={visibleSegments}
-      onItemVisibilityChange={setVisibleSegments}
+      onLegendItemsChange={(legendItems) => setVisibleSegments(legendItems.filter((i) => i.visible).map((i) => i.id))}
       header={props.header}
       footer={props.footer}
       filter={props.filter}

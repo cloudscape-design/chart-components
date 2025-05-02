@@ -49,16 +49,20 @@ describe("CoreChart: series filter", () => {
     );
   });
 
-  test("calls onItemVisibilityChange", () => {
-    const onItemVisibilityChange = vi.fn();
+  test("calls onLegendItemsChange", () => {
+    const onLegendItemsChange = vi.fn();
     renderChart({
       highcharts,
       options: { series },
       filter: { seriesFilter: true },
-      onItemVisibilityChange,
+      onLegendItemsChange,
+      visibleItems: ["L1", "L2"],
     });
     createChartWrapper().findFilter()!.findSeriesFilter()!.findMultiselect()!.openDropdown();
     createChartWrapper().findFilter()!.findSeriesFilter()!.findMultiselect()!.selectOption(1);
-    expect(onItemVisibilityChange).toHaveBeenCalledWith(["L1"]);
+    expect(onLegendItemsChange).toHaveBeenCalledWith([
+      { id: "L1", name: "L1", marker: expect.anything(), visible: false },
+      { id: "L2", name: "L2", marker: expect.anything(), visible: true },
+    ]);
   });
 });
