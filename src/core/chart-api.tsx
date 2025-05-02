@@ -5,12 +5,12 @@ import { useEffect, useId, useRef } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import type Highcharts from "highcharts";
 
-import { useStableCallback } from "@cloudscape-design/component-toolkit/internal";
-
 import { ReadonlyAsyncStore } from "../internal/utils/async-store";
 import { DebouncedCall } from "../internal/utils/utils";
 import { ChartStore } from "./chart-store";
 import {
+  ChartLegendItemSpec,
+  CoreLegendOptions,
   CoreTooltipOptions,
   PointHighlightDetail,
   ReactiveChartState,
@@ -36,6 +36,12 @@ const LAST_DISMISS_DELAY = 250;
 const SET_STATE_OVERRIDE_MARKER = Symbol("awsui-set-state");
 
 interface ChartAPIContext {
+  legend: {
+    enabled: boolean;
+    visibleItems?: readonly string[];
+    getChartLegendItems?(props: { chart: Highcharts.Chart }): readonly ChartLegendItemSpec[];
+    onItemVisibilityChange?: (visibleItems: readonly string[]) => void;
+  };
   tooltip: {
     enabled: boolean;
     placement: "target" | "bottom" | "middle";
@@ -47,35 +53,40 @@ interface ChartAPIContext {
 }
 
 export function useChartAPI({
-  hiddenItems,
+  legendOptions,
   tooltipOptions,
 }: {
-  hiddenItems?: readonly string[];
+  legendOptions?: CoreLegendOptions;
   tooltipOptions?: CoreTooltipOptions;
 }) {
   const chartId = useId();
-  const getContext = useStableCallback(
-    (): ChartAPIContext => ({
-      tooltip: {
-        enabled: tooltipOptions?.enabled ?? true,
-        placement: tooltipOptions?.placement ?? "target",
-        getTargetFromPoint: tooltipOptions?.getTargetFromPoint,
-        getTooltipContent: tooltipOptions?.getTooltipContent,
-        onPointHighlight: tooltipOptions?.onPointHighlight,
-        onClearHighlight: tooltipOptions?.onClearHighlight,
-      },
-    }),
-  );
-  const api = useRef(new ChartAPI(chartId, getContext)).current;
+  const contextRef = useRef<ChartAPIContext>();
+  contextRef.current = {
+    legend: {
+      enabled: legendOptions?.enabled ?? true,
+      visibleItems: legendOptions?.visibleItems,
+      getChartLegendItems: legendOptions?.getChartLegendItems,
+      onItemVisibilityChange: legendOptions?.onItemVisibilityChange,
+    },
+    tooltip: {
+      enabled: tooltipOptions?.enabled ?? true,
+      placement: tooltipOptions?.placement ?? "target",
+      getTargetFromPoint: tooltipOptions?.getTargetFromPoint,
+      getTooltipContent: tooltipOptions?.getTooltipContent,
+      onPointHighlight: tooltipOptions?.onPointHighlight,
+      onClearHighlight: tooltipOptions?.onClearHighlight,
+    },
+  };
+  const api = useRef(new ChartAPI(chartId, () => contextRef.current!)).current;
 
   // When series or items visibility change, we call setVisible Highcharts method on series and/or items
   // for the change to take an effect.
-  const hiddenItemsIndex = hiddenItems ? hiddenItems.join("::") : null;
+  const visibleItemsIndex = legendOptions?.visibleItems ? legendOptions?.visibleItems.join("::") : null;
   useEffect(() => {
-    if (api.ready && hiddenItemsIndex !== null) {
-      api.updateChartItemsVisibility(hiddenItemsIndex.split("::").filter(Boolean));
+    if (api.ready && visibleItemsIndex !== null) {
+      api.updateChartItemsVisibility(visibleItemsIndex.split("::").filter(Boolean));
     }
-  }, [api, hiddenItemsIndex]);
+  }, [api, visibleItemsIndex]);
 
   return api;
 }
@@ -182,8 +193,9 @@ export class ChartAPI {
     clearChartItemsHighlight(this.chart);
   }
 
-  public updateChartItemsVisibility(hiddenItems?: readonly string[]) {
-    updateChartItemsVisibility(this.chart, hiddenItems);
+  public updateChartItemsVisibility(visibleItems?: readonly string[]) {
+    const legendItems = this.store.get().legend.items;
+    updateChartItemsVisibility(this.chart, legendItems, visibleItems);
   }
 
   public onMouseEnterTooltip = () => {
@@ -247,14 +259,21 @@ export class ChartAPI {
     }
   };
 
+  public onItemVisibilityChange = (visibleItems: readonly string[]) => {
+    this.context.legend.onItemVisibilityChange?.(visibleItems);
+  };
+
   private onChartRender() {
     this.initLegend();
     this.initVerticalAxisTitles();
     this.initNoData();
+    this.updateChartItemsVisibility(this.context.legend.visibleItems);
   }
 
   private initLegend() {
-    this._store.setLegendItems(getChartLegendItems(this.chart));
+    const customLegendItems = this.context.legend.getChartLegendItems?.({ chart: this.chart });
+    const legendItems = getChartLegendItems(this.chart, customLegendItems);
+    this._store.setLegendItems(legendItems);
   }
 
   private initVerticalAxisTitles() {

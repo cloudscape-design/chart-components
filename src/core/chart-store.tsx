@@ -5,7 +5,7 @@ import { ChartSeriesMarker, ChartSeriesMarkerType } from "../internal/components
 import AsyncStore from "../internal/utils/async-store";
 import { isEqualArrays } from "../internal/utils/utils";
 import { ChartLegendItem } from "./interfaces-base";
-import { ChartLegendItemSpec, ReactiveChartState } from "./interfaces-core";
+import { InternalChartLegendItemSpec, ReactiveChartState } from "./interfaces-core";
 
 export class ChartStore {
   private store = new AsyncStore<ReactiveChartState>({
@@ -35,10 +35,10 @@ export class ChartStore {
     this.store.set((prev) => ({ ...prev, noData }));
   }
 
-  public setLegendItems(nextItemSpecs: readonly ChartLegendItemSpec[]) {
+  public setLegendItems(nextItemSpecs: readonly InternalChartLegendItemSpec[]) {
     const currentItems = this.get().legend.items;
-    const nextItems = nextItemSpecs.map(({ id, name, color, markerType, visible }) => {
-      const marker = this.renderMarker(markerType, color, visible);
+    const nextItems = nextItemSpecs.map(({ id, name, color, markerType, marker: customMarker, visible }) => {
+      const marker = customMarker ?? this.renderMarker(markerType, color, visible);
       return { id, name, marker, visible };
     });
     if (!isEqualArrays(currentItems, nextItems, isEqualLegendItems)) {

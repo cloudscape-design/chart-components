@@ -30,7 +30,7 @@ export interface ChartLegendOptions {
   actions?: React.ReactNode;
   onItemHighlightEnter?: (itemId: string) => void;
   onItemHighlightExit?: () => void;
-  onItemVisibilityChange?: (hiddenItems: string[]) => void;
+  onItemVisibilityChange: (hiddenItems: string[]) => void;
 }
 
 export interface InfoTooltipProps {
@@ -155,20 +155,20 @@ export const ChartLegend = forwardRef(
     });
 
     const toggleItem = (itemId: string) => {
-      const hiddenItems = items.filter((i) => !i.visible).map((i) => i.id);
-      if (hiddenItems.includes(itemId)) {
-        onItemVisibilityChange?.(hiddenItems.filter((id) => id !== itemId));
+      const visibleItems = items.filter((i) => i.visible).map((i) => i.id);
+      if (visibleItems.includes(itemId)) {
+        onItemVisibilityChange(visibleItems.filter((visibleItemId) => visibleItemId !== itemId));
       } else {
-        onItemVisibilityChange?.([...hiddenItems, itemId]);
+        onItemVisibilityChange([...visibleItems, itemId]);
       }
     };
 
     const selectItem = (itemId: string) => {
       const visibleItems = items.filter((i) => i.visible).map((i) => i.id);
       if (visibleItems.length === 1 && visibleItems[0] === itemId) {
-        onItemVisibilityChange?.([]);
+        onItemVisibilityChange(items.map((i) => i.id));
       } else {
-        onItemVisibilityChange?.(items.map((i) => i.id).filter((id) => id !== itemId));
+        onItemVisibilityChange([itemId]);
       }
     };
 

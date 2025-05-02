@@ -134,9 +134,9 @@ width value, the horizontal scrollbar is automatically added.",
         "name": "ChartFooterOptions",
         "properties": [
           {
-            "name": "render",
+            "name": "content",
             "optional": true,
-            "type": "((props: BaseFooterRenderProps) => React.ReactNode)",
+            "type": "React.ReactNode",
           },
         ],
         "type": "object",
@@ -151,9 +151,9 @@ width value, the horizontal scrollbar is automatically added.",
         "name": "ChartHeaderOptions",
         "properties": [
           {
-            "name": "render",
+            "name": "content",
             "optional": true,
-            "type": "((props: BaseHeaderRenderProps) => React.ReactNode)",
+            "type": "React.ReactNode",
           },
         ],
         "type": "object",
@@ -185,7 +185,7 @@ This property corresponds to [chart.inverted](https://api.highcharts.com/highcha
           {
             "name": "actions",
             "optional": true,
-            "type": "{ render?(props: LegendActionsRenderProps): React.ReactNode; }",
+            "type": "{ content?: React.ReactNode; }",
           },
           {
             "name": "enabled",
@@ -610,9 +610,9 @@ width value, the horizontal scrollbar is automatically added.",
         "name": "ChartFooterOptions",
         "properties": [
           {
-            "name": "render",
+            "name": "content",
             "optional": true,
-            "type": "((props: BaseFooterRenderProps) => React.ReactNode)",
+            "type": "React.ReactNode",
           },
         ],
         "type": "object",
@@ -627,9 +627,9 @@ width value, the horizontal scrollbar is automatically added.",
         "name": "ChartHeaderOptions",
         "properties": [
           {
-            "name": "render",
+            "name": "content",
             "optional": true,
-            "type": "((props: BaseHeaderRenderProps) => React.ReactNode)",
+            "type": "React.ReactNode",
           },
         ],
         "type": "object",
@@ -666,7 +666,7 @@ Supported Highcharts versions:
           {
             "name": "actions",
             "optional": true,
-            "type": "{ render?(props: LegendActionsRenderProps): React.ReactNode; }",
+            "type": "{ content?: React.ReactNode; }",
           },
           {
             "name": "enabled",

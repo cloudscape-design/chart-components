@@ -12,7 +12,7 @@ import { getDataAttributes } from "../internal/base-component/get-data-attribute
 import { castArray } from "../internal/utils/utils";
 import { useChartAPI } from "./chart-api";
 import { ChartContainer } from "./chart-container";
-import { ChartFilter, ChartLegend, ChartNoData, ChartSlot, ChartTooltip, VerticalAxisTitle } from "./components";
+import { ChartFilter, ChartLegend, ChartNoData, ChartTooltip, VerticalAxisTitle } from "./components";
 import { CoreChartProps } from "./interfaces-core";
 import * as Styles from "./styles";
 import { resetColorCounter } from "./utils";
@@ -34,8 +34,6 @@ export function CoreChart({
   legend: legendOptions,
   fallback = <Spinner />,
   callback,
-  hiddenItems,
-  onItemVisibilityChange,
   verticalAxisTitlePlacement = "top",
   i18nStrings,
   className,
@@ -48,7 +46,7 @@ export function CoreChart({
 
   const isLegendEnabled = legendOptions?.enabled !== false;
   const isTooltipEnabled = tooltipOptions?.enabled !== false;
-  const api = useChartAPI({ hiddenItems, tooltipOptions });
+  const api = useChartAPI({ legendOptions, tooltipOptions });
 
   const rootClassName = clsx(styles.root, fitHeight && styles["root-fit-height"], className);
 
@@ -229,23 +227,15 @@ export function CoreChart({
             />
           );
         }}
-        legend={
-          isLegendEnabled ? (
-            <ChartLegend {...legendOptions} onItemVisibilityChange={onItemVisibilityChange} api={api} />
-          ) : null
-        }
+        legend={isLegendEnabled ? <ChartLegend {...legendOptions} api={api} /> : null}
         title={
           verticalAxisTitlePlacement === "top" ? (
             <VerticalAxisTitle verticalAxisTitlePlacement={verticalAxisTitlePlacement} api={api} />
           ) : null
         }
-        header={header ? <ChartSlot api={api} {...header} /> : null}
-        footer={footer ? <ChartSlot api={api} {...footer} /> : null}
-        seriesFilter={
-          filter?.seriesFilter ? (
-            <ChartFilter api={api} onChange={(nextHiddenItems) => onItemVisibilityChange?.(nextHiddenItems)} />
-          ) : null
-        }
+        header={header?.content}
+        footer={footer?.content}
+        seriesFilter={filter?.seriesFilter ? <ChartFilter api={api} /> : null}
         additionalFilters={filter?.additionalFilters}
       />
 

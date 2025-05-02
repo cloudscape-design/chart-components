@@ -50,7 +50,6 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
   // Unless visible segments are explicitly set, we start from all segments being visible.
   const allSegmentIds = getAllSegmentIds(props.options.series);
   const visibleSegments = visibleSegmentsState ?? allSegmentIds;
-  const hiddenSegments = allSegmentIds.filter((id) => !visibleSegments.includes(id));
 
   // Converting donut series to Highcharts pie series.
   const series: Highcharts.SeriesOptionsRegistry["SeriesPieOptions"][] = [];
@@ -112,11 +111,11 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
       chartMinWidth={props.chartMinWidth}
       tooltip={tooltipProps}
       noData={props.noData}
-      legend={props.legend}
-      hiddenItems={hiddenSegments}
-      onItemVisibilityChange={(hiddenSegments) =>
-        setVisibleSegments(allSegmentIds.filter((id) => !hiddenSegments.includes(id)))
-      }
+      legend={{
+        ...props.legend,
+        visibleItems: visibleSegments,
+        onItemVisibilityChange: setVisibleSegments,
+      }}
       header={props.header}
       footer={props.footer}
       filter={props.filter}

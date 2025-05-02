@@ -16,7 +16,6 @@ import Portal from "../internal/components/portal";
 import { fireNonCancelableEvent } from "../internal/events";
 import { useSelector } from "../internal/utils/async-store";
 import { ChartAPI } from "./chart-api";
-import { ChartFooterOptions, ChartHeaderOptions, LegendActionsRenderProps } from "./interfaces-base";
 import { CoreI18nStrings, CoreNoDataProps, CoreTooltipOptions } from "./interfaces-core";
 
 import styles from "./styles.css.js";
@@ -25,9 +24,8 @@ import testClasses from "./test-classes/styles.css.js";
 export interface ChartLegendProps {
   title?: string;
   actions?: {
-    render?(props: LegendActionsRenderProps): React.ReactNode;
+    content?: React.ReactNode;
   };
-  onItemVisibilityChange?(hiddenItems: readonly string[]): void;
   api: ChartAPI;
 }
 
@@ -36,7 +34,7 @@ export interface ChartLegendRef {
   clearHighlight: () => void;
 }
 
-export function ChartLegend({ title, actions, onItemVisibilityChange, api }: ChartLegendProps) {
+export function ChartLegend({ title, actions, api }: ChartLegendProps) {
   const legendItems = useSelector(api.store, (s) => s.legend.items);
   return (
     <ChartLegendComponent
@@ -49,8 +47,8 @@ export function ChartLegend({ title, actions, onItemVisibilityChange, api }: Cha
       }}
       legendTitle={title}
       items={legendItems}
-      actions={actions?.render?.({ legendItems })}
-      onItemVisibilityChange={onItemVisibilityChange}
+      actions={actions?.content}
+      onItemVisibilityChange={api.onItemVisibilityChange}
       onItemHighlightEnter={(itemId) => api.highlightChartItems([itemId])}
       onItemHighlightExit={() => api.clearChartItemsHighlight()}
     />
@@ -148,27 +146,17 @@ export function ChartNoData({
   );
 }
 
-export function ChartFilter({ api, onChange }: { api: ChartAPI; onChange: (hiddenItems: string[]) => void }) {
+export function ChartFilter({ api }: { api: ChartAPI }) {
   const legendItems = useSelector(api.store, (s) => s.legend.items);
   return (
     <ChartSeriesFilter
       items={legendItems}
       selectedItems={legendItems.filter((i) => i.visible).map((i) => i.id)}
       onChange={({ detail }) =>
-        onChange(legendItems.filter((i) => !detail.selectedItems.includes(i.id)).map((i) => i.id))
+        api.onItemVisibilityChange(legendItems.filter((i) => detail.selectedItems.includes(i.id)).map((i) => i.id))
       }
     />
   );
-}
-
-export function ChartSlot({
-  api,
-  render,
-}: (ChartHeaderOptions | ChartFooterOptions) & {
-  api: ChartAPI;
-}) {
-  const legendItems = useSelector(api.store, (s) => s.legend.items);
-  return <>{render?.({ legendItems }) ?? null}</>;
 }
 
 export function VerticalAxisTitle({

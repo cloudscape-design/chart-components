@@ -96,7 +96,7 @@ export interface ChartLegendOptions {
   enabled?: boolean;
   title?: string;
   actions?: {
-    render?(props: LegendActionsRenderProps): React.ReactNode;
+    content?: React.ReactNode;
   };
 }
 
@@ -110,23 +110,11 @@ export interface ChartNoDataOptions {
 }
 
 export interface ChartHeaderOptions {
-  render?(props: BaseHeaderRenderProps): React.ReactNode;
-}
-
-export interface BaseHeaderRenderProps {
-  legendItems: readonly ChartLegendItem[];
+  content?: React.ReactNode;
 }
 
 export interface ChartFooterOptions {
-  render?(props: BaseFooterRenderProps): React.ReactNode;
-}
-
-export interface BaseFooterRenderProps {
-  legendItems: readonly ChartLegendItem[];
-}
-
-export interface LegendActionsRenderProps {
-  legendItems: readonly ChartLegendItem[];
+  content?: React.ReactNode;
 }
 
 export interface ChartLegendItem {
@@ -136,7 +124,7 @@ export interface ChartLegendItem {
   visible: boolean;
 }
 
-export interface BaseI18nStrings {
+export interface ChartI18nStrings {
   loadingText?: string;
   errorText?: string;
   recoveryText?: string;

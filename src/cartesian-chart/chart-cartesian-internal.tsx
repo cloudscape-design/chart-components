@@ -51,7 +51,6 @@ export const InternalCartesianChart = forwardRef(
     // Unless visible series are explicitly set, we start from all series being visible.
     const allSeriesIds = props.options.series.map((s) => getOptionsId(s));
     const visibleSeries = visibleSeriesState ?? allSeriesIds;
-    const hiddenSeries = allSeriesIds.filter((id) => !visibleSeries.includes(id));
 
     // Converting threshold series and baseline setting to Highcharts options.
     const { series, xPlotLines, yPlotLines, onChartRender, tooltip } = useCartesianSeries({ ...props, visibleSeries });
@@ -131,11 +130,11 @@ export const InternalCartesianChart = forwardRef(
         chartMinWidth={props.chartMinWidth}
         tooltip={tooltipProps}
         noData={props.noData}
-        legend={props.legend}
-        hiddenItems={hiddenSeries}
-        onItemVisibilityChange={(hiddenSeries) =>
-          setVisibleSeries(allSeriesIds.filter((id) => !hiddenSeries.includes(id)))
-        }
+        legend={{
+          ...props.legend,
+          visibleItems: visibleSeries,
+          onItemVisibilityChange: setVisibleSeries,
+        }}
         verticalAxisTitlePlacement={props.verticalAxisTitlePlacement}
         header={props.header}
         footer={props.footer}
