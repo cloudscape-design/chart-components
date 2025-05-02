@@ -3,7 +3,6 @@
 
 import { act } from "react";
 import highcharts from "highcharts";
-import { vi } from "vitest";
 
 import {
   createChartWrapper,
@@ -64,7 +63,7 @@ describe("CoreChart: legend", () => {
   });
 
   test("renders expected legend items", () => {
-    renderChart({ highcharts, options: { series }, hiddenItems: ["L2", "L3", "P2", "P3"] });
+    renderChart({ highcharts, options: { series }, legend: { visibleItems: ["L1", "P1"] } });
 
     expect(getItems().map((w) => w.getElement().textContent)).toEqual(["L1", "L2", "Line 3", "P1", "P2", "Pie 3"]);
     expect(getItems({ hidden: false }).map((w) => w.getElement().textContent)).toEqual(["L1", "P1"]);
@@ -93,33 +92,21 @@ describe("CoreChart: legend", () => {
   });
 
   test("renders action slot if specified with expected render props", () => {
-    const renderActions = vi.fn().mockReturnValue("Legend actions");
     renderChart({
       highcharts,
       options: { series },
-      hiddenItems: ["L2", "L3", "P2", "P3"],
-      legend: { actions: { render: renderActions } },
+      legend: { actions: { content: "Legend actions" }, visibleItems: ["L1", "P1"] },
     });
 
     expect(createChartWrapper().findLegend()).not.toBe(null);
     expect(createChartWrapper().findLegend()!.findActions()!.getElement().textContent).toBe("Legend actions");
-    expect(renderActions).toHaveBeenCalledWith({
-      legendItems: [
-        { id: "L1", name: "L1", marker: expect.anything(), visible: true },
-        { id: "L2", name: "L2", marker: expect.anything(), visible: false },
-        { id: "L3", name: "Line 3", marker: expect.anything(), visible: false },
-        { id: "P1", name: "P1", marker: expect.anything(), visible: true },
-        { id: "P2", name: "P2", marker: expect.anything(), visible: false },
-        { id: "P3", name: "Pie 3", marker: expect.anything(), visible: false },
-      ],
-    });
   });
 
   test("legend items are highlighted on hover in cartesian chart", async () => {
     renderChart({
       highcharts,
       options: { series: series.filter((s) => s.type === "line") },
-      hiddenItems: ["L2"],
+      legend: { visibleItems: ["L1", "L3"] },
     });
 
     expect(createChartWrapper().findLegend()).not.toBe(null);
@@ -149,7 +136,7 @@ describe("CoreChart: legend", () => {
     renderChart({
       highcharts,
       options: { series: series.filter((s) => s.type === "pie") },
-      hiddenItems: ["P2"],
+      legend: { visibleItems: ["P1", "P3"] },
     });
 
     expect(createChartWrapper().findLegend()).not.toBe(null);
@@ -179,7 +166,7 @@ describe("CoreChart: legend", () => {
     renderChart({
       highcharts,
       options: { series: series.filter((s) => s.type === "line") },
-      hiddenItems: ["L2"],
+      legend: { visibleItems: ["L1", "L3"] },
     });
 
     expect(createChartWrapper().findLegend()).not.toBe(null);
@@ -201,7 +188,7 @@ describe("CoreChart: legend", () => {
     renderChart({
       highcharts,
       options: { series: series.filter((s) => s.type === "pie") },
-      hiddenItems: ["P2"],
+      legend: { visibleItems: ["P1", "P3"] },
     });
 
     expect(createChartWrapper().findLegend()).not.toBe(null);

@@ -6,7 +6,7 @@ import type Highcharts from "highcharts";
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
 import { castArray } from "../internal/utils/utils";
 import { ChartLegendItem } from "./interfaces-base";
-import { ChartLegendItemSpec } from "./interfaces-core";
+import { ChartLegendItemSpec, InternalChartLegendItemSpec } from "./interfaces-core";
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
 // We expect that items requiring referencing (e.g. in order to control their visibility) have the unique identifier defined.
@@ -101,29 +101,39 @@ export function findAllVisibleSeries(chart: Highcharts.Chart) {
 // the chart object does not include information on legend items. Instead, we assume that all series but pie are
 // shown in the legend, and all pie series points are shown in the legend. Each item be it a series or a point should
 // have an ID, and all items with non-matched IDs are dimmed.
-export function getChartLegendItems(chart: Highcharts.Chart): readonly ChartLegendItemSpec[] {
-  const legendItems: ChartLegendItemSpec[] = [];
-  for (const s of chart.series) {
-    if (s.type !== "pie") {
+export function getChartLegendItems(
+  chart: Highcharts.Chart,
+  specs?: readonly ChartLegendItemSpec[],
+): readonly InternalChartLegendItemSpec[] {
+  const itemToSpec = new Map(specs?.map((spec) => [spec.id, spec]));
+  const legendItems: InternalChartLegendItemSpec[] = [];
+  const addSeriesItem = (series: Highcharts.Series) => {
+    const spec = itemToSpec.get(getSeriesId(series));
+    if (spec || (!specs && series.type !== "pie")) {
       legendItems.push({
-        id: getSeriesId(s),
-        name: s.name,
-        markerType: getSeriesMarkerType(s),
-        color: getSeriesColor(s),
-        visible: s.visible,
+        id: getSeriesId(series),
+        name: spec?.name ?? series.name,
+        markerType: getSeriesMarkerType(series),
+        color: getSeriesColor(series),
+        visible: series.visible,
       });
     }
-    for (const point of s.data) {
-      if (s.type === "pie") {
-        legendItems.push({
-          id: getPointId(point),
-          name: point.name,
-          markerType: getSeriesMarkerType(s),
-          color: getPointColor(point),
-          visible: point.visible,
-        });
-      }
+  };
+  const addPointItem = (point: Highcharts.Point) => {
+    const spec = itemToSpec.get(getPointId(point));
+    if (spec || (!specs && point.series.type === "pie")) {
+      legendItems.push({
+        id: getPointId(point),
+        name: spec?.name ?? point.name,
+        markerType: getSeriesMarkerType(point.series),
+        color: getPointColor(point),
+        visible: point.visible,
+      });
     }
+  };
+  for (const s of chart.series) {
+    addSeriesItem(s);
+    s.data.forEach(addPointItem);
   }
   return legendItems;
 }
@@ -177,20 +187,27 @@ export function clearChartItemsHighlight(chart: Highcharts.Chart) {
   });
 }
 
-export function updateChartItemsVisibility(chart: Highcharts.Chart, hiddenItems?: readonly string[]) {
-  const hiddenItemsSet = new Set(hiddenItems);
+export function updateChartItemsVisibility(
+  chart: Highcharts.Chart,
+  legendItems: readonly ChartLegendItem[],
+  visibleItems?: readonly string[],
+) {
+  const availableItemsSet = new Set(legendItems.map((i) => i.id));
+  const visibleItemsSet = new Set(visibleItems);
 
   let updatesCounter = 0;
   const getVisibleAndCount = (id: string, visible: boolean) => {
-    const nextVisible = !hiddenItemsSet.has(id);
+    const nextVisible = visibleItemsSet.has(id);
     updatesCounter += nextVisible !== visible ? 1 : 0;
     return nextVisible;
   };
 
   for (const series of chart.series) {
-    series.setVisible(getVisibleAndCount(getSeriesId(series), series.visible), false);
+    if (availableItemsSet.has(getSeriesId(series))) {
+      series.setVisible(getVisibleAndCount(getSeriesId(series), series.visible), false);
+    }
     for (const point of series.data) {
-      if (typeof point.setVisible === "function") {
+      if (typeof point.setVisible === "function" && availableItemsSet.has(getPointId(point))) {
         point.setVisible(getVisibleAndCount(getPointId(point), point.visible), false);
       }
     }

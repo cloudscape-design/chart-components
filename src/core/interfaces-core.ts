@@ -6,10 +6,10 @@ import type Highcharts from "highcharts";
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
 import {
   BaseChartProps,
-  BaseI18nStrings,
   ChartFilterOptions,
   ChartFooterOptions,
   ChartHeaderOptions,
+  ChartI18nStrings,
   ChartLegendItem,
   ChartLegendOptions,
   ChartNoDataOptions,
@@ -37,7 +37,7 @@ export interface CoreChartProps extends Pick<BaseChartProps, "fitHeight" | "char
    * The Cloudscape legend, that is rendered outside the Highcharts container. It uses Cloudscape markers
    * and menu actions.
    */
-  legend?: ChartLegendOptions;
+  legend?: CoreLegendOptions;
   /**
    * Represents chart's empty, no-match, loading, and error states. It requires the Highcharts nodata module.
    */
@@ -67,15 +67,6 @@ export interface CoreChartProps extends Pick<BaseChartProps, "fitHeight" | "char
    * - `clearLegendHighlight()` - clears legend highlight.
    */
   callback?: (chart: CoreChartAPI) => void;
-  /**
-   * The list of series or points IDs that should be hidden (using Highcharts `item.setVisible(false)`).
-   * When the item ID is not set, the name is used instead.
-   */
-  hiddenItems?: readonly string[];
-  /**
-   * A callback triggered when clicking on a legend item.
-   */
-  onItemVisibilityChange?: (hiddenItems: readonly string[]) => void;
   /**
    * An object that contains all of the localized strings required by the component.
    * @i18n
@@ -115,6 +106,27 @@ export interface CoreTooltipOptions extends ChartTooltipOptions {
   onClearHighlight?(): void;
 }
 
+export interface CoreLegendOptions extends ChartLegendOptions {
+  visibleItems?: readonly string[];
+  getChartLegendItems?(props: { chart: Highcharts.Chart }): readonly ChartLegendItemSpec[];
+  onItemVisibilityChange?: (visibleItems: readonly string[]) => void;
+}
+
+export interface ChartLegendItemSpec {
+  id: string;
+  name?: string;
+  marker?: React.ReactNode;
+}
+
+export interface InternalChartLegendItemSpec {
+  id: string;
+  name: string;
+  color: string;
+  markerType: ChartSeriesMarkerType;
+  visible: boolean;
+  marker?: React.ReactNode;
+}
+
 export interface Rect {
   x: number;
   y: number;
@@ -134,7 +146,7 @@ export interface TooltipContent {
 
 export type CoreNoDataProps = ChartNoDataOptions;
 
-export type CoreI18nStrings = BaseI18nStrings;
+export type CoreI18nStrings = ChartI18nStrings;
 
 export interface ReactiveChartState {
   tooltip: {
@@ -152,12 +164,4 @@ export interface ReactiveChartState {
   axes: {
     verticalAxesTitles: readonly string[];
   };
-}
-
-export interface ChartLegendItemSpec {
-  id: string;
-  name: string;
-  color: string;
-  markerType: ChartSeriesMarkerType;
-  visible: boolean;
 }

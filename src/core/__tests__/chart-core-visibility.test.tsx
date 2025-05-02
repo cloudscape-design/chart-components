@@ -30,7 +30,7 @@ afterEach(() => {
   onItemVisibilityChange.mockReset();
 });
 
-const defaultProps = { highcharts, onItemVisibilityChange };
+const defaultProps = { highcharts };
 
 const lineSeries: Highcharts.SeriesOptionsType[] = [
   {
@@ -68,8 +68,7 @@ describe("CoreChart: visibility", () => {
     renderStatefulChart({
       ...defaultProps,
       options: { series: lineSeries },
-      legend: { enabled: legend },
-      hiddenItems: ["L1"],
+      legend: { enabled: legend, visibleItems: ["L2"] },
     });
 
     expect(getVisibilityState()).toEqual({
@@ -83,7 +82,11 @@ describe("CoreChart: visibility", () => {
   });
 
   test("toggles series visibility by clicking on legend", () => {
-    renderStatefulChart({ ...defaultProps, options: { series: lineSeries }, hiddenItems: [] });
+    renderStatefulChart({
+      ...defaultProps,
+      options: { series: lineSeries },
+      legend: { visibleItems: ["L1", "L2"], onItemVisibilityChange },
+    });
 
     expect(getVisibilityState()).toEqual({
       allLegendItems: ["L1", "L2"],
@@ -105,11 +108,15 @@ describe("CoreChart: visibility", () => {
       hiddenPoints: [],
     });
 
-    expect(onItemVisibilityChange).toHaveBeenCalledWith(["L1"]);
+    expect(onItemVisibilityChange).toHaveBeenCalledWith(["L2"]);
   });
 
   test("changes series visibility from the outside", () => {
-    const { rerender } = renderChart({ ...defaultProps, options: { series: lineSeries }, hiddenItems: [] });
+    const { rerender } = renderChart({
+      ...defaultProps,
+      options: { series: lineSeries },
+      legend: { visibleItems: ["L1", "L2"] },
+    });
 
     expect(getVisibilityState()).toEqual({
       allLegendItems: ["L1", "L2"],
@@ -120,7 +127,7 @@ describe("CoreChart: visibility", () => {
       hiddenPoints: [],
     });
 
-    rerender({ ...defaultProps, options: { series: lineSeries }, hiddenItems: ["L2"] });
+    rerender({ ...defaultProps, options: { series: lineSeries }, legend: { visibleItems: ["L1"] } });
 
     expect(getVisibilityState()).toEqual({
       allLegendItems: ["L1", "L2"],
@@ -131,7 +138,7 @@ describe("CoreChart: visibility", () => {
       hiddenPoints: [],
     });
 
-    rerender({ ...defaultProps, options: { series: lineSeries }, hiddenItems: ["L1", "L2"] });
+    rerender({ ...defaultProps, options: { series: lineSeries }, legend: { visibleItems: [] } });
 
     expect(getVisibilityState()).toEqual({
       allLegendItems: ["L1", "L2"],
@@ -151,20 +158,19 @@ describe("CoreChart: visibility", () => {
     const { wrapper, rerender } = renderChart({
       ...defaultProps,
       options: { series },
-
-      hiddenItems: ["Line"],
+      legend: { visibleItems: ["Line"] },
     });
 
     expect(getVisibilityState()).toEqual(
       expect.objectContaining({
         allLegendItems: ["Line", "Line"],
-        hiddenLegendItems: [],
+        hiddenLegendItems: ["Line", "Line"],
         allSeries: ["1", "2"],
-        hiddenSeries: [],
+        hiddenSeries: ["1", "2"],
       }),
     );
 
-    rerender({ ...defaultProps, options: { series }, hiddenItems: ["1"] });
+    rerender({ ...defaultProps, options: { series }, legend: { visibleItems: ["2"], onItemVisibilityChange } });
 
     expect(getVisibilityState()).toEqual(
       expect.objectContaining({
@@ -177,19 +183,18 @@ describe("CoreChart: visibility", () => {
 
     wrapper.findLegend()!.findItems()[0].click();
 
-    expect(onItemVisibilityChange).toHaveBeenCalledWith([]);
+    expect(onItemVisibilityChange).toHaveBeenCalledWith(["2", "1"]);
 
     wrapper.findLegend()!.findItems()[1].click();
 
-    expect(onItemVisibilityChange).toHaveBeenCalledWith(["1", "2"]);
+    expect(onItemVisibilityChange).toHaveBeenCalledWith([]);
   });
 
   test.each([false, true])("hides items on the first render, legend=%s", (legend) => {
     renderStatefulChart({
       ...defaultProps,
       options: { series: pieSeries },
-      legend: { enabled: legend },
-      hiddenItems: ["A", "B"],
+      legend: { enabled: legend, visibleItems: [] },
     });
 
     expect(getVisibilityState()).toEqual({
@@ -203,7 +208,11 @@ describe("CoreChart: visibility", () => {
   });
 
   test("toggles items visibility by clicking on legend", () => {
-    const { wrapper } = renderStatefulChart({ ...defaultProps, options: { series: pieSeries }, hiddenItems: [] });
+    const { wrapper } = renderStatefulChart({
+      ...defaultProps,
+      options: { series: pieSeries },
+      legend: { visibleItems: ["A", "B"], onItemVisibilityChange },
+    });
 
     expect(getVisibilityState()).toEqual({
       allLegendItems: ["A", "B"],
@@ -225,11 +234,15 @@ describe("CoreChart: visibility", () => {
       hiddenPoints: ["B"],
     });
 
-    expect(onItemVisibilityChange).toHaveBeenCalledWith(["B"]);
+    expect(onItemVisibilityChange).toHaveBeenCalledWith(["A"]);
   });
 
   test("changes items visibility from the outside", () => {
-    const { rerender } = renderChart({ ...defaultProps, options: { series: pieSeries }, hiddenItems: [] });
+    const { rerender } = renderChart({
+      ...defaultProps,
+      options: { series: pieSeries },
+      legend: { visibleItems: ["A", "B"] },
+    });
 
     expect(getVisibilityState()).toEqual({
       allLegendItems: ["A", "B"],
@@ -240,7 +253,7 @@ describe("CoreChart: visibility", () => {
       hiddenPoints: [],
     });
 
-    rerender({ ...defaultProps, options: { series: pieSeries }, hiddenItems: ["A"] });
+    rerender({ ...defaultProps, options: { series: pieSeries }, legend: { visibleItems: ["B"] } });
 
     expect(getVisibilityState()).toEqual({
       allLegendItems: ["A", "B"],
@@ -251,7 +264,7 @@ describe("CoreChart: visibility", () => {
       hiddenPoints: ["A"],
     });
 
-    rerender({ ...defaultProps, options: { series: pieSeries }, hiddenItems: ["A", "B"] });
+    rerender({ ...defaultProps, options: { series: pieSeries }, legend: { visibleItems: [] } });
 
     expect(getVisibilityState()).toEqual({
       allLegendItems: ["A", "B"],
@@ -278,20 +291,19 @@ describe("CoreChart: visibility", () => {
     const { wrapper, rerender } = renderChart({
       ...defaultProps,
       options: { series },
-
-      hiddenItems: ["Segment"],
+      legend: { visibleItems: ["Segment"], onItemVisibilityChange },
     });
 
     expect(getVisibilityState()).toEqual({
       allLegendItems: ["Segment", "Segment"],
-      hiddenLegendItems: [],
+      hiddenLegendItems: ["Segment", "Segment"],
       allSeries: ["Pie series"],
       hiddenSeries: [],
       allPoints: ["1", "2"],
-      hiddenPoints: [],
+      hiddenPoints: ["1", "2"],
     });
 
-    rerender({ ...defaultProps, options: { series }, hiddenItems: ["1"] });
+    rerender({ ...defaultProps, options: { series }, legend: { visibleItems: ["2"], onItemVisibilityChange } });
 
     expect(getVisibilityState()).toEqual({
       allLegendItems: ["Segment", "Segment"],
@@ -304,10 +316,34 @@ describe("CoreChart: visibility", () => {
 
     wrapper.findLegend()!.findItems()[0].click();
 
-    expect(onItemVisibilityChange).toHaveBeenCalledWith([]);
+    expect(onItemVisibilityChange).toHaveBeenCalledWith(["2", "1"]);
 
     wrapper.findLegend()!.findItems()[1].click();
 
-    expect(onItemVisibilityChange).toHaveBeenCalledWith(["1", "2"]);
+    expect(onItemVisibilityChange).toHaveBeenCalledWith([]);
+  });
+
+  test("uses customized set of legend items", () => {
+    renderChart({
+      ...defaultProps,
+      options: { series: pieSeries },
+      legend: {
+        getChartLegendItems: () => [
+          { id: "Pie series", name: "Pie series item", marker: "Series marker" },
+          { id: "A", name: "Segment A", marker: "Segment A marker" },
+          { id: "B", name: "Segment B", marker: "Segment B marker" },
+        ],
+        visibleItems: ["Pie series", "B"],
+      },
+    });
+
+    expect(getVisibilityState()).toEqual({
+      allLegendItems: ["Pie series item", "Segment A", "Segment B"],
+      hiddenLegendItems: ["Segment A"],
+      allSeries: ["Pie series"],
+      hiddenSeries: [],
+      allPoints: ["A", "B"],
+      hiddenPoints: ["A"],
+    });
   });
 });

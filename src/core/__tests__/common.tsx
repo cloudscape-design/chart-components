@@ -17,14 +17,17 @@ export class ExtendedTestWrapper extends CoreChartWrapper {
 }
 
 export function StatefulChart(props: CoreChartProps) {
-  const [hiddenItems, setHiddenItems] = useState<readonly string[]>(props.hiddenItems ?? []);
+  const [visibleItems, setVisibleItems] = useState<readonly string[]>(props.legend?.visibleItems ?? []);
   return (
     <CoreChart
       {...props}
-      hiddenItems={hiddenItems}
-      onItemVisibilityChange={(hiddenItems) => {
-        setHiddenItems(hiddenItems);
-        props.onItemVisibilityChange?.(hiddenItems);
+      legend={{
+        ...props.legend,
+        visibleItems,
+        onItemVisibilityChange: (visibleItems) => {
+          setVisibleItems(visibleItems);
+          props.legend?.onItemVisibilityChange?.(visibleItems);
+        },
       }}
     />
   );
