@@ -82,6 +82,11 @@ export function clickChartPoint(seriesIndex: number, index: number) {
     new MouseEvent("click", { bubbles: true, cancelable: true }),
   );
 }
+export function findPlotLinesById(id: string) {
+  return findChart()
+    .axes.flatMap((axis) => (axis as any).plotLinesAndBands)
+    .filter((plotLine) => plotLine.options.id === id);
+}
 
 export class TestChartRenderer {
   public _rect: unknown[] = [];

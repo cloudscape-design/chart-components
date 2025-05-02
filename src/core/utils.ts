@@ -59,7 +59,7 @@ export function getSeriesMarkerType(series?: Highcharts.Series): ChartSeriesMark
       return "large-square";
     case "errorbar":
     default:
-      return "large-circle";
+      return "large-square";
   }
 }
 
@@ -72,11 +72,11 @@ export function resetColorCounter(chart: Highcharts.Chart, seriesCount: number) 
 }
 
 export function getSeriesColor(series?: Highcharts.Series): string {
-  return series?.color?.toString() ?? "black";
+  return typeof series?.color === "string" ? series.color : "black";
 }
 
 export function getPointColor(point?: Highcharts.Point): string {
-  return point?.color?.toString() ?? "black";
+  return typeof point?.color === "string" ? point.color : "black";
 }
 
 export function findAllSeriesWithData(chart: Highcharts.Chart) {

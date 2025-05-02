@@ -8,6 +8,7 @@ import {
   createChartWrapper,
   findChartPoint,
   findChartSeries,
+  findPlotLinesById,
   highlightChartPoint,
   leaveChartPoint,
   renderChart,
@@ -106,7 +107,11 @@ describe("CoreChart: legend", () => {
   test("legend items are highlighted on hover in cartesian chart", async () => {
     renderChart({
       highcharts,
-      options: { series: series.filter((s) => s.type === "line") },
+      options: {
+        series: series.filter((s) => s.type === "line"),
+        xAxis: { plotLines: [{ id: "L3", value: 0 }] },
+        yAxis: { plotLines: [{ id: "L3", value: 0 }] },
+      },
       visibleItems: ["L1", "L3"],
     });
 
@@ -114,23 +119,27 @@ describe("CoreChart: legend", () => {
     expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["L1", "Line 3"]);
     expect(findChartSeries(0).state).toBe("");
     expect(findChartSeries(2).state).toBe("");
+    expect(findPlotLinesById("L3").map((l) => l.svgElem.opacity)).toEqual([1, 1]);
 
     act(() => mouseOver(getItem(0).getElement()));
     expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["L1"]);
     expect(findChartSeries(0).state).toBe("normal");
     expect(findChartSeries(2).state).toBe("inactive");
+    expect(findPlotLinesById("L3").map((l) => l.svgElem.opacity)).toEqual([0.4, 0.4]);
 
     act(() => mouseOut(getItem(0).getElement()));
     act(() => mouseOver(getItem(2).getElement()));
     expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["Line 3"]);
     expect(findChartSeries(0).state).toBe("inactive");
     expect(findChartSeries(2).state).toBe("normal");
+    expect(findPlotLinesById("L3").map((l) => l.svgElem.opacity)).toEqual([1, 1]);
 
     act(() => mouseOut(getItem(0).getElement()));
     await clearHighlightPause();
     expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["L1", "Line 3"]);
     expect(findChartSeries(0).state).toBe("normal");
     expect(findChartSeries(2).state).toBe("normal");
+    expect(findPlotLinesById("L3").map((l) => l.svgElem.opacity)).toEqual([1, 1]);
   });
 
   test("legend items are highlighted on hover in pie chart", async () => {
