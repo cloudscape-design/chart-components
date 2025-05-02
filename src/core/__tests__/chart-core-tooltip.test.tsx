@@ -1,27 +1,20 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { act } from "react";
 import { waitFor } from "@testing-library/react";
 import highcharts from "highcharts";
 import { vi } from "vitest";
 
-import { createChartWrapper, renderChart } from "./common";
+import {
+  clickChartPoint,
+  createChartWrapper,
+  findChartPoint,
+  highlightChartPoint,
+  leaveChartPoint,
+  renderChart,
+} from "./common";
 
-function findChart() {
-  return highcharts.charts.find((c) => c)!;
-}
-function findPoint(seriesIndex: number, pointIndex: number) {
-  return findChart().series[seriesIndex].data[pointIndex];
-}
-function hoverPoint(index: number) {
-  findPoint(0, index).onMouseOver();
-}
-function leavePoint(index: number) {
-  findPoint(0, index).onMouseOut();
-}
-function clickPoint(index: number) {
-  findPoint(0, index).graphic!.element.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
-}
 function hoverTooltip() {
   const tooltipElement = createChartWrapper().findTooltip()!.getElement();
   tooltipElement.dispatchEvent(new MouseEvent("mouseover", { bubbles: true, cancelable: true }));
@@ -50,25 +43,35 @@ describe("CoreChart: tooltip", () => {
     const { wrapper } = renderChart({
       highcharts,
       options: { series, tooltip: { enabled: true, formatter: () => "Custom content" } },
+      tooltip: { enabled: false },
     });
 
-    hoverPoint(0);
+    act(() => highlightChartPoint(0, 0));
 
+    expect(wrapper.findTooltip()).toBe(null);
     expect(wrapper.findHighchartsTooltip()).not.toBe(null);
     expect(wrapper.findHighchartsTooltip()!.getElement().textContent).toBe("Custom content");
   });
 
   test("shows tooltip on hover", async () => {
+    const onPointHighlight = vi.fn();
+    const onClearHighlight = vi.fn();
     const { wrapper } = renderChart({
       highcharts,
       options: { series },
       tooltip: {
         getTooltipContent: () => ({ header: "Tooltip title", body: "Tooltip body", footer: "Tooltip footer" }),
+        onPointHighlight,
+        onClearHighlight,
       },
     });
 
-    hoverPoint(0);
+    act(() => highlightChartPoint(0, 0));
 
+    expect(onPointHighlight).toHaveBeenCalledWith({
+      point: findChartPoint(0, 0),
+      target: expect.objectContaining({ x: 0, y: 10, height: expect.any(Number), width: expect.any(Number) }),
+    });
     await waitFor(() => {
       expect(wrapper.findTooltip()).not.toBe(null);
       expect(wrapper.findTooltip()!.findHeader()!.getElement().textContent).toBe("Tooltip title");
@@ -76,10 +79,32 @@ describe("CoreChart: tooltip", () => {
       expect(wrapper.findTooltip()!.findFooter()!.getElement().textContent).toBe("Tooltip footer");
     });
 
-    leavePoint(0);
+    act(() => leaveChartPoint(0, 0));
 
     await waitFor(() => {
+      expect(onClearHighlight).toHaveBeenCalled();
       expect(wrapper.findTooltip()).toBe(null);
+    });
+  });
+
+  test("shows tooltip on hover with custom target", () => {
+    const getTargetFromPoint = () => ({ x: 1001, y: 1002, width: 1003, height: 1004 });
+    const onPointHighlight = vi.fn();
+    renderChart({
+      highcharts,
+      options: { series },
+      tooltip: {
+        getTooltipContent: () => ({ header: "Tooltip title", body: "Tooltip body", footer: "Tooltip footer" }),
+        getTargetFromPoint,
+        onPointHighlight,
+      },
+    });
+
+    act(() => highlightChartPoint(0, 0));
+
+    expect(onPointHighlight).toHaveBeenCalledWith({
+      point: findChartPoint(0, 0),
+      target: expect.objectContaining({ x: 1001, y: 1002, width: 1003, height: 1004 }),
     });
   });
 
@@ -92,20 +117,22 @@ describe("CoreChart: tooltip", () => {
       },
     });
 
-    hoverPoint(0);
+    act(() => highlightChartPoint(0, 0));
 
     await waitFor(() => {
       expect(wrapper.findTooltip()).not.toBe(null);
     });
 
-    hoverTooltip();
-    leavePoint(0);
+    act(() => {
+      hoverTooltip();
+      leaveChartPoint(0, 0);
+    });
 
     await waitFor(() => {
       expect(wrapper.findTooltip()).not.toBe(null);
     });
 
-    leaveTooltip();
+    act(() => leaveTooltip());
 
     await waitFor(() => {
       expect(wrapper.findTooltip()).toBe(null);
@@ -122,7 +149,7 @@ describe("CoreChart: tooltip", () => {
     });
 
     // Hover point 1 to show the popover.
-    hoverPoint(1);
+    act(() => highlightChartPoint(0, 1));
 
     await waitFor(() => {
       expect(wrapper.findTooltip()).not.toBe(null);
@@ -131,7 +158,7 @@ describe("CoreChart: tooltip", () => {
     });
 
     // Make popover pinned on point 1.
-    clickPoint(1);
+    act(() => clickChartPoint(0, 1));
 
     await waitFor(() => {
       expect(wrapper.findTooltip()).not.toBe(null);
@@ -141,9 +168,11 @@ describe("CoreChart: tooltip", () => {
 
     // Hover and click on point 0.
     // Clicking outside the tooltip also dismisses the tooltip, so we imitate that.
-    hoverPoint(0);
-    wrapper.findTooltip()!.findDismissButton()!.click();
-    clickPoint(0);
+    act(() => {
+      highlightChartPoint(0, 0);
+      wrapper.findTooltip()!.findDismissButton()!.click();
+      clickChartPoint(0, 0);
+    });
 
     // The tooltip moves to point 0, but it is no longer pinned.
     await waitFor(() => {
@@ -158,10 +187,10 @@ describe("CoreChart: tooltip", () => {
     renderChart({ highcharts, options: { series }, tooltip: { getTooltipContent } });
 
     for (let i = 0; i < data.length; i++) {
-      hoverPoint(i);
+      act(() => highlightChartPoint(0, i));
 
       await waitFor(() => {
-        expect(getTooltipContent).toHaveBeenCalledWith({ x: i, y: data[i].y });
+        expect(getTooltipContent).toHaveBeenCalledWith({ point: findChartPoint(0, i) });
       });
     }
   });

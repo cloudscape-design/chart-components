@@ -42,7 +42,7 @@ interface ChartAPIContext {
     getTargetFromPoint?(point: Highcharts.Point): Rect;
     getTooltipContent?(props: { point: Highcharts.Point }): null | TooltipContent;
     onPointHighlight?(props: { point: Highcharts.Point; target: Rect }): null | PointHighlightDetail;
-    onClearHighlight?(chart: Highcharts.Chart): void;
+    onClearHighlight?(): void;
   };
 }
 
@@ -217,7 +217,6 @@ export class ChartAPI {
 
   // When hovering (or focusing) over the target (point, bar, segment, etc.) we show the tooltip in the target coordinate.
   public showTooltipOnPoint = (point: Highcharts.Point) => {
-    console.log("point", point);
     this.updateSetters();
 
     // The behavior is ignored if the tooltip is already shown and pinned.
@@ -361,7 +360,7 @@ export class ChartAPI {
   };
 
   private clearHighlightActions = () => {
-    this.context.tooltip.onClearHighlight?.(this.chart);
+    this.context.tooltip.onClearHighlight?.();
     this.destroyMarkers();
     this.registeredLegend?.clearHighlight();
   };
