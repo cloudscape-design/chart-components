@@ -81,7 +81,7 @@ export function useChartAPI({
 
   // When series or items visibility change, we call setVisible Highcharts method on series and/or items
   // for the change to take an effect.
-  const visibleItemsIndex = legendOptions?.visibleItems ? legendOptions?.visibleItems.join("::") : null;
+  const visibleItemsIndex = legendOptions?.visibleItems ? legendOptions.visibleItems.join("::") : null;
   useEffect(() => {
     if (api.ready && visibleItemsIndex !== null) {
       api.updateChartItemsVisibility(visibleItemsIndex.split("::").filter(Boolean));
