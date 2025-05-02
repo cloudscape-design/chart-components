@@ -128,6 +128,8 @@ export interface ChartI18nStrings {
   loadingText?: string;
   errorText?: string;
   recoveryText?: string;
+  seriesFilterLabel?: string;
+  seriesFilterPlaceholder?: string;
 }
 
 export interface ChartFilterOptions {

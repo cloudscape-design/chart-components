@@ -22,6 +22,19 @@ describe("CoreChart: options", () => {
     vi.mocked(HighchartsReact).mockRestore();
   });
 
+  test("propagates highcharts classname", () => {
+    renderChart({ highcharts, options: { chart: { className: "custom-class" } } });
+
+    expect(HighchartsReact).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.objectContaining({
+          chart: expect.objectContaining({ className: expect.stringContaining("custom-class") }),
+        }),
+      }),
+      expect.anything(),
+    );
+  });
+
   test("propagates highcharts colors", () => {
     const colors = ["black", "red", "gold"];
     renderChart({ highcharts, options: { colors } });

@@ -10,6 +10,11 @@ interface ChartSeriesFilterProps {
   items: readonly ChartLegendItem[];
   selectedItems: readonly string[];
   onChange: NonCancelableEventHandler<{ selectedItems: readonly string[] }>;
+  i18nStrings?: {
+    filterLabel?: string;
+    filterPlaceholder?: string;
+    filterSelectedAriaLabel?: string;
+  };
 }
 
 const ChartSeriesFilter = (props: ChartSeriesFilterProps) => {
@@ -22,6 +27,7 @@ const ChartSeriesFilter = (props: ChartSeriesFilterProps) => {
       }))}
       selectedSeries={props.selectedItems}
       onChange={(selectedItems) => fireNonCancelableEvent(props.onChange, { selectedItems })}
+      i18nStrings={props.i18nStrings}
     />
   );
 };

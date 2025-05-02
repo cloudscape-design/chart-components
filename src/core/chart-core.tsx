@@ -12,7 +12,15 @@ import { getDataAttributes } from "../internal/base-component/get-data-attribute
 import { castArray } from "../internal/utils/utils";
 import { useChartAPI } from "./chart-api";
 import { ChartContainer } from "./chart-container";
-import { ChartFilter, ChartLegend, ChartNoData, ChartTooltip, VerticalAxisTitle } from "./components";
+import {
+  ChartFilter,
+  ChartFooter,
+  ChartHeader,
+  ChartLegend,
+  ChartNoData,
+  ChartTooltip,
+  VerticalAxisTitle,
+} from "./components";
 import { CoreChartProps } from "./interfaces-core";
 import * as Styles from "./styles";
 import { resetColorCounter } from "./utils";
@@ -96,6 +104,7 @@ export function CoreChart({
             chart: {
               ...Styles.chart,
               ...options.chart,
+              className: clsx(testClasses["chart-plot"], options.chart?.className),
               height: fitHeight ? height : withMinHeight(options.chart?.height),
               displayErrors: options.chart?.displayErrors ?? isDevelopment,
               style: options.chart?.style ?? Styles.chartPlotCss,
@@ -228,14 +237,14 @@ export function CoreChart({
           );
         }}
         legend={isLegendEnabled ? <ChartLegend {...legendOptions} api={api} /> : null}
-        title={
+        verticalAxisTitle={
           verticalAxisTitlePlacement === "top" ? (
             <VerticalAxisTitle verticalAxisTitlePlacement={verticalAxisTitlePlacement} api={api} />
           ) : null
         }
-        header={header?.content}
-        footer={footer?.content}
-        seriesFilter={filter?.seriesFilter ? <ChartFilter api={api} /> : null}
+        header={header?.content ? <ChartHeader>{header.content}</ChartHeader> : null}
+        footer={footer?.content ? <ChartFooter>{footer.content}</ChartFooter> : null}
+        seriesFilter={filter?.seriesFilter ? <ChartFilter api={api} i18nStrings={i18nStrings} /> : null}
         additionalFilters={filter?.additionalFilters}
       />
 
