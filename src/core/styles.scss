@@ -20,7 +20,7 @@
   opacity: 0.9;
 }
 
-.header-filters {
+.chart-filters {
   padding-block-end: cs.$space-scaled-l;
 
   display: flex;
@@ -30,4 +30,10 @@
   &-series {
     flex: 280px 0 1;
   }
+}
+
+.vertical-axis-title {
+  display: flex;
+  gap: cs.$space-static-xs;
+  justify-content: space-between;
 }

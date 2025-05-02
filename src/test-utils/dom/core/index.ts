@@ -10,6 +10,18 @@ import legendTestClasses from "../../../internal/components/chart-legend/test-cl
 export default class CoreChartWrapper extends ComponentWrapper {
   static rootSelector: string = testClasses.root;
 
+  public findHeader(): null | ElementWrapper {
+    return this.findByClassName(testClasses["chart-header"]);
+  }
+
+  public findFooter(): null | ElementWrapper {
+    return this.findByClassName(testClasses["chart-footer"]);
+  }
+
+  public findFilter(): null | CoreChartFilterWrapper {
+    return this.findComponent(`.${CoreChartFilterWrapper.rootSelector}`, CoreChartFilterWrapper);
+  }
+
   public findLegend(): null | CoreChartLegendWrapper {
     return this.findComponent(`.${CoreChartLegendWrapper.rootSelector}`, CoreChartLegendWrapper);
   }
@@ -25,9 +37,25 @@ export default class CoreChartWrapper extends ComponentWrapper {
   public findFallback(): null | ElementWrapper {
     return this.findByClassName(testClasses.fallback);
   }
+
+  public findChartPlot(): null | ElementWrapper {
+    return this.findByClassName(testClasses["chart-plot"]);
+  }
 }
 
-interface ItemOptions {
+export class CoreChartFilterWrapper extends ComponentWrapper {
+  static rootSelector: string = testClasses["chart-filters"];
+
+  findSeriesFilter(): null | ElementWrapper {
+    return this.findByClassName(testClasses["chart-filters-series"]);
+  }
+
+  findAdditionalFilters(): null | ElementWrapper {
+    return this.findByClassName(testClasses["chart-filters-additional"]);
+  }
+}
+
+interface LegendItemOptions {
   hidden?: boolean;
   dimmed?: boolean;
 }
@@ -43,7 +71,7 @@ export class CoreChartLegendWrapper extends ComponentWrapper {
     return this.findByClassName(legendTestClasses.actions);
   }
 
-  findItems(options?: ItemOptions): Array<ElementWrapper> {
+  findItems(options?: LegendItemOptions): Array<ElementWrapper> {
     let selector = `.${legendTestClasses.item}`;
     if (options?.hidden === true) {
       selector += `.${legendTestClasses["hidden-item"]}`;

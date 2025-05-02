@@ -16,6 +16,7 @@ import Portal from "../internal/components/portal";
 import { fireNonCancelableEvent } from "../internal/events";
 import { useSelector } from "../internal/utils/async-store";
 import { ChartAPI } from "./chart-api";
+import { ChartI18nStrings } from "./interfaces-base";
 import { CoreI18nStrings, CoreNoDataProps, CoreTooltipOptions } from "./interfaces-core";
 
 import styles from "./styles.css.js";
@@ -146,7 +147,8 @@ export function ChartNoData({
   );
 }
 
-export function ChartFilter({ api }: { api: ChartAPI }) {
+export function ChartFilter({ api, i18nStrings }: { api: ChartAPI; i18nStrings?: ChartI18nStrings }) {
+  const i18n = useInternalI18n("[charts]");
   const legendItems = useSelector(api.store, (s) => s.legend.items);
   return (
     <ChartSeriesFilter
@@ -155,6 +157,10 @@ export function ChartFilter({ api }: { api: ChartAPI }) {
       onChange={({ detail }) =>
         api.onItemVisibilityChange(legendItems.filter((i) => detail.selectedItems.includes(i.id)).map((i) => i.id))
       }
+      i18nStrings={{
+        filterLabel: i18n("i18nStrings.filterLabel", i18nStrings?.seriesFilterLabel),
+        filterPlaceholder: i18n("i18nStrings.filterPlaceholder", i18nStrings?.seriesFilterPlaceholder),
+      }}
     />
   );
 }
@@ -171,7 +177,7 @@ export function VerticalAxisTitle({
     return null;
   }
   return (
-    <div style={{ display: "flex", gap: 8, justifyContent: "space-between" }}>
+    <div className={styles["vertical-axis-title"]}>
       {titles.map((text, index) => (
         <Box key={index} fontWeight="bold" margin={{ bottom: "xxs" }}>
           {text}
@@ -179,4 +185,12 @@ export function VerticalAxisTitle({
       ))}
     </div>
   );
+}
+
+export function ChartHeader({ children }: { children: React.ReactNode }) {
+  return <div className={testClasses["chart-header"]}>{children}</div>;
+}
+
+export function ChartFooter({ children }: { children: React.ReactNode }) {
+  return <div className={testClasses["chart-footer"]}>{children}</div>;
 }

@@ -16,7 +16,7 @@ interface ChartContainerProps {
   // the available height for the chart plot when fitHeight=true. When there is not enough vertical space, the container
   // will ensure the overflow behavior.
   chart: (height: null | number) => React.ReactNode;
-  title?: React.ReactNode;
+  verticalAxisTitle?: React.ReactNode;
   header?: React.ReactNode;
   seriesFilter?: React.ReactNode;
   additionalFilters?: React.ReactNode;
@@ -29,7 +29,7 @@ interface ChartContainerProps {
 
 export function ChartContainer({
   chart,
-  title,
+  verticalAxisTitle,
   header,
   seriesFilter,
   additionalFilters,
@@ -39,7 +39,7 @@ export function ChartContainer({
   chartMinHeight,
   chartMinWidth,
 }: ChartContainerProps) {
-  const hasHeader = header || seriesFilter || additionalFilters || title;
+  const hasHeader = header || seriesFilter || additionalFilters || verticalAxisTitle;
   const hasFooter = footer || legend;
 
   const [measuredChartHeight, chartMeasureRef] = useContainerQuery((entry) => entry.contentBoxHeight);
@@ -62,16 +62,16 @@ export function ChartContainer({
   return (
     <div ref={chartMeasureRef} style={fitHeight ? { position: "absolute", inset: 0, overflowX } : { overflowX }}>
       <div ref={headerMeasureRef}>
-        {header && <div>{header}</div>}
-        {filter && <div>{filter}</div>}
-        {title && <div>{title}</div>}
+        {header}
+        {filter}
+        {verticalAxisTitle}
       </div>
 
       <div style={chartMinWidth !== undefined ? { minWidth: chartMinWidth } : {}}>{chart(chartHeight)}</div>
 
       <div ref={footerMeasureRef}>
         {legend && <div>{legend}</div>}
-        {footer && <div>{footer}</div>}
+        {footer && <div className={testClasses["chart-footer"]}>{footer}</div>}
       </div>
     </div>
   );
@@ -85,13 +85,9 @@ function ChartFilters({
   additionalFilters?: React.ReactNode;
 }) {
   return (
-    <div
-      className={clsx(testClasses["header-filters"], styles["header-filters"], {
-        [styles["header-filters-has-series-filter"]]: !!seriesFilter,
-      })}
-    >
-      <div className={clsx(testClasses["header-filters-series"], styles["header-filters-series"])}>{seriesFilter}</div>
-      <div className={testClasses["header-filters-additional"]}>{additionalFilters}</div>
+    <div className={clsx(testClasses["chart-filters"], styles["chart-filters"])}>
+      <div className={clsx(testClasses["chart-filters-series"], styles["chart-filters-series"])}>{seriesFilter}</div>
+      <div className={testClasses["chart-filters-additional"]}>{additionalFilters}</div>
     </div>
   );
 }
