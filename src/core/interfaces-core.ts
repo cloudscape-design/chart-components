@@ -16,11 +16,8 @@ import {
   ChartTooltipOptions,
 } from "./interfaces-base";
 
-export interface CoreChartProps extends Pick<BaseChartProps, "fitHeight" | "chartMinHeight" | "chartMinWidth"> {
-  /**
-   * The Highcharts instance. When null, the fallback() is rendered instead.
-   */
-  highcharts: null | object;
+export interface CoreChartProps
+  extends Pick<BaseChartProps, "highcharts" | "fitHeight" | "chartHeight" | "chartMinHeight" | "chartMinWidth"> {
   /**
    * The Highcharts options. Cloudscape injects custom styles and settings, but all can be
    * overridden with explicitly provided options. An exception is event handlers - those are

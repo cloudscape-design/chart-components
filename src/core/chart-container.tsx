@@ -67,11 +67,16 @@ export function ChartContainer({
         {verticalAxisTitle}
       </div>
 
-      <div style={chartMinWidth !== undefined ? { minWidth: chartMinWidth } : {}}>{chart(chartHeight)}</div>
+      <div
+        style={chartMinWidth !== undefined ? { minWidth: chartMinWidth } : {}}
+        className={testClasses["chart-plot-wrapper"]}
+      >
+        {chart(chartHeight)}
+      </div>
 
       <div ref={footerMeasureRef}>
-        {legend && <div>{legend}</div>}
-        {footer && <div className={testClasses["chart-footer"]}>{footer}</div>}
+        {legend}
+        {footer}
       </div>
     </div>
   );
