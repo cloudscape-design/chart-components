@@ -119,17 +119,20 @@ export function ChartNoData({
     const recoveryText = i18n("recoveryText", i18nStrings?.recoveryText);
     content = error ?? (
       <span>
-        <StatusIndicator type="error">{i18n("errorText", errorText)}</StatusIndicator>{" "}
+        <StatusIndicator type="error">{i18n("errorText", errorText)}</StatusIndicator>
         {!!recoveryText && !!onRecoveryClick && (
-          <Button
-            onFollow={(event: CustomEvent) => {
-              event.preventDefault();
-              fireNonCancelableEvent(onRecoveryClick);
-            }}
-            variant="inline-link"
-          >
-            {recoveryText}
-          </Button>
+          <>
+            {" "}
+            <Button
+              onClick={(event: CustomEvent) => {
+                event.preventDefault();
+                fireNonCancelableEvent(onRecoveryClick);
+              }}
+              variant="inline-link"
+            >
+              {recoveryText}
+            </Button>
+          </>
         )}
       </span>
     );
