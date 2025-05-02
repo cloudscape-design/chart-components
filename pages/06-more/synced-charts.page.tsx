@@ -166,51 +166,49 @@ function Charts() {
                     if (event.target instanceof Highcharts.Point) {
                       const minPoint = findMinPoint(event.target, getXrangeChart().chart);
                       if (minPoint) {
-                        getXrangeChart().showTooltipOnPoint(minPoint);
+                        getXrangeChart().highlightChartPoint(minPoint);
                       }
                     }
                   },
                   mouseOut() {
-                    getXrangeChart().hideTooltip();
+                    getXrangeChart().clearChartHighlight();
                   },
                 },
               },
             },
           },
         }}
-        tooltip={{
-          getTooltipContent({ point: { x } }) {
-            const header = dateFormatter(x);
-            const inAlarmState = inAlarmData.find(({ x: x1, x2 }) => x1 <= x && x <= x2);
-            const inAlarm = inAlarmState?.color === red;
-            const footer = (
-              <div>
-                <hr />
-                {inAlarm ? (
-                  <StatusIndicator type="warning">In alarm</StatusIndicator>
-                ) : (
-                  <StatusIndicator type="success">Ok</StatusIndicator>
-                )}
-              </div>
-            );
-            const details: ChartSeriesDetailItem[] = [];
-            for (const s of getScatterChart().chart.series) {
-              for (const p of s.data) {
-                if (p.x === x) {
-                  details.push({
-                    key: p.name,
-                    marker: <ChartSeriesMarker color={getSeriesColor(s)} type={getSeriesMarkerType(s)} />,
-                    value: numberFormatter(p.y!),
-                  });
-                }
+        getTooltipContent={({ point: { x } }) => {
+          const header = dateFormatter(x);
+          const inAlarmState = inAlarmData.find(({ x: x1, x2 }) => x1 <= x && x <= x2);
+          const inAlarm = inAlarmState?.color === red;
+          const footer = (
+            <div>
+              <hr />
+              {inAlarm ? (
+                <StatusIndicator type="warning">In alarm</StatusIndicator>
+              ) : (
+                <StatusIndicator type="success">Ok</StatusIndicator>
+              )}
+            </div>
+          );
+          const details: ChartSeriesDetailItem[] = [];
+          for (const s of getScatterChart().chart.series) {
+            for (const p of s.data) {
+              if (p.x === x) {
+                details.push({
+                  key: p.name,
+                  marker: <ChartSeriesMarker color={getSeriesColor(s)} type={getSeriesMarkerType(s)} />,
+                  value: numberFormatter(p.y!),
+                });
               }
             }
-            return {
-              header,
-              body: <ChartSeriesDetails details={details} />,
-              footer,
-            };
-          },
+          }
+          return {
+            header,
+            body: <ChartSeriesDetails details={details} />,
+            footer,
+          };
         }}
       />
 
@@ -249,13 +247,13 @@ function Charts() {
                       if (event.target instanceof Highcharts.Point) {
                         const minPoint = findMinPoint(event.target, getScatterChart().chart);
                         if (minPoint) {
-                          getScatterChart().showTooltipOnPoint(minPoint);
+                          getScatterChart().highlightChartPoint(minPoint);
                         }
                       }
                     }
                   },
                   mouseOut() {
-                    getScatterChart().hideTooltip();
+                    getScatterChart().clearChartHighlight();
                   },
                 },
               },

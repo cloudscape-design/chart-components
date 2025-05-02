@@ -33,7 +33,7 @@ export const InternalCartesianChart = forwardRef(
 
     // Obtaining tooltip content, specific for cartesian charts.
     // By default, it renders a list of series under the cursor, and allows to extend and override its contents.
-    const tooltipProps = useChartTooltipCartesian(props);
+    const cartesianTooltipProps = useChartTooltipCartesian(props);
 
     // When visibleSeries and onToggleVisibleSeries are provided - the series visibility can be controlled from the outside.
     // Otherwise - the component handles series visibility using its internal state.
@@ -129,18 +129,17 @@ export const InternalCartesianChart = forwardRef(
         chartHeight={props.chartHeight}
         chartMinHeight={props.chartMinHeight}
         chartMinWidth={props.chartMinWidth}
-        tooltip={tooltipProps}
+        tooltip={props.tooltip}
         noData={props.noData}
-        legend={{
-          ...props.legend,
-          visibleItems: visibleSeries,
-          onItemVisibilityChange: setVisibleSeries,
-        }}
+        legend={props.legend}
+        visibleItems={visibleSeries}
+        onItemVisibilityChange={setVisibleSeries}
         verticalAxisTitlePlacement={props.verticalAxisTitlePlacement}
         header={props.header}
         footer={props.footer}
         filter={props.filter}
         className={testClasses.root}
+        {...cartesianTooltipProps}
         {...getDataAttributes(props)}
       />
     );

@@ -32,7 +32,7 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
 
   // Obtaining tooltip content, specific for pie charts.
   // By default, it renders the selected content name, and allows to extend and override its contents.
-  const tooltipProps = useChartTooltipPie(props);
+  const pieTooltipProps = useChartTooltipPie(props);
 
   // When visibleSegments and onChangeVisibleSegments are provided - the segments visibility can be controlled from the outside.
   // Otherwise - the component handles segments visibility using its internal state.
@@ -110,17 +110,16 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
       chartHeight={props.chartHeight}
       chartMinHeight={props.chartMinHeight}
       chartMinWidth={props.chartMinWidth}
-      tooltip={tooltipProps}
+      tooltip={props.tooltip}
       noData={props.noData}
-      legend={{
-        ...props.legend,
-        visibleItems: visibleSegments,
-        onItemVisibilityChange: setVisibleSegments,
-      }}
+      legend={props.legend}
+      visibleItems={visibleSegments}
+      onItemVisibilityChange={setVisibleSegments}
       header={props.header}
       footer={props.footer}
       filter={props.filter}
       className={testClasses.root}
+      {...pieTooltipProps}
       {...getDataAttributes(props)}
     />
   );

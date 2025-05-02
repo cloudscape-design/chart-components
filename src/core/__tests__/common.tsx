@@ -18,17 +18,14 @@ export class ExtendedTestWrapper extends CoreChartWrapper {
 }
 
 export function StatefulChart(props: CoreChartProps) {
-  const [visibleItems, setVisibleItems] = useState<readonly string[]>(props.legend?.visibleItems ?? []);
+  const [visibleItems, setVisibleItems] = useState<readonly string[]>(props.visibleItems ?? []);
   return (
     <CoreChart
       {...props}
-      legend={{
-        ...props.legend,
-        visibleItems,
-        onItemVisibilityChange: (visibleItems) => {
-          setVisibleItems(visibleItems);
-          props.legend?.onItemVisibilityChange?.(visibleItems);
-        },
+      visibleItems={visibleItems}
+      onItemVisibilityChange={(visibleItems) => {
+        setVisibleItems(visibleItems);
+        props.onItemVisibilityChange?.(visibleItems);
       }}
     />
   );
@@ -89,13 +86,13 @@ export class TestChartRenderer {
   public _rect: unknown[] = [];
   public _attr: unknown[] = [];
 
-  rect(props: unknown) {
-    this._rect.push(props);
+  rect(...args: unknown[]) {
+    this._rect.push(args);
     return this;
   }
 
-  attr(props: unknown) {
-    this._attr.push(props);
+  attr(...args: unknown[]) {
+    this._attr.push(args);
     return this;
   }
 
