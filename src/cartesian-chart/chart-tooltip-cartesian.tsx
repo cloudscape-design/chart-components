@@ -27,6 +27,7 @@ export function useChartTooltipCartesian(props: {
   const { xAxis, series } = props.options;
   const [expandedSeries, setExpandedSeries] = useState<Record<string, Set<string>>>({});
   const cursorRef = useRef(new HighlightCursor());
+  const chartRef = useRef<null | Highcharts.Chart>(null);
 
   const getTooltipContent: CoreTooltipOptions["getTooltipContent"] = ({ point }) => {
     const chart = point.series.chart;
@@ -126,6 +127,8 @@ export function useChartTooltipCartesian(props: {
   };
 
   const onPointHighlight: CoreTooltipOptions["onPointHighlight"] = ({ point, target }) => {
+    chartRef.current = point.series.chart;
+
     // Highcharts highlights the entire series when the cursor lands on it. However, for column series
     // we want only a single column be highlighted. This is achieved by issuing inactive state for all columns series
     // with coordinates not matched the highlighted one.
@@ -151,12 +154,12 @@ export function useChartTooltipCartesian(props: {
     return { matchedLegendItems: [getSeriesId(point.series)] };
   };
 
-  const onClearHighlight: CoreTooltipOptions["onClearHighlight"] = (chart) => {
+  const onClearHighlight: CoreTooltipOptions["onClearHighlight"] = () => {
     cursorRef.current?.destroy();
 
     // Clear all column series point state overrides created in `onPointHighlight`.
     if (props.options.series.some((s) => s.type === "column")) {
-      for (const s of chart.series) {
+      for (const s of chartRef.current?.series ?? []) {
         s.setState("normal");
         for (const p of s.data) {
           p.setState("normal");
