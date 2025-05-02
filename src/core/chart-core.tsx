@@ -35,6 +35,7 @@ import testClasses from "./test-classes/styles.css.js";
 export function CoreChart({
   options,
   fitHeight,
+  chartHeight,
   chartMinHeight,
   chartMinWidth,
   tooltip: tooltipOptions,
@@ -76,7 +77,13 @@ export function CoreChart({
   }
 
   function withMinHeight(height: number | string | undefined | null) {
-    return typeof height === "number" ? Math.max(chartMinHeight ?? 0, height) : height;
+    if (height === undefined) {
+      return chartMinHeight;
+    }
+    if (typeof height === "number") {
+      return Math.max(chartMinHeight ?? 0, height);
+    }
+    return height;
   }
 
   return (
@@ -105,7 +112,7 @@ export function CoreChart({
               ...Styles.chart,
               ...options.chart,
               className: clsx(testClasses["chart-plot"], options.chart?.className),
-              height: fitHeight ? height : withMinHeight(options.chart?.height),
+              height: fitHeight ? height : withMinHeight(chartHeight ?? options.chart?.height),
               displayErrors: options.chart?.displayErrors ?? isDevelopment,
               style: options.chart?.style ?? Styles.chartPlotCss,
               backgroundColor: options.chart?.backgroundColor ?? Styles.chartPlotBackgroundColor,

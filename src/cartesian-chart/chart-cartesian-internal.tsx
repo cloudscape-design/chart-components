@@ -126,6 +126,7 @@ export const InternalCartesianChart = forwardRef(
         highcharts={highcharts}
         options={highchartsOptions}
         fitHeight={props.fitHeight}
+        chartHeight={props.chartHeight}
         chartMinHeight={props.chartMinHeight}
         chartMinWidth={props.chartMinWidth}
         tooltip={tooltipProps}

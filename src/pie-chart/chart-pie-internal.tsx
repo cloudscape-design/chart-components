@@ -107,6 +107,7 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
       highcharts={highcharts}
       options={highchartsOptions}
       fitHeight={props.fitHeight}
+      chartHeight={props.chartHeight}
       chartMinHeight={props.chartMinHeight}
       chartMinWidth={props.chartMinWidth}
       tooltip={tooltipProps}
