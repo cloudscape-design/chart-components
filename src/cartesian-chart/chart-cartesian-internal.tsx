@@ -133,7 +133,7 @@ export const InternalCartesianChart = forwardRef(
         noData={props.noData}
         legend={props.legend}
         visibleItems={visibleSeries}
-        onItemVisibilityChange={setVisibleSeries}
+        onLegendItemsChange={(legendItems) => setVisibleSeries(legendItems.filter((i) => i.visible).map((i) => i.id))}
         verticalAxisTitlePlacement={props.verticalAxisTitlePlacement}
         header={props.header}
         footer={props.footer}

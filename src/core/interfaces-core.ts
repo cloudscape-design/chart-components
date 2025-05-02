@@ -85,7 +85,7 @@ export interface CoreChartProps
   /**
    * Called when series/points visibility changes due to user interaction with legend or filter.
    */
-  onItemVisibilityChange?: (visibleItems: readonly string[]) => void;
+  onLegendItemsChange?: (legendItems: readonly ChartLegendItem[]) => void;
   /**
    * Called on every chart render to extract series/points to be shown in legend, with ability to customize
    * item names and markers. By default, all cartesian series and all pie segments are taken as legend items.
