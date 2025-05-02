@@ -3,16 +3,8 @@
 
 import highcharts from "highcharts";
 
+import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
 import { renderChart } from "./common";
-
-function findByTextContent(matchedContent: string) {
-  for (const element of document.querySelectorAll("*")) {
-    if (element.textContent === matchedContent) {
-      return element;
-    }
-  }
-  return null;
-}
 
 describe("CoreChart: container", () => {
   test("renders chart header, filter, vertical axis title, chart plot, legend, and footer", () => {
@@ -45,8 +37,8 @@ describe("CoreChart: container", () => {
     expect(additionalFilters.textContent).toBe("Additional filter");
     expect(additionalFilters.compareDocumentPosition(seriesFilter)).toBe(Node.DOCUMENT_POSITION_PRECEDING);
 
-    const verticalAxisTitle = findByTextContent("Y-axis title")!;
-    expect(verticalAxisTitle).not.toBe(null);
+    const verticalAxisTitle = wrapper.findByClassName(testClasses["vertical-axis-title"])!.getElement();
+    expect(verticalAxisTitle.textContent).toBe("Y-axis title");
     expect(verticalAxisTitle.compareDocumentPosition(additionalFilters)).toBe(Node.DOCUMENT_POSITION_PRECEDING);
 
     const chartPlot = wrapper.findChartPlot()!.getElement();
@@ -61,4 +53,36 @@ describe("CoreChart: container", () => {
     expect(footer.textContent).toBe("Custom footer");
     expect(footer.compareDocumentPosition(legend)).toBe(Node.DOCUMENT_POSITION_PRECEDING);
   });
+
+  test("renders x-axis title in the vertical axis title slot when inverted=true", () => {
+    const { wrapper } = renderChart({
+      highcharts,
+      options: {
+        chart: { inverted: true },
+        series: [{ type: "line" }],
+        xAxis: { title: { text: "X-axis title" } },
+        yAxis: { title: { text: "Y-axis title" } },
+      },
+      verticalAxisTitlePlacement: "top",
+    });
+    const verticalAxisTitle = wrapper.findByClassName(testClasses["vertical-axis-title"])!.getElement();
+    expect(verticalAxisTitle.textContent).toBe("X-axis title");
+  });
+
+  test.each([{ inverted: false }, { inverted: true }])(
+    "does not render vertical axis title slot of side placement is selected, inverted=$inverted",
+    ({ inverted }) => {
+      const { wrapper } = renderChart({
+        highcharts,
+        options: {
+          chart: { inverted },
+          series: [{ type: "line" }],
+          xAxis: { title: { text: "X-axis title" } },
+          yAxis: { title: { text: "Y-axis title" } },
+        },
+        verticalAxisTitlePlacement: "side",
+      });
+      expect(wrapper.findByClassName(testClasses["vertical-axis-title"])).toBe(null);
+    },
+  );
 });
