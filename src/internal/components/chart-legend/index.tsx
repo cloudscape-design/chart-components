@@ -44,7 +44,6 @@ export interface InfoTooltipProps {
   };
 }
 
-// TODO: replace all indices with IDs
 export const ChartLegend = forwardRef(
   (
     {

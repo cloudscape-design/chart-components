@@ -5,7 +5,7 @@ import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
 
 import { CoreTooltipOptions, Rect } from "../core/interfaces-core";
-import { getOptionsId, getPointColor, getPointId, getSeriesMarkerType } from "../core/utils";
+import { getOptionsId, getPointColor, getSeriesMarkerType } from "../core/utils";
 import ChartSeriesDetails from "../internal/components/series-details";
 import { ChartSeriesMarker } from "../internal/components/series-marker";
 import { InternalPieChartOptions, PieChartProps } from "./interfaces-pie";
@@ -52,14 +52,9 @@ export function useChartTooltipPie(props: {
     }
   };
 
-  const onPointHighlight: CoreTooltipOptions["onPointHighlight"] = ({ point }) => {
-    return { matchedLegendItems: [getPointId(point)] };
-  };
-
   return {
     getTooltipContent,
     getTargetFromPoint,
-    onPointHighlight,
     size: props.tooltip?.size,
     placement: props.tooltip?.placement,
   };

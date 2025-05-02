@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { render } from "@testing-library/react";
 import type Highcharts from "highcharts";
+import highcharts from "highcharts";
 
 import "@cloudscape-design/components/test-utils/dom";
 import { CoreChart } from "../../../lib/components/core/chart-core";
@@ -45,4 +46,25 @@ export function createChartWrapper() {
 
 export function renderStatefulChart(props: TestProps) {
   return renderChart(props, StatefulChart);
+}
+
+export function findChart() {
+  return highcharts.charts.find((c) => c)!;
+}
+export function findChartSeries(seriesIndex: number) {
+  return findChart().series[seriesIndex] as Highcharts.Series & { state: "" };
+}
+export function findChartPoint(seriesIndex: number, pointIndex: number) {
+  return findChart().series[seriesIndex].data[pointIndex] as Highcharts.Point & { state: "" };
+}
+export function highlightChartPoint(seriesIndex: number, index: number) {
+  findChartPoint(seriesIndex, index).onMouseOver();
+}
+export function leaveChartPoint(seriesIndex: number, index: number) {
+  findChartPoint(seriesIndex, index).onMouseOut();
+}
+export function clickChartPoint(seriesIndex: number, index: number) {
+  findChartPoint(seriesIndex, index).graphic!.element.dispatchEvent(
+    new MouseEvent("click", { bubbles: true, cancelable: true }),
+  );
 }

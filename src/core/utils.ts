@@ -5,6 +5,7 @@ import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
 import { castArray } from "../internal/utils/utils";
+import { ChartLegendItem } from "./interfaces-base";
 import { ChartLegendItemSpec } from "./interfaces-core";
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
@@ -127,21 +128,35 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly ChartLege
   return legendItems;
 }
 
+export function matchLegendItems(legendItems: readonly ChartLegendItem[], point: Highcharts.Point): string[] {
+  return legendItems
+    .filter((item) => {
+      if (point.series.type !== "pie") {
+        return getSeriesId(point.series) === item.id;
+      } else {
+        return getPointId(point) === item.id;
+      }
+    })
+    .map((item) => item.id);
+}
+
 export function highlightChartItems(chart: Highcharts.Chart, itemIds: readonly string[]) {
   for (const s of chart.series) {
     if (s.type !== "pie") {
-      s.setState(itemIds.includes(getSeriesId(s)) ? "inactive" : "normal");
+      s.setState(itemIds.includes(getSeriesId(s)) ? "normal" : "inactive");
     }
     if (s.type === "pie") {
       for (const p of s.data) {
-        p.setState(itemIds.includes(getPointId(p)) ? "inactive" : "normal");
+        p.setState(itemIds.includes(getPointId(p)) ? "normal" : "inactive");
       }
     }
   }
   // All plot lines that define ID, and this ID does not match the highlighted item are dimmed.
   iteratePlotLines(chart, (line) => {
-    if (line.options.id && itemIds.includes(line.options.id)) {
+    if (line.options.id && !itemIds.includes(line.options.id)) {
       line.svgElem?.attr({ opacity: 0.4 });
+    } else if (line.options.id) {
+      line.svgElem?.attr({ opacity: 1 });
     }
   });
 }
