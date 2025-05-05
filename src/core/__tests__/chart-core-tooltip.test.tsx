@@ -41,6 +41,18 @@ const series: Highcharts.SeriesOptionsType[] = [
   },
 ];
 
+const lineSeries: Highcharts.SeriesOptionsType[] = [
+  {
+    type: "line",
+    name: "Line series",
+    data: [
+      { x: 1, y: 11 },
+      { x: 2, y: 12 },
+      { x: 3, y: 13 },
+    ],
+  },
+];
+
 describe("CoreChart: tooltip", () => {
   test("renders highcharts tooltip", () => {
     const { wrapper } = renderChart({
@@ -223,5 +235,153 @@ describe("CoreChart: tooltip", () => {
         expect(getTooltipContent).toHaveBeenCalledWith({ point: findChartPoint(0, i) });
       });
     }
+  });
+
+  test("uses target placement", () => {
+    const onPointHighlight = vi.fn();
+    renderChart({
+      highcharts,
+      options: { series: lineSeries },
+      tooltip: { placement: "target" },
+      onPointHighlight,
+    });
+
+    findChart().plotLeft = 10;
+    findChart().plotTop = 15;
+    findChartPoint(0, 1).plotX = 3;
+    findChartPoint(0, 1).plotY = 5;
+
+    act(() => highlightChartPoint(0, 1));
+
+    expect(onPointHighlight).toHaveBeenCalledWith({
+      point: findChartPoint(0, 1),
+      target: { x: 10 + 3, y: 15 + 5, height: 1, width: 4 },
+    });
+  });
+
+  test("uses target placement on inverted chart", () => {
+    const onPointHighlight = vi.fn();
+    renderChart({
+      highcharts,
+      options: { series: lineSeries, chart: { inverted: true } },
+      tooltip: { placement: "target" },
+      onPointHighlight,
+    });
+
+    findChart().plotLeft = 10;
+    findChart().plotWidth = 100;
+    findChart().plotTop = 15;
+    findChart().plotHeight = 150;
+    findChartPoint(0, 1).plotX = 3;
+    findChartPoint(0, 1).plotY = 5;
+
+    act(() => highlightChartPoint(0, 1));
+
+    expect(onPointHighlight).toHaveBeenCalledWith({
+      point: findChartPoint(0, 1),
+      target: { x: 10 + 100 - 5, y: 15 + 150 - 3, height: 4, width: 1 },
+    });
+  });
+
+  test("uses middle placement", () => {
+    const onPointHighlight = vi.fn();
+    renderChart({
+      highcharts,
+      options: { series: lineSeries },
+      tooltip: { placement: "middle" },
+      onPointHighlight,
+    });
+
+    findChart().plotLeft = 10;
+    findChart().plotWidth = 100;
+    findChart().plotTop = 15;
+    findChart().plotHeight = 150;
+    findChartPoint(0, 1).plotX = 3;
+    findChartPoint(0, 1).plotY = 5;
+
+    act(() => highlightChartPoint(0, 1));
+
+    expect(onPointHighlight).toHaveBeenCalledWith({
+      point: findChartPoint(0, 1),
+      target: { x: 10 + 3, y: 15 + 150 / 2, height: 1, width: 4 },
+    });
+  });
+
+  test("uses middle placement on inverted chart", () => {
+    const onPointHighlight = vi.fn();
+    renderChart({
+      highcharts,
+      options: { series: lineSeries, chart: { inverted: true } },
+      tooltip: { placement: "middle" },
+      onPointHighlight,
+    });
+
+    findChart().plotLeft = 10;
+    findChart().plotWidth = 100;
+    findChart().plotTop = 15;
+    findChart().plotHeight = 150;
+    findChartPoint(0, 1).plotX = 3;
+    findChartPoint(0, 1).plotY = 5;
+
+    act(() => highlightChartPoint(0, 1));
+
+    expect(onPointHighlight).toHaveBeenCalledWith({
+      point: findChartPoint(0, 1),
+      target: { x: 10 + 100 / 2, y: 15 + 150 - 3, height: 4, width: 1 },
+    });
+  });
+
+  test("uses bottom placement", () => {
+    const onPointHighlight = vi.fn();
+    renderChart({
+      highcharts,
+      options: { series: lineSeries },
+      tooltip: { placement: "bottom" },
+      onPointHighlight,
+    });
+
+    findChart().plotLeft = 10;
+    findChart().plotWidth = 100;
+    findChart().plotTop = 15;
+    findChart().plotHeight = 150;
+    findChartPoint(0, 1).plotX = 3;
+    findChartPoint(0, 1).plotY = 5;
+
+    act(() => highlightChartPoint(0, 1));
+
+    expect(onPointHighlight).toHaveBeenCalledWith({
+      point: findChartPoint(0, 1),
+      target: { x: 10 + 3, y: 15, height: 150, width: 1 },
+    });
+  });
+
+  test("uses bottom placement on inverted chart", () => {
+    const onPointHighlight = vi.fn();
+    renderChart({
+      highcharts,
+      options: { series: lineSeries, chart: { inverted: true } },
+      tooltip: { placement: "bottom" },
+      onPointHighlight,
+    });
+
+    findChart().plotLeft = 10;
+    findChart().plotWidth = 100;
+    findChart().plotTop = 15;
+    findChart().plotHeight = 150;
+    findChartPoint(0, 1).plotX = 3;
+    findChartPoint(0, 1).plotY = 5;
+
+    act(() => highlightChartPoint(0, 1));
+
+    expect(onPointHighlight).toHaveBeenCalledWith({
+      point: findChartPoint(0, 1),
+      target: { x: 10 + 3, y: 15, height: 150, width: 1 },
+    });
+  });
+
+  test("uses unsupported placement on inverted chart", () => {
+    renderChart({ highcharts, options: { series }, tooltip: { placement: "xxx" as any } });
+
+    expect(() => highlightChartPoint(0, 1)).toThrow("Invariant violation: unsupported tooltip placement option.");
   });
 });
