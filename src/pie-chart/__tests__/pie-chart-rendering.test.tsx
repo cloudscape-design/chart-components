@@ -4,17 +4,17 @@
 import { render } from "@testing-library/react";
 import Highcharts from "highcharts";
 
-import CartesianChart from "../../../lib/components/cartesian-chart";
+import PieChart from "../../../lib/components/pie-chart";
 import createWrapper from "../../../lib/components/test-utils/dom";
 
-describe("CartesianChart", () => {
+describe("PieChart: rendering", () => {
   test("renders chart with highcharts=null", () => {
-    render(<CartesianChart highcharts={null} series={[]} />);
-    expect(createWrapper().findCartesianChart()).not.toBe(null);
+    render(<PieChart highcharts={null} series={null} />);
+    expect(createWrapper().findPieChart()).not.toBe(null);
   });
 
   test("renders chart with highcharts=Highcharts", () => {
-    render(<CartesianChart highcharts={Highcharts} series={[]} />);
-    expect(createWrapper().findCartesianChart()).not.toBe(null);
+    render(<PieChart highcharts={Highcharts} series={null} />);
+    expect(createWrapper().findPieChart()).not.toBe(null);
   });
 });

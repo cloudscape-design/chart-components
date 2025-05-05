@@ -1,16 +1,15 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { ComponentWrapper } from "@cloudscape-design/test-utils-core/dom";
-
-import CoreWrapper from "../core";
+import CoreChartWrapper from "../core";
+import { CartesianChartTooltipWrapper } from "./tooltip";
 
 import testClasses from "../../../cartesian-chart/test-classes/styles.selectors.js";
 
-export default class CartesianChartWrapper extends ComponentWrapper {
+export default class CartesianChartWrapper extends CoreChartWrapper {
   static rootSelector: string = testClasses.root;
 
-  private findCoreChart(): CoreWrapper {
-    return this.findComponent(CoreWrapper.rootSelector, CoreWrapper)!;
+  public findTooltip(): null | CartesianChartTooltipWrapper {
+    return this.findComponent(`.${CartesianChartTooltipWrapper.rootSelector}`, CartesianChartTooltipWrapper);
   }
 }

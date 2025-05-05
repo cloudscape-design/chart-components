@@ -54,12 +54,12 @@ export function renderChart({ i18nProvider, ...props }: TestProps, Component = C
   };
 }
 
-export function createChartWrapper() {
-  return new ExtendedTestWrapper(createWrapper().findByClassName("test-chart")!.getElement());
-}
-
 export function renderStatefulChart(props: TestProps) {
   return renderChart(props, StatefulChart);
+}
+
+export function createChartWrapper() {
+  return new ExtendedTestWrapper(createWrapper().findByClassName("test-chart")!.getElement());
 }
 
 export function findChart() {
