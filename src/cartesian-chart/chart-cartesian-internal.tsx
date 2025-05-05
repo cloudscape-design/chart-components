@@ -35,16 +35,16 @@ export const InternalCartesianChart = forwardRef(
     // By default, it renders a list of series under the cursor, and allows to extend and override its contents.
     const cartesianTooltipProps = useChartTooltipCartesian(props);
 
-    // When visibleSeries and onToggleVisibleSeries are provided - the series visibility can be controlled from the outside.
+    // When visibleSeries and onChangeVisibleSeries are provided - the series visibility can be controlled from the outside.
     // Otherwise - the component handles series visibility using its internal state.
     const [visibleSeriesState, setVisibleSeries] = useControllableState(
       props.visibleSeries,
-      props.onToggleVisibleSeries,
+      props.onChangeVisibleSeries,
       null,
       {
         componentName: "CartesianChart",
         propertyName: "visibleSeries",
-        changeHandlerName: "onToggleVisibleSeries",
+        changeHandlerName: "onChangeVisibleSeries",
       },
       (value, handler) => fireNonCancelableEvent(handler, { visibleSeries: value ? [...value] : [] }),
     );

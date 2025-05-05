@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { forwardRef, useState } from "react";
+import { createRef, forwardRef, useState } from "react";
 import { render } from "@testing-library/react";
 import type Highcharts from "highcharts";
 
@@ -20,6 +20,8 @@ export {
   clickChartPoint,
   findPlotLinesById,
 } from "../../core/__tests__/common";
+
+export const ref = createRef<PieChartProps.Ref>();
 
 export const StatefulChart = forwardRef((props: PieChartProps, ref: React.Ref<PieChartProps.Ref>) => {
   const [visibleSegments, setVisibleSegments] = useState<readonly string[]>(props.visibleSegments ?? []);
@@ -45,10 +47,10 @@ export function renderPieChart({ i18nProvider, ...props }: TestProps, Component 
   const ComponentWrapper = (props: PieChartProps) => {
     return i18nProvider ? (
       <TestI18nProvider messages={i18nProvider}>
-        <Component data-testid="test-chart" {...props} />
+        <Component ref={ref} data-testid="test-chart" {...props} />
       </TestI18nProvider>
     ) : (
-      <Component data-testid="test-chart" {...props} />
+      <Component ref={ref} data-testid="test-chart" {...props} />
     );
   };
   const { rerender } = render(<ComponentWrapper {...props} />);

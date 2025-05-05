@@ -143,7 +143,7 @@ export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: bo
       }
       tooltip={{}}
       visibleSeries={visibleSeries}
-      onToggleVisibleSeries={({ detail }) => setVisibleSeries(detail.visibleSeries)}
+      onChangeVisibleSeries={({ detail }) => setVisibleSeries(detail.visibleSeries)}
     />
   );
 }
