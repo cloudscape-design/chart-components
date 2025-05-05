@@ -4,6 +4,7 @@
 import { forwardRef } from "react";
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
+import useBaseComponent from "../internal/base-component/use-base-component";
 import { getAllowedProps } from "../internal/utils/utils";
 import { InternalPieChart } from "./chart-pie-internal";
 import { InternalPieChartOptions, PieChartProps } from "./interfaces-pie";
@@ -13,6 +14,7 @@ import { InternalPieChartOptions, PieChartProps } from "./interfaces-pie";
  * and adds extra features such as inner title and description, alternative tooltip, no-data, and more.
  */
 const PieChart = forwardRef((props: PieChartProps, ref: React.Ref<PieChartProps.Ref>) => {
+  const baseComponentProps = useBaseComponent("PieChart", { props: {} });
   return (
     <InternalPieChart
       ref={ref}
@@ -32,6 +34,7 @@ const PieChart = forwardRef((props: PieChartProps, ref: React.Ref<PieChartProps.
       header={getAllowedProps(props.header)}
       footer={getAllowedProps(props.footer)}
       {...getDataAttributes(props)}
+      {...baseComponentProps}
     />
   );
 });

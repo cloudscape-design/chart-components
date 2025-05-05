@@ -5,6 +5,7 @@ import { forwardRef } from "react";
 
 import { AbstractSeriesOptions } from "../core/interfaces-base";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
+import useBaseComponent from "../internal/base-component/use-base-component";
 import { getAllowedProps } from "../internal/utils/utils";
 import { InternalCartesianChart } from "./chart-cartesian-internal";
 import { CartesianChartProps, InternalCartesianChartOptions } from "./interfaces-cartesian";
@@ -14,6 +15,7 @@ import { CartesianChartProps, InternalCartesianChartOptions } from "./interfaces
  * and adds extra features such as additional series types (thresholds), alternative tooltip, no-data, legend, and more.
  */
 const CartesianChart = forwardRef((props: CartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
+  const baseComponentProps = useBaseComponent("CartesianChart", { props: {} });
   return (
     <InternalCartesianChart
       ref={ref}
@@ -32,6 +34,7 @@ const CartesianChart = forwardRef((props: CartesianChartProps, ref: React.Ref<Ca
       header={getAllowedProps(props.header)}
       footer={getAllowedProps(props.footer)}
       {...getDataAttributes(props)}
+      {...baseComponentProps}
     />
   );
 });

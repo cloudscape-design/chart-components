@@ -9,6 +9,7 @@ import { isDevelopment } from "@cloudscape-design/component-toolkit/internal";
 import Spinner from "@cloudscape-design/components/spinner";
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
+import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import { castArray } from "../internal/utils/utils";
 import { useChartAPI } from "./chart-api";
 import { ChartContainer } from "./chart-container";
@@ -32,7 +33,7 @@ import testClasses from "./test-classes/styles.css.js";
  * CoreChart is the core internal abstraction that accepts the entire set of Highcharts options along
  * with Cloudscape props to define custom tooltip, no-data, formatters, items visibility, and more.
  */
-export function CoreChart({
+export function InternalCoreChart({
   options,
   fitHeight,
   chartHeight,
@@ -49,8 +50,9 @@ export function CoreChart({
   header,
   footer,
   filter,
+  __internalRootRef,
   ...rest
-}: CoreChartProps) {
+}: CoreChartProps & InternalBaseComponentProps) {
   const highcharts = rest.highcharts as null | typeof Highcharts;
 
   const isLegendEnabled = legendOptions?.enabled !== false;
@@ -87,7 +89,7 @@ export function CoreChart({
   }
 
   return (
-    <div {...getDataAttributes(rest)} className={rootClassName}>
+    <div ref={__internalRootRef} {...getDataAttributes(rest)} className={rootClassName}>
       <ChartContainer
         fitHeight={fitHeight}
         chartMinHeight={chartMinHeight}

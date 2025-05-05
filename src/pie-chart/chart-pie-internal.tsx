@@ -6,8 +6,9 @@ import type Highcharts from "highcharts";
 
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
-import { CoreChart } from "../core/chart-core";
+import { InternalCoreChart } from "../core/chart-core";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
+import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import { fireNonCancelableEvent } from "../internal/events";
 import { useInnerDescriptions } from "./chart-inner-descriptions";
 import { useSegmentDescriptions } from "./chart-segment-descriptions";
@@ -18,7 +19,7 @@ import { getAllSegmentIds } from "./utils";
 
 import testClasses from "./test-classes/styles.css.js";
 
-interface InternalPieChartProps extends Omit<PieChartProps, "series"> {
+interface InternalPieChartProps extends InternalBaseComponentProps, Omit<PieChartProps, "series"> {
   highcharts: null | object;
   options: InternalPieChartOptions;
 }
@@ -103,7 +104,7 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
   };
 
   return (
-    <CoreChart
+    <InternalCoreChart
       highcharts={highcharts}
       options={highchartsOptions}
       fitHeight={props.fitHeight}
@@ -119,6 +120,7 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
       footer={props.footer}
       filter={props.filter}
       className={testClasses.root}
+      __internalRootRef={props.__internalRootRef}
       {...pieTooltipProps}
       {...getDataAttributes(props)}
     />

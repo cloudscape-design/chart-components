@@ -9,11 +9,11 @@ import SpaceBetween from "@cloudscape-design/components/space-between";
 import StatusIndicator from "@cloudscape-design/components/status-indicator";
 import { colorChartsGreen300, colorChartsRed500 } from "@cloudscape-design/design-tokens";
 
-import { CoreChart } from "../../lib/components/core/chart-core";
 import { CoreChartAPI } from "../../lib/components/core/interfaces-core";
 import { getSeriesColor, getSeriesMarkerType } from "../../lib/components/core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../lib/components/internal/components/series-details";
 import { ChartSeriesMarker } from "../../lib/components/internal/components/series-marker";
+import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
 import { dateFormatter, numberFormatter } from "../common/formatters";
 import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
