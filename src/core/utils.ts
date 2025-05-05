@@ -256,11 +256,13 @@ export function getDefaultTooltipTarget(point: Highcharts.Point, placement: "tar
   }
   if (placement === "middle" && !inverted) {
     const x = (point.plotX ?? 0) + plotLeft;
-    return { x, y: plotTop + plotHeight / 2, width: 4, height: 1 };
+    const y = plotTop + plotHeight / 2;
+    return { x, y, width: 4, height: 1 };
   }
   if (placement === "middle" && inverted) {
+    const x = plotLeft + plotWidth / 2;
     const y = plotHeight - (point.plotX ?? 0) + plotTop;
-    return { x: plotLeft + plotWidth / 2, y, width: 1, height: 4 };
+    return { x, y, width: 1, height: 4 };
   }
   if (placement === "bottom") {
     const x = (point.plotX ?? 0) + plotLeft;
