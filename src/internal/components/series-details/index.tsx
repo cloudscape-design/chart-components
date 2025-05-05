@@ -12,6 +12,7 @@ import { useMergeRefs } from "../../utils/use-merge-refs";
 import getSeriesDetailsText from "./series-details-text";
 
 import styles from "./styles.css.js";
+import testClasses from "./test-classes/styles.css.js";
 
 interface ChartDetailPair {
   key: ReactNode;
@@ -76,6 +77,7 @@ function ChartSeriesDetails(
             className={clsx({
               [styles.dimmed]: isDimmed,
               [styles["list-item"]]: true,
+              [testClasses["list-item"]]: true,
               [styles["with-sub-items"]]: subItems?.length,
               [styles.expandable]: !!expandableId,
             })}
@@ -114,13 +116,14 @@ function SubItems({
         <li
           key={index}
           className={clsx(
+            testClasses["inner-list-item"],
             styles["inner-list-item"],
             styles["key-value-pair"],
             (expanded || !expandable) && styles.announced,
           )}
         >
-          <span className={styles.key}>{key}</span>
-          <span className={styles.value}>{value}</span>
+          <span className={clsx(testClasses.key, styles.key)}>{key}</span>
+          <span className={clsx(testClasses.value, styles.value)}>{value}</span>
         </li>
       ))}
     </ul>
@@ -144,8 +147,8 @@ function ExpandableSeries({
       {marker && <div style={{ blockSize: "20px", inlineSize: "20px", marginInlineEnd: "2px" }}>{marker}</div>}
       <div className={styles["full-width"]}>
         <InternalExpandableSection
-          headerText={itemKey}
-          headerActions={<span className={clsx(styles.value, styles.expandable)}>{value}</span>}
+          headerText={<span className={clsx(testClasses.key, styles.key)}>{itemKey}</span>}
+          headerActions={<span className={clsx(testClasses.value, styles.value, styles.expandable)}>{value}</span>}
           expanded={expanded}
           onChange={({ detail }) => setExpandedState(detail.expanded)}
           variant="compact"
@@ -161,11 +164,11 @@ function NonExpandableSeries({ itemKey, value, subItems, marker }: ListItemProps
   return (
     <>
       <div className={clsx(styles["key-value-pair"], styles.announced)}>
-        <div className={styles.key}>
+        <div className={clsx(testClasses.key, styles.key)}>
           {marker && <div style={{ blockSize: "20px", inlineSize: "20px", marginInlineEnd: "2px" }}>{marker}</div>}
           <span>{itemKey}</span>
         </div>
-        <span className={styles.value}>{value}</span>
+        <span className={clsx(testClasses.value, styles.value)}>{value}</span>
       </div>
       {subItems && <SubItems items={subItems} />}
     </>
