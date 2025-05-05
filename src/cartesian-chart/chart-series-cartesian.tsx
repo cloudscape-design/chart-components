@@ -8,6 +8,8 @@ import { getOptionsId } from "../core/utils";
 import { InternalCartesianChartOptions } from "./interfaces-cartesian";
 import * as Styles from "./styles";
 
+import testClasses from "./test-classes/styles.css.js";
+
 export const useCartesianSeries = ({
   options,
   visibleSeries,
@@ -66,7 +68,7 @@ export const useCartesianSeries = ({
 
   // This makes the baseline better prominent in the plot.
   if (emphasizeBaselineAxis) {
-    yPlotLines.push({ value: 0, ...Styles.chatPlotBaselineOptions });
+    yPlotLines.push({ value: 0, ...Styles.chatPlotBaselineOptions, className: testClasses["emphasized-baseline"] });
   }
 
   // By default, Highcharts highlights data points that are closest to the cursor. However, for charts that include column
