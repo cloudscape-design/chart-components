@@ -76,6 +76,7 @@ function dayFormatter(value: number) {
 
 function hourFormatter(value: number) {
   return new Date(value).toLocaleDateString("en-US", {
+    month: "short",
     day: "numeric",
     hour: "numeric",
   });
@@ -83,7 +84,6 @@ function hourFormatter(value: number) {
 
 function minuteFormatter(value: number) {
   return new Date(value).toLocaleDateString("en-US", {
-    day: "numeric",
     hour: "numeric",
     minute: "numeric",
   });

@@ -201,6 +201,7 @@ export function CoreChart({
             xAxis: castArray(options.xAxis)?.map((xAxis) => ({
               ...Styles.xAxisOptions,
               ...xAxis,
+              className: clsx(testClasses["axis-x"], xAxis.className),
               title: {
                 style: {
                   ...Styles.axisTitleCss,
@@ -214,6 +215,7 @@ export function CoreChart({
             yAxis: castArray(options.yAxis)?.map((yAxis) => ({
               ...Styles.yAxisOptions,
               ...yAxis,
+              className: clsx(testClasses["axis-y"], yAxis.className),
               title: {
                 style: {
                   ...Styles.axisTitleCss,

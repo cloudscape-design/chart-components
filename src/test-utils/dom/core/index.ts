@@ -41,6 +41,20 @@ export default class CoreChartWrapper extends ComponentWrapper {
   public findChartPlot(): null | ElementWrapper {
     return this.findByClassName(testClasses["chart-plot"]);
   }
+
+  public findXAxis(): null | CoreChartAxisWrapper {
+    return this.findComponent(`.${testClasses["axis-x"]}`, CoreChartAxisWrapper);
+  }
+
+  public findYAxis(): null | CoreChartAxisWrapper {
+    return this.findComponent(`.${testClasses["axis-y"]}`, CoreChartAxisWrapper);
+  }
+}
+
+export class CoreChartAxisWrapper extends ComponentWrapper {
+  public findTicks(): Array<ElementWrapper> {
+    return this.findAll("text");
+  }
 }
 
 export class CoreChartFilterWrapper extends ComponentWrapper {
