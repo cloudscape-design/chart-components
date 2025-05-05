@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { forwardRef, useState } from "react";
+import { createRef, forwardRef, useState } from "react";
 import { render } from "@testing-library/react";
 import type Highcharts from "highcharts";
 
@@ -21,6 +21,8 @@ export {
   findPlotLinesById,
 } from "../../core/__tests__/common";
 
+export const ref = createRef<CartesianChartProps.Ref>();
+
 export const StatefulChart = forwardRef((props: CartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
   const [visibleSeries, setVisibleSeries] = useState<readonly string[]>(props.visibleSeries ?? []);
   return (
@@ -28,9 +30,9 @@ export const StatefulChart = forwardRef((props: CartesianChartProps, ref: React.
       ref={ref}
       {...props}
       visibleSeries={visibleSeries}
-      onToggleVisibleSeries={(event) => {
+      onChangeVisibleSeries={(event) => {
         setVisibleSeries(event.detail.visibleSeries);
-        props.onToggleVisibleSeries?.(event);
+        props.onChangeVisibleSeries?.(event);
       }}
     />
   );
@@ -45,10 +47,10 @@ export function renderCartesianChart({ i18nProvider, ...props }: TestProps, Comp
   const ComponentWrapper = (props: CartesianChartProps) => {
     return i18nProvider ? (
       <TestI18nProvider messages={i18nProvider}>
-        <Component data-testid="test-chart" {...props} />
+        <Component ref={ref} data-testid="test-chart" {...props} />
       </TestI18nProvider>
     ) : (
-      <Component data-testid="test-chart" {...props} />
+      <Component ref={ref} data-testid="test-chart" {...props} />
     );
   };
   const { rerender } = render(<ComponentWrapper {...props} />);

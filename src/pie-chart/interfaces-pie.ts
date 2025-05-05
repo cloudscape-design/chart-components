@@ -36,7 +36,7 @@ export interface PieChartProps extends BaseTypes.BaseChartProps {
   /**
    * List of segments IDs to be visible. When unset, all segments are visible by default, but can be hidden by clicking on the
    * legend. When a segment does not have an ID, a segment name is used instead.
-   * When the property is provided, use `onToggleVisibleSegment` to update it when the legend segment filtering is used.
+   * When the property is provided, use `onChangeVisibleSegments` to update it when the legend segment filtering is used.
    */
   visibleSegments?: readonly string[];
 

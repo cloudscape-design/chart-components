@@ -99,14 +99,14 @@ export interface CartesianChartProps extends BaseTypes.BaseChartProps {
   /**
    * List of series IDs to be visible. When unset, all series are visible by default, but can be hidden by clicking on the
    * legend. When a series does not have an ID, a series name is used instead.
-   * When the property is provided, use `onToggleVisibleSeries` to update it when the legend series filtering is used.
+   * When the property is provided, use `onChangeVisibleSegments` to update it when the legend series filtering is used.
    */
   visibleSeries?: readonly string[];
 
   /**
    * A callback, executed when series visibility is toggled by clicking on legend items.
    */
-  onToggleVisibleSeries?: NonCancelableEventHandler<{ visibleSeries: string[] }>;
+  onChangeVisibleSeries?: NonCancelableEventHandler<{ visibleSeries: string[] }>;
 
   /**
    * When set to `true`, adds a visual emphasis on the zero baseline axis.
