@@ -7,12 +7,12 @@ import { vi } from "vitest";
 
 import { CartesianChartProps } from "../../../lib/components/cartesian-chart";
 import testClasses from "../../../lib/components/cartesian-chart/test-classes/styles.selectors";
-import { CoreChart } from "../../../lib/components/core/chart-core";
+import { InternalCoreChart } from "../../../lib/components/core/chart-core";
 import { getDataAttributes } from "../../internal/base-component/get-data-attributes";
 import { renderCartesianChart } from "./common";
 
 vi.mock("../../../lib/components/core/chart-core", () => ({
-  CoreChart: vi.fn((props) => <div {...getDataAttributes(props)}></div>),
+  InternalCoreChart: vi.fn((props) => <div {...getDataAttributes(props)}></div>),
 }));
 
 const series: CartesianChartProps.SeriesOptions[] = [
@@ -22,11 +22,11 @@ const series: CartesianChartProps.SeriesOptions[] = [
 ];
 
 function getXAxisOptionsFormatter() {
-  const options = vi.mocked(CoreChart).mock.calls[0][0].options;
+  const options = vi.mocked(InternalCoreChart).mock.calls[0][0].options;
   return (options.xAxis as Highcharts.XAxisOptions[])[0].labels!.formatter!;
 }
 function getYAxisOptionsFormatter() {
-  const options = vi.mocked(CoreChart).mock.calls[0][0].options;
+  const options = vi.mocked(InternalCoreChart).mock.calls[0][0].options;
   return (options.yAxis as Highcharts.YAxisOptions[])[0].labels!.formatter!;
 }
 function getAxisOptionsFormatters() {
@@ -52,12 +52,12 @@ function mockAxisContext({
 
 describe("CartesianChart: axes", () => {
   afterEach(() => {
-    vi.mocked(CoreChart).mockRestore();
+    vi.mocked(InternalCoreChart).mockRestore();
   });
 
   test("renders axes by default", () => {
     renderCartesianChart({ highcharts, series });
-    expect(CoreChart).toHaveBeenCalledWith(
+    expect(InternalCoreChart).toHaveBeenCalledWith(
       expect.objectContaining({
         options: expect.objectContaining({
           xAxis: [
@@ -92,7 +92,7 @@ describe("CartesianChart: axes", () => {
       yAxis: { title: "Y axis" },
       emphasizeBaselineAxis: false,
     });
-    expect(CoreChart).toHaveBeenCalledWith(
+    expect(InternalCoreChart).toHaveBeenCalledWith(
       expect.objectContaining({
         options: expect.objectContaining({
           xAxis: [
@@ -136,7 +136,7 @@ describe("CartesianChart: axes", () => {
       reversedStacks: true,
     };
     renderCartesianChart({ highcharts, series, xAxis, yAxis });
-    expect(CoreChart).toHaveBeenCalledWith(
+    expect(InternalCoreChart).toHaveBeenCalledWith(
       expect.objectContaining({
         options: expect.objectContaining({
           xAxis: [expect.objectContaining(xAxis)],

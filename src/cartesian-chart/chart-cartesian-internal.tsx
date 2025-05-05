@@ -6,9 +6,10 @@ import type Highcharts from "highcharts";
 
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
-import { CoreChart } from "../core/chart-core";
+import { InternalCoreChart } from "../core/chart-core";
 import { getOptionsId } from "../core/utils";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
+import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import { fireNonCancelableEvent } from "../internal/events";
 import { useCartesianSeries } from "./chart-series-cartesian";
 import { useChartTooltipCartesian } from "./chart-tooltip-cartesian";
@@ -18,7 +19,7 @@ import { getDataExtremes } from "./utils";
 
 import testClasses from "./test-classes/styles.css.js";
 
-interface InternalCartesianChartProps extends Omit<CartesianChartProps, "series"> {
+interface InternalCartesianChartProps extends InternalBaseComponentProps, Omit<CartesianChartProps, "series"> {
   highcharts: null | object;
   options: InternalCartesianChartOptions;
 }
@@ -122,7 +123,7 @@ export const InternalCartesianChart = forwardRef(
     };
 
     return (
-      <CoreChart
+      <InternalCoreChart
         highcharts={highcharts}
         options={highchartsOptions}
         fitHeight={props.fitHeight}
@@ -139,6 +140,7 @@ export const InternalCartesianChart = forwardRef(
         footer={props.footer}
         filter={props.filter}
         className={testClasses.root}
+        __internalRootRef={props.__internalRootRef}
         {...cartesianTooltipProps}
         {...getDataAttributes(props)}
       />

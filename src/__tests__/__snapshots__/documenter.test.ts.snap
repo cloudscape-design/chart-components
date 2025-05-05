@@ -34,8 +34,12 @@ and adds extra features such as additional series types (thresholds), alternativ
         "type": "object",
       },
       "detailType": "{ visibleSeries: Array<string>; }",
+<<<<<<< HEAD
       "name": "onToggleVisibleSeries",
 >>>>>>> 04195fd (wip)
+=======
+      "name": "onChangeVisibleSeries",
+>>>>>>> 84a8373 (use base-component util)
     },
   ],
   "functions": [
@@ -345,7 +349,7 @@ inject links, or add expandable items.",
     {
       "description": "List of series IDs to be visible. When unset, all series are visible by default, but can be hidden by clicking on the
 legend. When a series does not have an ID, a series name is used instead.
-When the property is provided, use \`onToggleVisibleSeries\` to update it when the legend series filtering is used.",
+When the property is provided, use \`onChangeVisibleSegments\` to update it when the legend series filtering is used.",
       "name": "visibleSeries",
       "optional": true,
       "type": "ReadonlyArray<string>",
@@ -822,7 +826,7 @@ Supported properties:
     {
       "description": "List of segments IDs to be visible. When unset, all segments are visible by default, but can be hidden by clicking on the
 legend. When a segment does not have an ID, a segment name is used instead.
-When the property is provided, use \`onToggleVisibleSegment\` to update it when the legend segment filtering is used.",
+When the property is provided, use \`onChangeVisibleSegments\` to update it when the legend segment filtering is used.",
       "name": "visibleSegments",
       "optional": true,
       "type": "ReadonlyArray<string>",

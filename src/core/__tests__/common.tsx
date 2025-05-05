@@ -7,9 +7,9 @@ import type Highcharts from "highcharts";
 import highcharts from "highcharts";
 
 import "@cloudscape-design/components/test-utils/dom";
-import { CoreChart } from "../../../lib/components/core/chart-core";
 import { CoreChartProps } from "../../../lib/components/core/interfaces-core";
 import { TestI18nProvider } from "../../../lib/components/internal/utils/test-i18n-provider";
+import CoreChart from "../../../lib/components/internal-do-not-use/core-chart";
 import createWrapper from "../../../lib/components/test-utils/dom";
 import CoreChartWrapper from "../../../lib/components/test-utils/dom/core";
 
