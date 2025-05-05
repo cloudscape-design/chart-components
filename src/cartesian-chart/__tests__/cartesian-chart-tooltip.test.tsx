@@ -33,6 +33,7 @@ describe("CartesianChart: tooltip", () => {
       expect(wrapper.findTooltip()!.findSeries()![1].findValue().getElement().textContent).toBe("5.00");
       expect(wrapper.findTooltip()!.findSeries()![2].findKey().getElement().textContent).toBe("Line 3");
       expect(wrapper.findTooltip()!.findSeries()![2].findValue().getElement().textContent).toBe("8.00");
+      expect(wrapper.findTooltip()!.findFooter()).toBe(null);
     });
 
     act(() => leaveChartPoint(1, 1));
