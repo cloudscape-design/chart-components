@@ -3,6 +3,7 @@
 
 import clsx from "clsx";
 
+import { Portal } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
 import Button from "@cloudscape-design/components/button";
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
@@ -12,7 +13,6 @@ import StatusIndicator from "@cloudscape-design/components/status-indicator";
 
 import { ChartLegend as ChartLegendComponent } from "../internal/components/chart-legend";
 import ChartSeriesFilter from "../internal/components/chart-series-filter";
-import Portal from "../internal/components/portal";
 import { fireNonCancelableEvent } from "../internal/events";
 import { useSelector } from "../internal/utils/async-store";
 import { ChartAPI } from "./chart-api";
