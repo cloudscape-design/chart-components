@@ -181,7 +181,7 @@ export function VerticalAxisTitle({
     return null;
   }
   return (
-    <div className={clsx(testClasses["vertical-axis-title"], styles["vertical-axis-title"])}>
+    <div className={clsx(testClasses["vertical-axis-title"], styles["vertical-axis-title"])} aria-hidden={true}>
       {titles.map((text, index) => (
         <Box key={index} fontWeight="bold" margin={{ bottom: "xxs" }}>
           {text}
