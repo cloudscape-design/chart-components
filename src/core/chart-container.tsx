@@ -1,9 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { useCallback, useRef, useState } from "react";
 import clsx from "clsx";
 
-import { useContainerQuery } from "@cloudscape-design/component-toolkit";
+import { useResizeObserver } from "@cloudscape-design/component-toolkit/internal";
+
+import { DebouncedCall } from "../internal/utils/utils.js";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -15,7 +18,7 @@ interface ChartContainerProps {
   // The header, footer, title, and legend are rendered as is, and we measure the height of these components to compute
   // the available height for the chart plot when fitHeight=true. When there is not enough vertical space, the container
   // will ensure the overflow behavior.
-  chart: (height: null | number) => React.ReactNode;
+  chart: (height: number) => React.ReactNode;
   verticalAxisTitle?: React.ReactNode;
   header?: React.ReactNode;
   seriesFilter?: React.ReactNode;
@@ -39,29 +42,19 @@ export function ChartContainer({
   chartMinHeight,
   chartMinWidth,
 }: ChartContainerProps) {
-  const hasHeader = header || seriesFilter || additionalFilters || verticalAxisTitle;
-  const hasFooter = footer || legend;
-
-  const [measuredChartHeight, chartMeasureRef] = useContainerQuery((entry) => entry.contentBoxHeight);
-  const [measuredHeaderHeight, headerMeasureRef] = useContainerQuery((entry) => entry.contentBoxHeight);
-  const [measuredFooterHeight, footerMeasureRef] = useContainerQuery((entry) => entry.contentBoxHeight);
-
-  const effectiveHeaderHeight = hasHeader ? measuredHeaderHeight : 0;
-  const effectiveFooterHeight = hasFooter ? measuredFooterHeight : 0;
-  const measureReady = measuredChartHeight !== null && effectiveHeaderHeight !== null && effectiveFooterHeight !== null;
-  const chartHeight = !measureReady
-    ? (chartMinHeight ?? null)
-    : Math.max(chartMinHeight ?? 0, measuredChartHeight - effectiveHeaderHeight - effectiveFooterHeight);
-  const overflowX = chartMinWidth !== undefined ? "auto" : undefined;
+  const { refs, measures } = useContainerQueries();
 
   const filter =
     seriesFilter || additionalFilters ? (
       <ChartFilters seriesFilter={seriesFilter} additionalFilters={additionalFilters} />
     ) : null;
 
+  const chartHeight = Math.max(chartMinHeight ?? 0, measures.chart - measures.header - measures.footer);
+  const overflowX = chartMinWidth !== undefined ? "auto" : undefined;
+
   return (
-    <div ref={chartMeasureRef} style={fitHeight ? { position: "absolute", inset: 0, overflowX } : { overflowX }}>
-      <div ref={headerMeasureRef}>
+    <div ref={refs.chart} style={fitHeight ? { position: "absolute", inset: 0, overflowX } : { overflowX }}>
+      <div ref={refs.header}>
         {header}
         {filter}
         {verticalAxisTitle}
@@ -74,12 +67,39 @@ export function ChartContainer({
         {chart(chartHeight)}
       </div>
 
-      <div ref={footerMeasureRef}>
+      <div ref={refs.footer}>
         {legend}
         {footer}
       </div>
     </div>
   );
+}
+
+function useContainerQueries() {
+  const [measuresState, setMeasuresState] = useState({ ready: false, chart: 0, header: 0, footer: 0 });
+  const measuresRef = useRef({ ready: false, chart: 0, header: 0, footer: 0 });
+  const measureDebounce = useRef(new DebouncedCall()).current;
+  const setMeasure = (type: "chart" | "header" | "footer", value: number) => {
+    measuresRef.current[type] = value;
+    measureDebounce.call(() => setMeasuresState({ ...measuresRef.current }), 0);
+  };
+
+  const chartMeasureRef = useRef<HTMLDivElement>(null);
+  const getChart = useCallback(() => chartMeasureRef.current, []);
+  useResizeObserver(getChart, (entry) => setMeasure("chart", entry.contentBoxHeight));
+
+  const headerMeasureRef = useRef<HTMLDivElement>(null);
+  const getHeader = useCallback(() => headerMeasureRef.current, []);
+  useResizeObserver(getHeader, (entry) => setMeasure("header", entry.contentBoxHeight));
+
+  const footerMeasureRef = useRef<HTMLDivElement>(null);
+  const getFooter = useCallback(() => footerMeasureRef.current, []);
+  useResizeObserver(getFooter, (entry) => setMeasure("footer", entry.contentBoxHeight));
+
+  return {
+    refs: { chart: chartMeasureRef, header: headerMeasureRef, footer: footerMeasureRef },
+    measures: measuresState,
+  };
 }
 
 function ChartFilters({

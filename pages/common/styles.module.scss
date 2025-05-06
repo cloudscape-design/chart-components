@@ -19,8 +19,8 @@
 
 .chart-frame-annotation {
   position: absolute;
-  top: 0;
-  right: 0;
+  inset-block-start: 0;
+  inset-inline-end: 0;
   color: cs.$color-background-layout-main;
   background-color: cs.$color-border-status-info;
   opacity: 0.75;
