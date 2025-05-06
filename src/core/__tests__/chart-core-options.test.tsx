@@ -12,7 +12,13 @@ import { renderChart, TestChartRenderer } from "./common";
 vi.mock("highcharts-react-official", () => ({ __esModule: true, default: vi.fn(() => null) }));
 
 const rendererStub = new TestChartRenderer();
-const chartStub = { series: [], legend: { allItems: [] }, options: {}, renderer: rendererStub };
+const chartStub = {
+  series: [],
+  legend: { allItems: [] },
+  options: {},
+  renderer: rendererStub,
+  container: document.createElement("div"),
+};
 const pointStub = { series: { chart: chartStub } };
 
 // These tests ensure the Highcharts options can be passed down to the underlying Highcharts component,
@@ -97,6 +103,7 @@ describe("CoreChart: options", () => {
 
   test("propagates highcharts accessibility", () => {
     const accessibility = {
+      screenReaderSection: { beforeChartFormat: "format", custom: "custom" },
       keyboardNavigation: { focusBorder: { style: { color: "border-color" } }, custom: "custom" },
       custom: "custom",
     } as const;

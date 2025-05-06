@@ -2,22 +2,7 @@
 
 exports[`definition for cartesian-chart matches the snapshot > cartesian-chart 1`] = `
 {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-  "dashCaseName": "sample",
-  "events": [
-    {
-      "cancelable": false,
-      "name": "onClick",
-=======
-  "description": "CartesianChart is a public Cloudscape component. It features a custom API, which resembles the Highcharts API where appropriate,
-and adds extra features such as additional series types (thresholds), alternative tooltip, no-data, and more.",
-=======
->>>>>>> 8749603 (fix tests)
-=======
   "dashCaseName": "cartesian-chart",
->>>>>>> 943e3dd (chore: fix most unit tests (#9))
   "events": [
     {
       "cancelable": false,
@@ -34,12 +19,7 @@ and adds extra features such as additional series types (thresholds), alternativ
         "type": "object",
       },
       "detailType": "{ visibleSeries: Array<string>; }",
-<<<<<<< HEAD
-      "name": "onToggleVisibleSeries",
->>>>>>> 04195fd (wip)
-=======
       "name": "onChangeVisibleSeries",
->>>>>>> 84a8373 (use base-component util)
     },
   ],
   "functions": [
