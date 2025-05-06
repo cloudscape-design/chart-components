@@ -6,7 +6,15 @@ import { Page, PageSection } from "../common/templates";
 export default function () {
   return (
     <Page title="Migration: Accessibility">
-      <PageSection title="TODO">Keyboard navigation, screen-readers, motion, RTL</PageSection>
+      <PageSection title="RTL">TODO</PageSection>
+
+      <PageSection title="Motion">TODO</PageSection>
+
+      <PageSection title="Color contrast">TODO</PageSection>
+
+      <PageSection title="Keyboard navigation">TODO</PageSection>
+
+      <PageSection title="Screen readers">TODO</PageSection>
     </Page>
   );
 }
