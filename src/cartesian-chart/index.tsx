@@ -6,6 +6,7 @@ import { forwardRef } from "react";
 import { AbstractSeriesOptions } from "../core/interfaces-base";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import useBaseComponent from "../internal/base-component/use-base-component";
+import { applyDisplayName } from "../internal/utils/apply-display-name";
 import { getAllowedProps } from "../internal/utils/utils";
 import { InternalCartesianChart } from "./chart-cartesian-internal";
 import { CartesianChartProps, InternalCartesianChartOptions } from "./interfaces-cartesian";
@@ -40,6 +41,8 @@ const CartesianChart = forwardRef((props: CartesianChartProps, ref: React.Ref<Ca
 });
 
 export type { CartesianChartProps };
+
+applyDisplayName(CartesianChart, "CartesianChart");
 
 export default CartesianChart;
 
