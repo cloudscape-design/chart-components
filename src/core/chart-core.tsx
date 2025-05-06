@@ -143,6 +143,11 @@ export function InternalCoreChart({
             },
             accessibility: {
               ...options.accessibility,
+              screenReaderSection: {
+                beforeChartFormat:
+                  "<div>{typeDescription}</div><div>{chartSubtitle}</div><div>{chartLongdesc}</div><div>{playAsSoundButton}</div><div>{viewTableButton}</div><div>{xAxisDescription}</div><div>{yAxisDescription}</div><div>{annotationsTitle}{annotationsList}</div>",
+                ...options.accessibility?.screenReaderSection,
+              },
               keyboardNavigation: {
                 ...options.accessibility?.keyboardNavigation,
                 focusBorder: {
