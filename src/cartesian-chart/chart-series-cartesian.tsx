@@ -29,7 +29,7 @@ export const useCartesianSeries = ({
         name: s.name,
         color: s.color ?? Styles.thresholdSeriesDefaultColor,
         data: undefined,
-        custom: { awsui: { type: s.type, threshold: s.value } },
+        custom: createThresholdMetadata(s.type, s.value).custom,
         ...Styles.thresholdSeriesOptions,
       };
     }
@@ -84,24 +84,40 @@ export const useCartesianSeries = ({
 };
 
 function updateSeriesData(chart: Highcharts.Chart) {
-  const xExtremes = chart.xAxis[0]?.getExtremes();
-  const yExtremes = chart.yAxis[0]?.getExtremes();
+  // We search for min, max axes values instead of using axis.getExtremes() API because
+  // Highcharts increases the extremes to exceed the actual data values sometimes, which
+  // then leads to an infinite update cycle.
+  let minX = Number.MAX_SAFE_INTEGER;
+  let maxX = Number.MIN_SAFE_INTEGER;
+  let minY = Number.MAX_SAFE_INTEGER;
+  let maxY = Number.MIN_SAFE_INTEGER;
+  for (const s of chart.series) {
+    for (const p of s.data) {
+      minX = Math.min(minX, p.x);
+      maxX = Math.max(maxX, p.x);
+      minY = Math.min(minY, p.y ?? minY);
+      maxY = Math.max(maxY, p.y ?? maxY);
+    }
+  }
 
   for (const s of chart.series) {
-    if (typeof s.options.custom === "object" && s.options.custom?.awsui.type === "x-threshold") {
+    if (isXThreshold(s) && minY !== Number.MAX_SAFE_INTEGER && maxY !== Number.MIN_SAFE_INTEGER) {
       updateDataIfNeeded(s, [
-        { x: s.options.custom.awsui.threshold, y: yExtremes.min },
-        { x: s.options.custom.awsui.threshold, y: yExtremes.max },
+        { x: s.options.custom.awsui.threshold, y: minY },
+        { x: s.options.custom.awsui.threshold, y: maxY },
       ]);
     }
-    if (typeof s.options.custom === "object" && s.options.custom?.awsui.type === "y-threshold") {
+    if (isYThreshold(s) && minX !== Number.MAX_SAFE_INTEGER && maxX !== Number.MIN_SAFE_INTEGER) {
       updateDataIfNeeded(s, [
-        { x: xExtremes.min, y: s.options.custom.awsui.threshold },
-        { x: xExtremes.max, y: s.options.custom.awsui.threshold },
+        { x: minX, y: s.options.custom.awsui.threshold },
+        { x: maxX, y: s.options.custom.awsui.threshold },
       ]);
     }
   }
 
+  // The update only happens if the new coordinates are different from the old.
+  // The comparison is done with a small tolerance to prevent infinite update cycle when
+  // Highcharts updates the extremes to slightly exceed the data values from start and end.
   function updateDataIfNeeded(series: Highcharts.Series, data: { x: number; y: number }[]) {
     if (
       series.visible &&
@@ -113,4 +129,23 @@ function updateSeriesData(chart: Highcharts.Chart) {
       series.setData(data);
     }
   }
+}
+
+interface ThresholdOptions<T extends "x-threshold" | "y-threshold"> {
+  custom: {
+    awsui: {
+      type: T;
+      threshold: number;
+    };
+  };
+}
+
+function createThresholdMetadata<T extends "x-threshold" | "y-threshold">(type: T, value: number): ThresholdOptions<T> {
+  return { custom: { awsui: { type, threshold: value } } };
+}
+function isXThreshold(s: Highcharts.Series): s is Highcharts.Series & { options: ThresholdOptions<"x-threshold"> } {
+  return typeof s.options.custom === "object" && s.options.custom?.awsui.type === "x-threshold";
+}
+function isYThreshold(s: Highcharts.Series): s is Highcharts.Series & { options: ThresholdOptions<"y-threshold"> } {
+  return typeof s.options.custom === "object" && s.options.custom?.awsui.type === "y-threshold";
 }

@@ -24,7 +24,7 @@ export function useChartTooltipCartesian(props: {
   options: InternalCartesianChartOptions;
   tooltip?: CartesianChartProps.TooltipOptions;
 }): Partial<CoreChartProps> {
-  const { xAxis, series } = props.options;
+  const { xAxis, yAxis, series } = props.options;
   const [expandedSeries, setExpandedSeries] = useState<Record<string, Set<string>>>({});
   const cursorRef = useRef(new HighlightCursor());
   const chartRef = useRef<null | Highcharts.Chart>(null);
@@ -61,7 +61,7 @@ export function useChartTooltipCartesian(props: {
     });
 
     const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
-      const yAxisProps = chart.yAxis[0];
+      const yAxisProps = yAxis[0];
       const valueFormatter = yAxisProps
         ? getDefaultFormatter(yAxisProps, getDataExtremes(chart.xAxis[0]))
         : (value: number) => value;
