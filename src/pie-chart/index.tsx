@@ -5,6 +5,7 @@ import { forwardRef } from "react";
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import useBaseComponent from "../internal/base-component/use-base-component";
+import { applyDisplayName } from "../internal/utils/apply-display-name";
 import { getAllowedProps } from "../internal/utils/utils";
 import { InternalPieChart } from "./chart-pie-internal";
 import { InternalPieChartOptions, PieChartProps } from "./interfaces-pie";
@@ -40,6 +41,8 @@ const PieChart = forwardRef((props: PieChartProps, ref: React.Ref<PieChartProps.
 });
 
 export type { PieChartProps };
+
+applyDisplayName(PieChart, "PieChart");
 
 export default PieChart;
 
