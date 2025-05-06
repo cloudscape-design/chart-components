@@ -5,6 +5,8 @@ import { useEffect, useId, useRef } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import type Highcharts from "highcharts";
 
+import { getIsRtl } from "@cloudscape-design/component-toolkit/internal";
+
 import { ReadonlyAsyncStore } from "../internal/utils/async-store";
 import { DebouncedCall } from "../internal/utils/utils";
 import { ChartStore } from "./chart-store";
@@ -329,9 +331,12 @@ export class ChartAPI {
   };
 
   private createMarkers = (target: Rect) => {
+    // We set the direction to target element so that the direction check done by the tooltip
+    // is done correctly. Without that, the asserted target direction always results to "ltr".
+    const isRtl = getIsRtl(this.chart.container.parentElement);
     this.targetElement = this.chart.renderer
       .rect(target.x, target.y, target.width, target.height)
-      .attr({ fill: "transparent" })
+      .attr({ fill: "transparent", direction: isRtl ? "rtl" : "ltr" })
       .add();
 
     // The targetElement.element can get invalidated by Highcharts, so we cannot use
