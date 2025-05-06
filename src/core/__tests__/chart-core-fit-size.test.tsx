@@ -1,6 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { useEffect, useRef } from "react";
+import { waitFor } from "@testing-library/react";
 import highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import { vi } from "vitest";
@@ -16,13 +18,19 @@ vi.mock("highcharts-react-official", () => ({ __esModule: true, default: vi.fn((
 let queryMeasurementIndex = 0;
 const mockSizes = [100, 0, 20];
 
-vi.mock("@cloudscape-design/component-toolkit", async () => {
-  const actual = await vi.importActual<typeof import("@cloudscape-design/component-toolkit")>(
-    "@cloudscape-design/component-toolkit",
+vi.mock("@cloudscape-design/component-toolkit/internal", async () => {
+  const actual = await vi.importActual<typeof import("@cloudscape-design/component-toolkit/internal")>(
+    "@cloudscape-design/component-toolkit/internal",
   );
   return {
     ...actual,
-    useContainerQuery: () => [mockSizes[circleIndex(queryMeasurementIndex++, [0, 3])], () => {}],
+    useResizeObserver: (_, cb) => {
+      const index = useRef(circleIndex(queryMeasurementIndex++, [0, 3])).current;
+      useEffect(() => {
+        cb({ contentBoxHeight: mockSizes[index] });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, []);
+    },
   };
 });
 
@@ -67,18 +75,24 @@ describe("CoreChart: fit-size", () => {
     expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(500), expect.anything());
   });
 
-  test("uses measured or min height when fitHeight=true", () => {
+  test("uses measured or min height when fitHeight=true", async () => {
     const { rerender } = renderChart({ highcharts, fitHeight: true });
 
-    expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(80), expect.anything());
+    await waitFor(() => {
+      expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(80), expect.anything());
+    });
 
     rerender({ highcharts, fitHeight: true, chartHeight: 300 });
 
-    expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(80), expect.anything());
+    await waitFor(() => {
+      expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(80), expect.anything());
+    });
 
     rerender({ highcharts, fitHeight: true, chartHeight: 300, chartMinHeight: 200 });
 
-    expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(200), expect.anything());
+    await waitFor(() => {
+      expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(200), expect.anything());
+    });
   });
 
   test.each([{ fitHeight: false }, { fitHeight: true }])("applies minWidth, fitHeight=$fitHeight", ({ fitHeight }) => {

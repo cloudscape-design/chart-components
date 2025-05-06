@@ -102,10 +102,6 @@ export function InternalCoreChart({
         chartMinHeight={chartMinHeight}
         chartMinWidth={chartMinWidth}
         chart={(height) => {
-          if (fitHeight && height === null) {
-            return null;
-          }
-
           // The Highcharts options takes all provided Highcharts options and custom properties and merges them together, so that
           // the Cloudscape features and custom Highcharts extensions can co-exist.
           // For certain options we provide Cloudscape styling, but in all cases this can be explicitly overridden.
@@ -118,6 +114,7 @@ export function InternalCoreChart({
             // Using default Cloudscape colors unless explicit colors are given.
             colors: options.colors ?? Styles.colors,
             chart: {
+              animation: false,
               ...Styles.chart,
               ...options.chart,
               className: clsx(testClasses["chart-plot"], options.chart?.className),
@@ -166,6 +163,7 @@ export function InternalCoreChart({
             plotOptions: {
               ...options.plotOptions,
               series: {
+                animation: false,
                 borderColor: Styles.seriesBorderColor,
                 ...options.plotOptions?.series,
                 dataLabels: { style: Styles.seriesDataLabelsCss, ...options.plotOptions?.series?.dataLabels },
@@ -216,6 +214,7 @@ export function InternalCoreChart({
               ...Styles.xAxisOptions,
               ...xAxis,
               reversed: !options.chart?.inverted && isRtl() ? !xAxis.reversed : xAxis.reversed,
+              opposite: options.chart?.inverted && isRtl() ? !xAxis.opposite : xAxis.opposite,
               className: clsx(testClasses["axis-x"], xAxis.className),
               title: {
                 style: {
@@ -231,6 +230,7 @@ export function InternalCoreChart({
               ...Styles.yAxisOptions,
               ...yAxis,
               reversed: options.chart?.inverted && isRtl() ? !yAxis.reversed : yAxis.reversed,
+              opposite: !options.chart?.inverted && isRtl() ? !yAxis.opposite : yAxis.opposite,
               className: clsx(testClasses["axis-y"], yAxis.className),
               title: {
                 style: {

@@ -171,7 +171,6 @@ export class ChartAPI {
 
   public onMouseLeaveTooltip = () => {
     if (!this.store.get().tooltip.pinned) {
-      this.mouseLeaveCall.cancelPrevious();
       this.mouseLeaveCall.call(() => {
         this.clearHighlightActions();
         this._store.setTooltip({ visible: false, pinned: false });
@@ -215,7 +214,6 @@ export class ChartAPI {
       return;
     }
     if (!this.store.get().tooltip.pinned) {
-      this.mouseLeaveCall.cancelPrevious();
       this.mouseLeaveCall.call(() => {
         if (this.tooltipHovered) {
           return;
