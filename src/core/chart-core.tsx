@@ -1,15 +1,18 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { useRef } from "react";
 import clsx from "clsx";
 import type Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 
+import { getIsRtl } from "@cloudscape-design/component-toolkit/internal";
 import { isDevelopment } from "@cloudscape-design/component-toolkit/internal";
 import Spinner from "@cloudscape-design/components/spinner";
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
+import { useMergeRefs } from "../internal/utils/use-merge-refs";
 import { castArray } from "../internal/utils/utils";
 import { useChartAPI } from "./chart-api";
 import { ChartContainer } from "./chart-container";
@@ -61,6 +64,10 @@ export function InternalCoreChart({
 
   const rootClassName = clsx(styles.root, fitHeight && styles["root-fit-height"], className);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const rootRef = useMergeRefs(containerRef, __internalRootRef);
+  const isRtl = () => getIsRtl(__internalRootRef?.current);
+
   if (!highcharts) {
     return (
       <div {...getDataAttributes(rest)} className={rootClassName}>
@@ -89,7 +96,7 @@ export function InternalCoreChart({
   }
 
   return (
-    <div ref={__internalRootRef} {...getDataAttributes(rest)} className={rootClassName}>
+    <div ref={rootRef} {...getDataAttributes(rest)} className={rootClassName}>
       <ChartContainer
         fitHeight={fitHeight}
         chartMinHeight={chartMinHeight}
@@ -208,6 +215,7 @@ export function InternalCoreChart({
             xAxis: castArray(options.xAxis)?.map((xAxis) => ({
               ...Styles.xAxisOptions,
               ...xAxis,
+              reversed: !options.chart?.inverted && isRtl() ? !xAxis.reversed : xAxis.reversed,
               className: clsx(testClasses["axis-x"], xAxis.className),
               title: {
                 style: {
@@ -222,6 +230,7 @@ export function InternalCoreChart({
             yAxis: castArray(options.yAxis)?.map((yAxis) => ({
               ...Styles.yAxisOptions,
               ...yAxis,
+              reversed: options.chart?.inverted && isRtl() ? !yAxis.reversed : yAxis.reversed,
               className: clsx(testClasses["axis-y"], yAxis.className),
               title: {
                 style: {

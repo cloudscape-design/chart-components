@@ -121,6 +121,7 @@ export function ComponentNew() {
         valueFormatter: dateFormatter,
       }}
       tooltip={{
+        placement: "middle",
         footer(detail) {
           return (
             <div>
