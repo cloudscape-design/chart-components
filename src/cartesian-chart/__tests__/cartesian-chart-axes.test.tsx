@@ -151,6 +151,9 @@ describe("CartesianChart: axes", () => {
     renderCartesianChart({ highcharts, series });
     getAxisOptionsFormatters().forEach((formatter) => {
       expect(formatter.call(mockAxisContext({ value: 1 }))).toBe("1.00");
+      expect(formatter.call(mockAxisContext({ value: 1_000 }))).toBe("1K");
+      expect(formatter.call(mockAxisContext({ value: 1_000_000 }))).toBe("1M");
+      expect(formatter.call(mockAxisContext({ value: 1_000_000_000 }))).toBe("1G");
     });
   });
 
@@ -161,17 +164,17 @@ describe("CartesianChart: axes", () => {
     });
   });
 
-  test("uses default category axes formatters", () => {
+  test.each([undefined, ["a", "b"]])("uses default category axes formatters, categories=%s", (categories) => {
     renderCartesianChart({
       highcharts,
       series,
-      xAxis: { type: "category", categories: ["a", "b"] },
-      yAxis: { type: "category", categories: ["a", "b"] },
+      xAxis: { type: "category", categories },
+      yAxis: { type: "category", categories },
     });
     getAxisOptionsFormatters().forEach((formatter) => {
       expect(formatter.call(mockAxisContext({ value: -1 }))).toBe("-1");
-      expect(formatter.call(mockAxisContext({ value: 0 }))).toBe("a");
-      expect(formatter.call(mockAxisContext({ value: 1 }))).toBe("b");
+      expect(formatter.call(mockAxisContext({ value: 0 }))).toBe(categories ? "a" : "0");
+      expect(formatter.call(mockAxisContext({ value: 1 }))).toBe(categories ? "b" : "1");
       expect(formatter.call(mockAxisContext({ value: 2 }))).toBe("2");
     });
   });
