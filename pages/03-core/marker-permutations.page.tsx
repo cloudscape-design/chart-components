@@ -36,7 +36,6 @@ const permutationsForColors = [
       type: [
         "line",
         "dashed",
-        "large-circle",
         "large-square",
         "hollow-square",
         "circle",

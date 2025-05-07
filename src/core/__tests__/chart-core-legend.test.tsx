@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { act } from "react";
+import { fireEvent } from "@testing-library/react";
 import highcharts from "highcharts";
+
+import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 
 import {
   createChartWrapper,
@@ -214,5 +217,71 @@ describe("CoreChart: legend", () => {
     await mouseLeavePause();
     await clearHighlightPause();
     expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
+  });
+
+  test("legend items are navigable with keyboard", () => {
+    renderChart({
+      highcharts,
+      options: {
+        series: series.filter((s) => s.type === "line"),
+      },
+      visibleItems: ["L1", "L2", "L3"],
+    });
+
+    act(() => getItem(0).focus());
+    expect(getItem(0).getElement()).toHaveFocus();
+    expect(getItems({ dimmed: false })).toHaveLength(1);
+    expect(getItems({ dimmed: false })[0].getElement()).toBe(getItem(0).getElement());
+
+    fireEvent.keyDown(getItem(0).getElement(), { keyCode: KeyCode.right });
+    expect(getItem(1).getElement()).toHaveFocus();
+    expect(getItems({ dimmed: false })).toHaveLength(1);
+    expect(getItems({ dimmed: false })[0].getElement()).toBe(getItem(1).getElement());
+
+    fireEvent.keyDown(getItem(1).getElement(), { keyCode: KeyCode.down });
+    expect(getItem(2).getElement()).toHaveFocus();
+    expect(getItems({ dimmed: false })).toHaveLength(1);
+    expect(getItems({ dimmed: false })[0].getElement()).toBe(getItem(2).getElement());
+
+    fireEvent.keyDown(getItem(2).getElement(), { keyCode: KeyCode.left });
+    expect(getItem(1).getElement()).toHaveFocus();
+    expect(getItems({ dimmed: false })).toHaveLength(1);
+    expect(getItems({ dimmed: false })[0].getElement()).toBe(getItem(1).getElement());
+
+    fireEvent.keyDown(getItem(1).getElement(), { keyCode: KeyCode.up });
+    expect(getItem(0).getElement()).toHaveFocus();
+    expect(getItems({ dimmed: false })).toHaveLength(1);
+    expect(getItems({ dimmed: false })[0].getElement()).toBe(getItem(0).getElement());
+
+    fireEvent.keyDown(getItem(0).getElement(), { keyCode: KeyCode.end });
+    expect(getItem(2).getElement()).toHaveFocus();
+    expect(getItems({ dimmed: false })).toHaveLength(1);
+    expect(getItems({ dimmed: false })[0].getElement()).toBe(getItem(2).getElement());
+
+    fireEvent.keyDown(getItem(2).getElement(), { keyCode: KeyCode.home });
+    expect(getItem(0).getElement()).toHaveFocus();
+    expect(getItems({ dimmed: false })).toHaveLength(1);
+    expect(getItems({ dimmed: false })[0].getElement()).toBe(getItem(0).getElement());
+
+    fireEvent.keyDown(getItem(0).getElement(), { keyCode: KeyCode.left });
+    expect(getItem(2).getElement()).toHaveFocus();
+
+    fireEvent.keyDown(getItem(2).getElement(), { keyCode: KeyCode.right });
+    expect(getItem(0).getElement()).toHaveFocus();
+    expect(findChartSeries(0).state).toBe("normal");
+    expect(findChartSeries(1).state).toBe("inactive");
+    expect(findChartSeries(2).state).toBe("inactive");
+
+    fireEvent.keyDown(getItem(0).getElement(), { keyCode: KeyCode.escape });
+    expect(getItem(0).getElement()).toHaveFocus();
+    expect(findChartSeries(0).state).toBe("normal");
+    expect(findChartSeries(1).state).toBe("normal");
+    expect(findChartSeries(2).state).toBe("normal");
+
+    fireEvent.keyDown(getItem(0).getElement(), { keyCode: KeyCode.right });
+    expect(getItem(1).getElement()).toHaveFocus();
+    expect(findChartSeries(0).state).toBe("inactive");
+    expect(findChartSeries(1).state).toBe("normal");
+    expect(findChartSeries(2).state).toBe("inactive");
   });
 });

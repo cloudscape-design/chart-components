@@ -13,7 +13,6 @@ export type ChartSeriesMarkerType =
   | "diamond"
   | "triangle"
   | "triangle-down"
-  | "large-circle"
   | "circle";
 
 export interface ChartSeriesMarkerProps extends BaseComponentProps {
@@ -72,10 +71,6 @@ export function ChartSeriesMarker({ type = "line", color, visible = true }: Char
 
         {type === "triangle-down" && (
           <polygon points={`${halfSize},${size} ${0},${0} ${size},${0}`} fill={color} transform={scale(0.65)} />
-        )}
-
-        {type === "large-circle" && (
-          <circle cx={halfSize} cy={halfSize} r={halfSize} fill={color} transform={scale(0.9)} />
         )}
 
         {type === "circle" && <circle cx={halfSize} cy={halfSize} r={halfSize} fill={color} transform={scale(0.65)} />}

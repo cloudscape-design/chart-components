@@ -144,26 +144,26 @@ export class ChartAPI {
     };
   }
 
-  public registerLegend(legend: RegisteredLegendAPI) {
+  public registerLegend = (legend: RegisteredLegendAPI) => {
     this.registeredLegend = legend;
-  }
+  };
 
-  public unregisterLegend() {
+  public unregisterLegend = () => {
     this.registeredLegend = null;
-  }
+  };
 
-  public highlightChartItems(itemIds: readonly string[]) {
+  public highlightChartItems = (itemIds: readonly string[]) => {
     highlightChartItems(this.chart, itemIds);
-  }
+  };
 
-  public clearChartItemsHighlight() {
+  public clearChartItemsHighlight = () => {
     clearChartItemsHighlight(this.chart);
-  }
+  };
 
-  public updateChartItemsVisibility(visibleItems?: readonly string[]) {
+  public updateChartItemsVisibility = (visibleItems?: readonly string[]) => {
     const legendItems = this.store.get().legend.items;
     updateChartItemsVisibility(this.chart, legendItems, visibleItems);
-  }
+  };
 
   public onMouseEnterTooltip = () => {
     this.tooltipHovered = true;
@@ -230,24 +230,24 @@ export class ChartAPI {
     this.context.onLegendItemsChange?.(updatedLegendItems);
   };
 
-  private onChartRender() {
+  private onChartRender = () => {
     this.initLegend();
     this.initVerticalAxisTitles();
     this.initNoData();
     this.updateChartItemsVisibility(this.context.visibleItems);
-  }
+  };
 
-  private initLegend() {
+  private initLegend = () => {
     const customLegendItems = this.context.getChartLegendItems?.({ chart: this.chart });
     const legendItems = getChartLegendItems(this.chart, customLegendItems);
     this._store.setLegendItems(legendItems);
-  }
+  };
 
-  private initVerticalAxisTitles() {
+  private initVerticalAxisTitles = () => {
     this._store.setVerticalAxesTitles(getVerticalAxesTitles(this.chart));
-  }
+  };
 
-  private initNoData() {
+  private initNoData = () => {
     const allSeriesWithData = findAllSeriesWithData(this.chart);
     const visibleSeries = findAllVisibleSeries(this.chart);
     // The no-data is not shown when there is at least one series or point (for pie series) non-empty and visible.
@@ -266,7 +266,7 @@ export class ChartAPI {
         this._store.setNoData({ container: noDataContainer, noMatch: allSeriesWithData.length > 0 });
       }, 0);
     }
-  }
+  };
 
   // When the plot is clicked we pin the popover in its current position.
   private onChartClick = (point: null | Highcharts.Point) => {
@@ -289,7 +289,7 @@ export class ChartAPI {
   // We replace `setState` method on Highcharts series and points with a custom implementation,
   // that does not cause the state to update when the tooltip is pinned. That is to avoid hover effect:
   // only the matched series/points of the pinned tooltip must be in active state.ƒ
-  private updateSetters() {
+  private updateSetters = () => {
     for (const s of this.chart.series) {
       // We ensure the replacement is done only once by assigning a custom property to the function.
       // If the property is present - it means the method was already replaced.
@@ -316,7 +316,7 @@ export class ChartAPI {
         }
       }
     }
-  }
+  };
 
   private highlightActions = (point: Highcharts.Point) => {
     const defaultTarget = getDefaultTooltipTarget(point, this.context.tooltipPlacement);

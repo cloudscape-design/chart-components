@@ -6,35 +6,80 @@ import { waitFor } from "@testing-library/react";
 import highcharts from "highcharts";
 
 import { PieChartProps } from "../../../lib/components/pie-chart";
-import { highlightChartPoint, leaveChartPoint, renderPieChart } from "./common";
+import { createChartWrapper, highlightChartPoint, leaveChartPoint, renderPieChart } from "./common";
 
 const series: PieChartProps.SeriesOptions = {
   name: "Pie",
   type: "pie",
   data: [
-    { name: "P1", y: 10 },
-    { name: "P2", y: 20 },
-    { name: "P3", y: 70 },
+    { id: "1", name: "P1", y: 10 },
+    { id: "2", name: "P2", y: 20 },
+    { id: "3", name: "P3", y: 70 },
   ],
 };
 
+const getTooltip = () => createChartWrapper().findTooltip()!;
+const getTooltipHeader = () => createChartWrapper().findTooltip()!.findHeader()!;
+const getTooltipBody = () => createChartWrapper().findTooltip()!.findBody()!;
+const getTooltipFooter = () => createChartWrapper().findTooltip()!.findFooter()!;
+
 describe("PieChart: tooltip", () => {
   test("renders tooltip on point highlight", async () => {
-    const { wrapper } = renderPieChart({ highcharts, series });
+    renderPieChart({ highcharts, series });
 
     act(() => highlightChartPoint(0, 1));
 
     await waitFor(() => {
-      expect(wrapper.findTooltip()).not.toBe(null);
-      expect(wrapper.findTooltip()!.findHeader()!.getElement().textContent).toBe(" P2");
-      expect(wrapper.findTooltip()!.findBody()!.getElement().textContent).toBe("Pie20");
-      expect(wrapper.findTooltip()!.findFooter()).toBe(null);
+      expect(getTooltip()).not.toBe(null);
+      expect(getTooltipHeader().getElement().textContent).toBe(" P2");
+      expect(getTooltipBody().getElement().textContent).toBe("Pie20");
+      expect(getTooltipFooter()).toBe(null);
     });
 
     act(() => leaveChartPoint(0, 1));
 
     await waitFor(() => {
-      expect(wrapper.findTooltip()).toBe(null);
+      expect(getTooltip()).toBe(null);
     });
+  });
+
+  test("customizes tooltip slots", async () => {
+    renderPieChart({
+      highcharts,
+      series,
+      tooltip: {
+        header({ segmentId, segmentName, segmentValue, totalValue }) {
+          return (
+            <span>
+              header {segmentId} {segmentName} {segmentValue} {totalValue}
+            </span>
+          );
+        },
+        body({ segmentId, segmentName, segmentValue, totalValue }) {
+          return (
+            <span>
+              body {segmentId} {segmentName} {segmentValue} {totalValue}
+            </span>
+          );
+        },
+        footer({ segmentId, segmentName, segmentValue, totalValue }) {
+          return (
+            <span>
+              footer {segmentId} {segmentName} {segmentValue} {totalValue}
+            </span>
+          );
+        },
+      },
+    });
+
+    act(() => highlightChartPoint(0, 0));
+
+    await waitFor(() => {
+      expect(getTooltip()).not.toBe(null);
+    });
+
+    expect(getTooltipHeader().getElement().textContent).toBe("header 1 P1 10 100");
+    expect(getTooltipBody().getElement().textContent).toBe("body 1 P1 10 100");
+    expect(getTooltipFooter().getElement().textContent).toBe("footer 1 P1 10 100");
   });
 });

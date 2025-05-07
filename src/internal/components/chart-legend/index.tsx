@@ -28,20 +28,9 @@ export interface ChartLegendOptions {
   legendTitle?: string;
   ariaLabel?: string;
   actions?: React.ReactNode;
-  onItemHighlightEnter?: (itemId: string) => void;
-  onItemHighlightExit?: () => void;
+  onItemHighlightEnter: (itemId: string) => void;
+  onItemHighlightExit: () => void;
   onItemVisibilityChange: (hiddenItems: string[]) => void;
-}
-
-export interface InfoTooltipProps {
-  render: (
-    itemId: string,
-    { context }: { context: "legend" | "filter" },
-  ) => {
-    header: React.ReactNode;
-    body: React.ReactNode;
-    footer?: React.ReactNode;
-  };
 }
 
 export const ChartLegend = forwardRef(
@@ -59,10 +48,8 @@ export const ChartLegend = forwardRef(
   ) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const segmentsRef = useRef<Record<number, HTMLElement>>([]);
-
+    const focusedRef = useRef(false);
     const highlightControl = useMemo(() => new DebouncedCall(), []);
-    const noTooltipRef = useRef(false);
-    const noTooltipControl = useMemo(() => new DebouncedCall(), []);
     const [highlightedItems, setHighlightedItems] = useState<readonly string[]>([]);
     const [selectedIndex, setSelectedIndex] = useState<number>(0);
     const showHighlight = (itemId: string) => {
@@ -70,37 +57,38 @@ export const ChartLegend = forwardRef(
       if (item?.visible) {
         setHighlightedItems([itemId]);
         highlightControl.cancelPrevious();
-        onItemHighlightEnter?.(itemId);
+        onItemHighlightEnter(itemId);
       }
     };
     const clearHighlight = () => {
       setHighlightedItems([]);
-      highlightControl.call(() => onItemHighlightExit?.(), 50);
+      highlightControl.call(onItemHighlightExit, 50);
     };
 
     useImperativeHandle(ref, () => ({
       highlightItems: (ids) => setHighlightedItems(ids),
-      clearHighlight: () => setHighlightedItems([]),
+      clearHighlight: () => {
+        if (!focusedRef.current) {
+          setHighlightedItems([]);
+        }
+      },
     }));
 
     const navigationAPI = useRef<SingleTabStopNavigationAPI>(null);
 
-    function onFocus(index: number) {
+    function onFocus(index: number, itemId: string) {
+      focusedRef.current = true;
       setSelectedIndex(index);
-      navigationAPI.current?.updateFocusTarget();
+      navigationAPI.current!.updateFocusTarget();
+      showHighlight(itemId);
     }
 
     function onBlur() {
-      navigationAPI.current?.updateFocusTarget();
+      focusedRef.current = false;
+      navigationAPI.current!.updateFocusTarget();
     }
 
-    function focusElement(index: number, noTooltip = false) {
-      if (noTooltip) {
-        noTooltipRef.current = true;
-        noTooltipControl.call(() => {
-          noTooltipRef.current = false;
-        }, 25);
-      }
+    function focusElement(index: number) {
       segmentsRef.current[index]?.focus();
     }
 
@@ -126,7 +114,7 @@ export const ChartLegend = forwardRef(
           onBlockEnd: () => focusElement(circleIndex(selectedIndex + 1, range)),
           onHome: () => focusElement(0),
           onEnd: () => focusElement(items.length - 1),
-          onEscape: () => onItemHighlightExit?.(),
+          onEscape: () => onItemHighlightExit(),
         });
       }
     }
@@ -151,7 +139,7 @@ export const ChartLegend = forwardRef(
     }
 
     useEffect(() => {
-      navigationAPI.current?.updateFocusTarget();
+      navigationAPI.current!.updateFocusTarget();
     });
 
     const toggleItem = (itemId: string) => {
@@ -209,8 +197,7 @@ export const ChartLegend = forwardRef(
                   clearHighlight();
                 },
                 onFocus: () => {
-                  onFocus(index);
-                  showHighlight(item.id);
+                  onFocus(index, item.id);
                 },
                 onBlur: () => {
                   onBlur();

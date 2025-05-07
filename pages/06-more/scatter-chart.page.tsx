@@ -103,7 +103,7 @@ const series: CartesianChartProps.ScatterSeriesOptions[] = [
 
 const seriesWithCustomMarkers: CartesianChartProps.ScatterSeriesOptions[] = [
   { ...series[0], color: "#91e8e1", marker: { symbol: "triangle" } },
-  { ...series[1], color: "#feb56a", marker: { symbol: "callout" } },
+  { ...series[1], color: "#feb56a", marker: { symbol: "triangle-down" } },
   { ...series[2], color: "#fa4b42", marker: { symbol: "diamond" } },
   { ...series[3], color: "#2ee0ca", marker: { symbol: "circle" } },
   { ...series[4], color: "#d568fb", marker: { symbol: "square" } },

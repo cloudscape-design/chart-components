@@ -7,7 +7,7 @@ import { ComponentWrapper, ElementWrapper } from "@cloudscape-design/test-utils-
 import seriesDetailsTestClasses from "../../../internal/components/series-details/test-classes/styles.selectors.js";
 
 export class CartesianChartTooltipWrapper extends ChartTooltipWrapper {
-  findSeries(): SeriesDetailsItemWrapper[] | null {
+  findSeries() {
     return this.findAll(`.${seriesDetailsTestClasses["list-item"]}`).map(
       (wrapper) => new SeriesDetailsItemWrapper(wrapper.getElement()),
     );

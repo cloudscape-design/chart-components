@@ -1,28 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { act } from "react";
 import highcharts from "highcharts";
 import { vi } from "vitest";
 
 import "@cloudscape-design/components/test-utils/dom";
 import { createChartWrapper, renderChart, renderStatefulChart } from "./common";
-
-function getVisibilityState() {
-  const legend = createChartWrapper().findLegend();
-  const chart = highcharts.charts.find((c) => c)!;
-  const series = chart.series;
-  const hiddenSeries = series.filter((s) => !s.visible);
-  const points = chart.series.flatMap((s) => s.data);
-  const hiddenPoints = points.filter((p) => !p.visible);
-  return {
-    allLegendItems: legend?.findItems().map((w) => w.getElement().textContent) ?? [],
-    hiddenLegendItems: legend?.findItems({ hidden: true }).map((w) => w.getElement().textContent) ?? [],
-    allSeries: series.map((s) => s.options.id ?? s.name),
-    hiddenSeries: hiddenSeries.map((s) => s.options.id ?? s.name),
-    allPoints: points.map((p) => p.options.id ?? p.name),
-    hiddenPoints: hiddenPoints.map((p) => p.options.id ?? p.name),
-  };
-}
 
 const onLegendItemsChange = vi.fn();
 
@@ -49,6 +33,14 @@ const lineSeries: Highcharts.SeriesOptionsType[] = [
       { name: "D", y: 4 },
     ],
   },
+  {
+    type: "line",
+    name: "L3",
+    data: [
+      { name: "E", y: 5 },
+      { name: "F", y: 6 },
+    ],
+  },
 ];
 
 const pieSeries: Highcharts.SeriesOptionsType[] = [
@@ -56,12 +48,70 @@ const pieSeries: Highcharts.SeriesOptionsType[] = [
     type: "pie",
     name: "Pie series",
     data: [
-      { name: "A", y: 20 },
-      { name: "B", y: 80 },
+      { name: "A", y: 10 },
+      { name: "B", y: 20 },
+      { name: "C", y: 70 },
     ],
     showInLegend: true,
   },
 ];
+
+function getVisibilityState() {
+  const legend = createChartWrapper().findLegend();
+  const chart = highcharts.charts.find((c) => c)!;
+  const series = chart.series;
+  const hiddenSeries = series.filter((s) => !s.visible);
+  const points = chart.series.flatMap((s) => s.data);
+  const hiddenPoints = points.filter((p) => !p.visible);
+  return {
+    allLegendItems: legend?.findItems().map((w) => w.getElement().textContent) ?? [],
+    hiddenLegendItems: legend?.findItems({ hidden: true }).map((w) => w.getElement().textContent) ?? [],
+    allSeries: series.map((s) => s.options.id ?? s.name),
+    hiddenSeries: hiddenSeries.map((s) => s.options.id ?? s.name),
+    allPoints: points.map((p) => p.options.id ?? p.name),
+    hiddenPoints: hiddenPoints.map((p) => p.options.id ?? p.name),
+  };
+}
+
+function expectedLineItems(visible: string[]) {
+  const allLegendItems = ["L1", "L2", "L3"];
+  const hiddenItems = allLegendItems.filter((itemId) => !visible.includes(itemId));
+  return {
+    allLegendItems: allLegendItems,
+    hiddenLegendItems: hiddenItems,
+    allSeries: allLegendItems,
+    hiddenSeries: hiddenItems,
+    allPoints: ["A", "B", "C", "D", "E", "F"],
+    hiddenPoints: [],
+  };
+}
+
+function expectedPieItems(visible: string[]) {
+  const allLegendItems = ["A", "B", "C"];
+  const hiddenItems = allLegendItems.filter((itemId) => !visible.includes(itemId));
+  return {
+    allLegendItems: allLegendItems,
+    hiddenLegendItems: hiddenItems,
+    allSeries: ["Pie series"],
+    hiddenSeries: [],
+    allPoints: allLegendItems,
+    hiddenPoints: hiddenItems,
+  };
+}
+
+const getItem = (index: number, options?: { hidden?: boolean; dimmed?: boolean }) =>
+  createChartWrapper().findLegend()!.findItems(options)[index];
+
+const clickItem = (index: number) => act(() => getItem(index).click());
+
+const selectClickItem = (index: number) => {
+  const modifier = Math.random() > 0.5 ? { metaKey: true } : { ctrlKey: true };
+  act(() =>
+    getItem(index)
+      .getElement()
+      .dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, ...modifier })),
+  );
+};
 
 describe("CoreChart: visibility", () => {
   test.each([false, true])("hides series on the first render, legend=%s", (legend) => {
@@ -73,11 +123,11 @@ describe("CoreChart: visibility", () => {
     });
 
     expect(getVisibilityState()).toEqual({
-      allLegendItems: legend ? ["L1", "L2"] : [],
-      hiddenLegendItems: legend ? ["L1"] : [],
-      allSeries: ["L1", "L2"],
-      hiddenSeries: ["L1"],
-      allPoints: ["A", "B", "C", "D"],
+      allLegendItems: legend ? ["L1", "L2", "L3"] : [],
+      hiddenLegendItems: legend ? ["L1", "L3"] : [],
+      allSeries: ["L1", "L2", "L3"],
+      hiddenSeries: ["L1", "L3"],
+      allPoints: ["A", "B", "C", "D", "E", "F"],
       hiddenPoints: [],
     });
   });
@@ -86,32 +136,39 @@ describe("CoreChart: visibility", () => {
     renderStatefulChart({
       ...defaultProps,
       options: { series: lineSeries },
-      visibleItems: ["L1", "L2"],
+      visibleItems: ["L1", "L2", "L3"],
     });
 
-    expect(getVisibilityState()).toEqual({
-      allLegendItems: ["L1", "L2"],
-      hiddenLegendItems: [],
-      allSeries: ["L1", "L2"],
-      hiddenSeries: [],
-      allPoints: ["A", "B", "C", "D"],
-      hiddenPoints: [],
-    });
+    expect(getVisibilityState()).toEqual(expectedLineItems(["L1", "L2", "L3"]));
 
-    createChartWrapper().findLegend()!.findItems()[0].click();
+    clickItem(0);
 
-    expect(getVisibilityState()).toEqual({
-      allLegendItems: ["L1", "L2"],
-      hiddenLegendItems: ["L1"],
-      allSeries: ["L1", "L2"],
-      hiddenSeries: ["L1"],
-      allPoints: ["A", "B", "C", "D"],
-      hiddenPoints: [],
-    });
+    expect(getVisibilityState()).toEqual(expectedLineItems(["L2", "L3"]));
 
     expect(onLegendItemsChange).toHaveBeenCalledWith([
       { id: "L1", name: "L1", marker: expect.anything(), visible: false },
       { id: "L2", name: "L2", marker: expect.anything(), visible: true },
+      { id: "L3", name: "L3", marker: expect.anything(), visible: true },
+    ]);
+
+    selectClickItem(1);
+
+    expect(getVisibilityState()).toEqual(expectedLineItems(["L2"]));
+
+    expect(onLegendItemsChange).toHaveBeenCalledWith([
+      { id: "L1", name: "L1", marker: expect.anything(), visible: false },
+      { id: "L2", name: "L2", marker: expect.anything(), visible: true },
+      { id: "L3", name: "L3", marker: expect.anything(), visible: false },
+    ]);
+
+    selectClickItem(1);
+
+    expect(getVisibilityState()).toEqual(expectedLineItems(["L1", "L2", "L3"]));
+
+    expect(onLegendItemsChange).toHaveBeenCalledWith([
+      { id: "L1", name: "L1", marker: expect.anything(), visible: true },
+      { id: "L2", name: "L2", marker: expect.anything(), visible: true },
+      { id: "L3", name: "L3", marker: expect.anything(), visible: true },
     ]);
   });
 
@@ -119,39 +176,18 @@ describe("CoreChart: visibility", () => {
     const { rerender } = renderChart({
       ...defaultProps,
       options: { series: lineSeries },
-      visibleItems: ["L1", "L2"],
+      visibleItems: ["L1", "L2", "L3"],
     });
 
-    expect(getVisibilityState()).toEqual({
-      allLegendItems: ["L1", "L2"],
-      hiddenLegendItems: [],
-      allSeries: ["L1", "L2"],
-      hiddenSeries: [],
-      allPoints: ["A", "B", "C", "D"],
-      hiddenPoints: [],
-    });
+    expect(getVisibilityState()).toEqual(expectedLineItems(["L1", "L2", "L3"]));
 
     rerender({ ...defaultProps, options: { series: lineSeries }, visibleItems: ["L1"] });
 
-    expect(getVisibilityState()).toEqual({
-      allLegendItems: ["L1", "L2"],
-      hiddenLegendItems: ["L2"],
-      allSeries: ["L1", "L2"],
-      hiddenSeries: ["L2"],
-      allPoints: ["A", "B", "C", "D"],
-      hiddenPoints: [],
-    });
+    expect(getVisibilityState()).toEqual(expectedLineItems(["L1"]));
 
     rerender({ ...defaultProps, options: { series: lineSeries }, visibleItems: [] });
 
-    expect(getVisibilityState()).toEqual({
-      allLegendItems: ["L1", "L2"],
-      hiddenLegendItems: ["L1", "L2"],
-      allSeries: ["L1", "L2"],
-      hiddenSeries: ["L1", "L2"],
-      allPoints: ["A", "B", "C", "D"],
-      hiddenPoints: [],
-    });
+    expect(getVisibilityState()).toEqual(expectedLineItems([]));
   });
 
   test("prefers series id over series name", () => {
@@ -159,7 +195,7 @@ describe("CoreChart: visibility", () => {
       { type: "line", id: "1", name: "Line", data: [1, 2, 3] },
       { type: "line", id: "2", name: "Line", data: [1, 2, 3] },
     ];
-    const { wrapper, rerender } = renderChart({
+    const { rerender } = renderChart({
       ...defaultProps,
       options: { series },
       visibleItems: ["Line"],
@@ -185,14 +221,14 @@ describe("CoreChart: visibility", () => {
       }),
     );
 
-    wrapper.findLegend()!.findItems()[0].click();
+    clickItem(0);
 
     expect(onLegendItemsChange).toHaveBeenCalledWith([
       { id: "1", name: "Line", marker: expect.anything(), visible: true },
       { id: "2", name: "Line", marker: expect.anything(), visible: true },
     ]);
 
-    wrapper.findLegend()!.findItems()[1].click();
+    clickItem(1);
 
     expect(onLegendItemsChange).toHaveBeenCalledWith([
       { id: "1", name: "Line", marker: expect.anything(), visible: false },
@@ -209,45 +245,52 @@ describe("CoreChart: visibility", () => {
     });
 
     expect(getVisibilityState()).toEqual({
-      allLegendItems: legend ? ["A", "B"] : [],
-      hiddenLegendItems: legend ? ["A", "B"] : [],
+      allLegendItems: legend ? ["A", "B", "C"] : [],
+      hiddenLegendItems: legend ? ["A", "B", "C"] : [],
       allSeries: ["Pie series"],
       hiddenSeries: [],
-      allPoints: ["A", "B"],
-      hiddenPoints: ["A", "B"],
+      allPoints: ["A", "B", "C"],
+      hiddenPoints: ["A", "B", "C"],
     });
   });
 
   test("toggles items visibility by clicking on legend", () => {
-    const { wrapper } = renderStatefulChart({
+    renderStatefulChart({
       ...defaultProps,
       options: { series: pieSeries },
-      visibleItems: ["A", "B"],
+      visibleItems: ["A", "B", "C"],
     });
 
-    expect(getVisibilityState()).toEqual({
-      allLegendItems: ["A", "B"],
-      hiddenLegendItems: [],
-      allSeries: ["Pie series"],
-      hiddenSeries: [],
-      allPoints: ["A", "B"],
-      hiddenPoints: [],
-    });
+    expect(getVisibilityState()).toEqual(expectedPieItems(["A", "B", "C"]));
 
-    wrapper.findLegend()!.findItems()[1].click();
+    clickItem(1);
 
-    expect(getVisibilityState()).toEqual({
-      allLegendItems: ["A", "B"],
-      hiddenLegendItems: ["B"],
-      allSeries: ["Pie series"],
-      hiddenSeries: [],
-      allPoints: ["A", "B"],
-      hiddenPoints: ["B"],
-    });
+    expect(getVisibilityState()).toEqual(expectedPieItems(["A", "C"]));
 
     expect(onLegendItemsChange).toHaveBeenCalledWith([
       { id: "A", name: "A", marker: expect.anything(), visible: true },
       { id: "B", name: "B", marker: expect.anything(), visible: false },
+      { id: "C", name: "C", marker: expect.anything(), visible: true },
+    ]);
+
+    selectClickItem(0);
+
+    expect(getVisibilityState()).toEqual(expectedPieItems(["A"]));
+
+    expect(onLegendItemsChange).toHaveBeenCalledWith([
+      { id: "A", name: "A", marker: expect.anything(), visible: true },
+      { id: "B", name: "B", marker: expect.anything(), visible: false },
+      { id: "C", name: "C", marker: expect.anything(), visible: false },
+    ]);
+
+    selectClickItem(0);
+
+    expect(getVisibilityState()).toEqual(expectedPieItems(["A", "B", "C"]));
+
+    expect(onLegendItemsChange).toHaveBeenCalledWith([
+      { id: "A", name: "A", marker: expect.anything(), visible: true },
+      { id: "B", name: "B", marker: expect.anything(), visible: true },
+      { id: "C", name: "C", marker: expect.anything(), visible: true },
     ]);
   });
 
@@ -255,39 +298,18 @@ describe("CoreChart: visibility", () => {
     const { rerender } = renderChart({
       ...defaultProps,
       options: { series: pieSeries },
-      visibleItems: ["A", "B"],
+      visibleItems: ["A", "B", "C"],
     });
 
-    expect(getVisibilityState()).toEqual({
-      allLegendItems: ["A", "B"],
-      hiddenLegendItems: [],
-      allSeries: ["Pie series"],
-      hiddenSeries: [],
-      allPoints: ["A", "B"],
-      hiddenPoints: [],
-    });
+    expect(getVisibilityState()).toEqual(expectedPieItems(["A", "B", "C"]));
 
     rerender({ ...defaultProps, options: { series: pieSeries }, visibleItems: ["B"] });
 
-    expect(getVisibilityState()).toEqual({
-      allLegendItems: ["A", "B"],
-      hiddenLegendItems: ["A"],
-      allSeries: ["Pie series"],
-      hiddenSeries: [],
-      allPoints: ["A", "B"],
-      hiddenPoints: ["A"],
-    });
+    expect(getVisibilityState()).toEqual(expectedPieItems(["B"]));
 
     rerender({ ...defaultProps, options: { series: pieSeries }, visibleItems: [] });
 
-    expect(getVisibilityState()).toEqual({
-      allLegendItems: ["A", "B"],
-      hiddenLegendItems: ["A", "B"],
-      allSeries: ["Pie series"],
-      hiddenSeries: [],
-      allPoints: ["A", "B"],
-      hiddenPoints: ["A", "B"],
-    });
+    expect(getVisibilityState()).toEqual(expectedPieItems([]));
   });
 
   test("prefers item id over item name", () => {
@@ -302,7 +324,7 @@ describe("CoreChart: visibility", () => {
         showInLegend: true,
       },
     ];
-    const { wrapper, rerender } = renderChart({
+    const { rerender } = renderChart({
       ...defaultProps,
       options: { series },
       visibleItems: ["Segment"],
@@ -328,14 +350,14 @@ describe("CoreChart: visibility", () => {
       hiddenPoints: ["1"],
     });
 
-    wrapper.findLegend()!.findItems()[0].click();
+    clickItem(0);
 
     expect(onLegendItemsChange).toHaveBeenCalledWith([
       { id: "1", name: "Segment", marker: expect.anything(), visible: true },
       { id: "2", name: "Segment", marker: expect.anything(), visible: true },
     ]);
 
-    wrapper.findLegend()!.findItems()[1].click();
+    clickItem(1);
 
     expect(onLegendItemsChange).toHaveBeenCalledWith([
       { id: "1", name: "Segment", marker: expect.anything(), visible: false },
@@ -351,17 +373,18 @@ describe("CoreChart: visibility", () => {
         { id: "Pie series", name: "Pie series item", marker: "Series marker" },
         { id: "A", name: "Segment A", marker: "Segment A marker" },
         { id: "B", name: "Segment B", marker: "Segment B marker" },
+        { id: "C", name: "Segment C", marker: "Segment C marker" },
       ],
       visibleItems: ["Pie series", "B"],
     });
 
     expect(getVisibilityState()).toEqual({
-      allLegendItems: ["Pie series item", "Segment A", "Segment B"],
-      hiddenLegendItems: ["Segment A"],
+      allLegendItems: ["Pie series item", "Segment A", "Segment B", "Segment C"],
+      hiddenLegendItems: ["Segment A", "Segment C"],
       allSeries: ["Pie series"],
       hiddenSeries: [],
-      allPoints: ["A", "B"],
-      hiddenPoints: ["A"],
+      allPoints: ["A", "B", "C"],
+      hiddenPoints: ["A", "C"],
     });
   });
 });
