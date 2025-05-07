@@ -144,8 +144,10 @@ export function ChartNoData({
   }
   return (
     <Portal container={state.container}>
-      <div className={clsx(testClasses["no-data"], styles["no-data"])}>
-        <LiveRegion>{content}</LiveRegion>
+      <div className={styles["no-data-wrapper"]}>
+        <div className={clsx(testClasses["no-data"], styles["no-data"])}>
+          <LiveRegion>{content}</LiveRegion>
+        </div>
       </div>
     </Portal>
   );

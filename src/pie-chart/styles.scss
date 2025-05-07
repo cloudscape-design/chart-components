@@ -10,3 +10,11 @@
   align-items: center;
   gap: cs.$space-static-xxs;
 }
+
+:global {
+  // This removes empty pie/donut ring that interferes with the no-data content.
+  // The same cannot be achieved using Highcharts options API.
+  .highcharts-empty-series {
+    stroke: transparent;
+  }
+}
