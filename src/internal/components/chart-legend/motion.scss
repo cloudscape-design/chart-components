@@ -7,7 +7,7 @@
 @use "../../../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
 
 .marker {
-  // @include styles.with-motion {
-  //   transition: opacity cs.$motion-duration-transition-quick cs.$motion-easing-transition-quick;
-  // }
+  @include styles.with-motion {
+    transition: opacity 90ms linear;
+  }
 }

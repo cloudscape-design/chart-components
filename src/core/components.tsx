@@ -51,7 +51,7 @@ export function ChartLegend({ title, actions, api }: ChartLegendProps) {
       actions={actions?.content}
       onItemVisibilityChange={api.onItemVisibilityChange}
       onItemHighlightEnter={(itemId) => api.highlightChartItems([itemId])}
-      onItemHighlightExit={() => api.clearChartItemsHighlight()}
+      onItemHighlightExit={api.clearChartItemsHighlight}
     />
   );
 }

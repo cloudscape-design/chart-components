@@ -248,5 +248,5 @@ export interface PointMarkerOptions {
   enabledThreshold?: number;
   height?: number;
   width?: number;
-  symbol?: "arc" | "callout" | "circle" | "diamond" | "square" | "triangle" | "triangle-down";
+  symbol?: "circle" | "diamond" | "square" | "triangle" | "triangle-down";
 }
