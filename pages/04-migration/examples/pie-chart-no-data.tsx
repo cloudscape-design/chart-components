@@ -8,7 +8,7 @@ import { useChartSettings } from "../../common/page-settings";
 
 const seriesNew: PieChartProps.SeriesOptions = {
   name: "Resource count",
-  type: "pie",
+  type: "donut",
   data: [
     { name: "Running", y: 60 },
     { name: "Failed", y: 40 },
@@ -16,7 +16,7 @@ const seriesNew: PieChartProps.SeriesOptions = {
 };
 const seriesNewNoData: PieChartProps.SeriesOptions = {
   name: "Resource count",
-  type: "pie",
+  type: "donut",
   data: [
     { name: "Running", y: null },
     { name: "Failed", y: null },
@@ -59,6 +59,7 @@ export function ComponentOld({ statusType, series, hideSeries }: ComponentProps)
       fitHeight={true}
       hideFilter={true}
       size="small"
+      variant="donut"
       data={{ none: [], empty: dataOldEmpty, data: dataOld }[series]}
       visibleSegments={hideSeries ? [] : undefined}
       ariaLabel="Pie chart"

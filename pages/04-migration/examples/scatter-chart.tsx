@@ -1,34 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { CartesianChart, CartesianChartProps } from "../../lib/components";
-import { dateFormatter } from "../common/formatters";
-import { PageSettingsForm, useChartSettings } from "../common/page-settings";
-import { Page, PageSection } from "../common/templates";
-import pseudoRandom from "../utils/pseudo-random";
-
-export default function () {
-  return (
-    <Page
-      title="Scatter chart"
-      settings={
-        <PageSettingsForm
-          selectedSettings={[
-            "emptySeries",
-            "seriesLoading",
-            "seriesError",
-            "showLegend",
-            "showLegendTitle",
-            "tooltipSize",
-            "tooltipPlacement",
-          ]}
-        />
-      }
-    >
-      <ExampleScatterSimple />
-    </Page>
-  );
-}
+import { CartesianChart, CartesianChartProps } from "../../../lib/components";
+import { dateFormatter } from "../../common/formatters";
+import { useChartSettings } from "../../common/page-settings";
+import pseudoRandom from "../../utils/pseudo-random";
 
 function randomInt(min: number, max: number) {
   return min + Math.floor(pseudoRandom() * (max - min));
@@ -101,15 +77,7 @@ const series: CartesianChartProps.ScatterSeriesOptions[] = [
   },
 ];
 
-const seriesWithCustomMarkers: CartesianChartProps.ScatterSeriesOptions[] = [
-  { ...series[0], color: "#91e8e1", marker: { symbol: "triangle" } },
-  { ...series[1], color: "#feb56a", marker: { symbol: "callout" } },
-  { ...series[2], color: "#fa4b42", marker: { symbol: "diamond" } },
-  { ...series[3], color: "#2ee0ca", marker: { symbol: "circle" } },
-  { ...series[4], color: "#d568fb", marker: { symbol: "square" } },
-];
-
-function ExampleScatterSimple() {
+export function ComponentNew() {
   const { chartProps } = useChartSettings();
   const commonProps = {
     ...chartProps.cartesian,
@@ -120,13 +88,6 @@ function ExampleScatterSimple() {
     emphasizeBaselineAxis: false,
   } as const;
   return (
-    <>
-      <PageSection title="Scatter chart">
-        <CartesianChart {...commonProps} series={series} />
-      </PageSection>
-      <PageSection title="Scatter chart with custom markers">
-        <CartesianChart {...commonProps} series={seriesWithCustomMarkers} />
-      </PageSection>
-    </>
+    <CartesianChart {...commonProps} fitHeight={true} chartMinHeight={200} ariaLabel="Scatter chart" series={series} />
   );
 }
