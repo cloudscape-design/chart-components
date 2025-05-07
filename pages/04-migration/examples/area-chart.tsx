@@ -109,7 +109,7 @@ export function ComponentNew() {
     <CartesianChart
       {...chartProps.cartesian}
       fitHeight={true}
-      chartMinHeight={200}
+      chartMinHeight={100}
       ariaLabel="Area chart"
       series={seriesNew}
       stacked={true}
@@ -147,7 +147,7 @@ export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
     <AreaChart
       fitHeight={true}
       hideFilter={hideFilter}
-      height={200}
+      height={100}
       series={seriesOld}
       xDomain={[domain[0], domain[domain.length - 1]]}
       yDomain={[0, 600000]}

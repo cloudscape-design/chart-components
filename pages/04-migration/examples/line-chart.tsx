@@ -103,7 +103,7 @@ export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: bo
     <InternalCartesianChart
       {...chartProps.cartesian}
       fitHeight={true}
-      chartMinHeight={200}
+      chartMinHeight={100}
       options={{
         lang: { accessibility: { chartContainerLabel: "Line chart" } },
         series: seriesNew,
@@ -161,7 +161,7 @@ export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
           </FormField>
         )
       }
-      height={200}
+      height={100}
       series={seriesOld}
       xDomain={[domain[0], domain[domain.length - 1]]}
       yDomain={[0, 500000]}
