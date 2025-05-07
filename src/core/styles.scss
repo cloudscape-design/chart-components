@@ -17,7 +17,13 @@
   padding: cs.$space-static-xs;
   background-color: cs.$color-background-layout-main;
   border-radius: 8px;
-  opacity: 0.9;
+  border: 1px solid cs.$color-border-divider-default;
+}
+
+.no-data-wrapper {
+  padding: cs.$space-static-xxs;
+  border-radius: 8px;
+  background-color: cs.$color-background-layout-main;
 }
 
 .chart-filters {
