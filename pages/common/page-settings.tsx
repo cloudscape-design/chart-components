@@ -138,9 +138,7 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
   const legend = {
     enabled: settings.showLegend,
     title: settings.showLegendTitle ? "Legend title" : undefined,
-    actions: {
-      content: settings.showLegendActions ? <Button variant="icon" iconName="search" /> : undefined,
-    },
+    actions: settings.showLegendActions ? <Button variant="icon" iconName="search" /> : undefined,
   };
   return {
     settings,

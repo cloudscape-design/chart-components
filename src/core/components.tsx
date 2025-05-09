@@ -23,9 +23,7 @@ import testClasses from "./test-classes/styles.css.js";
 
 export interface ChartLegendProps {
   title?: string;
-  actions?: {
-    content?: React.ReactNode;
-  };
+  actions?: React.ReactNode;
   api: ChartAPI;
 }
 
@@ -47,7 +45,7 @@ export function ChartLegend({ title, actions, api }: ChartLegendProps) {
       }}
       legendTitle={title}
       items={legendItems}
-      actions={actions?.content}
+      actions={actions}
       onItemVisibilityChange={api.onItemVisibilityChange}
       onItemHighlightEnter={(itemId) => api.highlightChartItems([itemId])}
       onItemHighlightExit={api.clearChartItemsHighlight}

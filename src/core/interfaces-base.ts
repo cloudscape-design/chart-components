@@ -66,7 +66,7 @@ export interface BaseChartProps {
   colors?: string[];
 
   /**
-   * Chart legend props.
+   * Chart legend options.
    */
   legend?: ChartLegendOptions;
 
@@ -101,9 +101,7 @@ export interface ChartTooltipOptions {
 export interface ChartLegendOptions {
   enabled?: boolean;
   title?: string;
-  actions?: {
-    content?: React.ReactNode;
-  };
+  actions?: React.ReactNode;
 }
 
 export interface ChartNoDataOptions {
@@ -116,11 +114,11 @@ export interface ChartNoDataOptions {
 }
 
 export interface ChartHeaderOptions {
-  content?: React.ReactNode;
+  content: React.ReactNode;
 }
 
 export interface ChartFooterOptions {
-  content?: React.ReactNode;
+  content: React.ReactNode;
 }
 
 export interface ChartLegendItem {
