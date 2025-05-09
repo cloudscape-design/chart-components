@@ -56,9 +56,43 @@ describe("CoreChart: fit-size", () => {
 
     expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight("20rem"), expect.anything());
 
-    rerender({ highcharts, options: { chart: { height: "20rem" } }, chartHeight: 444 });
+    rerender({
+      highcharts,
+      options: { chart: { height: "20rem" } },
+      chartHeight: 444,
+      verticalAxisTitlePlacement: "side",
+    });
 
     expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(444), expect.anything());
+
+    rerender({
+      highcharts,
+      options: { chart: { height: "20rem" } },
+      chartHeight: 444,
+      chartMinHeight: 500,
+      verticalAxisTitlePlacement: "side",
+    });
+
+    expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(500), expect.anything());
+
+    rerender({
+      highcharts,
+      options: { chart: { height: "20rem" } },
+      chartHeight: 444,
+      verticalAxisTitlePlacement: "top",
+    });
+
+    expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(444 - 28), expect.anything());
+
+    rerender({
+      highcharts,
+      options: { chart: { height: "20rem" } },
+      chartHeight: 444,
+      chartMinHeight: 500,
+      verticalAxisTitlePlacement: "top",
+    });
+
+    expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(500 - 28), expect.anything());
   });
 
   test("uses min chart height if provided height is less than that", () => {
@@ -75,25 +109,35 @@ describe("CoreChart: fit-size", () => {
     expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(500), expect.anything());
   });
 
-  test("uses measured or min height when fitHeight=true", async () => {
-    const { rerender } = renderChart({ highcharts, fitHeight: true });
+  test.each([{ verticalAxisTitlePlacement: "side" as const }, { verticalAxisTitlePlacement: "top" as const }])(
+    "uses measured or min height when fitHeight=true, verticalAxisTitlePlacement=$verticalAxisTitlePlacement",
+    async ({ verticalAxisTitlePlacement }) => {
+      const offset = verticalAxisTitlePlacement === "top" ? 28 : 0;
+      const { rerender } = renderChart({ highcharts, fitHeight: true, verticalAxisTitlePlacement });
 
-    await waitFor(() => {
-      expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(80), expect.anything());
-    });
+      await waitFor(() => {
+        expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(80 - offset), expect.anything());
+      });
 
-    rerender({ highcharts, fitHeight: true, chartHeight: 300 });
+      rerender({ highcharts, fitHeight: true, chartHeight: 300, verticalAxisTitlePlacement });
 
-    await waitFor(() => {
-      expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(80), expect.anything());
-    });
+      await waitFor(() => {
+        expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(80 - offset), expect.anything());
+      });
 
-    rerender({ highcharts, fitHeight: true, chartHeight: 300, chartMinHeight: 200 });
+      rerender({
+        highcharts,
+        fitHeight: true,
+        chartHeight: 300,
+        chartMinHeight: 200,
+        verticalAxisTitlePlacement,
+      });
 
-    await waitFor(() => {
-      expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(200), expect.anything());
-    });
-  });
+      await waitFor(() => {
+        expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(200 - offset), expect.anything());
+      });
+    },
+  );
 
   test.each([{ fitHeight: false }, { fitHeight: true }])("applies minWidth, fitHeight=$fitHeight", ({ fitHeight }) => {
     const { rerender, wrapper } = renderChart({ highcharts, fitHeight });

@@ -24,7 +24,7 @@ export interface BaseChartProps {
   fallback?: React.ReactNode;
 
   /**
-   * The height of the chart plot in pixels. It does not include legend, header, and footer.
+   * The height of the chart plot in pixels. It does not include legend, filter, header, and footer.
    */
   chartHeight?: number;
 
@@ -34,8 +34,9 @@ export interface BaseChartProps {
   fitHeight?: boolean;
 
   /**
-   * Defines the minimal allowed height of the chart plot. If the parent container is too small to satisfy the min
-   * height value, the vertical scrollbar is automatically added.
+   * Defines the minimal allowed height of the chart plot. Use it when `fitHeight=true`
+   * to prevent the chart plot become too small to digest the content of it. If the parent container is
+   * too small to satisfy the min width value, the horizontal scrollbar is automatically added.
    */
   chartMinHeight?: number;
 

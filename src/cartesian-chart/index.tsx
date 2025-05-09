@@ -24,6 +24,7 @@ const CartesianChart = forwardRef((props: CartesianChartProps, ref: React.Ref<Ca
       fallback={props.fallback}
       options={validateOptions(props)}
       fitHeight={props.fitHeight}
+      chartHeight={props.chartHeight}
       chartMinHeight={props.chartMinHeight}
       chartMinWidth={props.chartMinWidth}
       noData={getAllowedProps(props.noData)}
@@ -52,7 +53,6 @@ export default CartesianChart;
 function validateOptions(props: CartesianChartProps): InternalCartesianChartOptions {
   return {
     chart: {
-      height: props.chartHeight,
       inverted: props.inverted,
     },
     accessibility: {

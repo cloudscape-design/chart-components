@@ -23,6 +23,7 @@ const PieChart = forwardRef((props: PieChartProps, ref: React.Ref<PieChartProps.
       fallback={props.fallback}
       options={validateOptions(props)}
       fitHeight={props.fitHeight}
+      chartHeight={props.chartHeight}
       chartMinHeight={props.chartMinHeight}
       chartMinWidth={props.chartMinWidth}
       tooltip={getAllowedProps(props.tooltip)}
@@ -51,9 +52,6 @@ export default PieChart;
 // to avoid accidental or intentional use of Highcharts features that are not yet supported by Cloudscape.
 function validateOptions(props: PieChartProps): InternalPieChartOptions {
   return {
-    chart: {
-      height: props.chartHeight,
-    },
     accessibility: {
       description: props.ariaDescription,
     },
