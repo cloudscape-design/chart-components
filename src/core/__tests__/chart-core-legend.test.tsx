@@ -99,7 +99,7 @@ describe("CoreChart: legend", () => {
     renderChart({
       highcharts,
       options: { series },
-      legend: { actions: { content: "Legend actions" } },
+      legend: { actions: "Legend actions" },
       visibleItems: ["L1", "P1"],
     });
 

@@ -53,14 +53,15 @@ and requires the [accessibility module](https://www.highcharts.com/docs/accessib
       "type": "string",
     },
     {
-      "description": "The height of the chart plot in pixels. It does not include legend, header, and footer.",
+      "description": "The height of the chart plot in pixels. It does not include legend, filter, header, and footer.",
       "name": "chartHeight",
       "optional": true,
       "type": "number",
     },
     {
-      "description": "Defines the minimal allowed height of the chart plot. If the parent container is too small to satisfy the min
-height value, the vertical scrollbar is automatically added.",
+      "description": "Defines the minimal allowed height of the chart plot. Use it when \`fitHeight=true\`
+to prevent the chart plot become too small to digest the content of it. If the parent container is
+too small to satisfy the min width value, the horizontal scrollbar is automatically added.",
       "name": "chartMinHeight",
       "optional": true,
       "type": "number",
@@ -162,14 +163,14 @@ This property corresponds to [chart.inverted](https://api.highcharts.com/highcha
       "type": "boolean",
     },
     {
-      "description": "Chart legend props.",
+      "description": "Chart legend options.",
       "inlineType": {
         "name": "ChartLegendOptions",
         "properties": [
           {
             "name": "actions",
             "optional": true,
-            "type": "{ content?: React.ReactNode; }",
+            "type": "React.ReactNode",
           },
           {
             "name": "enabled",
@@ -477,7 +478,13 @@ applies to the tooltip header.
       "type": "CartesianChartProps.YAxisOptions",
     },
   ],
-  "regions": [],
+  "regions": [
+    {
+      "description": "Custom content to be rendered when \`highcharts=null\`. It defaults to a spinner.",
+      "isDefault": false,
+      "name": "fallback",
+    },
+  ],
   "releaseStatus": "stable",
 }
 `;
@@ -535,14 +542,15 @@ and requires the [accessibility module](https://www.highcharts.com/docs/accessib
       "type": "string",
     },
     {
-      "description": "The height of the chart plot in pixels. It does not include legend, header, and footer.",
+      "description": "The height of the chart plot in pixels. It does not include legend, filter, header, and footer.",
       "name": "chartHeight",
       "optional": true,
       "type": "number",
     },
     {
-      "description": "Defines the minimal allowed height of the chart plot. If the parent container is too small to satisfy the min
-height value, the vertical scrollbar is automatically added.",
+      "description": "Defines the minimal allowed height of the chart plot. Use it when \`fitHeight=true\`
+to prevent the chart plot become too small to digest the content of it. If the parent container is
+too small to satisfy the min width value, the horizontal scrollbar is automatically added.",
       "name": "chartMinHeight",
       "optional": true,
       "type": "number",
@@ -643,14 +651,14 @@ Supported Highcharts versions:
       "type": "string",
     },
     {
-      "description": "Chart legend props.",
+      "description": "Chart legend options.",
       "inlineType": {
         "name": "ChartLegendOptions",
         "properties": [
           {
             "name": "actions",
             "optional": true,
-            "type": "{ content?: React.ReactNode; }",
+            "type": "React.ReactNode",
           },
           {
             "name": "enabled",
@@ -812,7 +820,13 @@ When the property is provided, use \`onChangeVisibleSegments\` to update it when
       "type": "ReadonlyArray<string>",
     },
   ],
-  "regions": [],
+  "regions": [
+    {
+      "description": "Custom content to be rendered when \`highcharts=null\`. It defaults to a spinner.",
+      "isDefault": false,
+      "name": "fallback",
+    },
+  ],
   "releaseStatus": "stable",
 }
 `;

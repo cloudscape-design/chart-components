@@ -121,13 +121,11 @@ export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: bo
       }}
       legend={{
         ...chartProps.cartesian.legend,
-        actions: {
-          content: legendFilter ? (
-            <Popover triggerType="custom" content="Custom in-context filter" position="top">
-              <Button variant="icon" iconName="search" />
-            </Popover>
-          ) : undefined,
-        },
+        actions: legendFilter ? (
+          <Popover triggerType="custom" content="Custom in-context filter" position="top">
+            <Button variant="icon" iconName="search" />
+          </Popover>
+        ) : undefined,
       }}
       filter={
         headerFilter
