@@ -57,13 +57,13 @@ export function ChartContainer({
       <div ref={refs.header}>
         {header}
         {filter}
-        {verticalAxisTitle}
       </div>
 
       <div
         style={chartMinWidth !== undefined ? { minWidth: chartMinWidth } : {}}
         className={testClasses["chart-plot-wrapper"]}
       >
+        {verticalAxisTitle}
         {chart(chartHeight)}
       </div>
 

@@ -4,7 +4,6 @@
 import clsx from "clsx";
 
 import { Portal } from "@cloudscape-design/component-toolkit/internal";
-import Box from "@cloudscape-design/components/box";
 import Button from "@cloudscape-design/components/button";
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
 import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-use/i18n";
@@ -185,9 +184,9 @@ export function VerticalAxisTitle({
   return (
     <div className={clsx(testClasses["vertical-axis-title"], styles["vertical-axis-title"])} aria-hidden={true}>
       {titles.map((text, index) => (
-        <Box key={index} fontWeight="bold" margin={{ bottom: "xxs" }}>
+        <span key={index} className={styles["vertical-axis-title-item"]}>
           {text}
-        </Box>
+        </span>
       ))}
     </div>
   );

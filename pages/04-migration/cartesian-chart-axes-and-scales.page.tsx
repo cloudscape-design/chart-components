@@ -306,7 +306,7 @@ let newChart = (
                     valueFormatter: (value) => `${value}\nitem label`,
                   }}
                   yAxis={{
-                    title: "Very very very long Y-axis title, that can wrap",
+                    title: "Very very very long Y-axis title, that can truncate",
                     valueFormatter: (value) => `${value}\nitem label`,
                   }}
                   verticalAxisTitlePlacement="top"

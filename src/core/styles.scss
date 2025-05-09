@@ -42,4 +42,13 @@
   display: flex;
   gap: cs.$space-static-xs;
   justify-content: space-between;
+  block-size: 24px;
+  margin-bottom: 4px;
+}
+
+.vertical-axis-title-item {
+  font-weight: bold;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }

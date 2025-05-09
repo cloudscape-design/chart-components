@@ -109,3 +109,6 @@ export const noDataCss: React.CSSProperties = {
   alignItems: "center",
   justifyContent: "center",
 };
+
+export const verticalAxisTitleBlockSize = 24;
+export const verticalAxisTitleMargin = 4;

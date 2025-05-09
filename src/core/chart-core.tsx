@@ -47,7 +47,7 @@ export function InternalCoreChart({
   legend: legendOptions,
   fallback = <Spinner />,
   callback,
-  verticalAxisTitlePlacement = "top",
+  verticalAxisTitlePlacement = "side",
   i18nStrings,
   className,
   header,
@@ -85,12 +85,12 @@ export function InternalCoreChart({
     );
   }
 
-  function withMinHeight(height: number | string | undefined | null) {
+  function withMinHeight(height: number | string | undefined | null, heightOffset: number) {
     if (height === undefined) {
       return chartMinHeight;
     }
     if (typeof height === "number") {
-      return Math.max(chartMinHeight ?? 0, height);
+      return Math.max(chartMinHeight ?? 0, height) - heightOffset;
     }
     return height;
   }
@@ -102,6 +102,9 @@ export function InternalCoreChart({
         chartMinHeight={chartMinHeight}
         chartMinWidth={chartMinWidth}
         chart={(height) => {
+          const verticalTitleOffset = Styles.verticalAxisTitleBlockSize + Styles.verticalAxisTitleMargin;
+          const heightOffset = verticalAxisTitlePlacement === "top" ? verticalTitleOffset : 0;
+
           // The Highcharts options takes all provided Highcharts options and custom properties and merges them together, so that
           // the Cloudscape features and custom Highcharts extensions can co-exist.
           // For certain options we provide Cloudscape styling, but in all cases this can be explicitly overridden.
@@ -118,7 +121,9 @@ export function InternalCoreChart({
               ...Styles.chart,
               ...options.chart,
               className: clsx(testClasses["chart-plot"], options.chart?.className),
-              height: fitHeight ? height : withMinHeight(chartHeight ?? options.chart?.height),
+              height: fitHeight
+                ? height - heightOffset
+                : withMinHeight(chartHeight ?? options.chart?.height, heightOffset),
               displayErrors: options.chart?.displayErrors ?? isDevelopment,
               style: options.chart?.style ?? Styles.chartPlotCss,
               backgroundColor: options.chart?.backgroundColor ?? Styles.chartPlotBackgroundColor,
