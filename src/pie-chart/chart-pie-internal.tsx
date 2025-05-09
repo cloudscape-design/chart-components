@@ -29,8 +29,6 @@ interface InternalPieChartProps extends InternalBaseComponentProps, Omit<PieChar
  * This allows using it as a Highcharts wrapper to mix Cloudscape and Highcharts features.
  */
 export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: React.Ref<PieChartProps.Ref>) => {
-  const highcharts = props.highcharts as null | typeof Highcharts;
-
   // Obtaining tooltip content, specific for pie charts.
   // By default, it renders the selected content name, and allows to extend and override its contents.
   const pieTooltipProps = useChartTooltipPie(props);
@@ -105,7 +103,8 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
 
   return (
     <InternalCoreChart
-      highcharts={highcharts}
+      highcharts={props.highcharts}
+      fallback={props.fallback}
       options={highchartsOptions}
       fitHeight={props.fitHeight}
       chartHeight={props.chartHeight}

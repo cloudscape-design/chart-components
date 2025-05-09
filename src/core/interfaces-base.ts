@@ -19,6 +19,11 @@ export interface BaseChartProps {
   highcharts: null | object;
 
   /**
+   * Custom content to be rendered when `highcharts=null`. It defaults to a spinner.
+   */
+  fallback?: React.ReactNode;
+
+  /**
    * The height of the chart plot in pixels. It does not include legend, header, and footer.
    */
   chartHeight?: number;

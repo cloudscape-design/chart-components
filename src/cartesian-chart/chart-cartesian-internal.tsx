@@ -30,8 +30,6 @@ interface InternalCartesianChartProps extends InternalBaseComponentProps, Omit<C
  */
 export const InternalCartesianChart = forwardRef(
   (props: InternalCartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
-    const highcharts = props.highcharts as null | typeof Highcharts;
-
     // Obtaining tooltip content, specific for cartesian charts.
     // By default, it renders a list of series under the cursor, and allows to extend and override its contents.
     const cartesianTooltipProps = useChartTooltipCartesian(props);
@@ -124,7 +122,8 @@ export const InternalCartesianChart = forwardRef(
 
     return (
       <InternalCoreChart
-        highcharts={highcharts}
+        highcharts={props.highcharts}
+        fallback={props.fallback}
         options={highchartsOptions}
         fitHeight={props.fitHeight}
         chartHeight={props.chartHeight}

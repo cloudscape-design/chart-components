@@ -21,6 +21,7 @@ const CartesianChart = forwardRef((props: CartesianChartProps, ref: React.Ref<Ca
     <InternalCartesianChart
       ref={ref}
       highcharts={props.highcharts}
+      fallback={props.fallback}
       options={validateOptions(props)}
       fitHeight={props.fitHeight}
       chartMinHeight={props.chartMinHeight}
