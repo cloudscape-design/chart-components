@@ -20,6 +20,7 @@ const PieChart = forwardRef((props: PieChartProps, ref: React.Ref<PieChartProps.
     <InternalPieChart
       ref={ref}
       highcharts={props.highcharts}
+      fallback={props.fallback}
       options={validateOptions(props)}
       fitHeight={props.fitHeight}
       chartMinHeight={props.chartMinHeight}
