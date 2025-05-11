@@ -9,7 +9,6 @@ import "@cloudscape-design/components/test-utils/dom";
 import { TestI18nProvider } from "../../../lib/components/internal/utils/test-i18n-provider";
 import PieChart, { PieChartProps } from "../../../lib/components/pie-chart";
 import createWrapper from "../../../lib/components/test-utils/dom";
-import PieChartWrapper from "../../../lib/components/test-utils/dom/pie-chart";
 
 export {
   findChart,
@@ -47,23 +46,19 @@ export function renderPieChart({ i18nProvider, ...props }: TestProps, Component 
   const ComponentWrapper = (props: PieChartProps) => {
     return i18nProvider ? (
       <TestI18nProvider messages={i18nProvider}>
-        <Component ref={ref} data-testid="test-chart" {...props} />
+        <Component ref={ref} {...props} />
       </TestI18nProvider>
     ) : (
-      <Component ref={ref} data-testid="test-chart" {...props} />
+      <Component ref={ref} {...props} />
     );
   };
   const { rerender } = render(<ComponentWrapper {...props} />);
   return {
-    wrapper: createChartWrapper(),
+    wrapper: createWrapper().findChart("pie")!,
     rerender: (props: TestProps) => rerender(<ComponentWrapper {...props} />),
   };
 }
 
 export function renderStatefulPieChart(props: TestProps) {
   return renderPieChart(props, StatefulChart);
-}
-
-export function createChartWrapper() {
-  return new PieChartWrapper(createWrapper().find('[data-testid="test-chart"]')!.getElement());
 }

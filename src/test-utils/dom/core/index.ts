@@ -69,6 +69,7 @@ export class CoreChartFilterWrapper extends ComponentWrapper {
   }
 }
 
+// TODO: replace `hidden` with `active` and remove `dimmed` as irrelevant for consumers.
 interface LegendItemOptions {
   hidden?: boolean;
   dimmed?: boolean;

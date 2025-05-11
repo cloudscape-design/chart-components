@@ -7,10 +7,14 @@ import { vi } from "vitest";
 
 import "@cloudscape-design/components/test-utils/dom";
 import { CartesianChartProps } from "../../../lib/components/cartesian-chart";
-import { createChartWrapper, ref, renderCartesianChart, renderStatefulCartesianChart } from "./common";
+import createWrapper from "../../../lib/components/test-utils/dom";
+import { ref, renderCartesianChart, renderStatefulCartesianChart } from "./common";
+
+const getChart = () => createWrapper().findChart("cartesian")!;
+const getLegend = () => getChart().findLegend()!;
 
 function getVisibilityState() {
-  const legend = createChartWrapper().findLegend();
+  const legend = getChart().findLegend();
   const chart = highcharts.charts.find((c) => c)!;
   const series = chart.series;
   const hiddenSeries = series.filter((s) => !s.visible);
@@ -64,7 +68,7 @@ describe("CartesianChart: visibility", () => {
       hiddenSeries: [],
     });
 
-    act(() => createChartWrapper().findLegend()!.findItems()[0].click());
+    act(() => getLegend().findItems()[0].click());
 
     expect(getVisibilityState()).toEqual({
       allLegendItems: ["L1", "L2"],
