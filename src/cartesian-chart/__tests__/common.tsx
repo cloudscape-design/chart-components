@@ -9,7 +9,6 @@ import "@cloudscape-design/components/test-utils/dom";
 import CartesianChart, { CartesianChartProps } from "../../../lib/components/cartesian-chart";
 import { TestI18nProvider } from "../../../lib/components/internal/utils/test-i18n-provider";
 import createWrapper from "../../../lib/components/test-utils/dom";
-import CartesianChartWrapper from "../../../lib/components/test-utils/dom/cartesian-chart";
 
 export {
   findChart,
@@ -47,23 +46,19 @@ export function renderCartesianChart({ i18nProvider, ...props }: TestProps, Comp
   const ComponentWrapper = (props: CartesianChartProps) => {
     return i18nProvider ? (
       <TestI18nProvider messages={i18nProvider}>
-        <Component ref={ref} data-testid="test-chart" {...props} />
+        <Component ref={ref} {...props} />
       </TestI18nProvider>
     ) : (
-      <Component ref={ref} data-testid="test-chart" {...props} />
+      <Component ref={ref} {...props} />
     );
   };
   const { rerender } = render(<ComponentWrapper {...props} />);
   return {
-    wrapper: createChartWrapper(),
+    wrapper: createWrapper().findChart("cartesian")!,
     rerender: (props: TestProps) => rerender(<ComponentWrapper {...props} />),
   };
 }
 
 export function renderStatefulCartesianChart(props: TestProps) {
   return renderCartesianChart(props, StatefulChart);
-}
-
-export function createChartWrapper() {
-  return new CartesianChartWrapper(createWrapper().find('[data-testid="test-chart"]')!.getElement());
 }

@@ -8,7 +8,8 @@ import { vi } from "vitest";
 
 import "highcharts/highcharts-more";
 import { CartesianChartProps } from "../../../lib/components/cartesian-chart";
-import { createChartWrapper, highlightChartPoint, leaveChartPoint, renderCartesianChart } from "./common";
+import createWrapper from "../../../lib/components/test-utils/dom";
+import { highlightChartPoint, leaveChartPoint, renderCartesianChart } from "./common";
 
 const lineSeries: CartesianChartProps.SeriesOptions[] = [
   { type: "line", name: "Line 1", data: [1, 2, 3] },
@@ -16,11 +17,12 @@ const lineSeries: CartesianChartProps.SeriesOptions[] = [
   { type: "line", name: "Line 3", data: [7, 8, 9] },
 ];
 
-const getTooltip = () => createChartWrapper().findTooltip()!;
-const getTooltipHeader = () => createChartWrapper().findTooltip()!.findHeader()!;
-const getTooltipBody = () => createChartWrapper().findTooltip()!.findBody()!;
-const getTooltipFooter = () => createChartWrapper().findTooltip()!.findFooter()!;
-const getAllTooltipSeries = () => createChartWrapper().findTooltip()!.findSeries();
+const getChart = () => createWrapper().findChart("cartesian")!;
+const getTooltip = () => getChart().findTooltip()!;
+const getTooltipHeader = () => getChart().findTooltip()!.findHeader()!;
+const getTooltipBody = () => getChart().findTooltip()!.findBody()!;
+const getTooltipFooter = () => getChart().findTooltip()!.findFooter()!;
+const getAllTooltipSeries = () => getChart().findTooltip()!.findSeries();
 const getTooltipSeries = (index: number) => getAllTooltipSeries()[index];
 
 describe("CartesianChart: tooltip", () => {

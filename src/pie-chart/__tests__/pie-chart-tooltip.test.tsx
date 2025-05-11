@@ -6,7 +6,8 @@ import { waitFor } from "@testing-library/react";
 import highcharts from "highcharts";
 
 import { PieChartProps } from "../../../lib/components/pie-chart";
-import { createChartWrapper, highlightChartPoint, leaveChartPoint, renderPieChart } from "./common";
+import createWrapper from "../../../lib/components/test-utils/dom";
+import { highlightChartPoint, leaveChartPoint, renderPieChart } from "./common";
 
 const series: PieChartProps.SeriesOptions = {
   name: "Pie",
@@ -18,10 +19,11 @@ const series: PieChartProps.SeriesOptions = {
   ],
 };
 
-const getTooltip = () => createChartWrapper().findTooltip()!;
-const getTooltipHeader = () => createChartWrapper().findTooltip()!.findHeader()!;
-const getTooltipBody = () => createChartWrapper().findTooltip()!.findBody()!;
-const getTooltipFooter = () => createChartWrapper().findTooltip()!.findFooter()!;
+const getChart = () => createWrapper().findChart("pie")!;
+const getTooltip = () => getChart().findTooltip()!;
+const getTooltipHeader = () => getChart().findTooltip()!.findHeader()!;
+const getTooltipBody = () => getChart().findTooltip()!.findBody()!;
+const getTooltipFooter = () => getChart().findTooltip()!.findFooter()!;
 
 describe("PieChart: tooltip", () => {
   test("renders tooltip on point highlight", async () => {

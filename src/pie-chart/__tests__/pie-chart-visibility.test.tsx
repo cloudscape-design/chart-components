@@ -7,10 +7,14 @@ import { vi } from "vitest";
 
 import "@cloudscape-design/components/test-utils/dom";
 import { PieChartProps } from "../../../lib/components/pie-chart";
-import { createChartWrapper, ref, renderPieChart, renderStatefulPieChart } from "./common";
+import createWrapper from "../../../lib/components/test-utils/dom";
+import { ref, renderPieChart, renderStatefulPieChart } from "./common";
+
+const getChart = () => createWrapper().findChart("pie")!;
+const getLegend = () => getChart().findLegend()!;
 
 function getVisibilityState() {
-  const legend = createChartWrapper().findLegend();
+  const legend = getChart().findLegend();
   const chart = highcharts.charts.find((c) => c)!;
   const points = chart.series.flatMap((s) => s.data);
   const hiddenPoints = points.filter((p) => !p.visible);
@@ -51,7 +55,7 @@ describe("PieChart: visibility", () => {
       hiddenPoints: [],
     });
 
-    createChartWrapper().findLegend()!.findItems()[0].click();
+    act(() => getLegend()!.findItems()[0].click());
 
     expect(getVisibilityState()).toEqual({
       allLegendItems: ["P1", "P2", "P3"],
