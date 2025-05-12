@@ -70,7 +70,7 @@ function Component() {
         plotOptions: { series: { marker: { enabled: false }, stacking: "normal" } },
       }}
       tooltip={{
-        placement: "bottom",
+        placement: "outside",
       }}
     />
   );
