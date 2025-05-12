@@ -68,7 +68,6 @@ export const PageSettingsContext = createContext<PageSettings>(DEFAULT_SETTINGS)
 export function useChartSettings<SettingsType extends PageSettings = PageSettings>(
   options: {
     more?: boolean;
-    treemap?: boolean;
     xrange?: boolean;
   } = {},
 ): {
