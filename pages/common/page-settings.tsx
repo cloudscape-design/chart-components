@@ -28,7 +28,7 @@ export interface PageSettings {
   seriesLoading: boolean;
   seriesError: boolean;
   emphasizeBaselineAxis: boolean;
-  tooltipPlacement: "target" | "bottom" | "middle";
+  tooltipPlacement: "target" | "middle" | "outside";
   tooltipSize: "small" | "medium" | "large";
   showLegend: boolean;
   showLegendTitle: boolean;
@@ -159,7 +159,7 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
   };
 }
 
-const tooltipPlacementOptions = [{ value: "target" }, { value: "bottom" }, { value: "middle" }];
+const tooltipPlacementOptions = [{ value: "target" }, { value: "middle" }, { value: "outside" }];
 
 const tooltipSizeOptions = [{ value: "small" }, { value: "medium" }, { value: "large" }];
 
@@ -292,7 +292,7 @@ export function PageSettingsForm({
                     }
                     onChange={({ detail }) =>
                       setSettings({
-                        tooltipPlacement: detail.selectedOption.value as string as "target" | "bottom" | "middle",
+                        tooltipPlacement: detail.selectedOption.value as string as "target" | "middle" | "outside",
                       })
                     }
                   />

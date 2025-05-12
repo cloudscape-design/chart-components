@@ -70,6 +70,13 @@ export function ChartTooltip({
   if (!content) {
     return null;
   }
+  const position = (() => {
+    if (placement === "target" || placement === "middle") {
+      return tooltip.placement === "vertical" ? "right" : "bottom";
+    } else {
+      return tooltip.placement === "vertical" ? "bottom" : "right";
+    }
+  })();
   return (
     <InternalChartTooltip
       getTrack={api.getTooltipTrack}
@@ -82,7 +89,7 @@ export function ChartTooltip({
       title={content.header}
       footer={content.footer}
       size={size}
-      position={placement === "bottom" ? "bottom" : undefined}
+      position={position}
       minVisibleBlockSize={200}
     >
       {content.body}

@@ -186,10 +186,17 @@ class HighlightCursor {
 
   public create(target: Rect, chart: Highcharts.Chart) {
     this.instance?.destroy();
-    this.instance = chart.renderer
-      .rect(target.x, chart.plotTop, 1, chart.plotHeight)
-      .attr({ fill: Styles.colorChartCursor, zIndex: 5 })
-      .add();
+    if (chart.inverted) {
+      this.instance = chart.renderer
+        .rect(chart.plotLeft, target.y, chart.plotWidth, 1)
+        .attr({ fill: Styles.colorChartCursor, zIndex: 5 })
+        .add();
+    } else {
+      this.instance = chart.renderer
+        .rect(target.x, chart.plotTop, 1, chart.plotHeight)
+        .attr({ fill: Styles.colorChartCursor, zIndex: 5 })
+        .add();
+    }
   }
 
   public destroy() {

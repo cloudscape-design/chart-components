@@ -9,7 +9,7 @@ import { InternalChartLegendItemSpec, ReactiveChartState } from "./interfaces-co
 
 export class ChartStore {
   private store = new AsyncStore<ReactiveChartState>({
-    tooltip: { visible: false, pinned: false, point: null },
+    tooltip: { visible: false, pinned: false, placement: "vertical", point: null },
     legend: { items: [] },
     noData: { container: null, noMatch: false },
     axes: { verticalAxesTitles: [] },
@@ -26,6 +26,7 @@ export class ChartStore {
       tooltip: {
         visible: tooltip.visible,
         pinned: tooltip.pinned,
+        placement: tooltip.point?.series.chart.inverted ? "horizontal" : "vertical",
         point: tooltip.point === undefined ? prev.tooltip.point : tooltip.point,
       },
     }));

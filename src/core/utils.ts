@@ -242,7 +242,7 @@ export function getVerticalAxesTitles(chart: Highcharts.Chart) {
   return titles;
 }
 
-export function getDefaultTooltipTarget(point: Highcharts.Point, placement: "target" | "bottom" | "middle") {
+export function getDefaultTooltipTarget(point: Highcharts.Point, placement: "target" | "middle" | "outside") {
   const { plotTop, plotLeft, plotWidth, plotHeight, inverted } = point.series.chart;
   if (placement === "target" && !inverted) {
     const x = (point.plotX ?? 0) + plotLeft;
@@ -264,9 +264,13 @@ export function getDefaultTooltipTarget(point: Highcharts.Point, placement: "tar
     const y = plotHeight - (point.plotX ?? 0) + plotTop;
     return { x, y, width: 1, height: 4 };
   }
-  if (placement === "bottom") {
+  if (placement === "outside" && !inverted) {
     const x = (point.plotX ?? 0) + plotLeft;
     return { x, y: plotTop, width: 1, height: plotHeight };
+  }
+  if (placement === "outside" && inverted) {
+    const y = plotHeight - (point.plotX ?? 0) + plotTop;
+    return { x: plotLeft, y, width: plotWidth, height: 1 };
   }
   throw new Error("Invariant violation: unsupported tooltip placement option.");
 }

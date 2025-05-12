@@ -35,7 +35,7 @@ interface ChartAPIContext {
   getMatchedLegendItems?(props: { point: Highcharts.Point }): readonly string[];
   onLegendItemsChange?: (legendItems: readonly ChartLegendItem[]) => void;
   isTooltipEnabled: boolean;
-  tooltipPlacement: "target" | "bottom" | "middle";
+  tooltipPlacement: "target" | "middle" | "outside";
   onPointHighlight?(props: { point: Highcharts.Point; target: Rect }): void | { target: Rect };
   onClearHighlight?(): void;
 }

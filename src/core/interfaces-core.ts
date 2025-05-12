@@ -160,6 +160,7 @@ export interface ReactiveChartState {
   tooltip: {
     visible: boolean;
     pinned: boolean;
+    placement: "vertical" | "horizontal";
     point: null | Highcharts.Point;
   };
   legend: {

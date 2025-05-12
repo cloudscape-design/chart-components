@@ -94,7 +94,7 @@ export interface BaseChartProps {
 
 export interface ChartTooltipOptions {
   enabled?: boolean;
-  placement?: "target" | "bottom" | "middle";
+  placement?: "target" | "middle" | "outside";
   size?: "small" | "medium" | "large";
 }
 

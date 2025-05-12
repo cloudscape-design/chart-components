@@ -139,7 +139,7 @@ export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: bo
             }
           : undefined
       }
-      tooltip={{}}
+      tooltip={{ placement: "middle" }}
       visibleSeries={visibleSeries}
       onChangeVisibleSeries={({ detail }) => setVisibleSeries(detail.visibleSeries)}
     />

@@ -331,12 +331,12 @@ describe("CoreChart: tooltip", () => {
     });
   });
 
-  test("uses bottom placement", () => {
+  test("uses outside placement", () => {
     const onPointHighlight = vi.fn();
     renderChart({
       highcharts,
       options: { series: lineSeries },
-      tooltip: { placement: "bottom" },
+      tooltip: { placement: "outside" },
       onPointHighlight,
     });
 
@@ -355,12 +355,12 @@ describe("CoreChart: tooltip", () => {
     });
   });
 
-  test("uses bottom placement on inverted chart", () => {
+  test("uses outside placement on inverted chart", () => {
     const onPointHighlight = vi.fn();
     renderChart({
       highcharts,
       options: { series: lineSeries, chart: { inverted: true } },
-      tooltip: { placement: "bottom" },
+      tooltip: { placement: "outside" },
       onPointHighlight,
     });
 
@@ -375,7 +375,7 @@ describe("CoreChart: tooltip", () => {
 
     expect(onPointHighlight).toHaveBeenCalledWith({
       point: findChartPoint(0, 1),
-      target: { x: 10 + 3, y: 15, height: 150, width: 1 },
+      target: { x: 10, y: 150 + 15 - 3, height: 1, width: 100 },
     });
   });
 
