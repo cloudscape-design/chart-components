@@ -141,106 +141,87 @@ export interface ChartFilterOptions {
   additionalFilters?: React.ReactNode;
 }
 
-export interface AreaSeriesOptions extends AbstractSeriesOptions {
+export interface AreaSeriesOptions extends BaseCartesianSeriesOptions {
   type: "area";
-  data: (number | [number, number] | PointDataItemOptions)[];
-  marker?: PointMarkerOptions;
+  data: PointDataItemType[];
 }
 
-export interface AreaSplineSeriesOptions extends AbstractSeriesOptions {
+export interface AreaSplineSeriesOptions extends BaseCartesianSeriesOptions {
   type: "areaspline";
-  data: (number | [number, number] | PointDataItemOptions)[];
-  marker?: PointMarkerOptions;
+  data: PointDataItemType[];
 }
 
-export interface ColumnSeriesOptions extends AbstractSeriesOptions {
+export interface ColumnSeriesOptions extends BaseCartesianSeriesOptions {
   type: "column";
-  data: (null | number | [number, number | null] | PointDataItemOptions)[];
+  data: PointDataItemType[];
 }
 
-export interface ErrorBarSeriesOptions extends AbstractSeriesOptions {
-  type: "errorbar";
-  data: ([number, number] | [number, number, number] | RangeDataItemOptions)[];
-}
-
-export interface LineSeriesOptions extends AbstractSeriesOptions {
+export interface LineSeriesOptions extends BaseCartesianSeriesOptions {
   type: "line";
-  data: (number | [number, number] | PointDataItemOptions)[];
-  marker?: PointMarkerOptions;
+  data: PointDataItemType[];
 }
 
-export interface PieSeriesOptions extends AbstractSeriesOptions {
-  type: "pie";
-  innerSize?: string;
-  data: PieDataItemOptions[];
-}
-
-export interface DonutSeriesOptions extends AbstractSeriesOptions {
-  type: "donut";
-  data: PieDataItemOptions[];
-}
-
-export interface ScatterSeriesOptions extends AbstractSeriesOptions {
-  type: "scatter";
-  data: (number | [number, number] | PointDataItemOptions)[];
-  marker?: PointMarkerOptions;
-}
-
-export interface SplineSeriesOptions extends AbstractSeriesOptions {
+export interface SplineSeriesOptions extends BaseCartesianSeriesOptions {
   type: "spline";
-  data: (number | [number, number] | PointDataItemOptions)[];
+  data: PointDataItemType[];
+}
+
+export interface ScatterSeriesOptions extends BaseCartesianSeriesOptions {
+  type: "scatter";
+  data: PointDataItemType[];
   marker?: PointMarkerOptions;
 }
 
-export interface TreeMapSeriesOptions extends AbstractSeriesOptions {
-  type: "treemap";
-  data: (number | TreeMapDataItemOptions)[];
+export interface ErrorBarSeriesOptions extends BaseCartesianSeriesOptions {
+  type: "errorbar";
+  data: RangeDataItemType[];
 }
 
-export interface XThresholdSeriesOptions extends AbstractSeriesOptions {
+export interface XThresholdSeriesOptions extends BaseCartesianSeriesOptions {
   type: "x-threshold";
   value: number;
 }
 
-export interface YThresholdSeriesOptions extends AbstractSeriesOptions {
+export interface YThresholdSeriesOptions extends BaseCartesianSeriesOptions {
   type: "y-threshold";
   value: number;
 }
 
+export interface PieSeriesOptions extends BaseCartesianSeriesOptions {
+  type: "pie";
+  data: PieSegmentOptions[];
+}
+
+export interface DonutSeriesOptions extends BaseCartesianSeriesOptions {
+  type: "donut";
+  data: PieSegmentOptions[];
+}
+
 // The data items are simpler versions of Highcharts.PointOptionsObject
 
-export interface PieDataItemOptions {
+export interface PieSegmentOptions {
   y: number | null;
   id?: string;
   name: string;
   color?: string;
 }
 
+export type PointDataItemType = null | number | [number, number | null] | PointDataItemOptions;
+
+export type RangeDataItemType = [number, number] | [number, number, number] | RangeDataItemOptions;
+
 export interface PointDataItemOptions {
   x: number;
-  y: number;
-  id?: string;
-  name?: string;
-  color?: string;
+  y: number | null;
 }
 
 export interface RangeDataItemOptions {
   x?: number;
   low: number;
   high: number;
-  id?: string;
-  name?: string;
-  color?: string;
 }
 
-export interface TreeMapDataItemOptions {
-  value: number;
-  id?: string;
-  name: string;
-  color?: string;
-}
-
-export interface AbstractSeriesOptions {
+export interface BaseCartesianSeriesOptions {
   id?: string;
   name: string;
   color?: string;
@@ -248,9 +229,5 @@ export interface AbstractSeriesOptions {
 
 // The simpler version of Highcharts.PointMarkerOptionsObject
 export interface PointMarkerOptions {
-  enabled?: boolean;
-  enabledThreshold?: number;
-  height?: number;
-  width?: number;
   symbol?: "circle" | "diamond" | "square" | "triangle" | "triangle-down";
 }

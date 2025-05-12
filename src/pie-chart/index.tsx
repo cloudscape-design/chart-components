@@ -68,7 +68,7 @@ function validateOptions(props: PieChartProps): InternalPieChartOptions {
 function validateSeries(s: PieChartProps.SeriesOptions): PieChartProps.SeriesOptions[] {
   switch (s.type) {
     case "pie":
-      return [{ type: s.type, id: s.id, name: s.name, color: s.color, innerSize: s.innerSize, data: s.data }];
+      return [{ type: s.type, id: s.id, name: s.name, color: s.color, data: s.data }];
     case "donut":
       return [{ type: s.type, id: s.id, name: s.name, color: s.color, data: s.data }];
     default:

@@ -71,7 +71,7 @@ export function ComponentNew({
         categories: domain.map((date) => dateFormatter(date.getTime())),
       }}
       yAxis={{ title: "Error count" }}
-      tooltip={{}}
+      tooltip={{ placement: "outside" }}
     />
   );
 }

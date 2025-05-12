@@ -3,7 +3,7 @@
 
 import { forwardRef } from "react";
 
-import { AbstractSeriesOptions } from "../core/interfaces-base";
+import { BaseCartesianSeriesOptions } from "../core/interfaces-base";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import useBaseComponent from "../internal/base-component/use-base-component";
 import { applyDisplayName } from "../internal/utils/apply-display-name";
@@ -87,7 +87,7 @@ function validateSeries(unvalidatedSeries: CartesianChartProps.SeriesOptions[]):
   const validatedSeries: CartesianChartProps.SeriesOptions[] = [];
 
   function getValidatedSeries(s: CartesianChartProps.SeriesOptions): null | CartesianChartProps.SeriesOptions {
-    const getBaseProps = (s: AbstractSeriesOptions) => ({ id: s.id, name: s.name, color: s.color });
+    const getBaseProps = (s: BaseCartesianSeriesOptions) => ({ id: s.id, name: s.name, color: s.color });
     switch (s.type) {
       case "area":
         return { type: s.type, ...getBaseProps(s), data: s.data };

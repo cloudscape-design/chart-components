@@ -69,19 +69,19 @@ export namespace PieChartProps {
 
   export type DonutSeriesOptions = BaseTypes.DonutSeriesOptions;
 
-  export type PieDataItem = BaseTypes.PieDataItemOptions;
+  export type PieSegmentOptions = BaseTypes.PieSegmentOptions;
 
   export type NoDataOptions = BaseTypes.ChartNoDataOptions;
 
   export interface TooltipOptions extends BaseTypes.ChartTooltipOptions {
-    header?: (props: PieChartProps.TooltipHeaderRenderProps) => React.ReactNode;
-    body?: (props: PieChartProps.TooltipBodyRenderProps) => React.ReactNode;
-    footer?: (props: PieChartProps.TooltipFooterRenderProps) => React.ReactNode;
+    header?: (props: TooltipHeaderRenderProps) => React.ReactNode;
+    body?: (props: TooltipBodyRenderProps) => React.ReactNode;
+    footer?: (props: TooltipFooterRenderProps) => React.ReactNode;
   }
 
   export interface SegmentOptions {
-    title?: null | ((props: PieChartProps.SegmentDescriptionTitleProps) => string);
-    description?: null | ((props: PieChartProps.SegmentDescriptionRenderProps) => string);
+    title?: null | ((props: SegmentDescriptionTitleProps) => string);
+    description?: null | ((props: SegmentDescriptionRenderProps) => string);
   }
 
   export type TooltipHeaderRenderProps = TooltipSlotRenderProps;
