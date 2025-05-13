@@ -178,6 +178,7 @@ function Charts() {
             },
           },
         }}
+        visibleItems={scatterSeries.map((s) => s.name!)}
         getTooltipContent={({ point: { x } }) => {
           const header = dateFormatter(x);
           const inAlarmState = inAlarmData.find(({ x: x1, x2 }) => x1 <= x && x <= x2);
@@ -217,6 +218,7 @@ function Charts() {
           xrangeChartRef.current = chart;
         }}
         {...omit(chartProps.cartesian, "ref")}
+        visibleItems={xrangeSeries.map((s) => s.name!)}
         options={{
           chart: {
             height: 150,
