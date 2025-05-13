@@ -105,14 +105,12 @@ function LinearLinear() {
         type: "linear",
         min: 0,
         max: 500,
-        valueDecimals: 0,
       }}
       yAxis={{
         title: "Y values",
         type: "linear",
         min: 0,
         max: 150,
-        valueDecimals: 0,
       }}
     />
   );

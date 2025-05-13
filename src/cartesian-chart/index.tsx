@@ -144,6 +144,5 @@ function validateAxis(
     tickInterval: axis.tickInterval,
     categories: axis.categories,
     valueFormatter: axis.valueFormatter,
-    valueDecimals: axis.valueDecimals,
   };
 }

@@ -76,7 +76,7 @@ export const InternalCartesianChart = forwardRef(
       },
       xAxis: xAxis.map((xAxisProps, index) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { title, valueFormatter, valueDecimals, ...highchartsProps } = xAxisProps;
+        const { title, valueFormatter, ...highchartsProps } = xAxisProps;
         return {
           ...highchartsProps,
           title: { text: title },
@@ -97,7 +97,7 @@ export const InternalCartesianChart = forwardRef(
       }),
       yAxis: yAxis.map((yAxisProps, index) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { title, valueFormatter, valueDecimals, ...highchartsProps } = yAxisProps;
+        const { title, valueFormatter, ...highchartsProps } = yAxisProps;
         return {
           ...highchartsProps,
           title: { text: title },

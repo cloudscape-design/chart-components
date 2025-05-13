@@ -150,17 +150,18 @@ describe("CartesianChart: axes", () => {
   test("uses default numeric axes formatters", () => {
     renderCartesianChart({ highcharts, series });
     getAxisOptionsFormatters().forEach((formatter) => {
-      expect(formatter.call(mockAxisContext({ value: 1 }))).toBe("1.00");
+      expect(formatter.call(mockAxisContext({ value: 1 }))).toBe("1");
       expect(formatter.call(mockAxisContext({ value: 1_000 }))).toBe("1K");
       expect(formatter.call(mockAxisContext({ value: 1_000_000 }))).toBe("1M");
       expect(formatter.call(mockAxisContext({ value: 1_000_000_000 }))).toBe("1G");
     });
   });
 
-  test.each([3, 2, 1, 0])("uses default numeric axes formatters with valueDecimals=%s", (valueDecimals) => {
-    renderCartesianChart({ highcharts, series, xAxis: { valueDecimals }, yAxis: { valueDecimals } });
+  test.each([3, 2, 1, 0])("uses default numeric axes formatters", () => {
+    renderCartesianChart({ highcharts, series, xAxis: {}, yAxis: {} });
     getAxisOptionsFormatters().forEach((formatter) => {
-      expect(formatter.call(mockAxisContext({ value: 2 }))).toBe(Number(2).toFixed(valueDecimals));
+      expect(formatter.call(mockAxisContext({ value: 2.0 }))).toBe("2");
+      expect(formatter.call(mockAxisContext({ value: 2.03 }))).toBe("2.03");
     });
   });
 

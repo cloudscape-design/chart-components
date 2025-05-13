@@ -24,7 +24,7 @@ export function getDefaultFormatter(
       const formatter = getDefaultDatetimeFormatter(extremes);
       return formatter(value);
     }
-    return numberFormatter(value, axis.valueDecimals);
+    return numberFormatter(value);
   };
 }
 
@@ -97,12 +97,13 @@ function secondFormatter(value: number) {
   });
 }
 
-function numberFormatter(value: number, valueDecimals = 2) {
+function numberFormatter(value: number): string {
+  const format = (num: number) => parseFloat(num.toFixed(2)).toString(); // trims unnecessary decimals
   return Math.abs(value) >= 1e9
-    ? (value / 1e9).toFixed(1).replace(/\.0$/, "") + "G"
+    ? format(value / 1e9) + "G"
     : Math.abs(value) >= 1e6
-      ? (value / 1e6).toFixed(1).replace(/\.0$/, "") + "M"
+      ? format(value / 1e6) + "M"
       : Math.abs(value) >= 1e3
-        ? (value / 1e3).toFixed(1).replace(/\.0$/, "") + "K"
-        : value.toFixed(valueDecimals);
+        ? format(value / 1e3) + "K"
+        : format(value);
 }
