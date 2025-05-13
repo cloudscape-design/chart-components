@@ -351,8 +351,7 @@ Supported properties (Highcharts):
 
 Additional properties (Cloudscape):
 * \`valueFormatter\` (optional, function) - Takes axis tick as input and returns a formatted string. This formatter also
-applies to the tooltip header.
-* \`valueDecimals\` (optional, number) - The number of decimal digits the axis values have, defaults to 2.",
+applies to the tooltip header.",
       "inlineType": {
         "name": "AxisOptions",
         "properties": [
@@ -387,11 +386,6 @@ applies to the tooltip header.
             "type": ""category" | "datetime" | "linear" | "logarithmic"",
           },
           {
-            "name": "valueDecimals",
-            "optional": true,
-            "type": "number",
-          },
-          {
             "name": "valueFormatter",
             "optional": true,
             "type": "((value: number) => string)",
@@ -420,8 +414,7 @@ Supported properties (Highcharts):
 
 Additional properties (Cloudscape):
 * \`valueFormatter\` (optional, function) - Takes axis tick as input and returns a formatted string. This formatter also
-applies to the tooltip header.
-* \`valueDecimals\` (optional, number) - The number of decimal digits the axis values have, defaults to 2.",
+applies to the tooltip header.",
       "inlineType": {
         "name": "CartesianChartProps.YAxisOptions",
         "properties": [
@@ -459,11 +452,6 @@ applies to the tooltip header.
             "name": "type",
             "optional": true,
             "type": ""category" | "datetime" | "linear" | "logarithmic"",
-          },
-          {
-            "name": "valueDecimals",
-            "optional": true,
-            "type": "number",
           },
           {
             "name": "valueFormatter",

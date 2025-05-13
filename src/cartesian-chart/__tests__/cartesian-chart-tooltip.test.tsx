@@ -36,14 +36,14 @@ describe("CartesianChart: tooltip", () => {
 
     await waitFor(() => {
       expect(getTooltip()).not.toBe(null);
-      expect(getTooltipHeader().getElement().textContent).toBe("1.00");
+      expect(getTooltipHeader().getElement().textContent).toBe("1");
       expect(getAllTooltipSeries()).toHaveLength(3);
       expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Line 1");
-      expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("2.00");
+      expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("2");
       expect(getTooltipSeries(1).findKey().getElement().textContent).toBe("Line 2");
-      expect(getTooltipSeries(1).findValue().getElement().textContent).toBe("5.00");
+      expect(getTooltipSeries(1).findValue().getElement().textContent).toBe("5");
       expect(getTooltipSeries(2).findKey().getElement().textContent).toBe("Line 3");
-      expect(getTooltipSeries(2).findValue().getElement().textContent).toBe("8.00");
+      expect(getTooltipSeries(2).findValue().getElement().textContent).toBe("8");
       expect(getTooltipFooter()).toBe(null);
     });
 
@@ -70,15 +70,13 @@ describe("CartesianChart: tooltip", () => {
           { type: "x-threshold", name: "\nX threshold", value: x },
           { type: "y-threshold", name: "\nY threshold", value: 9 },
         ],
-        xAxis: { valueDecimals: x > 0 ? 0 : 2 },
-        yAxis: { valueDecimals: 0 },
       });
 
       act(() => highlightChartPoint(0, 0));
 
       await waitFor(() => {
         expect(getTooltip()).not.toBe(null);
-        expect(getTooltipHeader().getElement().textContent).toBe(x.toFixed(x > 0 ? 0 : 2));
+        expect(getTooltipHeader().getElement().textContent).toBe(x === 0.01 ? "0.01" : x.toString());
         expect(getAllTooltipSeries()).toHaveLength(9);
         expect(getTooltipBody().getElement().textContent).toBe(
           `Area1\nArea spline2\nColumn3\nError bar4 : 5\nLine6\nScatter7\nSpline8\nX threshold\nY threshold9`,
@@ -97,8 +95,6 @@ describe("CartesianChart: tooltip", () => {
         { type: "scatter", name: "\nScatter 4", data: [{ x: 1, y: 4 }], marker: { symbol: "triangle" } },
         { type: "scatter", name: "\nScatter 5", data: [{ x: 1, y: 5 }], marker: { symbol: "triangle-down" } },
       ],
-      xAxis: { valueDecimals: 0 },
-      yAxis: { valueDecimals: 0 },
     });
 
     act(() => highlightChartPoint(0, 0));
@@ -122,8 +118,6 @@ describe("CartesianChart: tooltip", () => {
         { type: "x-threshold", name: "Threshold", value: 1 },
         { type: "errorbar", name: "Error", data: [{ x: 1, low: 3, high: 4 }] },
       ],
-      xAxis: { valueDecimals: 0 },
-      yAxis: { valueDecimals: 0 },
       tooltip: {
         series({ item }) {
           const value = (() => {
@@ -199,8 +193,6 @@ describe("CartesianChart: tooltip", () => {
         { type: "x-threshold", name: "Threshold", value: 1 },
         { type: "errorbar", name: "Error", data: [{ x: 1, low: 3, high: 4 }] },
       ],
-      xAxis: { valueDecimals: 0 },
-      yAxis: { valueDecimals: 0 },
       tooltip: {
         header({ x, items }) {
           return (

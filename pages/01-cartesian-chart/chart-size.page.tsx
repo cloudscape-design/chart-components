@@ -44,12 +44,10 @@ export default function () {
     xAxis: {
       title: "X values",
       type: "linear",
-      valueDecimals: 0,
     },
     yAxis: {
       title: "Y values",
       type: "linear",
-      valueDecimals: 0,
     },
   };
   return (

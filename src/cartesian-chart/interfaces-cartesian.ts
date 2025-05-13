@@ -65,7 +65,6 @@ export interface CartesianChartProps extends BaseTypes.BaseChartProps {
    * Additional properties (Cloudscape):
    * * `valueFormatter` (optional, function) - Takes axis tick as input and returns a formatted string. This formatter also
    * applies to the tooltip header.
-   * * `valueDecimals` (optional, number) - The number of decimal digits the axis values have, defaults to 2.
    */
   xAxis?: CartesianChartProps.XAxisOptions;
 
@@ -87,7 +86,6 @@ export interface CartesianChartProps extends BaseTypes.BaseChartProps {
    * Additional properties (Cloudscape):
    * * `valueFormatter` (optional, function) - Takes axis tick as input and returns a formatted string. This formatter also
    * applies to the tooltip header.
-   * * `valueDecimals` (optional, number) - The number of decimal digits the axis values have, defaults to 2.
    */
   yAxis?: CartesianChartProps.YAxisOptions;
 
@@ -150,7 +148,6 @@ export namespace CartesianChartProps {
     tickInterval?: number;
     categories?: string[];
     valueFormatter?: (value: number) => string;
-    valueDecimals?: number;
   }
 
   export type XAxisOptions = AxisOptions;
