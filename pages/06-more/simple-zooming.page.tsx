@@ -244,6 +244,7 @@ function Charts() {
             },
           },
         }}
+        visibleItems={scatterSeries.map((s) => s.name!)}
         getTooltipContent={({ point: { x } }) => {
           const header = dateFormatter(x);
           const details: ChartSeriesDetailItem[] = [];
@@ -270,6 +271,7 @@ function Charts() {
           navigatorChartRef.current = chart;
         }}
         {...omit(chartProps.cartesian, "ref")}
+        visibleItems={rangeSeries.map((s) => s.name!)}
         options={{
           chart: {
             height: 150,
