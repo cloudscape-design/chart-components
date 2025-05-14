@@ -7,6 +7,8 @@ import type Highcharts from "highcharts";
 import { InternalPieChartOptions, PieChartProps } from "./interfaces-pie";
 import * as Styles from "./styles";
 
+import testClasses from "./test-classes/styles.css.js";
+
 interface InternalPieChartProps extends Omit<PieChartProps, "series"> {
   highcharts: null | object;
   options: InternalPieChartOptions;
@@ -16,7 +18,7 @@ interface InternalPieChartProps extends Omit<PieChartProps, "series"> {
  * The InternalPieChart component takes public PieChart properties, but also Highcharts options.
  * This allows using it as a Highcharts wrapper to mix Cloudscape and Highcharts features.
  */
-export function useInnerDescriptions(props: InternalPieChartProps) {
+export function useInnerDescriptions(props: InternalPieChartProps, hasDonutSeries: boolean) {
   const innerDescriptionsRef = useRef(new ChartInnerDescriptions());
 
   const onChartRender: Highcharts.ChartRenderCallbackFunction = function () {
@@ -26,7 +28,7 @@ export function useInnerDescriptions(props: InternalPieChartProps) {
     const hasVisibleSeries =
       this.series.filter((s) => s.visible && s.data.some((d) => d.y !== null && d.visible)).length > 0;
 
-    if (hasVisibleSeries) {
+    if (hasVisibleSeries && hasDonutSeries) {
       innerDescriptionsRef.current.createDescriptions(props, this);
     }
   };
@@ -48,7 +50,7 @@ class ChartInnerDescriptions {
     if (innerValue) {
       this.valueEl = chart.renderer
         .text(innerValue, textX, textY)
-        .attr({ zIndex: Styles.innerDescriptionZIndex })
+        .attr({ zIndex: Styles.innerDescriptionZIndex, class: testClasses["inner-value"] })
         .css(Styles.donutInnerValueCss)
         .add();
 
@@ -60,7 +62,7 @@ class ChartInnerDescriptions {
     if (innerDescription) {
       this.descriptionEl = chart.renderer
         .text(innerDescription, textX, textY)
-        .attr({ zIndex: Styles.innerDescriptionZIndex })
+        .attr({ zIndex: Styles.innerDescriptionZIndex, class: testClasses["inner-description"] })
         .css(Styles.donutInnerDescriptionCss)
         .add();
 
