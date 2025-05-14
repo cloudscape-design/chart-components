@@ -95,6 +95,7 @@ export function InternalCoreChart({
     return height;
   }
 
+  const inverted = options.chart?.inverted;
   return (
     <div ref={rootRef} {...getDataAttributes(rest)} className={rootClassName}>
       <ChartContainer
@@ -218,15 +219,19 @@ export function InternalCoreChart({
             xAxis: castArray(options.xAxis)?.map((xAxis) => ({
               ...Styles.xAxisOptions,
               ...xAxis,
-              reversed: !options.chart?.inverted && isRtl() ? !xAxis.reversed : xAxis.reversed,
-              opposite: options.chart?.inverted && isRtl() ? !xAxis.opposite : xAxis.opposite,
-              className: clsx(testClasses["axis-x"], xAxis.className),
+              reversed: !inverted && isRtl() ? !xAxis.reversed : xAxis.reversed,
+              opposite: inverted && isRtl() ? !xAxis.opposite : xAxis.opposite,
+              className: clsx(
+                testClasses["axis-x"],
+                inverted ? testClasses["axis-vertical"] : testClasses["axis-horizontal"],
+                xAxis.className,
+              ),
               title: {
                 style: {
                   ...Styles.axisTitleCss,
-                  opacity: options.chart?.inverted && verticalAxisTitlePlacement === "top" ? 0 : undefined,
+                  opacity: inverted && verticalAxisTitlePlacement === "top" ? 0 : undefined,
                 },
-                reserveSpace: options.chart?.inverted && verticalAxisTitlePlacement === "top" ? false : undefined,
+                reserveSpace: inverted && verticalAxisTitlePlacement === "top" ? false : undefined,
                 ...xAxis.title,
               },
               labels: { style: Styles.axisLabelsCss, ...xAxis.labels },
@@ -234,15 +239,19 @@ export function InternalCoreChart({
             yAxis: castArray(options.yAxis)?.map((yAxis) => ({
               ...Styles.yAxisOptions,
               ...yAxis,
-              reversed: options.chart?.inverted && isRtl() ? !yAxis.reversed : yAxis.reversed,
-              opposite: !options.chart?.inverted && isRtl() ? !yAxis.opposite : yAxis.opposite,
-              className: clsx(testClasses["axis-y"], yAxis.className),
+              reversed: inverted && isRtl() ? !yAxis.reversed : yAxis.reversed,
+              opposite: !inverted && isRtl() ? !yAxis.opposite : yAxis.opposite,
+              className: clsx(
+                testClasses["axis-y"],
+                inverted ? testClasses["axis-horizontal"] : testClasses["axis-vertical"],
+                yAxis.className,
+              ),
               title: {
                 style: {
                   ...Styles.axisTitleCss,
-                  opacity: !options.chart?.inverted && verticalAxisTitlePlacement === "top" ? 0 : undefined,
+                  opacity: !inverted && verticalAxisTitlePlacement === "top" ? 0 : undefined,
                 },
-                reserveSpace: !options.chart?.inverted && verticalAxisTitlePlacement === "top" ? false : undefined,
+                reserveSpace: !inverted && verticalAxisTitlePlacement === "top" ? false : undefined,
                 ...yAxis.title,
               },
               labels: { style: Styles.axisLabelsCss, ...yAxis.labels },
@@ -266,9 +275,7 @@ export function InternalCoreChart({
         }}
         legend={isLegendEnabled ? <ChartLegend {...legendOptions} api={api} /> : null}
         verticalAxisTitle={
-          verticalAxisTitlePlacement === "top" ? (
-            <VerticalAxisTitle verticalAxisTitlePlacement={verticalAxisTitlePlacement} api={api} />
-          ) : null
+          verticalAxisTitlePlacement === "top" ? <VerticalAxisTitle api={api} inverted={!!inverted} /> : null
         }
         header={header?.content ? <ChartHeader>{header.content}</ChartHeader> : null}
         footer={footer?.content ? <ChartFooter>{footer.content}</ChartFooter> : null}

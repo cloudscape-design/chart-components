@@ -175,21 +175,22 @@ export function ChartFilter({ api, i18nStrings }: { api: ChartAPI; i18nStrings?:
   );
 }
 
-export function VerticalAxisTitle({
-  verticalAxisTitlePlacement = "top",
-  api,
-}: {
-  verticalAxisTitlePlacement?: "top" | "side";
-  api: ChartAPI;
-}) {
-  const titles = useSelector(api.store, (s) => s.axes.verticalAxesTitles);
-  if (verticalAxisTitlePlacement === "side") {
+export function VerticalAxisTitle({ api, inverted }: { api: ChartAPI; inverted: boolean }) {
+  const titles = useSelector(api.store, (s) => s.axes.verticalAxesTitles).filter(Boolean);
+  if (titles.length === 0) {
     return null;
   }
   return (
-    <div className={clsx(testClasses["vertical-axis-title"], styles["vertical-axis-title"])} aria-hidden={true}>
+    <div
+      className={clsx(
+        testClasses["axis-vertical-title"],
+        inverted ? testClasses["axis-x-title"] : testClasses["axis-y-title"],
+        styles["axis-vertical-title"],
+      )}
+      aria-hidden={true}
+    >
       {titles.map((text, index) => (
-        <span key={index} className={styles["vertical-axis-title-item"]}>
+        <span key={index} className={styles["axis-vertical-title-item"]}>
           {text}
         </span>
       ))}
