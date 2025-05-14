@@ -3,7 +3,6 @@
 
 import highcharts from "highcharts";
 
-import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
 import { renderChart } from "./common";
 
 describe("CoreChart: container", () => {
@@ -37,7 +36,7 @@ describe("CoreChart: container", () => {
     expect(additionalFilters.textContent).toBe("Additional filter");
     expect(additionalFilters.compareDocumentPosition(seriesFilter)).toBe(Node.DOCUMENT_POSITION_PRECEDING);
 
-    const verticalAxisTitle = wrapper.findByClassName(testClasses["vertical-axis-title"])!.getElement();
+    const verticalAxisTitle = wrapper.findVerticalAxisTitle()!.getElement();
     expect(verticalAxisTitle.textContent).toBe("Y-axis title");
     expect(verticalAxisTitle.compareDocumentPosition(additionalFilters)).toBe(Node.DOCUMENT_POSITION_PRECEDING);
 
@@ -54,35 +53,53 @@ describe("CoreChart: container", () => {
     expect(footer.compareDocumentPosition(legend)).toBe(Node.DOCUMENT_POSITION_PRECEDING);
   });
 
-  test("renders x-axis title in the vertical axis title slot when inverted=true", () => {
-    const { wrapper } = renderChart({
-      highcharts,
-      options: {
-        chart: { inverted: true },
-        series: [{ type: "line" }],
-        xAxis: { title: { text: "X-axis title" } },
-        yAxis: { title: { text: "Y-axis title" } },
-      },
-      verticalAxisTitlePlacement: "top",
-    });
-    const verticalAxisTitle = wrapper.findByClassName(testClasses["vertical-axis-title"])!.getElement();
-    expect(verticalAxisTitle.textContent).toBe("X-axis title");
-  });
-
-  test.each([{ inverted: false }, { inverted: true }])(
-    "does not render vertical axis title slot of side placement is selected, inverted=$inverted",
-    ({ inverted }) => {
+  test.each([
+    { verticalAxisTitlePlacement: "top", inverted: false },
+    { verticalAxisTitlePlacement: "top", inverted: true },
+    { verticalAxisTitlePlacement: "side", inverted: false },
+    { verticalAxisTitlePlacement: "side", inverted: true },
+  ] as const)(
+    "does not render axis titles when not provided, verticalAxisTitlePlacement=$verticalAxisTitlePlacement, inverted=$inverted",
+    ({ verticalAxisTitlePlacement, inverted }) => {
       const { wrapper } = renderChart({
         highcharts,
         options: {
           chart: { inverted },
           series: [{ type: "line" }],
-          xAxis: { title: { text: "X-axis title" } },
-          yAxis: { title: { text: "Y-axis title" } },
+          xAxis: { title: { text: "" } },
+          yAxis: { title: { text: "" } },
         },
-        verticalAxisTitlePlacement: "side",
+        verticalAxisTitlePlacement,
       });
-      expect(wrapper.findByClassName(testClasses["vertical-axis-title"])).toBe(null);
+      expect(wrapper.findXAxisTitle()).toBe(null);
+      expect(wrapper.findYAxisTitle()).toBe(null);
+      expect(wrapper.findVerticalAxisTitle()).toBe(null);
+      expect(wrapper.findHorizontalAxisTitle()).toBe(null);
+    },
+  );
+
+  test.each([
+    { verticalAxisTitlePlacement: "top", inverted: false },
+    { verticalAxisTitlePlacement: "top", inverted: true },
+    { verticalAxisTitlePlacement: "side", inverted: false },
+    { verticalAxisTitlePlacement: "side", inverted: true },
+  ] as const)(
+    "renders axis titles when provided, verticalAxisTitlePlacement=$verticalAxisTitlePlacement, inverted=$inverted",
+    ({ verticalAxisTitlePlacement, inverted }) => {
+      const { wrapper } = renderChart({
+        highcharts,
+        options: {
+          chart: { inverted },
+          series: [{ type: "line" }],
+          xAxis: { title: { text: "X-title" } },
+          yAxis: { title: { text: "Y-title" } },
+        },
+        verticalAxisTitlePlacement,
+      });
+      expect(wrapper.findXAxisTitle()!.getElement().textContent).toBe("X-title");
+      expect(wrapper.findYAxisTitle()!.getElement().textContent).toBe("Y-title");
+      expect(wrapper.findHorizontalAxisTitle()!.getElement().textContent).toBe(inverted ? "Y-title" : "X-title");
+      expect(wrapper.findVerticalAxisTitle()!.getElement().textContent).toBe(inverted ? "X-title" : "Y-title");
     },
   );
 });

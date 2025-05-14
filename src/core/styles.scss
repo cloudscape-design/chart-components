@@ -38,7 +38,7 @@
   }
 }
 
-.vertical-axis-title {
+.axis-vertical-title {
   display: flex;
   gap: cs.$space-static-xs;
   justify-content: space-between;
@@ -46,7 +46,7 @@
   margin-bottom: 4px;
 }
 
-.vertical-axis-title-item {
+.axis-vertical-title-item {
   font-weight: bold;
   overflow: hidden;
   white-space: nowrap;

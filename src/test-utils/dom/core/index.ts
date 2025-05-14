@@ -42,18 +42,29 @@ export default class CoreChartWrapper extends ComponentWrapper {
     return this.findByClassName(testClasses["chart-plot"]);
   }
 
-  public findXAxis(): null | CoreChartAxisWrapper {
-    return this.findComponent(`.${testClasses["axis-x"]}`, CoreChartAxisWrapper);
+  public findXAxisTitle(): null | ElementWrapper {
+    return (
+      this.findByClassName(testClasses["axis-x-title"]) ??
+      this.find(`.highcharts-axis.${testClasses["axis-x"]} > .highcharts-axis-title`)
+    );
   }
 
-  public findYAxis(): null | CoreChartAxisWrapper {
-    return this.findComponent(`.${testClasses["axis-y"]}`, CoreChartAxisWrapper);
+  public findYAxisTitle(): null | ElementWrapper {
+    return (
+      this.findByClassName(testClasses["axis-y-title"]) ??
+      this.find(`.highcharts-axis.${testClasses["axis-y"]} > .highcharts-axis-title`)
+    );
   }
-}
 
-export class CoreChartAxisWrapper extends ComponentWrapper {
-  public findTicks(): Array<ElementWrapper> {
-    return this.findAll("text");
+  public findVerticalAxisTitle(): null | ElementWrapper {
+    return (
+      this.findByClassName(testClasses["axis-vertical-title"]) ??
+      this.find(`.highcharts-axis.${testClasses["axis-vertical"]} > .highcharts-axis-title`)
+    );
+  }
+
+  public findHorizontalAxisTitle(): null | ElementWrapper {
+    return this.find(`.highcharts-axis.${testClasses["axis-horizontal"]} > .highcharts-axis-title`);
   }
 }
 

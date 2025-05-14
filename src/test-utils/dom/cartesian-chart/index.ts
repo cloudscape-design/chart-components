@@ -3,7 +3,7 @@
 
 import { ElementWrapper } from "@cloudscape-design/test-utils-core/dom";
 
-import CoreChartWrapper, { CoreChartAxisWrapper } from "../core";
+import CoreChartWrapper from "../core";
 import { CartesianChartTooltipWrapper } from "./tooltip";
 
 import testClasses from "../../../cartesian-chart/test-classes/styles.selectors.js";
@@ -17,13 +17,5 @@ export default class CartesianChartWrapper extends CoreChartWrapper {
 
   public findSeries(): Array<ElementWrapper> {
     return this.findAllByClassName("highcharts-series");
-  }
-
-  public findXAxis(): CoreChartAxisWrapper {
-    return super.findXAxis()!;
-  }
-
-  public findYAxis(): CoreChartAxisWrapper {
-    return super.findYAxis()!;
   }
 }
