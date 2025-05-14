@@ -10,7 +10,7 @@ import Popover from "@cloudscape-design/components/popover";
 import Select from "@cloudscape-design/components/select";
 
 import { CartesianChartProps } from "../../../lib/components";
-import { InternalCartesianChart } from "../../../lib/components/cartesian-chart/chart-cartesian-internal";
+import CartesianChart from "../../../lib/components/cartesian-chart";
 import { dateFormatter } from "../../common/formatters";
 import { useChartSettings } from "../../common/page-settings";
 
@@ -100,25 +100,20 @@ export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: bo
   const { chartProps } = useChartSettings();
   const [visibleSeries, setVisibleSeries] = useState(seriesNew.map((s) => s.name));
   return (
-    <InternalCartesianChart
+    <CartesianChart
       {...chartProps.cartesian}
       fitHeight={true}
       chartMinHeight={100}
-      options={{
-        lang: { accessibility: { chartContainerLabel: "Line chart" } },
-        series: seriesNew,
-        xAxis: [
-          {
-            type: "datetime",
-            title: "Time (UTC)",
-            min: domain[0].getTime(),
-            max: domain[domain.length - 1].getTime(),
-            valueFormatter: dateFormatter,
-          },
-        ],
-        yAxis: [{ title: "Bytes transferred", min: 0, max: 500000 }],
-        plotOptions: { series: { marker: { enabled: false } } },
+      ariaLabel="Line chart"
+      series={seriesNew}
+      xAxis={{
+        type: "datetime",
+        title: "Time (UTC)",
+        min: domain[0].getTime(),
+        max: domain[domain.length - 1].getTime(),
+        valueFormatter: dateFormatter,
       }}
+      yAxis={{ title: "Bytes transferred", min: 0, max: 500000 }}
       legend={{
         ...chartProps.cartesian.legend,
         actions: legendFilter ? (

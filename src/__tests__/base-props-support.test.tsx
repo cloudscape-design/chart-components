@@ -7,8 +7,8 @@ import { render } from "@testing-library/react";
 import { getRequiredPropsForComponent } from "./required-props-for-components";
 import { getAllComponents, requireComponent } from "./utils";
 
-describe.each<string>(getAllComponents())(`base props support for %s`, async (componentName: string) => {
-  const Component = await requireComponent(componentName);
+describe.each<string>(getAllComponents())(`base props support for %s`, (componentName: string) => {
+  const Component = requireComponent(componentName);
   const props = getRequiredPropsForComponent(componentName);
 
   function renderComponent(ui: ReactElement) {
