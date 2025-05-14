@@ -67,7 +67,8 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
   }));
 
   // Render inner value and description for donut chart.
-  const innerDescriptions = useInnerDescriptions(props);
+  const hasDonutSeries = props.options.series.some((s) => s.type === "donut");
+  const innerDescriptions = useInnerDescriptions(props, hasDonutSeries);
 
   // Render pie/donut segment descriptions.
   const segmentDescriptions = useSegmentDescriptions(props);

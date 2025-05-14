@@ -13,4 +13,12 @@ export default class PieChartWrapper extends CoreChartWrapper {
   public findSegments(): Array<ElementWrapper> {
     return this.findAllByClassName("highcharts-point");
   }
+
+  public findInnerValue(): null | ElementWrapper {
+    return this.findByClassName(testClasses["inner-value"]);
+  }
+
+  public findInnerDescription(): null | ElementWrapper {
+    return this.findByClassName(testClasses["inner-description"]);
+  }
 }
