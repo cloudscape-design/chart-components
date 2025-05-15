@@ -10,6 +10,7 @@ import {
   KeyCode,
   SingleTabStopNavigationAPI,
   SingleTabStopNavigationProvider,
+  useMergeRefs,
   useSingleTabStopNavigation,
 } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
@@ -17,7 +18,6 @@ import { colorBorderDividerDefault } from "@cloudscape-design/design-tokens";
 
 import { ChartLegendItem } from "../../../core/interfaces-base";
 import { RegisteredLegendAPI } from "../../../core/interfaces-core";
-import { useMergeRefs } from "../../utils/use-merge-refs";
 import { DebouncedCall } from "../../utils/utils";
 
 import styles from "./styles.css.js";
