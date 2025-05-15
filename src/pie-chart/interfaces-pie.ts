@@ -58,8 +58,8 @@ export interface PieChartProps extends BaseTypes.BaseChartProps {
 
 export namespace PieChartProps {
   export interface Ref {
-    // Controls series visibility that works with both controlled and uncontrolled visibility mode.
-    // This is useful to clear selected series from no-match state.
+    // Controls segments visibility that works with both controlled and uncontrolled visibility mode.
+    // This is useful to clear selected segments from no-match state.
     setVisibleSegments(visibleSegments: readonly string[]): void;
   }
 
