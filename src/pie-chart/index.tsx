@@ -60,7 +60,6 @@ function validateOptions(props: PieChartProps): InternalPieChartOptions {
         chartContainerLabel: props.ariaLabel,
       },
     },
-    colors: props.colors,
     series: props.series ? validateSeries(props.series) : [],
   };
 }

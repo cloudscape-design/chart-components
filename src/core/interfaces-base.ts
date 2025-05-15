@@ -61,11 +61,6 @@ export interface BaseChartProps {
   ariaDescription?: string;
 
   /**
-   * An array of default series colors. Only use it when you want to override the Cloudscape-provided set of colors.
-   */
-  colors?: string[];
-
-  /**
    * Chart legend options.
    */
   legend?: ChartLegendOptions;
