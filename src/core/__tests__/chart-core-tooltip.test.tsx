@@ -10,12 +10,12 @@ import { CoreChartAPI } from "../../../lib/components/core/interfaces-core";
 import {
   clickChartPoint,
   createChartWrapper,
+  createProxyRenderer,
   findChart,
   findChartPoint,
   highlightChartPoint,
   leaveChartPoint,
   renderChart,
-  TestChartRenderer,
 } from "./common";
 
 function hoverTooltip() {
@@ -135,7 +135,6 @@ describe("CoreChart: tooltip", () => {
   });
 
   test("shows tooltip on hover with custom target", () => {
-    const mockRenderer = new TestChartRenderer();
     renderChart({
       highcharts,
       options: { series },
@@ -144,11 +143,12 @@ describe("CoreChart: tooltip", () => {
     });
 
     const originalRenderer = findChart().renderer;
+    const [mockRenderer, mockRendererCalls] = createProxyRenderer(originalRenderer);
     findChart().renderer = mockRenderer as unknown as Highcharts.SVGRenderer;
 
     try {
       act(() => highlightChartPoint(0, 0));
-      expect(mockRenderer._rect).toEqual([[1001, 1002, 1003, 1004]]);
+      expect(mockRendererCalls.rect).toEqual([{ x: 1001, y: 1002, width: 1003, height: 1004 }]);
     } finally {
       findChart().renderer = originalRenderer;
     }
