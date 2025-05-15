@@ -161,8 +161,10 @@ export class ChartAPI {
   };
 
   public updateChartItemsVisibility = (visibleItems?: readonly string[]) => {
-    const legendItems = this.store.get().legend.items;
-    updateChartItemsVisibility(this.chart, legendItems, visibleItems);
+    if (visibleItems) {
+      const legendItems = this.store.get().legend.items;
+      updateChartItemsVisibility(this.chart, legendItems, visibleItems);
+    }
   };
 
   public onMouseEnterTooltip = () => {

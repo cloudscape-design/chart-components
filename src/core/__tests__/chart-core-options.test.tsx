@@ -7,11 +7,11 @@ import HighchartsReact from "highcharts-react-official";
 import { vi } from "vitest";
 
 import { CoreChartProps } from "../../../lib/components/core/interfaces-core";
-import { renderChart, TestChartRenderer } from "./common";
+import { ChartRendererStub, renderChart } from "./common";
 
 vi.mock("highcharts-react-official", () => ({ __esModule: true, default: vi.fn(() => null) }));
 
-const rendererStub = new TestChartRenderer();
+const rendererStub = new ChartRendererStub();
 const chartStub = {
   series: [],
   legend: { allItems: [] },

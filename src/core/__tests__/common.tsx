@@ -88,17 +88,34 @@ export function findPlotLinesById(id: string) {
     .filter((plotLine) => plotLine.options.id === id);
 }
 
-export class TestChartRenderer {
-  public _rect: unknown[] = [];
-  public _attr: unknown[] = [];
+export function createProxyRenderer(originalRenderer: Highcharts.SVGRenderer) {
+  const calls = {
+    rect: new Array<{ x?: number; y?: number; width?: number; height?: number }>(),
+  };
+  const proxy = new Proxy(originalRenderer, {
+    get: (target, prop) => {
+      if (prop === "rect") {
+        return (x?: number, y?: number, width?: number, height?: number) => {
+          calls.rect.push({ x, y, width, height });
+          return target.rect(x, y, width, height);
+        };
+      }
+      return target[prop];
+    },
+  });
+  return [proxy, calls];
+}
 
-  rect(...args: unknown[]) {
-    this._rect.push(args);
+export class ChartRendererStub {
+  rect() {
     return this;
   }
 
-  attr(...args: unknown[]) {
-    this._attr.push(args);
+  attr() {
+    return this;
+  }
+
+  path() {
     return this;
   }
 
