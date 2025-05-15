@@ -78,7 +78,6 @@ function validateOptions(props: CartesianChartProps): InternalCartesianChartOpti
         },
       },
     },
-    colors: props.colors,
     series: validateSeries(props.series),
     xAxis: props.xAxis ? [validateXAxis(props.xAxis)] : [{}],
     yAxis: props.yAxis ? [validateYAxis(props.yAxis)] : [{}],
