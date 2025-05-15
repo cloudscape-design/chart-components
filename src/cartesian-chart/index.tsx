@@ -15,32 +15,34 @@ import { CartesianChartProps, InternalCartesianChartOptions } from "./interfaces
  * CartesianChart is a public Cloudscape component. It features a custom API, which resembles the Highcharts API where appropriate,
  * and adds extra features such as additional series types (thresholds), alternative tooltip, no-data, legend, and more.
  */
-const CartesianChart = forwardRef((props: CartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
-  const baseComponentProps = useBaseComponent("CartesianChart", { props: {} });
-  return (
-    <InternalCartesianChart
-      ref={ref}
-      highcharts={props.highcharts}
-      fallback={props.fallback}
-      options={validateOptions(props)}
-      fitHeight={props.fitHeight}
-      chartHeight={props.chartHeight}
-      chartMinHeight={props.chartMinHeight}
-      chartMinWidth={props.chartMinWidth}
-      noData={getAllowedProps(props.noData)}
-      tooltip={getAllowedProps(props.tooltip)}
-      legend={getAllowedProps(props.legend)}
-      visibleSeries={props.visibleSeries}
-      onChangeVisibleSeries={props.onChangeVisibleSeries}
-      emphasizeBaselineAxis={props.emphasizeBaselineAxis ?? true}
-      verticalAxisTitlePlacement={props.verticalAxisTitlePlacement}
-      header={getAllowedProps(props.header)}
-      footer={getAllowedProps(props.footer)}
-      {...getDataAttributes(props)}
-      {...baseComponentProps}
-    />
-  );
-});
+const CartesianChart = forwardRef(
+  ({ verticalAxisTitlePlacement = "top", ...props }: CartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
+    const baseComponentProps = useBaseComponent("CartesianChart", { props: {} });
+    return (
+      <InternalCartesianChart
+        ref={ref}
+        highcharts={props.highcharts}
+        fallback={props.fallback}
+        options={validateOptions(props)}
+        fitHeight={props.fitHeight}
+        chartHeight={props.chartHeight}
+        chartMinHeight={props.chartMinHeight}
+        chartMinWidth={props.chartMinWidth}
+        noData={getAllowedProps(props.noData)}
+        tooltip={getAllowedProps(props.tooltip)}
+        legend={getAllowedProps(props.legend)}
+        visibleSeries={props.visibleSeries}
+        onChangeVisibleSeries={props.onChangeVisibleSeries}
+        emphasizeBaselineAxis={props.emphasizeBaselineAxis ?? true}
+        verticalAxisTitlePlacement={verticalAxisTitlePlacement}
+        header={getAllowedProps(props.header)}
+        footer={getAllowedProps(props.footer)}
+        {...getDataAttributes(props)}
+        {...baseComponentProps}
+      />
+    );
+  },
+);
 
 export type { CartesianChartProps };
 
