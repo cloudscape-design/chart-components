@@ -19,7 +19,7 @@ import { getDataExtremes } from "./utils";
 
 import testClasses from "./test-classes/styles.css.js";
 
-interface InternalCartesianChartProps extends InternalBaseComponentProps, Omit<CartesianChartProps, "series"> {
+export interface InternalCartesianChartProps extends InternalBaseComponentProps, Omit<CartesianChartProps, "series"> {
   highcharts: null | object;
   options: InternalCartesianChartOptions;
 }
@@ -45,7 +45,7 @@ export const InternalCartesianChart = forwardRef(
         propertyName: "visibleSeries",
         changeHandlerName: "onChangeVisibleSeries",
       },
-      (value, handler) => fireNonCancelableEvent(handler, { visibleSeries: value ? [...value] : [] }),
+      (value, handler) => fireNonCancelableEvent(handler, { visibleSeries: [...value!] }),
     );
     // Unless visible series are explicitly set, we start from all series being visible.
     const allSeriesIds = props.options.series.map((s) => getOptionsId(s));
@@ -69,7 +69,7 @@ export const InternalCartesianChart = forwardRef(
         events: {
           ...options.chart?.events,
           render(event) {
-            onChartRender?.call(this, event);
+            onChartRender.call(this, event);
             options.chart?.events?.render?.call(this, event);
           },
         },
@@ -134,7 +134,7 @@ export const InternalCartesianChart = forwardRef(
         legend={props.legend}
         visibleItems={visibleSeries}
         onLegendItemsChange={(legendItems) => setVisibleSeries(legendItems.filter((i) => i.visible).map((i) => i.id))}
-        verticalAxisTitlePlacement={props.verticalAxisTitlePlacement ?? "top"}
+        verticalAxisTitlePlacement={props.verticalAxisTitlePlacement}
         header={props.header}
         footer={props.footer}
         filter={props.filter}
