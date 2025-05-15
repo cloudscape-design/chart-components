@@ -74,12 +74,6 @@ width value, the horizontal scrollbar is automatically added.",
       "type": "number",
     },
     {
-      "description": "An array of default series colors. Only use it when you want to override the Cloudscape-provided set of colors.",
-      "name": "colors",
-      "optional": true,
-      "type": "Array<string>",
-    },
-    {
       "description": "When set to \`true\`, adds a visual emphasis on the zero baseline axis.",
       "name": "emphasizeBaselineAxis",
       "optional": true,
@@ -314,6 +308,7 @@ inject links, or add expandable items.",
       "type": "CartesianChartProps.TooltipOptions",
     },
     {
+      "defaultValue": ""top"",
       "description": "Defines placement of the vertical axis (can be either Y or X depending on \`inverted\`).",
       "inlineType": {
         "name": ""top" | "side"",
@@ -549,12 +544,6 @@ width value, the horizontal scrollbar is automatically added.",
       "name": "chartMinWidth",
       "optional": true,
       "type": "number",
-    },
-    {
-      "description": "An array of default series colors. Only use it when you want to override the Cloudscape-provided set of colors.",
-      "name": "colors",
-      "optional": true,
-      "type": "Array<string>",
     },
     {
       "description": "Use filter to render default series filter, custom series filter, and/or additional filters.",
