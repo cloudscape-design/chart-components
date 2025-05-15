@@ -4,6 +4,7 @@
 import { forwardRef, useContext, useState } from "react";
 
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
+import { useMergeRefs } from "@cloudscape-design/component-toolkit/internal";
 import AppLayout, { AppLayoutProps } from "@cloudscape-design/components/app-layout";
 import Badge from "@cloudscape-design/components/badge";
 import Box from "@cloudscape-design/components/box";
@@ -12,7 +13,6 @@ import Drawer from "@cloudscape-design/components/drawer";
 import Header from "@cloudscape-design/components/header";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
-import { useMergeRefs } from "../../lib/components/internal/utils/use-merge-refs";
 import AppContext from "../app/app-context";
 import { ScreenshotArea } from "./screenshot-area";
 

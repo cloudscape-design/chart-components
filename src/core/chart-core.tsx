@@ -6,13 +6,12 @@ import clsx from "clsx";
 import type Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 
-import { getIsRtl } from "@cloudscape-design/component-toolkit/internal";
+import { getIsRtl, useMergeRefs } from "@cloudscape-design/component-toolkit/internal";
 import { isDevelopment } from "@cloudscape-design/component-toolkit/internal";
 import Spinner from "@cloudscape-design/components/spinner";
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
-import { useMergeRefs } from "../internal/utils/use-merge-refs";
 import { castArray } from "../internal/utils/utils";
 import { useChartAPI } from "./chart-api";
 import { ChartContainer } from "./chart-container";

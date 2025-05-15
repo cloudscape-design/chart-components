@@ -4,11 +4,11 @@
 import { forwardRef, memo, ReactNode, useEffect, useRef } from "react";
 import clsx from "clsx";
 
+import { useMergeRefs } from "@cloudscape-design/component-toolkit/internal";
 import { BaseComponentProps } from "@cloudscape-design/components/internal/base-component";
 import { InternalExpandableSection } from "@cloudscape-design/components/internal/do-not-use/expandable-section";
 
 import { getDataAttributes } from "../../base-component/get-data-attributes";
-import { useMergeRefs } from "../../utils/use-merge-refs";
 import getSeriesDetailsText from "./series-details-text";
 
 import styles from "./styles.css.js";
