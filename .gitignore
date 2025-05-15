@@ -4,6 +4,5 @@ coverage
 lib
 /__image_snapshots__
 dist
-/src/test-utils/selectors
-!/src/test-utils/selectors/index.ts
+/src/test-utils/selectors/**/*.ts
 .DS_STORE
