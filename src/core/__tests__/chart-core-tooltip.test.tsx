@@ -7,16 +7,10 @@ import highcharts from "highcharts";
 import { vi } from "vitest";
 
 import { CoreChartAPI } from "../../../lib/components/core/interfaces-core";
-import {
-  clickChartPoint,
-  createChartWrapper,
-  createProxyRenderer,
-  findChart,
-  findChartPoint,
-  highlightChartPoint,
-  leaveChartPoint,
-  renderChart,
-} from "./common";
+import { createChartWrapper, renderChart } from "./common";
+import { createProxyRenderer, HighchartsTestHelper } from "./highcharts-utils";
+
+const hc = new HighchartsTestHelper(highcharts);
 
 function hoverTooltip() {
   const tooltipElement = createChartWrapper().findTooltip()!.getElement();
@@ -61,7 +55,7 @@ describe("CoreChart: tooltip", () => {
       tooltip: { enabled: false },
     });
 
-    act(() => highlightChartPoint(0, 0));
+    act(() => hc.highlightChartPoint(0, 0));
 
     expect(wrapper.findTooltip()).toBe(null);
     expect(wrapper.findHighchartsTooltip()).not.toBe(null);
@@ -79,10 +73,10 @@ describe("CoreChart: tooltip", () => {
       getTooltipContent: () => ({ header: "Tooltip title", body: "Tooltip body", footer: "Tooltip footer" }),
     });
 
-    act(() => highlightChartPoint(0, 0));
+    act(() => hc.highlightChartPoint(0, 0));
 
     expect(onPointHighlight).toHaveBeenCalledWith({
-      point: findChartPoint(0, 0),
+      point: hc.getChartPoint(0, 0),
       target: expect.objectContaining({ x: 0, y: 10, height: expect.any(Number), width: expect.any(Number) }),
     });
     await waitFor(() => {
@@ -92,7 +86,7 @@ describe("CoreChart: tooltip", () => {
       expect(wrapper.findTooltip()!.findFooter()!.getElement().textContent).toBe("Tooltip footer");
     });
 
-    act(() => leaveChartPoint(0, 0));
+    act(() => hc.leaveChartPoint(0, 0));
 
     await waitFor(() => {
       expect(onClearHighlight).toHaveBeenCalled();
@@ -113,10 +107,10 @@ describe("CoreChart: tooltip", () => {
       callback: (apiRef) => (api = apiRef),
     });
 
-    act(() => api!.highlightChartPoint(findChartPoint(0, 0)));
+    act(() => api!.highlightChartPoint(hc.getChartPoint(0, 0)));
 
     expect(onPointHighlight).toHaveBeenCalledWith({
-      point: findChartPoint(0, 0),
+      point: hc.getChartPoint(0, 0),
       target: expect.objectContaining({ x: 0, y: 10, height: expect.any(Number), width: expect.any(Number) }),
     });
     await waitFor(() => {
@@ -142,15 +136,15 @@ describe("CoreChart: tooltip", () => {
       onPointHighlight: () => ({ target: { x: 1001, y: 1002, width: 1003, height: 1004 } }),
     });
 
-    const originalRenderer = findChart().renderer;
+    const originalRenderer = hc.getChart().renderer;
     const [mockRenderer, mockRendererCalls] = createProxyRenderer(originalRenderer);
-    findChart().renderer = mockRenderer as unknown as Highcharts.SVGRenderer;
+    hc.getChart().renderer = mockRenderer as unknown as Highcharts.SVGRenderer;
 
     try {
-      act(() => highlightChartPoint(0, 0));
+      act(() => hc.highlightChartPoint(0, 0));
       expect(mockRendererCalls.rect).toEqual([{ x: 1001, y: 1002, width: 1003, height: 1004 }]);
     } finally {
-      findChart().renderer = originalRenderer;
+      hc.getChart().renderer = originalRenderer;
     }
   });
 
@@ -161,7 +155,7 @@ describe("CoreChart: tooltip", () => {
       getTooltipContent: () => ({ header: "", body: "" }),
     });
 
-    act(() => highlightChartPoint(0, 0));
+    act(() => hc.highlightChartPoint(0, 0));
 
     await waitFor(() => {
       expect(wrapper.findTooltip()).not.toBe(null);
@@ -169,7 +163,7 @@ describe("CoreChart: tooltip", () => {
 
     act(() => {
       hoverTooltip();
-      leaveChartPoint(0, 0);
+      hc.leaveChartPoint(0, 0);
     });
 
     await waitFor(() => {
@@ -191,7 +185,7 @@ describe("CoreChart: tooltip", () => {
     });
 
     // Hover point 1 to show the popover.
-    act(() => highlightChartPoint(0, 1));
+    act(() => hc.highlightChartPoint(0, 1));
 
     await waitFor(() => {
       expect(wrapper.findTooltip()).not.toBe(null);
@@ -200,7 +194,7 @@ describe("CoreChart: tooltip", () => {
     });
 
     // Make popover pinned on point 1.
-    act(() => clickChartPoint(0, 1));
+    act(() => hc.clickChartPoint(0, 1));
 
     await waitFor(() => {
       expect(wrapper.findTooltip()).not.toBe(null);
@@ -211,9 +205,9 @@ describe("CoreChart: tooltip", () => {
     // Hover and click on point 0.
     // Clicking outside the tooltip also dismisses the tooltip, so we imitate that.
     act(() => {
-      highlightChartPoint(0, 0);
+      hc.highlightChartPoint(0, 0);
       wrapper.findTooltip()!.findDismissButton()!.click();
-      clickChartPoint(0, 0);
+      hc.clickChartPoint(0, 0);
     });
 
     // The tooltip moves to point 0, but it is no longer pinned.
@@ -229,10 +223,10 @@ describe("CoreChart: tooltip", () => {
     renderChart({ highcharts, options: { series }, getTooltipContent });
 
     for (let i = 0; i < data.length; i++) {
-      act(() => highlightChartPoint(0, i));
+      act(() => hc.highlightChartPoint(0, i));
 
       await waitFor(() => {
-        expect(getTooltipContent).toHaveBeenCalledWith({ point: findChartPoint(0, i) });
+        expect(getTooltipContent).toHaveBeenCalledWith({ point: hc.getChartPoint(0, i) });
       });
     }
   });
@@ -246,15 +240,15 @@ describe("CoreChart: tooltip", () => {
       onPointHighlight,
     });
 
-    findChart().plotLeft = 10;
-    findChart().plotTop = 15;
-    findChartPoint(0, 1).plotX = 3;
-    findChartPoint(0, 1).plotY = 5;
+    hc.getChart().plotLeft = 10;
+    hc.getChart().plotTop = 15;
+    hc.getChartPoint(0, 1).plotX = 3;
+    hc.getChartPoint(0, 1).plotY = 5;
 
-    act(() => highlightChartPoint(0, 1));
+    act(() => hc.highlightChartPoint(0, 1));
 
     expect(onPointHighlight).toHaveBeenCalledWith({
-      point: findChartPoint(0, 1),
+      point: hc.getChartPoint(0, 1),
       target: { x: 10 + 3, y: 15 + 5, height: 1, width: 4 },
     });
   });
@@ -268,17 +262,17 @@ describe("CoreChart: tooltip", () => {
       onPointHighlight,
     });
 
-    findChart().plotLeft = 10;
-    findChart().plotWidth = 100;
-    findChart().plotTop = 15;
-    findChart().plotHeight = 150;
-    findChartPoint(0, 1).plotX = 3;
-    findChartPoint(0, 1).plotY = 5;
+    hc.getChart().plotLeft = 10;
+    hc.getChart().plotWidth = 100;
+    hc.getChart().plotTop = 15;
+    hc.getChart().plotHeight = 150;
+    hc.getChartPoint(0, 1).plotX = 3;
+    hc.getChartPoint(0, 1).plotY = 5;
 
-    act(() => highlightChartPoint(0, 1));
+    act(() => hc.highlightChartPoint(0, 1));
 
     expect(onPointHighlight).toHaveBeenCalledWith({
-      point: findChartPoint(0, 1),
+      point: hc.getChartPoint(0, 1),
       target: { x: 10 + 100 - 5, y: 15 + 150 - 3, height: 4, width: 1 },
     });
   });
@@ -292,17 +286,17 @@ describe("CoreChart: tooltip", () => {
       onPointHighlight,
     });
 
-    findChart().plotLeft = 10;
-    findChart().plotWidth = 100;
-    findChart().plotTop = 15;
-    findChart().plotHeight = 150;
-    findChartPoint(0, 1).plotX = 3;
-    findChartPoint(0, 1).plotY = 5;
+    hc.getChart().plotLeft = 10;
+    hc.getChart().plotWidth = 100;
+    hc.getChart().plotTop = 15;
+    hc.getChart().plotHeight = 150;
+    hc.getChartPoint(0, 1).plotX = 3;
+    hc.getChartPoint(0, 1).plotY = 5;
 
-    act(() => highlightChartPoint(0, 1));
+    act(() => hc.highlightChartPoint(0, 1));
 
     expect(onPointHighlight).toHaveBeenCalledWith({
-      point: findChartPoint(0, 1),
+      point: hc.getChartPoint(0, 1),
       target: { x: 10 + 3, y: 15 + 150 / 2, height: 1, width: 4 },
     });
   });
@@ -316,17 +310,17 @@ describe("CoreChart: tooltip", () => {
       onPointHighlight,
     });
 
-    findChart().plotLeft = 10;
-    findChart().plotWidth = 100;
-    findChart().plotTop = 15;
-    findChart().plotHeight = 150;
-    findChartPoint(0, 1).plotX = 3;
-    findChartPoint(0, 1).plotY = 5;
+    hc.getChart().plotLeft = 10;
+    hc.getChart().plotWidth = 100;
+    hc.getChart().plotTop = 15;
+    hc.getChart().plotHeight = 150;
+    hc.getChartPoint(0, 1).plotX = 3;
+    hc.getChartPoint(0, 1).plotY = 5;
 
-    act(() => highlightChartPoint(0, 1));
+    act(() => hc.highlightChartPoint(0, 1));
 
     expect(onPointHighlight).toHaveBeenCalledWith({
-      point: findChartPoint(0, 1),
+      point: hc.getChartPoint(0, 1),
       target: { x: 10 + 100 / 2, y: 15 + 150 - 3, height: 4, width: 1 },
     });
   });
@@ -340,17 +334,17 @@ describe("CoreChart: tooltip", () => {
       onPointHighlight,
     });
 
-    findChart().plotLeft = 10;
-    findChart().plotWidth = 100;
-    findChart().plotTop = 15;
-    findChart().plotHeight = 150;
-    findChartPoint(0, 1).plotX = 3;
-    findChartPoint(0, 1).plotY = 5;
+    hc.getChart().plotLeft = 10;
+    hc.getChart().plotWidth = 100;
+    hc.getChart().plotTop = 15;
+    hc.getChart().plotHeight = 150;
+    hc.getChartPoint(0, 1).plotX = 3;
+    hc.getChartPoint(0, 1).plotY = 5;
 
-    act(() => highlightChartPoint(0, 1));
+    act(() => hc.highlightChartPoint(0, 1));
 
     expect(onPointHighlight).toHaveBeenCalledWith({
-      point: findChartPoint(0, 1),
+      point: hc.getChartPoint(0, 1),
       target: { x: 10 + 3, y: 15, height: 150, width: 1 },
     });
   });
@@ -364,17 +358,17 @@ describe("CoreChart: tooltip", () => {
       onPointHighlight,
     });
 
-    findChart().plotLeft = 10;
-    findChart().plotWidth = 100;
-    findChart().plotTop = 15;
-    findChart().plotHeight = 150;
-    findChartPoint(0, 1).plotX = 3;
-    findChartPoint(0, 1).plotY = 5;
+    hc.getChart().plotLeft = 10;
+    hc.getChart().plotWidth = 100;
+    hc.getChart().plotTop = 15;
+    hc.getChart().plotHeight = 150;
+    hc.getChartPoint(0, 1).plotX = 3;
+    hc.getChartPoint(0, 1).plotY = 5;
 
-    act(() => highlightChartPoint(0, 1));
+    act(() => hc.highlightChartPoint(0, 1));
 
     expect(onPointHighlight).toHaveBeenCalledWith({
-      point: findChartPoint(0, 1),
+      point: hc.getChartPoint(0, 1),
       target: { x: 10, y: 150 + 15 - 3, height: 1, width: 100 },
     });
   });
@@ -382,6 +376,6 @@ describe("CoreChart: tooltip", () => {
   test("uses unsupported placement on inverted chart", () => {
     renderChart({ highcharts, options: { series }, tooltip: { placement: "xxx" as any } });
 
-    expect(() => highlightChartPoint(0, 1)).toThrow("Invariant violation: unsupported tooltip placement option.");
+    expect(() => hc.highlightChartPoint(0, 1)).toThrow("Invariant violation: unsupported tooltip placement option.");
   });
 });

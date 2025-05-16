@@ -7,18 +7,12 @@ import type Highcharts from "highcharts";
 
 import "@cloudscape-design/components/test-utils/dom";
 import CartesianChart, { CartesianChartProps } from "../../../lib/components/cartesian-chart";
+import {
+  InternalCartesianChart,
+  InternalCartesianChartProps,
+} from "../../../lib/components/cartesian-chart/chart-cartesian-internal";
 import { TestI18nProvider } from "../../../lib/components/internal/utils/test-i18n-provider";
 import createWrapper from "../../../lib/components/test-utils/dom";
-
-export {
-  findChart,
-  findChartPoint,
-  findChartSeries,
-  highlightChartPoint,
-  leaveChartPoint,
-  clickChartPoint,
-  findPlotLinesById,
-} from "../../core/__tests__/common";
 
 export const ref = createRef<CartesianChartProps.Ref>();
 
@@ -61,4 +55,8 @@ export function renderCartesianChart({ i18nProvider, ...props }: TestProps, Comp
 
 export function renderStatefulCartesianChart(props: TestProps) {
   return renderCartesianChart(props, StatefulChart);
+}
+
+export function renderInternalCartesianChart(props: InternalCartesianChartProps) {
+  render(<InternalCartesianChart {...props} />);
 }

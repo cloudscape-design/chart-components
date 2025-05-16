@@ -4,7 +4,10 @@
 import highcharts from "highcharts";
 import { vi } from "vitest";
 
-import { findChart, renderChart } from "./common";
+import { renderChart } from "./common";
+import { HighchartsTestHelper } from "./highcharts-utils";
+
+const hc = new HighchartsTestHelper(highcharts);
 
 describe("CoreChart: rendering", () => {
   test("renders default fallback with highcharts=null", () => {
@@ -33,7 +36,7 @@ describe("CoreChart: rendering", () => {
     renderChart({ highcharts, callback });
 
     expect(callback).toHaveBeenCalledWith({
-      chart: findChart(),
+      chart: hc.getChart(),
       highcharts,
       highlightChartPoint: expect.any(Function),
       clearChartHighlight: expect.any(Function),

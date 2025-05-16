@@ -118,13 +118,23 @@ export function ChartNoData({
   let content = null;
   if (statusType === "loading") {
     const loadingText = i18n("loadingText", i18nStrings?.loadingText);
-    content = loading ?? <StatusIndicator type="loading">{loadingText}</StatusIndicator>;
+    content = loading ? (
+      <div className={testClasses["no-data-loading"]}>{loading}</div>
+    ) : (
+      <StatusIndicator type="loading" className={testClasses["no-data-loading"]}>
+        {loadingText}
+      </StatusIndicator>
+    );
   } else if (statusType === "error") {
     const errorText = i18n("errorText", i18nStrings?.errorText);
     const recoveryText = i18n("recoveryText", i18nStrings?.recoveryText);
-    content = error ?? (
+    content = error ? (
+      <div className={testClasses["no-data-error"]}>{error}</div>
+    ) : (
       <span>
-        <StatusIndicator type="error">{i18n("errorText", errorText)}</StatusIndicator>
+        <StatusIndicator type="error" className={testClasses["no-data-error"]}>
+          {i18n("errorText", errorText)}
+        </StatusIndicator>
         {!!recoveryText && !!onRecoveryClick && (
           <>
             {" "}
@@ -134,6 +144,7 @@ export function ChartNoData({
                 fireNonCancelableEvent(onRecoveryClick);
               }}
               variant="inline-link"
+              className={testClasses["no-data-retry"]}
             >
               {recoveryText}
             </Button>
@@ -142,9 +153,9 @@ export function ChartNoData({
       </span>
     );
   } else if (state.noMatch) {
-    content = noMatch;
+    content = <div className={testClasses["no-data-no-match"]}>{noMatch}</div>;
   } else {
-    content = empty;
+    content = <div className={testClasses["no-data-empty"]}>{empty}</div>;
   }
   return (
     <Portal container={state.container}>

@@ -20,6 +20,11 @@
 .axis-y-title,
 .axis-vertical,
 .axis-vertical-title,
-.axis-horizontal {
+.axis-horizontal,
+.no-data-empty,
+.no-data-no-match,
+.no-data-loading,
+.no-data-error,
+.no-data-retry {
   /* used in test-utils */
 }

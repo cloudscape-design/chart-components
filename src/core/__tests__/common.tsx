@@ -4,7 +4,6 @@
 import { useState } from "react";
 import { render } from "@testing-library/react";
 import type Highcharts from "highcharts";
-import highcharts from "highcharts";
 
 import "@cloudscape-design/components/test-utils/dom";
 import { CoreChartProps } from "../../../lib/components/core/interfaces-core";
@@ -60,66 +59,4 @@ export function renderStatefulChart(props: TestProps) {
 
 export function createChartWrapper() {
   return new ExtendedTestWrapper(createWrapper().findByClassName("test-chart")!.getElement());
-}
-
-export function findChart() {
-  return highcharts.charts.find((c) => c)!;
-}
-export function findChartSeries(seriesIndex: number) {
-  return findChart().series[seriesIndex] as Highcharts.Series & { state: "" };
-}
-export function findChartPoint(seriesIndex: number, pointIndex: number) {
-  return findChart().series[seriesIndex].data[pointIndex] as Highcharts.Point & { state: "" };
-}
-export function highlightChartPoint(seriesIndex: number, index: number) {
-  findChartPoint(seriesIndex, index).onMouseOver();
-}
-export function leaveChartPoint(seriesIndex: number, index: number) {
-  findChartPoint(seriesIndex, index).onMouseOut();
-}
-export function clickChartPoint(seriesIndex: number, index: number) {
-  findChartPoint(seriesIndex, index).graphic!.element.dispatchEvent(
-    new MouseEvent("click", { bubbles: true, cancelable: true }),
-  );
-}
-export function findPlotLinesById(id: string) {
-  return findChart()
-    .axes.flatMap((axis) => (axis as any).plotLinesAndBands)
-    .filter((plotLine) => plotLine.options.id === id);
-}
-
-export function createProxyRenderer(originalRenderer: Highcharts.SVGRenderer) {
-  const calls = {
-    rect: new Array<{ x?: number; y?: number; width?: number; height?: number }>(),
-  };
-  const proxy = new Proxy(originalRenderer, {
-    get: (target, prop) => {
-      if (prop === "rect") {
-        return (x?: number, y?: number, width?: number, height?: number) => {
-          calls.rect.push({ x, y, width, height });
-          return target.rect(x, y, width, height);
-        };
-      }
-      return target[prop];
-    },
-  });
-  return [proxy, calls];
-}
-
-export class ChartRendererStub {
-  rect() {
-    return this;
-  }
-
-  attr() {
-    return this;
-  }
-
-  path() {
-    return this;
-  }
-
-  add() {
-    return null;
-  }
 }

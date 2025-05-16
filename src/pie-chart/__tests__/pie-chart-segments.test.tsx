@@ -5,7 +5,10 @@ import { act } from "react";
 import highcharts from "highcharts";
 
 import createWrapper from "../../../lib/components/test-utils/dom";
-import { highlightChartPoint, renderPieChart } from "./common";
+import { HighchartsTestHelper } from "../../core/__tests__/highcharts-utils";
+import { renderPieChart } from "./common";
+
+const hc = new HighchartsTestHelper(highcharts);
 
 const getChart = () => createWrapper().findChart("pie")!;
 
@@ -26,7 +29,7 @@ describe("PieChart: segments", () => {
       },
     });
 
-    act(() => highlightChartPoint(0, 1));
+    act(() => hc.highlightChartPoint(0, 1));
 
     expect(getChart().findSegments()).toHaveLength(4);
   });

@@ -11,7 +11,7 @@ import {
   InternalCartesianChartProps,
 } from "../../../lib/components/cartesian-chart/chart-cartesian-internal";
 import { InternalCartesianChartOptions } from "../../../lib/components/cartesian-chart/interfaces-cartesian";
-import { ChartRendererStub } from "../../core/__tests__/common";
+import { ChartRendererStub } from "../../core/__tests__/highcharts-utils";
 
 vi.mock("highcharts-react-official", () => ({ __esModule: true, default: vi.fn(() => null) }));
 

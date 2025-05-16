@@ -28,7 +28,7 @@ export const useCartesianSeries = ({
         id: s.id,
         name: s.name,
         color: s.color ?? Styles.thresholdSeriesDefaultColor,
-        data: undefined,
+        data: [],
         custom: createThresholdMetadata(s.type, s.value).custom,
         ...Styles.thresholdSeriesOptions,
       };
@@ -75,7 +75,7 @@ export const useCartesianSeries = ({
   // series, we need the entire stack (everything matching x-coordinate) to be highlighted instead. This is achieved by enabling
   // the `shared=true` behavior, which is defined in Highcharts tooltip. The tooltip itself is then hidden with styles.
   const tooltip: Highcharts.TooltipOptions = {
-    enabled: !!options.series?.some((s) => s.type === "column"),
+    enabled: !!options.series.some((s) => s.type === "column"),
     shared: true,
     style: { opacity: 0 },
   };
@@ -116,15 +116,16 @@ function updateSeriesData(chart: Highcharts.Chart) {
   }
 
   // The update only happens if the new coordinates are different from the old.
-  // The comparison is done with a small tolerance to prevent infinite update cycle when
-  // Highcharts updates the extremes to slightly exceed the data values from start and end.
   function updateDataIfNeeded(series: Highcharts.Series, data: { x: number; y: number }[]) {
-    if (
-      series.visible &&
-      (series.data[0]?.x !== data[0].x ||
-        series.data[1]?.x !== data[1].x ||
-        series.data[0]?.y !== data[0].y ||
-        series.data[1]?.y !== data[1].y)
+    if (!series.visible) {
+      return;
+    } else if (series.data.length !== 2) {
+      series.setData(data);
+    } else if (
+      series.data[0].x !== data[0].x ||
+      series.data[1].x !== data[1].x ||
+      series.data[0].y !== data[0].y ||
+      series.data[1].y !== data[1].y
     ) {
       series.setData(data);
     }
@@ -144,8 +145,8 @@ function createThresholdMetadata<T extends "x-threshold" | "y-threshold">(type: 
   return { custom: { awsui: { type, threshold: value } } };
 }
 function isXThreshold(s: Highcharts.Series): s is Highcharts.Series & { options: ThresholdOptions<"x-threshold"> } {
-  return typeof s.options.custom === "object" && s.options.custom?.awsui.type === "x-threshold";
+  return typeof s.options.custom === "object" && s.options.custom.awsui?.type === "x-threshold";
 }
 function isYThreshold(s: Highcharts.Series): s is Highcharts.Series & { options: ThresholdOptions<"y-threshold"> } {
-  return typeof s.options.custom === "object" && s.options.custom?.awsui.type === "y-threshold";
+  return typeof s.options.custom === "object" && s.options.custom.awsui?.type === "y-threshold";
 }

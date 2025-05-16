@@ -10,16 +10,6 @@ import { TestI18nProvider } from "../../../lib/components/internal/utils/test-i1
 import PieChart, { PieChartProps } from "../../../lib/components/pie-chart";
 import createWrapper from "../../../lib/components/test-utils/dom";
 
-export {
-  findChart,
-  findChartPoint,
-  findChartSeries,
-  highlightChartPoint,
-  leaveChartPoint,
-  clickChartPoint,
-  findPlotLinesById,
-} from "../../core/__tests__/common";
-
 export const ref = createRef<PieChartProps.Ref>();
 
 export const StatefulChart = forwardRef((props: PieChartProps, ref: React.Ref<PieChartProps.Ref>) => {

@@ -9,7 +9,10 @@ import { vi } from "vitest";
 import "highcharts/highcharts-more";
 import { CartesianChartProps } from "../../../lib/components/cartesian-chart";
 import createWrapper from "../../../lib/components/test-utils/dom";
-import { highlightChartPoint, leaveChartPoint, renderCartesianChart } from "./common";
+import { HighchartsTestHelper } from "../../core/__tests__/highcharts-utils";
+import { renderCartesianChart } from "./common";
+
+const hc = new HighchartsTestHelper(highcharts);
 
 const lineSeries: CartesianChartProps.SeriesOptions[] = [
   { type: "line", name: "Line 1", data: [1, 2, 3] },
@@ -32,7 +35,7 @@ describe("CartesianChart: tooltip", () => {
       series: lineSeries,
     });
 
-    act(() => highlightChartPoint(1, 1));
+    act(() => hc.highlightChartPoint(1, 1));
 
     await waitFor(() => {
       expect(getTooltip()).not.toBe(null);
@@ -47,7 +50,7 @@ describe("CartesianChart: tooltip", () => {
       expect(getTooltipFooter()).toBe(null);
     });
 
-    act(() => leaveChartPoint(1, 1));
+    act(() => hc.leaveChartPoint(1, 1));
 
     await waitFor(() => {
       expect(getTooltip()).toBe(null);
@@ -72,7 +75,7 @@ describe("CartesianChart: tooltip", () => {
         ],
       });
 
-      act(() => highlightChartPoint(0, 0));
+      act(() => hc.highlightChartPoint(0, 0));
 
       await waitFor(() => {
         expect(getTooltip()).not.toBe(null);
@@ -97,7 +100,7 @@ describe("CartesianChart: tooltip", () => {
       ],
     });
 
-    act(() => highlightChartPoint(0, 0));
+    act(() => hc.highlightChartPoint(0, 0));
 
     await waitFor(() => {
       expect(getTooltip()).not.toBe(null);
@@ -152,7 +155,7 @@ describe("CartesianChart: tooltip", () => {
       },
     });
 
-    act(() => highlightChartPoint(0, 0));
+    act(() => hc.highlightChartPoint(0, 0));
 
     await waitFor(() => {
       expect(getTooltip()).not.toBe(null);
@@ -218,7 +221,7 @@ describe("CartesianChart: tooltip", () => {
       },
     });
 
-    act(() => highlightChartPoint(0, 0));
+    act(() => hc.highlightChartPoint(0, 0));
 
     await waitFor(() => {
       expect(getTooltip()).not.toBe(null);
