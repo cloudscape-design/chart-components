@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { ButtonWrapper } from "@cloudscape-design/components/test-utils/dom";
 import ChartTooltipWrapper from "@cloudscape-design/components/test-utils/dom/internal/chart-tooltip";
 import { ComponentWrapper, ElementWrapper } from "@cloudscape-design/test-utils-core/dom";
 
@@ -30,8 +31,8 @@ export default class CoreChartWrapper extends ComponentWrapper {
     return this.findComponent(`.${ChartTooltipWrapper.rootSelector}`, ChartTooltipWrapper);
   }
 
-  public findNoData(): null | ElementWrapper {
-    return this.findByClassName(testClasses["no-data"]);
+  public findNoData(): null | ChartNoDataWrapper {
+    return this.findComponent(`.${testClasses["no-data"]}`, ChartNoDataWrapper);
   }
 
   public findFallback(): null | ElementWrapper {
@@ -77,6 +78,24 @@ export class CoreChartFilterWrapper extends ComponentWrapper {
 
   findAdditionalFilters(): null | ElementWrapper {
     return this.findByClassName(testClasses["chart-filters-additional"]);
+  }
+}
+
+export class ChartNoDataWrapper extends ComponentWrapper {
+  public findEmpty(): null | ElementWrapper {
+    return this.findByClassName(testClasses["no-data-empty"]);
+  }
+  public findNoMatch(): null | ElementWrapper {
+    return this.findByClassName(testClasses["no-data-no-match"]);
+  }
+  public findLoading(): null | ElementWrapper {
+    return this.findByClassName(testClasses["no-data-loading"]);
+  }
+  public findError(): null | ElementWrapper {
+    return this.findByClassName(testClasses["no-data-error"]);
+  }
+  public findRetryButton(): null | ButtonWrapper {
+    return this.findComponent(`.${testClasses["no-data-retry"]}`, ButtonWrapper);
   }
 }
 

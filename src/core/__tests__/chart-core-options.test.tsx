@@ -7,7 +7,8 @@ import HighchartsReact from "highcharts-react-official";
 import { vi } from "vitest";
 
 import { CoreChartProps } from "../../../lib/components/core/interfaces-core";
-import { ChartRendererStub, renderChart } from "./common";
+import { renderChart } from "./common";
+import { ChartRendererStub } from "./highcharts-utils";
 
 vi.mock("highcharts-react-official", () => ({ __esModule: true, default: vi.fn(() => null) }));
 
