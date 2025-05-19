@@ -16,6 +16,7 @@ import {
   InternalCartesianChartOptions,
   InternalSeriesOptions,
   InternalTooltipMatchedItem,
+  isSeriesOptionsWithError,
 } from "./interfaces-cartesian";
 import * as Styles from "./styles";
 import { getDataExtremes } from "./utils";
@@ -55,8 +56,6 @@ export function useChartTooltipCartesian(props: {
         }
         case "point":
           return { type: "point", x: matchedItem.x, y: matchedItem.y, series, marker };
-        case "range":
-          return { type: "range", x: matchedItem.x, low: matchedItem.low, high: matchedItem.high, series, marker };
       }
     });
 
@@ -69,15 +68,20 @@ export function useChartTooltipCartesian(props: {
       const formatted: CartesianChartProps.TooltipSeriesFormatted = (() => {
         // Using consumer-defined details.
         if (props.tooltip?.series) {
-          return props.tooltip.series({ item });
+          return props.tooltip.series({ item, index: point.index });
         }
         switch (item.type) {
           case "all":
             return { key: item.series.name, value: null };
           case "point":
+            if (isSeriesOptionsWithError(item.series) && item.series.error) {
+              const errorRange = item.series.error[point.index];
+              return {
+                key: item.series.name,
+                value: `${valueFormatter(item.y)} [-${valueFormatter(item.y - errorRange.low)}, ${errorRange.high - item.y}]`,
+              };
+            }
             return { key: item.series.name, value: valueFormatter(item.y) };
-          case "range":
-            return { key: item.series.name, value: `${valueFormatter(item.low)} : ${valueFormatter(item.high)}` };
         }
       })();
 
@@ -248,9 +252,6 @@ function getMatchedTooltipItemForIndex(
   if (typeof y === "number") {
     return { type: "point", x: x, y, series };
   }
-  if (Array.isArray(y)) {
-    return { type: "range", x: x, low: y[0], high: y[1], series };
-  }
   if (series.type === "y-threshold") {
     return { type: "all", x: x, series };
   }
@@ -275,16 +276,6 @@ function getSeriesXbyIndex(series: InternalSeriesOptions, index: number): number
       }
       if (item && typeof item === "object" && !Array.isArray(item) && typeof item.x === "number") {
         return item.x;
-      }
-      return index;
-    }
-    case "errorbar": {
-      const item = series.data[index];
-      if (Array.isArray(item) && typeof item[0] === "number") {
-        return item.length === 3 ? item[0] : index;
-      }
-      if (item && typeof item === "object" && !Array.isArray(item) && typeof item.x === "number") {
-        return item.x ?? index;
       }
       return index;
     }
@@ -314,18 +305,6 @@ function getSeriesYbyIndex(series: InternalSeriesOptions, index: number): null |
       }
       if (item && typeof item === "object") {
         return item.y ?? null;
-      }
-      return null;
-    }
-    case "errorbar": {
-      const item = series.data[index];
-      if (Array.isArray(item)) {
-        const [low, high] = item.length === 2 ? [item[0], item[1]] : [item[1], item[2]];
-        return typeof low === "number" ? [low, high] : null;
-      }
-      if (item && typeof item === "object") {
-        const [low, high] = [item.low, item.high];
-        return typeof low === "number" && typeof high === "number" ? [low, high] : null;
       }
       return null;
     }

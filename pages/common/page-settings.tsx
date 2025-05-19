@@ -37,6 +37,7 @@ export interface PageSettings {
   showHeaderFilter: boolean;
   showCustomFooter: boolean;
   useFallback: boolean;
+  showCustomTooltipContent: boolean;
 }
 
 type PageContext<SettingsType> = React.Context<AppContextType<Partial<SettingsType>>>;
@@ -60,6 +61,7 @@ const DEFAULT_SETTINGS: PageSettings = {
   showCustomHeader: false,
   showHeaderFilter: false,
   showCustomFooter: false,
+  showCustomTooltipContent: false,
   useFallback: false,
 };
 
@@ -98,6 +100,10 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
     showCustomHeader: parseBoolean(defaultSettings.showCustomHeader, urlParams.showCustomHeader),
     showHeaderFilter: parseBoolean(defaultSettings.showHeaderFilter, urlParams.showHeaderFilter),
     showCustomFooter: parseBoolean(defaultSettings.showCustomFooter, urlParams.showCustomFooter),
+    showCustomTooltipContent: parseBoolean(
+      defaultSettings.showCustomTooltipContent,
+      urlParams.showCustomTooltipContent,
+    ),
     useFallback: parseBoolean(defaultSettings.useFallback, urlParams.useFallback),
   } as PageSettings as SettingsType;
   const setSettings = (partial: Partial<SettingsType>) => {
@@ -366,6 +372,15 @@ export function PageSettingsForm({
                   onChange={({ detail }) => setSettings({ showCustomFooter: detail.checked })}
                 >
                   Show custom footer
+                </Checkbox>
+              );
+            case "showCustomTooltipContent":
+              return (
+                <Checkbox
+                  checked={settings.showCustomTooltipContent}
+                  onChange={({ detail }) => setSettings({ showCustomTooltipContent: detail.checked })}
+                >
+                  Show custom tooltip content
                 </Checkbox>
               );
             case "useFallback":

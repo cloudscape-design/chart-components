@@ -9,7 +9,7 @@ import useBaseComponent from "../internal/base-component/use-base-component";
 import { applyDisplayName } from "../internal/utils/apply-display-name";
 import { getAllowedProps } from "../internal/utils/utils";
 import { InternalCartesianChart } from "./chart-cartesian-internal";
-import { CartesianChartProps, InternalCartesianChartOptions } from "./interfaces-cartesian";
+import { CartesianChartProps, InternalCartesianChartOptions, isSeriesOptionsWithError } from "./interfaces-cartesian";
 
 /**
  * CartesianChart is a public Cloudscape component. It features a custom API, which resembles the Highcharts API where appropriate,
@@ -84,26 +84,26 @@ function validateOptions(props: CartesianChartProps): InternalCartesianChartOpti
   };
 }
 
-function validateSeries(unvalidatedSeries: CartesianChartProps.SeriesOptions[]): CartesianChartProps.SeriesOptions[] {
-  const validatedSeries: CartesianChartProps.SeriesOptions[] = [];
+function validateSeries(
+  unvalidatedSeries: CartesianChartProps.SeriesOptions[],
+): CartesianChartProps.LegendSeriesOptions[] {
+  const validatedSeries: CartesianChartProps.LegendSeriesOptions[] = [];
 
-  function getValidatedSeries(s: CartesianChartProps.SeriesOptions): null | CartesianChartProps.SeriesOptions {
-    const getBaseProps = (s: BaseCartesianSeriesOptions) => ({ id: s.id, name: s.name, color: s.color });
+  const getBaseProps = (s: BaseCartesianSeriesOptions) => ({ id: s.id, name: s.name, color: s.color });
+  function getValidatedSeries(s: CartesianChartProps.SeriesOptions): null | CartesianChartProps.LegendSeriesOptions {
     switch (s.type) {
       case "area":
         return { type: s.type, ...getBaseProps(s), data: s.data };
       case "areaspline":
         return { type: s.type, ...getBaseProps(s), data: s.data };
       case "column":
-        return { type: s.type, ...getBaseProps(s), data: s.data };
-      case "errorbar":
-        return { type: s.type, ...getBaseProps(s), data: s.data };
+        return { type: s.type, ...getBaseProps(s), data: s.data, error: s.error };
       case "line":
-        return { type: s.type, ...getBaseProps(s), data: s.data };
+        return { type: s.type, ...getBaseProps(s), data: s.data, error: s.error };
       case "scatter":
         return { type: s.type, ...getBaseProps(s), data: s.data, marker: s.marker || {} };
       case "spline":
-        return { type: s.type, ...getBaseProps(s), data: s.data };
+        return { type: s.type, ...getBaseProps(s), data: s.data, error: s.error };
       case "x-threshold":
         return { type: s.type, ...getBaseProps(s), value: s.value };
       case "y-threshold":
@@ -117,6 +117,13 @@ function validateSeries(unvalidatedSeries: CartesianChartProps.SeriesOptions[]):
     const filtered = getValidatedSeries(series);
     if (filtered) {
       validatedSeries.push(filtered);
+      if (isSeriesOptionsWithError(filtered) && filtered.error) {
+        validatedSeries.push({
+          type: "errorbar",
+          name: filtered.name + " (error)",
+          data: filtered.error,
+        });
+      }
     }
   }
 

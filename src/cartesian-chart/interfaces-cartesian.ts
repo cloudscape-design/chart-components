@@ -123,17 +123,17 @@ export namespace CartesianChartProps {
     | AreaSeriesOptions
     | AreaSplineSeriesOptions
     | ColumnSeriesOptions
-    | ErrorBarSeriesOptions
     | LineSeriesOptions
     | ScatterSeriesOptions
     | SplineSeriesOptions
     | XThresholdSeriesOptions
     | YThresholdSeriesOptions;
 
+  export type LegendSeriesOptions = SeriesOptions | BaseTypes.ErrorBarSeriesOptions;
+
   export type AreaSeriesOptions = BaseTypes.AreaSeriesOptions;
   export type AreaSplineSeriesOptions = BaseTypes.AreaSplineSeriesOptions;
   export type ColumnSeriesOptions = BaseTypes.ColumnSeriesOptions;
-  export type ErrorBarSeriesOptions = BaseTypes.ErrorBarSeriesOptions;
   export type LineSeriesOptions = BaseTypes.LineSeriesOptions;
   export type ScatterSeriesOptions = BaseTypes.ScatterSeriesOptions;
   export type SplineSeriesOptions = BaseTypes.SplineSeriesOptions;
@@ -172,23 +172,15 @@ export namespace CartesianChartProps {
   }
   interface TooltipSeriesRenderProps {
     item: TooltipMatchedItem;
+    index: number;
   }
 
-  export type TooltipMatchedItem = TooltipMatchedItemPoint | TooltipMatchedItemRange | TooltipMatchedItemThreshold;
+  export type TooltipMatchedItem = TooltipMatchedItemPoint | TooltipMatchedItemThreshold;
 
   interface TooltipMatchedItemPoint {
     type: "point";
     x: number;
     y: number;
-    series: CartesianChartProps.SeriesOptions;
-    marker: React.ReactNode;
-  }
-
-  interface TooltipMatchedItemRange {
-    type: "range";
-    x: number;
-    low: number;
-    high: number;
     series: CartesianChartProps.SeriesOptions;
     marker: React.ReactNode;
   }
@@ -225,10 +217,7 @@ export type InternalXAxisOptions = CartesianChartProps.XAxisOptions & Highcharts
 
 export type InternalYAxisOptions = CartesianChartProps.YAxisOptions & Highcharts.YAxisOptions;
 
-export type InternalTooltipMatchedItem =
-  | InternalTooltipMatchedItemPoint
-  | InternalTooltipMatchedItemRange
-  | InternalTooltipMatchedItemThreshold;
+export type InternalTooltipMatchedItem = InternalTooltipMatchedItemPoint | InternalTooltipMatchedItemThreshold;
 
 interface InternalTooltipMatchedItemPoint {
   type: "point";
@@ -237,16 +226,30 @@ interface InternalTooltipMatchedItemPoint {
   series: InternalSeriesOptions;
 }
 
-interface InternalTooltipMatchedItemRange {
-  type: "range";
-  x: number;
-  low: number;
-  high: number;
-  series: InternalSeriesOptions;
-}
-
 interface InternalTooltipMatchedItemThreshold {
   type: "all";
   x: number;
   series: InternalSeriesOptions;
+}
+
+function isColumnSeriesOptions(
+  series: CartesianChartProps.LegendSeriesOptions,
+): series is CartesianChartProps.ColumnSeriesOptions {
+  return series.type === "column";
+}
+
+function isLineSeriesOptions(
+  series: CartesianChartProps.LegendSeriesOptions,
+): series is CartesianChartProps.LineSeriesOptions {
+  return series.type === "line";
+}
+
+function isSplineSeriesOptions(
+  series: CartesianChartProps.LegendSeriesOptions,
+): series is CartesianChartProps.SplineSeriesOptions {
+  return series.type === "spline";
+}
+
+export function isSeriesOptionsWithError(series: CartesianChartProps.LegendSeriesOptions) {
+  return isColumnSeriesOptions(series) || isLineSeriesOptions(series) || isSplineSeriesOptions(series);
 }

@@ -146,17 +146,15 @@ export interface AreaSplineSeriesOptions extends BaseCartesianSeriesOptions {
   data: PointDataItemType[];
 }
 
-export interface ColumnSeriesOptions extends BaseCartesianSeriesOptions {
+export interface ColumnSeriesOptions extends PointSeriesWithErrorOptions {
   type: "column";
-  data: PointDataItemType[];
 }
 
-export interface LineSeriesOptions extends BaseCartesianSeriesOptions {
+export interface LineSeriesOptions extends PointSeriesWithErrorOptions {
   type: "line";
-  data: PointDataItemType[];
 }
 
-export interface SplineSeriesOptions extends BaseCartesianSeriesOptions {
+export interface SplineSeriesOptions extends PointSeriesWithErrorOptions {
   type: "spline";
   data: PointDataItemType[];
 }
@@ -169,7 +167,7 @@ export interface ScatterSeriesOptions extends BaseCartesianSeriesOptions {
 
 export interface ErrorBarSeriesOptions extends BaseCartesianSeriesOptions {
   type: "errorbar";
-  data: RangeDataItemType[];
+  data: RangeDataItemOptions[];
 }
 
 export interface XThresholdSeriesOptions extends BaseCartesianSeriesOptions {
@@ -203,15 +201,12 @@ export interface PieSegmentOptions {
 
 export type PointDataItemType = null | number | [number, number | null] | PointDataItemOptions;
 
-export type RangeDataItemType = [number, number] | [number, number, number] | RangeDataItemOptions;
-
 export interface PointDataItemOptions {
   x: number;
   y: number | null;
 }
 
 export interface RangeDataItemOptions {
-  x?: number;
   low: number;
   high: number;
 }
@@ -220,6 +215,11 @@ export interface BaseCartesianSeriesOptions {
   id?: string;
   name: string;
   color?: string;
+}
+
+export interface PointSeriesWithErrorOptions extends BaseCartesianSeriesOptions {
+  data: PointDataItemType[];
+  error?: RangeDataItemOptions[];
 }
 
 // The simpler version of Highcharts.PointMarkerOptionsObject
