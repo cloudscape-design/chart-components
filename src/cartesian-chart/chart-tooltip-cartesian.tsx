@@ -146,14 +146,6 @@ export function useChartTooltipCartesian(props: {
     cursorRef.current.create(target, point, !props.options.series.some((s) => s.type === "column"));
   };
 
-  const getMatchedLegendItems: CoreChartProps["getMatchedLegendItems"] = ({ point }) => {
-    if (props.options.series.some((s) => s.type === "column")) {
-      return props.options.series.map(getOptionsId);
-    } else {
-      return [getSeriesId(point.series)];
-    }
-  };
-
   const onClearHighlight: CoreChartProps["onClearHighlight"] = () => {
     cursorRef.current?.destroy();
 
@@ -172,7 +164,6 @@ export function useChartTooltipCartesian(props: {
     getTooltipContent,
     onPointHighlight,
     onClearHighlight,
-    getMatchedLegendItems,
   };
 }
 
