@@ -4,19 +4,16 @@
 import { useRef, useState } from "react";
 import type Highcharts from "highcharts";
 
-import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
+import Box from "@cloudscape-design/components/box";
+import { colorBackgroundLayoutMain } from "@cloudscape-design/design-tokens";
 
 import { CoreChartProps, Rect } from "../core/interfaces-core";
 import { getOptionsId, getSeriesColor, getSeriesId, getSeriesMarkerType } from "../core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../internal/components/series-details";
 import { ChartSeriesMarker } from "../internal/components/series-marker";
+import { isXThreshold } from "./chart-series-cartesian";
 import { getDefaultFormatter } from "./default-formatters";
-import {
-  CartesianChartProps,
-  InternalCartesianChartOptions,
-  InternalSeriesOptions,
-  InternalTooltipMatchedItem,
-} from "./interfaces-cartesian";
+import { CartesianChartProps, InternalCartesianChartOptions, InternalSeriesOptions } from "./interfaces-cartesian";
 import * as Styles from "./styles";
 import { getDataExtremes } from "./utils";
 
@@ -44,23 +41,9 @@ export function useChartTooltipCartesian(props: {
       return <ChartSeriesMarker type={getSeriesMarkerType(hcSeries)} color={getSeriesColor(hcSeries)} />;
     };
 
-    const matchedItemsInternal = findMatchedTooltipItems(point, series);
-    const matchedItems: CartesianChartProps.TooltipMatchedItem[] = matchedItemsInternal.map((matchedItem) => {
-      const series = matchedItem.series as CartesianChartProps.SeriesOptions;
-      const marker = getSeriesMarker(series);
-      switch (matchedItem.type) {
-        case "all": {
-          const marker = getSeriesMarker(series);
-          return { type: "all", x: matchedItem.x, series, marker };
-        }
-        case "point":
-          return { type: "point", x: matchedItem.x, y: matchedItem.y, series, marker };
-        case "range":
-          return { type: "range", x: matchedItem.x, low: matchedItem.low, high: matchedItem.high, series, marker };
-      }
-    });
+    const matchedItems = findTooltipSeriesItems(series, point);
 
-    const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
+    const detailItems: ChartSeriesDetailItem[] = matchedItems.flatMap((item) => {
       const yAxisProps = yAxis[0];
       const valueFormatter = yAxisProps
         ? getDefaultFormatter(yAxisProps, getDataExtremes(chart.xAxis[0]))
@@ -71,23 +54,36 @@ export function useChartTooltipCartesian(props: {
         if (props.tooltip?.series) {
           return props.tooltip.series({ item });
         }
-        switch (item.type) {
-          case "all":
-            return { key: item.series.name, value: null };
-          case "point":
-            return { key: item.series.name, value: valueFormatter(item.y) };
-          case "range":
-            return { key: item.series.name, value: `${valueFormatter(item.low)} : ${valueFormatter(item.high)}` };
-        }
+        return { key: item.series.name, value: item.y !== null ? valueFormatter(item.y) : null };
       })();
 
-      return {
+      const items: ChartSeriesDetailItem[] = [];
+      items.push({
         key: formatted.key,
         value: formatted.value,
-        marker: item.marker,
+        marker: getSeriesMarker(item.series),
         subItems: formatted.subItems,
         expandableId: formatted.expandable ? item.series.name : undefined,
-      };
+      });
+      for (let i = 0; i < item.error.length; i++) {
+        const key = formatted.error ? (
+          <Box key={i}>{formatted.error[i].key}</Box>
+        ) : (
+          <Box key={item.error[i].series.name} fontSize="body-s" color="text-body-secondary">
+            {item.error[i].series.name}
+          </Box>
+        );
+        const value = formatted.error ? (
+          <Box key={i}>{formatted.error[i].value}</Box>
+        ) : (
+          <Box key={item.error[i].series.name} fontSize="body-s" color="text-body-secondary">
+            {valueFormatter(item.error[i].low)} - {valueFormatter(item.error[i].high)}
+          </Box>
+        );
+        items.push({ key, value });
+      }
+
+      return items;
     });
 
     const xAxisProps = xAxis[0];
@@ -135,6 +131,9 @@ export function useChartTooltipCartesian(props: {
     if (props.options.series.some((s) => s.type === "column")) {
       for (const s of point.series.chart.series) {
         if (s.type === "column") {
+          setTimeout(() => {
+            s.setState("");
+          }, 0);
           for (const p of s.data) {
             if (p.x !== point.x) {
               p.setState("inactive");
@@ -143,12 +142,19 @@ export function useChartTooltipCartesian(props: {
         }
       }
     }
+
     // The cursor (vertical or horizontal line to make the highlighted point better prominent) is only added for charts
     // that do not include "column" series. That is because the cursor is not necessary for columns, assuming the number of
     // x data points is not very high.
-    else {
-      cursorRef.current.create(target, point.series.chart);
-    }
+    const matchedPoints = findMatchedPoints(point).filter(
+      (p) => !isXThreshold(p.series) && p.series.type !== "column" && p.series.type !== "errorbar",
+    );
+    cursorRef.current.create(
+      target,
+      point.series.chart,
+      matchedPoints,
+      !props.options.series.some((s) => s.type === "column"),
+    );
   };
 
   const getMatchedLegendItems: CoreChartProps["getMatchedLegendItems"] = ({ point }) => {
@@ -181,155 +187,138 @@ export function useChartTooltipCartesian(props: {
   };
 }
 
-class HighlightCursor {
-  private instance: null | Highcharts.SVGElement = null;
-
-  public create(target: Rect, chart: Highcharts.Chart) {
-    this.instance?.destroy();
-    if (chart.inverted) {
-      this.instance = chart.renderer
-        .rect(chart.plotLeft, target.y, chart.plotWidth, 1)
-        .attr({ fill: Styles.colorChartCursor, zIndex: 5 })
-        .add();
-    } else {
-      this.instance = chart.renderer
-        .rect(target.x, chart.plotTop, 1, chart.plotHeight)
-        .attr({ fill: Styles.colorChartCursor, zIndex: 5 })
-        .add();
+function findMatchedPoints(point: Highcharts.Point) {
+  const matchedPoints: Highcharts.Point[] = [];
+  for (const s of point.series.chart.series) {
+    if (!s.visible) {
+      continue;
+    }
+    for (const p of s.data) {
+      if (!p.visible) {
+        continue;
+      }
+      if (p.x === point.x) {
+        matchedPoints.push(p);
+      }
     }
   }
-
-  public destroy() {
-    this.instance?.destroy();
-  }
+  return matchedPoints;
 }
 
-export function findMatchedTooltipItems(point: Highcharts.Point, series: InternalSeriesOptions[]) {
-  const matchedItems: InternalTooltipMatchedItem[] = [];
-  function findMatchedItem(series: InternalSeriesOptions) {
-    if (series.type === "x-threshold" || series.type === "y-threshold") {
-      return;
+function findTooltipSeriesItems(
+  series: InternalSeriesOptions[],
+  targetPoint: Highcharts.Point,
+): CartesianChartProps.TooltipSeriesItem[] {
+  const matchedPoints = findMatchedPoints(targetPoint);
+  const seriesItems: CartesianChartProps.TooltipSeriesItem[] = series.map((s) => ({
+    x: 0,
+    y: null,
+    error: [],
+    series: s as unknown as CartesianChartProps.SeriesOptions,
+  }));
+  const seriesItemsById = new Map(seriesItems.map((i) => [getOptionsId(i.series), i]));
+  const matchedItems = new Set<CartesianChartProps.TooltipSeriesItem>();
+
+  for (const point of matchedPoints) {
+    if (point.series.type === "errorbar") {
+      const linkedSeries = point.series.linkedParent;
+      const seriesItem = seriesItemsById.get(getSeriesId(linkedSeries));
+      if (seriesItem) {
+        addError(seriesItem, point);
+        matchedItems.add(seriesItem);
+      }
+    } else {
+      const seriesItem = seriesItemsById.get(getSeriesId(point.series));
+      if (seriesItem) {
+        addY(seriesItem, point);
+        matchedItems.add(seriesItem);
+      }
     }
-    if ("data" in series && series.data && Array.isArray(series.data)) {
-      for (let i = 0; i < series.data.length; i++) {
-        const detail = getMatchedTooltipItemForIndex(i, series);
-        if (detail?.x === point.x) {
-          matchedItems.push(detail);
+  }
+
+  function addError(seriesItem: CartesianChartProps.TooltipSeriesItem, errorPoint: Highcharts.Point) {
+    const errorSeries = seriesItemsById.get(getSeriesId(errorPoint.series))?.series as
+      | undefined
+      | CartesianChartProps.ErrorBarSeriesOptions;
+    const matchedError = seriesItem.error.find((e) => e.series === errorSeries);
+    if (errorSeries && errorPoint.y !== undefined && !matchedError) {
+      seriesItem.error.push({ low: errorPoint.y, high: errorPoint.y, series: errorSeries });
+    }
+    if (errorSeries && errorPoint.y !== undefined && matchedError) {
+      const low = Math.min(matchedError.low, errorPoint.y);
+      const high = Math.max(matchedError.high, errorPoint.y);
+      seriesItem.error.push({ low, high, series: errorSeries });
+    }
+  }
+
+  function addY(seriesItem: CartesianChartProps.TooltipSeriesItem, matchedPoint: Highcharts.Point) {
+    if (isXThreshold(matchedPoint.series)) {
+      seriesItem.x = matchedPoint.x;
+      seriesItem.y = null;
+    } else if (matchedPoint.y !== undefined) {
+      seriesItem.x = matchedPoint.x;
+      seriesItem.y = getClosestY(seriesItem, matchedPoint.y);
+    }
+  }
+
+  function getClosestY(seriesItem: CartesianChartProps.TooltipSeriesItem, y: number) {
+    if (seriesItem.y === null || targetPoint.y === undefined) {
+      return y;
+    }
+    return Math.abs(seriesItem.y - targetPoint.y) < Math.abs(y - targetPoint.y) ? seriesItem.y : y;
+  }
+
+  return seriesItems.filter((item) => matchedItems.has(item));
+}
+
+class HighlightCursor {
+  private refs: Highcharts.SVGElement[] = [];
+
+  public create(target: Rect, chart: Highcharts.Chart, matchedPoints: Highcharts.Point[], cursor = true) {
+    this.destroy();
+
+    if (chart.inverted) {
+      if (cursor) {
+        this.refs.push(
+          chart.renderer
+            .rect(chart.plotLeft, target.y, chart.plotWidth, 1)
+            .attr({ fill: Styles.colorChartCursor, zIndex: 5 })
+            .add(),
+        );
+      }
+      for (const p of matchedPoints) {
+        if (p.plotX !== undefined && p.plotY !== undefined && p.series.type !== "scatter") {
+          this.refs.push(
+            chart.renderer
+              .circle(chart.plotLeft + chart.plotWidth - p.plotY, chart.plotTop + chart.plotHeight - p.plotX, 4)
+              .attr({ stroke: p.color, "stroke-width": 2, fill: colorBackgroundLayoutMain, zIndex: 5 })
+              .add(),
+          );
+        }
+      }
+    } else {
+      if (cursor) {
+        this.refs.push(
+          chart.renderer
+            .rect(target.x, chart.plotTop, 1, chart.plotHeight)
+            .attr({ fill: Styles.colorChartCursor, zIndex: 5 })
+            .add(),
+        );
+      }
+      for (const p of matchedPoints) {
+        if (p.plotX !== undefined && p.plotY !== undefined && p.series.type !== "scatter") {
+          this.refs.push(
+            chart.renderer
+              .circle(chart.plotLeft + p.plotX, chart.plotTop + p.plotY, 4)
+              .attr({ stroke: p.color, "stroke-width": 2, fill: colorBackgroundLayoutMain, zIndex: 5 })
+              .add(),
+          );
         }
       }
     }
   }
-  series.forEach((s) => findMatchedItem(s));
 
-  function findMatchedXThreshold(series: CartesianChartProps.XThresholdSeriesOptions) {
-    if (series.value <= point.x && point.x <= series.value) {
-      matchedItems.push({ type: "all", x: series.value, series });
-    }
-  }
-  series.forEach((s) => (s.type === "x-threshold" ? findMatchedXThreshold(s) : undefined));
-
-  function findMatchedYThreshold(series: CartesianChartProps.YThresholdSeriesOptions) {
-    matchedItems.push({ type: "point", x: point.x, y: series.value, series });
-  }
-  series.forEach((s) => (s.type === "y-threshold" ? findMatchedYThreshold(s) : undefined));
-
-  return matchedItems;
-}
-
-function getMatchedTooltipItemForIndex(
-  index: number,
-  series: InternalSeriesOptions,
-): null | InternalTooltipMatchedItem {
-  const x = getSeriesXbyIndex(series, index);
-  const y = getSeriesYbyIndex(series, index);
-  if (x === null) {
-    return null;
-  }
-  if (typeof y === "number") {
-    return { type: "point", x: x, y, series };
-  }
-  if (Array.isArray(y)) {
-    return { type: "range", x: x, low: y[0], high: y[1], series };
-  }
-  if (series.type === "y-threshold") {
-    return { type: "all", x: x, series };
-  }
-  return null;
-}
-
-function getSeriesXbyIndex(series: InternalSeriesOptions, index: number): number | null {
-  if (!("data" in series) || !Array.isArray(series.data)) {
-    warnOnce("CartesianChart", "Series data cannot be parsed.");
-    return null;
-  }
-  switch (series.type) {
-    case "area":
-    case "areaspline":
-    case "column":
-    case "line":
-    case "scatter":
-    case "spline": {
-      const item = series.data[index];
-      if (Array.isArray(item) && typeof item[0] === "number") {
-        return item[0];
-      }
-      if (item && typeof item === "object" && !Array.isArray(item) && typeof item.x === "number") {
-        return item.x;
-      }
-      return index;
-    }
-    case "errorbar": {
-      const item = series.data[index];
-      if (Array.isArray(item) && typeof item[0] === "number") {
-        return item.length === 3 ? item[0] : index;
-      }
-      if (item && typeof item === "object" && !Array.isArray(item) && typeof item.x === "number") {
-        return item.x ?? index;
-      }
-      return index;
-    }
-    default:
-      return index;
-  }
-}
-
-function getSeriesYbyIndex(series: InternalSeriesOptions, index: number): null | number | [number, number] {
-  if (!("data" in series) || !Array.isArray(series.data)) {
-    warnOnce("CartesianChart", "Series data cannot be parsed.");
-    return null;
-  }
-  switch (series.type) {
-    case "area":
-    case "areaspline":
-    case "column":
-    case "line":
-    case "scatter":
-    case "spline": {
-      const item = series.data[index];
-      if (Array.isArray(item)) {
-        return item[1];
-      }
-      if (typeof item === "number") {
-        return item;
-      }
-      if (item && typeof item === "object") {
-        return item.y ?? null;
-      }
-      return null;
-    }
-    case "errorbar": {
-      const item = series.data[index];
-      if (Array.isArray(item)) {
-        const [low, high] = item.length === 2 ? [item[0], item[1]] : [item[1], item[2]];
-        return typeof low === "number" ? [low, high] : null;
-      }
-      if (item && typeof item === "object") {
-        const [low, high] = [item.low, item.high];
-        return typeof low === "number" && typeof high === "number" ? [low, high] : null;
-      }
-      return null;
-    }
-    default:
-      return null;
+  public destroy() {
+    this.refs.forEach((ref) => ref.destroy());
   }
 }

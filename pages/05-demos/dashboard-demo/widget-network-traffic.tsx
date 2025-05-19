@@ -160,19 +160,14 @@ export function NetworkTrafficWidget() {
       tooltip={{
         ...chartProps.cartesian.tooltip,
         series({ item }) {
-          switch (item.type) {
-            case "point":
-              return {
-                key: (
-                  <Link external={true} href="#">
-                    {item.series.name}
-                  </Link>
-                ),
-                value: item.y,
-              };
-            default:
-              return { key: "", value: "" };
-          }
+          return {
+            key: (
+              <Link external={true} href="#">
+                {item.series.name}
+              </Link>
+            ),
+            value: item.y,
+          };
         },
       }}
       emphasizeBaselineAxis={true}

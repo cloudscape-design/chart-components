@@ -100,23 +100,14 @@ function ExampleMixedChart() {
       series={mixedChartSeries}
       tooltip={{
         series: ({ item }) => {
-          switch (item.type) {
-            case "point":
-              return {
-                key: item.series.name,
-                value: (
-                  <Link
-                    external={true}
-                    href="#"
-                    ariaLabel={`See details for ${moneyFormatter(item.y)} on ${item.series.name} (opens in a new tab)`}
-                  >
-                    {moneyFormatter(item.y)}
-                  </Link>
-                ),
-              };
-            default:
-              return { key: "?", value: "?" };
-          }
+          return {
+            key: item.series.name,
+            value: (
+              <Link external={true} href="#" ariaLabel={`See details for ${item.series.name} (opens in a new tab)`}>
+                {item.y !== null ? moneyFormatter(item.y) : null}
+              </Link>
+            ),
+          };
         },
       }}
       xAxis={{

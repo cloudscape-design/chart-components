@@ -28,7 +28,7 @@ export interface PageSettings {
   seriesLoading: boolean;
   seriesError: boolean;
   emphasizeBaselineAxis: boolean;
-  tooltipPlacement: "target" | "middle" | "outside";
+  tooltipPlacement: "middle" | "outside";
   tooltipSize: "small" | "medium" | "large";
   showLegend: boolean;
   showLegendTitle: boolean;
@@ -52,7 +52,7 @@ const DEFAULT_SETTINGS: PageSettings = {
   seriesLoading: false,
   seriesError: false,
   emphasizeBaselineAxis: true,
-  tooltipPlacement: "target",
+  tooltipPlacement: "middle",
   tooltipSize: "medium",
   showLegend: true,
   showLegendTitle: false,
@@ -130,10 +130,6 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
     // Adding an empty recovery click handler to make the default recovery button appear.
     onRecoveryClick: () => {},
   };
-  const tooltip = {
-    placement: settings.tooltipPlacement,
-    size: settings.tooltipSize,
-  };
   const legend = {
     enabled: settings.showLegend,
     title: settings.showLegendTitle ? "Legend title" : undefined,
@@ -147,18 +143,27 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
         ref: cartesianChartRef,
         highcharts,
         noData,
-        tooltip,
+        tooltip: {
+          placement: settings.tooltipPlacement,
+          size: settings.tooltipSize,
+        },
         legend,
         emphasizeBaselineAxis: settings.emphasizeBaselineAxis,
         verticalAxisTitlePlacement: settings.verticalAxisTitlePlacement,
       },
-      pie: { ref: pieChartRef, highcharts, noData, tooltip, legend },
+      pie: {
+        ref: pieChartRef,
+        highcharts,
+        noData,
+        tooltip: { size: settings.tooltipSize },
+        legend,
+      },
     },
     isEmpty: settings.emptySeries || settings.seriesLoading || settings.seriesError,
   };
 }
 
-const tooltipPlacementOptions = [{ value: "target" }, { value: "middle" }, { value: "outside" }];
+const tooltipPlacementOptions = [{ value: "middle" }, { value: "outside" }];
 
 const tooltipSizeOptions = [{ value: "small" }, { value: "medium" }, { value: "large" }];
 
@@ -291,7 +296,7 @@ export function PageSettingsForm({
                     }
                     onChange={({ detail }) =>
                       setSettings({
-                        tooltipPlacement: detail.selectedOption.value as string as "target" | "middle" | "outside",
+                        tooltipPlacement: detail.selectedOption.value as string as "middle" | "outside",
                       })
                     }
                   />

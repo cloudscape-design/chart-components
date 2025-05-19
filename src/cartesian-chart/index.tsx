@@ -68,14 +68,6 @@ function validateOptions(props: CartesianChartProps): InternalCartesianChartOpti
     plotOptions: {
       series: {
         stacking: props.stacked ? "normal" : undefined,
-        marker: {
-          enabled: false,
-        },
-      },
-      scatter: {
-        marker: {
-          enabled: true,
-        },
       },
     },
     series: validateSeries(props.series),
@@ -97,7 +89,7 @@ function validateSeries(unvalidatedSeries: CartesianChartProps.SeriesOptions[]):
       case "column":
         return { type: s.type, ...getBaseProps(s), data: s.data };
       case "errorbar":
-        return { type: s.type, ...getBaseProps(s), data: s.data };
+        return { type: s.type, ...getBaseProps(s), data: s.data, linkedTo: s.linkedTo };
       case "line":
         return { type: s.type, ...getBaseProps(s), data: s.data };
       case "scatter":

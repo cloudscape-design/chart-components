@@ -103,11 +103,20 @@ export interface CoreChartProps
   /**
    * Called whenever chart point is highlighted and allows to specify custom tooltip target for the given point.
    */
-  onPointHighlight?(props: { point: Highcharts.Point; target: Rect }): void | { target: Rect };
+  onPointHighlight?(props: PointHighlightProps): void | PointHighlightResult;
   /**
    * Called whenever chart point loses highlight.
    */
   onClearHighlight?(): void;
+}
+
+export interface PointHighlightProps {
+  point: Highcharts.Point;
+  target: Rect;
+}
+
+export interface PointHighlightResult {
+  target?: Rect;
 }
 
 // The API methods allow programmatic triggering of chart's behaviors, some of which are not accessible via React state.

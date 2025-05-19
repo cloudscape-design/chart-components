@@ -71,23 +71,18 @@ export function WidgetInstanceHours() {
       tooltip={{
         ...chartProps.cartesian.tooltip,
         series({ item }) {
-          switch (item.type) {
-            case "point":
-              return {
-                key: item.series.name,
-                value: (
-                  <Link
-                    external={true}
-                    href="#"
-                    ariaLabel={`See details for ${item.y} hours on ${item.series.name} (opens in a new tab)`}
-                  >
-                    {item.y}
-                  </Link>
-                ),
-              };
-            default:
-              return { key: "", value: "" };
-          }
+          return {
+            key: item.series.name,
+            value: (
+              <Link
+                external={true}
+                href="#"
+                ariaLabel={`See details for ${item.y} hours on ${item.series.name} (opens in a new tab)`}
+              >
+                {item.y}
+              </Link>
+            ),
+          };
         },
       }}
     />

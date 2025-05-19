@@ -60,25 +60,19 @@ export function ExampleBarChartMultipleDataSeriesGrouped() {
         tooltip={{
           ...chartProps.cartesian.tooltip,
           series: ({ item }) => {
-            switch (item.type) {
-              case "point": {
-                const formattedValue = numberFormatter(item.y);
-                return {
-                  key: item.series.name,
-                  value: (
-                    <Link
-                      external={true}
-                      href="#"
-                      ariaLabel={`See details for ${formattedValue} on ${item.series.name} (opens in a new tab)`}
-                    >
-                      {formattedValue}
-                    </Link>
-                  ),
-                };
-              }
-              default:
-                return { key: "?", value: "?" };
-            }
+            const formattedValue = item.y !== null ? numberFormatter(item.y) : null;
+            return {
+              key: item.series.name,
+              value: (
+                <Link
+                  external={true}
+                  href="#"
+                  ariaLabel={`See details for ${formattedValue} on ${item.series.name} (opens in a new tab)`}
+                >
+                  {formattedValue}
+                </Link>
+              ),
+            };
           },
         }}
         xAxis={{

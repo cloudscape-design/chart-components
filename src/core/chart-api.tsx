@@ -11,7 +11,14 @@ import { ReadonlyAsyncStore } from "../internal/utils/async-store";
 import { DebouncedCall } from "../internal/utils/utils";
 import { ChartStore } from "./chart-store";
 import { ChartLegendItem } from "./interfaces-base";
-import { ChartLegendItemSpec, ReactiveChartState, Rect, RegisteredLegendAPI } from "./interfaces-core";
+import {
+  ChartLegendItemSpec,
+  PointHighlightProps,
+  PointHighlightResult,
+  ReactiveChartState,
+  Rect,
+  RegisteredLegendAPI,
+} from "./interfaces-core";
 import * as Styles from "./styles";
 import {
   clearChartItemsHighlight,
@@ -36,7 +43,7 @@ interface ChartAPIContext {
   onLegendItemsChange?: (legendItems: readonly ChartLegendItem[]) => void;
   isTooltipEnabled: boolean;
   tooltipPlacement: "target" | "middle" | "outside";
-  onPointHighlight?(props: { point: Highcharts.Point; target: Rect }): void | { target: Rect };
+  onPointHighlight?(props: PointHighlightProps): void | PointHighlightResult;
   onClearHighlight?(): void;
 }
 

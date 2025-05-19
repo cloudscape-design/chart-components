@@ -58,93 +58,87 @@ export function ExampleBarChartMultipleDataSeriesStackedHorizontal() {
         tooltip={{
           ...chartProps.cartesian.tooltip,
           series: ({ item }) => {
-            switch (item.type) {
-              case "point": {
-                const valueLink = ({ key, value }: { key: string; value: number }) => (
-                  <Link
-                    external={true}
-                    href="#"
-                    ariaLabel={`See details for ${percentageFormatter(value)} on ${key} (opens in a new tab)`}
-                  >
-                    {percentageFormatter(value)}
-                  </Link>
-                );
-                return {
-                  key: item.series.name,
-                  value: valueLink({
-                    key: item.series.name ?? "",
-                    value: item.y,
-                  }),
-                  expandable: item.series.name === "Desktop" || item.series.name === "Mobile",
-                  subItems:
-                    item.series.name === "Desktop"
-                      ? [
-                          {
-                            key: "Chrome",
-                            value: valueLink({
-                              key: "Desktop Chrome",
-                              value: item.x === 0 ? 0.19 : 0.15,
-                            }),
-                          },
-                          {
-                            key: "Safari",
-                            value: valueLink({
-                              key: "Desktop Safari",
-                              value: item.x === 0 ? 0.07 : 0.05,
-                            }),
-                          },
-                          {
-                            key: "Edge",
-                            value: valueLink({
-                              key: "Desktop Edge",
-                              value: item.x === 0 ? 0.02 : 0.02,
-                            }),
-                          },
-                          {
-                            key: "Firefox",
-                            value: valueLink({
-                              key: "Desktop Firefox",
-                              value: item.x === 0 ? 0.02 : 0.02,
-                            }),
-                          },
-                          {
-                            key: "Others",
-                            value: valueLink({
-                              key: "Other desktop browsers",
-                              value: item.x === 0 ? 0.02 : 0.02,
-                            }),
-                          },
-                        ]
-                      : item.series.name === "Mobile"
-                        ? [
-                            {
-                              key: "Chrome",
-                              value: valueLink({
-                                key: "Mobile Chrome",
-                                value: item.x === 0 ? 0.18 : 0.3,
-                              }),
-                            },
-                            {
-                              key: "Safari",
-                              value: valueLink({
-                                key: "Mobile Safari",
-                                value: item.x === 0 ? 0.04 : 0.08,
-                              }),
-                            },
-                            {
-                              key: "Others",
-                              value: valueLink({
-                                key: "Other mobile browsers",
-                                value: item.x === 0 ? 0.04 : 0.07,
-                              }),
-                            },
-                          ]
-                        : undefined,
-                };
-              }
-              default:
-                return { key: "?", value: "?" };
-            }
+            const valueLink = ({ key, value }: { key: string; value: number }) => (
+              <Link
+                external={true}
+                href="#"
+                ariaLabel={`See details for ${percentageFormatter(value)} on ${key} (opens in a new tab)`}
+              >
+                {percentageFormatter(value)}
+              </Link>
+            );
+            return {
+              key: item.series.name,
+              value: valueLink({
+                key: item.series.name ?? "",
+                value: item.y ?? 0,
+              }),
+              expandable: item.series.name === "Desktop" || item.series.name === "Mobile",
+              subItems:
+                item.series.name === "Desktop"
+                  ? [
+                      {
+                        key: "Chrome",
+                        value: valueLink({
+                          key: "Desktop Chrome",
+                          value: item.x === 0 ? 0.19 : 0.15,
+                        }),
+                      },
+                      {
+                        key: "Safari",
+                        value: valueLink({
+                          key: "Desktop Safari",
+                          value: item.x === 0 ? 0.07 : 0.05,
+                        }),
+                      },
+                      {
+                        key: "Edge",
+                        value: valueLink({
+                          key: "Desktop Edge",
+                          value: item.x === 0 ? 0.02 : 0.02,
+                        }),
+                      },
+                      {
+                        key: "Firefox",
+                        value: valueLink({
+                          key: "Desktop Firefox",
+                          value: item.x === 0 ? 0.02 : 0.02,
+                        }),
+                      },
+                      {
+                        key: "Others",
+                        value: valueLink({
+                          key: "Other desktop browsers",
+                          value: item.x === 0 ? 0.02 : 0.02,
+                        }),
+                      },
+                    ]
+                  : item.series.name === "Mobile"
+                    ? [
+                        {
+                          key: "Chrome",
+                          value: valueLink({
+                            key: "Mobile Chrome",
+                            value: item.x === 0 ? 0.18 : 0.3,
+                          }),
+                        },
+                        {
+                          key: "Safari",
+                          value: valueLink({
+                            key: "Mobile Safari",
+                            value: item.x === 0 ? 0.04 : 0.08,
+                          }),
+                        },
+                        {
+                          key: "Others",
+                          value: valueLink({
+                            key: "Other mobile browsers",
+                            value: item.x === 0 ? 0.04 : 0.07,
+                          }),
+                        },
+                      ]
+                    : undefined,
+            };
           },
           footer: ({ x }) => <Button ariaLabel={`View details for ${x}`}>View details</Button>,
         }}

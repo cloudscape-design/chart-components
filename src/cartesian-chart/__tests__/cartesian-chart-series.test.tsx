@@ -102,10 +102,12 @@ describe("CartesianChart: series", () => {
     ]);
     expect(hc.getChartSeries(1).data.map((d) => [d.x, d.y])).toEqual([
       [5, 2],
+      [5, 4],
       [5, 6],
     ]);
     expect(hc.getChartSeries(2).data.map((d) => [d.x, d.y])).toEqual([
       [1, 6],
+      [3, 6],
       [5, 6],
     ]);
   });
@@ -122,6 +124,13 @@ describe("CartesianChart: series", () => {
     expect(hc.getChartSeries(1).data).toHaveLength(0);
     expect(hc.getChartSeries(2).data).toHaveLength(0);
 
+    function getFirstPoint(array: Highcharts.Point[]) {
+      return [array[0].x, array[0].y];
+    }
+    function getLastPoint(array: Highcharts.Point[]) {
+      return [array[array.length - 1].x, array[array.length - 1].y];
+    }
+
     for (let x = 1; x <= 2; x++) {
       for (let y = 1; y <= 2; y++) {
         rerender({
@@ -133,14 +142,10 @@ describe("CartesianChart: series", () => {
           ],
         });
 
-        expect(hc.getChartSeries(1).data.map((d) => [d.x, d.y])).toEqual([
-          [1, 1],
-          [1, y],
-        ]);
-        expect(hc.getChartSeries(2).data.map((d) => [d.x, d.y])).toEqual([
-          [1, 1],
-          [x, 1],
-        ]);
+        expect(getFirstPoint(hc.getChartSeries(1).data)).toEqual([1, 1]);
+        expect(getLastPoint(hc.getChartSeries(1).data)).toEqual([1, y]);
+        expect(getFirstPoint(hc.getChartSeries(2).data)).toEqual([1, 1]);
+        expect(getLastPoint(hc.getChartSeries(2).data)).toEqual([x, 1]);
       }
     }
   });

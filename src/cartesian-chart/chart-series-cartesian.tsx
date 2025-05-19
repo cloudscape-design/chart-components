@@ -71,11 +71,11 @@ export const useCartesianSeries = ({
     yPlotLines.push({ value: 0, ...Styles.chatPlotBaselineOptions, className: testClasses["emphasized-baseline"] });
   }
 
-  // By default, Highcharts highlights data points that are closest to the cursor. However, for charts that include column
-  // series, we need the entire stack (everything matching x-coordinate) to be highlighted instead. This is achieved by enabling
-  // the `shared=true` behavior, which is defined in Highcharts tooltip. The tooltip itself is then hidden with styles.
+  // By default, Highcharts highlights data points that are closest to the cursor. However, we need to highlight all
+  // series that are defined for the matched x-coordinate. This is achieved by enabling the `shared=true` behavior,
+  // which is defined in Highcharts tooltip. The tooltip itself is then hidden with styles.
   const tooltip: Highcharts.TooltipOptions = {
-    enabled: !!options.series.some((s) => s.type === "column"),
+    enabled: true,
     shared: true,
     style: { opacity: 0 },
   };
@@ -84,51 +84,67 @@ export const useCartesianSeries = ({
 };
 
 function updateSeriesData(chart: Highcharts.Chart) {
-  // We search for min, max axes values instead of using axis.getExtremes() API because
-  // Highcharts increases the extremes to exceed the actual data values sometimes, which
-  // then leads to an infinite update cycle.
-  let minX = Number.MAX_SAFE_INTEGER;
-  let maxX = Number.MIN_SAFE_INTEGER;
-  let minY = Number.MAX_SAFE_INTEGER;
-  let maxY = Number.MIN_SAFE_INTEGER;
+  const allX = new Set<number>();
+  const allY = new Set<number>();
   for (const s of chart.series) {
+    if (!s.visible) {
+      continue;
+    }
     for (const p of s.data) {
-      minX = Math.min(minX, p.x);
-      maxX = Math.max(maxX, p.x);
-      minY = Math.min(minY, p.y ?? minY);
-      maxY = Math.max(maxY, p.y ?? maxY);
+      if (p.visible) {
+        allX.add(p.x);
+      }
+      if (p.visible && p.y !== undefined && p.y !== null) {
+        allY.add(p.y);
+      }
     }
   }
+  const sortedAllX = [...allX].sort();
+  const sortedAllY = [...allY].sort();
 
+  let updated = false;
   for (const s of chart.series) {
-    if (isXThreshold(s) && minY !== Number.MAX_SAFE_INTEGER && maxY !== Number.MIN_SAFE_INTEGER) {
-      updateDataIfNeeded(s, [
-        { x: s.options.custom.awsui.threshold, y: minY },
-        { x: s.options.custom.awsui.threshold, y: maxY },
-      ]);
+    if (isXThreshold(s)) {
+      updated = updateXfNeeded(s, s.options.custom.awsui.threshold, sortedAllY) || updated;
     }
-    if (isYThreshold(s) && minX !== Number.MAX_SAFE_INTEGER && maxX !== Number.MIN_SAFE_INTEGER) {
-      updateDataIfNeeded(s, [
-        { x: minX, y: s.options.custom.awsui.threshold },
-        { x: maxX, y: s.options.custom.awsui.threshold },
-      ]);
+    if (isYThreshold(s)) {
+      updated = updateYfNeeded(s, s.options.custom.awsui.threshold, sortedAllX) || updated;
     }
+  }
+  if (updated) {
+    chart.redraw();
   }
 
   // The update only happens if the new coordinates are different from the old.
-  function updateDataIfNeeded(series: Highcharts.Series, data: { x: number; y: number }[]) {
+  function updateXfNeeded(series: Highcharts.Series, x: number, yValues: number[]) {
     if (!series.visible) {
-      return;
-    } else if (series.data.length !== 2) {
-      series.setData(data);
-    } else if (
-      series.data[0].x !== data[0].x ||
-      series.data[1].x !== data[1].x ||
-      series.data[0].y !== data[0].y ||
-      series.data[1].y !== data[1].y
-    ) {
-      series.setData(data);
+      return false;
     }
+    for (let i = 0; i < Math.max(series.data.length, yValues.length); i++) {
+      if (series.data[i]?.x !== x || series.data[i]?.y !== yValues[i]) {
+        series.setData(
+          yValues.map((y) => ({ x, y })),
+          false,
+        );
+        return true;
+      }
+    }
+    return false;
+  }
+  function updateYfNeeded(series: Highcharts.Series, y: number, xValues: number[]) {
+    if (!series.visible) {
+      return false;
+    }
+    for (let i = 0; i < Math.max(series.data.length, xValues.length); i++) {
+      if (series.data[i]?.x !== xValues[i] || series.data[i]?.y !== y) {
+        series.setData(
+          xValues.map((x) => ({ x, y })),
+          false,
+        );
+        return true;
+      }
+    }
+    return false;
   }
 }
 
@@ -144,9 +160,13 @@ interface ThresholdOptions<T extends "x-threshold" | "y-threshold"> {
 function createThresholdMetadata<T extends "x-threshold" | "y-threshold">(type: T, value: number): ThresholdOptions<T> {
   return { custom: { awsui: { type, threshold: value } } };
 }
-function isXThreshold(s: Highcharts.Series): s is Highcharts.Series & { options: ThresholdOptions<"x-threshold"> } {
+export function isXThreshold(
+  s: Highcharts.Series,
+): s is Highcharts.Series & { options: ThresholdOptions<"x-threshold"> } {
   return typeof s.options.custom === "object" && s.options.custom.awsui?.type === "x-threshold";
 }
-function isYThreshold(s: Highcharts.Series): s is Highcharts.Series & { options: ThresholdOptions<"y-threshold"> } {
+export function isYThreshold(
+  s: Highcharts.Series,
+): s is Highcharts.Series & { options: ThresholdOptions<"y-threshold"> } {
   return typeof s.options.custom === "object" && s.options.custom.awsui?.type === "y-threshold";
 }

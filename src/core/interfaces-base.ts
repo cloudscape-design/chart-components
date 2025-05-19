@@ -170,6 +170,7 @@ export interface ScatterSeriesOptions extends BaseCartesianSeriesOptions {
 export interface ErrorBarSeriesOptions extends BaseCartesianSeriesOptions {
   type: "errorbar";
   data: RangeDataItemType[];
+  linkedTo?: string;
 }
 
 export interface XThresholdSeriesOptions extends BaseCartesianSeriesOptions {

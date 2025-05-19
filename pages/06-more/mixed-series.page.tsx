@@ -85,12 +85,7 @@ function ExampleMixedChart() {
       series={series}
       tooltip={{
         series({ item }) {
-          switch (item.type) {
-            case "point":
-              return { key: item.series.name, value: priceFormatter(item.y) };
-            default:
-              return { key: "?", value: "?" };
-          }
+          return { key: item.series.name, value: item.y !== null ? priceFormatter(item.y) : null };
         },
       }}
       xAxis={{

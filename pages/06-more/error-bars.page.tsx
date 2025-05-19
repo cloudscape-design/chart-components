@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import Box from "@cloudscape-design/components/box";
 import Link from "@cloudscape-design/components/link";
 
 import { CartesianChart, CartesianChartProps } from "../../lib/components";
@@ -14,24 +15,28 @@ function errorRange(value: number, delta: number) {
 
 const series: CartesianChartProps.SeriesOptions[] = [
   {
+    id: "c",
     name: "Costs",
     type: "column",
     data: [6562, 8768, 9742, 10464, 16777, 9956, 5876],
   },
   {
-    name: "Costs error",
-    type: "errorbar",
-    data: [6562, 8768, 9742, 10464, 16777, 9956, 5876].map((value) => errorRange(value, 250)),
-  },
-  {
+    id: "c-1",
     name: "Costs last year",
     type: "spline",
     data: [5373, 7563, 7900, 12342, 14311, 11830, 8505],
   },
   {
+    name: "Costs error",
+    type: "errorbar",
+    data: [6562, 8768, 9742, 10464, 16777, 9956, 5876].map((value) => errorRange(value, 250)),
+    linkedTo: "c",
+  },
+  {
     name: "Costs last year error",
     type: "errorbar",
     data: [5373, 7563, 7900, 12342, 14311, 11830, 8505].map((value) => errorRange(value, 250)),
+    linkedTo: "c-1",
   },
 ];
 
@@ -48,26 +53,25 @@ export default function () {
           tooltip={{
             // TODO: embedded error bars as detail type
             series: ({ item }) => {
-              if (item.series.type === "errorbar") {
-                return {
-                  key: item.series.name,
-                  value: "[-$250, +$250]",
-                };
-              }
-              if (item.type !== "point") {
-                return { key: "?", value: "?" };
-              }
               return {
                 key: item.series.name,
                 value: (
-                  <Link
-                    external={true}
-                    href="#"
-                    ariaLabel={`See details for ${moneyFormatter(item.y)} on ${item.series.name} (opens in a new tab)`}
-                  >
-                    {moneyFormatter(item.y)}
+                  <Link external={true} href="#" ariaLabel={`See details for ${item.series.name} (opens in a new tab)`}>
+                    {item.y !== null ? moneyFormatter(item.y) : null}
                   </Link>
                 ),
+                error: item.error.map((error) => ({
+                  key: (
+                    <Box fontSize="body-s" color="text-body-secondary">
+                      {error.series.name}
+                    </Box>
+                  ),
+                  value: (
+                    <Box fontSize="body-s" color="text-body-secondary">
+                      {moneyFormatter(error.low)} - {moneyFormatter(error.high)}
+                    </Box>
+                  ),
+                })),
               };
             },
           }}

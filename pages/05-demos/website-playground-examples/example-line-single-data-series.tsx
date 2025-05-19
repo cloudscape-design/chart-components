@@ -79,24 +79,14 @@ export function ExampleLineChartSingleDataSeries() {
         tooltip={{
           ...chartProps.cartesian.tooltip,
           series: ({ item }) => {
-            switch (item.type) {
-              case "point":
-                return {
-                  key: (
-                    <Link external={true} href="#">
-                      {item.series.name}
-                    </Link>
-                  ),
-                  value: numberFormatter(item.y),
-                };
-              case "all":
-                return {
-                  key: item.series.name,
-                  value: "",
-                };
-              default:
-                return { key: "?", value: "?" };
-            }
+            return {
+              key: (
+                <Link external={true} href="#">
+                  {item.series.name}
+                </Link>
+              ),
+              value: item.y !== null ? numberFormatter(item.y) : null,
+            };
           },
         }}
         xAxis={{

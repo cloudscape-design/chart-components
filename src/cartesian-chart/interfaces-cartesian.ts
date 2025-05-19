@@ -168,41 +168,23 @@ export namespace CartesianChartProps {
   export type TooltipFooterRenderProps = TooltipSlotRenderProps;
   interface TooltipSlotRenderProps {
     x: number;
-    items: TooltipMatchedItem[];
+    items: TooltipSeriesItem[];
   }
   interface TooltipSeriesRenderProps {
-    item: TooltipMatchedItem;
+    item: TooltipSeriesItem;
   }
 
-  export type TooltipMatchedItem = TooltipMatchedItemPoint | TooltipMatchedItemRange | TooltipMatchedItemThreshold;
-
-  interface TooltipMatchedItemPoint {
-    type: "point";
+  export interface TooltipSeriesItem {
     x: number;
-    y: number;
+    y: number | null;
+    error: { low: number; high: number; series: CartesianChartProps.ErrorBarSeriesOptions }[];
     series: CartesianChartProps.SeriesOptions;
-    marker: React.ReactNode;
-  }
-
-  interface TooltipMatchedItemRange {
-    type: "range";
-    x: number;
-    low: number;
-    high: number;
-    series: CartesianChartProps.SeriesOptions;
-    marker: React.ReactNode;
-  }
-
-  interface TooltipMatchedItemThreshold {
-    type: "all";
-    x: number;
-    series: CartesianChartProps.SeriesOptions;
-    marker: React.ReactNode;
   }
 
   export interface TooltipSeriesFormatted {
     key: React.ReactNode;
     value: React.ReactNode;
+    error?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
     expandable?: boolean;
     subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
   }
@@ -224,29 +206,3 @@ export type InternalSeriesOptions = CartesianChartProps.SeriesOptions | Highchar
 export type InternalXAxisOptions = CartesianChartProps.XAxisOptions & Highcharts.XAxisOptions;
 
 export type InternalYAxisOptions = CartesianChartProps.YAxisOptions & Highcharts.YAxisOptions;
-
-export type InternalTooltipMatchedItem =
-  | InternalTooltipMatchedItemPoint
-  | InternalTooltipMatchedItemRange
-  | InternalTooltipMatchedItemThreshold;
-
-interface InternalTooltipMatchedItemPoint {
-  type: "point";
-  x: number;
-  y: number;
-  series: InternalSeriesOptions;
-}
-
-interface InternalTooltipMatchedItemRange {
-  type: "range";
-  x: number;
-  low: number;
-  high: number;
-  series: InternalSeriesOptions;
-}
-
-interface InternalTooltipMatchedItemThreshold {
-  type: "all";
-  x: number;
-  series: InternalSeriesOptions;
-}

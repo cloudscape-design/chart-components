@@ -50,25 +50,15 @@ export function ExampleMixedLineAndBarChart() {
         tooltip={{
           ...chartProps.cartesian.tooltip,
           series: ({ item }) => {
-            switch (item.type) {
-              case "point":
-                return {
-                  key: item.series.name,
-                  value: (
-                    <Link
-                      external={true}
-                      href="#"
-                      ariaLabel={`See details for ${moneyFormatter(item.y)} on ${item.series.name} (opens in a new tab)`}
-                    >
-                      {moneyFormatter(item.y)}
-                    </Link>
-                  ),
-                };
-              case "all":
-                return { key: item.series.name, value: "" };
-              default:
-                return { key: "?", value: "?" };
-            }
+            return {
+              key: item.series.name,
+              value:
+                item.y !== null ? (
+                  <Link external={true} href="#" ariaLabel={`See details for ${item.series.name} (opens in a new tab)`}>
+                    {moneyFormatter(item.y)}
+                  </Link>
+                ) : null,
+            };
           },
         }}
         xAxis={{

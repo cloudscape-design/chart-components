@@ -15,6 +15,7 @@ import { useCartesianSeries } from "./chart-series-cartesian";
 import { useChartTooltipCartesian } from "./chart-tooltip-cartesian";
 import { getDefaultFormatter } from "./default-formatters";
 import { CartesianChartProps, InternalCartesianChartOptions } from "./interfaces-cartesian";
+import * as Styles from "./styles";
 import { getDataExtremes } from "./utils";
 
 import testClasses from "./test-classes/styles.css.js";
@@ -118,6 +119,29 @@ export const InternalCartesianChart = forwardRef(
       }),
       series,
       tooltip,
+      plotOptions: {
+        ...options.plotOptions,
+        line: {
+          ...options.plotOptions?.line,
+          marker: { ...Styles.defaultMarker, ...options.plotOptions?.line?.marker },
+          states: { hover: { halo: Styles.defaultMarkerHoverHalo }, ...options.plotOptions?.line?.states },
+        },
+        spline: {
+          ...options.plotOptions?.line,
+          marker: { ...Styles.defaultMarker, ...options.plotOptions?.line?.marker },
+          states: { hover: { halo: Styles.defaultMarkerHoverHalo }, ...options.plotOptions?.spline?.states },
+        },
+        area: {
+          ...options.plotOptions?.line,
+          marker: { ...Styles.defaultMarker, ...options.plotOptions?.line?.marker },
+          states: { hover: { halo: Styles.defaultMarkerHoverHalo }, ...options.plotOptions?.area?.states },
+        },
+        areaspline: {
+          ...options.plotOptions?.line,
+          marker: { ...Styles.defaultMarker, ...options.plotOptions?.line?.marker },
+          states: { hover: { halo: Styles.defaultMarkerHoverHalo }, ...options.plotOptions?.areaspline?.states },
+        },
+      },
     };
 
     return (
@@ -129,7 +153,10 @@ export const InternalCartesianChart = forwardRef(
         chartHeight={props.chartHeight}
         chartMinHeight={props.chartMinHeight}
         chartMinWidth={props.chartMinWidth}
-        tooltip={props.tooltip}
+        tooltip={{
+          ...props.tooltip,
+          placement: props.tooltip?.placement ?? "middle",
+        }}
         noData={props.noData}
         legend={props.legend}
         visibleItems={visibleSeries}
