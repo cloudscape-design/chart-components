@@ -274,8 +274,10 @@ class HighlightCursor {
     const matchedPoints = findMatchedPoints(point).filter(
       (p) => !isXThreshold(p.series) && p.series.type !== "column" && p.series.type !== "errorbar",
     );
-    const getFillColor = (targetPoint: Highcharts.Point) =>
-      targetPoint !== point ? colorBackgroundLayoutMain : targetPoint.color;
+    const getPointStyle = (targetPoint: Highcharts.Point) =>
+      targetPoint !== point
+        ? { zIndex: 5, "stroke-width": 2, stroke: targetPoint.color, fill: colorBackgroundLayoutMain }
+        : { zIndex: 6, "stroke-width": 2, stroke: targetPoint.color, fill: targetPoint.color };
 
     if (chart.inverted) {
       if (cursor) {
@@ -291,7 +293,7 @@ class HighlightCursor {
           this.refs.push(
             chart.renderer
               .circle(chart.plotLeft + chart.plotWidth - p.plotY, chart.plotTop + chart.plotHeight - p.plotX, 4)
-              .attr({ stroke: p.color, "stroke-width": 2, fill: getFillColor(p), zIndex: 5 })
+              .attr(getPointStyle(p))
               .add(),
           );
         }
@@ -310,7 +312,7 @@ class HighlightCursor {
           this.refs.push(
             chart.renderer
               .circle(chart.plotLeft + p.plotX, chart.plotTop + p.plotY, 4)
-              .attr({ stroke: p.color, "stroke-width": 2, fill: getFillColor(p), zIndex: 5 })
+              .attr(getPointStyle(p))
               .add(),
           );
         }

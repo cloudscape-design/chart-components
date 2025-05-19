@@ -26,6 +26,6 @@ export const chatPlotBaselineOptions: Partial<Highcharts.XAxisPlotLinesOptions> 
 
 export const colorChartCursor = colorChartsLineTick;
 
-export const defaultMarker = { enabled: false, radius: 2, symbol: "circle" };
+export const defaultMarker = { enabled: false, radius: 2, symbol: "circle", fillColor: "transparent" };
 
 export const defaultMarkerHoverHalo = { enabled: false, opacity: 0 };
