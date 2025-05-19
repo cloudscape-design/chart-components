@@ -243,6 +243,7 @@ export function getVerticalAxesTitles(chart: Highcharts.Chart) {
 }
 
 export function getDefaultTooltipTarget(point: Highcharts.Point, placement: "target" | "middle" | "outside") {
+  const [trackStart, trackSize] = getTrackProps(point);
   const { plotTop, plotLeft, plotWidth, plotHeight, inverted } = point.series.chart;
   if (placement === "target" && !inverted) {
     const x = (point.plotX ?? 0) + plotLeft;
@@ -254,25 +255,48 @@ export function getDefaultTooltipTarget(point: Highcharts.Point, placement: "tar
     const y = plotHeight - (point.plotX ?? 0) + plotTop;
     return { x, y, width: 1, height: 4 };
   }
-  if (placement === "middle" && !inverted) {
-    const x = (point.plotX ?? 0) + plotLeft;
-    const y = plotTop + plotHeight / 2;
-    return { x, y, width: 4, height: 1 };
+  if ((placement === "middle" || placement === "outside") && !inverted) {
+    const x = trackStart + plotLeft;
+    return { x, y: plotTop, width: trackSize, height: plotHeight };
   }
-  if (placement === "middle" && inverted) {
-    const x = plotLeft + plotWidth / 2;
-    const y = plotHeight - (point.plotX ?? 0) + plotTop;
-    return { x, y, width: 1, height: 4 };
-  }
-  if (placement === "outside" && !inverted) {
-    const x = (point.plotX ?? 0) + plotLeft;
-    return { x, y: plotTop, width: 1, height: plotHeight };
-  }
-  if (placement === "outside" && inverted) {
-    const y = plotHeight - (point.plotX ?? 0) + plotTop;
-    return { x: plotLeft, y, width: plotWidth, height: 1 };
+  if ((placement === "middle" || placement === "outside") && inverted) {
+    const y = plotHeight + plotTop - trackStart;
+    return { x: plotLeft, y, width: plotWidth, height: trackSize };
   }
   throw new Error("Invariant violation: unsupported tooltip placement option.");
+}
+
+export function findMatchedPoints(point: Highcharts.Point) {
+  const matchedPoints: Highcharts.Point[] = [];
+  for (const s of point.series.chart.series) {
+    if (!s.visible) {
+      continue;
+    }
+    for (const p of s.data) {
+      if (!p.visible) {
+        continue;
+      }
+      if (p.x === point.x) {
+        matchedPoints.push(p);
+      }
+    }
+  }
+  return matchedPoints;
+}
+
+function getTrackProps(point: Highcharts.Point) {
+  let min = Number.POSITIVE_INFINITY;
+  let max = Number.NEGATIVE_INFINITY;
+  for (const p of findMatchedPoints(point)) {
+    if (p.shapeArgs) {
+      min = Math.min(min, p.shapeArgs.x);
+      max = Math.max(max, p.shapeArgs.x + p.shapeArgs.width);
+    }
+  }
+  if (!isFinite(max - min)) {
+    return [(point.plotX ?? 0) - 3, 6];
+  }
+  return point.series.chart.inverted ? [max, max - min] : [min, max - min];
 }
 
 // The `axis.plotLinesAndBands` API is not covered with TS.

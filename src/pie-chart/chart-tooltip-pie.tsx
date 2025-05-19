@@ -44,12 +44,7 @@ export function useChartTooltipPie(props: {
   };
 
   const onPointHighlight: CoreChartProps["onPointHighlight"] = ({ point }) => {
-    const placement = props.tooltip?.placement ?? "target";
-    if (placement === "target") {
-      return { target: getPieChartTargetPlacement(point) };
-    } else {
-      return { target: getPieMiddlePlacement(point) };
-    }
+    return { target: getPieChartTargetPlacement(point) };
   };
 
   return { getTooltipContent, onPointHighlight };

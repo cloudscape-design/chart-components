@@ -8,7 +8,7 @@ import Box from "@cloudscape-design/components/box";
 import { colorBackgroundLayoutMain } from "@cloudscape-design/design-tokens";
 
 import { CoreChartProps, Rect } from "../core/interfaces-core";
-import { getOptionsId, getSeriesColor, getSeriesId, getSeriesMarkerType } from "../core/utils";
+import { findMatchedPoints, getOptionsId, getSeriesColor, getSeriesId, getSeriesMarkerType } from "../core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../internal/components/series-details";
 import { ChartSeriesMarker } from "../internal/components/series-marker";
 import { isXThreshold } from "./chart-series-cartesian";
@@ -165,24 +165,6 @@ export function useChartTooltipCartesian(props: {
     onPointHighlight,
     onClearHighlight,
   };
-}
-
-function findMatchedPoints(point: Highcharts.Point) {
-  const matchedPoints: Highcharts.Point[] = [];
-  for (const s of point.series.chart.series) {
-    if (!s.visible) {
-      continue;
-    }
-    for (const p of s.data) {
-      if (!p.visible) {
-        continue;
-      }
-      if (p.x === point.x) {
-        matchedPoints.push(p);
-      }
-    }
-  }
-  return matchedPoints;
 }
 
 function findTooltipSeriesItems(
