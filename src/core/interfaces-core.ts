@@ -108,15 +108,21 @@ export interface CoreChartProps
    * Called whenever chart point loses highlight.
    */
   onClearHighlight?(): void;
+  /**
+   * Use Cloudscape keyboard navigation.
+   */
+  keyboardNavigation?: boolean;
 }
 
 export interface PointHighlightProps {
   point: Highcharts.Point;
-  target: Rect;
+  pointRect: Rect;
+  groupRect: Rect;
 }
 
 export interface PointHighlightResult {
-  target?: Rect;
+  pointRect?: Rect;
+  groupRect?: Rect;
 }
 
 // The API methods allow programmatic triggering of chart's behaviors, some of which are not accessible via React state.

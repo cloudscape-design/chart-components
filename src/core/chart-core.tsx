@@ -52,6 +52,7 @@ export function InternalCoreChart({
   header,
   footer,
   filter,
+  keyboardNavigation = true,
   __internalRootRef,
   ...rest
 }: CoreChartProps & InternalBaseComponentProps) {
@@ -59,7 +60,12 @@ export function InternalCoreChart({
 
   const isLegendEnabled = legendOptions?.enabled !== false;
   const isTooltipEnabled = tooltipOptions?.enabled !== false;
-  const api = useChartAPI({ ...rest, isTooltipEnabled, tooltipPlacement: tooltipOptions?.placement ?? "target" });
+  const api = useChartAPI({
+    ...rest,
+    isTooltipEnabled,
+    tooltipPlacement: tooltipOptions?.placement ?? "target",
+    keyboardNavigation,
+  });
 
   const rootClassName = clsx(styles.root, fitHeight && styles["root-fit-height"], className);
 
@@ -158,6 +164,7 @@ export function InternalCoreChart({
                 ...options.accessibility?.screenReaderSection,
               },
               keyboardNavigation: {
+                enabled: !keyboardNavigation,
                 ...options.accessibility?.keyboardNavigation,
                 focusBorder: {
                   style: Styles.focusBorderCss,
@@ -263,18 +270,21 @@ export function InternalCoreChart({
             tooltip: { enabled: false, ...options.tooltip },
           };
           return (
-            <HighchartsReact
-              highcharts={highcharts}
-              options={highchartsOptions}
-              callback={(chart: Highcharts.Chart) => {
-                callback?.({
-                  chart,
-                  highcharts: highcharts as typeof Highcharts,
-                  highlightChartPoint: (point) => api.highlightChartPoint(point),
-                  clearChartHighlight: () => api.clearChartHighlight(),
-                });
-              }}
-            />
+            <>
+              {keyboardNavigation && <div ref={api.setFocusCapture} tabIndex={0}></div>}
+              <HighchartsReact
+                highcharts={highcharts}
+                options={highchartsOptions}
+                callback={(chart: Highcharts.Chart) => {
+                  callback?.({
+                    chart,
+                    highcharts: highcharts as typeof Highcharts,
+                    highlightChartPoint: (point) => api.highlightChartPoint(point),
+                    clearChartHighlight: () => api.clearChartHighlight(),
+                  });
+                }}
+              />
+            </>
           );
         }}
         legend={isLegendEnabled ? <ChartLegend {...legendOptions} api={api} /> : null}

@@ -7,10 +7,9 @@ import type Highcharts from "highcharts";
 
 import { getIsRtl } from "@cloudscape-design/component-toolkit/internal";
 
-import { ReadonlyAsyncStore } from "../internal/utils/async-store";
-import { DebouncedCall } from "../internal/utils/utils";
-import { ChartStore } from "./chart-store";
-import { ChartLegendItem } from "./interfaces-base";
+import { ReadonlyAsyncStore } from "../../internal/utils/async-store";
+import { DebouncedCall } from "../../internal/utils/utils";
+import { ChartLegendItem } from "../interfaces-base";
 import {
   ChartLegendItemSpec,
   PointHighlightProps,
@@ -18,19 +17,23 @@ import {
   ReactiveChartState,
   Rect,
   RegisteredLegendAPI,
-} from "./interfaces-core";
-import * as Styles from "./styles";
+} from "../interfaces-core";
+import * as Styles from "../styles";
 import {
   clearChartItemsHighlight,
   findAllSeriesWithData,
   findAllVisibleSeries,
+  findMatchedPointsByX,
   getChartLegendItems,
-  getDefaultTooltipTarget,
+  getGroupRect,
+  getPointRect,
   getVerticalAxesTitles,
   highlightChartItems,
   matchLegendItems,
   updateChartItemsVisibility,
-} from "./utils";
+} from "../utils";
+import { ChartStore } from "./chart-store";
+import { NavigationController, NavigationControllerHandlers } from "./navigation-controller";
 
 const MOUSE_LEAVE_DELAY = 300;
 const LAST_DISMISS_DELAY = 250;
@@ -42,9 +45,9 @@ interface ChartAPIContext {
   getMatchedLegendItems?(props: { point: Highcharts.Point }): readonly string[];
   onLegendItemsChange?: (legendItems: readonly ChartLegendItem[]) => void;
   isTooltipEnabled: boolean;
-  tooltipPlacement: "target" | "middle" | "outside";
   onPointHighlight?(props: PointHighlightProps): void | PointHighlightResult;
   onClearHighlight?(): void;
+  keyboardNavigation: boolean;
 }
 
 export function useChartAPI(context: ChartAPIContext) {
@@ -69,11 +72,13 @@ export class ChartAPI {
   private chartId: string;
   private getContext: () => ChartAPIContext;
   private _store = new ChartStore();
-  private _chart: null | Highcharts.Chart = null;
+  private chart: null | Highcharts.Chart = null;
+  private navigation = new NavigationController(this.navigationHandlers);
   private lastDismissTime = 0;
   private mouseLeaveCall = new DebouncedCall();
   private tooltipHovered = false;
-  private targetElement: null | Highcharts.SVGElement = null;
+  private targetTrack: null | Highcharts.SVGElement = null;
+  private groupTrack: null | Highcharts.SVGElement = null;
   private registeredLegend: null | RegisteredLegendAPI = null;
 
   constructor(chartId: string, getContext: () => ChartAPIContext) {
@@ -81,15 +86,15 @@ export class ChartAPI {
     this.getContext = getContext;
   }
 
-  private get context() {
-    return this.getContext();
-  }
-
-  private get chart() {
-    if (!this._chart) {
+  private get safe() {
+    if (!this.chart) {
       throw new Error("Invariant violation: using chart API before initializing chart.");
     }
-    return this._chart;
+    return { chart: this.chart };
+  }
+
+  private get context() {
+    return this.getContext();
   }
 
   private get noDataId() {
@@ -97,20 +102,29 @@ export class ChartAPI {
   }
 
   public get ready() {
-    return !!this._chart;
+    return !!this.chart;
   }
 
   public get store() {
     return this._store as ReadonlyAsyncStore<ReactiveChartState>;
   }
 
-  public getTooltipTrack: () => null | SVGElement = () => null;
+  // The targetElement.element can get invalidated by Highcharts, so we cannot use
+  // trackRef.current = targetElement.element as it might get invalidated unexpectedly.
+  // The getTrack function ensures the latest element reference is given on each request.
+  public getTargetTrack = () => (this.targetTrack?.element ?? null) as null | SVGElement;
+  public getGroupTrack = () => (this.groupTrack?.element ?? null) as null | SVGElement;
+
+  public setFocusCapture = (element: null | HTMLElement) => {
+    this.navigation?.setFocusCapture(element);
+  };
 
   public get options() {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const chartAPI = this;
     const onChartRender: Highcharts.ChartRenderCallbackFunction = function (this) {
-      chartAPI._chart = this;
+      chartAPI.chart = this;
+      chartAPI.navigation.init(this);
       chartAPI.onChartRender();
     };
     const onChartClick: Highcharts.ChartClickCallbackFunction = function () {
@@ -151,6 +165,32 @@ export class ChartAPI {
     };
   }
 
+  private get navigationHandlers(): NavigationControllerHandlers {
+    return {
+      onFocusPoint: (point: Highcharts.Point) => {
+        point.onMouseOver();
+      },
+      onFocusX: (point: Highcharts.Point) => {
+        point.onMouseOver();
+      },
+      onBlur: () => {
+        this.clearChartHighlight();
+        for (const s of this.safe.chart.series) {
+          s.setState("normal");
+          for (const d of s.data) {
+            d.setState("normal");
+          }
+        }
+      },
+      onActivatePoint: () => {
+        this._store.setTooltip({ visible: true, pinned: true });
+      },
+      onActivateX: () => {
+        this._store.setTooltip({ visible: true, pinned: true });
+      },
+    };
+  }
+
   public registerLegend = (legend: RegisteredLegendAPI) => {
     this.registeredLegend = legend;
   };
@@ -160,17 +200,17 @@ export class ChartAPI {
   };
 
   public highlightChartItems = (itemIds: readonly string[]) => {
-    highlightChartItems(this.chart, itemIds);
+    highlightChartItems(this.safe.chart, itemIds);
   };
 
   public clearChartItemsHighlight = () => {
-    clearChartItemsHighlight(this.chart);
+    clearChartItemsHighlight(this.safe.chart);
   };
 
   public updateChartItemsVisibility = (visibleItems?: readonly string[]) => {
     if (visibleItems) {
       const legendItems = this.store.get().legend.items;
-      updateChartItemsVisibility(this.chart, legendItems, visibleItems);
+      updateChartItemsVisibility(this.safe.chart, legendItems, visibleItems);
     }
   };
 
@@ -195,9 +235,13 @@ export class ChartAPI {
       // Selecting the point on which the popover was pinned to bring focus back to it when the popover is dismissed.
       // This is unless the popover was dismissed by an outside click, in which case the focus should stay on the click target.
       if (!outsideClick) {
-        // This brings the focus back to the chart.
-        // If the last focused target is no longer around - the focus goes back to the first data point.
-        this.chart.series?.[0]?.data?.[0].graphic?.element.focus();
+        if (!this.context.keyboardNavigation) {
+          // This brings the focus back to the chart.
+          // If the last focused target is no longer around - the focus goes back to the first data point.
+          this.safe.chart.series?.[0]?.data?.[0].graphic?.element.focus();
+        } else {
+          this.navigation.focusCapture();
+        }
       }
     }
   };
@@ -247,18 +291,18 @@ export class ChartAPI {
   };
 
   private initLegend = () => {
-    const customLegendItems = this.context.getChartLegendItems?.({ chart: this.chart });
-    const legendItems = getChartLegendItems(this.chart, customLegendItems);
+    const customLegendItems = this.context.getChartLegendItems?.({ chart: this.safe.chart });
+    const legendItems = getChartLegendItems(this.safe.chart, customLegendItems);
     this._store.setLegendItems(legendItems);
   };
 
   private initVerticalAxisTitles = () => {
-    this._store.setVerticalAxesTitles(getVerticalAxesTitles(this.chart));
+    this._store.setVerticalAxesTitles(getVerticalAxesTitles(this.safe.chart));
   };
 
   private initNoData = () => {
-    const allSeriesWithData = findAllSeriesWithData(this.chart);
-    const visibleSeries = findAllVisibleSeries(this.chart);
+    const allSeriesWithData = findAllSeriesWithData(this.safe.chart);
+    const visibleSeries = findAllVisibleSeries(this.safe.chart);
     // The no-data is not shown when there is at least one series or point (for pie series) non-empty and visible.
     if (visibleSeries.length > 0) {
       this._store.setNoData({ container: null, noMatch: false });
@@ -267,10 +311,12 @@ export class ChartAPI {
     // We use timeout to make sure the no-data container is rendered.
     else {
       setTimeout(() => {
-        const noDataContainer = this.chart.container?.querySelector(`[id="${this.noDataId}"]`) as null | HTMLElement;
+        const noDataContainer = this.safe.chart.container?.querySelector(
+          `[id="${this.noDataId}"]`,
+        ) as null | HTMLElement;
         if (noDataContainer) {
-          noDataContainer.style.width = `${this.chart.plotWidth}px`;
-          noDataContainer.style.height = `${this.chart.plotHeight}px`;
+          noDataContainer.style.width = `${this.safe.chart.plotWidth}px`;
+          noDataContainer.style.height = `${this.safe.chart.plotHeight}px`;
         }
         this._store.setNoData({ container: noDataContainer, noMatch: allSeriesWithData.length > 0 });
       }, 0);
@@ -299,7 +345,7 @@ export class ChartAPI {
   // that does not cause the state to update when the tooltip is pinned. That is to avoid hover effect:
   // only the matched series/points of the pinned tooltip must be in active state.ƒ
   private updateSetters = () => {
-    for (const s of this.chart.series) {
+    for (const s of this.safe.chart.series) {
       // We ensure the replacement is done only once by assigning a custom property to the function.
       // If the property is present - it means the method was already replaced.
       if (!(s.setState as any)[SET_STATE_OVERRIDE_MARKER]) {
@@ -328,37 +374,42 @@ export class ChartAPI {
   };
 
   private highlightActions = (point: Highcharts.Point) => {
-    const defaultTarget = getDefaultTooltipTarget(point, this.context.tooltipPlacement);
-    const pointHighlightResult = this.context.onPointHighlight?.({ point, target: defaultTarget });
+    const matchedPoints = findMatchedPointsByX(point.series.chart.series, point.x);
+    const pointRect = getPointRect(point);
+    const groupRect = getGroupRect(matchedPoints);
+    const pointHighlightResult = this.context.onPointHighlight?.({ point, pointRect, groupRect });
     const customMatchedLegendItems = this.context.getMatchedLegendItems?.({ point });
     const matchedLegendItems = customMatchedLegendItems ?? matchLegendItems(this.store.get().legend.items, point);
     this.registeredLegend?.highlightItems(matchedLegendItems);
-    this.destroyMarkers();
-    this.createMarkers(pointHighlightResult?.target ?? defaultTarget);
+    this.destroyTracks();
+    this.createTracks({
+      pointRect: pointHighlightResult?.pointRect ?? pointRect,
+      groupRect: pointHighlightResult?.groupRect ?? groupRect,
+    });
   };
 
-  private createMarkers = (target: Rect) => {
+  private createTracks = ({ pointRect, groupRect }: { pointRect: Rect; groupRect: Rect }) => {
     // We set the direction to target element so that the direction check done by the tooltip
     // is done correctly. Without that, the asserted target direction always results to "ltr".
-    const isRtl = getIsRtl(this.chart.container.parentElement);
-    this.targetElement = this.chart.renderer
-      .rect(target.x, target.y, target.width, target.height)
-      .attr({ fill: "transparent", direction: isRtl ? "rtl" : "ltr" })
+    const isRtl = getIsRtl(this.safe.chart.container.parentElement);
+    this.targetTrack = this.safe.chart.renderer
+      .rect(pointRect.x, pointRect.y, pointRect.width, pointRect.height)
+      .attr({ fill: "transparent", zIndex: -1, direction: isRtl ? "rtl" : "ltr" })
       .add();
-
-    // The targetElement.element can get invalidated by Highcharts, so we cannot use
-    // trackRef.current = targetElement.element as it might get invalidated unexpectedly.
-    // The getTrack function ensures the latest element reference is given on each request.
-    this.getTooltipTrack = () => (this.targetElement?.element ?? null) as null | SVGElement;
+    this.groupTrack = this.safe.chart.renderer
+      .rect(groupRect.x, groupRect.y, groupRect.width, groupRect.height)
+      .attr({ fill: "transparent", zIndex: -1, direction: isRtl ? "rtl" : "ltr" })
+      .add();
   };
 
   private clearHighlightActions = () => {
     this.context.onClearHighlight?.();
-    this.destroyMarkers();
+    this.destroyTracks();
     this.registeredLegend?.clearHighlight();
   };
 
-  private destroyMarkers = () => {
-    this.targetElement?.destroy();
+  private destroyTracks = () => {
+    this.targetTrack?.destroy();
+    this.groupTrack?.destroy();
   };
 }

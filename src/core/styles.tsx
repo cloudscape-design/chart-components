@@ -26,6 +26,8 @@ import {
   fontWeightHeadingS,
 } from "@cloudscape-design/design-tokens";
 
+import styles from "./styles.css.js";
+
 export const colors = [
   colorChartsPaletteCategorical1,
   colorChartsPaletteCategorical2,
@@ -115,3 +117,10 @@ export const verticalAxisTitleBlockSize = 24;
 export const verticalAxisTitleMargin = 4;
 
 export const errorBarSeriesColor = colorChartsThresholdNeutral;
+
+export const navigationFocusOutlineStyle = {
+  class: styles["focus-outline"],
+  "stroke-width": 2,
+  rx: 4,
+  zIndex: 10,
+};

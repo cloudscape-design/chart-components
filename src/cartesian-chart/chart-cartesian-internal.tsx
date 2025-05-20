@@ -53,7 +53,7 @@ export const InternalCartesianChart = forwardRef(
     const visibleSeries = visibleSeriesState ?? allSeriesIds;
 
     // Converting threshold series and baseline setting to Highcharts options.
-    const { series, xPlotLines, yPlotLines, onChartRender, tooltip } = useCartesianSeries({ ...props, visibleSeries });
+    const { series, xPlotLines, yPlotLines, tooltip, ...seriesProps } = useCartesianSeries({ ...props, visibleSeries });
     const { xAxis, yAxis, ...options } = props.options;
 
     // Cartesian chart imperative API.
@@ -65,12 +65,13 @@ export const InternalCartesianChart = forwardRef(
     // precedence, so that it is possible to override or extend all Highcharts settings from the outside.
     const highchartsOptions: Highcharts.Options = {
       ...options,
+      accessibility: { keyboardNavigation: { enabled: false } },
       chart: {
         ...options.chart,
         events: {
           ...options.chart?.events,
           render(event) {
-            onChartRender.call(this, event);
+            seriesProps.options.onChartRender.call(this, event);
             options.chart?.events?.render?.call(this, event);
           },
         },

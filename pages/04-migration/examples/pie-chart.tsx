@@ -54,7 +54,15 @@ const dataOld: OldPieChartProps["data"] = [
   },
 ];
 
-export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: boolean; legendFilter?: boolean }) {
+export function ComponentNew({
+  type = "pie",
+  headerFilter,
+  legendFilter,
+}: {
+  type?: "pie" | "donut";
+  headerFilter?: boolean;
+  legendFilter?: boolean;
+}) {
   const { chartProps } = useChartSettings();
   const [visibleSegments, setVisibleSegments] = useState(seriesNew.data.map((i) => i.name));
   return (
@@ -63,7 +71,7 @@ export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: bo
       fitHeight={true}
       chartMinHeight={200}
       ariaLabel="Pie chart"
-      series={seriesNew}
+      series={{ ...seriesNew, type }}
       segmentOptions={{}}
       filter={
         headerFilter
@@ -91,7 +99,7 @@ export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: bo
   );
 }
 
-export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
+export function ComponentOld({ type = "pie", hideFilter = false }: { type?: "pie" | "donut"; hideFilter?: boolean }) {
   const { chartProps } = useChartSettings();
   return (
     <OldPieChart
@@ -108,6 +116,7 @@ export function ComponentOld({ hideFilter = false }: { hideFilter?: boolean }) {
       data={dataOld}
       ariaLabel="Pie chart"
       noMatch={chartProps.pie.noData!.noMatch}
+      variant={type}
     />
   );
 }

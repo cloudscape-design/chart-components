@@ -83,7 +83,7 @@ export const useCartesianSeries = ({
     style: { opacity: 0 },
   };
 
-  return { series, xPlotLines, yPlotLines, onChartRender, tooltip };
+  return { series, xPlotLines, yPlotLines, tooltip, options: { onChartRender } };
 };
 
 function updateSeriesData(chart: Highcharts.Chart) {

@@ -8,7 +8,7 @@ import Box from "@cloudscape-design/components/box";
 import { colorBackgroundLayoutMain } from "@cloudscape-design/design-tokens";
 
 import { CoreChartProps, Rect } from "../core/interfaces-core";
-import { findMatchedPoints, getOptionsId, getSeriesColor, getSeriesId, getSeriesMarkerType } from "../core/utils";
+import { findMatchedPointsByX, getOptionsId, getSeriesColor, getSeriesId, getSeriesMarkerType } from "../core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../internal/components/series-details";
 import { ChartSeriesMarker } from "../internal/components/series-marker";
 import { isXThreshold } from "./chart-series-cartesian";
@@ -122,7 +122,7 @@ export function useChartTooltipCartesian(props: {
     };
   };
 
-  const onPointHighlight: CoreChartProps["onPointHighlight"] = ({ point, target }) => {
+  const onPointHighlight: CoreChartProps["onPointHighlight"] = ({ point, groupRect }) => {
     chartRef.current = point.series.chart;
 
     // Highcharts highlights the entire series when the cursor lands on it. However, for column series
@@ -143,7 +143,7 @@ export function useChartTooltipCartesian(props: {
       }
     }
 
-    cursorRef.current.create(target, point, !props.options.series.some((s) => s.type === "column"));
+    cursorRef.current.create(groupRect, point, !props.options.series.some((s) => s.type === "column"));
   };
 
   const onClearHighlight: CoreChartProps["onClearHighlight"] = () => {
@@ -171,7 +171,7 @@ function findTooltipSeriesItems(
   series: InternalSeriesOptions[],
   targetPoint: Highcharts.Point,
 ): CartesianChartProps.TooltipSeriesItem[] {
-  const matchedPoints = findMatchedPoints(targetPoint);
+  const matchedPoints = findMatchedPointsByX(targetPoint.series.chart.series, targetPoint.x);
   const seriesItems: CartesianChartProps.TooltipSeriesItem[] = series.map((s) => ({
     x: 0,
     y: null,
@@ -244,7 +244,7 @@ class HighlightCursor {
     // The cursor (vertical or horizontal line to make the highlighted point better prominent) is only added for charts
     // that do not include "column" series. That is because the cursor is not necessary for columns, assuming the number of
     // x data points is not very high.
-    const matchedPoints = findMatchedPoints(point).filter(
+    const matchedPoints = findMatchedPointsByX(chart.series, point.x).filter(
       (p) => !isXThreshold(p.series) && p.series.type !== "column" && p.series.type !== "errorbar",
     );
     const getPointStyle = (targetPoint: Highcharts.Point) =>

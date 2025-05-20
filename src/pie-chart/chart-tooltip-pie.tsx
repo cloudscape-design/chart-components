@@ -44,7 +44,7 @@ export function useChartTooltipPie(props: {
   };
 
   const onPointHighlight: CoreChartProps["onPointHighlight"] = ({ point }) => {
-    return { target: getPieChartTargetPlacement(point) };
+    return { pointRect: getPieChartTargetPlacement(point) };
   };
 
   return { getTooltipContent, onPointHighlight };

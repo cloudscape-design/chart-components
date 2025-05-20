@@ -268,7 +268,7 @@ inject links, or add expandable items.",
           {
             "name": "body",
             "optional": true,
-            "type": "((props: TooltipSlotRenderProps) => React.ReactNode)",
+            "type": "((props: CartesianChartProps.TooltipSlotRenderProps) => React.ReactNode)",
           },
           {
             "name": "enabled",
@@ -278,12 +278,12 @@ inject links, or add expandable items.",
           {
             "name": "footer",
             "optional": true,
-            "type": "((props: TooltipSlotRenderProps) => React.ReactNode)",
+            "type": "((props: CartesianChartProps.TooltipSlotRenderProps) => React.ReactNode)",
           },
           {
             "name": "header",
             "optional": true,
-            "type": "((props: TooltipSlotRenderProps) => React.ReactNode)",
+            "type": "((props: CartesianChartProps.TooltipSlotRenderProps) => React.ReactNode)",
           },
           {
             "name": "placement",
@@ -293,7 +293,7 @@ inject links, or add expandable items.",
           {
             "name": "series",
             "optional": true,
-            "type": "((props: TooltipSeriesRenderProps) => CartesianChartProps.TooltipSeriesFormatted)",
+            "type": "((props: CartesianChartProps.TooltipSeriesRenderProps) => CartesianChartProps.TooltipSeriesFormatted)",
           },
           {
             "name": "size",

@@ -55,7 +55,7 @@ export function ChartLegend({ title, actions, api }: ChartLegendProps) {
 
 export function ChartTooltip({
   getTooltipContent,
-  placement,
+  placement = "target",
   size,
   api,
 }: ChartTooltipOptions & {
@@ -70,6 +70,7 @@ export function ChartTooltip({
   if (!content) {
     return null;
   }
+  const getTrack = placement === "target" ? api.getTargetTrack : api.getGroupTrack;
   const position = (() => {
     if (placement === "target" || placement === "middle") {
       return tooltip.placement === "vertical" ? "right" : "bottom";
@@ -79,7 +80,7 @@ export function ChartTooltip({
   })();
   return (
     <InternalChartTooltip
-      getTrack={api.getTooltipTrack}
+      getTrack={getTrack}
       trackKey={tooltip.point.x + ":" + tooltip.point.y}
       container={null}
       dismissButton={tooltip.pinned}

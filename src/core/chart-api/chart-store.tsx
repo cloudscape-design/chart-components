@@ -1,11 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { ChartSeriesMarker, ChartSeriesMarkerType } from "../internal/components/series-marker";
-import AsyncStore from "../internal/utils/async-store";
-import { isEqualArrays } from "../internal/utils/utils";
-import { ChartLegendItem } from "./interfaces-base";
-import { InternalChartLegendItemSpec, ReactiveChartState } from "./interfaces-core";
+import { ChartSeriesMarker, ChartSeriesMarkerType } from "../../internal/components/series-marker";
+import AsyncStore from "../../internal/utils/async-store";
+import { isEqualArrays } from "../../internal/utils/utils";
+import { ChartLegendItem } from "../interfaces-base";
+import { InternalChartLegendItemSpec, ReactiveChartState } from "../interfaces-core";
 
 export class ChartStore {
   private store = new AsyncStore<ReactiveChartState>({

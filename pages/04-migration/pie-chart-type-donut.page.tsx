@@ -11,8 +11,8 @@ export default function () {
         <MigrationDemo
           examples={[
             {
-              old: <PieChartExample.ComponentOld hideFilter={true} />,
-              new: <PieChartExample.ComponentNew />,
+              old: <PieChartExample.ComponentOld type="donut" hideFilter={true} />,
+              new: <PieChartExample.ComponentNew type="donut" />,
               containerHeight: 450,
             },
           ]}

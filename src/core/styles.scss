@@ -4,6 +4,7 @@
 */
 
 @use "../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
+@use "@cloudscape-design/component-toolkit/internal/focus-visible" as focus-visible;
 
 .root {
   position: relative;
@@ -51,4 +52,10 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+.focus-outline {
+  @include focus-visible.when-visible-unfocused {
+    stroke: cs.$color-border-item-focused;
+  }
 }

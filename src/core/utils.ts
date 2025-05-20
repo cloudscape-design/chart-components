@@ -3,10 +3,12 @@
 
 import type Highcharts from "highcharts";
 
+import { circleIndex } from "@cloudscape-design/component-toolkit/internal";
+
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
 import { castArray } from "../internal/utils/utils";
 import { ChartLegendItem } from "./interfaces-base";
-import { ChartLegendItemSpec, InternalChartLegendItemSpec } from "./interfaces-core";
+import { ChartLegendItemSpec, InternalChartLegendItemSpec, Rect } from "./interfaces-core";
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
 // We expect that items requiring referencing (e.g. in order to control their visibility) have the unique identifier defined.
@@ -242,33 +244,58 @@ export function getVerticalAxesTitles(chart: Highcharts.Chart) {
   return titles;
 }
 
-export function getDefaultTooltipTarget(point: Highcharts.Point, placement: "target" | "middle" | "outside") {
-  const [trackStart, trackSize] = getTrackProps(point);
-  const { plotTop, plotLeft, plotWidth, plotHeight, inverted } = point.series.chart;
-  if (placement === "target" && !inverted) {
-    const x = (point.plotX ?? 0) + plotLeft;
-    const y = (point.plotY ?? 0) + plotTop;
-    return { x, y, width: 4, height: 1 };
+export function getPointRect(point: Highcharts.Point): Rect {
+  const chart = point.series.chart;
+  if (point.graphic) {
+    const box = point.series.type === "errorbar" ? getErrorBarPointBox(point) : point.graphic.getBBox();
+    return chart.inverted
+      ? {
+          x: chart.plotWidth + chart.plotLeft - (box.y + box.height),
+          y: chart.plotHeight + chart.plotTop - (box.x + box.width),
+          width: box.height,
+          height: box.width,
+        }
+      : {
+          x: chart.plotLeft + box.x,
+          y: chart.plotTop + box.y,
+          width: box.width,
+          height: box.height,
+        };
   }
-  if (placement === "target" && inverted) {
-    const x = plotWidth - (point.plotY ?? 0) + plotLeft;
-    const y = plotHeight - (point.plotX ?? 0) + plotTop;
-    return { x, y, width: 1, height: 4 };
-  }
-  if ((placement === "middle" || placement === "outside") && !inverted) {
-    const x = trackStart + plotLeft;
-    return { x, y: plotTop, width: trackSize, height: plotHeight };
-  }
-  if ((placement === "middle" || placement === "outside") && inverted) {
-    const y = plotHeight + plotTop - trackStart;
-    return { x: plotLeft, y, width: plotWidth, height: trackSize };
-  }
-  throw new Error("Invariant violation: unsupported tooltip placement option.");
+  return { x: 0, y: 0, width: 0, height: 0 };
 }
 
-export function findMatchedPoints(point: Highcharts.Point) {
+export function getErrorBarPointBox(point: Highcharts.Point) {
+  if ("whiskers" in point) {
+    return (point.whiskers as Highcharts.SVGElement).getBBox();
+  }
+  return { x: 0, y: 0, width: 0, height: 0 };
+}
+
+export function getGroupRect(points: Highcharts.Point[]): Rect {
+  if (points.length === 0) {
+    return { x: 0, y: 0, width: 0, height: 0 };
+  }
+  const chart = points[0].series.chart;
+  const rects = points.map(getPointRect);
+  let minX = rects[0].x;
+  let minY = rects[0].y;
+  let maxX = rects[0].x + rects[0].width;
+  let maxY = rects[0].y + rects[0].height;
+  for (const r of rects) {
+    minX = Math.min(minX, r.x);
+    minY = Math.min(minY, r.y);
+    maxX = Math.max(maxX, r.x + r.width);
+    maxY = Math.max(maxY, r.y + r.height);
+  }
+  return chart.inverted
+    ? { x: chart.plotLeft, y: minY, width: chart.plotWidth, height: maxY - minY }
+    : { x: minX, y: chart.plotTop, width: maxX - minX, height: chart.plotHeight };
+}
+
+export function findMatchedPointsByX(series: Highcharts.Series[], x: number) {
   const matchedPoints: Highcharts.Point[] = [];
-  for (const s of point.series.chart.series) {
+  for (const s of series) {
     if (!s.visible) {
       continue;
     }
@@ -276,7 +303,7 @@ export function findMatchedPoints(point: Highcharts.Point) {
       if (!p.visible) {
         continue;
       }
-      if (p.x === point.x) {
+      if (p.x === x && p.y !== null) {
         matchedPoints.push(p);
       }
     }
@@ -284,19 +311,55 @@ export function findMatchedPoints(point: Highcharts.Point) {
   return matchedPoints;
 }
 
-function getTrackProps(point: Highcharts.Point) {
-  let min = Number.POSITIVE_INFINITY;
-  let max = Number.NEGATIVE_INFINITY;
-  for (const p of findMatchedPoints(point)) {
-    if (p.shapeArgs) {
-      min = Math.min(min, p.shapeArgs.x);
-      max = Math.max(max, p.shapeArgs.x + p.shapeArgs.width);
+export function findFirstPoint(chart: Highcharts.Chart, direction: -1 | 1): Highcharts.Point {
+  const allX = findAllX(chart);
+  const nextIndex = direction === 1 ? 0 : allX.length - 1;
+  const nextX = allX[nextIndex];
+  const nextPoint = findMatchedPointsByX(chart.series, nextX)[0];
+  return nextPoint;
+}
+
+export function findNextPointByX(point: Highcharts.Point, direction: -1 | 1): Highcharts.Point {
+  const allX = findAllX(point.series.chart);
+  const pointIndex = allX.indexOf(point.x);
+  const nextIndex = circleIndex(pointIndex + direction, [0, allX.length - 1]);
+  const nextX = allX[nextIndex];
+  const nextPoint = findMatchedPointsByX(point.series.chart.series, nextX)[0];
+  return nextPoint;
+}
+
+export function findNextPointInSeriesByX(point: Highcharts.Point, direction: -1 | 1): Highcharts.Point {
+  const seriesX = findAllXInSeries(point.series);
+  const pointIndex = seriesX.indexOf(point.x);
+  const nextIndex = circleIndex(pointIndex + direction, [0, seriesX.length - 1]);
+  const nextX = seriesX[nextIndex];
+  return point.series.data.find((d) => d.x === nextX)!;
+}
+
+function findAllX(chart: Highcharts.Chart) {
+  const allX = new Set<number>();
+  for (const s of chart.series) {
+    if (s.visible) {
+      for (const d of s.data) {
+        if (d.visible && d.y !== null) {
+          allX.add(d.x);
+        }
+      }
     }
   }
-  if (!isFinite(max - min)) {
-    return [(point.plotX ?? 0) - 3, 6];
+  return [...allX].sort();
+}
+
+function findAllXInSeries(series: Highcharts.Series) {
+  const allX = new Set<number>();
+  if (series.visible) {
+    for (const d of series.data) {
+      if (d.visible && d.y !== null) {
+        allX.add(d.x);
+      }
+    }
   }
-  return point.series.chart.inverted ? [max, max - min] : [min, max - min];
+  return [...allX].sort();
 }
 
 // The `axis.plotLinesAndBands` API is not covered with TS.
