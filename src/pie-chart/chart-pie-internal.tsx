@@ -51,13 +51,21 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
   const visibleSegments = visibleSegmentsState ?? allSegmentIds;
 
   // Converting donut series to Highcharts pie series.
+  // We set series color to transparent to visually hide the empty pie/donut ring.
+  // That does not affect how the chart looks in non-empty state.
   const series: Highcharts.SeriesOptionsRegistry["SeriesPieOptions"][] = [];
   for (const s of props.options.series) {
     if (s.type === "pie") {
-      series.push({ ...s, size: "60%" });
+      series.push({ ...s, size: Styles.pieSeriesSize, color: "transparent" });
     }
     if (s.type === "donut") {
-      series.push({ ...s, type: "pie", size: Styles.donutSeriesSize, innerSize: Styles.donutSeriesInnerSize });
+      series.push({
+        ...s,
+        type: "pie",
+        color: "transparent",
+        size: Styles.donutSeriesSize,
+        innerSize: Styles.donutSeriesInnerSize,
+      });
     }
   }
 
