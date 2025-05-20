@@ -214,6 +214,11 @@ export function InternalCoreChart({
                 borderWidth: Styles.columnBorderWidth,
                 ...options.plotOptions?.column,
               },
+              errorbar: {
+                stemColor: Styles.errorBarSeriesColor,
+                whiskerColor: Styles.errorBarSeriesColor,
+                ...options.plotOptions?.errorbar,
+              },
             },
             xAxis: castArray(options.xAxis)?.map((xAxis) => ({
               ...Styles.xAxisOptions,

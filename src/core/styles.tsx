@@ -17,6 +17,7 @@ import {
   colorChartsPaletteCategorical8,
   colorChartsPaletteCategorical9,
   colorChartsPaletteCategorical10,
+  colorChartsThresholdNeutral,
   colorTextBodyDefault,
   colorTextBodySecondary,
   fontFamilyBase,
@@ -112,3 +113,5 @@ export const noDataCss: React.CSSProperties = {
 
 export const verticalAxisTitleBlockSize = 24;
 export const verticalAxisTitleMargin = 4;
+
+export const errorBarSeriesColor = colorChartsThresholdNeutral;

@@ -33,6 +33,9 @@ export const useCartesianSeries = ({
         ...Styles.thresholdSeriesOptions,
       };
     }
+    if (s.type === "errorbar" && s.color) {
+      return { ...s, stemColor: s.color, whiskerColor: s.color };
+    }
     return { ...s };
   });
 

@@ -166,11 +166,11 @@ export namespace CartesianChartProps {
   export type TooltipHeaderRenderProps = TooltipSlotRenderProps;
   export type TooltipBodyRenderProps = TooltipSlotRenderProps;
   export type TooltipFooterRenderProps = TooltipSlotRenderProps;
-  interface TooltipSlotRenderProps {
+  export interface TooltipSlotRenderProps {
     x: number;
     items: TooltipSeriesItem[];
   }
-  interface TooltipSeriesRenderProps {
+  export interface TooltipSeriesRenderProps {
     item: TooltipSeriesItem;
   }
 

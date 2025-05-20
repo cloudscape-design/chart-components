@@ -109,7 +109,7 @@ export function getChartLegendItems(
   const legendItems: InternalChartLegendItemSpec[] = [];
   const addSeriesItem = (series: Highcharts.Series) => {
     const spec = itemToSpec.get(getSeriesId(series));
-    if (spec || (!specs && series.type !== "pie")) {
+    if (spec || (!specs && series.type !== "pie" && series.type !== "errorbar")) {
       legendItems.push({
         id: getSeriesId(series),
         name: spec?.name ?? series.name,
