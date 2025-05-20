@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import Box from "@cloudscape-design/components/box";
+import Checkbox from "@cloudscape-design/components/checkbox";
 import ColumnLayout from "@cloudscape-design/components/column-layout";
 import FormField from "@cloudscape-design/components/form-field";
 import Input from "@cloudscape-design/components/input";
@@ -12,15 +13,20 @@ import { CartesianChart, CartesianChartProps } from "../../lib/components";
 import { moneyFormatter, numberFormatter } from "../common/formatters";
 import { PageSettings, useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
+import pseudoRandom from "../utils/pseudo-random";
 
-interface ThisPageSettings extends PageSettings, ErrorProps {
+const CHART_HEIGHT = 400;
+
+interface ThisPageSettings extends PageSettings {
   errorSize: number;
   errorColor?: string;
+  inverted?: boolean;
 }
 
-interface ErrorProps {
-  size: number;
-  color?: string;
+interface ChartProps {
+  inverted: boolean;
+  errorSize: number;
+  errorColor?: string;
 }
 
 function errorRange(value: number, delta: number) {
@@ -35,23 +41,30 @@ const costsLastYearErrorData = (size: number) => costsLastYearData.map((value) =
 
 export default function () {
   const { settings, setSettings } = useChartSettings<ThisPageSettings>();
-  const errorProps = { size: settings.errorSize ?? 800, color: settings.errorColor || undefined };
+  const chartProps = {
+    inverted: settings.inverted ?? false,
+    errorSize: settings.errorSize ?? 800,
+    errorColor: settings.errorColor || undefined,
+  };
   return (
     <Page
       title="Error bars"
       settings={
         <SpaceBetween size="m">
+          <Checkbox checked={chartProps.inverted} onChange={({ detail }) => setSettings({ inverted: detail.checked })}>
+            Invert chart
+          </Checkbox>
           <FormField label="Error size">
             <Input
               type="number"
-              value={errorProps.size.toString()}
+              value={chartProps.errorSize.toString()}
               onChange={({ detail }) => setSettings({ errorSize: parseInt(detail.value) })}
             />
           </FormField>
           <FormField label="Error color">
             <Input
               placeholder="#000000"
-              value={errorProps.color ?? ""}
+              value={chartProps.errorColor ?? ""}
               onChange={({ detail }) => setSettings({ errorColor: detail.value })}
             />
           </FormField>
@@ -60,16 +73,19 @@ export default function () {
     >
       <ColumnLayout columns={2}>
         <PageSection title="Mixed chart">
-          <MixedChart errorProps={errorProps} />
+          <MixedChart {...chartProps} />
         </PageSection>
         <PageSection title="Grouped column chart">
-          <GroupedColumnChart errorProps={errorProps} />
+          <GroupedColumnChart {...chartProps} />
         </PageSection>
         <PageSection title="Stacked column chart (not supported)">
-          <StackedColumnChart errorProps={errorProps} />
+          <StackedColumnChart {...chartProps} />
         </PageSection>
         <PageSection title="Scatter chart">
-          <ScatterChart errorProps={errorProps} />
+          <ScatterChart {...chartProps} />
+        </PageSection>
+        <PageSection title="Line chart with many series">
+          <LineChartManySeries {...chartProps} />
         </PageSection>
       </ColumnLayout>
     </Page>
@@ -99,12 +115,13 @@ const seriesFormatter: CartesianChartProps.TooltipOptions["series"] = ({ item })
   };
 };
 
-function MixedChart({ errorProps }: { errorProps: ErrorProps }) {
+function MixedChart({ inverted, errorSize, errorColor }: ChartProps) {
   const { chartProps } = useChartSettings({ more: true });
   return (
     <CartesianChart
       {...chartProps.cartesian}
-      chartHeight={350}
+      chartHeight={CHART_HEIGHT}
+      inverted={inverted}
       ariaLabel="Mixed bar chart"
       series={[
         { id: "c", name: "Costs", type: "column", data: costsData },
@@ -113,15 +130,15 @@ function MixedChart({ errorProps }: { errorProps: ErrorProps }) {
           linkedTo: "c",
           name: "Costs error",
           type: "errorbar",
-          color: errorProps.color,
-          data: costsErrorData(errorProps.size),
+          color: errorColor,
+          data: costsErrorData(errorSize),
         },
         {
           linkedTo: "c-1",
           name: "Costs last year error",
           type: "errorbar",
-          color: errorProps.color,
-          data: costsLastYearErrorData(errorProps.size),
+          color: errorColor,
+          data: costsLastYearErrorData(errorSize),
         },
       ]}
       tooltip={{ series: seriesFormatter }}
@@ -131,12 +148,13 @@ function MixedChart({ errorProps }: { errorProps: ErrorProps }) {
   );
 }
 
-function GroupedColumnChart({ errorProps }: { errorProps: ErrorProps }) {
+function GroupedColumnChart({ inverted, errorSize, errorColor }: ChartProps) {
   const { chartProps } = useChartSettings({ more: true });
   return (
     <CartesianChart
       {...chartProps.cartesian}
-      chartHeight={350}
+      chartHeight={CHART_HEIGHT}
+      inverted={inverted}
       ariaLabel="Grouped column chart"
       series={[
         { id: "c", name: "Costs", type: "column", data: costsData },
@@ -145,15 +163,15 @@ function GroupedColumnChart({ errorProps }: { errorProps: ErrorProps }) {
           linkedTo: "c",
           name: "Costs error",
           type: "errorbar",
-          color: errorProps.color,
-          data: costsErrorData(errorProps.size),
+          color: errorColor,
+          data: costsErrorData(errorSize),
         },
         {
           linkedTo: "c-1",
           name: "Costs last year error",
           type: "errorbar",
-          color: errorProps.color,
-          data: costsLastYearErrorData(errorProps.size),
+          color: errorColor,
+          data: costsLastYearErrorData(errorSize),
         },
       ]}
       tooltip={{ series: seriesFormatter }}
@@ -163,12 +181,13 @@ function GroupedColumnChart({ errorProps }: { errorProps: ErrorProps }) {
   );
 }
 
-function StackedColumnChart({ errorProps }: { errorProps: ErrorProps }) {
+function StackedColumnChart({ inverted, errorSize, errorColor }: ChartProps) {
   const { chartProps } = useChartSettings({ more: true });
   return (
     <CartesianChart
       {...chartProps.cartesian}
-      chartHeight={350}
+      chartHeight={CHART_HEIGHT}
+      inverted={inverted}
       ariaLabel="Stacked column chart"
       stacked={true}
       series={[
@@ -178,15 +197,15 @@ function StackedColumnChart({ errorProps }: { errorProps: ErrorProps }) {
           linkedTo: "c",
           name: "Costs error",
           type: "errorbar",
-          color: errorProps.color,
-          data: costsErrorData(errorProps.size),
+          color: errorColor,
+          data: costsErrorData(errorSize),
         },
         {
           linkedTo: "c-1",
           name: "Costs last year error",
           type: "errorbar",
-          color: errorProps.color,
-          data: costsLastYearErrorData(errorProps.size),
+          color: errorColor,
+          data: costsLastYearErrorData(errorSize),
         },
       ]}
       tooltip={{ series: seriesFormatter }}
@@ -196,12 +215,13 @@ function StackedColumnChart({ errorProps }: { errorProps: ErrorProps }) {
   );
 }
 
-function ScatterChart({ errorProps }: { errorProps: ErrorProps }) {
+function ScatterChart({ inverted, errorSize, errorColor }: ChartProps) {
   const { chartProps } = useChartSettings({ more: true });
   return (
     <CartesianChart
       {...chartProps.cartesian}
-      chartHeight={350}
+      chartHeight={CHART_HEIGHT}
+      inverted={inverted}
       ariaLabel="Scatter chart"
       series={[
         { id: "c", name: "Costs", type: "scatter", data: costsData },
@@ -210,17 +230,59 @@ function ScatterChart({ errorProps }: { errorProps: ErrorProps }) {
           linkedTo: "c",
           name: "Costs error",
           type: "errorbar",
-          color: errorProps.color,
-          data: costsErrorData(errorProps.size),
+          color: errorColor,
+          data: costsErrorData(errorSize),
         },
         {
           linkedTo: "c-1",
           name: "Costs last year error",
           type: "errorbar",
-          color: errorProps.color,
-          data: costsLastYearErrorData(errorProps.size),
+          color: errorColor,
+          data: costsLastYearErrorData(errorSize),
         },
       ]}
+      tooltip={{ series: seriesFormatter }}
+      xAxis={{ type: "category", title: "Budget month", categories }}
+      yAxis={{ title: "Costs (USD)", valueFormatter: numberFormatter }}
+    />
+  );
+}
+
+function LineChartManySeries({ inverted, errorSize, errorColor }: ChartProps) {
+  const { chartProps } = useChartSettings({ more: true });
+  const createSeries = (index: number) => {
+    const data = costsData.map((y) => y + Math.floor(pseudoRandom() * 10000) - 5000);
+    const lineSeries: CartesianChartProps.LineSeriesOptions = {
+      id: `c-${index}`,
+      name: `Costs ${index + 1}`,
+      type: "line",
+      data: data,
+    };
+    const errorSeries: CartesianChartProps.ErrorBarSeriesOptions = {
+      linkedTo: `c-${index}`,
+      name: `Error for costs ${index + 1}`,
+      type: "errorbar",
+      color: errorColor,
+      data: data.map((value) => ({ ...errorRange(value, errorSize / 2) })),
+    };
+    return [lineSeries, errorSeries];
+  };
+  return (
+    <CartesianChart
+      {...chartProps.cartesian}
+      chartHeight={CHART_HEIGHT}
+      inverted={inverted}
+      ariaLabel="Scatter chart"
+      series={[
+        createSeries(0),
+        createSeries(1),
+        createSeries(2),
+        createSeries(3),
+        createSeries(4),
+        createSeries(5),
+        createSeries(6),
+        createSeries(7),
+      ].flatMap((s) => s)}
       tooltip={{ series: seriesFormatter }}
       xAxis={{ type: "category", title: "Budget month", categories }}
       yAxis={{ title: "Costs (USD)", valueFormatter: numberFormatter }}
