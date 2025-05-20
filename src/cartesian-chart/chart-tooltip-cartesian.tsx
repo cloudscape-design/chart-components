@@ -256,7 +256,7 @@ class HighlightCursor {
       if (cursor) {
         this.refs.push(
           chart.renderer
-            .rect(chart.plotLeft, target.y - 2, chart.plotWidth, 1)
+            .rect(chart.plotLeft, target.y - target.width / 2, chart.plotWidth, 1)
             .attr({ fill: Styles.colorChartCursor, zIndex: 5 })
             .add(),
         );
@@ -275,7 +275,7 @@ class HighlightCursor {
       if (cursor) {
         this.refs.push(
           chart.renderer
-            .rect(target.x + 2, chart.plotTop, 1, chart.plotHeight)
+            .rect(target.x + target.width / 2, chart.plotTop, 1, chart.plotHeight)
             .attr({ fill: Styles.colorChartCursor, zIndex: 5 })
             .add(),
         );
