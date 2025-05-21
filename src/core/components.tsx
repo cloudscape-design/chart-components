@@ -34,6 +34,9 @@ export interface ChartLegendRef {
 
 export function ChartLegend({ title, actions, api }: ChartLegendProps) {
   const legendItems = useSelector(api.store, (s) => s.legend.items);
+  if (legendItems.length === 0) {
+    return null;
+  }
   return (
     <ChartLegendComponent
       ref={(legend) => {
@@ -224,4 +227,9 @@ export function ChartHeader({ children }: { children: React.ReactNode }) {
 
 export function ChartFooter({ children }: { children: React.ReactNode }) {
   return <div className={testClasses["chart-footer"]}>{children}</div>;
+}
+
+export function ChartFocusCapture({ keyboardNavigation, api }: { keyboardNavigation: boolean; api: ChartAPI }) {
+  const isNoData = !!useSelector(api.store, (s) => s.noData.container);
+  return keyboardNavigation && !isNoData && <div ref={api.setFocusCapture} tabIndex={0}></div>;
 }

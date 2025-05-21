@@ -17,6 +17,7 @@ import { useChartAPI } from "./chart-api";
 import { ChartContainer } from "./chart-container";
 import {
   ChartFilter,
+  ChartFocusCapture,
   ChartFooter,
   ChartHeader,
   ChartLegend,
@@ -266,7 +267,7 @@ export function InternalCoreChart({
           };
           return (
             <>
-              {keyboardNavigation && <div ref={api.setFocusCapture} tabIndex={0}></div>}
+              <ChartFocusCapture keyboardNavigation={keyboardNavigation} api={api} />
               <HighchartsReact
                 highcharts={highcharts}
                 options={highchartsOptions}

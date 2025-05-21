@@ -24,6 +24,7 @@ export interface NavigationControllerHandlers {
   onActivateX(point: Highcharts.Point): void;
 }
 
+// Navigation controller handles focus behavior and keyboard navigation for all charts.
 export class NavigationController {
   private chart: null | Highcharts.Chart = null;
   private handlers: NavigationControllerHandlers;
