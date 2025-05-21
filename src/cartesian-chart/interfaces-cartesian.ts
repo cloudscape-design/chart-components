@@ -177,14 +177,14 @@ export namespace CartesianChartProps {
   export interface TooltipSeriesItem {
     x: number;
     y: number | null;
-    error: { low: number; high: number; series: CartesianChartProps.ErrorBarSeriesOptions }[];
+    error?: { low: number; high: number; series: CartesianChartProps.ErrorBarSeriesOptions };
     series: CartesianChartProps.SeriesOptions;
   }
 
   export interface TooltipSeriesFormatted {
     key: React.ReactNode;
     value: React.ReactNode;
-    error?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
+    error?: React.ReactNode;
     expandable?: boolean;
     subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
   }

@@ -54,7 +54,15 @@ export function useChartTooltipCartesian(props: {
         if (props.tooltip?.series) {
           return props.tooltip.series({ item });
         }
-        return { key: item.series.name, value: item.y !== null ? valueFormatter(item.y) : null };
+        return {
+          key: item.series.name,
+          value: item.y !== null ? valueFormatter(item.y) : null,
+          error: item.error ? (
+            <Box fontSize="body-s" color="text-body-secondary">
+              {valueFormatter(item.error.low)} - {valueFormatter(item.error.high)}
+            </Box>
+          ) : null,
+        };
       })();
 
       const items: ChartSeriesDetailItem[] = [];
@@ -65,24 +73,16 @@ export function useChartTooltipCartesian(props: {
         subItems: formatted.subItems,
         expandableId: formatted.expandable ? item.series.name : undefined,
       });
-      for (let i = 0; i < item.error.length; i++) {
-        const key = formatted.error ? (
-          <Box key={i}>{formatted.error[i].key}</Box>
-        ) : (
-          <Box key={item.error[i].series.name} fontSize="body-s" color="text-body-secondary">
-            {item.error[i].series.name}
-          </Box>
-        );
-        const value = formatted.error ? (
-          <Box key={i}>{formatted.error[i].value}</Box>
-        ) : (
-          <Box key={item.error[i].series.name} fontSize="body-s" color="text-body-secondary">
-            {valueFormatter(item.error[i].low)} - {valueFormatter(item.error[i].high)}
-          </Box>
-        );
-        items.push({ key, value });
+      if (formatted.error) {
+        items.push({
+          key: (
+            <Box fontSize="body-s" color="text-body-secondary">
+              {formatted.error}
+            </Box>
+          ),
+          value: " ",
+        });
       }
-
       return items;
     });
 
@@ -171,11 +171,13 @@ function findTooltipSeriesItems(
   series: InternalSeriesOptions[],
   targetPoint: Highcharts.Point,
 ): CartesianChartProps.TooltipSeriesItem[] {
+  // Points with the same x as the targetPoint across all currently visible series
   const matchedPoints = findMatchedPointsByX(targetPoint.series.chart.series, targetPoint.x);
+
+  // For each series, create one new item that references it
   const seriesItems: CartesianChartProps.TooltipSeriesItem[] = series.map((s) => ({
     x: 0,
     y: null,
-    error: [],
     series: s as unknown as CartesianChartProps.SeriesOptions,
   }));
   const seriesItemsById = new Map(seriesItems.map((i) => [getOptionsId(i.series), i]));
@@ -183,6 +185,7 @@ function findTooltipSeriesItems(
 
   for (const point of matchedPoints) {
     if (point.series.type === "errorbar") {
+      // Error bar point found for this point
       const linkedSeries = point.series.linkedParent;
       const seriesItem = seriesItemsById.get(getSeriesId(linkedSeries));
       if (seriesItem) {
@@ -202,14 +205,8 @@ function findTooltipSeriesItems(
     const errorSeries = seriesItemsById.get(getSeriesId(errorPoint.series))?.series as
       | undefined
       | CartesianChartProps.ErrorBarSeriesOptions;
-    const matchedError = seriesItem.error.find((e) => e.series === errorSeries);
-    if (errorSeries && errorPoint.y !== undefined && !matchedError) {
-      seriesItem.error.push({ low: errorPoint.y, high: errorPoint.y, series: errorSeries });
-    }
-    if (errorSeries && errorPoint.y !== undefined && matchedError) {
-      const low = Math.min(matchedError.low, errorPoint.y);
-      const high = Math.max(matchedError.high, errorPoint.y);
-      seriesItem.error.push({ low, high, series: errorSeries });
+    if (errorSeries && errorPoint.y !== undefined) {
+      seriesItem.error = { low: errorPoint.y, high: errorPoint.y, series: errorSeries };
     }
   }
 
