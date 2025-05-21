@@ -205,8 +205,8 @@ function findTooltipSeriesItems(
     const errorSeries = seriesItemsById.get(getSeriesId(errorPoint.series))?.series as
       | undefined
       | CartesianChartProps.ErrorBarSeriesOptions;
-    if (errorSeries && errorPoint.y !== undefined) {
-      seriesItem.error = { low: errorPoint.y, high: errorPoint.y, series: errorSeries };
+    if (errorSeries && errorPoint.options.low !== undefined && errorPoint.options.high !== undefined) {
+      seriesItem.error = { low: errorPoint.options.low, high: errorPoint.options.high, series: errorSeries };
     }
   }
 
