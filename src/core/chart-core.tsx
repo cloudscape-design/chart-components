@@ -60,12 +60,7 @@ export function InternalCoreChart({
 
   const isLegendEnabled = legendOptions?.enabled !== false;
   const isTooltipEnabled = tooltipOptions?.enabled !== false;
-  const api = useChartAPI({
-    ...rest,
-    isTooltipEnabled,
-    tooltipPlacement: tooltipOptions?.placement ?? "target",
-    keyboardNavigation,
-  });
+  const api = useChartAPI({ ...rest, isTooltipEnabled, keyboardNavigation });
 
   const rootClassName = clsx(styles.root, fitHeight && styles["root-fit-height"], className);
 

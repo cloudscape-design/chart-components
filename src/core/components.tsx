@@ -71,11 +71,12 @@ export function ChartTooltip({
     return null;
   }
   const getTrack = placement === "target" ? api.getTargetTrack : api.getGroupTrack;
+  const orientation = tooltip.point?.series.chart.inverted ? "horizontal" : "vertical";
   const position = (() => {
     if (placement === "target" || placement === "middle") {
-      return tooltip.placement === "vertical" ? "right" : "bottom";
+      return orientation === "vertical" ? "right" : "bottom";
     } else {
-      return tooltip.placement === "vertical" ? "bottom" : "right";
+      return orientation === "vertical" ? "bottom" : "right";
     }
   })();
   return (
