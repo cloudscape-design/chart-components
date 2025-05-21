@@ -139,7 +139,7 @@ function MixedChart({ inverted, errorSize, errorColor }: ChartProps) {
         series: seriesFormatter,
         footer: () => (
           <>
-            <sup>*</sup>Confidence interval
+            <sup>*</sup>Error range
           </>
         ),
       }}
