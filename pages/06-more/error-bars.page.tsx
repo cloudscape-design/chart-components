@@ -100,18 +100,12 @@ const seriesFormatter: CartesianChartProps.TooltipOptions["series"] = ({ item })
         {item.y !== null ? moneyFormatter(item.y) : null}
       </Link>
     ),
-    error: item.error.map((error) => ({
-      key: (
-        <Box fontSize="body-s" color="text-body-secondary">
-          {error.series.name}
-        </Box>
-      ),
-      value: (
-        <Box fontSize="body-s" color="text-body-secondary">
-          {moneyFormatter(error.low)} - {moneyFormatter(error.high)}
-        </Box>
-      ),
-    })),
+    error: item.error ? (
+      <Box fontSize="body-s" color="text-body-secondary">
+        {moneyFormatter(item.error.low)} - {moneyFormatter(item.error.high)}
+        <sup>*</sup>
+      </Box>
+    ) : null,
   };
 };
 
@@ -141,7 +135,14 @@ function MixedChart({ inverted, errorSize, errorColor }: ChartProps) {
           data: costsLastYearErrorData(errorSize),
         },
       ]}
-      tooltip={{ series: seriesFormatter }}
+      tooltip={{
+        series: seriesFormatter,
+        footer: () => (
+          <>
+            <sup>*</sup>Confidence interval
+          </>
+        ),
+      }}
       xAxis={{ type: "category", title: "Budget month", categories }}
       yAxis={{ title: "Costs (USD)", valueFormatter: numberFormatter }}
     />
@@ -174,7 +175,14 @@ function GroupedColumnChart({ inverted, errorSize, errorColor }: ChartProps) {
           data: costsLastYearErrorData(errorSize),
         },
       ]}
-      tooltip={{ series: seriesFormatter }}
+      tooltip={{
+        series: seriesFormatter,
+        footer: () => (
+          <>
+            <sup>*</sup>Error range
+          </>
+        ),
+      }}
       xAxis={{ type: "category", title: "Budget month", categories }}
       yAxis={{ title: "Costs (USD)", valueFormatter: numberFormatter }}
     />
