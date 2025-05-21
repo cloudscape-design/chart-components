@@ -89,7 +89,14 @@ export function ChartTooltip({
       onMouseEnter={api.onMouseEnterTooltip}
       onMouseLeave={api.onMouseLeaveTooltip}
       title={content.header}
-      footer={content.footer}
+      footer={
+        content.footer ? (
+          <>
+            <hr />
+            {content.footer}
+          </>
+        ) : null
+      }
       size={size}
       position={position}
       minVisibleBlockSize={200}
