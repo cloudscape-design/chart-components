@@ -102,8 +102,7 @@ const seriesFormatter: CartesianChartProps.TooltipOptions["series"] = ({ item })
     ),
     error: item.error ? (
       <Box fontSize="body-s" color="text-body-secondary">
-        {moneyFormatter(item.error.low)} - {moneyFormatter(item.error.high)}
-        <sup>*</sup>
+        {moneyFormatter(item.error.low)} - {moneyFormatter(item.error.high)}*
       </Box>
     ) : null,
   };
@@ -137,11 +136,7 @@ function MixedChart({ inverted, errorSize, errorColor }: ChartProps) {
       ]}
       tooltip={{
         series: seriesFormatter,
-        footer: () => (
-          <>
-            <sup>*</sup>Error range
-          </>
-        ),
+        footer: () => "*Error range",
       }}
       xAxis={{ type: "category", title: "Budget month", categories }}
       yAxis={{ title: "Costs (USD)", valueFormatter: numberFormatter }}
@@ -177,11 +172,7 @@ function GroupedColumnChart({ inverted, errorSize, errorColor }: ChartProps) {
       ]}
       tooltip={{
         series: seriesFormatter,
-        footer: () => (
-          <>
-            <sup>*</sup>Error range
-          </>
-        ),
+        footer: () => "*Error range",
       }}
       xAxis={{ type: "category", title: "Budget month", categories }}
       yAxis={{ title: "Costs (USD)", valueFormatter: numberFormatter }}
