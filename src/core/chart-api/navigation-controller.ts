@@ -8,30 +8,54 @@ import { circleIndex, handleKey, KeyCode } from "@cloudscape-design/component-to
 import { Rect } from "../interfaces-core";
 import * as Styles from "../styles";
 import {
-  findFirstPoint,
-  findMatchedPointsByX,
-  findNextPointByX,
-  findNextPointInSeriesByX,
+  findFirstGroup,
+  findFirstPointInSeries,
+  findLastGroup,
+  findLastPointInSeries,
+  findMatchingGroup,
+  findNextGroup,
+  findNextPointInSeries,
+  findPrevGroup,
+  findPrevPointInSeries,
   getGroupRect,
   getPointRect,
 } from "../utils";
 
 export interface NavigationControllerHandlers {
+  onFocusChart(): void;
   onFocusPoint(point: Highcharts.Point): void;
-  onFocusX(point: Highcharts.Point): void;
+  onFocusGroup(point: Highcharts.Point): void;
   onBlur(): void;
   onActivatePoint(point: Highcharts.Point): void;
-  onActivateX(point: Highcharts.Point): void;
+  onActivateGroup(point: Highcharts.Point): void;
+}
+
+export type FocusedState = FocusedStateChart | FocusedStateGroup | FocusedStatePoint;
+
+interface FocusedStateChart {
+  type: "chart";
+}
+interface FocusedStateGroup {
+  type: "group";
+  point: Highcharts.Point;
+}
+interface FocusedStatePoint {
+  type: "point";
+  point: Highcharts.Point;
 }
 
 // Navigation controller handles focus behavior and keyboard navigation for all charts.
+// When the chart is first focused, the focus lands on the chart plot. Once navigation is engaged,
+// the focus can land either on the group of points matched by X value, or on a specific point.
+// In either case, there is always some point that is considered highlighted.
+// The focused X value and point are stored so that navigating back to the chart will focus the previously
+// focused point. If the stored point no longer belongs to the chart the focus falls back to the chart plot.
 export class NavigationController {
   private chart: null | Highcharts.Chart = null;
   private handlers: NavigationControllerHandlers;
   private focusOutline: null | FocusOutline = null;
   private focusCaptureEl: null | HTMLElement = null;
-  private focusedX: null | number = null;
-  private focusedPoint: null | Highcharts.Point = null;
+  private focusedState: null | FocusedState = null;
 
   constructor(handlers: NavigationControllerHandlers) {
     this.handlers = handlers;
@@ -49,42 +73,41 @@ export class NavigationController {
     return { chart: this.chart, focusOutline: this.focusOutline };
   }
 
+  // This function is used as React ref on the focus capture element, positioned right before the chart plot in the DOM.
+  // Once the element reference is obtained, we assign the required event listeners directly to the element.
+  // That is done for simplicity to avoid passing React event handlers down to the element.
   public setFocusCapture = (element: null | HTMLElement) => {
     if (this.focusCaptureEl) {
-      this.focusCaptureEl.removeEventListener("focus", this.onFocusCaptureFocus);
-      this.focusCaptureEl.removeEventListener("blur", this.onFocusCaptureBlur);
-      this.focusCaptureEl.removeEventListener("keydown", this.onFocusCaptureKeyDown);
+      this.focusCaptureEl.removeEventListener("focus", this.onFocus);
+      this.focusCaptureEl.removeEventListener("blur", this.onBlur);
+      this.focusCaptureEl.removeEventListener("keydown", this.onKeyDown);
     }
 
     this.focusCaptureEl = element;
 
     if (this.focusCaptureEl) {
-      this.focusCaptureEl.addEventListener("focus", this.onFocusCaptureFocus);
-      this.focusCaptureEl.addEventListener("blur", this.onFocusCaptureBlur);
-      this.focusCaptureEl.addEventListener("keydown", this.onFocusCaptureKeyDown);
+      this.focusCaptureEl.addEventListener("focus", this.onFocus);
+      this.focusCaptureEl.addEventListener("blur", this.onBlur);
+      this.focusCaptureEl.addEventListener("keydown", this.onKeyDown);
     }
   };
 
+  // Casting focus to the capture element dispatches it to the previously focused element or the chart.
+  // This is used to restore focus after the tooltip is dismissed.
   public focusCapture() {
     this.focusCaptureEl?.focus();
   }
 
-  private onFocusCaptureFocus = () => {
-    if (this.focusedPoint && this.focusedX) {
-      this.focusNextX(0);
-    } else if (this.focusedPoint) {
-      this.focusNextY(0);
-    } else {
-      this.focusChart();
-    }
+  private onFocus = () => {
+    this.focusCurrent();
   };
 
-  private onFocusCaptureBlur = () => {
+  private onBlur = () => {
     this.safe.focusOutline.hide();
     this.handlers.onBlur();
   };
 
-  private onFocusCaptureKeyDown = (event: KeyboardEvent) => {
+  private onKeyDown = (event: KeyboardEvent) => {
     if (
       [
         KeyCode.up,
@@ -99,167 +122,167 @@ export class NavigationController {
     ) {
       event.preventDefault();
     }
-    if (this.focusedX !== null && this.focusedPoint !== null) {
-      this.onFocusCaptureKeyDownX(event);
-    } else if (this.focusedPoint !== null) {
-      this.onFocusCaptureKeyDownPoint(event);
+    if (this.focusedState && this.focusedState.type === "group") {
+      this.onKeyDownGroup(event, this.focusedState.point);
+    } else if (this.focusedState && this.focusedState.type === "point") {
+      this.onKeyDownPoint(event, this.focusedState.point);
     } else {
-      this.onFocusCaptureKeyDownChart(event);
+      this.onKeyDownChart(event);
     }
   };
 
-  private onFocusCaptureKeyDownChart = (event: KeyboardEvent) => {
+  private onKeyDownChart = (event: KeyboardEvent) => {
     handleKey(event as any, {
-      onActivate: () => {
-        this.focusNextX(1);
-      },
-      onInlineEnd: () => {
-        this.focusNextX(1);
-      },
-      onInlineStart: () => {
-        this.focusNextX(-1);
-      },
-      onBlockEnd: () => {
-        this.focusNextX(1);
-      },
-      onBlockStart: () => {
-        this.focusNextX(-1);
-      },
+      onActivate: () => this.moveToFirstGroup(),
+      onInlineStart: () => this.moveToLastGroup(),
+      onInlineEnd: () => this.moveToFirstGroup(),
+      onBlockStart: () => this.moveToLastGroup(),
+      onBlockEnd: () => this.moveToFirstGroup(),
+      onHome: () => this.moveToFirstGroup(),
+      onEnd: () => this.moveToLastGroup(),
     });
   };
 
-  private onFocusCaptureKeyDownX = (event: KeyboardEvent) => {
+  private onKeyDownGroup = (event: KeyboardEvent, point: Highcharts.Point) => {
+    const i = !!this.chart?.inverted;
     handleKey(event as any, {
-      onActivate: () => {
-        this.handlers.onActivateX(this.focusedPoint!);
-      },
-      onEscape: () => {
-        this.focusedX = null;
-        this.focusedPoint = null;
-        this.focusChart();
-      },
-      onInlineEnd: () => {
-        if (this.safe.chart.inverted) {
-          this.focusNextY(0);
-        } else {
-          this.focusNextX(1);
-        }
-      },
-      onInlineStart: () => {
-        if (this.safe.chart.inverted) {
-          this.focusNextY(0);
-        } else {
-          this.focusNextX(-1);
-        }
-      },
-      onBlockEnd: () => {
-        if (this.safe.chart.inverted) {
-          this.focusNextX(1);
-        } else {
-          this.focusNextY(0);
-        }
-      },
-      onBlockStart: () => {
-        if (this.safe.chart.inverted) {
-          this.focusNextX(-1);
-        } else {
-          this.focusNextY(0);
-        }
-      },
+      onActivate: () => this.activateGroup(point),
+      onEscape: () => this.moveToChart(),
+      onInlineStart: () => (i ? this.moveToLastInGroup(point) : this.moveToPrevGroup(point)),
+      onInlineEnd: () => (i ? this.moveToFirstInGroup(point) : this.moveToNextGroup(point)),
+      onBlockStart: () => (i ? this.moveToPrevGroup(point) : this.moveToLastInGroup(point)),
+      onBlockEnd: () => (i ? this.moveToNextGroup(point) : this.moveToFirstInGroup(point)),
+      onHome: () => this.moveToFirstGroup(),
+      onEnd: () => this.moveToLastGroup(),
     });
   };
 
-  private onFocusCaptureKeyDownPoint = (event: KeyboardEvent) => {
+  private onKeyDownPoint = (event: KeyboardEvent, point: Highcharts.Point) => {
+    const i = !!this.chart?.inverted;
     handleKey(event as any, {
-      onActivate: () => {
-        this.handlers.onActivatePoint(this.focusedPoint!);
-      },
-      onEscape: () => {
-        this.focusNextX(0);
-      },
-      onInlineEnd: () => {
-        if (this.safe.chart.inverted) {
-          this.focusNextY(-1);
-        } else {
-          this.focusNextPoint(1);
-        }
-      },
-      onInlineStart: () => {
-        if (this.safe.chart.inverted) {
-          this.focusNextY(1);
-        } else {
-          this.focusNextPoint(-1);
-        }
-      },
-      onBlockEnd: () => {
-        if (this.safe.chart.inverted) {
-          this.focusNextPoint(1);
-        } else {
-          this.focusNextY(-1);
-        }
-      },
-      onBlockStart: () => {
-        if (this.safe.chart.inverted) {
-          this.focusNextPoint(-1);
-        } else {
-          this.focusNextY(1);
-        }
-      },
+      onActivate: () => this.activatePoint(point),
+      onEscape: () => this.moveToParentGroup(point),
+      onInlineEnd: () => (i ? this.moveToNextInGroup(point) : this.moveToNextInSeries(point)),
+      onInlineStart: () => (i ? this.moveToPrevInGroup(point) : this.moveToPrevInSeries(point)),
+      onBlockEnd: () => (i ? this.moveToNextInSeries(point) : this.moveToNextInGroup(point)),
+      onBlockStart: () => (i ? this.moveToPrevInSeries(point) : this.moveToPrevInGroup(point)),
+      onHome: () => this.moveToFirstInSeries(point),
+      onEnd: () => this.moveToLastInSeries(point),
     });
   };
+
+  private moveToFirstGroup() {
+    this.focusGroup(findFirstGroup(this.safe.chart));
+  }
+
+  private moveToLastGroup() {
+    this.focusGroup(findLastGroup(this.safe.chart));
+  }
+
+  private moveToNextGroup(point: Highcharts.Point) {
+    this.focusGroup(findNextGroup(point));
+  }
+
+  private moveToPrevGroup(point: Highcharts.Point) {
+    this.focusGroup(findPrevGroup(point));
+  }
+
+  private moveToParentGroup(point: Highcharts.Point) {
+    const group = findMatchingGroup(point);
+    if (group.length > 0 && group[0].series.type !== "pie") {
+      this.focusGroup(group);
+    } else {
+      this.focusChart();
+    }
+  }
+
+  private moveToChart() {
+    this.focusChart();
+  }
+
+  private moveToFirstInGroup(point: Highcharts.Point) {
+    const group = findMatchingGroup(point);
+    this.focusPoint(group[0]);
+  }
+
+  private moveToLastInGroup(point: Highcharts.Point) {
+    const group = findMatchingGroup(point);
+    this.focusPoint(group[group.length - 1]);
+  }
+
+  private moveToPrevInGroup(point: Highcharts.Point) {
+    const group = findMatchingGroup(point);
+    const pointIndex = group.indexOf(point);
+    this.focusPoint(group[circleIndex(pointIndex - 1, [0, group.length - 1])]);
+  }
+
+  private moveToNextInGroup(point: Highcharts.Point) {
+    const group = findMatchingGroup(point);
+    const pointIndex = group.indexOf(point);
+    this.focusPoint(group[circleIndex(pointIndex + 1, [0, group.length - 1])]);
+  }
+
+  private moveToFirstInSeries(point: Highcharts.Point) {
+    this.focusPoint(findFirstPointInSeries(point));
+  }
+
+  private moveToLastInSeries(point: Highcharts.Point) {
+    this.focusPoint(findLastPointInSeries(point));
+  }
+
+  private moveToNextInSeries(point: Highcharts.Point) {
+    this.focusPoint(findNextPointInSeries(point));
+  }
+
+  private moveToPrevInSeries(point: Highcharts.Point) {
+    this.focusPoint(findPrevPointInSeries(point));
+  }
+
+  private activateGroup(point: Highcharts.Point) {
+    this.handlers.onActivateGroup(point);
+  }
+
+  private activatePoint(point: Highcharts.Point) {
+    this.handlers.onActivatePoint(point);
+  }
+
+  private focusCurrent() {
+    if (!this.focusedState || this.focusedState.type === "chart") {
+      this.focusChart();
+    } else if (this.focusedState.type === "group") {
+      this.focusGroup(findMatchingGroup(this.focusedState.point));
+    } else {
+      this.focusPoint(this.focusedState.point);
+    }
+  }
 
   private focusChart = () => {
+    this.focusedState = { type: "chart" };
     this.safe.focusOutline.showChartOutline();
+    this.handlers.onFocusChart();
   };
 
-  private focusNextX = (direction: -1 | 0 | 1) => {
-    if (this.safe.chart.series.some((s) => s.type === "pie")) {
-      this.focusedPoint = this.focusedPoint
-        ? findNextPointByX(this.focusedPoint, direction === 0 ? 1 : direction)
-        : findFirstPoint(this.safe.chart, direction === 0 ? 1 : direction);
-      return this.focusNextY(0);
+  private focusGroup(group: Highcharts.Point[]) {
+    if (group.length === 0) {
+      this.focusChart();
+    } else if (group[0].series.type === "pie") {
+      this.focusPoint(group[0]);
+    } else {
+      this.focusedState = { type: "group", point: group[0] };
+      this.safe.focusOutline.showXOutline(getGroupRect(group));
+      this.handlers.onFocusGroup(group[0]);
     }
-    if (direction === 0 && this.focusedPoint) {
-      this.focusedX = this.focusedPoint.x;
-    }
-    if (direction === -1 || direction === 1) {
-      this.focusedPoint = this.focusedPoint
-        ? findNextPointByX(this.focusedPoint, direction)
-        : findFirstPoint(this.safe.chart, direction);
-      this.focusedX = this.focusedPoint.x;
-    }
-    if (this.focusedPoint) {
-      const matchedPoints = findMatchedPointsByX(this.focusedPoint.series.chart.series, this.focusedPoint.x);
-      this.safe.focusOutline.showXOutline(getGroupRect(matchedPoints));
-      this.handlers.onFocusX(this.focusedPoint);
-    }
-  };
+  }
 
-  private focusNextY = (direction: -1 | 0 | 1) => {
-    if (direction === 0 && this.focusedX !== null) {
-      const matched = findMatchedPointsByX(this.safe.chart.series, this.focusedX);
-      this.focusedPoint = matched[0];
+  private focusPoint(point?: null | Highcharts.Point) {
+    if (point) {
+      this.focusedState = { type: "point", point };
+      this.safe.focusOutline.showPointOutline(getPointRect(point));
+      this.handlers.onFocusPoint(point);
+    } else {
+      this.focusChart();
     }
-    if ((direction === -1 || direction === 1) && this.focusedPoint) {
-      const matched = findMatchedPointsByX(this.safe.chart.series, this.focusedPoint.x);
-      const index = matched.indexOf(this.focusedPoint);
-      const nextIndex = circleIndex(index + direction, [0, matched.length - 1]);
-      this.focusedPoint = matched[nextIndex];
-    }
-    if (this.focusedPoint) {
-      this.focusedX = null;
-      this.safe.focusOutline.showPointOutline(getPointRect(this.focusedPoint));
-      this.handlers.onFocusPoint(this.focusedPoint);
-    }
-  };
-
-  private focusNextPoint = (direction: -1 | 1) => {
-    if (this.focusedPoint) {
-      this.focusedPoint = findNextPointInSeriesByX(this.focusedPoint, direction);
-      this.safe.focusOutline.showPointOutline(getPointRect(this.focusedPoint));
-      this.handlers.onFocusPoint(this.focusedPoint);
-    }
-  };
+  }
 }
 
 class FocusOutline {

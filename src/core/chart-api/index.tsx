@@ -166,28 +166,22 @@ export class ChartAPI {
   }
 
   private get navigationHandlers(): NavigationControllerHandlers {
-    return {
-      onFocusPoint: (point: Highcharts.Point) => {
-        point.onMouseOver();
-      },
-      onFocusX: (point: Highcharts.Point) => {
-        point.onMouseOver();
-      },
-      onBlur: () => {
-        this.clearChartHighlight();
-        for (const s of this.safe.chart.series) {
-          s.setState("normal");
-          for (const d of s.data) {
-            d.setState("normal");
-          }
+    const clearHighlight = () => {
+      this.clearChartHighlight();
+      for (const s of this.safe.chart.series) {
+        s.setState("normal");
+        for (const d of s.data) {
+          d.setState("normal");
         }
-      },
-      onActivatePoint: () => {
-        this._store.setTooltip({ visible: true, pinned: true });
-      },
-      onActivateX: () => {
-        this._store.setTooltip({ visible: true, pinned: true });
-      },
+      }
+    };
+    return {
+      onFocusChart: () => clearHighlight(),
+      onFocusPoint: (point: Highcharts.Point) => point.onMouseOver(),
+      onFocusGroup: (point: Highcharts.Point) => point.onMouseOver(),
+      onBlur: () => clearHighlight(),
+      onActivatePoint: () => this._store.setTooltip({ visible: true, pinned: true }),
+      onActivateGroup: () => this._store.setTooltip({ visible: true, pinned: true }),
     };
   }
 

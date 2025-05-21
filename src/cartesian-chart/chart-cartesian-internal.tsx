@@ -59,6 +59,7 @@ export const InternalCartesianChart = forwardRef(
     // Cartesian chart imperative API.
     useImperativeHandle(ref, () => ({
       setVisibleSeries: setVisibleSeries,
+      showAllSeries: () => setVisibleSeries(allSeriesIds),
     }));
 
     // Merging Highcharts options defined by the component and those provided explicitly as `options`, the latter has

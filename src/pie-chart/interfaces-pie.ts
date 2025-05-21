@@ -61,6 +61,7 @@ export namespace PieChartProps {
     // Controls segments visibility that works with both controlled and uncontrolled visibility mode.
     // This is useful to clear selected segments from no-match state.
     setVisibleSegments(visibleSegments: readonly string[]): void;
+    showAllSegments(): void;
   }
 
   export type SeriesOptions = PieSeriesOptions | DonutSeriesOptions;

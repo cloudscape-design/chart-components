@@ -107,8 +107,8 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
   const cartesianChartRef = useRef<CartesianChartProps.Ref>(null);
   const pieChartRef = useRef<PieChartProps.Ref>(null);
   const onClearFilter = () => {
-    cartesianChartRef.current?.setVisibleSeries([]);
-    pieChartRef.current?.setVisibleSegments([]);
+    cartesianChartRef.current?.showAllSeries();
+    pieChartRef.current?.showAllSegments();
   };
   const highcharts = settings.useFallback ? null : highchartsLib;
   const noData: CartesianChartProps.NoDataOptions | PieChartProps.NoDataOptions = {

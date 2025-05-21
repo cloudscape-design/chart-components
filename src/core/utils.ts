@@ -311,29 +311,63 @@ export function findMatchedPointsByX(series: Highcharts.Series[], x: number) {
   return matchedPoints;
 }
 
-export function findFirstPoint(chart: Highcharts.Chart, direction: -1 | 1): Highcharts.Point {
-  const allX = findAllX(chart);
-  const nextIndex = direction === 1 ? 0 : allX.length - 1;
-  const nextX = allX[nextIndex];
-  const nextPoint = findMatchedPointsByX(chart.series, nextX)[0];
-  return nextPoint;
+export function findMatchingGroup(point: Highcharts.Point) {
+  return findMatchedPointsByX(point.series.chart.series, point.x);
 }
 
-export function findNextPointByX(point: Highcharts.Point, direction: -1 | 1): Highcharts.Point {
+export function findFirstGroup(chart: Highcharts.Chart): Highcharts.Point[] {
+  const nextX = findAllX(chart)[0];
+  return findMatchedPointsByX(chart.series, nextX);
+}
+
+export function findLastGroup(chart: Highcharts.Chart): Highcharts.Point[] {
+  const allX = findAllX(chart);
+  const nextX = allX[allX.length - 1];
+  return findMatchedPointsByX(chart.series, nextX);
+}
+
+export function findNextGroup(point: Highcharts.Point): Highcharts.Point[] {
   const allX = findAllX(point.series.chart);
   const pointIndex = allX.indexOf(point.x);
-  const nextIndex = circleIndex(pointIndex + direction, [0, allX.length - 1]);
+  const nextIndex = circleIndex(pointIndex + 1, [0, allX.length - 1]);
   const nextX = allX[nextIndex];
-  const nextPoint = findMatchedPointsByX(point.series.chart.series, nextX)[0];
-  return nextPoint;
+  return findMatchedPointsByX(point.series.chart.series, nextX);
 }
 
-export function findNextPointInSeriesByX(point: Highcharts.Point, direction: -1 | 1): Highcharts.Point {
+export function findPrevGroup(point: Highcharts.Point): Highcharts.Point[] {
+  const allX = findAllX(point.series.chart);
+  const pointIndex = allX.indexOf(point.x);
+  const nextIndex = circleIndex(pointIndex - 1, [0, allX.length - 1]);
+  const nextX = allX[nextIndex];
+  return findMatchedPointsByX(point.series.chart.series, nextX);
+}
+
+export function findFirstPointInSeries(point: Highcharts.Point): null | Highcharts.Point {
+  const seriesX = findAllXInSeries(point.series);
+  const nextX = seriesX[0];
+  return point.series.data.find((d) => d.x === nextX) ?? null;
+}
+
+export function findLastPointInSeries(point: Highcharts.Point): null | Highcharts.Point {
+  const seriesX = findAllXInSeries(point.series);
+  const nextX = seriesX[seriesX.length - 1];
+  return point.series.data.find((d) => d.x === nextX) ?? null;
+}
+
+export function findNextPointInSeries(point: Highcharts.Point): null | Highcharts.Point {
   const seriesX = findAllXInSeries(point.series);
   const pointIndex = seriesX.indexOf(point.x);
-  const nextIndex = circleIndex(pointIndex + direction, [0, seriesX.length - 1]);
+  const nextIndex = circleIndex(pointIndex + 1, [0, seriesX.length - 1]);
   const nextX = seriesX[nextIndex];
-  return point.series.data.find((d) => d.x === nextX)!;
+  return point.series.data.find((d) => d.x === nextX) ?? null;
+}
+
+export function findPrevPointInSeries(point: Highcharts.Point): null | Highcharts.Point {
+  const seriesX = findAllXInSeries(point.series);
+  const pointIndex = seriesX.indexOf(point.x);
+  const nextIndex = circleIndex(pointIndex - 1, [0, seriesX.length - 1]);
+  const nextX = seriesX[nextIndex];
+  return point.series.data.find((d) => d.x === nextX) ?? null;
 }
 
 function findAllX(chart: Highcharts.Chart) {

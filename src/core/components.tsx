@@ -231,5 +231,5 @@ export function ChartFooter({ children }: { children: React.ReactNode }) {
 
 export function ChartFocusCapture({ keyboardNavigation, api }: { keyboardNavigation: boolean; api: ChartAPI }) {
   const isNoData = !!useSelector(api.store, (s) => s.noData.container);
-  return keyboardNavigation && !isNoData && <div ref={api.setFocusCapture} tabIndex={0}></div>;
+  return keyboardNavigation && !isNoData ? <div ref={api.setFocusCapture} tabIndex={0}></div> : null;
 }

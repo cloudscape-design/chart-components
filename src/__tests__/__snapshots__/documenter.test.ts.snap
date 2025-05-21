@@ -33,6 +33,11 @@ exports[`definition for cartesian-chart matches the snapshot > cartesian-chart 1
       ],
       "returnType": "void",
     },
+    {
+      "name": "showAllSeries",
+      "parameters": [],
+      "returnType": "void",
+    },
   ],
   "name": "CartesianChart",
   "properties": [
@@ -503,6 +508,11 @@ exports[`definition for pie-chart matches the snapshot > pie-chart 1`] = `
           "type": "ReadonlyArray<string>",
         },
       ],
+      "returnType": "void",
+    },
+    {
+      "name": "showAllSegments",
+      "parameters": [],
       "returnType": "void",
     },
   ],

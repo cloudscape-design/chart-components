@@ -72,6 +72,7 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
   // Pie chart imperative API.
   useImperativeHandle(ref, () => ({
     setVisibleSegments: setVisibleSegments,
+    showAllSegments: () => setVisibleSegments(allSegmentIds),
   }));
 
   // Render inner value and description for donut chart.

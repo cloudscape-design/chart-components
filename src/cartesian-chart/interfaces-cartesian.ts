@@ -117,6 +117,7 @@ export namespace CartesianChartProps {
     // Controls series visibility that works with both controlled and uncontrolled visibility mode.
     // This is useful to clear selected series from no-match state.
     setVisibleSeries(visibleSeries: readonly string[]): void;
+    showAllSeries(): void;
   }
 
   export type SeriesOptions =

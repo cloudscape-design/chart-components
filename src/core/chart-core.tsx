@@ -67,7 +67,7 @@ export function InternalCoreChart({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const rootRef = useMergeRefs(containerRef, __internalRootRef);
-  const isRtl = () => getIsRtl(__internalRootRef?.current);
+  const isRtl = () => getIsRtl(containerRef?.current);
 
   if (!highcharts) {
     return (
