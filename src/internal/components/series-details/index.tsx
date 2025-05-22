@@ -32,7 +32,7 @@ export interface ChartSeriesDetailItem extends ChartDetailPair {
   isDimmed?: boolean;
   subItems?: ReadonlyArray<ChartDetailPair>;
   expandableId?: string;
-  details: ReactNode;
+  details?: ReactNode;
 }
 export type ExpandedSeries = Set<string>;
 
@@ -187,6 +187,6 @@ function NonExpandableSeries({ itemKey, value, subItems, marker, details }: List
   );
 }
 
-function Details({ children }: { children: ReactNode }): ReactNode {
+function Details({ children }: { children: ReactNode }) {
   return children ? <div className={styles.details}>{children}</div> : null;
 }
