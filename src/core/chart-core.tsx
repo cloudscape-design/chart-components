@@ -16,8 +16,8 @@ import { castArray } from "../internal/utils/utils";
 import { useChartAPI } from "./chart-api";
 import { ChartContainer } from "./chart-container";
 import {
+  ChartApplication,
   ChartFilter,
-  ChartFocusCapture,
   ChartFooter,
   ChartHeader,
   ChartLegend,
@@ -267,7 +267,7 @@ export function InternalCoreChart({
           };
           return (
             <>
-              <ChartFocusCapture keyboardNavigation={keyboardNavigation} api={api} />
+              <ChartApplication keyboardNavigation={keyboardNavigation} api={api} />
               <HighchartsReact
                 highcharts={highcharts}
                 options={highchartsOptions}

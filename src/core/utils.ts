@@ -370,6 +370,20 @@ export function findPrevPointInSeries(point: Highcharts.Point): null | Highchart
   return point.series.data.find((d) => d.x === nextX) ?? null;
 }
 
+export function getPointAccessibleDescription(point: Highcharts.Point) {
+  if (
+    "accessibility" in point &&
+    typeof point.accessibility === "object" &&
+    point.accessibility &&
+    "valueDescription" in point.accessibility &&
+    typeof point.accessibility.valueDescription === "string"
+  ) {
+    return point.accessibility.valueDescription;
+  } else {
+    return "chart point";
+  }
+}
+
 function findAllX(chart: Highcharts.Chart) {
   const allX = new Set<number>();
   for (const s of chart.series) {

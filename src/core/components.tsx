@@ -229,7 +229,15 @@ export function ChartFooter({ children }: { children: React.ReactNode }) {
   return <div className={testClasses["chart-footer"]}>{children}</div>;
 }
 
-export function ChartFocusCapture({ keyboardNavigation, api }: { keyboardNavigation: boolean; api: ChartAPI }) {
+export function ChartApplication({ keyboardNavigation, api }: { keyboardNavigation: boolean; api: ChartAPI }) {
+  const ariaLabel = useSelector(api.store, (s) => s.chartLabel);
+  const liveAnnouncement = useSelector(api.store, (s) => s.liveAnnouncement);
   const isNoData = !!useSelector(api.store, (s) => s.noData.container);
-  return keyboardNavigation && !isNoData ? <div ref={api.setFocusCapture} tabIndex={0}></div> : null;
+  return keyboardNavigation && !isNoData ? (
+    <div ref={api.setApplication} tabIndex={0} role="application" aria-label={ariaLabel}>
+      <LiveRegion hidden={true} assertive={true}>
+        {liveAnnouncement}
+      </LiveRegion>
+    </div>
+  ) : null;
 }

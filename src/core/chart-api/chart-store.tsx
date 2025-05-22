@@ -14,6 +14,8 @@ export class ChartStore {
     legend: { items: [] },
     noData: { container: null, noMatch: false },
     axes: { verticalAxesTitles: [] },
+    chartLabel: "",
+    liveAnnouncement: "",
   });
   private markersCache = new Map<string, React.ReactNode>();
 
@@ -52,6 +54,14 @@ export class ChartStore {
     if (!isEqualArrays(currentTitles, nextTitles, (s1, s2) => s1 === s2)) {
       this.store.set((prev) => ({ ...prev, axes: { verticalAxesTitles: nextTitles } }));
     }
+  }
+
+  public setChartLabel(chartLabel: string) {
+    this.store.set((prev) => ({ ...prev, chartLabel }));
+  }
+
+  public setLiveAnnouncement(liveAnnouncement: string) {
+    this.store.set((prev) => ({ ...prev, liveAnnouncement }));
   }
 
   // The chart markers derive from type and color and are cached to avoid unnecessary renders,

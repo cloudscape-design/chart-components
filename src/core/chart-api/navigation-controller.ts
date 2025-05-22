@@ -54,7 +54,7 @@ export class NavigationController {
   private chart: null | Highcharts.Chart = null;
   private handlers: NavigationControllerHandlers;
   private focusOutline: null | FocusOutline = null;
-  private focusCaptureEl: null | HTMLElement = null;
+  private applicationEl: null | HTMLElement = null;
   private focusedState: null | FocusedState = null;
 
   constructor(handlers: NavigationControllerHandlers) {
@@ -73,29 +73,29 @@ export class NavigationController {
     return { chart: this.chart, focusOutline: this.focusOutline };
   }
 
-  // This function is used as React ref on the focus capture element, positioned right before the chart plot in the DOM.
+  // This function is used as React ref on the application element, positioned right before the chart plot in the DOM.
   // Once the element reference is obtained, we assign the required event listeners directly to the element.
   // That is done for simplicity to avoid passing React event handlers down to the element.
-  public setFocusCapture = (element: null | HTMLElement) => {
-    if (this.focusCaptureEl) {
-      this.focusCaptureEl.removeEventListener("focus", this.onFocus);
-      this.focusCaptureEl.removeEventListener("blur", this.onBlur);
-      this.focusCaptureEl.removeEventListener("keydown", this.onKeyDown);
+  public setApplication = (element: null | HTMLElement) => {
+    if (this.applicationEl) {
+      this.applicationEl.removeEventListener("focus", this.onFocus);
+      this.applicationEl.removeEventListener("blur", this.onBlur);
+      this.applicationEl.removeEventListener("keydown", this.onKeyDown);
     }
 
-    this.focusCaptureEl = element;
+    this.applicationEl = element;
 
-    if (this.focusCaptureEl) {
-      this.focusCaptureEl.addEventListener("focus", this.onFocus);
-      this.focusCaptureEl.addEventListener("blur", this.onBlur);
-      this.focusCaptureEl.addEventListener("keydown", this.onKeyDown);
+    if (this.applicationEl) {
+      this.applicationEl.addEventListener("focus", this.onFocus);
+      this.applicationEl.addEventListener("blur", this.onBlur);
+      this.applicationEl.addEventListener("keydown", this.onKeyDown);
     }
   };
 
-  // Casting focus to the capture element dispatches it to the previously focused element or the chart.
+  // Casting focus to the application element dispatches it to the previously focused element or the chart.
   // This is used to restore focus after the tooltip is dismissed.
-  public focusCapture() {
-    this.focusCaptureEl?.focus();
+  public focusApplication() {
+    this.applicationEl?.focus();
   }
 
   private onFocus = () => {

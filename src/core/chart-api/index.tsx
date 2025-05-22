@@ -26,6 +26,7 @@ import {
   findMatchedPointsByX,
   getChartLegendItems,
   getGroupRect,
+  getPointAccessibleDescription,
   getPointRect,
   getVerticalAxesTitles,
   highlightChartItems,
@@ -69,7 +70,7 @@ export function useChartAPI(context: ChartAPIContext) {
 }
 
 export class ChartAPI {
-  private chartId: string;
+  private readonly chartId: string;
   private getContext: () => ChartAPIContext;
   private _store = new ChartStore();
   private chart: null | Highcharts.Chart = null;
@@ -115,8 +116,8 @@ export class ChartAPI {
   public getTargetTrack = () => (this.targetTrack?.element ?? null) as null | SVGElement;
   public getGroupTrack = () => (this.groupTrack?.element ?? null) as null | SVGElement;
 
-  public setFocusCapture = (element: null | HTMLElement) => {
-    this.navigation?.setFocusCapture(element);
+  public setApplication = (element: null | HTMLElement) => {
+    this.navigation?.setApplication(element);
   };
 
   public get options() {
@@ -176,9 +177,18 @@ export class ChartAPI {
       }
     };
     return {
-      onFocusChart: () => clearHighlight(),
-      onFocusPoint: (point: Highcharts.Point) => point.onMouseOver(),
-      onFocusGroup: (point: Highcharts.Point) => point.onMouseOver(),
+      onFocusChart: () => {
+        clearHighlight();
+        this._store.setLiveAnnouncement("chart plot");
+      },
+      onFocusPoint: (point: Highcharts.Point) => {
+        point.onMouseOver();
+        this._store.setLiveAnnouncement(getPointAccessibleDescription(point));
+      },
+      onFocusGroup: (point: Highcharts.Point) => {
+        point.onMouseOver();
+        this._store.setLiveAnnouncement(getPointAccessibleDescription(point));
+      },
       onBlur: () => clearHighlight(),
       onActivatePoint: () => this._store.setTooltip({ visible: true, pinned: true }),
       onActivateGroup: () => this._store.setTooltip({ visible: true, pinned: true }),
@@ -234,7 +244,7 @@ export class ChartAPI {
           // If the last focused target is no longer around - the focus goes back to the first data point.
           this.safe.chart.series?.[0]?.data?.[0].graphic?.element.focus();
         } else {
-          this.navigation.focusCapture();
+          this.navigation.focusApplication();
         }
       }
     }
@@ -282,6 +292,13 @@ export class ChartAPI {
     this.initVerticalAxisTitles();
     this.initNoData();
     this.updateChartItemsVisibility(this.context.visibleItems);
+    this.initChartLabel();
+  };
+
+  private initChartLabel = () => {
+    const defaultLabel = this.chart?.container.querySelector("svg")?.getAttribute("aria-label");
+    const explicitLabel = this.chart?.options.lang?.accessibility?.chartContainerLabel;
+    this._store.setChartLabel(explicitLabel ?? defaultLabel ?? "");
   };
 
   private initLegend = () => {
