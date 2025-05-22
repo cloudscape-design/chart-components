@@ -318,8 +318,17 @@ export function findMatchedPointsByX(series: Highcharts.Series[], x: number) {
   return matchedPoints;
 }
 
-export function findMatchingGroup(point: Highcharts.Point) {
-  return findMatchedPointsByX(point.series.chart.series, point.x);
+export function findMatchingNavigationGroup(point: Highcharts.Point) {
+  const group = findMatchedPointsByX(point.series.chart.series, point.x);
+  return group.sort((a, b) => {
+    const ay = a.plotY === undefined || (a.series.type === "column" && !isSeriesStacked(a.series)) ? 0 : a.plotY;
+    const by = b.plotY === undefined || (b.series.type === "column" && !isSeriesStacked(b.series)) ? 0 : b.plotY;
+    return ay - by;
+  });
+}
+
+export function isSeriesStacked(series: Highcharts.Series) {
+  return (series.options as any).stacking === "normal";
 }
 
 export function findFirstGroup(chart: Highcharts.Chart): Highcharts.Point[] {

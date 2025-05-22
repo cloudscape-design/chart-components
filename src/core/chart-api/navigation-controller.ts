@@ -12,7 +12,7 @@ import {
   findFirstPointInSeries,
   findLastGroup,
   findLastPointInSeries,
-  findMatchingGroup,
+  findMatchingNavigationGroup,
   findNextGroup,
   findNextPointInSeries,
   findPrevGroup,
@@ -188,7 +188,7 @@ export class NavigationController {
   }
 
   private moveToParentGroup(point: Highcharts.Point) {
-    const group = findMatchingGroup(point);
+    const group = findMatchingNavigationGroup(point);
     if (group.length > 0 && group[0].series.type !== "pie") {
       this.focusGroup(group);
     } else {
@@ -201,23 +201,23 @@ export class NavigationController {
   }
 
   private moveToFirstInGroup(point: Highcharts.Point) {
-    const group = findMatchingGroup(point);
+    const group = findMatchingNavigationGroup(point);
     this.focusPoint(group[0]);
   }
 
   private moveToLastInGroup(point: Highcharts.Point) {
-    const group = findMatchingGroup(point);
+    const group = findMatchingNavigationGroup(point);
     this.focusPoint(group[group.length - 1]);
   }
 
   private moveToPrevInGroup(point: Highcharts.Point) {
-    const group = findMatchingGroup(point);
+    const group = findMatchingNavigationGroup(point);
     const pointIndex = group.indexOf(point);
     this.focusPoint(group[circleIndex(pointIndex - 1, [0, group.length - 1])]);
   }
 
   private moveToNextInGroup(point: Highcharts.Point) {
-    const group = findMatchingGroup(point);
+    const group = findMatchingNavigationGroup(point);
     const pointIndex = group.indexOf(point);
     this.focusPoint(group[circleIndex(pointIndex + 1, [0, group.length - 1])]);
   }
@@ -250,7 +250,7 @@ export class NavigationController {
     if (!this.focusedState || this.focusedState.type === "chart") {
       this.focusChart();
     } else if (this.focusedState.type === "group") {
-      this.focusGroup(findMatchingGroup(this.focusedState.point));
+      this.focusGroup(findMatchingNavigationGroup(this.focusedState.point));
     } else {
       this.focusPoint(this.focusedState.point);
     }
