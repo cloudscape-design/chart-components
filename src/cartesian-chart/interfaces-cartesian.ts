@@ -178,7 +178,7 @@ export namespace CartesianChartProps {
   export interface TooltipSeriesItem {
     x: number;
     y: number | null;
-    error?: { low: number; high: number; series: CartesianChartProps.ErrorBarSeriesOptions };
+    error?: { low: number; high: number };
     series: CartesianChartProps.SeriesOptions;
   }
 
