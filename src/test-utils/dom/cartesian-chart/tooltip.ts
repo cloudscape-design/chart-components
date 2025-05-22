@@ -22,6 +22,10 @@ export class SeriesDetailsSubItemWrapper extends ComponentWrapper {
   findValue(): ElementWrapper {
     return this.findByClassName(seriesDetailsTestClasses.value)!;
   }
+
+  findDetails(): ElementWrapper {
+    return this.findByClassName(seriesDetailsTestClasses.details)!;
+  }
 }
 
 export class SeriesDetailsItemWrapper extends SeriesDetailsSubItemWrapper {
