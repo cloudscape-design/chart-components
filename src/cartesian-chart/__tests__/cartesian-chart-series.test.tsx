@@ -16,8 +16,8 @@ const getChart = () => createWrapper().findChart("cartesian")!;
 const allSeries: CartesianChartProps.SeriesOptions[] = [
   { type: "area", name: "Area", data: [{ x: 1, y: 1 }], color: "1" },
   { type: "areaspline", name: "Area spline", data: [{ x: 1, y: 2 }], color: "2" },
-  { type: "column", name: "Column", data: [{ x: 1, y: 3 }], color: "3" },
-  { type: "errorbar", name: "Error bar", data: [{ x: 1, low: 4, high: 5 }], color: "4" },
+  { type: "column", name: "Column", data: [{ x: 1, y: 3 }], color: "3", id: "column" },
+  { type: "errorbar", name: "Error bar", data: [{ x: 1, low: 4, high: 5 }], color: "4", linkedTo: "column" },
   { type: "line", name: "Line", data: [{ x: 1, y: 6 }], color: "5" },
   { type: "scatter", name: "Scatter", data: [{ x: 1, y: 7 }], color: "6" },
   { type: "spline", name: "Spline", data: [{ x: 1, y: 8 }], color: "7" },
