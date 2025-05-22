@@ -100,7 +100,7 @@ const seriesFormatter: CartesianChartProps.TooltipOptions["series"] = ({ item })
         {item.y !== null ? moneyFormatter(item.y) : null}
       </Link>
     ),
-    error: item.error ? (
+    details: item.error ? (
       <Box fontSize="body-s" color="text-body-secondary">
         {moneyFormatter(item.error.low)} - {moneyFormatter(item.error.high)}*
       </Box>

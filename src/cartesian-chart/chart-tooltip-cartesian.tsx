@@ -57,7 +57,7 @@ export function useChartTooltipCartesian(props: {
         return {
           key: item.series.name,
           value: item.y !== null ? valueFormatter(item.y) : null,
-          error: item.error ? (
+          details: item.error ? (
             <Box fontSize="body-s" color="text-body-secondary">
               {valueFormatter(item.error.low)} - {valueFormatter(item.error.high)}
             </Box>
@@ -73,11 +73,11 @@ export function useChartTooltipCartesian(props: {
         subItems: formatted.subItems,
         expandableId: formatted.expandable ? item.series.name : undefined,
       });
-      if (formatted.error) {
+      if (formatted.details) {
         items.push({
           key: (
             <Box fontSize="body-s" color="text-body-secondary">
-              {formatted.error}
+              {formatted.details}
             </Box>
           ),
           value: " ",

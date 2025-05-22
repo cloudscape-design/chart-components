@@ -185,7 +185,7 @@ export namespace CartesianChartProps {
   export interface TooltipSeriesFormatted {
     key: React.ReactNode;
     value: React.ReactNode;
-    error?: React.ReactNode;
+    details?: React.ReactNode;
     expandable?: boolean;
     subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
   }
