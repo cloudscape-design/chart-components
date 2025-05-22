@@ -244,15 +244,27 @@ class HighlightCursor {
     );
     const getPointStyle = (targetPoint: Highcharts.Point) =>
       targetPoint !== point
-        ? { zIndex: 5, "stroke-width": 2, stroke: targetPoint.color, fill: colorBackgroundLayoutMain }
-        : { zIndex: 6, "stroke-width": 2, stroke: targetPoint.color, fill: targetPoint.color };
+        ? {
+            zIndex: 5,
+            "stroke-width": 2,
+            stroke: targetPoint.color,
+            fill: colorBackgroundLayoutMain,
+            style: "pointer-events: none",
+          }
+        : {
+            zIndex: 6,
+            "stroke-width": 2,
+            stroke: targetPoint.color,
+            fill: targetPoint.color,
+            style: "pointer-events: none",
+          };
 
     if (chart.inverted) {
       if (cursor) {
         this.refs.push(
           chart.renderer
             .rect(chart.plotLeft, target.y - target.width / 2, chart.plotWidth, 1)
-            .attr({ fill: Styles.colorChartCursor, zIndex: 5 })
+            .attr({ fill: Styles.colorChartCursor, zIndex: 5, style: "pointer-events: none" })
             .add(),
         );
       }
@@ -271,7 +283,7 @@ class HighlightCursor {
         this.refs.push(
           chart.renderer
             .rect(target.x + target.width / 2, chart.plotTop, 1, chart.plotHeight)
-            .attr({ fill: Styles.colorChartCursor, zIndex: 5 })
+            .attr({ fill: Styles.colorChartCursor, zIndex: 5, style: "pointer-events: none" })
             .add(),
         );
       }

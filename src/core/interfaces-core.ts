@@ -176,6 +176,7 @@ export interface ReactiveChartState {
     visible: boolean;
     pinned: boolean;
     point: null | Highcharts.Point;
+    group: null | Highcharts.Point[];
   };
   legend: {
     items: readonly ChartLegendItem[];

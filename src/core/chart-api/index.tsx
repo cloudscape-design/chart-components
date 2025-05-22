@@ -66,6 +66,9 @@ export function useChartAPI(context: ChartAPIContext) {
     }
   }, [api, visibleItemsIndex]);
 
+  // Run cleanup code when the component unmounts.
+  useEffect(() => () => api.cleanup(), [api]);
+
   return api;
 }
 
@@ -123,6 +126,9 @@ export class ChartAPI {
   public get options() {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const chartAPI = this;
+    const onChartLoad: Highcharts.ChartLoadCallbackFunction = function (this) {
+      this.container.addEventListener("mousemove", chartAPI.onChartMousemove);
+    };
     const onChartRender: Highcharts.ChartRenderCallbackFunction = function (this) {
       chartAPI.chart = this;
       chartAPI.navigation.init(this);
@@ -156,6 +162,7 @@ export class ChartAPI {
     const noData: Highcharts.NoDataOptions = { position: Styles.noDataPosition, useHTML: true };
     const langNoData = renderToStaticMarkup(<div style={Styles.noDataCss} id={this.noDataId}></div>);
     return {
+      onChartLoad,
       onChartRender,
       onChartClick,
       onSeriesPointMouseOver,
@@ -165,6 +172,10 @@ export class ChartAPI {
       langNoData,
     };
   }
+
+  public cleanup = () => {
+    this.chart?.container?.removeEventListener("mousemove", this.onChartMousemove);
+  };
 
   private get navigationHandlers(): NavigationControllerHandlers {
     const clearHighlight = () => {
@@ -190,8 +201,8 @@ export class ChartAPI {
         this._store.setLiveAnnouncement(getPointAccessibleDescription(point));
       },
       onBlur: () => clearHighlight(),
-      onActivatePoint: () => this._store.setTooltip({ visible: true, pinned: true }),
-      onActivateGroup: () => this._store.setTooltip({ visible: true, pinned: true }),
+      onActivatePoint: () => this._store.pinTooltip(),
+      onActivateGroup: () => this._store.pinTooltip(),
     };
   }
 
@@ -226,7 +237,7 @@ export class ChartAPI {
     if (!this.store.get().tooltip.pinned) {
       this.mouseLeaveCall.call(() => {
         this.clearHighlightActions();
-        this._store.setTooltip({ visible: false, pinned: false });
+        this._store.hideTooltip();
       }, MOUSE_LEAVE_DELAY);
     }
     this.tooltipHovered = false;
@@ -235,7 +246,7 @@ export class ChartAPI {
   public onDismissTooltip = (outsideClick?: boolean) => {
     if (this.store.get().tooltip.pinned) {
       this.lastDismissTime = new Date().getTime();
-      this._store.setTooltip({ visible: false, pinned: false });
+      this._store.hideTooltip();
       // Selecting the point on which the popover was pinned to bring focus back to it when the popover is dismissed.
       // This is unless the popover was dismissed by an outside click, in which case the focus should stay on the click target.
       if (!outsideClick) {
@@ -247,6 +258,19 @@ export class ChartAPI {
           this.navigation.focusApplication();
         }
       }
+    }
+  };
+
+  public onChartMousemove = (event: MouseEvent) => {
+    const normalized = this.safe.chart.pointer.normalize(event);
+    const plotX = normalized.chartX - this.safe.chart.plotLeft;
+    const plotY = normalized.chartY - this.safe.chart.plotTop;
+    if (plotX >= 0 && plotX <= this.safe.chart.plotWidth && plotY >= 0 && plotY <= this.safe.chart.plotHeight) {
+      console.log("move", plotX, plotY);
+      // do nothing if a point is highlighted
+      // otherwise, trigger a group tooltip state if at least one point is in close proximity on x-axis
+      // handle group tooltip state
+      // do similar changes to keyboard nav
     }
   };
 
@@ -262,7 +286,7 @@ export class ChartAPI {
     this.mouseLeaveCall.cancelPrevious();
 
     this.highlightActions(point);
-    this._store.setTooltip({ visible: true, pinned: false, point });
+    this._store.setTooltipPoint(point);
   };
 
   public clearChartHighlight = () => {
@@ -276,7 +300,7 @@ export class ChartAPI {
           return;
         }
         this.clearHighlightActions();
-        this._store.setTooltip({ visible: false, pinned: false });
+        this._store.hideTooltip();
       }, MOUSE_LEAVE_DELAY);
     }
   };
@@ -344,11 +368,15 @@ export class ChartAPI {
     const prevPoint = this.store.get().tooltip.point;
     if (point && point.x !== prevPoint?.x && point.y !== prevPoint?.y) {
       this.highlightActions(point);
-      this._store.setTooltip({ visible: true, pinned: false, point: point ?? prevPoint });
+      this._store.setTooltipPoint(point ?? prevPoint);
     }
     // If the click point is missing or matches the current position and it wasn't recently dismissed - it is pinned in this position.
     else if (new Date().getTime() - this.lastDismissTime > LAST_DISMISS_DELAY) {
-      this._store.setTooltip({ visible: true, pinned: true, point: point ?? prevPoint });
+      const nextPoint = point ?? prevPoint;
+      if (nextPoint) {
+        this._store.setTooltipPoint(nextPoint);
+        this._store.pinTooltip();
+      }
     }
   };
 

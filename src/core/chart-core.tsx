@@ -133,6 +133,10 @@ export function InternalCoreChart({
               // If the event callbacks are present in the given options - we execute them, too.
               events: {
                 ...options.chart?.events,
+                load(event) {
+                  api.options.onChartLoad.call(this, event);
+                  return options.chart?.events?.load?.call(this, event);
+                },
                 render(event) {
                   resetColorCounter(this, options.series?.length ?? 0);
                   api.options.onChartRender.call(this, event);

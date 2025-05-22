@@ -123,6 +123,10 @@ export const InternalCartesianChart = forwardRef(
       tooltip,
       plotOptions: {
         ...options.plotOptions,
+        series: {
+          stickyTracking: false,
+          ...options.plotOptions?.series,
+        },
         line: {
           ...options.plotOptions?.line,
           marker: { ...Styles.defaultMarker, ...options.plotOptions?.line?.marker },
