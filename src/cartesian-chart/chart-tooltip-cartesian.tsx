@@ -4,7 +4,6 @@
 import { useRef, useState } from "react";
 import type Highcharts from "highcharts";
 
-import Box from "@cloudscape-design/components/box";
 import { colorBackgroundLayoutMain } from "@cloudscape-design/design-tokens";
 
 import { CoreChartProps, Rect } from "../core/interfaces-core";
@@ -57,11 +56,7 @@ export function useChartTooltipCartesian(props: {
         return {
           key: item.series.name,
           value: item.y !== null ? valueFormatter(item.y) : null,
-          details: item.error ? (
-            <Box fontSize="body-s" color="text-body-secondary">
-              {valueFormatter(item.error.low)} - {valueFormatter(item.error.high)}
-            </Box>
-          ) : null,
+          details: item.error ? `${valueFormatter(item.error.low)} - ${valueFormatter(item.error.high)}` : null,
         };
       })();
 
@@ -72,17 +67,8 @@ export function useChartTooltipCartesian(props: {
         marker: getSeriesMarker(item.series),
         subItems: formatted.subItems,
         expandableId: formatted.expandable ? item.series.name : undefined,
+        details: formatted.details,
       });
-      if (formatted.details) {
-        items.push({
-          key: (
-            <Box fontSize="body-s" color="text-body-secondary">
-              {formatted.details}
-            </Box>
-          ),
-          value: " ",
-        });
-      }
       return items;
     });
 

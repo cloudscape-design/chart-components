@@ -1,7 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import Box from "@cloudscape-design/components/box";
 import Checkbox from "@cloudscape-design/components/checkbox";
 import ColumnLayout from "@cloudscape-design/components/column-layout";
 import FormField from "@cloudscape-design/components/form-field";
@@ -100,11 +99,7 @@ const seriesFormatter: CartesianChartProps.TooltipOptions["series"] = ({ item })
         {item.y !== null ? moneyFormatter(item.y) : null}
       </Link>
     ),
-    details: item.error ? (
-      <Box fontSize="body-s" color="text-body-secondary">
-        {moneyFormatter(item.error.low)} - {moneyFormatter(item.error.high)}*
-      </Box>
-    ) : null,
+    details: item.error ? `${moneyFormatter(item.error.low)} - ${moneyFormatter(item.error.high)}*` : null,
   };
 };
 

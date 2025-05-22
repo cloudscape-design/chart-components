@@ -24,6 +24,7 @@ interface ListItemProps {
   value: ReactNode;
   subItems?: ReadonlyArray<ChartDetailPair>;
   marker?: React.ReactNode;
+  details?: ReactNode;
 }
 
 export interface ChartSeriesDetailItem extends ChartDetailPair {
@@ -31,6 +32,7 @@ export interface ChartSeriesDetailItem extends ChartDetailPair {
   isDimmed?: boolean;
   subItems?: ReadonlyArray<ChartDetailPair>;
   expandableId?: string;
+  details: ReactNode;
 }
 export type ExpandedSeries = Set<string>;
 
@@ -71,7 +73,7 @@ function ChartSeriesDetails(
   return (
     <div {...baseProps} className={className} ref={mergedRef}>
       <ul className={clsx(styles.list, compactList && styles.compact)}>
-        {details.map(({ key, value, marker, isDimmed, subItems, expandableId }, index) => (
+        {details.map(({ key, value, marker, isDimmed, subItems, expandableId, details: extraDetails }, index) => (
           <li
             key={index}
             className={clsx({
@@ -87,12 +89,19 @@ function ChartSeriesDetails(
                 itemKey={key}
                 value={value}
                 marker={marker}
+                details={extraDetails}
                 subItems={subItems}
                 expanded={isExpanded(expandableId)}
                 setExpandedState={(state) => setExpandedState && setExpandedState(expandableId, state)}
               />
             ) : (
-              <NonExpandableSeries itemKey={key} value={value} marker={marker} subItems={subItems} />
+              <NonExpandableSeries
+                itemKey={key}
+                value={value}
+                marker={marker}
+                details={extraDetails}
+                subItems={subItems}
+              />
             )}
           </li>
         ))}
@@ -137,6 +146,7 @@ function ExpandableSeries({
   marker,
   expanded,
   setExpandedState,
+  details,
 }: ListItemProps &
   Required<Pick<ListItemProps, "subItems">> & {
     expanded: boolean;
@@ -155,12 +165,13 @@ function ExpandableSeries({
         >
           <SubItems items={subItems} expandable={true} expanded={expanded} />
         </InternalExpandableSection>
+        <Details>{details}</Details>
       </div>
     </div>
   );
 }
 
-function NonExpandableSeries({ itemKey, value, subItems, marker }: ListItemProps) {
+function NonExpandableSeries({ itemKey, value, subItems, marker, details }: ListItemProps) {
   return (
     <>
       <div className={clsx(styles["key-value-pair"], styles.announced)}>
@@ -171,6 +182,11 @@ function NonExpandableSeries({ itemKey, value, subItems, marker }: ListItemProps
         <span className={clsx(testClasses.value, styles.value)}>{value}</span>
       </div>
       {subItems && <SubItems items={subItems} />}
+      <Details>{details}</Details>
     </>
   );
+}
+
+function Details({ children }: { children: ReactNode }): ReactNode {
+  return children ? <div className={styles.details}>{children}</div> : null;
 }

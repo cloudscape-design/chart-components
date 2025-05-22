@@ -85,6 +85,12 @@ $font-weight-bold: cs.$font-weight-heading-s;
   }
 }
 
+.list-item .details {
+  color: cs.$color-text-body-secondary;
+  font-size: cs.$font-size-body-s;
+  margin-block-start: cs.$space-scaled-xxs;
+}
+
 .full-width {
   inline-size: 100%;
 }
