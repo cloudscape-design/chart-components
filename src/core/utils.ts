@@ -262,7 +262,14 @@ export function getPointRect(point: Highcharts.Point): Rect {
           height: box.height,
         };
   }
-  return { x: 0, y: 0, width: 0, height: 0 };
+  return chart.inverted
+    ? {
+        x: chart.plotWidth + chart.plotLeft - ((point.plotY ?? 0) + 1),
+        y: chart.plotHeight + chart.plotTop - ((point.plotX ?? 0) + 1),
+        width: 2,
+        height: 2,
+      }
+    : { x: chart.plotLeft + (point.plotX ?? 0) - 1, y: chart.plotTop + (point.plotY ?? 0) - 1, width: 2, height: 2 };
 }
 
 export function getErrorBarPointBox(point: Highcharts.Point) {
