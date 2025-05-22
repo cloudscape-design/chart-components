@@ -2,49 +2,21 @@
 // SPDX-License-Identifier: Apache-2.0
 import path from "node:path";
 
-import { documentComponents, documentTestUtils } from "@cloudscape-design/documenter";
+import { documentTestUtils, writeComponentsDocumentation } from "@cloudscape-design/documenter";
 
-import { dashCase, listPublicDirs, writeSourceFile } from "./utils.js";
+import { writeSourceFile } from "./utils.js";
 
-const publicDirs = listPublicDirs("src");
 const targetDir = "lib/components/internal/api-docs";
 
 componentDocs();
 testUtilDocs();
 
-function validatePublicFiles(definitionFiles) {
-  for (const publicDir of publicDirs) {
-    if (!definitionFiles.includes(publicDir)) {
-      throw new Error(`Directory src/${publicDir} does not have a corresponding API definition`);
-    }
-  }
-}
-
 function componentDocs() {
-  const definitions = documentComponents({
+  writeComponentsDocumentation({
+    outDir: path.join(targetDir, "components"),
     tsconfigPath: path.resolve("tsconfig.json"),
     publicFilesGlob: "src/*/index.tsx",
   });
-  const outDir = path.join(targetDir, "components");
-  const fileNames = definitions
-    .filter((definition) => {
-      const fileName = dashCase(definition.name);
-      if (!publicDirs.includes(fileName)) {
-        console.warn(`Excluded "${fileName}" from components definitions.`);
-        return false;
-      }
-      return true;
-    })
-    .map((definition) => {
-      const fileName = dashCase(definition.name);
-      writeSourceFile(path.join(outDir, fileName + ".js"), `module.exports = ${JSON.stringify(definition, null, 2)};`);
-      return fileName;
-    });
-  validatePublicFiles(fileNames);
-  const indexContent = `module.exports = {
-    ${fileNames.map((name) => `${JSON.stringify(name)}:require('./${name}')`).join(",\n")}
-  }`;
-  writeSourceFile(path.join(outDir, "index.js"), indexContent);
 }
 
 function testUtilDocs() {
