@@ -10,7 +10,7 @@ import "highcharts/highcharts-more";
 import "highcharts/modules/accessibility";
 import { HighchartsTestHelper } from "../../core/__tests__/highcharts-utils";
 import { renderCartesianChart } from "./common";
-import { getAllTooltipSeries, getTooltip, getTooltipFooter, getTooltipSeries } from "./tooltip-utils";
+import { getAllTooltipSeries, getTooltip, getTooltipSeries } from "./tooltip-utils";
 
 const hc = new HighchartsTestHelper(highcharts);
 
@@ -19,7 +19,7 @@ describe("CartesianChart: Error bars", () => {
     vi.resetAllMocks();
   });
 
-  test("renders error bar information in the tooltip by default", async () => {
+  test("renders error bar information in the tooltip", async () => {
     renderCartesianChart({
       highcharts,
       series: [
@@ -37,7 +37,33 @@ describe("CartesianChart: Error bars", () => {
     expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Column 1");
     expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("2");
     expect(getTooltipSeries(0).findDetails().getElement().textContent).toBe("1 - 3");
-    expect(getTooltipFooter()).toBe(null);
+  });
+
+  test("supports customization of the tooltip", async () => {
+    renderCartesianChart({
+      highcharts,
+      series: [
+        { type: "column", name: "Column 1", data: [2], id: "column-1" },
+        { type: "errorbar", name: "Column 2", data: [{ low: 1, high: 3 }], linkedTo: "column-1" },
+      ],
+      tooltip: {
+        series: ({ item }) => ({
+          key: `Custom key ${item.series.name}`,
+          value: `Custom value ${item.y}`,
+          details: `Custom details ${item.error?.low} - ${item.error?.high}`,
+        }),
+      },
+    });
+
+    act(() => hc.highlightChartPoint(0, 0));
+
+    await waitFor(() => {
+      expect(getTooltip()).not.toBe(null);
+    });
+    expect(getAllTooltipSeries()).toHaveLength(1);
+    expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Custom key Column 1");
+    expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("Custom value 2");
+    expect(getTooltipSeries(0).findDetails().getElement().textContent).toBe("Custom details 1 - 3");
   });
 
   test("issues a warning if linkedTo does not refer to an existing series id", () => {
