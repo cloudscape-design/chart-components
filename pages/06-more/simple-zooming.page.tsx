@@ -244,7 +244,8 @@ function Charts() {
             },
           },
         }}
-        getTooltipContent={({ point: { x } }) => {
+        getTooltipContent={({ group }) => {
+          const x = group[0].x;
           const header = dateFormatter(x);
           const details: ChartSeriesDetailItem[] = [];
           for (const s of getScatterChart().chart.series) {

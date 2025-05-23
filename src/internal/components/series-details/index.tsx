@@ -7,6 +7,7 @@ import clsx from "clsx";
 import { useMergeRefs } from "@cloudscape-design/component-toolkit/internal";
 import { BaseComponentProps } from "@cloudscape-design/components/internal/base-component";
 import { InternalExpandableSection } from "@cloudscape-design/components/internal/do-not-use/expandable-section";
+import { colorChartsThresholdNeutral } from "@cloudscape-design/design-tokens";
 
 import { getDataAttributes } from "../../base-component/get-data-attributes";
 import getSeriesDetailsText from "./series-details-text";
@@ -28,6 +29,7 @@ interface ListItemProps {
 }
 
 export interface ChartSeriesDetailItem extends ChartDetailPair {
+  selected?: boolean;
   marker?: React.ReactNode;
   isDimmed?: boolean;
   subItems?: ReadonlyArray<ChartDetailPair>;
@@ -73,38 +75,53 @@ function ChartSeriesDetails(
   return (
     <div {...baseProps} className={className} ref={mergedRef}>
       <ul className={clsx(styles.list, compactList && styles.compact)}>
-        {details.map(({ key, value, marker, isDimmed, subItems, expandableId, details: extraDetails }, index) => (
-          <li
-            key={index}
-            className={clsx({
-              [styles.dimmed]: isDimmed,
-              [styles["list-item"]]: true,
-              [testClasses["list-item"]]: true,
-              [styles["with-sub-items"]]: subItems?.length,
-              [styles.expandable]: !!expandableId,
-            })}
-          >
-            {subItems?.length && !!expandableId ? (
-              <ExpandableSeries
-                itemKey={key}
-                value={value}
-                marker={marker}
-                details={extraDetails}
-                subItems={subItems}
-                expanded={isExpanded(expandableId)}
-                setExpandedState={(state) => setExpandedState && setExpandedState(expandableId, state)}
-              />
-            ) : (
-              <NonExpandableSeries
-                itemKey={key}
-                value={value}
-                marker={marker}
-                details={extraDetails}
-                subItems={subItems}
-              />
-            )}
-          </li>
-        ))}
+        {details.map(
+          ({ key, value, marker, isDimmed, subItems, expandableId, details: extraDetails, selected }, index) => (
+            <li
+              key={index}
+              className={clsx({
+                [styles.dimmed]: isDimmed,
+                [styles["list-item"]]: true,
+                [testClasses["list-item"]]: true,
+                [styles["with-sub-items"]]: subItems?.length,
+                [styles.expandable]: !!expandableId,
+              })}
+            >
+              {selected ? (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 8,
+                    left: -6,
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    background: colorChartsThresholdNeutral,
+                  }}
+                ></div>
+              ) : null}
+              {subItems?.length && !!expandableId ? (
+                <ExpandableSeries
+                  itemKey={key}
+                  value={value}
+                  marker={marker}
+                  details={extraDetails}
+                  subItems={subItems}
+                  expanded={isExpanded(expandableId)}
+                  setExpandedState={(state) => setExpandedState && setExpandedState(expandableId, state)}
+                />
+              ) : (
+                <NonExpandableSeries
+                  itemKey={key}
+                  value={value}
+                  marker={marker}
+                  details={extraDetails}
+                  subItems={subItems}
+                />
+              )}
+            </li>
+          ),
+        )}
       </ul>
     </div>
   );

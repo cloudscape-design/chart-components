@@ -837,18 +837,15 @@ export function ExampleAreaChartStackedAreaChartMultipleMetrics() {
           footer: ({ x }) => {
             const total = findY(x as number, series[0])! + findY(x as number, series[1])!;
             return (
-              <>
-                <hr />
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <span>Total</span>
-                  <span>{numberFormatter(total)}</span>
-                </div>
-              </>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                }}
+              >
+                <span>Total</span>
+                <span>{numberFormatter(total)}</span>
+              </div>
             );
           },
         }}

@@ -27,6 +27,7 @@ $font-weight-bold: cs.$font-weight-heading-s;
 .list-item,
 .inner-list-item {
   list-style: none;
+  position: relative;
 }
 
 .inner-list-item,

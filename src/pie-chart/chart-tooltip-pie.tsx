@@ -17,6 +17,10 @@ export function useChartTooltipPie(props: {
   tooltip?: PieChartProps.TooltipOptions;
 }): Partial<CoreChartProps> {
   const getTooltipContent: CoreChartProps["getTooltipContent"] = ({ point }) => {
+    if (!point) {
+      return null;
+    }
+
     const tooltipDetails:
       | PieChartProps.TooltipHeaderRenderProps
       | PieChartProps.TooltipBodyRenderProps
@@ -43,11 +47,13 @@ export function useChartTooltipPie(props: {
     };
   };
 
-  const onPointHighlight: CoreChartProps["onPointHighlight"] = ({ point }) => {
-    return { pointRect: getPieChartTargetPlacement(point) };
+  const onTooltipVisible: CoreChartProps["onTooltipVisible"] = ({ point }) => {
+    if (point) {
+      return { pointRect: getPieChartTargetPlacement(point) };
+    }
   };
 
-  return { getTooltipContent, onPointHighlight };
+  return { getTooltipContent, onTooltipVisible };
 }
 
 function getPieChartTargetPlacement(point: Highcharts.Point): Rect {

@@ -178,7 +178,8 @@ function Charts() {
             },
           },
         }}
-        getTooltipContent={({ point: { x } }) => {
+        getTooltipContent={({ group }) => {
+          const x = group[0].x;
           const header = dateFormatter(x);
           const inAlarmState = inAlarmData.find(({ x: x1, x2 }) => x1 <= x && x <= x2);
           const inAlarm = inAlarmState?.color === red;

@@ -12,19 +12,21 @@ import { DebouncedCall } from "../../internal/utils/utils";
 import { ChartLegendItem } from "../interfaces-base";
 import {
   ChartLegendItemSpec,
-  PointHighlightProps,
-  PointHighlightResult,
   ReactiveChartState,
   Rect,
   RegisteredLegendAPI,
+  TooltipVisibleProps,
+  TooltipVisibleResult,
 } from "../interfaces-core";
 import * as Styles from "../styles";
 import {
   clearChartItemsHighlight,
   findAllSeriesWithData,
   findAllVisibleSeries,
-  findMatchedPointsByX,
+  findMatchingNavigationGroup,
+  getChartGroupRects,
   getChartLegendItems,
+  getGroupAccessibleDescription,
   getGroupRect,
   getPointAccessibleDescription,
   getPointRect,
@@ -46,7 +48,7 @@ interface ChartAPIContext {
   getMatchedLegendItems?(props: { point: Highcharts.Point }): readonly string[];
   onLegendItemsChange?: (legendItems: readonly ChartLegendItem[]) => void;
   isTooltipEnabled: boolean;
-  onPointHighlight?(props: PointHighlightProps): void | PointHighlightResult;
+  onTooltipVisible?(props: TooltipVisibleProps): void | TooltipVisibleResult;
   onClearHighlight?(): void;
   keyboardNavigation: boolean;
 }
@@ -84,6 +86,8 @@ export class ChartAPI {
   private targetTrack: null | Highcharts.SVGElement = null;
   private groupTrack: null | Highcharts.SVGElement = null;
   private registeredLegend: null | RegisteredLegendAPI = null;
+  private groupRects: { group: Highcharts.Point[]; rect: Rect }[] = [];
+  private matchedGroup: Highcharts.Point[] = [];
 
   constructor(chartId: string, getContext: () => ChartAPIContext) {
     this.chartId = chartId;
@@ -128,6 +132,7 @@ export class ChartAPI {
     const chartAPI = this;
     const onChartLoad: Highcharts.ChartLoadCallbackFunction = function (this) {
       this.container.addEventListener("mousemove", chartAPI.onChartMousemove);
+      this.container.addEventListener("mouseout", chartAPI.onChartMouseout);
     };
     const onChartRender: Highcharts.ChartRenderCallbackFunction = function (this) {
       chartAPI.chart = this;
@@ -175,11 +180,11 @@ export class ChartAPI {
 
   public cleanup = () => {
     this.chart?.container?.removeEventListener("mousemove", this.onChartMousemove);
+    this.chart?.container?.removeEventListener("mouseout", this.onChartMouseout);
   };
 
   private get navigationHandlers(): NavigationControllerHandlers {
-    const clearHighlight = () => {
-      this.clearChartHighlight();
+    const clearHighlightState = () => {
       for (const s of this.safe.chart.series) {
         s.setState("normal");
         for (const d of s.data) {
@@ -187,18 +192,33 @@ export class ChartAPI {
         }
       }
     };
+    const setHighlightState = (group: Highcharts.Point[]) => {
+      for (const s of this.safe.chart.series) {
+        s.setState("normal");
+        for (const d of s.data) {
+          d.setState(group.includes(d) ? "normal" : "inactive");
+        }
+      }
+    };
+    const clearHighlight = () => {
+      this.clearChartHighlight();
+      clearHighlightState();
+    };
     return {
       onFocusChart: () => {
         clearHighlight();
+        // TODO: i18n
         this._store.setLiveAnnouncement("chart plot");
       },
-      onFocusPoint: (point: Highcharts.Point) => {
-        point.onMouseOver();
+      onFocusPoint: (point: Highcharts.Point, group: Highcharts.Point[]) => {
+        setHighlightState(group);
+        this.highlightChartPoint(point);
         this._store.setLiveAnnouncement(getPointAccessibleDescription(point));
       },
-      onFocusGroup: (point: Highcharts.Point) => {
-        point.onMouseOver();
-        this._store.setLiveAnnouncement(getPointAccessibleDescription(point));
+      onFocusGroup: (group: Highcharts.Point[]) => {
+        setHighlightState(group);
+        this.highlightChartGroup(group);
+        this._store.setLiveAnnouncement(getGroupAccessibleDescription(group));
       },
       onBlur: () => clearHighlight(),
       onActivatePoint: () => this._store.pinTooltip(),
@@ -261,17 +281,67 @@ export class ChartAPI {
     }
   };
 
-  public onChartMousemove = (event: MouseEvent) => {
-    const normalized = this.safe.chart.pointer.normalize(event);
-    const plotX = normalized.chartX - this.safe.chart.plotLeft;
-    const plotY = normalized.chartY - this.safe.chart.plotTop;
-    if (plotX >= 0 && plotX <= this.safe.chart.plotWidth && plotY >= 0 && plotY <= this.safe.chart.plotHeight) {
-      console.log("move", plotX, plotY);
-      // do nothing if a point is highlighted
-      // otherwise, trigger a group tooltip state if at least one point is in close proximity on x-axis
-      // handle group tooltip state
-      // do similar changes to keyboard nav
+  private onChartMousemove = (event: MouseEvent) => {
+    if (!this.ready) {
+      return;
     }
+
+    const normalized = this.safe.chart.pointer.normalize(event);
+    const plotX = normalized.chartX;
+    const plotY = normalized.chartY;
+    const { plotLeft, plotTop, plotWidth, plotHeight } = this.safe.chart;
+
+    if (plotX >= plotLeft && plotX <= plotLeft + plotWidth && plotY >= plotTop && plotY <= plotTop + plotHeight) {
+      const tooltip = this.store.get().tooltip;
+      if (tooltip.point && tooltip.visible) {
+        return;
+      }
+
+      this.matchedGroup = [];
+      for (const { group, rect } of this.groupRects) {
+        if (rect.x <= plotX && plotX < rect.x + rect.width) {
+          this.matchedGroup = group;
+          break;
+        }
+      }
+
+      const current = this.store.get().tooltip;
+      if (this.matchedGroup.length > 0 && (!current.visible || current.point === null)) {
+        this.highlightChartGroup(this.matchedGroup);
+      }
+    }
+  };
+
+  private onChartMouseout = (event: MouseEvent) => {
+    if (this.context.isTooltipEnabled) {
+      const normalized = this.safe.chart.pointer.normalize(event);
+      const plotX = normalized.chartX;
+      const plotY = normalized.chartY;
+      const { plotLeft, plotTop, plotWidth, plotHeight } = this.safe.chart;
+
+      if (
+        plotX < plotLeft + 5 ||
+        plotX > plotLeft + plotWidth - 5 ||
+        plotY < plotTop + 5 ||
+        plotY > plotTop + plotHeight - 5
+      ) {
+        this.clearChartHighlight();
+      }
+    }
+  };
+
+  public highlightChartGroup = (group: Highcharts.Point[]) => {
+    this.updateSetters();
+
+    // The behavior is ignored if the tooltip is already shown and pinned.
+    if (this.store.get().tooltip.pinned) {
+      return false;
+    }
+    // If the target is hovered soon after the mouse-out was received, we cancel the mouse-out behavior to hide the tooltip.
+    this.mouseLeaveCall.cancelPrevious();
+
+    this.highlightActionsGroup(group);
+    this._store.setTooltipGroup(group);
   };
 
   // When hovering (or focusing) over the target (point, bar, segment, etc.) we show the tooltip in the target coordinate.
@@ -285,8 +355,8 @@ export class ChartAPI {
     // If the target is hovered soon after the mouse-out was received, we cancel the mouse-out behavior to hide the tooltip.
     this.mouseLeaveCall.cancelPrevious();
 
-    this.highlightActions(point);
-    this._store.setTooltipPoint(point);
+    this.highlightActionsPoint(point);
+    this._store.setTooltipPoint(point, findMatchingNavigationGroup(point));
   };
 
   public clearChartHighlight = () => {
@@ -317,6 +387,7 @@ export class ChartAPI {
     this.initNoData();
     this.updateChartItemsVisibility(this.context.visibleItems);
     this.initChartLabel();
+    this.initGroupRects();
   };
 
   private initChartLabel = () => {
@@ -324,6 +395,10 @@ export class ChartAPI {
     const explicitLabel = this.chart?.options.lang?.accessibility?.chartContainerLabel;
     this._store.setChartLabel(explicitLabel ?? defaultLabel ?? "");
   };
+
+  private initGroupRects() {
+    this.groupRects = getChartGroupRects(this.safe.chart);
+  }
 
   private initLegend = () => {
     const customLegendItems = this.context.getChartLegendItems?.({ chart: this.safe.chart });
@@ -360,23 +435,36 @@ export class ChartAPI {
 
   // When the plot is clicked we pin the popover in its current position.
   private onChartClick = (point: null | Highcharts.Point) => {
+    const current = this.store.get().tooltip;
+
     // The behavior is ignored if the popover is already pinned.
-    if (this.store.get().tooltip.pinned) {
+    if (current.pinned) {
       return;
     }
+
+    const currentPosX = current.point?.x ?? current.group[0]?.x;
+    const currentPosY = current.point?.y ?? current.group[0]?.y;
+    const nextPosX = point ? point.x : this.matchedGroup[0]?.x;
+    const nextPosY = point ? point.y : this.matchedGroup[0]?.y;
+
     // If the click point is different from the current position - the tooltip is moved to the new position.
-    const prevPoint = this.store.get().tooltip.point;
-    if (point && point.x !== prevPoint?.x && point.y !== prevPoint?.y) {
-      this.highlightActions(point);
-      this._store.setTooltipPoint(point ?? prevPoint);
+    if (nextPosX !== currentPosX || nextPosY !== currentPosY) {
+      if (point) {
+        this.highlightActionsPoint(point);
+        this._store.setTooltipPoint(point, findMatchingNavigationGroup(point));
+      } else {
+        this.highlightActionsGroup(this.matchedGroup);
+        this._store.setTooltipGroup(this.matchedGroup);
+      }
     }
     // If the click point is missing or matches the current position and it wasn't recently dismissed - it is pinned in this position.
     else if (new Date().getTime() - this.lastDismissTime > LAST_DISMISS_DELAY) {
-      const nextPoint = point ?? prevPoint;
-      if (nextPoint) {
-        this._store.setTooltipPoint(nextPoint);
-        this._store.pinTooltip();
+      if (point) {
+        this._store.setTooltipPoint(point, findMatchingNavigationGroup(point));
+      } else {
+        this._store.setTooltipGroup(this.matchedGroup);
       }
+      this._store.pinTooltip();
     }
   };
 
@@ -412,18 +500,38 @@ export class ChartAPI {
     }
   };
 
-  private highlightActions = (point: Highcharts.Point) => {
-    const matchedPoints = findMatchedPointsByX(point.series.chart.series, point.x);
+  private highlightActionsPoint = (point: Highcharts.Point) => {
+    const group = findMatchingNavigationGroup(point);
     const pointRect = getPointRect(point);
-    const groupRect = getGroupRect(matchedPoints);
-    const pointHighlightResult = this.context.onPointHighlight?.({ point, pointRect, groupRect });
+    const groupRect = getGroupRect(group);
+    const override = this.context.onTooltipVisible?.({ point, group, pointRect, groupRect });
     const customMatchedLegendItems = this.context.getMatchedLegendItems?.({ point });
     const matchedLegendItems = customMatchedLegendItems ?? matchLegendItems(this.store.get().legend.items, point);
     this.registeredLegend?.highlightItems(matchedLegendItems);
     this.destroyTracks();
     this.createTracks({
-      pointRect: pointHighlightResult?.pointRect ?? pointRect,
-      groupRect: pointHighlightResult?.groupRect ?? groupRect,
+      pointRect: override?.pointRect ?? pointRect,
+      groupRect: override?.groupRect ?? groupRect,
+    });
+  };
+
+  private highlightActionsGroup = (group: Highcharts.Point[]) => {
+    if (group.length === 0) {
+      return;
+    }
+    const pointRect = getPointRect(group[0]);
+    const groupRect = getGroupRect(group);
+    const override = this.context.onTooltipVisible?.({ point: null, group, pointRect, groupRect });
+    const matchedLegendItems = new Set<string>();
+    for (const point of group) {
+      const matched = matchLegendItems(this.store.get().legend.items, point);
+      matched.forEach((m) => matchedLegendItems.add(m));
+    }
+    this.registeredLegend?.highlightItems([...matchedLegendItems]);
+    this.destroyTracks();
+    this.createTracks({
+      pointRect: override?.pointRect ?? pointRect,
+      groupRect: override?.groupRect ?? groupRect,
     });
   };
 

@@ -62,14 +62,14 @@ export function ChartTooltip({
   size,
   api,
 }: ChartTooltipOptions & {
-  getTooltipContent?: (props: { point: Highcharts.Point }) => null | TooltipContent;
+  getTooltipContent?: (props: { point: null | Highcharts.Point; group: Highcharts.Point[] }) => null | TooltipContent;
   api: ChartAPI;
 }) {
   const tooltip = useSelector(api.store, (s) => s.tooltip);
-  if (!tooltip.visible || !tooltip.point) {
+  if (!tooltip.visible || tooltip.group.length === 0) {
     return null;
   }
-  const content = getTooltipContent?.({ point: tooltip.point });
+  const content = getTooltipContent?.({ point: tooltip.point, group: tooltip.group });
   if (!content) {
     return null;
   }
@@ -82,10 +82,11 @@ export function ChartTooltip({
       return orientation === "vertical" ? "bottom" : "right";
     }
   })();
+  const trackKey = `${tooltip.point ? "p" : "g"}_${tooltip.group.length}_${tooltip.group[0].x}_${tooltip.point?.y}`;
   return (
     <InternalChartTooltip
       getTrack={getTrack}
-      trackKey={tooltip.point.x + ":" + tooltip.point.y}
+      trackKey={trackKey}
       container={null}
       dismissButton={tooltip.pinned}
       onDismiss={api.onDismissTooltip}

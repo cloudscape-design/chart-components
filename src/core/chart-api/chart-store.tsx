@@ -10,7 +10,7 @@ import { InternalChartLegendItemSpec, ReactiveChartState } from "../interfaces-c
 // Handles reactive chart state the chart components can subscribe to.
 export class ChartStore {
   private store = new AsyncStore<ReactiveChartState>({
-    tooltip: { visible: false, pinned: false, point: null, group: null },
+    tooltip: { visible: false, pinned: false, point: null, group: [] },
     legend: { items: [] },
     noData: { container: null, noMatch: false },
     axes: { verticalAxesTitles: [] },
@@ -23,16 +23,12 @@ export class ChartStore {
   public subscribe = this.store.subscribe.bind(this.store);
   public unsubscribe = this.store.unsubscribe.bind(this.store);
 
-  public setTooltipPoint(point: Highcharts.Point) {
-    this.store.set((prev) => ({ ...prev, tooltip: { visible: true, pinned: false, point, group: null } }));
+  public setTooltipPoint(point: Highcharts.Point, matchingGroup: Highcharts.Point[]) {
+    this.store.set((prev) => ({ ...prev, tooltip: { visible: true, pinned: false, point, group: matchingGroup } }));
   }
 
   public setTooltipGroup(group: Highcharts.Point[]) {
-    const currentGroup = this.get().tooltip.group;
-    const nextGroup = group === undefined ? currentGroup : group;
-    if (!currentGroup || !nextGroup || !isEqualArrays(currentGroup, nextGroup, (a, b) => a.x === b.x)) {
-      this.store.set((prev) => ({ ...prev, tooltip: { visible: true, pinned: false, point: null, group } }));
-    }
+    this.store.set((prev) => ({ ...prev, tooltip: { visible: true, pinned: false, point: null, group } }));
   }
 
   public hideTooltip() {

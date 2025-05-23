@@ -59,3 +59,9 @@
     stroke: cs.$color-border-item-focused;
   }
 }
+
+:global {
+  .highcharts-grid-line {
+    pointer-events: none;
+  }
+}

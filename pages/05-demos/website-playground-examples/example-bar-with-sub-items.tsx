@@ -87,18 +87,15 @@ export function ExampleBarChartWithSubItems() {
           footer: ({ x }) => {
             const total = [131.29, 447.14, 271.74, 260.85, 253.5, 350.43][x as number];
             return (
-              <>
-                <hr />
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <span>Total</span>
-                  <span>{moneyFormatter(total)}</span>
-                </div>
-              </>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                }}
+              >
+                <span>Total</span>
+                <span>{moneyFormatter(total)}</span>
+              </div>
             );
           },
         }}

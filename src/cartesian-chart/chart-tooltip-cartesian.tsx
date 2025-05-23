@@ -8,7 +8,7 @@ import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
 import { colorBackgroundLayoutMain } from "@cloudscape-design/design-tokens";
 
 import { CoreChartProps, Rect } from "../core/interfaces-core";
-import { findMatchedPointsByX, getOptionsId, getSeriesColor, getSeriesId, getSeriesMarkerType } from "../core/utils";
+import { getOptionsId, getSeriesColor, getSeriesId, getSeriesMarkerType } from "../core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../internal/components/series-details";
 import { ChartSeriesMarker } from "../internal/components/series-marker";
 import { isXThreshold } from "./chart-series-cartesian";
@@ -31,8 +31,12 @@ export function useChartTooltipCartesian(props: {
   const cursorRef = useRef(new HighlightCursor());
   const chartRef = useRef<null | Highcharts.Chart>(null);
 
-  const getTooltipContent: CoreChartProps["getTooltipContent"] = ({ point }) => {
-    const chart = point.series.chart;
+  const getTooltipContent: CoreChartProps["getTooltipContent"] = ({ point, group }) => {
+    const x = group[0]?.x;
+    const chart = group[0]?.series.chart;
+    if (chart === undefined || x === undefined) {
+      return null;
+    }
 
     const seriesToChartSeries = new Map<InternalSeriesOptions, Highcharts.Series>();
     for (const s of series) {
@@ -46,7 +50,7 @@ export function useChartTooltipCartesian(props: {
       return <ChartSeriesMarker type={getSeriesMarkerType(hcSeries)} color={getSeriesColor(hcSeries)} />;
     };
 
-    const matchedItems = findTooltipSeriesItems(series, point);
+    const matchedItems = findTooltipSeriesItems(series, point, group);
 
     const detailItems: ChartSeriesDetailItem[] = matchedItems.flatMap((item) => {
       const yAxisProps = yAxis[0];
@@ -74,6 +78,7 @@ export function useChartTooltipCartesian(props: {
         subItems: formatted.subItems,
         expandableId: formatted.expandable ? item.series.name : undefined,
         details: formatted.details,
+        selected: item.x === point?.x && item.y === point?.y,
       });
       return items;
     });
@@ -87,25 +92,25 @@ export function useChartTooltipCartesian(props: {
       | CartesianChartProps.TooltipHeaderRenderProps
       | CartesianChartProps.TooltipBodyRenderProps
       | CartesianChartProps.TooltipFooterRenderProps = {
-      x: point.x,
+      x: x,
       items: matchedItems,
     };
 
     return {
-      header: props.tooltip?.header?.(slotRenderProps) ?? titleFormatter(point.x),
+      header: props.tooltip?.header?.(slotRenderProps) ?? titleFormatter(x),
       body: props.tooltip?.body?.(slotRenderProps) ?? (
         <ChartSeriesDetails
           details={detailItems}
-          expandedSeries={expandedSeries[point.x]}
+          expandedSeries={expandedSeries[x]}
           setExpandedState={(id, isExpanded) => {
             setExpandedSeries((oldState) => {
-              const expandedSeriesInCurrentCoordinate = new Set(oldState[point.x]);
+              const expandedSeriesInCurrentCoordinate = new Set(oldState[x]);
               if (isExpanded) {
                 expandedSeriesInCurrentCoordinate.add(id);
               } else {
                 expandedSeriesInCurrentCoordinate.delete(id);
               }
-              return { ...oldState, [point.x]: expandedSeriesInCurrentCoordinate };
+              return { ...oldState, [x]: expandedSeriesInCurrentCoordinate };
             });
           }}
         />
@@ -114,34 +119,35 @@ export function useChartTooltipCartesian(props: {
     };
   };
 
-  const onPointHighlight: CoreChartProps["onPointHighlight"] = ({ point, groupRect }) => {
-    chartRef.current = point.series.chart;
+  const onTooltipVisible: CoreChartProps["onTooltipVisible"] = ({ point, group, groupRect }) => {
+    const x = group[0].x;
+    const chart = group[0]?.series.chart;
+    if (chart === undefined || x === undefined) {
+      return;
+    }
+
+    chartRef.current = chart;
 
     // Highcharts highlights the entire series when the cursor lands on it. However, for column series
     // we want only a single column be highlighted. This is achieved by issuing inactive state for all columns series
     // with coordinates not matched the highlighted one.
     if (props.options.series.some((s) => s.type === "column")) {
-      for (const s of point.series.chart.series) {
+      for (const s of chart.series) {
         if (s.type === "column") {
-          setTimeout(() => {
-            s.setState("");
-          }, 0);
           for (const p of s.data) {
-            if (p.x !== point.x) {
-              p.setState("inactive");
-            }
+            p.setState(p.x === x ? "normal" : "inactive");
           }
         }
       }
     }
 
-    cursorRef.current.create(groupRect, point, !props.options.series.some((s) => s.type === "column"));
+    cursorRef.current.create(groupRect, point, group, !props.options.series.some((s) => s.type === "column"));
   };
 
   const onClearHighlight: CoreChartProps["onClearHighlight"] = () => {
     cursorRef.current?.destroy();
 
-    // Clear all column series point state overrides created in `onPointHighlight`.
+    // Clear all column series point state overrides created in `onTooltipVisible`.
     if (props.options.series.some((s) => s.type === "column")) {
       for (const s of chartRef.current?.series ?? []) {
         s.setState("normal");
@@ -154,18 +160,16 @@ export function useChartTooltipCartesian(props: {
 
   return {
     getTooltipContent,
-    onPointHighlight,
+    onTooltipVisible,
     onClearHighlight,
   };
 }
 
 function findTooltipSeriesItems(
   series: InternalSeriesOptions[],
-  targetPoint: Highcharts.Point,
+  point: null | Highcharts.Point,
+  group: Highcharts.Point[],
 ): CartesianChartProps.TooltipSeriesItem[] {
-  // Points with the same x as the targetPoint across all currently visible series
-  const matchedPoints = findMatchedPointsByX(targetPoint.series.chart.series, targetPoint.x);
-
   // For each series, create one new item that references it
   const seriesItems: CartesianChartProps.TooltipSeriesItem[] = series.map((s) => ({
     x: 0,
@@ -175,7 +179,7 @@ function findTooltipSeriesItems(
   const seriesItemsById = new Map(seriesItems.map((i) => [getOptionsId(i.series), i]));
   const matchedItems = new Set<CartesianChartProps.TooltipSeriesItem>();
 
-  for (const point of matchedPoints) {
+  for (const point of group) {
     if (point.series.type === "errorbar") {
       // Error bar point found for this point
       const linkedSeries = point.series.linkedParent;
@@ -219,10 +223,10 @@ function findTooltipSeriesItems(
   }
 
   function getClosestY(seriesItem: CartesianChartProps.TooltipSeriesItem, y: number) {
-    if (seriesItem.y === null || targetPoint.y === undefined) {
+    if (seriesItem.y === null || point?.y === undefined) {
       return y;
     }
-    return Math.abs(seriesItem.y - targetPoint.y) < Math.abs(y - targetPoint.y) ? seriesItem.y : y;
+    return Math.abs(seriesItem.y - point.y) < Math.abs(y - point.y) ? seriesItem.y : y;
   }
 
   return seriesItems.filter((item) => matchedItems.has(item));
@@ -231,15 +235,18 @@ function findTooltipSeriesItems(
 class HighlightCursor {
   private refs: Highcharts.SVGElement[] = [];
 
-  public create(target: Rect, point: Highcharts.Point, cursor = true) {
+  public create(target: Rect, point: null | Highcharts.Point, group: Highcharts.Point[], cursor = true) {
     this.destroy();
 
-    const chart = point.series.chart;
+    const chart = group[0]?.series.chart;
+    if (!chart) {
+      return;
+    }
 
     // The cursor (vertical or horizontal line to make the highlighted point better prominent) is only added for charts
     // that do not include "column" series. That is because the cursor is not necessary for columns, assuming the number of
     // x data points is not very high.
-    const matchedPoints = findMatchedPointsByX(chart.series, point.x).filter(
+    const matchedPoints = group.filter(
       (p) => !isXThreshold(p.series) && p.series.type !== "column" && p.series.type !== "errorbar",
     );
     const getPointStyle = (targetPoint: Highcharts.Point) =>

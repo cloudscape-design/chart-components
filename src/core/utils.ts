@@ -320,6 +320,10 @@ export function findMatchedPointsByX(series: Highcharts.Series[], x: number) {
 
 export function findMatchingNavigationGroup(point: Highcharts.Point) {
   const group = findMatchedPointsByX(point.series.chart.series, point.x);
+  return sortGroup(group);
+}
+
+export function sortGroup(group: Highcharts.Point[]) {
   return group.sort((a, b) => {
     const ay = a.plotY === undefined || (a.series.type === "column" && !isSeriesStacked(a.series)) ? 0 : a.plotY;
     const by = b.plotY === undefined || (b.series.type === "column" && !isSeriesStacked(b.series)) ? 0 : b.plotY;
@@ -333,13 +337,13 @@ export function isSeriesStacked(series: Highcharts.Series) {
 
 export function findFirstGroup(chart: Highcharts.Chart): Highcharts.Point[] {
   const nextX = findAllX(chart)[0];
-  return findMatchedPointsByX(chart.series, nextX);
+  return sortGroup(findMatchedPointsByX(chart.series, nextX));
 }
 
 export function findLastGroup(chart: Highcharts.Chart): Highcharts.Point[] {
   const allX = findAllX(chart);
   const nextX = allX[allX.length - 1];
-  return findMatchedPointsByX(chart.series, nextX);
+  return sortGroup(findMatchedPointsByX(chart.series, nextX));
 }
 
 export function findNextGroup(point: Highcharts.Point): Highcharts.Point[] {
@@ -347,7 +351,7 @@ export function findNextGroup(point: Highcharts.Point): Highcharts.Point[] {
   const pointIndex = allX.indexOf(point.x);
   const nextIndex = circleIndex(pointIndex + 1, [0, allX.length - 1]);
   const nextX = allX[nextIndex];
-  return findMatchedPointsByX(point.series.chart.series, nextX);
+  return sortGroup(findMatchedPointsByX(point.series.chart.series, nextX));
 }
 
 export function findPrevGroup(point: Highcharts.Point): Highcharts.Point[] {
@@ -355,7 +359,7 @@ export function findPrevGroup(point: Highcharts.Point): Highcharts.Point[] {
   const pointIndex = allX.indexOf(point.x);
   const nextIndex = circleIndex(pointIndex - 1, [0, allX.length - 1]);
   const nextX = allX[nextIndex];
-  return findMatchedPointsByX(point.series.chart.series, nextX);
+  return sortGroup(findMatchedPointsByX(point.series.chart.series, nextX));
 }
 
 export function findFirstPointInSeries(point: Highcharts.Point): null | Highcharts.Point {
@@ -386,6 +390,7 @@ export function findPrevPointInSeries(point: Highcharts.Point): null | Highchart
   return point.series.data.find((d) => d.x === nextX) ?? null;
 }
 
+// TODO: i18n
 export function getPointAccessibleDescription(point: Highcharts.Point) {
   if (
     "accessibility" in point &&
@@ -398,6 +403,17 @@ export function getPointAccessibleDescription(point: Highcharts.Point) {
   } else {
     return "chart point";
   }
+}
+
+// TODO: i18n and format x
+export function getGroupAccessibleDescription(group: Highcharts.Point[]) {
+  return `Group of ${group.length} points for x=${group[0]?.x}`;
+}
+
+export function getChartGroupRects(chart: Highcharts.Chart) {
+  const allX = findAllX(chart);
+  const groups = allX.map((x) => findMatchedPointsByX(chart.series, x));
+  return groups.map((group) => ({ rect: getGroupRect(group), group }));
 }
 
 function findAllX(chart: Highcharts.Chart) {

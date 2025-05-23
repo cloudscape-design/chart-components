@@ -99,11 +99,11 @@ export interface CoreChartProps
   /**
    * Called whenever chart tooltip is rendered to provide content for tooltip's header, body, and (optional) footer.
    */
-  getTooltipContent?(props: { point: Highcharts.Point }): null | TooltipContent;
+  getTooltipContent?(props: { point: null | Highcharts.Point; group: Highcharts.Point[] }): null | TooltipContent;
   /**
    * Called whenever chart point is highlighted and allows to specify custom tooltip target for the given point.
    */
-  onPointHighlight?(props: PointHighlightProps): void | PointHighlightResult;
+  onTooltipVisible?(props: TooltipVisibleProps): void | TooltipVisibleResult;
   /**
    * Called whenever chart point loses highlight.
    */
@@ -114,13 +114,14 @@ export interface CoreChartProps
   keyboardNavigation?: boolean;
 }
 
-export interface PointHighlightProps {
-  point: Highcharts.Point;
+export interface TooltipVisibleProps {
+  point: null | Highcharts.Point;
+  group: Highcharts.Point[];
   pointRect: Rect;
   groupRect: Rect;
 }
 
-export interface PointHighlightResult {
+export interface TooltipVisibleResult {
   pointRect?: Rect;
   groupRect?: Rect;
 }
@@ -176,7 +177,7 @@ export interface ReactiveChartState {
     visible: boolean;
     pinned: boolean;
     point: null | Highcharts.Point;
-    group: null | Highcharts.Point[];
+    group: Highcharts.Point[];
   };
   legend: {
     items: readonly ChartLegendItem[];
