@@ -187,7 +187,7 @@ function MixedChart({ inverted, errorSize, errorColor, customTooltipContent }: C
       {...chartProps.cartesian}
       chartHeight={CHART_HEIGHT}
       inverted={inverted}
-      ariaLabel="Mixed bar chart"
+      ariaLabel="Mixed chart"
       series={[
         ...getCostSeriesWithError({ errorColor, errorSize }),
         ...getLastYearCostsSeriesWithError({ errorColor, errorSize }),
