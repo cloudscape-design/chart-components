@@ -125,6 +125,12 @@ export default function () {
       }
     >
       <ColumnLayout columns={2}>
+        <PageSection title="Column chart">
+          <ColumnChart {...chartProps} />
+        </PageSection>
+        <PageSection title="Line chart">
+          <LineChart {...chartProps} />
+        </PageSection>
         <PageSection title="Mixed chart">
           <MixedChart {...chartProps} />
         </PageSection>
@@ -138,7 +144,7 @@ export default function () {
           <ScatterChart {...chartProps} />
         </PageSection>
         <PageSection title="Line chart with many series">
-          <LineChartManySeries {...chartProps} />
+          <LineChart {...chartProps} numberOfSeries={8} />
         </PageSection>
       </ColumnLayout>
     </Page>
@@ -156,6 +162,29 @@ const seriesFormatter: CartesianChartProps.TooltipOptions["series"] = ({ item })
     details: item.error ? `${moneyFormatter(item.error.low)} - ${moneyFormatter(item.error.high)}*` : null,
   };
 };
+
+function ColumnChart({ inverted, errorSize, errorColor, customTooltipContent }: ChartProps) {
+  const { chartProps } = useChartSettings({ more: true });
+  return (
+    <CartesianChart
+      {...chartProps.cartesian}
+      chartHeight={CHART_HEIGHT}
+      inverted={inverted}
+      ariaLabel="Column chart"
+      series={getCostSeriesWithError({ errorColor, errorSize })}
+      tooltip={
+        customTooltipContent
+          ? {
+              series: seriesFormatter,
+              footer: () => "*Error range",
+            }
+          : undefined
+      }
+      xAxis={{ type: "category", title: "Budget month", categories }}
+      yAxis={{ title: "Costs (USD)", valueFormatter: numberFormatter }}
+    />
+  );
+}
 
 function MixedChart({ inverted, errorSize, errorColor, customTooltipContent }: ChartProps) {
   const { chartProps } = useChartSettings({ more: true });
@@ -262,7 +291,13 @@ function ScatterChart({ inverted, errorSize, errorColor, customTooltipContent }:
   );
 }
 
-function LineChartManySeries({ inverted, errorSize, errorColor, customTooltipContent }: ChartProps) {
+function LineChart({
+  inverted,
+  errorSize,
+  errorColor,
+  customTooltipContent,
+  numberOfSeries = 3,
+}: ChartProps & { numberOfSeries?: number }) {
   const { chartProps } = useChartSettings({ more: true });
   const createSeries = (index: number) => {
     const data = costsData.map((y) => y + Math.floor(pseudoRandom() * 10000) - 5000);
@@ -286,16 +321,10 @@ function LineChartManySeries({ inverted, errorSize, errorColor, customTooltipCon
       chartHeight={CHART_HEIGHT}
       inverted={inverted}
       ariaLabel="Scatter chart"
-      series={[
-        createSeries(0),
-        createSeries(1),
-        createSeries(2),
-        createSeries(3),
-        createSeries(4),
-        createSeries(5),
-        createSeries(6),
-        createSeries(7),
-      ].flatMap((s) => s)}
+      series={new Array(numberOfSeries)
+        .fill(null)
+        .map((_, index) => createSeries(index))
+        .flatMap((s) => s)}
       tooltip={
         customTooltipContent
           ? {
