@@ -38,6 +38,51 @@ const costsErrorData = (size: number) => costsData.map((value) => ({ ...errorRan
 const costsLastYearData = [5373, 7563, 7900, 12342, 14311, 11830, 8505];
 const costsLastYearErrorData = (size: number) => costsLastYearData.map((value) => ({ ...errorRange(value, size / 2) }));
 
+const costsSeries = { id: "c", name: "Costs", type: "column", data: costsData } as const;
+const costsLastYearSeries = { id: "c-1", name: "Costs last year", type: "spline", data: costsLastYearData } as const;
+
+function getCostsErrorSeries({ errorSize, errorColor }: { errorSize: number; errorColor?: string }) {
+  return {
+    linkedTo: "c",
+    type: "errorbar",
+    color: errorColor,
+    data: costsErrorData(errorSize),
+  } as const;
+}
+
+function getLastYearCostsSeries({ errorSize, errorColor }: { errorSize: number; errorColor?: string }) {
+  return {
+    linkedTo: "c-1",
+    type: "errorbar",
+    color: errorColor,
+    data: costsLastYearErrorData(errorSize),
+  } as const;
+}
+
+function getCostSeriesWithError({
+  type = "column",
+  errorSize,
+  errorColor,
+}: {
+  errorSize: number;
+  errorColor?: string;
+  type?: "column" | "scatter";
+}) {
+  return [{ ...costsSeries, type }, getCostsErrorSeries({ errorColor, errorSize })];
+}
+
+function getLastYearCostsSeriesWithError({
+  type = "spline",
+  errorSize,
+  errorColor,
+}: {
+  errorSize: number;
+  errorColor?: string;
+  type?: "column" | "spline" | "scatter";
+}) {
+  return [{ ...costsLastYearSeries, type }, getLastYearCostsSeries({ errorColor, errorSize })];
+}
+
 export default function () {
   const { settings, setSettings } = useChartSettings<ThisPageSettings>();
   const chartProps = {
@@ -112,20 +157,8 @@ function MixedChart({ inverted, errorSize, errorColor }: ChartProps) {
       inverted={inverted}
       ariaLabel="Mixed bar chart"
       series={[
-        { id: "c", name: "Costs", type: "column", data: costsData },
-        { id: "c-1", name: "Costs last year", type: "spline", data: costsLastYearData },
-        {
-          linkedTo: "c",
-          type: "errorbar",
-          color: errorColor,
-          data: costsErrorData(errorSize),
-        },
-        {
-          linkedTo: "c-1",
-          type: "errorbar",
-          color: errorColor,
-          data: costsLastYearErrorData(errorSize),
-        },
+        ...getCostSeriesWithError({ errorColor, errorSize }),
+        ...getLastYearCostsSeriesWithError({ errorColor, errorSize }),
       ]}
       tooltip={{
         series: seriesFormatter,
@@ -146,20 +179,8 @@ function GroupedColumnChart({ inverted, errorSize, errorColor }: ChartProps) {
       inverted={inverted}
       ariaLabel="Grouped column chart"
       series={[
-        { id: "c", name: "Costs", type: "column", data: costsData },
-        { id: "c-1", name: "Costs last year", type: "column", data: costsLastYearData },
-        {
-          linkedTo: "c",
-          type: "errorbar",
-          color: errorColor,
-          data: costsErrorData(errorSize),
-        },
-        {
-          linkedTo: "c-1",
-          type: "errorbar",
-          color: errorColor,
-          data: costsLastYearErrorData(errorSize),
-        },
+        ...getCostSeriesWithError({ errorColor, errorSize }),
+        ...getLastYearCostsSeriesWithError({ errorColor, errorSize, type: "column" }),
       ]}
       tooltip={{
         series: seriesFormatter,
@@ -181,20 +202,8 @@ function StackedColumnChart({ inverted, errorSize, errorColor }: ChartProps) {
       ariaLabel="Stacked column chart"
       stacked={true}
       series={[
-        { id: "c", name: "Costs", type: "column", data: costsData },
-        { id: "c-1", name: "Costs last year", type: "column", data: costsLastYearData },
-        {
-          linkedTo: "c",
-          type: "errorbar",
-          color: errorColor,
-          data: costsErrorData(errorSize),
-        },
-        {
-          linkedTo: "c-1",
-          type: "errorbar",
-          color: errorColor,
-          data: costsLastYearErrorData(errorSize),
-        },
+        ...getCostSeriesWithError({ errorColor, errorSize }),
+        ...getLastYearCostsSeriesWithError({ errorColor, errorSize, type: "column" }),
       ]}
       tooltip={{ series: seriesFormatter }}
       xAxis={{ type: "category", title: "Budget month", categories }}
@@ -212,20 +221,8 @@ function ScatterChart({ inverted, errorSize, errorColor }: ChartProps) {
       inverted={inverted}
       ariaLabel="Scatter chart"
       series={[
-        { id: "c", name: "Costs", type: "scatter", data: costsData },
-        { id: "c-1", name: "Costs last year", type: "scatter", data: costsLastYearData },
-        {
-          linkedTo: "c",
-          type: "errorbar",
-          color: errorColor,
-          data: costsErrorData(errorSize),
-        },
-        {
-          linkedTo: "c-1",
-          type: "errorbar",
-          color: errorColor,
-          data: costsLastYearErrorData(errorSize),
-        },
+        ...getCostSeriesWithError({ errorColor, errorSize, type: "scatter" }),
+        ...getLastYearCostsSeriesWithError({ errorColor, errorSize, type: "scatter" }),
       ]}
       tooltip={{ series: seriesFormatter }}
       xAxis={{ type: "category", title: "Budget month", categories }}
