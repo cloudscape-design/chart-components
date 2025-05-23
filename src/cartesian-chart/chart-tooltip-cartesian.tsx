@@ -203,10 +203,7 @@ function findTooltipSeriesItems(
   }
 
   function addError(seriesItem: CartesianChartProps.TooltipSeriesItem, errorPoint: Highcharts.Point) {
-    const errorSeries = seriesItemsById.get(getSeriesId(errorPoint.series))?.series as
-      | undefined
-      | CartesianChartProps.ErrorBarSeriesOptions;
-    if (errorSeries && errorPoint.options.low !== undefined && errorPoint.options.high !== undefined) {
+    if (errorPoint.options.low !== undefined && errorPoint.options.high !== undefined) {
       seriesItem.error = { low: errorPoint.options.low, high: errorPoint.options.high };
     }
   }
