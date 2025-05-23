@@ -4,6 +4,7 @@
 import { useRef, useState } from "react";
 import type Highcharts from "highcharts";
 
+import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
 import { colorBackgroundLayoutMain } from "@cloudscape-design/design-tokens";
 
 import { CoreChartProps, Rect } from "../core/interfaces-core";
@@ -178,10 +179,19 @@ function findTooltipSeriesItems(
     if (point.series.type === "errorbar") {
       // Error bar point found for this point
       const linkedSeries = point.series.linkedParent;
-      const seriesItem = seriesItemsById.get(getSeriesId(linkedSeries));
-      if (seriesItem) {
-        addError(seriesItem, point);
-        matchedItems.add(seriesItem);
+      if (linkedSeries) {
+        const seriesItem = seriesItemsById.get(getSeriesId(linkedSeries));
+        if (seriesItem) {
+          addError(seriesItem, point);
+          matchedItems.add(seriesItem);
+        }
+      } else {
+        warnOnce(
+          "CartesianChart",
+          'Could not find the series that a series of type "errorbar" is linked to. ' +
+            "The error range will not be displayed in the tooltip out of the box. " +
+            'Make sure that the "linkedTo" property points to an existing series.',
+        );
       }
     } else {
       const seriesItem = seriesItemsById.get(getSeriesId(point.series));
