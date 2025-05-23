@@ -188,5 +188,5 @@ function NonExpandableSeries({ itemKey, value, subItems, marker, details }: List
 }
 
 function Details({ children }: { children: ReactNode }) {
-  return children ? <div className={styles.details}>{children}</div> : null;
+  return children ? <div className={clsx(testClasses.details, styles.details)}>{children}</div> : null;
 }
