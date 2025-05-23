@@ -121,7 +121,7 @@ function MixedChart({ inverted, errorSize, errorColor }: ChartProps) {
           data: costsErrorData(errorSize),
         },
         {
-          linkedTo: "c-12",
+          linkedTo: "c-1",
           type: "errorbar",
           color: errorColor,
           data: costsLastYearErrorData(errorSize),
