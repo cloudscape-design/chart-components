@@ -20,12 +20,14 @@ interface ThisPageSettings extends PageSettings {
   errorSize: number;
   errorColor?: string;
   inverted?: boolean;
+  customTooltipContent: boolean;
 }
 
 interface ChartProps {
   inverted: boolean;
   errorSize: number;
   errorColor?: string;
+  customTooltipContent: boolean;
 }
 
 function errorRange(value: number, delta: number) {
@@ -89,6 +91,7 @@ export default function () {
     inverted: settings.inverted ?? false,
     errorSize: settings.errorSize ?? 800,
     errorColor: settings.errorColor || undefined,
+    customTooltipContent: settings.customTooltipContent ?? false,
   };
   return (
     <Page
@@ -97,6 +100,12 @@ export default function () {
         <SpaceBetween size="m">
           <Checkbox checked={chartProps.inverted} onChange={({ detail }) => setSettings({ inverted: detail.checked })}>
             Invert chart
+          </Checkbox>
+          <Checkbox
+            checked={chartProps.customTooltipContent}
+            onChange={({ detail }) => setSettings({ customTooltipContent: detail.checked })}
+          >
+            Custom tooltip content
           </Checkbox>
           <FormField label="Error size">
             <Input
@@ -148,7 +157,7 @@ const seriesFormatter: CartesianChartProps.TooltipOptions["series"] = ({ item })
   };
 };
 
-function MixedChart({ inverted, errorSize, errorColor }: ChartProps) {
+function MixedChart({ inverted, errorSize, errorColor, customTooltipContent }: ChartProps) {
   const { chartProps } = useChartSettings({ more: true });
   return (
     <CartesianChart
@@ -160,17 +169,21 @@ function MixedChart({ inverted, errorSize, errorColor }: ChartProps) {
         ...getCostSeriesWithError({ errorColor, errorSize }),
         ...getLastYearCostsSeriesWithError({ errorColor, errorSize }),
       ]}
-      tooltip={{
-        series: seriesFormatter,
-        footer: () => "*Error range",
-      }}
+      tooltip={
+        customTooltipContent
+          ? {
+              series: seriesFormatter,
+              footer: () => "*Error range",
+            }
+          : undefined
+      }
       xAxis={{ type: "category", title: "Budget month", categories }}
       yAxis={{ title: "Costs (USD)", valueFormatter: numberFormatter }}
     />
   );
 }
 
-function GroupedColumnChart({ inverted, errorSize, errorColor }: ChartProps) {
+function GroupedColumnChart({ inverted, errorSize, errorColor, customTooltipContent }: ChartProps) {
   const { chartProps } = useChartSettings({ more: true });
   return (
     <CartesianChart
@@ -182,17 +195,21 @@ function GroupedColumnChart({ inverted, errorSize, errorColor }: ChartProps) {
         ...getCostSeriesWithError({ errorColor, errorSize }),
         ...getLastYearCostsSeriesWithError({ errorColor, errorSize, type: "column" }),
       ]}
-      tooltip={{
-        series: seriesFormatter,
-        footer: () => "*Error range",
-      }}
+      tooltip={
+        customTooltipContent
+          ? {
+              series: seriesFormatter,
+              footer: () => "*Error range",
+            }
+          : undefined
+      }
       xAxis={{ type: "category", title: "Budget month", categories }}
       yAxis={{ title: "Costs (USD)", valueFormatter: numberFormatter }}
     />
   );
 }
 
-function StackedColumnChart({ inverted, errorSize, errorColor }: ChartProps) {
+function StackedColumnChart({ inverted, errorSize, errorColor, customTooltipContent }: ChartProps) {
   const { chartProps } = useChartSettings({ more: true });
   return (
     <CartesianChart
@@ -205,14 +222,21 @@ function StackedColumnChart({ inverted, errorSize, errorColor }: ChartProps) {
         ...getCostSeriesWithError({ errorColor, errorSize }),
         ...getLastYearCostsSeriesWithError({ errorColor, errorSize, type: "column" }),
       ]}
-      tooltip={{ series: seriesFormatter }}
+      tooltip={
+        customTooltipContent
+          ? {
+              series: seriesFormatter,
+              footer: () => "*Error range",
+            }
+          : undefined
+      }
       xAxis={{ type: "category", title: "Budget month", categories }}
       yAxis={{ title: "Costs (USD)", valueFormatter: numberFormatter }}
     />
   );
 }
 
-function ScatterChart({ inverted, errorSize, errorColor }: ChartProps) {
+function ScatterChart({ inverted, errorSize, errorColor, customTooltipContent }: ChartProps) {
   const { chartProps } = useChartSettings({ more: true });
   return (
     <CartesianChart
@@ -224,14 +248,21 @@ function ScatterChart({ inverted, errorSize, errorColor }: ChartProps) {
         ...getCostSeriesWithError({ errorColor, errorSize, type: "scatter" }),
         ...getLastYearCostsSeriesWithError({ errorColor, errorSize, type: "scatter" }),
       ]}
-      tooltip={{ series: seriesFormatter }}
+      tooltip={
+        customTooltipContent
+          ? {
+              series: seriesFormatter,
+              footer: () => "*Error range",
+            }
+          : undefined
+      }
       xAxis={{ type: "category", title: "Budget month", categories }}
       yAxis={{ title: "Costs (USD)", valueFormatter: numberFormatter }}
     />
   );
 }
 
-function LineChartManySeries({ inverted, errorSize, errorColor }: ChartProps) {
+function LineChartManySeries({ inverted, errorSize, errorColor, customTooltipContent }: ChartProps) {
   const { chartProps } = useChartSettings({ more: true });
   const createSeries = (index: number) => {
     const data = costsData.map((y) => y + Math.floor(pseudoRandom() * 10000) - 5000);
@@ -265,7 +296,14 @@ function LineChartManySeries({ inverted, errorSize, errorColor }: ChartProps) {
         createSeries(6),
         createSeries(7),
       ].flatMap((s) => s)}
-      tooltip={{ series: seriesFormatter }}
+      tooltip={
+        customTooltipContent
+          ? {
+              series: seriesFormatter,
+              footer: () => "*Error range",
+            }
+          : undefined
+      }
       xAxis={{ type: "category", title: "Budget month", categories }}
       yAxis={{ title: "Costs (USD)", valueFormatter: numberFormatter }}
     />
