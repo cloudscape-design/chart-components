@@ -98,7 +98,7 @@ const seriesOld: LineChartProps<Date>["series"] = [
 
 export function ComponentNew({ headerFilter, legendFilter }: { headerFilter?: boolean; legendFilter?: boolean }) {
   const { chartProps } = useChartSettings();
-  const [visibleSeries, setVisibleSeries] = useState(seriesNew.map((s) => s.name));
+  const [visibleSeries, setVisibleSeries] = useState(seriesNew.map((s) => s.name!));
   return (
     <CartesianChart
       {...chartProps.cartesian}

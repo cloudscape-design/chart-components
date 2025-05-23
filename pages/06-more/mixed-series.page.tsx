@@ -10,7 +10,9 @@ interface ThisPageSettings extends PageSettings {
   selectedSeries: string;
 }
 
-const allSeries: CartesianChartProps.SeriesOptions[] = [
+type NonErrorBarSeriesOptions = Exclude<CartesianChartProps.SeriesOptions, CartesianChartProps.ErrorBarSeriesOptions>;
+
+const allSeries: NonErrorBarSeriesOptions[] = [
   {
     name: "column-1",
     type: "column",
@@ -109,7 +111,7 @@ function ExampleMixedChart() {
   );
 }
 
-function getSelected<T extends CartesianChartProps.SeriesOptions>(series: T[], selectedSeries: string[]) {
+function getSelected<T extends NonErrorBarSeriesOptions>(series: T[], selectedSeries: string[]) {
   const seriesToIndex = selectedSeries.reduce((map, s, index) => map.set(s, index), new Map<string, number>());
   return series
     .filter((s) => selectedSeries.includes(s.name))
