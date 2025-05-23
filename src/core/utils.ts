@@ -362,6 +362,22 @@ export function findPrevGroup(point: Highcharts.Point): Highcharts.Point[] {
   return sortGroup(findMatchedPointsByX(point.series.chart.series, nextX));
 }
 
+export function findNextPageGroup(point: Highcharts.Point): Highcharts.Point[] {
+  const allX = findAllX(point.series.chart);
+  const pointIndex = allX.indexOf(point.x);
+  const nextIndex = Math.min(allX.length - 1, pointIndex + Math.floor(allX.length * 0.05));
+  const nextX = allX[nextIndex];
+  return sortGroup(findMatchedPointsByX(point.series.chart.series, nextX));
+}
+
+export function findPrevPageGroup(point: Highcharts.Point): Highcharts.Point[] {
+  const allX = findAllX(point.series.chart);
+  const pointIndex = allX.indexOf(point.x);
+  const nextIndex = Math.max(0, pointIndex - Math.floor(allX.length * 0.05));
+  const nextX = allX[nextIndex];
+  return sortGroup(findMatchedPointsByX(point.series.chart.series, nextX));
+}
+
 export function findFirstPointInSeries(point: Highcharts.Point): null | Highcharts.Point {
   const seriesX = findAllXInSeries(point.series);
   const nextX = seriesX[0];
@@ -386,6 +402,22 @@ export function findPrevPointInSeries(point: Highcharts.Point): null | Highchart
   const seriesX = findAllXInSeries(point.series);
   const pointIndex = seriesX.indexOf(point.x);
   const nextIndex = circleIndex(pointIndex - 1, [0, seriesX.length - 1]);
+  const nextX = seriesX[nextIndex];
+  return point.series.data.find((d) => d.x === nextX) ?? null;
+}
+
+export function findNextPagePointInSeries(point: Highcharts.Point): null | Highcharts.Point {
+  const seriesX = findAllXInSeries(point.series);
+  const pointIndex = seriesX.indexOf(point.x);
+  const nextIndex = Math.min(seriesX.length - 1, pointIndex + Math.floor(seriesX.length * 0.05));
+  const nextX = seriesX[nextIndex];
+  return point.series.data.find((d) => d.x === nextX) ?? null;
+}
+
+export function findPrevPagePointInSeries(point: Highcharts.Point): null | Highcharts.Point {
+  const seriesX = findAllXInSeries(point.series);
+  const pointIndex = seriesX.indexOf(point.x);
+  const nextIndex = Math.max(0, pointIndex - Math.floor(seriesX.length * 0.05));
   const nextX = seriesX[nextIndex];
   return point.series.data.find((d) => d.x === nextX) ?? null;
 }

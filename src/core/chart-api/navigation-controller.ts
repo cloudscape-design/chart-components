@@ -14,8 +14,12 @@ import {
   findLastPointInSeries,
   findMatchingNavigationGroup,
   findNextGroup,
+  findNextPageGroup,
+  findNextPagePointInSeries,
   findNextPointInSeries,
   findPrevGroup,
+  findPrevPageGroup,
+  findPrevPagePointInSeries,
   findPrevPointInSeries,
   getGroupRect,
   getPointRect,
@@ -117,6 +121,8 @@ export class NavigationController {
         KeyCode.right,
         KeyCode.enter,
         KeyCode.escape,
+        KeyCode.pageUp,
+        KeyCode.pageDown,
         KeyCode.home,
         KeyCode.end,
       ].includes(event.keyCode)
@@ -153,6 +159,8 @@ export class NavigationController {
       onInlineEnd: () => (i ? this.moveToFirstInGroup(group) : this.moveToNextGroup(group)),
       onBlockStart: () => (i ? this.moveToPrevGroup(group) : this.moveToLastInGroup(group)),
       onBlockEnd: () => (i ? this.moveToNextGroup(group) : this.moveToFirstInGroup(group)),
+      onPageDown: () => this.moveToNextPageGroup(group),
+      onPageUp: () => this.moveToPrevPageGroup(group),
       onHome: () => this.moveToFirstGroup(),
       onEnd: () => this.moveToLastGroup(),
     });
@@ -167,6 +175,8 @@ export class NavigationController {
       onInlineStart: () => (i ? this.moveToPrevInGroup(point) : this.moveToPrevInSeries(point)),
       onBlockEnd: () => (i ? this.moveToNextInSeries(point) : this.moveToNextInGroup(point)),
       onBlockStart: () => (i ? this.moveToPrevInSeries(point) : this.moveToPrevInGroup(point)),
+      onPageDown: () => this.moveToNextPageInSeries(point),
+      onPageUp: () => this.moveToPrevPageInSeries(point),
       onHome: () => this.moveToFirstInSeries(point),
       onEnd: () => this.moveToLastInSeries(point),
     });
@@ -254,6 +264,34 @@ export class NavigationController {
     const prevPoint = findPrevPointInSeries(point);
     if (prevPoint) {
       this.focusPoint(prevPoint, findMatchingNavigationGroup(prevPoint));
+    } else {
+      this.focusChart();
+    }
+  }
+
+  private moveToNextPageGroup(group: Highcharts.Point[]) {
+    const nextPageGroup = group[0] ? findNextPageGroup(group[0]) : [];
+    this.focusGroup(nextPageGroup);
+  }
+
+  private moveToPrevPageGroup(group: Highcharts.Point[]) {
+    const prevPageGroup = group[0] ? findPrevPageGroup(group[0]) : [];
+    this.focusGroup(prevPageGroup);
+  }
+
+  private moveToNextPageInSeries(point: Highcharts.Point) {
+    const nextPagePoint = findNextPagePointInSeries(point);
+    if (nextPagePoint) {
+      this.focusPoint(nextPagePoint, findMatchingNavigationGroup(nextPagePoint));
+    } else {
+      this.focusChart();
+    }
+  }
+
+  private moveToPrevPageInSeries(point: Highcharts.Point) {
+    const prevPagePoint = findPrevPagePointInSeries(point);
+    if (prevPagePoint) {
+      this.focusPoint(prevPagePoint, findMatchingNavigationGroup(prevPagePoint));
     } else {
       this.focusChart();
     }

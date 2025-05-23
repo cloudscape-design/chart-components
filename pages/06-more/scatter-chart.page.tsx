@@ -1,6 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import {
+  colorChartsPaletteCategorical1,
+  colorChartsPaletteCategorical2,
+  colorChartsPaletteCategorical3,
+  colorChartsPaletteCategorical4,
+} from "@cloudscape-design/design-tokens";
+
 import { CartesianChart, CartesianChartProps } from "../../lib/components";
 import { dateFormatter } from "../common/formatters";
 import { PageSettingsForm, useChartSettings } from "../common/page-settings";
@@ -12,17 +19,7 @@ export default function () {
     <Page
       title="Scatter chart"
       settings={
-        <PageSettingsForm
-          selectedSettings={[
-            "emptySeries",
-            "seriesLoading",
-            "seriesError",
-            "showLegend",
-            "showLegendTitle",
-            "tooltipSize",
-            "tooltipPlacement",
-          ]}
-        />
+        <PageSettingsForm selectedSettings={["showLegend", "showLegendTitle", "tooltipSize", "tooltipPlacement"]} />
       }
     >
       <ExampleScatterSimple />
@@ -102,18 +99,142 @@ const series: CartesianChartProps.ScatterSeriesOptions[] = [
 ];
 
 const seriesWithCustomMarkers: CartesianChartProps.ScatterSeriesOptions[] = [
-  { ...series[0], color: "#91e8e1", marker: { symbol: "triangle" } },
-  { ...series[1], color: "#feb56a", marker: { symbol: "triangle-down" } },
-  { ...series[2], color: "#fa4b42", marker: { symbol: "diamond" } },
-  { ...series[3], color: "#2ee0ca", marker: { symbol: "circle" } },
-  { ...series[4], color: "#d568fb", marker: { symbol: "square" } },
+  { ...series[0], color: "#71a8a1", marker: { symbol: "triangle" } },
+  { ...series[1], color: "#de954a", marker: { symbol: "triangle-down" } },
+  { ...series[2], color: "#da2b22", marker: { symbol: "diamond" } },
+  { ...series[3], color: "#0ec0aa", marker: { symbol: "circle" } },
+  { ...series[4], color: "#c548db", marker: { symbol: "square" } },
+];
+
+const dataA = [
+  { x: baseline[0].x, y: 1000 },
+  { x: baseline[1].x, y: 1400 },
+  { x: baseline[2].x, y: 1800 },
+  { x: baseline[3].x, y: 1600 },
+  { x: baseline[4].x, y: 1200 },
+  { x: baseline[5].x, y: 1730 },
+  { x: baseline[6].x, y: 1800 },
+  { x: baseline[7].x, y: 1820 },
+  { x: baseline[8].x, y: 1900 },
+  { x: baseline[9].x, y: 2020 },
+  { x: baseline[10].x, y: 2000 },
+  { x: baseline[11].x, y: 2050 },
+  { x: baseline[12].x, y: 2080 },
+  { x: baseline[13].x, y: 2200 },
+  { x: baseline[14].x, y: 2160 },
+];
+const dataB = [
+  { x: dataA[0].x + 500_000, y: dataA[0].y + 500 },
+  { x: dataA[1].x + 450_000, y: dataA[1].y + 480 },
+  { x: dataA[2].x + 420_000, y: dataA[2].y + 440 },
+  { x: dataA[3].x + 390_000, y: dataA[3].y + 410 },
+  { x: dataA[4].x + 320_000, y: dataA[4].y + 340 },
+  { x: dataA[5].x + 360_000, y: dataA[5].y + 300 },
+  { x: dataA[6].x + 310_000, y: dataA[6].y + 260 },
+  { x: dataA[7].x + 255_000, y: dataA[7].y + 230 },
+  { x: dataA[8].x + 205_000, y: dataA[8].y + 180 },
+  { x: dataA[9].x + 140_000, y: dataA[9].y + 140 },
+  { x: dataA[10].x + 100_000, y: dataA[10].y + 0 },
+  { x: dataA[11].x + 80_000, y: dataA[11].y + 50 },
+  { x: dataA[12].x + 0, y: dataA[12].y + 20 },
+  { x: dataA[13].x + 0, y: dataA[13].y + 0 },
+  { x: dataA[14].x - 1_000, y: dataA[14].y + 10 },
+];
+const dataC = [
+  { x: dataA[6].x + 150_000, y: dataA[6].y - 300 },
+  { x: dataA[7].x + 150_000, y: dataA[7].y - 300 },
+  { x: dataA[7].x + 150_000, y: dataA[7].y - 300 },
+  { x: dataA[8].x + 150_000, y: dataA[8].y - 300 },
+];
+const seriesWithDuplicatePoints: CartesianChartProps.SeriesOptions[] = [
+  {
+    name: "A",
+    type: "scatter",
+    data: dataA,
+    color: colorChartsPaletteCategorical1,
+  },
+  {
+    name: "B",
+    type: "scatter",
+    data: dataB,
+    color: colorChartsPaletteCategorical2,
+  },
+  {
+    name: "C",
+    type: "scatter",
+    data: dataC,
+    color: colorChartsPaletteCategorical3,
+  },
+  {
+    name: "A trend",
+    type: "line",
+    data: computeTrendLine(dataA),
+    color: colorChartsPaletteCategorical1,
+  },
+  {
+    name: "B trend",
+    type: "line",
+    data: computeTrendLine(dataB),
+    color: colorChartsPaletteCategorical2,
+  },
+  {
+    name: "C trend",
+    type: "line",
+    data: computeTrendLine(dataC),
+    color: colorChartsPaletteCategorical3,
+  },
+];
+
+const largeDomain: number[] = [];
+for (
+  let time = new Date("2015-01-01").getTime();
+  time < new Date("2025-01-01").getTime();
+  time += 48 * 60 * 60 * 1000
+) {
+  largeDomain.push(time);
+}
+const largeDataA = largeDomain.map((x, index) => ({
+  x,
+  y: Math.round(1000 + pseudoRandom() * 5000 + pseudoRandom() * 10000 + pseudoRandom() * 10 * index),
+}));
+const largeDataB = largeDomain
+  .slice(Math.round(largeDomain.length * 0.3), Math.round(largeDomain.length * 0.7))
+  .map((x, index) => ({
+    x,
+    y: Math.round(1000 + pseudoRandom() * 5000 + pseudoRandom() * 10000 + pseudoRandom() * 10 * index),
+  }));
+const largeSeries: CartesianChartProps.SeriesOptions[] = [
+  {
+    name: "A",
+    type: "scatter",
+    data: largeDataA,
+    color: colorChartsPaletteCategorical1,
+  },
+  {
+    name: "B",
+    type: "scatter",
+    data: largeDataB,
+    color: colorChartsPaletteCategorical3,
+  },
+  {
+    name: "A trend",
+    type: "spline",
+    data: computeTrendLine(largeDataA),
+    color: colorChartsPaletteCategorical2,
+  },
+  {
+    name: "B trend",
+    type: "spline",
+    data: computeTrendLine(largeDataB),
+    color: colorChartsPaletteCategorical4,
+  },
 ];
 
 function ExampleScatterSimple() {
   const { chartProps } = useChartSettings();
   const commonProps = {
     ...chartProps.cartesian,
-    chartHeight: 379,
+    chartHeight: 400,
     ariaLabel: "Scatter chart",
     xAxis: { type: "datetime", title: "Time (UTC)", valueFormatter: dateFormatter },
     yAxis: { title: "Events" },
@@ -124,9 +245,40 @@ function ExampleScatterSimple() {
       <PageSection title="Scatter chart">
         <CartesianChart {...commonProps} series={series} />
       </PageSection>
-      <PageSection title="Scatter chart with custom markers">
+
+      <PageSection title="Scatter chart with explicit markers and colors">
         <CartesianChart {...commonProps} series={seriesWithCustomMarkers} />
+      </PageSection>
+
+      <PageSection
+        title="Scatter chart with trend lines and duplicate points"
+        subtitle="There are points in data that belong to the same series and have identical x- and y-. Highcharts shows them as one point."
+      >
+        <CartesianChart {...commonProps} series={seriesWithDuplicatePoints} />
+      </PageSection>
+
+      <PageSection title="Large scatter chart with trend line">
+        <CartesianChart {...commonProps} series={largeSeries} />
       </PageSection>
     </>
   );
+}
+
+function computeTrendLine(data: { x: number; y: number }[]): { x: number; y: number }[] {
+  const n = data.length;
+  const sumX = data.reduce((sum, p) => sum + p.x, 0);
+  const sumY = data.reduce((sum, p) => sum + p.y, 0);
+  const sumXY = data.reduce((sum, p) => sum + p.x * p.y, 0);
+  const sumX2 = data.reduce((sum, p) => sum + p.x * p.x, 0);
+
+  const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+  const intercept = (sumY - slope * sumX) / n;
+
+  const xMin = Math.min(...data.map((p) => p.x));
+  const xMax = Math.max(...data.map((p) => p.x));
+
+  return [
+    { x: xMin, y: slope * xMin + intercept },
+    { x: xMax, y: slope * xMax + intercept },
+  ];
 }
