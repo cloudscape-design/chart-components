@@ -116,14 +116,12 @@ function MixedChart({ inverted, errorSize, errorColor }: ChartProps) {
         { id: "c-1", name: "Costs last year", type: "spline", data: costsLastYearData },
         {
           linkedTo: "c",
-          name: "Costs error",
           type: "errorbar",
           color: errorColor,
           data: costsErrorData(errorSize),
         },
         {
-          linkedTo: "c-1",
-          name: "Costs last year error",
+          linkedTo: "c-12",
           type: "errorbar",
           color: errorColor,
           data: costsLastYearErrorData(errorSize),
@@ -152,14 +150,12 @@ function GroupedColumnChart({ inverted, errorSize, errorColor }: ChartProps) {
         { id: "c-1", name: "Costs last year", type: "column", data: costsLastYearData },
         {
           linkedTo: "c",
-          name: "Costs error",
           type: "errorbar",
           color: errorColor,
           data: costsErrorData(errorSize),
         },
         {
           linkedTo: "c-1",
-          name: "Costs last year error",
           type: "errorbar",
           color: errorColor,
           data: costsLastYearErrorData(errorSize),
@@ -189,14 +185,12 @@ function StackedColumnChart({ inverted, errorSize, errorColor }: ChartProps) {
         { id: "c-1", name: "Costs last year", type: "column", data: costsLastYearData },
         {
           linkedTo: "c",
-          name: "Costs error",
           type: "errorbar",
           color: errorColor,
           data: costsErrorData(errorSize),
         },
         {
           linkedTo: "c-1",
-          name: "Costs last year error",
           type: "errorbar",
           color: errorColor,
           data: costsLastYearErrorData(errorSize),
@@ -222,14 +216,12 @@ function ScatterChart({ inverted, errorSize, errorColor }: ChartProps) {
         { id: "c-1", name: "Costs last year", type: "scatter", data: costsLastYearData },
         {
           linkedTo: "c",
-          name: "Costs error",
           type: "errorbar",
           color: errorColor,
           data: costsErrorData(errorSize),
         },
         {
           linkedTo: "c-1",
-          name: "Costs last year error",
           type: "errorbar",
           color: errorColor,
           data: costsLastYearErrorData(errorSize),
@@ -254,7 +246,6 @@ function LineChartManySeries({ inverted, errorSize, errorColor }: ChartProps) {
     };
     const errorSeries: CartesianChartProps.ErrorBarSeriesOptions = {
       linkedTo: `c-${index}`,
-      name: `Error for costs ${index + 1}`,
       type: "errorbar",
       color: errorColor,
       data: data.map((value) => ({ ...errorRange(value, errorSize / 2) })),

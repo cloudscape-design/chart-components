@@ -12,7 +12,12 @@ import ChartSeriesDetails, { ChartSeriesDetailItem } from "../internal/component
 import { ChartSeriesMarker } from "../internal/components/series-marker";
 import { isXThreshold } from "./chart-series-cartesian";
 import { getDefaultFormatter } from "./default-formatters";
-import { CartesianChartProps, InternalCartesianChartOptions, InternalSeriesOptions } from "./interfaces-cartesian";
+import {
+  CartesianChartProps,
+  InternalCartesianChartOptions,
+  InternalSeriesOptions,
+  NonErrorBarSeriesOptions,
+} from "./interfaces-cartesian";
 import * as Styles from "./styles";
 import { getDataExtremes } from "./utils";
 
@@ -164,7 +169,7 @@ function findTooltipSeriesItems(
   const seriesItems: CartesianChartProps.TooltipSeriesItem[] = series.map((s) => ({
     x: 0,
     y: null,
-    series: s as unknown as CartesianChartProps.SeriesOptions,
+    series: s as unknown as NonErrorBarSeriesOptions,
   }));
   const seriesItemsById = new Map(seriesItems.map((i) => [getOptionsId(i.series), i]));
   const matchedItems = new Set<CartesianChartProps.TooltipSeriesItem>();

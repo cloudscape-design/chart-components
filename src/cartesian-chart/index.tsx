@@ -83,23 +83,33 @@ function validateSeries(unvalidatedSeries: CartesianChartProps.SeriesOptions[]):
     const getBaseProps = (s: BaseCartesianSeriesOptions) => ({ id: s.id, name: s.name, color: s.color });
     switch (s.type) {
       case "area":
-        return { type: s.type, ...getBaseProps(s), data: s.data };
+        return { type: s.type, ...getBaseProps(s), data: s.data } as CartesianChartProps.AreaSeriesOptions;
       case "areaspline":
-        return { type: s.type, ...getBaseProps(s), data: s.data };
+        return { type: s.type, ...getBaseProps(s), data: s.data } as CartesianChartProps.AreaSplineSeriesOptions;
       case "column":
-        return { type: s.type, ...getBaseProps(s), data: s.data };
+        return { type: s.type, ...getBaseProps(s), data: s.data } as CartesianChartProps.ColumnSeriesOptions;
       case "errorbar":
-        return { type: s.type, ...getBaseProps(s), data: s.data, linkedTo: s.linkedTo };
+        return {
+          type: s.type,
+          ...getBaseProps(s),
+          data: s.data,
+          linkedTo: s.linkedTo,
+        } as CartesianChartProps.ErrorBarSeriesOptions;
       case "line":
-        return { type: s.type, ...getBaseProps(s), data: s.data };
+        return { type: s.type, ...getBaseProps(s), data: s.data } as CartesianChartProps.LineSeriesOptions;
       case "scatter":
-        return { type: s.type, ...getBaseProps(s), data: s.data, marker: s.marker || {} };
+        return {
+          type: s.type,
+          ...getBaseProps(s),
+          data: s.data,
+          marker: s.marker || {},
+        } as CartesianChartProps.ScatterSeriesOptions;
       case "spline":
-        return { type: s.type, ...getBaseProps(s), data: s.data };
+        return { type: s.type, ...getBaseProps(s), data: s.data } as CartesianChartProps.SplineSeriesOptions;
       case "x-threshold":
-        return { type: s.type, ...getBaseProps(s), value: s.value };
+        return { type: s.type, ...getBaseProps(s), value: s.value } as CartesianChartProps.XThresholdSeriesOptions;
       case "y-threshold":
-        return { type: s.type, ...getBaseProps(s), value: s.value };
+        return { type: s.type, ...getBaseProps(s), value: s.value } as CartesianChartProps.YThresholdSeriesOptions;
       default:
         return null;
     }

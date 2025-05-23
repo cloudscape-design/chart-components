@@ -136,32 +136,32 @@ export interface ChartFilterOptions {
   additionalFilters?: React.ReactNode;
 }
 
-export interface AreaSeriesOptions extends BaseCartesianSeriesOptions {
+export interface AreaSeriesOptions extends BaseCartesianSeriesOptionsWithName {
   type: "area";
   data: PointDataItemType[];
 }
 
-export interface AreaSplineSeriesOptions extends BaseCartesianSeriesOptions {
+export interface AreaSplineSeriesOptions extends BaseCartesianSeriesOptionsWithName {
   type: "areaspline";
   data: PointDataItemType[];
 }
 
-export interface ColumnSeriesOptions extends BaseCartesianSeriesOptions {
+export interface ColumnSeriesOptions extends BaseCartesianSeriesOptionsWithName {
   type: "column";
   data: PointDataItemType[];
 }
 
-export interface LineSeriesOptions extends BaseCartesianSeriesOptions {
+export interface LineSeriesOptions extends BaseCartesianSeriesOptionsWithName {
   type: "line";
   data: PointDataItemType[];
 }
 
-export interface SplineSeriesOptions extends BaseCartesianSeriesOptions {
+export interface SplineSeriesOptions extends BaseCartesianSeriesOptionsWithName {
   type: "spline";
   data: PointDataItemType[];
 }
 
-export interface ScatterSeriesOptions extends BaseCartesianSeriesOptions {
+export interface ScatterSeriesOptions extends BaseCartesianSeriesOptionsWithName {
   type: "scatter";
   data: PointDataItemType[];
   marker?: PointMarkerOptions;
@@ -173,22 +173,22 @@ export interface ErrorBarSeriesOptions extends BaseCartesianSeriesOptions {
   linkedTo: string;
 }
 
-export interface XThresholdSeriesOptions extends BaseCartesianSeriesOptions {
+export interface XThresholdSeriesOptions extends BaseCartesianSeriesOptionsWithName {
   type: "x-threshold";
   value: number;
 }
 
-export interface YThresholdSeriesOptions extends BaseCartesianSeriesOptions {
+export interface YThresholdSeriesOptions extends BaseCartesianSeriesOptionsWithName {
   type: "y-threshold";
   value: number;
 }
 
-export interface PieSeriesOptions extends BaseCartesianSeriesOptions {
+export interface PieSeriesOptions extends BaseCartesianSeriesOptionsWithName {
   type: "pie";
   data: PieSegmentOptions[];
 }
 
-export interface DonutSeriesOptions extends BaseCartesianSeriesOptions {
+export interface DonutSeriesOptions extends BaseCartesianSeriesOptionsWithName {
   type: "donut";
   data: PieSegmentOptions[];
 }
@@ -219,8 +219,12 @@ export interface RangeDataItemOptions {
 
 export interface BaseCartesianSeriesOptions {
   id?: string;
-  name: string;
+  name?: string;
   color?: string;
+}
+
+export interface BaseCartesianSeriesOptionsWithName extends BaseCartesianSeriesOptions {
+  name: string;
 }
 
 // The simpler version of Highcharts.PointMarkerOptionsObject

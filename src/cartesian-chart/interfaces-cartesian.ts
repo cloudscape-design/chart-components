@@ -179,7 +179,7 @@ export namespace CartesianChartProps {
     x: number;
     y: number | null;
     error?: { low: number; high: number };
-    series: CartesianChartProps.SeriesOptions;
+    series: NonErrorBarSeriesOptions;
   }
 
   export interface TooltipSeriesFormatted {
@@ -207,3 +207,8 @@ export type InternalSeriesOptions = CartesianChartProps.SeriesOptions | Highchar
 export type InternalXAxisOptions = CartesianChartProps.XAxisOptions & Highcharts.XAxisOptions;
 
 export type InternalYAxisOptions = CartesianChartProps.YAxisOptions & Highcharts.YAxisOptions;
+
+export type NonErrorBarSeriesOptions = Exclude<
+  CartesianChartProps.SeriesOptions,
+  CartesianChartProps.ErrorBarSeriesOptions
+>;
