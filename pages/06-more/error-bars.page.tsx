@@ -68,7 +68,7 @@ function getCostSeriesWithError({
 }: {
   errorSize: number;
   errorColor?: string;
-  type?: "column" | "scatter";
+  type?: "column";
 }) {
   return [{ ...costsSeries, type }, getCostsErrorSeries({ errorColor, errorSize })];
 }
@@ -80,7 +80,7 @@ function getLastYearCostsSeriesWithError({
 }: {
   errorSize: number;
   errorColor?: string;
-  type?: "column" | "spline" | "scatter";
+  type?: "column" | "spline";
 }) {
   return [{ ...costsLastYearSeries, type }, getLastYearCostsSeries({ errorColor, errorSize })];
 }
@@ -136,12 +136,6 @@ export default function () {
         </PageSection>
         <PageSection title="Grouped column chart">
           <GroupedColumnChart {...chartProps} />
-        </PageSection>
-        <PageSection title="Stacked column chart (not supported)">
-          <StackedColumnChart {...chartProps} />
-        </PageSection>
-        <PageSection title="Scatter chart">
-          <ScatterChart {...chartProps} />
         </PageSection>
         <PageSection title="Line chart with many series">
           <LineChart {...chartProps} numberOfSeries={8} />
@@ -223,59 +217,6 @@ function GroupedColumnChart({ inverted, errorSize, errorColor, customTooltipCont
       series={[
         ...getCostSeriesWithError({ errorColor, errorSize }),
         ...getLastYearCostsSeriesWithError({ errorColor, errorSize, type: "column" }),
-      ]}
-      tooltip={
-        customTooltipContent
-          ? {
-              series: seriesFormatter,
-              footer: () => "*Error range",
-            }
-          : undefined
-      }
-      xAxis={{ type: "category", title: "Budget month", categories }}
-      yAxis={{ title: "Costs (USD)", valueFormatter: numberFormatter }}
-    />
-  );
-}
-
-function StackedColumnChart({ inverted, errorSize, errorColor, customTooltipContent }: ChartProps) {
-  const { chartProps } = useChartSettings({ more: true });
-  return (
-    <CartesianChart
-      {...chartProps.cartesian}
-      chartHeight={CHART_HEIGHT}
-      inverted={inverted}
-      ariaLabel="Stacked column chart"
-      stacked={true}
-      series={[
-        ...getCostSeriesWithError({ errorColor, errorSize }),
-        ...getLastYearCostsSeriesWithError({ errorColor, errorSize, type: "column" }),
-      ]}
-      tooltip={
-        customTooltipContent
-          ? {
-              series: seriesFormatter,
-              footer: () => "*Error range",
-            }
-          : undefined
-      }
-      xAxis={{ type: "category", title: "Budget month", categories }}
-      yAxis={{ title: "Costs (USD)", valueFormatter: numberFormatter }}
-    />
-  );
-}
-
-function ScatterChart({ inverted, errorSize, errorColor, customTooltipContent }: ChartProps) {
-  const { chartProps } = useChartSettings({ more: true });
-  return (
-    <CartesianChart
-      {...chartProps.cartesian}
-      chartHeight={CHART_HEIGHT}
-      inverted={inverted}
-      ariaLabel="Scatter chart"
-      series={[
-        ...getCostSeriesWithError({ errorColor, errorSize, type: "scatter" }),
-        ...getLastYearCostsSeriesWithError({ errorColor, errorSize, type: "scatter" }),
       ]}
       tooltip={
         customTooltipContent
