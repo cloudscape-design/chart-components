@@ -141,6 +141,7 @@ describe("CartesianChart: tooltip", () => {
                     },
                   ]
                 : [],
+            details: `${item.error?.low} - ${item.error?.high}`,
           };
         },
       },
@@ -153,7 +154,7 @@ describe("CartesianChart: tooltip", () => {
     });
 
     expect(getTooltipHeader().getElement().textContent).toBe("1");
-    expect(getAllTooltipSeries()).toHaveLength(3);
+    expect(getAllTooltipSeries()).toHaveLength(2);
 
     expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Line");
     expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("2");
@@ -170,13 +171,11 @@ describe("CartesianChart: tooltip", () => {
     getTooltipSeries(0).findSubItems()[1].findValue().find("button")!.click();
     expect(onClickValue).toHaveBeenCalledWith("sub-2");
 
-    expect(getTooltipSeries(1).findKey().getElement().textContent).toBe("Error");
-    expect(getTooltipSeries(1).findValue().getElement().textContent).toBe("4 - 4");
-    expect(getTooltipSeries(1).find('[aria-expanded="false"]')).toBe(null);
+    expect(getTooltipSeries(0).findDetails().getElement().textContent).toBe("1 - 4");
 
-    expect(getTooltipSeries(2).findKey().getElement().textContent).toBe("Threshold");
-    expect(getTooltipSeries(2).findValue().getElement().textContent).toBe("T");
-    expect(getTooltipSeries(2).find('[aria-expanded="false"]')).toBe(null);
+    expect(getTooltipSeries(1).findKey().getElement().textContent).toBe("Threshold");
+    expect(getTooltipSeries(1).findValue().getElement().textContent).toBe("T");
+    expect(getTooltipSeries(1).find('[aria-expanded="false"]')).toBe(null);
   });
 
   test("customizes tooltip slots", async () => {
@@ -191,7 +190,7 @@ describe("CartesianChart: tooltip", () => {
         header({ x, items }) {
           return (
             <span>
-              header {x} {items.length} {items[0].series.name} {items[0].error.length} {items[0].error[0].series.name}{" "}
+              header {x} {items.length} {items[0].series.name} {items[0].error!.low} {items[0].error!.high}{" "}
               {items[1].series.name}
             </span>
           );
@@ -199,7 +198,7 @@ describe("CartesianChart: tooltip", () => {
         body({ x, items }) {
           return (
             <span>
-              body {x} {items.length} {items[0].series.name} {items[0].error.length} {items[0].error[0].series.name}{" "}
+              body {x} {items.length} {items[0].series.name} {items[0].error!.low} {items[0].error!.high}{" "}
               {items[1].series.name}
             </span>
           );
@@ -207,7 +206,7 @@ describe("CartesianChart: tooltip", () => {
         footer({ x, items }) {
           return (
             <span>
-              footer {x} {items.length} {items[0].series.name} {items[0].error.length} {items[0].error[0].series.name}{" "}
+              footer {x} {items.length} {items[0].series.name} {items[0].error!.low} {items[0].error!.high}{" "}
               {items[1].series.name}
             </span>
           );
@@ -221,8 +220,8 @@ describe("CartesianChart: tooltip", () => {
       expect(getTooltip()).not.toBe(null);
     });
 
-    expect(getTooltipHeader().getElement().textContent).toBe("header 1 2 Line 1 Error Threshold");
-    expect(getTooltipBody().getElement().textContent).toBe("body 1 2 Line 1 Error Threshold");
-    expect(getTooltipFooter().getElement().textContent).toBe("footer 1 2 Line 1 Error Threshold");
+    expect(getTooltipHeader().getElement().textContent).toBe("header 1 2 Line 3 4 Threshold");
+    expect(getTooltipBody().getElement().textContent).toBe("body 1 2 Line 3 4 Threshold");
+    expect(getTooltipFooter().getElement().textContent).toBe("footer 1 2 Line 3 4 Threshold");
   });
 });
