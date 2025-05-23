@@ -47,13 +47,13 @@ export function useChartTooltipPie(props: {
     };
   };
 
-  const onTooltipVisible: CoreChartProps["onTooltipVisible"] = ({ point }) => {
+  const onRenderTooltip: CoreChartProps["onRenderTooltip"] = ({ point }) => {
     if (point) {
       return { pointRect: getPieChartTargetPlacement(point) };
     }
   };
 
-  return { getTooltipContent, onTooltipVisible };
+  return { getTooltipContent, onRenderTooltip };
 }
 
 function getPieChartTargetPlacement(point: Highcharts.Point): Rect {

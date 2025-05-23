@@ -119,8 +119,8 @@ describe("CartesianChart: tooltip", () => {
       highcharts,
       series: [
         { type: "line", id: "l", name: "Line", data: [{ x: 1, y: 2 }] },
+        { type: "errorbar", linkedTo: "l", name: "Error", data: [{ x: 1, low: 1, high: 4 }] },
         { type: "x-threshold", name: "Threshold", value: 1 },
-        { type: "errorbar", name: "Error", data: [{ x: 1, low: 1, high: 4 }], linkedTo: "l" },
       ],
       tooltip: {
         series({ item }) {

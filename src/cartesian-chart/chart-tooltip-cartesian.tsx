@@ -119,7 +119,7 @@ export function useChartTooltipCartesian(props: {
     };
   };
 
-  const onTooltipVisible: CoreChartProps["onTooltipVisible"] = ({ point, group, groupRect }) => {
+  const onRenderTooltip: CoreChartProps["onRenderTooltip"] = ({ point, group, groupRect }) => {
     const x = group[0].x;
     const chart = group[0]?.series.chart;
     if (chart === undefined || x === undefined) {
@@ -147,7 +147,7 @@ export function useChartTooltipCartesian(props: {
   const onClearHighlight: CoreChartProps["onClearHighlight"] = () => {
     cursorRef.current?.destroy();
 
-    // Clear all column series point state overrides created in `onTooltipVisible`.
+    // Clear all column series point state overrides created in `onRenderTooltip`.
     if (props.options.series.some((s) => s.type === "column")) {
       for (const s of chartRef.current?.series ?? []) {
         s.setState("normal");
@@ -160,7 +160,7 @@ export function useChartTooltipCartesian(props: {
 
   return {
     getTooltipContent,
-    onTooltipVisible,
+    onRenderTooltip,
     onClearHighlight,
   };
 }

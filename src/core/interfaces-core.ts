@@ -103,7 +103,7 @@ export interface CoreChartProps
   /**
    * Called whenever chart point is highlighted and allows to specify custom tooltip target for the given point.
    */
-  onTooltipVisible?(props: TooltipVisibleProps): void | TooltipVisibleResult;
+  onRenderTooltip?(props: RenderTooltipProps): void | RenderTooltipResult;
   /**
    * Called whenever chart point loses highlight.
    */
@@ -114,14 +114,14 @@ export interface CoreChartProps
   keyboardNavigation?: boolean;
 }
 
-export interface TooltipVisibleProps {
+export interface RenderTooltipProps {
   point: null | Highcharts.Point;
   group: Highcharts.Point[];
   pointRect: Rect;
   groupRect: Rect;
 }
 
-export interface TooltipVisibleResult {
+export interface RenderTooltipResult {
   pointRect?: Rect;
   groupRect?: Rect;
 }

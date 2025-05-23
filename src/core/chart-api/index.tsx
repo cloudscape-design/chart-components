@@ -15,16 +15,14 @@ import {
   ReactiveChartState,
   Rect,
   RegisteredLegendAPI,
-  TooltipVisibleProps,
-  TooltipVisibleResult,
+  RenderTooltipProps,
+  RenderTooltipResult,
 } from "../interfaces-core";
 import * as Styles from "../styles";
 import {
   clearChartItemsHighlight,
   findAllSeriesWithData,
   findAllVisibleSeries,
-  findMatchingNavigationGroup,
-  getChartGroupRects,
   getChartLegendItems,
   getGroupAccessibleDescription,
   getGroupRect,
@@ -35,6 +33,7 @@ import {
   matchLegendItems,
   updateChartItemsVisibility,
 } from "../utils";
+import { ChartExtra } from "./chart-extra";
 import { ChartStore } from "./chart-store";
 import { NavigationController, NavigationControllerHandlers } from "./navigation-controller";
 
@@ -48,7 +47,7 @@ interface ChartAPIContext {
   getMatchedLegendItems?(props: { point: Highcharts.Point }): readonly string[];
   onLegendItemsChange?: (legendItems: readonly ChartLegendItem[]) => void;
   isTooltipEnabled: boolean;
-  onTooltipVisible?(props: TooltipVisibleProps): void | TooltipVisibleResult;
+  onRenderTooltip?(props: RenderTooltipProps): void | RenderTooltipResult;
   onClearHighlight?(): void;
   keyboardNavigation: boolean;
 }
@@ -78,15 +77,14 @@ export class ChartAPI {
   private readonly chartId: string;
   private getContext: () => ChartAPIContext;
   private _store = new ChartStore();
-  private chart: null | Highcharts.Chart = null;
-  private navigation = new NavigationController(this.navigationHandlers);
+  private chartExtra = new ChartExtra();
+  private navigation = new NavigationController(this.chartExtra, this.navigationHandlers);
   private lastDismissTime = 0;
   private mouseLeaveCall = new DebouncedCall();
   private tooltipHovered = false;
   private targetTrack: null | Highcharts.SVGElement = null;
   private groupTrack: null | Highcharts.SVGElement = null;
   private registeredLegend: null | RegisteredLegendAPI = null;
-  private groupRects: { group: Highcharts.Point[]; rect: Rect }[] = [];
   private matchedGroup: Highcharts.Point[] = [];
 
   constructor(chartId: string, getContext: () => ChartAPIContext) {
@@ -94,11 +92,8 @@ export class ChartAPI {
     this.getContext = getContext;
   }
 
-  private get safe() {
-    if (!this.chart) {
-      throw new Error("Invariant violation: using chart API before initializing chart.");
-    }
-    return { chart: this.chart };
+  private get chart() {
+    return this.chartExtra.chart;
   }
 
   private get context() {
@@ -110,7 +105,7 @@ export class ChartAPI {
   }
 
   public get ready() {
-    return !!this.chart;
+    return !!this.chartExtra.chartOrNull;
   }
 
   public get store() {
@@ -135,8 +130,7 @@ export class ChartAPI {
       this.container.addEventListener("mouseout", chartAPI.onChartMouseout);
     };
     const onChartRender: Highcharts.ChartRenderCallbackFunction = function (this) {
-      chartAPI.chart = this;
-      chartAPI.navigation.init(this);
+      chartAPI.chartExtra.onRender(this);
       chartAPI.onChartRender();
     };
     const onChartClick: Highcharts.ChartClickCallbackFunction = function () {
@@ -179,13 +173,13 @@ export class ChartAPI {
   }
 
   public cleanup = () => {
-    this.chart?.container?.removeEventListener("mousemove", this.onChartMousemove);
-    this.chart?.container?.removeEventListener("mouseout", this.onChartMouseout);
+    this.chartExtra.chartOrNull?.container?.removeEventListener("mousemove", this.onChartMousemove);
+    this.chartExtra.chartOrNull?.container?.removeEventListener("mouseout", this.onChartMouseout);
   };
 
   private get navigationHandlers(): NavigationControllerHandlers {
     const clearHighlightState = () => {
-      for (const s of this.safe.chart.series) {
+      for (const s of this.chart.series) {
         s.setState("normal");
         for (const d of s.data) {
           d.setState("normal");
@@ -193,7 +187,7 @@ export class ChartAPI {
       }
     };
     const setHighlightState = (group: Highcharts.Point[]) => {
-      for (const s of this.safe.chart.series) {
+      for (const s of this.chart.series) {
         s.setState("normal");
         for (const d of s.data) {
           d.setState(group.includes(d) ? "normal" : "inactive");
@@ -235,17 +229,17 @@ export class ChartAPI {
   };
 
   public highlightChartItems = (itemIds: readonly string[]) => {
-    highlightChartItems(this.safe.chart, itemIds);
+    highlightChartItems(this.chart, itemIds);
   };
 
   public clearChartItemsHighlight = () => {
-    clearChartItemsHighlight(this.safe.chart);
+    clearChartItemsHighlight(this.chart);
   };
 
   public updateChartItemsVisibility = (visibleItems?: readonly string[]) => {
     if (visibleItems) {
       const legendItems = this.store.get().legend.items;
-      updateChartItemsVisibility(this.safe.chart, legendItems, visibleItems);
+      updateChartItemsVisibility(this.chart, legendItems, visibleItems);
     }
   };
 
@@ -273,7 +267,7 @@ export class ChartAPI {
         if (!this.context.keyboardNavigation) {
           // This brings the focus back to the chart.
           // If the last focused target is no longer around - the focus goes back to the first data point.
-          this.safe.chart.series?.[0]?.data?.[0].graphic?.element.focus();
+          this.chart.series?.[0]?.data?.[0].graphic?.element.focus();
         } else {
           this.navigation.focusApplication();
         }
@@ -286,10 +280,10 @@ export class ChartAPI {
       return;
     }
 
-    const normalized = this.safe.chart.pointer.normalize(event);
+    const normalized = this.chart.pointer.normalize(event);
     const plotX = normalized.chartX;
     const plotY = normalized.chartY;
-    const { plotLeft, plotTop, plotWidth, plotHeight } = this.safe.chart;
+    const { plotLeft, plotTop, plotWidth, plotHeight } = this.chart;
 
     if (plotX >= plotLeft && plotX <= plotLeft + plotWidth && plotY >= plotTop && plotY <= plotTop + plotHeight) {
       const tooltip = this.store.get().tooltip;
@@ -298,7 +292,7 @@ export class ChartAPI {
       }
 
       this.matchedGroup = [];
-      for (const { group, rect } of this.groupRects) {
+      for (const { group, rect } of this.chartExtra.groupRects) {
         if (rect.x <= plotX && plotX < rect.x + rect.width) {
           this.matchedGroup = group;
           break;
@@ -314,10 +308,10 @@ export class ChartAPI {
 
   private onChartMouseout = (event: MouseEvent) => {
     if (this.context.isTooltipEnabled) {
-      const normalized = this.safe.chart.pointer.normalize(event);
+      const normalized = this.chart.pointer.normalize(event);
       const plotX = normalized.chartX;
       const plotY = normalized.chartY;
-      const { plotLeft, plotTop, plotWidth, plotHeight } = this.safe.chart;
+      const { plotLeft, plotTop, plotWidth, plotHeight } = this.chart;
 
       if (
         plotX < plotLeft + 5 ||
@@ -356,7 +350,7 @@ export class ChartAPI {
     this.mouseLeaveCall.cancelPrevious();
 
     this.highlightActionsPoint(point);
-    this._store.setTooltipPoint(point, findMatchingNavigationGroup(point));
+    this._store.setTooltipPoint(point, this.chartExtra.findMatchingGroup(point));
   };
 
   public clearChartHighlight = () => {
@@ -387,7 +381,6 @@ export class ChartAPI {
     this.initNoData();
     this.updateChartItemsVisibility(this.context.visibleItems);
     this.initChartLabel();
-    this.initGroupRects();
   };
 
   private initChartLabel = () => {
@@ -396,23 +389,19 @@ export class ChartAPI {
     this._store.setChartLabel(explicitLabel ?? defaultLabel ?? "");
   };
 
-  private initGroupRects() {
-    this.groupRects = getChartGroupRects(this.safe.chart);
-  }
-
   private initLegend = () => {
-    const customLegendItems = this.context.getChartLegendItems?.({ chart: this.safe.chart });
-    const legendItems = getChartLegendItems(this.safe.chart, customLegendItems);
+    const customLegendItems = this.context.getChartLegendItems?.({ chart: this.chart });
+    const legendItems = getChartLegendItems(this.chart, customLegendItems);
     this._store.setLegendItems(legendItems);
   };
 
   private initVerticalAxisTitles = () => {
-    this._store.setVerticalAxesTitles(getVerticalAxesTitles(this.safe.chart));
+    this._store.setVerticalAxesTitles(getVerticalAxesTitles(this.chart));
   };
 
   private initNoData = () => {
-    const allSeriesWithData = findAllSeriesWithData(this.safe.chart);
-    const visibleSeries = findAllVisibleSeries(this.safe.chart);
+    const allSeriesWithData = findAllSeriesWithData(this.chart);
+    const visibleSeries = findAllVisibleSeries(this.chart);
     // The no-data is not shown when there is at least one series or point (for pie series) non-empty and visible.
     if (visibleSeries.length > 0) {
       this._store.setNoData({ container: null, noMatch: false });
@@ -421,12 +410,10 @@ export class ChartAPI {
     // We use timeout to make sure the no-data container is rendered.
     else {
       setTimeout(() => {
-        const noDataContainer = this.safe.chart.container?.querySelector(
-          `[id="${this.noDataId}"]`,
-        ) as null | HTMLElement;
+        const noDataContainer = this.chart.container?.querySelector(`[id="${this.noDataId}"]`) as null | HTMLElement;
         if (noDataContainer) {
-          noDataContainer.style.width = `${this.safe.chart.plotWidth}px`;
-          noDataContainer.style.height = `${this.safe.chart.plotHeight}px`;
+          noDataContainer.style.width = `${this.chart.plotWidth}px`;
+          noDataContainer.style.height = `${this.chart.plotHeight}px`;
         }
         this._store.setNoData({ container: noDataContainer, noMatch: allSeriesWithData.length > 0 });
       }, 0);
@@ -451,7 +438,7 @@ export class ChartAPI {
     if (nextPosX !== currentPosX || nextPosY !== currentPosY) {
       if (point) {
         this.highlightActionsPoint(point);
-        this._store.setTooltipPoint(point, findMatchingNavigationGroup(point));
+        this._store.setTooltipPoint(point, this.chartExtra.findMatchingGroup(point));
       } else {
         this.highlightActionsGroup(this.matchedGroup);
         this._store.setTooltipGroup(this.matchedGroup);
@@ -460,7 +447,7 @@ export class ChartAPI {
     // If the click point is missing or matches the current position and it wasn't recently dismissed - it is pinned in this position.
     else if (new Date().getTime() - this.lastDismissTime > LAST_DISMISS_DELAY) {
       if (point) {
-        this._store.setTooltipPoint(point, findMatchingNavigationGroup(point));
+        this._store.setTooltipPoint(point, this.chartExtra.findMatchingGroup(point));
       } else {
         this._store.setTooltipGroup(this.matchedGroup);
       }
@@ -472,7 +459,7 @@ export class ChartAPI {
   // that does not cause the state to update when the tooltip is pinned. That is to avoid hover effect:
   // only the matched series/points of the pinned tooltip must be in active state.ƒ
   private updateSetters = () => {
-    for (const s of this.safe.chart.series) {
+    for (const s of this.chart.series) {
       // We ensure the replacement is done only once by assigning a custom property to the function.
       // If the property is present - it means the method was already replaced.
       if (!(s.setState as any)[SET_STATE_OVERRIDE_MARKER]) {
@@ -501,10 +488,10 @@ export class ChartAPI {
   };
 
   private highlightActionsPoint = (point: Highcharts.Point) => {
-    const group = findMatchingNavigationGroup(point);
+    const group = this.chartExtra.findMatchingGroup(point);
     const pointRect = getPointRect(point);
     const groupRect = getGroupRect(group);
-    const override = this.context.onTooltipVisible?.({ point, group, pointRect, groupRect });
+    const override = this.context.onRenderTooltip?.({ point, group, pointRect, groupRect });
     const customMatchedLegendItems = this.context.getMatchedLegendItems?.({ point });
     const matchedLegendItems = customMatchedLegendItems ?? matchLegendItems(this.store.get().legend.items, point);
     this.registeredLegend?.highlightItems(matchedLegendItems);
@@ -521,7 +508,7 @@ export class ChartAPI {
     }
     const pointRect = getPointRect(group[0]);
     const groupRect = getGroupRect(group);
-    const override = this.context.onTooltipVisible?.({ point: null, group, pointRect, groupRect });
+    const override = this.context.onRenderTooltip?.({ point: null, group, pointRect, groupRect });
     const matchedLegendItems = new Set<string>();
     for (const point of group) {
       const matched = matchLegendItems(this.store.get().legend.items, point);
@@ -538,12 +525,12 @@ export class ChartAPI {
   private createTracks = ({ pointRect, groupRect }: { pointRect: Rect; groupRect: Rect }) => {
     // We set the direction to target element so that the direction check done by the tooltip
     // is done correctly. Without that, the asserted target direction always results to "ltr".
-    const isRtl = getIsRtl(this.safe.chart.container.parentElement);
-    this.targetTrack = this.safe.chart.renderer
+    const isRtl = getIsRtl(this.chart.container.parentElement);
+    this.targetTrack = this.chart.renderer
       .rect(pointRect.x, pointRect.y, pointRect.width, pointRect.height)
       .attr({ fill: "transparent", zIndex: -1, direction: isRtl ? "rtl" : "ltr" })
       .add();
-    this.groupTrack = this.safe.chart.renderer
+    this.groupTrack = this.chart.renderer
       .rect(groupRect.x, groupRect.y, groupRect.width, groupRect.height)
       .attr({ fill: "transparent", zIndex: -1, direction: isRtl ? "rtl" : "ltr" })
       .add();

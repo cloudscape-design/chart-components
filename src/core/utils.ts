@@ -3,8 +3,6 @@
 
 import type Highcharts from "highcharts";
 
-import { circleIndex } from "@cloudscape-design/component-toolkit/internal";
-
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
 import { castArray } from "../internal/utils/utils";
 import { ChartLegendItem } from "./interfaces-base";
@@ -300,126 +298,8 @@ export function getGroupRect(points: Highcharts.Point[]): Rect {
     : { x: minX, y: chart.plotTop, width: maxX - minX, height: chart.plotHeight };
 }
 
-export function findMatchedPointsByX(series: Highcharts.Series[], x: number) {
-  const matchedPoints: Highcharts.Point[] = [];
-  for (const s of series) {
-    if (!s.visible) {
-      continue;
-    }
-    for (const p of s.data) {
-      if (!p.visible) {
-        continue;
-      }
-      if (p.x === x && p.y !== null) {
-        matchedPoints.push(p);
-      }
-    }
-  }
-  return matchedPoints;
-}
-
-export function findMatchingNavigationGroup(point: Highcharts.Point) {
-  const group = findMatchedPointsByX(point.series.chart.series, point.x);
-  return sortGroup(group);
-}
-
-export function sortGroup(group: Highcharts.Point[]) {
-  return group.sort((a, b) => {
-    const ay = a.plotY === undefined || (a.series.type === "column" && !isSeriesStacked(a.series)) ? 0 : a.plotY;
-    const by = b.plotY === undefined || (b.series.type === "column" && !isSeriesStacked(b.series)) ? 0 : b.plotY;
-    return ay - by;
-  });
-}
-
 export function isSeriesStacked(series: Highcharts.Series) {
   return (series.options as any).stacking === "normal";
-}
-
-export function findFirstGroup(chart: Highcharts.Chart): Highcharts.Point[] {
-  const nextX = findAllX(chart)[0];
-  return sortGroup(findMatchedPointsByX(chart.series, nextX));
-}
-
-export function findLastGroup(chart: Highcharts.Chart): Highcharts.Point[] {
-  const allX = findAllX(chart);
-  const nextX = allX[allX.length - 1];
-  return sortGroup(findMatchedPointsByX(chart.series, nextX));
-}
-
-export function findNextGroup(point: Highcharts.Point): Highcharts.Point[] {
-  const allX = findAllX(point.series.chart);
-  const pointIndex = allX.indexOf(point.x);
-  const nextIndex = circleIndex(pointIndex + 1, [0, allX.length - 1]);
-  const nextX = allX[nextIndex];
-  return sortGroup(findMatchedPointsByX(point.series.chart.series, nextX));
-}
-
-export function findPrevGroup(point: Highcharts.Point): Highcharts.Point[] {
-  const allX = findAllX(point.series.chart);
-  const pointIndex = allX.indexOf(point.x);
-  const nextIndex = circleIndex(pointIndex - 1, [0, allX.length - 1]);
-  const nextX = allX[nextIndex];
-  return sortGroup(findMatchedPointsByX(point.series.chart.series, nextX));
-}
-
-export function findNextPageGroup(point: Highcharts.Point): Highcharts.Point[] {
-  const allX = findAllX(point.series.chart);
-  const pointIndex = allX.indexOf(point.x);
-  const nextIndex = Math.min(allX.length - 1, pointIndex + Math.floor(allX.length * 0.05));
-  const nextX = allX[nextIndex];
-  return sortGroup(findMatchedPointsByX(point.series.chart.series, nextX));
-}
-
-export function findPrevPageGroup(point: Highcharts.Point): Highcharts.Point[] {
-  const allX = findAllX(point.series.chart);
-  const pointIndex = allX.indexOf(point.x);
-  const nextIndex = Math.max(0, pointIndex - Math.floor(allX.length * 0.05));
-  const nextX = allX[nextIndex];
-  return sortGroup(findMatchedPointsByX(point.series.chart.series, nextX));
-}
-
-export function findFirstPointInSeries(point: Highcharts.Point): null | Highcharts.Point {
-  const seriesX = findAllXInSeries(point.series);
-  const nextX = seriesX[0];
-  return point.series.data.find((d) => d.x === nextX) ?? null;
-}
-
-export function findLastPointInSeries(point: Highcharts.Point): null | Highcharts.Point {
-  const seriesX = findAllXInSeries(point.series);
-  const nextX = seriesX[seriesX.length - 1];
-  return point.series.data.find((d) => d.x === nextX) ?? null;
-}
-
-export function findNextPointInSeries(point: Highcharts.Point): null | Highcharts.Point {
-  const seriesX = findAllXInSeries(point.series);
-  const pointIndex = seriesX.indexOf(point.x);
-  const nextIndex = circleIndex(pointIndex + 1, [0, seriesX.length - 1]);
-  const nextX = seriesX[nextIndex];
-  return point.series.data.find((d) => d.x === nextX) ?? null;
-}
-
-export function findPrevPointInSeries(point: Highcharts.Point): null | Highcharts.Point {
-  const seriesX = findAllXInSeries(point.series);
-  const pointIndex = seriesX.indexOf(point.x);
-  const nextIndex = circleIndex(pointIndex - 1, [0, seriesX.length - 1]);
-  const nextX = seriesX[nextIndex];
-  return point.series.data.find((d) => d.x === nextX) ?? null;
-}
-
-export function findNextPagePointInSeries(point: Highcharts.Point): null | Highcharts.Point {
-  const seriesX = findAllXInSeries(point.series);
-  const pointIndex = seriesX.indexOf(point.x);
-  const nextIndex = Math.min(seriesX.length - 1, pointIndex + Math.floor(seriesX.length * 0.05));
-  const nextX = seriesX[nextIndex];
-  return point.series.data.find((d) => d.x === nextX) ?? null;
-}
-
-export function findPrevPagePointInSeries(point: Highcharts.Point): null | Highcharts.Point {
-  const seriesX = findAllXInSeries(point.series);
-  const pointIndex = seriesX.indexOf(point.x);
-  const nextIndex = Math.max(0, pointIndex - Math.floor(seriesX.length * 0.05));
-  const nextX = seriesX[nextIndex];
-  return point.series.data.find((d) => d.x === nextX) ?? null;
 }
 
 // TODO: i18n
@@ -440,38 +320,6 @@ export function getPointAccessibleDescription(point: Highcharts.Point) {
 // TODO: i18n and format x
 export function getGroupAccessibleDescription(group: Highcharts.Point[]) {
   return `Group of ${group.length} points for x=${group[0]?.x}`;
-}
-
-export function getChartGroupRects(chart: Highcharts.Chart) {
-  const allX = findAllX(chart);
-  const groups = allX.map((x) => findMatchedPointsByX(chart.series, x));
-  return groups.map((group) => ({ rect: getGroupRect(group), group }));
-}
-
-function findAllX(chart: Highcharts.Chart) {
-  const allX = new Set<number>();
-  for (const s of chart.series) {
-    if (s.visible) {
-      for (const d of s.data) {
-        if (d.visible && d.y !== null) {
-          allX.add(d.x);
-        }
-      }
-    }
-  }
-  return [...allX].sort();
-}
-
-function findAllXInSeries(series: Highcharts.Series) {
-  const allX = new Set<number>();
-  if (series.visible) {
-    for (const d of series.data) {
-      if (d.visible && d.y !== null) {
-        allX.add(d.x);
-      }
-    }
-  }
-  return [...allX].sort();
 }
 
 // The `axis.plotLinesAndBands` API is not covered with TS.

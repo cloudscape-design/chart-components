@@ -63,19 +63,19 @@ describe("CoreChart: tooltip", () => {
   });
 
   test("shows tooltip on hover", async () => {
-    const onPointHighlight = vi.fn();
+    const onRenderTooltip = vi.fn();
     const onClearHighlight = vi.fn();
     const { wrapper } = renderChart({
       highcharts,
       options: { series },
-      onPointHighlight,
+      onRenderTooltip,
       onClearHighlight,
       getTooltipContent: () => ({ header: "Tooltip title", body: "Tooltip body", footer: "Tooltip footer" }),
     });
 
     act(() => hc.highlightChartPoint(0, 0));
 
-    expect(onPointHighlight).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 0) }));
+    expect(onRenderTooltip).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 0) }));
     await waitFor(() => {
       expect(wrapper.findTooltip()).not.toBe(null);
       expect(wrapper.findTooltip()!.findHeader()!.getElement().textContent).toBe("Tooltip title");
@@ -93,12 +93,12 @@ describe("CoreChart: tooltip", () => {
 
   test("shows tooltip with api", async () => {
     let api: null | CoreChartAPI = null;
-    const onPointHighlight = vi.fn();
+    const onRenderTooltip = vi.fn();
     const onClearHighlight = vi.fn();
     const { wrapper } = renderChart({
       highcharts,
       options: { series },
-      onPointHighlight,
+      onRenderTooltip,
       onClearHighlight,
       getTooltipContent: () => ({ header: "Tooltip title", body: "Tooltip body", footer: "Tooltip footer" }),
       callback: (apiRef) => (api = apiRef),
@@ -106,7 +106,7 @@ describe("CoreChart: tooltip", () => {
 
     act(() => api!.highlightChartPoint(hc.getChartPoint(0, 0)));
 
-    expect(onPointHighlight).toHaveBeenCalledWith(
+    expect(onRenderTooltip).toHaveBeenCalledWith(
       expect.objectContaining({
         point: hc.getChartPoint(0, 0),
       }),
@@ -132,7 +132,7 @@ describe("CoreChart: tooltip", () => {
       highcharts,
       options: { series },
       getTooltipContent: () => ({ header: "Tooltip title", body: "Tooltip body", footer: "Tooltip footer" }),
-      onPointHighlight: () => ({ pointRect: { x: 1001, y: 1002, width: 1003, height: 1004 } }),
+      onRenderTooltip: () => ({ pointRect: { x: 1001, y: 1002, width: 1003, height: 1004 } }),
     });
 
     const originalRenderer = hc.getChart().renderer;
@@ -180,7 +180,7 @@ describe("CoreChart: tooltip", () => {
     const { wrapper } = renderChart({
       highcharts,
       options: { series },
-      getTooltipContent: ({ point }) => ({ header: `y${point.y}`, body: "" }),
+      getTooltipContent: ({ point }) => ({ header: `y${point?.y}`, body: "" }),
     });
 
     // Hover point 1 to show the popover.
@@ -217,26 +217,27 @@ describe("CoreChart: tooltip", () => {
     });
   });
 
-  test("provides point for tooltip.getContent", async () => {
+  test("provides point and group for tooltip.getContent", async () => {
     const getTooltipContent = vi.fn();
     renderChart({ highcharts, options: { series }, getTooltipContent });
 
     for (let i = 0; i < data.length; i++) {
       act(() => hc.highlightChartPoint(0, i));
 
+      const point = hc.getChartPoint(0, i);
       await waitFor(() => {
-        expect(getTooltipContent).toHaveBeenCalledWith({ point: hc.getChartPoint(0, i) });
+        expect(getTooltipContent).toHaveBeenCalledWith({ point, group: expect.arrayContaining([point]) });
       });
     }
   });
 
   test("uses target placement", () => {
-    const onPointHighlight = vi.fn();
+    const onRenderTooltip = vi.fn();
     renderChart({
       highcharts,
       options: { series: lineSeries },
       tooltip: { placement: "target" },
-      onPointHighlight,
+      onRenderTooltip,
     });
 
     hc.getChart().plotLeft = 10;
@@ -246,16 +247,16 @@ describe("CoreChart: tooltip", () => {
 
     act(() => hc.highlightChartPoint(0, 1));
 
-    expect(onPointHighlight).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 1) }));
+    expect(onRenderTooltip).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 1) }));
   });
 
   test("uses target placement on inverted chart", () => {
-    const onPointHighlight = vi.fn();
+    const onRenderTooltip = vi.fn();
     renderChart({
       highcharts,
       options: { series: lineSeries, chart: { inverted: true } },
       tooltip: { placement: "target" },
-      onPointHighlight,
+      onRenderTooltip,
     });
 
     hc.getChart().plotLeft = 10;
@@ -267,16 +268,16 @@ describe("CoreChart: tooltip", () => {
 
     act(() => hc.highlightChartPoint(0, 1));
 
-    expect(onPointHighlight).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 1) }));
+    expect(onRenderTooltip).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 1) }));
   });
 
   test("uses middle placement", () => {
-    const onPointHighlight = vi.fn();
+    const onRenderTooltip = vi.fn();
     renderChart({
       highcharts,
       options: { series: lineSeries },
       tooltip: { placement: "middle" },
-      onPointHighlight,
+      onRenderTooltip,
     });
 
     hc.getChart().plotLeft = 10;
@@ -288,7 +289,7 @@ describe("CoreChart: tooltip", () => {
 
     act(() => hc.highlightChartPoint(0, 1));
 
-    expect(onPointHighlight).toHaveBeenCalledWith(
+    expect(onRenderTooltip).toHaveBeenCalledWith(
       expect.objectContaining({
         point: hc.getChartPoint(0, 1),
       }),
@@ -296,12 +297,12 @@ describe("CoreChart: tooltip", () => {
   });
 
   test("uses middle placement on inverted chart", () => {
-    const onPointHighlight = vi.fn();
+    const onRenderTooltip = vi.fn();
     renderChart({
       highcharts,
       options: { series: lineSeries, chart: { inverted: true } },
       tooltip: { placement: "middle" },
-      onPointHighlight,
+      onRenderTooltip,
     });
 
     hc.getChart().plotLeft = 10;
@@ -313,7 +314,7 @@ describe("CoreChart: tooltip", () => {
 
     act(() => hc.highlightChartPoint(0, 1));
 
-    expect(onPointHighlight).toHaveBeenCalledWith(
+    expect(onRenderTooltip).toHaveBeenCalledWith(
       expect.objectContaining({
         point: hc.getChartPoint(0, 1),
       }),
@@ -321,12 +322,12 @@ describe("CoreChart: tooltip", () => {
   });
 
   test("uses outside placement", () => {
-    const onPointHighlight = vi.fn();
+    const onRenderTooltip = vi.fn();
     renderChart({
       highcharts,
       options: { series: lineSeries },
       tooltip: { placement: "outside" },
-      onPointHighlight,
+      onRenderTooltip,
     });
 
     hc.getChart().plotLeft = 10;
@@ -338,7 +339,7 @@ describe("CoreChart: tooltip", () => {
 
     act(() => hc.highlightChartPoint(0, 1));
 
-    expect(onPointHighlight).toHaveBeenCalledWith(
+    expect(onRenderTooltip).toHaveBeenCalledWith(
       expect.objectContaining({
         point: hc.getChartPoint(0, 1),
       }),
@@ -346,12 +347,12 @@ describe("CoreChart: tooltip", () => {
   });
 
   test("uses outside placement on inverted chart", () => {
-    const onPointHighlight = vi.fn();
+    const onRenderTooltip = vi.fn();
     renderChart({
       highcharts,
       options: { series: lineSeries, chart: { inverted: true } },
       tooltip: { placement: "outside" },
-      onPointHighlight,
+      onRenderTooltip,
     });
 
     hc.getChart().plotLeft = 10;
@@ -363,7 +364,7 @@ describe("CoreChart: tooltip", () => {
 
     act(() => hc.highlightChartPoint(0, 1));
 
-    expect(onPointHighlight).toHaveBeenCalledWith(
+    expect(onRenderTooltip).toHaveBeenCalledWith(
       expect.objectContaining({
         point: hc.getChartPoint(0, 1),
       }),
