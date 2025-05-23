@@ -8,9 +8,16 @@ import { vi } from "vitest";
 
 import "highcharts/highcharts-more";
 import { CartesianChartProps } from "../../../lib/components/cartesian-chart";
-import createWrapper from "../../../lib/components/test-utils/dom";
 import { HighchartsTestHelper } from "../../core/__tests__/highcharts-utils";
 import { renderCartesianChart } from "./common";
+import {
+  getAllTooltipSeries,
+  getTooltip,
+  getTooltipBody,
+  getTooltipFooter,
+  getTooltipHeader,
+  getTooltipSeries,
+} from "./tooltip-utils";
 
 const hc = new HighchartsTestHelper(highcharts);
 
@@ -19,14 +26,6 @@ const lineSeries: CartesianChartProps.SeriesOptions[] = [
   { type: "line", name: "Line 2", data: [4, 5, 6] },
   { type: "line", name: "Line 3", data: [7, 8, 9] },
 ];
-
-const getChart = () => createWrapper().findChart("cartesian")!;
-const getTooltip = () => getChart().findTooltip()!;
-const getTooltipHeader = () => getChart().findTooltip()!.findHeader()!;
-const getTooltipBody = () => getChart().findTooltip()!.findBody()!;
-const getTooltipFooter = () => getChart().findTooltip()!.findFooter()!;
-const getAllTooltipSeries = () => getChart().findTooltip()!.findSeries();
-const getTooltipSeries = (index: number) => getAllTooltipSeries()[index];
 
 describe("CartesianChart: tooltip", () => {
   test("renders tooltip on point highlight", async () => {
