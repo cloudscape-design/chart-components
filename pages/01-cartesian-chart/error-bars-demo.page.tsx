@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import Box from "@cloudscape-design/components/box";
 import Checkbox from "@cloudscape-design/components/checkbox";
 import ColumnLayout from "@cloudscape-design/components/column-layout";
 import FormField from "@cloudscape-design/components/form-field";
@@ -170,7 +171,7 @@ function ColumnChart({ inverted, errorSize, errorColor, customTooltipContent }: 
         customTooltipContent
           ? {
               series: seriesFormatter,
-              footer: () => "*Error range",
+              footer: () => <Box fontSize="body-s">*Error range</Box>,
             }
           : undefined
       }
@@ -196,7 +197,7 @@ function MixedChart({ inverted, errorSize, errorColor, customTooltipContent }: C
         customTooltipContent
           ? {
               series: seriesFormatter,
-              footer: () => "*Error range",
+              footer: () => <Box fontSize="body-s">*Error range</Box>,
             }
           : undefined
       }
@@ -222,7 +223,7 @@ function GroupedColumnChart({ inverted, errorSize, errorColor, customTooltipCont
         customTooltipContent
           ? {
               series: seriesFormatter,
-              footer: () => "*Error range",
+              footer: () => <Box fontSize="body-s">*Error range</Box>,
             }
           : undefined
       }
@@ -270,7 +271,7 @@ function LineChart({
         customTooltipContent
           ? {
               series: seriesFormatter,
-              footer: () => "*Error range",
+              footer: () => <Box fontSize="body-s">*Error range</Box>,
             }
           : undefined
       }
