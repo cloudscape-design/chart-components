@@ -1,8 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { CartesianChartProps } from "../../lib/components";
-import { InternalCartesianChart } from "../../lib/components/cartesian-chart/chart-cartesian-internal";
+import { CartesianChart, CartesianChartProps } from "../../lib/components";
 import { dateFormatter } from "../common/formatters";
 import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
@@ -101,24 +100,20 @@ for (let index = 0; index < 20; index++) {
 function Component() {
   const { chartProps } = useChartSettings();
   return (
-    <InternalCartesianChart
+    <CartesianChart
       {...chartProps.cartesian}
-      options={{
-        chart: { height: 400 },
-        lang: { accessibility: { chartContainerLabel: "Line chart" } },
-        series: series,
-        xAxis: [
-          {
-            type: "datetime",
-            title: "Time (UTC)",
-            min: domain[0].getTime(),
-            max: domain[domain.length - 1].getTime(),
-            valueFormatter: dateFormatter,
-          },
-        ],
-        yAxis: [{ title: "Bytes transferred" }],
-        plotOptions: { series: { marker: { enabled: false }, stacking: "normal" } },
+      stacked={true}
+      chartHeight={400}
+      ariaLabel="Area chart"
+      series={series}
+      xAxis={{
+        type: "datetime",
+        title: "Time (UTC)",
+        min: domain[0].getTime(),
+        max: domain[domain.length - 1].getTime(),
+        valueFormatter: dateFormatter,
       }}
+      yAxis={{ title: "Bytes transferred" }}
     />
   );
 }
