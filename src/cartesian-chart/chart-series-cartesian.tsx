@@ -102,8 +102,8 @@ function updateSeriesData(chart: Highcharts.Chart) {
       }
     }
   }
-  const sortedAllX = [...allX].sort();
-  const sortedAllY = [...allY].sort();
+  const sortedAllX = [...allX].sort((a, b) => a - b);
+  const sortedAllY = [...allY].sort((a, b) => a - b);
 
   let updated = false;
   for (const s of chart.series) {

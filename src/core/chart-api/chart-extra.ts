@@ -41,9 +41,12 @@ export class ChartExtra {
           }
         }
       }
-      allXInSeries.set(s, [...xSeriesSet].sort());
+      allXInSeries.set(
+        s,
+        [...xSeriesSet].sort((a, b) => a - b),
+      );
     }
-    const allX = [...allXSet].sort();
+    const allX = [...allXSet].sort((a, b) => a - b);
     const groups = allX.map((x) => this.findPointsByX(x));
     const groupRects = groups.map((group) => ({ rect: getGroupRect(group), group }));
     return { allX, allXInSeries, groupRects };
