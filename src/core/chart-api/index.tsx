@@ -381,7 +381,20 @@ export class ChartAPI {
     this.initNoData();
     this.updateChartItemsVisibility(this.context.visibleItems);
     this.initChartLabel();
+    this.handleDestroyedPoints();
   };
+
+  // Highcharts sometimes destroys points upon re-rendering. As result, the already stored points can get
+  // replaced by `{ destroyed: true }`. As we only store points (outside the render loop) for the tooltip,
+  // we clear its state if detecting destroyed points to prevent crashing.
+  // The behavior is only observed during the initial chart loading and is not expected to cause UX issues with the
+  // tooltip being closed unexpectedly.
+  private handleDestroyedPoints() {
+    const tooltipState = this.store.get().tooltip;
+    if (tooltipState.group.some((p) => !p.series)) {
+      this._store.hideTooltip();
+    }
+  }
 
   private initChartLabel = () => {
     const defaultLabel = this.chart?.container.querySelector("svg")?.getAttribute("aria-label");
