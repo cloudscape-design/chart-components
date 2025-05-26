@@ -101,36 +101,45 @@ export function renderMarker(chart: Highcharts.Chart, point: Highcharts.Point, s
     fill: selected ? point.color : colorBackgroundLayoutMain,
     style: "pointer-events: none",
   };
+  const haloStyle = { zIndex: 6, fill: point.color, opacity: 0.4, style: "pointer-events: none" };
 
   const x = inverted ? chart.plotLeft + chart.plotWidth - point.plotY : chart.plotLeft + (point.plotX ?? 0);
   const y = inverted ? chart.plotTop + chart.plotHeight - point.plotX : chart.plotTop + (point.plotY ?? 0);
 
+  const render = (element: Highcharts.SVGElement) => {
+    if (selected) {
+      const group = chart.renderer.g().attr({ zIndex: pointStyle.zIndex }).add();
+      chart.renderer.circle(x, y, 10).attr(haloStyle).add(group);
+      element.add(group);
+      return group;
+    } else {
+      return element.add();
+    }
+  };
+
   const type = getSeriesMarkerType(point.series);
   switch (type) {
     case "square":
-      return chart.renderer
-        .rect(x - size, y - size, size * 2, size * 2)
-        .attr(pointStyle)
-        .add();
+      return render(chart.renderer.rect(x - size, y - size, size * 2, size * 2).attr(pointStyle));
 
     case "diamond": {
       const diamondPath = ["M", x, y - size, "L", x + size, y, "L", x, y + size, "L", x - size, y, "Z"] as any;
-      return chart.renderer.path(diamondPath).attr(pointStyle).add();
+      return render(chart.renderer.path(diamondPath).attr(pointStyle));
     }
 
     case "triangle": {
       const trianglePath = ["M", x, y - size, "L", x + size, y + size, "L", x - size, y + size, "Z"] as any;
-      return chart.renderer.path(trianglePath).attr(pointStyle).add();
+      return render(chart.renderer.path(trianglePath).attr(pointStyle));
     }
 
     case "triangle-down": {
       const triangleDownPath = ["M", x, y + size, "L", x - size, y - size, "L", x + size, y - size, "Z"] as any;
-      return chart.renderer.path(triangleDownPath).attr(pointStyle).add();
+      return render(chart.renderer.path(triangleDownPath).attr(pointStyle));
     }
 
     case "circle":
     default:
-      return chart.renderer.circle(x, y, size).attr(pointStyle).add();
+      return render(chart.renderer.circle(x, y, size).attr(pointStyle));
   }
 }
 
