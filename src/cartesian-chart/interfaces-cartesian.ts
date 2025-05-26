@@ -39,7 +39,7 @@ export interface CartesianChartProps extends BaseTypes.BaseChartProps {
    * Supported properties:
    * * `enabled` - (optional, boolean) - Use it to hide the tooltip.
    * * `size` - (optional, "small" | "medium" | "large") - Use it to specify max tooltip size.
-   * * `placement` - (optional, "target" | "middle" | "outside") - Use it to specify preferred tooltip placement.
+   * * `placement` - (optional, "middle" | "outside" | "target") - Use it to specify preferred tooltip placement.
    * * `title` - (optional, function) - Use it to provide a custom tooltip title.
    * * `content` - (optional, function) - Use it to provide a custom tooltip content.
    * * `footer` - (optional, function) - Use it to add a tooltip footer.

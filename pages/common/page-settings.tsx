@@ -28,7 +28,7 @@ export interface PageSettings {
   seriesLoading: boolean;
   seriesError: boolean;
   emphasizeBaselineAxis: boolean;
-  tooltipPlacement: "middle" | "outside";
+  tooltipPlacement: "default" | "middle" | "outside" | "target";
   tooltipSize: "small" | "medium" | "large";
   showLegend: boolean;
   showLegendTitle: boolean;
@@ -52,7 +52,7 @@ const DEFAULT_SETTINGS: PageSettings = {
   seriesLoading: false,
   seriesError: false,
   emphasizeBaselineAxis: true,
-  tooltipPlacement: "middle",
+  tooltipPlacement: "default",
   tooltipSize: "medium",
   showLegend: true,
   showLegendTitle: false,
@@ -144,7 +144,7 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
         highcharts,
         noData,
         tooltip: {
-          placement: settings.tooltipPlacement,
+          placement: settings.tooltipPlacement === "default" ? undefined : settings.tooltipPlacement,
           size: settings.tooltipSize,
         },
         legend,
@@ -163,7 +163,7 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
   };
 }
 
-const tooltipPlacementOptions = [{ value: "middle" }, { value: "outside" }];
+const tooltipPlacementOptions = [{ value: "default" }, { value: "middle" }, { value: "outside" }, { value: "target" }];
 
 const tooltipSizeOptions = [{ value: "small" }, { value: "medium" }, { value: "large" }];
 
@@ -296,7 +296,11 @@ export function PageSettingsForm({
                     }
                     onChange={({ detail }) =>
                       setSettings({
-                        tooltipPlacement: detail.selectedOption.value as string as "middle" | "outside",
+                        tooltipPlacement: detail.selectedOption.value as string as
+                          | "default"
+                          | "middle"
+                          | "outside"
+                          | "target",
                       })
                     }
                   />
