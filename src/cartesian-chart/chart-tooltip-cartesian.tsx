@@ -65,7 +65,10 @@ export function useChartTooltipCartesian(props: {
         return {
           key: item.series.name,
           value: item.y !== null ? valueFormatter(item.y) : null,
-          details: item.error ? `${valueFormatter(item.error.low)} - ${valueFormatter(item.error.high)}` : null,
+          details: item.error
+            ? (item.error.series.name ? `${item.error.series.name}: ` : "") +
+              `${valueFormatter(item.error.low)} - ${valueFormatter(item.error.high)}`
+            : null,
         };
       })();
 
@@ -184,7 +187,11 @@ function findTooltipSeriesItems(
 
   function addError(seriesItem: CartesianChartProps.TooltipSeriesItem, errorPoint: Highcharts.Point) {
     if (errorPoint.options.low !== undefined && errorPoint.options.high !== undefined) {
-      seriesItem.error = { low: errorPoint.options.low, high: errorPoint.options.high };
+      seriesItem.error = {
+        low: errorPoint.options.low,
+        high: errorPoint.options.high,
+        series: errorPoint.series.options,
+      };
     }
   }
 

@@ -48,6 +48,7 @@ function getCostsErrorSeries({ errorSize, errorColor }: { errorSize: number; err
   return {
     linkedTo: "c",
     type: "errorbar",
+    name: "Error range",
     color: errorColor,
     data: costsErrorData(errorSize),
   } as const;
@@ -57,6 +58,7 @@ function getLastYearCostsSeries({ errorSize, errorColor }: { errorSize: number; 
   return {
     linkedTo: "c-1",
     type: "errorbar",
+    name: "Error range",
     color: errorColor,
     data: costsLastYearErrorData(errorSize),
   } as const;
@@ -252,6 +254,7 @@ function LineChart({
     const errorSeries: CartesianChartProps.ErrorBarSeriesOptions = {
       linkedTo: `c-${index}`,
       type: "errorbar",
+      name: "Error range",
       color: errorColor,
       data: data.map((value) => ({ ...errorRange(value, errorSize / 2) })),
     };

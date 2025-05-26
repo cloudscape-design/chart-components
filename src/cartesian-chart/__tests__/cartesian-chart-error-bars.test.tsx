@@ -24,7 +24,7 @@ describe("CartesianChart: Error bars", () => {
       highcharts,
       series: [
         { type: "column", name: "Column 1", data: [2], id: "column-1" },
-        { type: "errorbar", name: "Column 2", data: [{ low: 1, high: 3 }], linkedTo: "column-1" },
+        { type: "errorbar", name: "Error range", data: [{ low: 1, high: 3 }], linkedTo: "column-1" },
       ],
     });
 
@@ -36,6 +36,24 @@ describe("CartesianChart: Error bars", () => {
     expect(getAllTooltipSeries()).toHaveLength(1);
     expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Column 1");
     expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("2");
+    expect(getTooltipSeries(0).findDetails().getElement().textContent).toBe("Error range: 1 - 3");
+  });
+
+  test("renders only the error range if error bar series name is not provided", async () => {
+    renderCartesianChart({
+      highcharts,
+      series: [
+        { type: "column", name: "Column 1", data: [2], id: "column-1" },
+        { type: "errorbar", data: [{ low: 1, high: 3 }], linkedTo: "column-1" },
+      ],
+    });
+
+    act(() => hc.highlightChartPoint(0, 0));
+
+    await waitFor(() => {
+      expect(getTooltip()).not.toBe(null);
+    });
+    expect(getAllTooltipSeries()).toHaveLength(1);
     expect(getTooltipSeries(0).findDetails().getElement().textContent).toBe("1 - 3");
   });
 
