@@ -56,6 +56,7 @@ function ChartSeriesDetails(
   const className = clsx(baseProps.className, styles.root);
   const detailsRef = useRef<HTMLDivElement | null>(null);
   const mergedRef = useMergeRefs(ref, detailsRef);
+  const selectedRef = useRef<HTMLDivElement>(null);
 
   // Once the component has rendered, pass its content in plain text
   // so that it can be used by screen readers.
@@ -71,6 +72,13 @@ function ChartSeriesDetails(
   }, [details, setPopoverText]);
 
   const isExpanded = (seriesTitle: string) => !!expandedSeries && expandedSeries.has(seriesTitle);
+
+  const selectedIndex = details.findIndex((d) => d.selected);
+  useEffect(() => {
+    if (selectedIndex !== -1 && selectedRef.current) {
+      selectedRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [selectedIndex]);
 
   return (
     <div {...baseProps} className={className} ref={mergedRef}>
@@ -89,6 +97,7 @@ function ChartSeriesDetails(
             >
               {selected ? (
                 <div
+                  ref={selectedRef}
                   style={{
                     position: "absolute",
                     top: 8,
