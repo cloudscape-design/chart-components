@@ -133,17 +133,17 @@ export const InternalCartesianChart = forwardRef(
           states: { hover: { halo: Styles.defaultMarkerHoverHalo }, ...options.plotOptions?.line?.states },
         },
         spline: {
-          ...options.plotOptions?.line,
+          ...options.plotOptions?.spline,
           marker: { ...Styles.defaultMarker, ...options.plotOptions?.line?.marker },
           states: { hover: { halo: Styles.defaultMarkerHoverHalo }, ...options.plotOptions?.spline?.states },
         },
         area: {
-          ...options.plotOptions?.line,
+          ...options.plotOptions?.area,
           marker: { ...Styles.defaultMarker, ...options.plotOptions?.line?.marker },
           states: { hover: { halo: Styles.defaultMarkerHoverHalo }, ...options.plotOptions?.area?.states },
         },
         areaspline: {
-          ...options.plotOptions?.line,
+          ...options.plotOptions?.areaspline,
           marker: { ...Styles.defaultMarker, ...options.plotOptions?.line?.marker },
           states: { hover: { halo: Styles.defaultMarkerHoverHalo }, ...options.plotOptions?.areaspline?.states },
         },

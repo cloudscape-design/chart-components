@@ -483,11 +483,18 @@ export class ChartAPI {
   };
 
   private setHighlightState(points: Highcharts.Point[]) {
+    const includedPoints = new Set<Highcharts.Point>();
+    const includedSeries = new Set<Highcharts.Series>();
+    points.forEach((point) => {
+      includedPoints.add(point);
+      includedSeries.add(point.series);
+    });
+
     if (!this.store.get().tooltip.pinned) {
       for (const s of this.chart.series) {
-        setSeriesState(s, "normal", false);
+        setSeriesState(s, includedSeries.has(s) ? "normal" : "inactive", false);
         for (const d of s.data) {
-          setPointState(d, points.includes(d) ? "normal" : "inactive", false);
+          setPointState(d, includedPoints.has(d) ? "normal" : "inactive", false);
         }
       }
     }

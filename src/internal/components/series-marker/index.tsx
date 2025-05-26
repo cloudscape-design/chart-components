@@ -1,8 +1,14 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import type Highcharts from "highcharts";
+
 import { BaseComponentProps } from "@cloudscape-design/components/internal/base-component";
-import { colorTextInteractiveDisabled } from "@cloudscape-design/design-tokens";
+import {
+  colorBackgroundLayoutMain,
+  colorTextBodyDefault,
+  colorTextInteractiveDisabled,
+} from "@cloudscape-design/design-tokens";
 
 export type ChartSeriesMarkerType =
   | "line"
@@ -40,8 +46,6 @@ export function ChartSeriesMarker({ type = "line", color, visible = true }: Char
           <rect x={0} y={0} width={size} height={size} fill={color} transform={scale(0.9)} rx={2} />
         )}
 
-        {type === "square" && <rect x={0} y={0} width={size} height={size} fill={color} transform={scale(0.65)} />}
-
         {type === "hollow-square" && (
           <rect
             x={0}
@@ -56,6 +60,10 @@ export function ChartSeriesMarker({ type = "line", color, visible = true }: Char
             rx={2}
           />
         )}
+
+        {/* Scatter markers */}
+
+        {type === "square" && <rect x={0} y={0} width={size} height={size} fill={color} transform={scale(0.65)} />}
 
         {type === "diamond" && (
           <polygon
@@ -77,4 +85,71 @@ export function ChartSeriesMarker({ type = "line", color, visible = true }: Char
       </g>
     </svg>
   );
+}
+
+export function renderMarker(chart: Highcharts.Chart, point: Highcharts.Point, selected: boolean) {
+  if (point.plotX === undefined || point.plotY === undefined) {
+    return chart.renderer.circle(0, 0, 0).add();
+  }
+
+  const inverted = !!chart.inverted;
+  const size = selected ? 4 : 3;
+  const pointStyle = {
+    zIndex: selected ? 6 : 5,
+    "stroke-width": selected ? 1 : 2,
+    stroke: selected ? colorTextBodyDefault : point.color,
+    fill: selected ? point.color : colorBackgroundLayoutMain,
+    style: "pointer-events: none",
+  };
+
+  const x = inverted ? chart.plotLeft + chart.plotWidth - point.plotY : chart.plotLeft + (point.plotX ?? 0);
+  const y = inverted ? chart.plotTop + chart.plotHeight - point.plotX : chart.plotTop + (point.plotY ?? 0);
+
+  const type = getSeriesMarkerType(point.series);
+  switch (type) {
+    case "square":
+      return chart.renderer
+        .rect(x - size, y - size, size * 2, size * 2)
+        .attr(pointStyle)
+        .add();
+
+    case "diamond": {
+      const diamondPath = ["M", x, y - size, "L", x + size, y, "L", x, y + size, "L", x - size, y, "Z"] as any;
+      return chart.renderer.path(diamondPath).attr(pointStyle).add();
+    }
+
+    case "triangle": {
+      const trianglePath = ["M", x, y - size, "L", x + size, y + size, "L", x - size, y + size, "Z"] as any;
+      return chart.renderer.path(trianglePath).attr(pointStyle).add();
+    }
+
+    case "triangle-down": {
+      const triangleDownPath = ["M", x, y + size, "L", x - size, y - size, "L", x + size, y - size, "Z"] as any;
+      return chart.renderer.path(triangleDownPath).attr(pointStyle).add();
+    }
+
+    case "circle":
+    default:
+      return chart.renderer.circle(x, y, size).attr(pointStyle).add();
+  }
+}
+
+function getSeriesMarkerType(series: Highcharts.Series): ChartSeriesMarkerType {
+  const seriesSymbol = "symbol" in series && typeof series.symbol === "string" ? series.symbol : "circle";
+  if (series.type === "scatter") {
+    switch (seriesSymbol) {
+      case "square":
+        return "square";
+      case "diamond":
+        return "diamond";
+      case "triangle":
+        return "triangle";
+      case "triangle-down":
+        return "triangle-down";
+      case "circle":
+      default:
+        return "circle";
+    }
+  }
+  return "circle";
 }

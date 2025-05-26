@@ -5,7 +5,6 @@ import {
   colorChartsPaletteCategorical1,
   colorChartsPaletteCategorical2,
   colorChartsPaletteCategorical3,
-  colorChartsPaletteCategorical4,
 } from "@cloudscape-design/design-tokens";
 
 import { CartesianChart, CartesianChartProps } from "../../lib/components";
@@ -208,25 +207,25 @@ const largeSeries: CartesianChartProps.SeriesOptions[] = [
     name: "A",
     type: "scatter",
     data: largeDataA,
-    color: colorChartsPaletteCategorical1,
+    color: `rgba(0,205,0,0.6)`,
   },
   {
     name: "B",
     type: "scatter",
     data: largeDataB,
-    color: colorChartsPaletteCategorical3,
+    color: `rgba(0,155,155,0.6)`,
   },
   {
     name: "A trend",
     type: "spline",
     data: computeTrendLine(largeDataA),
-    color: colorChartsPaletteCategorical2,
+    color: `rgba(0,125,0,1.0)`,
   },
   {
     name: "B trend",
     type: "spline",
     data: computeTrendLine(largeDataB),
-    color: colorChartsPaletteCategorical4,
+    color: `rgba(0,105,105,1.0)`,
   },
 ];
 

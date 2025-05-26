@@ -5,12 +5,11 @@ import { useRef, useState } from "react";
 import type Highcharts from "highcharts";
 
 import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
-import { colorBackgroundLayoutMain } from "@cloudscape-design/design-tokens";
 
 import { CoreChartProps, Rect } from "../core/interfaces-core";
 import { getOptionsId, getSeriesColor, getSeriesId, getSeriesMarkerType } from "../core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../internal/components/series-details";
-import { ChartSeriesMarker } from "../internal/components/series-marker";
+import { ChartSeriesMarker, renderMarker } from "../internal/components/series-marker";
 import { isXThreshold } from "./chart-series-cartesian";
 import { getDefaultFormatter } from "./default-formatters";
 import {
@@ -223,63 +222,28 @@ class HighlightCursor {
     // The cursor (vertical or horizontal line to make the highlighted point better prominent) is only added for charts
     // that do not include "column" series. That is because the cursor is not necessary for columns, assuming the number of
     // x data points is not very high.
+    if (cursor) {
+      const cursorStyle = { fill: Styles.colorChartCursor, zIndex: 5, style: "pointer-events: none" };
+      this.refs.push(
+        chart.inverted
+          ? chart.renderer
+              .rect(chart.plotLeft, target.y - target.width / 2, chart.plotWidth, 1)
+              .attr(cursorStyle)
+              .add()
+          : chart.renderer
+              .rect(target.x + target.width / 2, chart.plotTop, 1, chart.plotHeight)
+              .attr(cursorStyle)
+              .add(),
+      );
+    }
+
     const matchedPoints = group.filter(
       (p) => !isXThreshold(p.series) && p.series.type !== "column" && p.series.type !== "errorbar",
     );
-    const getPointStyle = (targetPoint: Highcharts.Point) =>
-      targetPoint !== point
-        ? {
-            zIndex: 5,
-            "stroke-width": 2,
-            stroke: targetPoint.color,
-            fill: colorBackgroundLayoutMain,
-            style: "pointer-events: none",
-          }
-        : {
-            zIndex: 6,
-            "stroke-width": 2,
-            stroke: targetPoint.color,
-            fill: targetPoint.color,
-            style: "pointer-events: none",
-          };
 
-    if (chart.inverted) {
-      if (cursor) {
-        this.refs.push(
-          chart.renderer
-            .rect(chart.plotLeft, target.y - target.width / 2, chart.plotWidth, 1)
-            .attr({ fill: Styles.colorChartCursor, zIndex: 5, style: "pointer-events: none" })
-            .add(),
-        );
-      }
-      for (const p of matchedPoints) {
-        if (p.plotX !== undefined && p.plotY !== undefined && p.series.type !== "scatter") {
-          this.refs.push(
-            chart.renderer
-              .circle(chart.plotLeft + chart.plotWidth - p.plotY, chart.plotTop + chart.plotHeight - p.plotX, 4)
-              .attr(getPointStyle(p))
-              .add(),
-          );
-        }
-      }
-    } else {
-      if (cursor) {
-        this.refs.push(
-          chart.renderer
-            .rect(target.x + target.width / 2, chart.plotTop, 1, chart.plotHeight)
-            .attr({ fill: Styles.colorChartCursor, zIndex: 5, style: "pointer-events: none" })
-            .add(),
-        );
-      }
-      for (const p of matchedPoints) {
-        if (p.plotX !== undefined && p.plotY !== undefined && p.series.type !== "scatter") {
-          this.refs.push(
-            chart.renderer
-              .circle(chart.plotLeft + p.plotX, chart.plotTop + p.plotY, 4)
-              .attr(getPointStyle(p))
-              .add(),
-          );
-        }
+    for (const p of matchedPoints) {
+      if (p.plotX !== undefined && p.plotY !== undefined) {
+        this.refs.push(renderMarker(chart, p, p === point));
       }
     }
   }
