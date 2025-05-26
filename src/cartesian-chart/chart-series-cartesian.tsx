@@ -73,17 +73,7 @@ export const useCartesianSeries = ({
   if (emphasizeBaselineAxis) {
     yPlotLines.push({ value: 0, ...Styles.chatPlotBaselineOptions, className: testClasses["emphasized-baseline"] });
   }
-
-  // By default, Highcharts highlights data points that are closest to the cursor. However, we need to highlight all
-  // series that are defined for the matched x-coordinate. This is achieved by enabling the `shared=true` behavior,
-  // which is defined in Highcharts tooltip. The tooltip itself is then hidden with styles.
-  const tooltip: Highcharts.TooltipOptions = {
-    enabled: true,
-    shared: true,
-    style: { opacity: 0 },
-  };
-
-  return { series, xPlotLines, yPlotLines, tooltip, options: { onChartRender } };
+  return { series, xPlotLines, yPlotLines, options: { onChartRender } };
 };
 
 function updateSeriesData(chart: Highcharts.Chart) {
