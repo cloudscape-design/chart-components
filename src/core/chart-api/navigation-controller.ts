@@ -78,7 +78,8 @@ export class NavigationController {
 
   // Casting focus to the application element dispatches it to the previously focused element or the chart.
   // This is used to restore focus after the tooltip is dismissed.
-  public focusApplication() {
+  public focusApplication(point: null | Highcharts.Point, group: Highcharts.Point[]) {
+    this.focusedState = point ? { type: "point", point, group } : { type: "group", group };
     this.applicationEl?.focus();
   }
 

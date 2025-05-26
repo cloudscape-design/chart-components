@@ -239,7 +239,8 @@ export class ChartAPI {
   };
 
   public onDismissTooltip = (outsideClick?: boolean) => {
-    if (this.store.get().tooltip.pinned) {
+    const { pinned, point, group } = this.store.get().tooltip;
+    if (pinned) {
       this.lastDismissTime = new Date().getTime();
       this._store.hideTooltip();
       // Selecting the point on which the popover was pinned to bring focus back to it when the popover is dismissed.
@@ -250,7 +251,7 @@ export class ChartAPI {
           // If the last focused target is no longer around - the focus goes back to the first data point.
           this.chart.series?.[0]?.data?.[0].graphic?.element.focus();
         } else {
-          this.navigation.focusApplication();
+          this.navigation.focusApplication(point, group);
         }
       }
     }
