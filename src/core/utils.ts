@@ -8,6 +8,8 @@ import { castArray } from "../internal/utils/utils";
 import { ChartLegendItem } from "./interfaces-base";
 import { ChartLegendItemSpec, InternalChartLegendItemSpec, Rect } from "./interfaces-core";
 
+const SET_STATE_OVERRIDE_MARKER = Symbol("awsui-set-state");
+
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
 // We expect that items requiring referencing (e.g. in order to control their visibility) have the unique identifier defined.
 // Otherwise,  we return a randomized id that is to ensure no accidental matches.
@@ -153,11 +155,11 @@ export function matchLegendItems(legendItems: readonly ChartLegendItem[], point:
 export function highlightChartItems(chart: Highcharts.Chart, itemIds: readonly string[]) {
   for (const s of chart.series) {
     if (s.type !== "pie") {
-      s.setState(itemIds.includes(getSeriesId(s)) ? "normal" : "inactive");
+      setSeriesState(s, itemIds.includes(getSeriesId(s)) ? "normal" : "inactive", true);
     }
     if (s.type === "pie") {
       for (const p of s.data) {
-        p.setState(itemIds.includes(getPointId(p)) ? "normal" : "inactive");
+        setPointState(p, itemIds.includes(getPointId(p)) ? "normal" : "inactive", false);
       }
     }
   }
@@ -175,9 +177,9 @@ export function clearChartItemsHighlight(chart: Highcharts.Chart) {
   // When a legend item loses highlight we assume no series should be highlighted at that point,
   // so removing inactive state from all series, points, and plot lines.
   for (const s of chart.series) {
-    s.setState("normal");
+    setSeriesState(s, "normal", false);
     for (const p of s.data) {
-      p.setState("normal");
+      setPointState(p, "normal", false);
     }
   }
   iteratePlotLines(chart, (line) => {
@@ -185,6 +187,49 @@ export function clearChartItemsHighlight(chart: Highcharts.Chart) {
       line.svgElem?.attr({ opacity: 1 });
     }
   });
+}
+
+export function setSeriesState(series: Highcharts.Series, state: Highcharts.SeriesStateValue, inherit?: boolean) {
+  const chart = series.chart;
+  (chart as any)[SET_STATE_OVERRIDE_MARKER] = true;
+  series.setState(state, inherit);
+  (chart as any)[SET_STATE_OVERRIDE_MARKER] = false;
+}
+
+export function setPointState(point: Highcharts.Point, state: Highcharts.PointStateValue, move?: boolean) {
+  const chart = point.series.chart;
+  (chart as any)[SET_STATE_OVERRIDE_MARKER] = true;
+  point.setState(state, move);
+  (chart as any)[SET_STATE_OVERRIDE_MARKER] = false;
+}
+
+// We replace `setState` method on Highcharts series and points with a custom implementation,
+// to prevent Highcharts from altering series or point states. Instead, we take ownership of that.
+export function overrideStateSetters(chart: Highcharts.Chart) {
+  for (const s of chart.series) {
+    // We ensure the replacement is done only once by assigning a custom property to the function.
+    // If the property is present - it means the method was already replaced.
+    if (!(s.setState as any)[SET_STATE_OVERRIDE_MARKER]) {
+      const original = s.setState;
+      s.setState = (...args) => {
+        if ((chart as any)[SET_STATE_OVERRIDE_MARKER]) {
+          original.call(s, ...args);
+        }
+      };
+      (s.setState as any)[SET_STATE_OVERRIDE_MARKER] = true;
+    }
+    for (const d of s.data) {
+      if (!(d.setState as any)[SET_STATE_OVERRIDE_MARKER]) {
+        const original = d.setState;
+        d.setState = (...args) => {
+          if ((chart as any)[SET_STATE_OVERRIDE_MARKER]) {
+            original.call(d, ...args);
+          }
+        };
+        (d.setState as any)[SET_STATE_OVERRIDE_MARKER] = true;
+      }
+    }
+  }
 }
 
 export function updateChartItemsVisibility(

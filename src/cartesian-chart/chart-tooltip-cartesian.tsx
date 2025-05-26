@@ -128,34 +128,11 @@ export function useChartTooltipCartesian(props: {
 
     chartRef.current = chart;
 
-    // Highcharts highlights the entire series when the cursor lands on it. However, for column series
-    // we want only a single column be highlighted. This is achieved by issuing inactive state for all columns series
-    // with coordinates not matched the highlighted one.
-    if (props.options.series.some((s) => s.type === "column")) {
-      for (const s of chart.series) {
-        if (s.type === "column") {
-          for (const p of s.data) {
-            p.setState(p.x === x ? "normal" : "inactive");
-          }
-        }
-      }
-    }
-
     cursorRef.current.create(groupRect, point, group, !props.options.series.some((s) => s.type === "column"));
   };
 
   const onClearHighlight: CoreChartProps["onClearHighlight"] = () => {
     cursorRef.current?.destroy();
-
-    // Clear all column series point state overrides created in `onRenderTooltip`.
-    if (props.options.series.some((s) => s.type === "column")) {
-      for (const s of chartRef.current?.series ?? []) {
-        s.setState("normal");
-        for (const p of s.data) {
-          p.setState("normal");
-        }
-      }
-    }
   };
 
   return {

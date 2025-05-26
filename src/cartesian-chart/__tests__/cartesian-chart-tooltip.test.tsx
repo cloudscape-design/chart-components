@@ -160,7 +160,7 @@ describe("CartesianChart: tooltip", () => {
     expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("2");
     expect(getTooltipSeries(0).find('[aria-expanded="false"]')).not.toBe(null);
 
-    getTooltipSeries(0).find('[aria-expanded="false"]')!.click();
+    getTooltipSeries(0).find('[aria-expanded="false"]')!.click({ bubbles: false });
     expect(getTooltipSeries(0).findSubItems()).toHaveLength(2);
     expect(getTooltipSeries(0).findSubItems()[1].findKey().getElement().textContent).toBe("sub-2 key");
     expect(getTooltipSeries(0).findSubItems()[1].findValue().getElement().textContent).toBe("sub-2 value");

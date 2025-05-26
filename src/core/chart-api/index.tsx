@@ -31,15 +31,17 @@ import {
   getVerticalAxesTitles,
   highlightChartItems,
   matchLegendItems,
+  overrideStateSetters,
+  setPointState,
+  setSeriesState,
   updateChartItemsVisibility,
 } from "../utils";
 import { ChartExtra } from "./chart-extra";
 import { ChartStore } from "./chart-store";
 import { NavigationController, NavigationControllerHandlers } from "./navigation-controller";
 
-const MOUSE_LEAVE_DELAY = 300;
+const MOUSE_LEAVE_DELAY = 200;
 const LAST_DISMISS_DELAY = 250;
-const SET_STATE_OVERRIDE_MARKER = Symbol("awsui-set-state");
 
 interface ChartAPIContext {
   visibleItems?: readonly string[];
@@ -130,6 +132,7 @@ export class ChartAPI {
       this.container.addEventListener("mouseout", chartAPI.onChartMouseout);
     };
     const onChartRender: Highcharts.ChartRenderCallbackFunction = function (this) {
+      overrideStateSetters(this);
       chartAPI.chartExtra.onRender(this);
       chartAPI.onChartRender();
     };
@@ -178,43 +181,21 @@ export class ChartAPI {
   };
 
   private get navigationHandlers(): NavigationControllerHandlers {
-    const clearHighlightState = () => {
-      for (const s of this.chart.series) {
-        s.setState("normal");
-        for (const d of s.data) {
-          d.setState("normal");
-        }
-      }
-    };
-    const setHighlightState = (group: Highcharts.Point[]) => {
-      for (const s of this.chart.series) {
-        s.setState("normal");
-        for (const d of s.data) {
-          d.setState(group.includes(d) ? "normal" : "inactive");
-        }
-      }
-    };
-    const clearHighlight = () => {
-      this.clearChartHighlight();
-      clearHighlightState();
-    };
     return {
       onFocusChart: () => {
-        clearHighlight();
+        this.clearChartHighlight();
         // TODO: i18n
         this._store.setLiveAnnouncement("chart plot");
       },
-      onFocusPoint: (point: Highcharts.Point, group: Highcharts.Point[]) => {
-        setHighlightState(group);
+      onFocusPoint: (point: Highcharts.Point) => {
         this.highlightChartPoint(point);
         this._store.setLiveAnnouncement(getPointAccessibleDescription(point));
       },
       onFocusGroup: (group: Highcharts.Point[]) => {
-        setHighlightState(group);
         this.highlightChartGroup(group);
         this._store.setLiveAnnouncement(getGroupAccessibleDescription(group));
       },
-      onBlur: () => clearHighlight(),
+      onBlur: () => this.clearChartHighlight(),
       onActivatePoint: () => this._store.pinTooltip(),
       onActivateGroup: () => this._store.pinTooltip(),
     };
@@ -325,8 +306,6 @@ export class ChartAPI {
   };
 
   public highlightChartGroup = (group: Highcharts.Point[]) => {
-    this.updateSetters();
-
     // The behavior is ignored if the tooltip is already shown and pinned.
     if (this.store.get().tooltip.pinned) {
       return false;
@@ -340,8 +319,6 @@ export class ChartAPI {
 
   // When hovering (or focusing) over the target (point, bar, segment, etc.) we show the tooltip in the target coordinate.
   public highlightChartPoint = (point: Highcharts.Point) => {
-    this.updateSetters();
-
     // The behavior is ignored if the tooltip is already shown and pinned.
     if (this.store.get().tooltip.pinned) {
       return false;
@@ -468,40 +445,9 @@ export class ChartAPI {
     }
   };
 
-  // We replace `setState` method on Highcharts series and points with a custom implementation,
-  // that does not cause the state to update when the tooltip is pinned. That is to avoid hover effect:
-  // only the matched series/points of the pinned tooltip must be in active state.ƒ
-  private updateSetters = () => {
-    for (const s of this.chart.series) {
-      // We ensure the replacement is done only once by assigning a custom property to the function.
-      // If the property is present - it means the method was already replaced.
-      if (!(s.setState as any)[SET_STATE_OVERRIDE_MARKER]) {
-        const original = s.setState;
-        s.setState = (...args) => {
-          if (this.store.get().tooltip.pinned) {
-            return;
-          }
-          return original.call(s, ...args);
-        };
-        (s.setState as any)[SET_STATE_OVERRIDE_MARKER] = true;
-      }
-      for (const d of s.data) {
-        if (!(d.setState as any)[SET_STATE_OVERRIDE_MARKER]) {
-          const original = d.setState;
-          d.setState = (...args) => {
-            if (this.store.get().tooltip.pinned) {
-              return;
-            }
-            return original.call(d, ...args);
-          };
-          (d.setState as any)[SET_STATE_OVERRIDE_MARKER] = true;
-        }
-      }
-    }
-  };
-
   private highlightActionsPoint = (point: Highcharts.Point) => {
     const group = this.chartExtra.findMatchingGroup(point);
+    this.setHighlightState(group);
     const pointRect = getPointRect(point);
     const groupRect = getGroupRect(group);
     const override = this.context.onRenderTooltip?.({ point, group, pointRect, groupRect });
@@ -519,6 +465,7 @@ export class ChartAPI {
     if (group.length === 0) {
       return;
     }
+    this.setHighlightState(group);
     const pointRect = getPointRect(group[0]);
     const groupRect = getGroupRect(group);
     const override = this.context.onRenderTooltip?.({ point: null, group, pointRect, groupRect });
@@ -534,6 +481,17 @@ export class ChartAPI {
       groupRect: override?.groupRect ?? groupRect,
     });
   };
+
+  private setHighlightState(points: Highcharts.Point[]) {
+    if (!this.store.get().tooltip.pinned) {
+      for (const s of this.chart.series) {
+        setSeriesState(s, "normal", false);
+        for (const d of s.data) {
+          setPointState(d, points.includes(d) ? "normal" : "inactive", false);
+        }
+      }
+    }
+  }
 
   private createTracks = ({ pointRect, groupRect }: { pointRect: Rect; groupRect: Rect }) => {
     // We set the direction to target element so that the direction check done by the tooltip
@@ -553,6 +511,15 @@ export class ChartAPI {
     this.context.onClearHighlight?.();
     this.destroyTracks();
     this.registeredLegend?.clearHighlight();
+
+    if (!this.store.get().tooltip.pinned) {
+      for (const s of this.chart.series ?? []) {
+        setSeriesState(s, "normal", false);
+        for (const d of s.data) {
+          setPointState(d, "normal", false);
+        }
+      }
+    }
   };
 
   private destroyTracks = () => {
