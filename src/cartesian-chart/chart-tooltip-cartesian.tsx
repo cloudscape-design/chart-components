@@ -234,7 +234,7 @@ class HighlightCursor {
       this.refs.push(
         chart.inverted
           ? chart.renderer
-              .rect(chart.plotLeft, target.y - target.width / 2, chart.plotWidth, 1)
+              .rect(chart.plotLeft, chart.plotTop + (target.y - 2 * target.height), chart.plotWidth, 1)
               .attr(cursorStyle)
               .add()
           : chart.renderer

@@ -275,9 +275,16 @@ export class ChartAPI {
 
       this.matchedGroup = [];
       for (const { group, rect } of this.chartExtra.groupRects) {
-        if (rect.x <= plotX && plotX < rect.x + rect.width) {
-          this.matchedGroup = group;
-          break;
+        if (this.chart.inverted) {
+          if (rect.y <= plotY && plotY < rect.y + rect.height) {
+            this.matchedGroup = group;
+            break;
+          }
+        } else {
+          if (rect.x <= plotX && plotX < rect.x + rect.width) {
+            this.matchedGroup = group;
+            break;
+          }
         }
       }
 
@@ -507,11 +514,11 @@ export class ChartAPI {
     const isRtl = getIsRtl(this.chart.container.parentElement);
     this.targetTrack = this.chart.renderer
       .rect(pointRect.x, pointRect.y, pointRect.width, pointRect.height)
-      .attr({ fill: "transparent", zIndex: -1, direction: isRtl ? "rtl" : "ltr" })
+      .attr({ fill: "transparent", zIndex: -1, direction: isRtl ? "rtl" : "ltr", style: "pointer-events:none" })
       .add();
     this.groupTrack = this.chart.renderer
       .rect(groupRect.x, groupRect.y, groupRect.width, groupRect.height)
-      .attr({ fill: "transparent", zIndex: -1, direction: isRtl ? "rtl" : "ltr" })
+      .attr({ fill: "transparent", zIndex: -1, direction: isRtl ? "rtl" : "ltr", style: "pointer-events:none" })
       .add();
   };
 

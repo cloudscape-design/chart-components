@@ -288,9 +288,34 @@ export function getVerticalAxesTitles(chart: Highcharts.Chart) {
 }
 
 export function getPointRect(point: Highcharts.Point): Rect {
+  switch (point.series.type) {
+    case "column":
+      return getColumnPointRect(point);
+    case "errorbar":
+      return getErrorBarPointRect(point);
+    default:
+      return getDefaultPointRect(point);
+  }
+}
+
+export function getDefaultPointRect(point: Highcharts.Point) {
   const chart = point.series.chart;
   if (point.graphic) {
-    const box = point.series.type === "errorbar" ? getErrorBarPointBox(point) : point.graphic.getBBox();
+    const box = point.graphic.getBBox();
+    return {
+      x: chart.plotLeft + box.x,
+      y: chart.plotTop + box.y,
+      width: box.width,
+      height: box.height,
+    };
+  }
+  return { x: 0, y: 0, width: 0, height: 0 };
+}
+
+export function getColumnPointRect(point: Highcharts.Point) {
+  const chart = point.series.chart;
+  if (point.graphic) {
+    const box = point.graphic.getBBox();
     return chart.inverted
       ? {
           x: chart.plotWidth + chart.plotLeft - (box.y + box.height),
@@ -305,19 +330,26 @@ export function getPointRect(point: Highcharts.Point): Rect {
           height: box.height,
         };
   }
-  return chart.inverted
-    ? {
-        x: chart.plotWidth + chart.plotLeft - ((point.plotY ?? 0) + 1),
-        y: chart.plotHeight + chart.plotTop - ((point.plotX ?? 0) + 1),
-        width: 2,
-        height: 2,
-      }
-    : { x: chart.plotLeft + (point.plotX ?? 0) - 1, y: chart.plotTop + (point.plotY ?? 0) - 1, width: 2, height: 2 };
+  return { x: 0, y: 0, width: 0, height: 0 };
 }
 
-export function getErrorBarPointBox(point: Highcharts.Point) {
+export function getErrorBarPointRect(point: Highcharts.Point) {
+  const chart = point.series.chart;
   if ("whiskers" in point) {
-    return (point.whiskers as Highcharts.SVGElement).getBBox();
+    const box = (point.whiskers as Highcharts.SVGElement).getBBox();
+    return chart.inverted
+      ? {
+          x: chart.plotWidth + chart.plotLeft - (box.y + box.height),
+          y: chart.plotHeight + chart.plotTop - (box.x + box.width),
+          width: box.height,
+          height: box.width,
+        }
+      : {
+          x: chart.plotLeft + box.x,
+          y: chart.plotTop + box.y,
+          width: box.width,
+          height: box.height,
+        };
   }
   return { x: 0, y: 0, width: 0, height: 0 };
 }
