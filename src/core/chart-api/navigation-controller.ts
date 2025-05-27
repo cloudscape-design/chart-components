@@ -355,7 +355,8 @@ export class NavigationController {
   }
 
   private focusPoint(point: null | Highcharts.Point, group: Highcharts.Point[]) {
-    if (point) {
+    // Checking point series to ensure it wasn't destroyed by Highcharts.
+    if (point && point.series) {
       this.focusedState = { type: "point", point, group };
       this.focusOutline.showPointOutline(getPointRect(point));
       this.handlers.onFocusPoint(point, group);

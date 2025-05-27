@@ -3,7 +3,7 @@
 
 import type Highcharts from "highcharts";
 
-import { circleIndex } from "@cloudscape-design/component-toolkit/internal";
+import { circleIndex, getIsRtl } from "@cloudscape-design/component-toolkit/internal";
 
 import { Rect } from "../interfaces-core";
 import { getGroupRect } from "../utils";
@@ -131,7 +131,8 @@ export class ChartExtra {
   public findNextPointInSeries = (point: Highcharts.Point): null | Highcharts.Point => {
     const seriesX = this.getAllXInSeries(point.series);
     const pointIndex = seriesX.indexOf(point.x);
-    const nextIndex = circleIndex(pointIndex + 1, [0, seriesX.length - 1]);
+    const delta = !this.shouldInvertPointsDirection(point) ? 1 : -1;
+    const nextIndex = circleIndex(pointIndex + delta, [0, seriesX.length - 1]);
     const nextX = seriesX[nextIndex];
     return point.series.data.find((d) => d.x === nextX) ?? null;
   };
@@ -139,9 +140,17 @@ export class ChartExtra {
   public findPrevPointInSeries = (point: Highcharts.Point): null | Highcharts.Point => {
     const seriesX = this.getAllXInSeries(point.series);
     const pointIndex = seriesX.indexOf(point.x);
-    const nextIndex = circleIndex(pointIndex - 1, [0, seriesX.length - 1]);
+    const delta = !this.shouldInvertPointsDirection(point) ? -1 : 1;
+    const nextIndex = circleIndex(pointIndex + delta, [0, seriesX.length - 1]);
     const nextX = seriesX[nextIndex];
     return point.series.data.find((d) => d.x === nextX) ?? null;
+  };
+
+  // We do not invert the direction of pie segments when RTL, but swap the left/right keys.
+  // To offset for that, the prev/next points direction is swapped, too.
+  private shouldInvertPointsDirection = (point: Highcharts.Point) => {
+    const isRTL = getIsRtl(point.series.chart.container.parentElement);
+    return point.series.type === "pie" && isRTL;
   };
 
   public findNextPagePointInSeries = (point: Highcharts.Point): null | Highcharts.Point => {
