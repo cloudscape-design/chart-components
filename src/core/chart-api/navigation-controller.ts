@@ -176,8 +176,8 @@ export class NavigationController {
     handleKey(event as any, {
       onActivate: () => this.activateGroup(group),
       onEscape: () => this.moveToChart(),
-      onInlineStart: () => (i ? this.moveToLastInGroup(group) : this.moveToPrevGroup(group)),
-      onInlineEnd: () => (i ? this.moveToFirstInGroup(group) : this.moveToNextGroup(group)),
+      onInlineStart: () => (i ? this.moveToFirstInGroup(group) : this.moveToPrevGroup(group)),
+      onInlineEnd: () => (i ? this.moveToLastInGroup(group) : this.moveToNextGroup(group)),
       onBlockStart: () => (i ? this.moveToPrevGroup(group) : this.moveToLastInGroup(group)),
       onBlockEnd: () => (i ? this.moveToNextGroup(group) : this.moveToFirstInGroup(group)),
       onPageDown: () => this.moveToNextPageGroup(group),

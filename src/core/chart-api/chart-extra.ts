@@ -188,10 +188,11 @@ export class ChartExtra {
 }
 
 function sortGroup(group: Highcharts.Point[]): Highcharts.Point[] {
+  const reversed = !!group[0]?.series.yAxis?.reversed;
   return group.sort((a, b) => {
     const ay = a.plotY === undefined || (a.series.type === "column" && !isSeriesStacked(a.series)) ? 0 : a.plotY;
     const by = b.plotY === undefined || (b.series.type === "column" && !isSeriesStacked(b.series)) ? 0 : b.plotY;
-    return ay - by;
+    return !reversed ? ay - by : by - ay;
   });
 }
 

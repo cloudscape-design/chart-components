@@ -68,6 +68,10 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
 
   function setUrlParams(newParams: Partial<AppUrlParams>) {
     setSearchParams(formatQuery({ ...urlParams, ...newParams }));
+
+    if (newParams.direction !== urlParams.direction) {
+      window.location.reload();
+    }
   }
 
   useEffect(() => {
