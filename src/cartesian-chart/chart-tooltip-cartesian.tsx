@@ -68,7 +68,7 @@ export function useChartTooltipCartesian(props: {
         return {
           key: item.series.name,
           value: item.y !== null ? valueFormatter(item.y) : null,
-          details: item.errorRanges?.length ? (
+          details: item.errorRanges.length ? (
             <div>
               {item.errorRanges.map((errorRange, index) => (
                 <div key={index} className={styles["error-range"]}>
@@ -169,7 +169,9 @@ function findTooltipSeriesItems(
     { low: number; high: number; series: CartesianChartProps.ErrorBarSeriesOptions }[]
   >();
   const matchedSeries = new Set<Highcharts.Series>();
-  const matchedItems: CartesianChartProps.TooltipSeriesItem[] = [];
+
+  // We don't need the errorRanges at this point, they are added to each item on return further down.
+  const matchedItems: Omit<CartesianChartProps.TooltipSeriesItem, "errorRanges">[] = [];
 
   for (const point of group) {
     if (point.series.type === "errorbar") {
@@ -228,15 +230,13 @@ function findTooltipSeriesItems(
       return s1 || (i1.y ?? 0) - (i2.y ?? 0);
     })
     .map((item) => {
-      const errorRanges = seriesErrors.get(getOptionsId(item.series));
+      const errorRanges = seriesErrors.get(getOptionsId(item.series)) ?? [];
       return {
         ...item,
-        errorRanges: errorRanges
-          ? errorRanges.sort(
-              (i1, i2) =>
-                getSeriesIndex(getSeries(getOptionsId(i1.series))) - getSeriesIndex(getSeries(getOptionsId(i2.series))),
-            )
-          : undefined,
+        errorRanges: errorRanges.sort(
+          (i1, i2) =>
+            getSeriesIndex(getSeries(getOptionsId(i1.series))) - getSeriesIndex(getSeries(getOptionsId(i2.series))),
+        ),
       };
     });
 }
