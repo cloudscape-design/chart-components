@@ -20,7 +20,6 @@ import {
 } from "../interfaces-core";
 import * as Styles from "../styles";
 import {
-  clearChartItemsHighlight,
   findAllSeriesWithData,
   findAllVisibleSeries,
   getChartLegendItems,
@@ -29,11 +28,7 @@ import {
   getPointAccessibleDescription,
   getPointRect,
   getVerticalAxesTitles,
-  highlightChartItems,
   matchLegendItems,
-  overrideStateSetters,
-  setPointState,
-  setSeriesState,
   updateChartItemsVisibility,
 } from "../utils";
 import { ChartExtra } from "./chart-extra";
@@ -132,7 +127,6 @@ export class ChartAPI {
       this.container.addEventListener("mouseout", chartAPI.onChartMouseout);
     };
     const onChartRender: Highcharts.ChartRenderCallbackFunction = function (this) {
-      overrideStateSetters(this);
       chartAPI.chartExtra.onRender(this);
       chartAPI.onChartRender();
     };
@@ -210,11 +204,11 @@ export class ChartAPI {
   };
 
   public highlightChartItems = (itemIds: readonly string[]) => {
-    highlightChartItems(this.chart, itemIds);
+    this.chartExtra.highlightChartItems(itemIds);
   };
 
   public clearChartItemsHighlight = () => {
-    clearChartItemsHighlight(this.chart);
+    this.chartExtra.clearChartItemsHighlight();
   };
 
   public updateChartItemsVisibility = (visibleItems?: readonly string[]) => {
@@ -502,9 +496,9 @@ export class ChartAPI {
 
     if (!this.store.get().tooltip.pinned) {
       for (const s of this.chart.series) {
-        setSeriesState(s, includedSeries.has(s) ? "normal" : "inactive", false);
+        this.chartExtra.setSeriesState(s, includedSeries.has(s) ? "normal" : "inactive");
         for (const d of s.data) {
-          setPointState(d, includedPoints.has(d) ? "normal" : "inactive", false);
+          this.chartExtra.setPointState(d, includedPoints.has(d) ? "normal" : "inactive");
         }
       }
     }
@@ -531,9 +525,9 @@ export class ChartAPI {
 
     if (!this.store.get().tooltip.pinned) {
       for (const s of this.chart.series ?? []) {
-        setSeriesState(s, "normal", false);
+        this.chartExtra.setSeriesState(s, "normal");
         for (const d of s.data) {
-          setPointState(d, "normal", false);
+          this.chartExtra.setPointState(d, "normal");
         }
       }
     }

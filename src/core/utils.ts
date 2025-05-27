@@ -8,8 +8,6 @@ import { castArray } from "../internal/utils/utils";
 import { ChartLegendItem } from "./interfaces-base";
 import { ChartLegendItemSpec, InternalChartLegendItemSpec, Rect } from "./interfaces-core";
 
-const SET_STATE_OVERRIDE_MARKER = Symbol("awsui-set-state");
-
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
 // We expect that items requiring referencing (e.g. in order to control their visibility) have the unique identifier defined.
 // Otherwise,  we return a randomized id that is to ensure no accidental matches.
@@ -150,86 +148,6 @@ export function matchLegendItems(legendItems: readonly ChartLegendItem[], point:
       }
     })
     .map((item) => item.id);
-}
-
-export function highlightChartItems(chart: Highcharts.Chart, itemIds: readonly string[]) {
-  for (const s of chart.series) {
-    if (s.type !== "pie") {
-      setSeriesState(s, itemIds.includes(getSeriesId(s)) ? "normal" : "inactive", true);
-    }
-    if (s.type === "pie") {
-      for (const p of s.data) {
-        setPointState(p, itemIds.includes(getPointId(p)) ? "normal" : "inactive", false);
-      }
-    }
-  }
-  // All plot lines that define ID, and this ID does not match the highlighted item are dimmed.
-  iteratePlotLines(chart, (line) => {
-    if (line.options.id && !itemIds.includes(line.options.id)) {
-      line.svgElem?.attr({ opacity: 0.4 });
-    } else if (line.options.id) {
-      line.svgElem?.attr({ opacity: 1 });
-    }
-  });
-}
-
-export function clearChartItemsHighlight(chart: Highcharts.Chart) {
-  // When a legend item loses highlight we assume no series should be highlighted at that point,
-  // so removing inactive state from all series, points, and plot lines.
-  for (const s of chart.series) {
-    setSeriesState(s, "normal", false);
-    for (const p of s.data) {
-      setPointState(p, "normal", false);
-    }
-  }
-  iteratePlotLines(chart, (line) => {
-    if (line.options.id) {
-      line.svgElem?.attr({ opacity: 1 });
-    }
-  });
-}
-
-export function setSeriesState(series: Highcharts.Series, state: Highcharts.SeriesStateValue, inherit?: boolean) {
-  const chart = series.chart;
-  (chart as any)[SET_STATE_OVERRIDE_MARKER] = true;
-  series.setState(state, inherit);
-  (chart as any)[SET_STATE_OVERRIDE_MARKER] = false;
-}
-
-export function setPointState(point: Highcharts.Point, state: Highcharts.PointStateValue, move?: boolean) {
-  const chart = point.series.chart;
-  (chart as any)[SET_STATE_OVERRIDE_MARKER] = true;
-  point.setState(state, move);
-  (chart as any)[SET_STATE_OVERRIDE_MARKER] = false;
-}
-
-// We replace `setState` method on Highcharts series and points with a custom implementation,
-// to prevent Highcharts from altering series or point states. Instead, we take ownership of that.
-export function overrideStateSetters(chart: Highcharts.Chart) {
-  for (const s of chart.series) {
-    // We ensure the replacement is done only once by assigning a custom property to the function.
-    // If the property is present - it means the method was already replaced.
-    if (!(s.setState as any)[SET_STATE_OVERRIDE_MARKER]) {
-      const original = s.setState;
-      s.setState = (...args) => {
-        if ((chart as any)[SET_STATE_OVERRIDE_MARKER]) {
-          original.call(s, ...args);
-        }
-      };
-      (s.setState as any)[SET_STATE_OVERRIDE_MARKER] = true;
-    }
-    for (const d of s.data) {
-      if (!(d.setState as any)[SET_STATE_OVERRIDE_MARKER]) {
-        const original = d.setState;
-        d.setState = (...args) => {
-          if ((chart as any)[SET_STATE_OVERRIDE_MARKER]) {
-            original.call(d, ...args);
-          }
-        };
-        (d.setState as any)[SET_STATE_OVERRIDE_MARKER] = true;
-      }
-    }
-  }
 }
 
 export function updateChartItemsVisibility(
@@ -397,13 +315,4 @@ export function getPointAccessibleDescription(point: Highcharts.Point) {
 // TODO: i18n and format x
 export function getGroupAccessibleDescription(group: Highcharts.Point[]) {
   return `Group of ${group.length} points for x=${group[0]?.x}`;
-}
-
-// The `axis.plotLinesAndBands` API is not covered with TS.
-function iteratePlotLines(chart: Highcharts.Chart, cb: (line: Highcharts.PlotLineOrBand) => void) {
-  chart.axes.forEach((axis) => {
-    if ("plotLinesAndBands" in axis && Array.isArray(axis.plotLinesAndBands)) {
-      axis.plotLinesAndBands.forEach((line: Highcharts.PlotLineOrBand) => cb(line));
-    }
-  });
 }

@@ -7,6 +7,7 @@ import { circleIndex } from "@cloudscape-design/component-toolkit/internal";
 
 import { Rect } from "../interfaces-core";
 import { getGroupRect } from "../utils";
+import { ChartHighlightState } from "./chart-highlight";
 
 // In charts with many data points one can navigate faster by using Page Down/Up keys that
 // navigate PAGE_SIZE_PERCENTAGE of the points forwards or backwards.
@@ -16,6 +17,7 @@ const PAGE_SIZE_PERCENTAGE = 0.05;
 export class ChartExtra {
   // The chart is only initialized after the Highcharts render event. Using any methods before that will cause an exception.
   private _chart: null | Highcharts.Chart = null;
+  private highlightState = new ChartHighlightState();
   // On each render we compute navigation detail that are expected to stay the same until the next render.
   private cache = {
     allX: new Array<number>(),
@@ -26,6 +28,7 @@ export class ChartExtra {
   public onRender = (chart: Highcharts.Chart) => {
     this._chart = chart;
     this.cache = this.computeCache();
+    this.highlightState.init(chart);
   };
 
   private computeCache() {
@@ -62,6 +65,11 @@ export class ChartExtra {
   public get chartOrNull(): null | Highcharts.Chart {
     return this._chart;
   }
+
+  public highlightChartItems = this.highlightState.highlightChartItems.bind(this.highlightState);
+  public clearChartItemsHighlight = this.highlightState.clearChartItemsHighlight.bind(this.highlightState);
+  public setSeriesState = this.highlightState.setSeriesState.bind(this.highlightState);
+  public setPointState = this.highlightState.setPointState.bind(this.highlightState);
 
   // The points are grouped by their X coordinate. The group rects return the point groups and their respective rects
   // that include all points of the group. That is used to render focus outline and tooltip target.
