@@ -433,7 +433,7 @@ export class ChartAPI {
     const nextPosY = point ? point.y : this.matchedGroup[0]?.y;
 
     // If the click point is different from the current position - the tooltip is moved to the new position.
-    if (nextPosX !== currentPosX || nextPosY !== currentPosY) {
+    if ((nextPosX !== undefined && nextPosX !== currentPosX) || (nextPosY !== undefined && nextPosY !== currentPosY)) {
       if (point) {
         this.highlightActionsPoint(point);
         this._store.setTooltipPoint(point, this.chartExtra.findMatchingGroup(point));
@@ -447,9 +447,11 @@ export class ChartAPI {
       if (point) {
         this._store.setTooltipPoint(point, this.chartExtra.findMatchingGroup(point));
       } else {
-        this._store.setTooltipGroup(this.matchedGroup);
+        this._store.setTooltipGroup(current.group);
       }
-      this._store.pinTooltip();
+      if (current.group.length > 0) {
+        this._store.pinTooltip();
+      }
     }
   };
 

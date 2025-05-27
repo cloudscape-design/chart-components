@@ -15,7 +15,7 @@ export const thresholdSeriesDefaultColor = colorChartsThresholdNeutral;
 export const thresholdPlotLineOptions: Partial<Highcharts.XAxisPlotLinesOptions | Highcharts.YAxisPlotLinesOptions> = {
   width: 2,
   dashStyle: "ShortDash",
-  zIndex: 5,
+  zIndex: 3,
 };
 
 export const chatPlotBaselineOptions: Partial<Highcharts.XAxisPlotLinesOptions> = {
