@@ -49,7 +49,7 @@ export function useChartTooltipCartesian(props: {
       return <ChartSeriesMarker type={getSeriesMarkerType(hcSeries)} color={getSeriesColor(hcSeries)} />;
     };
 
-    const matchedItems = findTooltipSeriesItems(series, point, group);
+    const matchedItems = findTooltipSeriesItems(series, group);
 
     const detailItems: ChartSeriesDetailItem[] = matchedItems.flatMap((item) => {
       const yAxisProps = yAxis[0];
@@ -146,28 +146,26 @@ export function useChartTooltipCartesian(props: {
 
 function findTooltipSeriesItems(
   series: InternalSeriesOptions[],
-  point: null | Highcharts.Point,
   group: Highcharts.Point[],
 ): CartesianChartProps.TooltipSeriesItem[] {
-  // For each series, create one new item that references it
-  const seriesItems: CartesianChartProps.TooltipSeriesItem[] = series.map((s) => ({
-    x: 0,
-    y: null,
-    series: s as unknown as NonErrorBarSeriesOptions,
-  }));
-  const seriesItemsById = new Map(seriesItems.map((i) => [getOptionsId(i.series), i]));
-  const matchedItems = new Set<CartesianChartProps.TooltipSeriesItem>();
+  const seriesDict = series.reduce((d, s) => d.set(getOptionsId(s), s), new Map<string, InternalSeriesOptions>());
+  const getSeries = (seriesId: string) => seriesDict.get(seriesId) as InternalSeriesOptions;
+  const seriesOrder = series.reduce((d, s, i) => d.set(s, i), new Map<InternalSeriesOptions, number>());
+  const getSeriesIndex = (s: InternalSeriesOptions) => seriesOrder.get(s) ?? -1;
+
+  const seriesErrors = new Map<
+    string,
+    { low: number; high: number; series: CartesianChartProps.ErrorBarSeriesOptions }
+  >();
+  const matchedSeries = new Set<Highcharts.Series>();
+  const matchedItems: CartesianChartProps.TooltipSeriesItem[] = [];
 
   for (const point of group) {
     if (point.series.type === "errorbar") {
       // Error bar point found for this point
       const linkedSeries = point.series.linkedParent;
       if (linkedSeries) {
-        const seriesItem = seriesItemsById.get(getSeriesId(linkedSeries));
-        if (seriesItem) {
-          addError(seriesItem, point);
-          matchedItems.add(seriesItem);
-        }
+        addError(getSeriesId(linkedSeries), point);
       } else {
         warnOnce(
           "CartesianChart",
@@ -177,42 +175,42 @@ function findTooltipSeriesItems(
         );
       }
     } else {
-      const seriesItem = seriesItemsById.get(getSeriesId(point.series));
-      if (seriesItem) {
-        addY(seriesItem, point);
-        matchedItems.add(seriesItem);
-      }
+      getMatchedPoints(point).forEach(([x, y]) => {
+        const series = getSeries(getSeriesId(point.series));
+        if (series && x !== null) {
+          matchedItems.push({ x, y, series: series as NonErrorBarSeriesOptions });
+        }
+      });
     }
   }
 
-  function addError(seriesItem: CartesianChartProps.TooltipSeriesItem, errorPoint: Highcharts.Point) {
-    if (errorPoint.options.low !== undefined && errorPoint.options.high !== undefined) {
-      seriesItem.error = {
-        low: errorPoint.options.low,
-        high: errorPoint.options.high,
-        series: errorPoint.series.options,
-      };
+  function addError(seriesId: string, errorPoint: Highcharts.Point) {
+    const errorSeries = errorPoint.series.options as null | CartesianChartProps.ErrorBarSeriesOptions;
+    if (errorPoint.options.low !== undefined && errorPoint.options.high !== undefined && errorSeries) {
+      seriesErrors.set(seriesId, { low: errorPoint.options.low, high: errorPoint.options.high, series: errorSeries });
     }
   }
 
-  function addY(seriesItem: CartesianChartProps.TooltipSeriesItem, matchedPoint: Highcharts.Point) {
-    if (isXThreshold(matchedPoint.series)) {
-      seriesItem.x = matchedPoint.x;
-      seriesItem.y = null;
-    } else if (matchedPoint.y !== undefined) {
-      seriesItem.x = matchedPoint.x;
-      seriesItem.y = getClosestY(seriesItem, matchedPoint.y);
+  function getMatchedPoints(point: Highcharts.Point) {
+    if (matchedSeries.has(point.series)) {
+      return [];
     }
+    matchedSeries.add(point.series);
+
+    return isXThreshold(point.series)
+      ? [[point.x, null]]
+      : point.series.data
+          .filter((d) => d.x === point.x)
+          .map((d) => [d.x, d.y ?? null])
+          .sort((a, b) => (a[1] ?? 0) - (b[1] ?? 0));
   }
 
-  function getClosestY(seriesItem: CartesianChartProps.TooltipSeriesItem, y: number) {
-    if (seriesItem.y === null || point?.y === undefined) {
-      return y;
-    }
-    return Math.abs(seriesItem.y - point.y) < Math.abs(y - point.y) ? seriesItem.y : y;
-  }
-
-  return seriesItems.filter((item) => matchedItems.has(item));
+  return matchedItems
+    .sort((i1, i2) => {
+      const s1 = getSeriesIndex(i1.series) - getSeriesIndex(i2.series);
+      return s1 || (i1.y ?? 0) - (i2.y ?? 0);
+    })
+    .map((item) => ({ ...item, error: seriesErrors.get(getOptionsId(item.series)) }));
 }
 
 class HighlightCursor {
