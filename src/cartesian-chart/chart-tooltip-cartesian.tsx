@@ -21,6 +21,8 @@ import {
 import * as Styles from "./styles";
 import { getDataExtremes } from "./utils";
 
+import styles from "./styles.css.js";
+
 export function useChartTooltipCartesian(props: {
   options: InternalCartesianChartOptions;
   tooltip?: CartesianChartProps.TooltipOptions;
@@ -62,13 +64,17 @@ export function useChartTooltipCartesian(props: {
         if (props.tooltip?.series) {
           return props.tooltip.series({ item });
         }
+
+        const formattedValue = item.error && `${valueFormatter(item.error.low)} - ${valueFormatter(item.error.high)}`;
         return {
           key: item.series.name,
           value: item.y !== null ? valueFormatter(item.y) : null,
-          details: item.error
-            ? (item.error.series.name ? `${item.error.series.name}: ` : "") +
-              `${valueFormatter(item.error.low)} - ${valueFormatter(item.error.high)}`
-            : null,
+          details: item.error ? (
+            <div className={styles.details}>
+              <span>{item.error.series.name ? item.error.series.name : ""}</span>
+              <span>{formattedValue}</span>
+            </div>
+          ) : null,
         };
       })();
 
