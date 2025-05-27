@@ -3,7 +3,7 @@
  SPDX-License-Identifier: Apache-2.0
 */
 
-@use "@cloudscape-design/design-tokens/index.scss" as cs;
+@use "../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
 
 .error-range {
   display: flex;
