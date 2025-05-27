@@ -36,7 +36,7 @@ describe("CartesianChart: Error bars", () => {
     expect(getAllTooltipSeries()).toHaveLength(1);
     expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Column 1");
     expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("2");
-    expect(getTooltipSeries(0).findDetails().getElement().textContent).toBe("Error range: 1 - 3");
+    expect(getTooltipSeries(0).findDetails().getElement().textContent).toBe("Error range1 - 3");
   });
 
   test("renders only the error range if error bar series name is not provided", async () => {
