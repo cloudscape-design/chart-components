@@ -66,7 +66,15 @@ export const InternalCartesianChart = forwardRef(
     // precedence, so that it is possible to override or extend all Highcharts settings from the outside.
     const highchartsOptions: Highcharts.Options = {
       ...options,
-      accessibility: { keyboardNavigation: { enabled: false } },
+      accessibility: {
+        keyboardNavigation: { enabled: false },
+        point: {
+          descriptionFormatter(point) {
+            const formattedX = getDefaultFormatter(xAxis[0], getDataExtremes(point.series.xAxis))(point.x);
+            return `${formattedX}\t${point.series.name}`;
+          },
+        },
+      },
       chart: {
         ...options.chart,
         events: {

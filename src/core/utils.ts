@@ -296,20 +296,12 @@ export function getChartAccessibleDescription() {
 
 // TODO: i18n
 export function getPointAccessibleDescription(point: Highcharts.Point) {
-  if (
-    "accessibility" in point &&
-    typeof point.accessibility === "object" &&
-    point.accessibility &&
-    "valueDescription" in point.accessibility &&
-    typeof point.accessibility.valueDescription === "string"
-  ) {
-    return point.accessibility.valueDescription;
-  } else {
-    return "chart point";
-  }
+  return point.graphic?.element.getAttribute("aria-label") ?? "\tchart point";
 }
 
 // TODO: i18n and format x
 export function getGroupAccessibleDescription(group: Highcharts.Point[]) {
-  return `Group of ${group.length} points for x=${group[0]?.x}`;
+  const firstPointLabel = group[0] ? getPointAccessibleDescription(group[0]) : "";
+  const firstPointX = firstPointLabel.split("\t")[0];
+  return `${firstPointX}, ${group.length} points`;
 }
