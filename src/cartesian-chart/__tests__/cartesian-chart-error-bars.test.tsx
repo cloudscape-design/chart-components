@@ -39,6 +39,26 @@ describe("CartesianChart: Error bars", () => {
     expect(getTooltipSeries(0).findDetails().getElement().textContent).toBe("Error range1 - 3");
   });
 
+  test("attaches error series to the previous series by using `:previous` as value for `linkedTo`", async () => {
+    renderCartesianChart({
+      highcharts,
+      series: [
+        { type: "column", name: "Column 1", data: [2] },
+        { type: "errorbar", name: "Error range", data: [{ low: 1, high: 3 }], linkedTo: ":previous" },
+      ],
+    });
+
+    act(() => hc.highlightChartPoint(0, 0));
+
+    await waitFor(() => {
+      expect(getTooltip()).not.toBe(null);
+    });
+    expect(getAllTooltipSeries()).toHaveLength(1);
+    expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Column 1");
+    expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("2");
+    expect(getTooltipSeries(0).findDetails().getElement().textContent).toBe("Error range1 - 3");
+  });
+
   test("renders only the error range if error bar series name is not provided", async () => {
     renderCartesianChart({
       highcharts,
