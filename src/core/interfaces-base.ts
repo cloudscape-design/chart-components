@@ -129,6 +129,7 @@ export interface ChartI18nStrings {
   recoveryText?: string;
   seriesFilterLabel?: string;
   seriesFilterPlaceholder?: string;
+  legendAriaLabel?: string;
 }
 
 export interface ChartFilterOptions {

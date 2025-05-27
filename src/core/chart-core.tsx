@@ -288,7 +288,7 @@ export function InternalCoreChart({
             </>
           );
         }}
-        legend={isLegendEnabled ? <ChartLegend {...legendOptions} api={api} /> : null}
+        legend={isLegendEnabled ? <ChartLegend {...legendOptions} api={api} i18nStrings={i18nStrings} /> : null}
         verticalAxisTitle={
           verticalAxisTitlePlacement === "top" ? <VerticalAxisTitle api={api} inverted={!!inverted} /> : null
         }

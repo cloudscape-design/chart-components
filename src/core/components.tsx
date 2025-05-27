@@ -25,6 +25,7 @@ export interface ChartLegendProps {
   title?: string;
   actions?: React.ReactNode;
   api: ChartAPI;
+  i18nStrings?: ChartI18nStrings;
 }
 
 export interface ChartLegendRef {
@@ -32,7 +33,10 @@ export interface ChartLegendRef {
   clearHighlight: () => void;
 }
 
-export function ChartLegend({ title, actions, api }: ChartLegendProps) {
+export function ChartLegend({ title, actions, api, i18nStrings }: ChartLegendProps) {
+  const i18n = useInternalI18n("[charts]");
+  const ariaLabel = i18n("i18nStrings.legendAriaLabel", i18nStrings?.legendAriaLabel);
+
   const legendItems = useSelector(api.store, (s) => s.legend.items);
   if (legendItems.length === 0) {
     return null;
@@ -46,6 +50,7 @@ export function ChartLegend({ title, actions, api }: ChartLegendProps) {
           api.unregisterLegend();
         }
       }}
+      ariaLabel={ariaLabel}
       legendTitle={title}
       items={legendItems}
       actions={actions}

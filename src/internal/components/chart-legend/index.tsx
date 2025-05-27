@@ -251,7 +251,6 @@ const LegendItemTrigger = forwardRef(
       marker,
       visible,
       onClick,
-      ariaExpanded,
       triggerRef,
       onMouseEnter,
       onMouseLeave,
@@ -267,7 +266,6 @@ const LegendItemTrigger = forwardRef(
       visible: boolean;
       onClick: (event: React.MouseEvent) => void;
       onMarkerClick?: () => void;
-      ariaExpanded?: boolean;
       triggerRef?: Ref<HTMLElement>;
       onMouseEnter?: () => void;
       onMouseLeave?: () => void;
@@ -283,8 +281,7 @@ const LegendItemTrigger = forwardRef(
     return (
       <button
         data-itemid={itemId}
-        aria-haspopup={typeof ariaExpanded === "boolean"}
-        aria-expanded={ariaExpanded}
+        aria-pressed={visible}
         className={clsx(testClasses.item, styles.marker, {
           [styles["marker--inactive"]]: !visible,
           [testClasses["hidden-item"]]: !visible,
