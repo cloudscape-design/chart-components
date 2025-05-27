@@ -141,7 +141,7 @@ describe("CartesianChart: tooltip", () => {
                     },
                   ]
                 : [],
-            details: `${item.error?.low} - ${item.error?.high}`,
+            details: item.errorRanges?.length ? `${item.errorRanges[0].low} - ${item.errorRanges[0].high}` : null,
           };
         },
       },
@@ -190,24 +190,24 @@ describe("CartesianChart: tooltip", () => {
         header({ x, items }) {
           return (
             <span>
-              header {x} {items.length} {items[0].series.name} {items[0].error!.low} {items[0].error!.high}{" "}
-              {items[1].series.name}
+              header {x} {items.length} {items[0].series.name} {items[0].errorRanges![0].low}{" "}
+              {items[0].errorRanges![0].high} {items[1].series.name}
             </span>
           );
         },
         body({ x, items }) {
           return (
             <span>
-              body {x} {items.length} {items[0].series.name} {items[0].error!.low} {items[0].error!.high}{" "}
-              {items[1].series.name}
+              body {x} {items.length} {items[0].series.name} {items[0].errorRanges![0].low}{" "}
+              {items[0].errorRanges![0].high} {items[1].series.name}
             </span>
           );
         },
         footer({ x, items }) {
           return (
             <span>
-              footer {x} {items.length} {items[0].series.name} {items[0].error!.low} {items[0].error!.high}{" "}
-              {items[1].series.name}
+              footer {x} {items.length} {items[0].series.name} {items[0].errorRanges![0].low}{" "}
+              {items[0].errorRanges![0].high} {items[1].series.name}
             </span>
           );
         },

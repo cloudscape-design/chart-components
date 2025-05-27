@@ -65,14 +65,19 @@ export function useChartTooltipCartesian(props: {
           return props.tooltip.series({ item });
         }
 
-        const formattedValue = item.error && `${valueFormatter(item.error.low)} - ${valueFormatter(item.error.high)}`;
         return {
           key: item.series.name,
           value: item.y !== null ? valueFormatter(item.y) : null,
-          details: item.error ? (
-            <div className={styles.details}>
-              <span>{item.error.series.name ? item.error.series.name : ""}</span>
-              <span>{formattedValue}</span>
+          details: item.errorRanges?.length ? (
+            <div>
+              {item.errorRanges.map((errorRange, index) => (
+                <div key={index} className={styles["error-range"]}>
+                  <span>{errorRange.series.name ? errorRange.series.name : ""}</span>
+                  <span>
+                    {valueFormatter(errorRange.low)} - {valueFormatter(errorRange.high)}
+                  </span>
+                </div>
+              ))}
             </div>
           ) : null,
         };
@@ -161,7 +166,7 @@ function findTooltipSeriesItems(
 
   const seriesErrors = new Map<
     string,
-    { low: number; high: number; series: CartesianChartProps.ErrorBarSeriesOptions }
+    { low: number; high: number; series: CartesianChartProps.ErrorBarSeriesOptions }[]
   >();
   const matchedSeries = new Set<Highcharts.Series>();
   const matchedItems: CartesianChartProps.TooltipSeriesItem[] = [];
@@ -193,7 +198,13 @@ function findTooltipSeriesItems(
   function addError(seriesId: string, errorPoint: Highcharts.Point) {
     const errorSeries = errorPoint.series.options as null | CartesianChartProps.ErrorBarSeriesOptions;
     if (errorPoint.options.low !== undefined && errorPoint.options.high !== undefined && errorSeries) {
-      seriesErrors.set(seriesId, { low: errorPoint.options.low, high: errorPoint.options.high, series: errorSeries });
+      const errorRanges = seriesErrors.get(seriesId) ?? [];
+      errorRanges.push({
+        low: errorPoint.options.low,
+        high: errorPoint.options.high,
+        series: errorSeries,
+      });
+      seriesErrors.set(seriesId, errorRanges);
     }
   }
 
@@ -216,7 +227,7 @@ function findTooltipSeriesItems(
       const s1 = getSeriesIndex(i1.series) - getSeriesIndex(i2.series);
       return s1 || (i1.y ?? 0) - (i2.y ?? 0);
     })
-    .map((item) => ({ ...item, error: seriesErrors.get(getOptionsId(item.series)) }));
+    .map((item) => ({ ...item, errorRanges: seriesErrors.get(getOptionsId(item.series)) }));
 }
 
 class HighlightCursor {

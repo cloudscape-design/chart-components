@@ -156,7 +156,9 @@ const seriesFormatter: CartesianChartProps.TooltipOptions["series"] = ({ item })
         {item.y !== null ? moneyFormatter(item.y) : null}
       </Link>
     ),
-    details: item.error ? `${moneyFormatter(item.error.low)} - ${moneyFormatter(item.error.high)}*` : null,
+    details: item.errorRanges?.length
+      ? item.errorRanges.map((errorRange) => `${moneyFormatter(errorRange.low)} - ${moneyFormatter(errorRange.high)}*`)
+      : null,
   };
 };
 
