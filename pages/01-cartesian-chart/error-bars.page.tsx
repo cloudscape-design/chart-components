@@ -79,7 +79,6 @@ function getCostSeriesWithError({
 function getLastYearCostsSeriesWithError({
   type = "spline",
   errorSize,
-  errorColor,
 }: {
   errorSize: number;
   errorColor?: string;
@@ -87,8 +86,11 @@ function getLastYearCostsSeriesWithError({
 }) {
   return [
     { ...costsLastYearSeries, type },
-    { ...getLastYearCostsSeries({ errorColor, errorSize: errorSize * 1.5 }), color: "blue" },
-    { ...getLastYearCostsSeries({ errorColor, errorSize: errorSize / 1.5 }), name: "Error range 2", color: "red" },
+    getLastYearCostsSeries({ errorColor: "blue", errorSize: errorSize / 1.5 }),
+    {
+      ...getLastYearCostsSeries({ errorColor: "red", errorSize: errorSize * 1.5 }),
+      name: "Error range 2",
+    },
   ];
 }
 

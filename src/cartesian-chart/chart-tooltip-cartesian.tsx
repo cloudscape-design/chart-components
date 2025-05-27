@@ -227,7 +227,18 @@ function findTooltipSeriesItems(
       const s1 = getSeriesIndex(i1.series) - getSeriesIndex(i2.series);
       return s1 || (i1.y ?? 0) - (i2.y ?? 0);
     })
-    .map((item) => ({ ...item, errorRanges: seriesErrors.get(getOptionsId(item.series)) }));
+    .map((item) => {
+      const errorRanges = seriesErrors.get(getOptionsId(item.series));
+      return {
+        ...item,
+        errorRanges: errorRanges
+          ? errorRanges.sort(
+              (i1, i2) =>
+                getSeriesIndex(getSeries(getOptionsId(i1.series))) - getSeriesIndex(getSeries(getOptionsId(i2.series))),
+            )
+          : undefined,
+      };
+    });
 }
 
 class HighlightCursor {
