@@ -34,7 +34,14 @@ export function ChartSeriesMarker({ type = "line", color, visible = true }: Char
   const scale = (value: number) =>
     `translate(${size * ((1 - value) / 2)}, ${size * ((1 - value) / 2)}) scale(${value})`;
   return (
-    <svg focusable={false} width={20} height={20} viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      focusable={false}
+      aria-hidden={true}
+      width={20}
+      height={20}
+      viewBox="0 0 20 20"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <g transform="translate(4, 4)">
         {type === "line" && <line x1={0} y1={halfSize} x2={size} y2={halfSize} stroke={color} strokeWidth={2} />}
 

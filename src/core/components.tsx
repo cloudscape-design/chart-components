@@ -96,7 +96,7 @@ export function ChartTooltip({
       footer={
         content.footer ? (
           <>
-            <hr />
+            <hr aria-hidden={true} />
             {content.footer}
           </>
         ) : null
