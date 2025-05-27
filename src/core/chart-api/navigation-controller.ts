@@ -388,11 +388,11 @@ class FocusOutline {
   };
 
   public showXOutline = (rect: Rect) => {
-    this.showRectOutline({ x: rect.x - 3, y: rect.y - 3, width: rect.width + 6, height: rect.height + 6 });
+    this.showRectOutline({ x: rect.x - 4, y: rect.y - 4, width: rect.width + 8, height: rect.height + 8 });
   };
 
   public showPointOutline = (rect: Rect) => {
-    this.showRectOutline({ x: rect.x - 2, y: rect.y - 2, width: rect.width + 4, height: rect.height + 4 });
+    this.showRectOutline({ x: rect.x - 6, y: rect.y - 6, width: rect.width + 12, height: rect.height + 12 });
   };
 
   private showRectOutline = (rect: Rect) => {
