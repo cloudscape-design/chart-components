@@ -27,7 +27,6 @@ import {
 } from "./components";
 import { CoreChartProps } from "./interfaces-core";
 import * as Styles from "./styles";
-import { resetColorCounter } from "./utils";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -138,7 +137,6 @@ export function InternalCoreChart({
                   return options.chart?.events?.load?.call(this, event);
                 },
                 render(event) {
-                  resetColorCounter(this, options.series?.length ?? 0);
                   api.options.onChartRender.call(this, event);
                   return options.chart?.events?.render?.call(this, event);
                 },

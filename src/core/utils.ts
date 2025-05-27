@@ -63,14 +63,6 @@ export function getSeriesMarkerType(series?: Highcharts.Series): ChartSeriesMark
   }
 }
 
-// We reset color counter so that when a series is removed and then added back - it will
-// have the same color as before, not the next one in the color sequence.
-export function resetColorCounter(chart: Highcharts.Chart, seriesCount: number) {
-  if ("colorCounter" in chart && typeof chart.colorCounter === "number") {
-    chart.colorCounter = seriesCount;
-  }
-}
-
 export function getSeriesColor(series?: Highcharts.Series): string {
   return typeof series?.color === "string" ? series.color : "black";
 }

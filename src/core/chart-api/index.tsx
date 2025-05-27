@@ -361,6 +361,7 @@ export class ChartAPI {
     this.updateChartItemsVisibility(this.context.visibleItems);
     this.initChartLabel();
     this.handleDestroyedPoints();
+    this.resetColorCounter();
   };
 
   // Highcharts sometimes destroys points upon re-rendering. As result, the already stored points can get
@@ -372,6 +373,15 @@ export class ChartAPI {
     const tooltipState = this.store.get().tooltip;
     if (tooltipState.group.some((p) => !p.series)) {
       this._store.hideTooltip();
+    }
+  }
+
+  // We reset color counter so that when a series is removed and then added back - it will
+  // have the same color as before, not the next one in the color sequence.
+  // See: https://github.com/highcharts/highcharts/issues/23077.
+  private resetColorCounter() {
+    if ("colorCounter" in this.chart && typeof this.chart.colorCounter === "number") {
+      this.chart.colorCounter = this.chart.series.length;
     }
   }
 
