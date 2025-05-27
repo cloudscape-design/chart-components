@@ -232,13 +232,12 @@ export function ChartFooter({ children }: { children: React.ReactNode }) {
 
 export function ChartApplication({ keyboardNavigation, api }: { keyboardNavigation: boolean; api: ChartAPI }) {
   const ariaLabel = useSelector(api.store, (s) => s.chartLabel);
-  const liveAnnouncement = useSelector(api.store, (s) => s.liveAnnouncement);
   const isNoData = !!useSelector(api.store, (s) => s.noData.container);
   return keyboardNavigation && !isNoData ? (
-    <div ref={api.setApplication} tabIndex={0} role="application" aria-label={ariaLabel}>
-      <LiveRegion hidden={true} assertive={true}>
-        {liveAnnouncement}
-      </LiveRegion>
+    // Do not remove the empty outer div. It is used to contain the application element to perform
+    // focus juggling, necessary to trigger a screen-reader announcement.
+    <div>
+      <div ref={api.setApplication} tabIndex={0} role="application" aria-label={ariaLabel} />
     </div>
   ) : null;
 }

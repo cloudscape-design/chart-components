@@ -190,5 +190,4 @@ export interface ReactiveChartState {
     verticalAxesTitles: readonly string[];
   };
   chartLabel: string;
-  liveAnnouncement: string;
 }

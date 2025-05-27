@@ -46,6 +46,7 @@ export class NavigationController {
   private handlers: NavigationControllerHandlers;
   private applicationEl: null | HTMLElement = null;
   private focusedState: null | FocusedState = null;
+  private fakeFocus = false;
 
   constructor(chartExtra: ChartExtra, handlers: NavigationControllerHandlers) {
     this.chartExtra = chartExtra;
@@ -83,13 +84,53 @@ export class NavigationController {
     this.applicationEl?.focus();
   }
 
+  public announceChart(ariaLabel: string) {
+    this.announce({ role: "application", "aria-label": ariaLabel });
+  }
+
+  public announceElement(ariaLabel: string, pinned: boolean) {
+    this.announce({ role: "button", "aria-label": ariaLabel, "aria-haspopup": true, "aria-expanded": pinned });
+  }
+
+  private announce(elementProps: React.ButtonHTMLAttributes<unknown>) {
+    if (!this.applicationEl) {
+      return;
+    }
+
+    // Remove prev attributes.
+    for (const attributeName of this.applicationEl.getAttributeNames()) {
+      if (attributeName === "role" || attributeName.slice(0, 4) === "aria") {
+        this.applicationEl.removeAttribute(attributeName);
+      }
+    }
+
+    // Copy new attributes.
+    for (const [attributeName, attributeValue] of Object.entries(elementProps)) {
+      this.applicationEl.setAttribute(attributeName, `${attributeValue}`);
+    }
+
+    this.fakeFocus = true;
+
+    // Re-attach and re-focus application element to trigger a screen-reader announcement.
+    const container = this.applicationEl.parentElement!;
+    container.removeChild(this.applicationEl);
+    container.appendChild(this.applicationEl);
+    this.applicationEl.focus({ preventScroll: true });
+
+    setTimeout(() => (this.fakeFocus = false), 0);
+  }
+
   private onFocus = () => {
-    this.focusCurrent();
+    if (!this.fakeFocus) {
+      this.focusCurrent();
+    }
   };
 
   private onBlur = () => {
-    this.focusOutline.hide();
-    this.handlers.onBlur();
+    if (!this.fakeFocus) {
+      this.focusOutline.hide();
+      this.handlers.onBlur();
+    }
   };
 
   private onKeyDown = (event: KeyboardEvent) => {

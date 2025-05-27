@@ -290,6 +290,11 @@ export function isSeriesStacked(series: Highcharts.Series) {
 }
 
 // TODO: i18n
+export function getChartAccessibleDescription() {
+  return "chart plot";
+}
+
+// TODO: i18n
 export function getPointAccessibleDescription(point: Highcharts.Point) {
   if (
     "accessibility" in point &&

@@ -124,12 +124,9 @@ export function ComponentNew() {
         placement: "middle",
         footer(detail) {
           return (
-            <div>
-              <hr />
-              <div style={{ display: "flex", justifyContent: "space-between", gap: "16px" }}>
-                <span>Total</span>
-                <span>{numberFormatter(detail.items.reduce((sum, item) => sum + (item.y ?? 0), 0))}</span>
-              </div>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: "16px" }}>
+              <span>Total</span>
+              <span>{numberFormatter(detail.items.reduce((sum, item) => sum + (item.y ?? 0), 0))}</span>
             </div>
           );
         },

@@ -22,6 +22,7 @@ import * as Styles from "../styles";
 import {
   findAllSeriesWithData,
   findAllVisibleSeries,
+  getChartAccessibleDescription,
   getChartLegendItems,
   getGroupAccessibleDescription,
   getGroupRect,
@@ -178,21 +179,44 @@ export class ChartAPI {
     return {
       onFocusChart: () => {
         this.clearChartHighlight();
-        // TODO: i18n
-        this._store.setLiveAnnouncement("chart plot");
-      },
-      onFocusPoint: (point: Highcharts.Point) => {
-        this.highlightChartPoint(point);
-        this._store.setLiveAnnouncement(getPointAccessibleDescription(point));
+        this.announceApplicationChart();
       },
       onFocusGroup: (group: Highcharts.Point[]) => {
         this.highlightChartGroup(group);
-        this._store.setLiveAnnouncement(getGroupAccessibleDescription(group));
+        this.announceApplicationGroup(group, false);
+      },
+      onFocusPoint: (point: Highcharts.Point) => {
+        this.highlightChartPoint(point);
+        this.announceApplicationPoint(point, false);
       },
       onBlur: () => this.clearChartHighlight(),
-      onActivatePoint: () => this._store.pinTooltip(),
-      onActivateGroup: () => this._store.pinTooltip(),
+      onActivateGroup: () => {
+        const current = this.store.get().tooltip;
+        if (current.group.length > 0) {
+          this._store.pinTooltip();
+          this.announceApplicationGroup(current.group, true);
+        }
+      },
+      onActivatePoint: () => {
+        const current = this.store.get().tooltip;
+        if (current.point) {
+          this._store.pinTooltip();
+          this.announceApplicationPoint(current.point, true);
+        }
+      },
     };
+  }
+
+  private announceApplicationChart() {
+    this.navigation.announceChart(getChartAccessibleDescription());
+  }
+
+  private announceApplicationGroup(group: Highcharts.Point[], pinned: boolean) {
+    this.navigation.announceElement(getGroupAccessibleDescription(group), pinned);
+  }
+
+  private announceApplicationPoint(point: Highcharts.Point, pinned: boolean) {
+    this.navigation.announceElement(getPointAccessibleDescription(point), pinned);
   }
 
   public registerLegend = (legend: RegisteredLegendAPI) => {
