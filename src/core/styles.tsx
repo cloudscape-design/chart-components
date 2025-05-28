@@ -90,6 +90,8 @@ export const columnBorderRadius = 4;
 
 export const columnBorderWidth = 2;
 
+export const dimmedPlotLineOpacity = 0.4;
+
 export const seriesDataLabelsCss: Highcharts.CSSObject = {
   font: fontFamilyBase,
   color: colorTextBodyDefault,

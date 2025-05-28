@@ -128,7 +128,7 @@ export class ChartAPI {
       this.container.addEventListener("mouseout", chartAPI.onChartMouseout);
     };
     const onChartRender: Highcharts.ChartRenderCallbackFunction = function (this) {
-      chartAPI.chartExtra.onRender(this);
+      chartAPI.chartExtra.onChartRender(this);
       chartAPI.onChartRender();
     };
     const onChartClick: Highcharts.ChartClickCallbackFunction = function () {

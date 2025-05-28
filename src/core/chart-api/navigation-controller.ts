@@ -7,7 +7,7 @@ import { circleIndex, handleKey, KeyCode } from "@cloudscape-design/component-to
 
 import { Rect } from "../interfaces-core";
 import * as Styles from "../styles";
-import { getGroupRect, getPointRect } from "../utils";
+import { getGroupRect, getPointRect, isPointVisible } from "../utils";
 import { ChartExtra } from "./chart-extra";
 
 export interface NavigationControllerHandlers {
@@ -329,10 +329,8 @@ export class NavigationController {
   private focusCurrent() {
     if (!this.focusedState || this.focusedState.type === "chart") {
       this.focusChart();
-    } else if (this.focusedState.type === "group") {
-      this.focusGroup(this.chartExtra.findMatchingGroup(this.focusedState.group[0]));
     } else {
-      this.focusPoint(this.focusedState.point, this.focusedState.group);
+      this.focusGroup(this.chartExtra.findMatchingGroup(this.focusedState.group[0]));
     }
   }
 
@@ -343,10 +341,11 @@ export class NavigationController {
   };
 
   private focusGroup(group: Highcharts.Point[]) {
-    if (group.length === 0) {
+    const visiblePoints = group.filter(isPointVisible);
+    if (visiblePoints.length === 0) {
       this.focusChart();
-    } else if (group[0].series.type === "pie") {
-      this.focusPoint(group[0] ?? null, group);
+    } else if (visiblePoints[0].series.type === "pie") {
+      this.focusPoint(visiblePoints[0] ?? null, group);
     } else {
       this.focusedState = { type: "group", group };
       this.focusOutline.showXOutline(getGroupRect(group));
@@ -355,10 +354,9 @@ export class NavigationController {
   }
 
   private focusPoint(point: null | Highcharts.Point, group: Highcharts.Point[]) {
-    // Checking point series to ensure it wasn't destroyed by Highcharts.
-    if (point && point.series) {
+    if (point && isPointVisible(point)) {
       this.focusedState = { type: "point", point, group };
-      this.focusOutline.showPointOutline(getPointRect(point));
+      this.focusOutline.showPointOutline(getPointRect(point), point);
       this.handlers.onFocusPoint(point, group);
     } else {
       this.focusChart();
@@ -392,8 +390,14 @@ class FocusOutline {
     this.showRectOutline({ x: rect.x - 4, y: rect.y - 4, width: rect.width + 8, height: rect.height + 8 });
   };
 
-  public showPointOutline = (rect: Rect) => {
-    this.showRectOutline({ x: rect.x - 6, y: rect.y - 6, width: rect.width + 12, height: rect.height + 12 });
+  public showPointOutline = (rect: Rect, point: Highcharts.Point) => {
+    const offset = point.series.type === "column" || point.series.type === "pie" ? 2 : 6;
+    this.showRectOutline({
+      x: rect.x - offset,
+      y: rect.y - offset,
+      width: rect.width + offset * 2,
+      height: rect.height + offset * 2,
+    });
   };
 
   private showRectOutline = (rect: Rect) => {

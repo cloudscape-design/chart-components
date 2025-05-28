@@ -25,6 +25,16 @@ function noIdPlaceholder(): string {
   return "awsui-no-id-placeholder-" + rand;
 }
 
+export function isSeriesStacked(series: Highcharts.Series) {
+  return (series.options as any).stacking === "normal";
+}
+
+// We check point.series explicitly because if the point was destroyed by Highcharts it is replaced by
+// { destroyed: true } object, where the series array is no longer present despite the TS definition.
+export function isPointVisible(point: Highcharts.Point) {
+  return point.visible && point.series && point.series.visible;
+}
+
 export function getSeriesMarkerType(series?: Highcharts.Series): ChartSeriesMarkerType {
   if (!series) {
     return "large-square";
@@ -283,10 +293,6 @@ export function getGroupRect(points: Highcharts.Point[]): Rect {
   return chart.inverted
     ? { x: chart.plotLeft, y: minY, width: chart.plotWidth, height: maxY - minY }
     : { x: minX, y: chart.plotTop, width: maxX - minX, height: chart.plotHeight };
-}
-
-export function isSeriesStacked(series: Highcharts.Series) {
-  return (series.options as any).stacking === "normal";
 }
 
 // TODO: i18n
