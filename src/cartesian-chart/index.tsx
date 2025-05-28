@@ -3,13 +3,15 @@
 
 import { forwardRef } from "react";
 
+import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
+
 import { BaseCartesianSeriesOptions } from "../core/interfaces-base";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import useBaseComponent from "../internal/base-component/use-base-component";
 import { applyDisplayName } from "../internal/utils/apply-display-name";
 import { getAllowedProps } from "../internal/utils/utils";
 import { InternalCartesianChart } from "./chart-cartesian-internal";
-import { CartesianChartProps, InternalCartesianChartOptions } from "./interfaces-cartesian";
+import { CartesianChartProps, InternalCartesianChartOptions, InternalSeriesOptions } from "./interfaces-cartesian";
 
 /**
  * CartesianChart is a public Cloudscape component. It features a custom API, which resembles the Highcharts API where appropriate,
@@ -70,13 +72,16 @@ function validateOptions(props: CartesianChartProps): InternalCartesianChartOpti
         stacking: props.stacked ? "normal" : undefined,
       },
     },
-    series: validateSeries(props.series),
+    series: validateSeries(props.series, props.stacked),
     xAxis: props.xAxis ? [validateXAxis(props.xAxis)] : [{}],
     yAxis: props.yAxis ? [validateYAxis(props.yAxis)] : [{}],
   };
 }
 
-function validateSeries(unvalidatedSeries: CartesianChartProps.SeriesOptions[]): CartesianChartProps.SeriesOptions[] {
+function validateSeries(
+  unvalidatedSeries: CartesianChartProps.SeriesOptions[],
+  stacked?: boolean,
+): CartesianChartProps.SeriesOptions[] {
   const validatedSeries: CartesianChartProps.SeriesOptions[] = [];
 
   function getValidatedSeries(s: CartesianChartProps.SeriesOptions): null | CartesianChartProps.SeriesOptions {
@@ -89,6 +94,7 @@ function validateSeries(unvalidatedSeries: CartesianChartProps.SeriesOptions[]):
       case "column":
         return { type: s.type, ...getBaseProps(s), data: s.data } as CartesianChartProps.ColumnSeriesOptions;
       case "errorbar":
+        validateErrorBarSeries({ series: s, allSeries: unvalidatedSeries, stacked });
         return {
           type: s.type,
           ...getBaseProps(s),
@@ -124,6 +130,47 @@ function validateSeries(unvalidatedSeries: CartesianChartProps.SeriesOptions[]):
 
   return validatedSeries;
 }
+
+function validateErrorBarSeries({
+  series,
+  allSeries,
+  stacked,
+}: {
+  series: CartesianChartProps.ErrorBarSeriesOptions;
+  allSeries: CartesianChartProps.SeriesOptions[];
+  stacked?: boolean;
+}) {
+  let previousSeries: CartesianChartProps.SeriesOptions | undefined;
+  let foundLinkingSeries = false;
+  const seriesDict = new Map<string, InternalSeriesOptions>();
+  for (const s of allSeries) {
+    if (s === series) {
+      foundLinkingSeries = true;
+    }
+    if (!foundLinkingSeries) {
+      previousSeries = s;
+    }
+    if (s.id !== undefined) {
+      seriesDict.set(s.id, s);
+    }
+  }
+  let linkedSeries = seriesDict.get(series.linkedTo);
+  if (!linkedSeries && series.linkedTo === ":previous") {
+    linkedSeries = previousSeries;
+  }
+  if (!linkedSeries) {
+    warnOnce("CartesianChart", 'Could not find the series that a series of type "errorbar" is linked to.');
+    return;
+  }
+  if (!seriesTypesThatSupportErrorBars.includes(linkedSeries.type)) {
+    warnOnce("CartesianChart", `Error bars are not supported for series of type "${linkedSeries.type}".`);
+  }
+  if (linkedSeries.type === "column" && stacked) {
+    warnOnce("CartesianChart", "Error bars are not supported for stacked columns");
+  }
+}
+
+const seriesTypesThatSupportErrorBars = ["column", "line", "spline"];
 
 function validateXAxis(axis: CartesianChartProps.XAxisOptions): CartesianChartProps.XAxisOptions {
   return validateAxis(axis);
