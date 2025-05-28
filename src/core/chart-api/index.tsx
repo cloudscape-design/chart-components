@@ -292,17 +292,19 @@ export class ChartAPI {
       }
 
       this.matchedGroup = [];
+      let minDistance = Number.POSITIVE_INFINITY;
       for (const { group, rect } of this.chartExtra.groupRects) {
-        if (this.chart.inverted) {
-          if (rect.y <= plotY && plotY < rect.y + rect.height) {
-            this.matchedGroup = group;
-            break;
-          }
-        } else {
-          if (rect.x <= plotX && plotX < rect.x + rect.width) {
-            this.matchedGroup = group;
-            break;
-          }
+        const [target, start, end] = this.chart.inverted
+          ? [plotY, rect.y, rect.y + rect.height]
+          : [plotX, rect.x, rect.x + rect.width];
+        const minTargetDistance = Math.min(Math.abs(start - target), Math.abs(end - target));
+
+        if (start <= target && target < end) {
+          this.matchedGroup = group;
+          break;
+        } else if (minTargetDistance < minDistance) {
+          minDistance = minTargetDistance;
+          this.matchedGroup = group;
         }
       }
 
