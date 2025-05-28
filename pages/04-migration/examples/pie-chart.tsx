@@ -95,6 +95,8 @@ export function ComponentNew({
       }}
       visibleSegments={visibleSegments}
       onChangeVisibleSegments={({ detail }) => setVisibleSegments(detail.visibleSegments)}
+      innerValue="60"
+      innerDescription="total instances"
     />
   );
 }
@@ -117,6 +119,8 @@ export function ComponentOld({ type = "pie", hideFilter = false }: { type?: "pie
       ariaLabel="Pie chart"
       noMatch={chartProps.pie.noData!.noMatch}
       variant={type}
+      innerMetricValue="60"
+      innerMetricDescription="total instances"
     />
   );
 }
