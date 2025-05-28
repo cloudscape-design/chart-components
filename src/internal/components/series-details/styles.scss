@@ -91,6 +91,10 @@ $font-weight-bold: cs.$font-weight-heading-s;
   font-size: cs.$font-size-body-s;
 }
 
+.list-item.with-sub-items .details {
+  margin-top: cs.$space-scaled-xxs;
+}
+
 .full-width {
   inline-size: 100%;
 }
