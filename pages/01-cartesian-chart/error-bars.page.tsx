@@ -203,6 +203,9 @@ const seriesFormatter: (settings: ThisPageSettings) => CartesianChartProps.Toolt
     ) : null,
   });
 
+const customFooter: CartesianChartProps.TooltipOptions["footer"] = ({ items }) =>
+  items.some((item) => item.errorRanges.length > 0) && <Box fontSize="body-s">*Error range</Box>;
+
 function ColumnChart({ inverted, errorSize, errorColor, customTooltipContent }: ChartProps) {
   const { chartProps, settings } = useChartSettings<ThisPageSettings>({ more: true });
   return (
@@ -216,7 +219,7 @@ function ColumnChart({ inverted, errorSize, errorColor, customTooltipContent }: 
         customTooltipContent
           ? {
               series: seriesFormatter(settings),
-              footer: () => <Box fontSize="body-s">*Error range</Box>,
+              footer: customFooter,
             }
           : undefined
       }
@@ -242,7 +245,7 @@ function MixedChart({ inverted, errorSize, errorColor, customTooltipContent }: C
         customTooltipContent
           ? {
               series: seriesFormatter(settings),
-              footer: () => <Box fontSize="body-s">*Error range</Box>,
+              footer: customFooter,
             }
           : undefined
       }
@@ -268,7 +271,7 @@ function GroupedColumnChart({ inverted, errorSize, errorColor, customTooltipCont
         customTooltipContent
           ? {
               series: seriesFormatter(settings),
-              footer: () => <Box fontSize="body-s">*Error range</Box>,
+              footer: customFooter,
             }
           : undefined
       }
@@ -309,15 +312,22 @@ function LineChart({
       chartHeight={CHART_HEIGHT}
       inverted={inverted}
       ariaLabel="Scatter chart"
-      series={new Array(numberOfSeries)
-        .fill(null)
-        .map((_, index) => createSeries(index))
-        .flatMap((s) => s)}
+      series={[
+        ...new Array(numberOfSeries)
+          .fill(null)
+          .map((_, index) => createSeries(index))
+          .flatMap((s) => s),
+        {
+          name: "Series without error",
+          type: "line",
+          data: costsData.map((y) => y + Math.floor(pseudoRandom() * 10000) - 5000),
+        },
+      ]}
       tooltip={
         customTooltipContent
           ? {
               series: seriesFormatter(settings),
-              footer: () => <Box fontSize="body-s">*Error range</Box>,
+              footer: customFooter,
             }
           : undefined
       }
