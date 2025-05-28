@@ -114,6 +114,14 @@ export interface CoreChartProps
   keyboardNavigation?: boolean;
 }
 
+// The extended version of Highcharts.Options;
+export type InternalChartOptions = Omit<Highcharts.Options, "xAxis" | "yAxis"> & {
+  xAxis: InternalXAxisOptions | InternalXAxisOptions[];
+  yAxis: InternalYAxisOptions | InternalYAxisOptions[];
+};
+
+export type InternalXAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: number) => string };
+export type InternalYAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: number) => string };
 export interface RenderTooltipProps {
   point: null | Highcharts.Point;
   group: Highcharts.Point[];

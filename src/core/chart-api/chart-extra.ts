@@ -8,6 +8,7 @@ import { circleIndex, getIsRtl } from "@cloudscape-design/component-toolkit/inte
 import { Rect } from "../interfaces-core";
 import { getGroupRect, isSeriesStacked } from "../utils";
 import { ChartExtraHighlight } from "./chart-extra-highlight";
+import { ChartExtraTooltip } from "./chart-extra-tooltip";
 
 // Chart helper that extends Highcharts.Chart with additional methods, used internally to find matched points, and more.
 export class ChartExtra {
@@ -26,15 +27,21 @@ export class ChartExtra {
   public onChartRender = (chart: Highcharts.Chart) => {
     this._chart = chart;
     this.computeCache();
-    this.highlightState.onChartRender(chart);
+    this.highlightExtra.onChartRender(chart);
+    this.tooltipExtra.onChartRender(chart);
   };
 
   // Custom points/series highlighting.
-  private highlightState = new ChartExtraHighlight();
-  public highlightChartItems = this.highlightState.highlightChartItems.bind(this.highlightState);
-  public clearChartItemsHighlight = this.highlightState.clearChartItemsHighlight.bind(this.highlightState);
-  public setSeriesState = this.highlightState.setSeriesState.bind(this.highlightState);
-  public setPointState = this.highlightState.setPointState.bind(this.highlightState);
+  private highlightExtra = new ChartExtraHighlight();
+  public highlightChartItems = this.highlightExtra.highlightChartItems.bind(this.highlightExtra);
+  public clearChartItemsHighlight = this.highlightExtra.clearChartItemsHighlight.bind(this.highlightExtra);
+  public setSeriesState = this.highlightExtra.setSeriesState.bind(this.highlightExtra);
+  public setPointState = this.highlightExtra.setPointState.bind(this.highlightExtra);
+
+  // Custom tooltip placement and cursor.
+  private tooltipExtra = new ChartExtraTooltip();
+  public onRenderTooltip = this.tooltipExtra.onRenderTooltip.bind(this.tooltipExtra);
+  public onClearHighlight = this.tooltipExtra.onClearHighlight.bind(this.tooltipExtra);
 
   // The group rects are computed for every available x coordinate, each including at least one point with matching x value.
   // The reacts enclose all matching points of the group and are used to match hover position and place the tooltip or focus outline.

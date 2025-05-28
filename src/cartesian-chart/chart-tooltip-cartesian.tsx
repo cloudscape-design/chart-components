@@ -1,16 +1,15 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import type Highcharts from "highcharts";
 
 import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
 
-import { CoreChartProps, Rect } from "../core/interfaces-core";
-import { getOptionsId, getSeriesColor, getSeriesId, getSeriesMarkerType } from "../core/utils";
+import { CoreChartProps } from "../core/interfaces-core";
+import { getOptionsId, getSeriesColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../internal/components/series-details";
-import { ChartSeriesMarker, renderMarker } from "../internal/components/series-marker";
-import { isXThreshold } from "./chart-series-cartesian";
+import { ChartSeriesMarker } from "../internal/components/series-marker";
 import { getDefaultFormatter } from "./default-formatters";
 import {
   CartesianChartProps,
@@ -18,7 +17,6 @@ import {
   InternalSeriesOptions,
   NonErrorBarSeriesOptions,
 } from "./interfaces-cartesian";
-import * as Styles from "./styles";
 import { getDataExtremes } from "./utils";
 
 import styles from "./styles.css.js";
@@ -29,8 +27,6 @@ export function useChartTooltipCartesian(props: {
 }): Partial<CoreChartProps> {
   const { xAxis, yAxis, series } = props.options;
   const [expandedSeries, setExpandedSeries] = useState<Record<string, Set<string>>>({});
-  const cursorRef = useRef(new HighlightCursor());
-  const chartRef = useRef<null | Highcharts.Chart>(null);
 
   const getTooltipContent: CoreChartProps["getTooltipContent"] = ({ point, group }) => {
     const x = group[0]?.x;
@@ -132,26 +128,8 @@ export function useChartTooltipCartesian(props: {
     };
   };
 
-  const onRenderTooltip: CoreChartProps["onRenderTooltip"] = ({ point, group, groupRect }) => {
-    const x = group[0].x;
-    const chart = group[0]?.series.chart;
-    if (chart === undefined || x === undefined) {
-      return;
-    }
-
-    chartRef.current = chart;
-
-    cursorRef.current.create(groupRect, point, group, !props.options.series.some((s) => s.type === "column"));
-  };
-
-  const onClearHighlight: CoreChartProps["onClearHighlight"] = () => {
-    cursorRef.current?.destroy();
-  };
-
   return {
     getTooltipContent,
-    onRenderTooltip,
-    onClearHighlight,
   };
 }
 
@@ -239,49 +217,4 @@ function findTooltipSeriesItems(
         ),
       };
     });
-}
-
-class HighlightCursor {
-  private refs: Highcharts.SVGElement[] = [];
-
-  public create(target: Rect, point: null | Highcharts.Point, group: Highcharts.Point[], cursor = true) {
-    this.destroy();
-
-    const chart = group[0]?.series.chart;
-    if (!chart) {
-      return;
-    }
-
-    // The cursor (vertical or horizontal line to make the highlighted point better prominent) is only added for charts
-    // that do not include "column" series. That is because the cursor is not necessary for columns, assuming the number of
-    // x data points is not very high.
-    if (cursor) {
-      const cursorStyle = { fill: Styles.colorChartCursor, zIndex: 5, style: "pointer-events: none" };
-      this.refs.push(
-        chart.inverted
-          ? chart.renderer
-              .rect(chart.plotLeft, chart.plotTop + (target.y - 2 * target.height), chart.plotWidth, 1)
-              .attr(cursorStyle)
-              .add()
-          : chart.renderer
-              .rect(target.x + target.width / 2, chart.plotTop, 1, chart.plotHeight)
-              .attr(cursorStyle)
-              .add(),
-      );
-    }
-
-    const matchedPoints = group.filter(
-      (p) => !isXThreshold(p.series) && p.series.type !== "column" && p.series.type !== "errorbar",
-    );
-
-    for (const p of matchedPoints) {
-      if (p.plotX !== undefined && p.plotY !== undefined) {
-        this.refs.push(renderMarker(chart, p, p === point));
-      }
-    }
-  }
-
-  public destroy() {
-    this.refs.forEach((ref) => ref.destroy());
-  }
 }

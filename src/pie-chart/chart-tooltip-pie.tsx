@@ -1,10 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
 
-import { CoreChartProps, Rect } from "../core/interfaces-core";
+import { CoreChartProps } from "../core/interfaces-core";
 import { getOptionsId, getPointColor, getSeriesMarkerType } from "../core/utils";
 import ChartSeriesDetails from "../internal/components/series-details";
 import { ChartSeriesMarker } from "../internal/components/series-marker";
@@ -47,33 +46,5 @@ export function useChartTooltipPie(props: {
     };
   };
 
-  const onRenderTooltip: CoreChartProps["onRenderTooltip"] = ({ point }) => {
-    if (point) {
-      return { pointRect: getPieChartTargetPlacement(point) };
-    }
-  };
-
-  return { getTooltipContent, onRenderTooltip };
-}
-
-function getPieChartTargetPlacement(point: Highcharts.Point): Rect {
-  // The pie series segments do not provide plotX, plotY to compute the tooltip placement.
-  // Instead, there is a `tooltipPos` tuple, which is not covered by TS.
-  if ("tooltipPos" in point && Array.isArray(point.tooltipPos)) {
-    return { x: point.tooltipPos[0], y: point.tooltipPos[1], width: 0, height: 0 };
-  }
-  warnOnce("PieChart", "Failed to get pie chart on-target tooltip position.");
-  return getPieMiddlePlacement(point);
-}
-
-function getPieMiddlePlacement(point: Highcharts.Point): Rect {
-  const chart = point.series.chart;
-  const [relativeX, relativeY, relativeDiameter] = point.series.center;
-  const plotLeft = chart.plotLeft;
-  const plotTop = chart.plotTop;
-  const centerX = plotLeft + (typeof relativeX === "number" ? relativeX : (relativeX / 100) * chart.plotWidth);
-  const centerY = plotTop + (typeof relativeY === "number" ? relativeY : (relativeY / 100) * chart.plotHeight);
-  const radius =
-    (typeof relativeDiameter === "number" ? relativeDiameter : (relativeDiameter / 100) * chart.plotWidth) / 2;
-  return { x: centerX, y: centerY - radius, width: 1, height: 2 * radius };
+  return { getTooltipContent };
 }

@@ -15,7 +15,6 @@ import { useCartesianSeries } from "./chart-series-cartesian";
 import { useChartTooltipCartesian } from "./chart-tooltip-cartesian";
 import { getDefaultFormatter } from "./default-formatters";
 import { CartesianChartProps, InternalCartesianChartOptions } from "./interfaces-cartesian";
-import * as Styles from "./styles";
 import { getDataExtremes } from "./utils";
 
 import testClasses from "./test-classes/styles.css.js";
@@ -128,33 +127,6 @@ export const InternalCartesianChart = forwardRef(
         };
       }),
       series,
-      plotOptions: {
-        ...options.plotOptions,
-        series: {
-          stickyTracking: false,
-          ...options.plotOptions?.series,
-        },
-        line: {
-          ...options.plotOptions?.line,
-          marker: { ...Styles.defaultMarker, ...options.plotOptions?.line?.marker },
-          states: { hover: { halo: Styles.defaultMarkerHoverHalo }, ...options.plotOptions?.line?.states },
-        },
-        spline: {
-          ...options.plotOptions?.spline,
-          marker: { ...Styles.defaultMarker, ...options.plotOptions?.line?.marker },
-          states: { hover: { halo: Styles.defaultMarkerHoverHalo }, ...options.plotOptions?.spline?.states },
-        },
-        area: {
-          ...options.plotOptions?.area,
-          marker: { ...Styles.defaultMarker, ...options.plotOptions?.line?.marker },
-          states: { hover: { halo: Styles.defaultMarkerHoverHalo }, ...options.plotOptions?.area?.states },
-        },
-        areaspline: {
-          ...options.plotOptions?.areaspline,
-          marker: { ...Styles.defaultMarker, ...options.plotOptions?.line?.marker },
-          states: { hover: { halo: Styles.defaultMarkerHoverHalo }, ...options.plotOptions?.areaspline?.states },
-        },
-      },
     };
 
     return (

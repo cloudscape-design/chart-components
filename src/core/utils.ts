@@ -29,6 +29,31 @@ export function isSeriesStacked(series: Highcharts.Series) {
   return (series.options as any).stacking === "normal";
 }
 
+interface ThresholdOptions<T extends "x-threshold" | "y-threshold"> {
+  custom: {
+    awsui: {
+      type: T;
+      threshold: number;
+    };
+  };
+}
+export function createThresholdMetadata<T extends "x-threshold" | "y-threshold">(
+  type: T,
+  value: number,
+): ThresholdOptions<T> {
+  return { custom: { awsui: { type, threshold: value } } };
+}
+export function isXThreshold(
+  s: Highcharts.Series,
+): s is Highcharts.Series & { options: ThresholdOptions<"x-threshold"> } {
+  return typeof s.options.custom === "object" && s.options.custom.awsui?.type === "x-threshold";
+}
+export function isYThreshold(
+  s: Highcharts.Series,
+): s is Highcharts.Series & { options: ThresholdOptions<"y-threshold"> } {
+  return typeof s.options.custom === "object" && s.options.custom.awsui?.type === "y-threshold";
+}
+
 // We check point.series explicitly because if the point was destroyed by Highcharts it is replaced by
 // { destroyed: true } object, where the series array is no longer present despite the TS definition.
 export function isPointVisible(point: Highcharts.Point) {

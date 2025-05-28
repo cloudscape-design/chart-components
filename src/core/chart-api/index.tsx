@@ -488,14 +488,15 @@ export class ChartAPI {
     this.setHighlightState(group);
     const pointRect = getPointRect(point);
     const groupRect = getGroupRect(group);
-    const override = this.context.onRenderTooltip?.({ point, group, pointRect, groupRect });
+    const tooltipDefault = this.chartExtra.onRenderTooltip({ point, group, pointRect, groupRect });
+    const tooltipOverride = this.context.onRenderTooltip?.({ point, group, pointRect, groupRect });
     const customMatchedLegendItems = this.context.getMatchedLegendItems?.({ point });
     const matchedLegendItems = customMatchedLegendItems ?? matchLegendItems(this.store.get().legend.items, point);
     this.registeredLegend?.highlightItems(matchedLegendItems);
     this.destroyTracks();
     this.createTracks({
-      pointRect: override?.pointRect ?? pointRect,
-      groupRect: override?.groupRect ?? groupRect,
+      pointRect: tooltipOverride?.pointRect ?? tooltipDefault?.pointRect ?? pointRect,
+      groupRect: tooltipOverride?.groupRect ?? tooltipDefault?.groupRect ?? groupRect,
     });
   };
 
@@ -506,7 +507,8 @@ export class ChartAPI {
     this.setHighlightState(group);
     const pointRect = getPointRect(group[0]);
     const groupRect = getGroupRect(group);
-    const override = this.context.onRenderTooltip?.({ point: null, group, pointRect, groupRect });
+    const tooltipDefault = this.chartExtra.onRenderTooltip({ point: null, group, pointRect, groupRect });
+    const tooltipOverride = this.context.onRenderTooltip?.({ point: null, group, pointRect, groupRect });
     const matchedLegendItems = new Set<string>();
     for (const point of group) {
       const matched = matchLegendItems(this.store.get().legend.items, point);
@@ -515,8 +517,8 @@ export class ChartAPI {
     this.registeredLegend?.highlightItems([...matchedLegendItems]);
     this.destroyTracks();
     this.createTracks({
-      pointRect: override?.pointRect ?? pointRect,
-      groupRect: override?.groupRect ?? groupRect,
+      pointRect: tooltipOverride?.pointRect ?? tooltipDefault?.pointRect ?? pointRect,
+      groupRect: tooltipOverride?.groupRect ?? tooltipDefault?.groupRect ?? groupRect,
     });
   };
 
@@ -553,6 +555,7 @@ export class ChartAPI {
   };
 
   private clearHighlightActions = () => {
+    this.chartExtra.onClearHighlight();
     this.context.onClearHighlight?.();
     this.destroyTracks();
     this.registeredLegend?.clearHighlight();

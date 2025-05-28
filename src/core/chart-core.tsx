@@ -174,6 +174,7 @@ export function InternalCoreChart({
               ...options.plotOptions,
               series: {
                 animation: false,
+                stickyTracking: false,
                 borderColor: Styles.seriesBorderColor,
                 ...options.plotOptions?.series,
                 dataLabels: { style: Styles.seriesDataLabelsCss, ...options.plotOptions?.series?.dataLabels },
@@ -208,10 +209,20 @@ export function InternalCoreChart({
               area: {
                 fillOpacity: Styles.areaFillOpacity,
                 ...options.plotOptions?.area,
+                marker: { ...Styles.defaultMarker, ...options.plotOptions?.area?.marker },
               },
               areaspline: {
                 fillOpacity: Styles.areaFillOpacity,
                 ...options.plotOptions?.areaspline,
+                marker: { ...Styles.defaultMarker, ...options.plotOptions?.areaspline?.marker },
+              },
+              line: {
+                ...options.plotOptions?.line,
+                marker: { ...Styles.defaultMarker, ...options.plotOptions?.line?.marker },
+              },
+              spline: {
+                ...options.plotOptions?.spline,
+                marker: { ...Styles.defaultMarker, ...options.plotOptions?.spline?.marker },
               },
               column: {
                 groupPadding: Styles.columnGroupPadding,

@@ -84,10 +84,7 @@ const scatterSeries: Highcharts.SeriesOptionsType[] = [
 
 export default function () {
   return (
-    <Page
-      title="Line chart implemented with core chart"
-      subtitle="This page demonstrates how a simple line chart is achieved via core chart API"
-    >
+    <Page title="Line chart implemented with core chart API">
       <LineChart />
     </Page>
   );
@@ -120,13 +117,6 @@ function LineChart() {
           },
         ],
         yAxis: [{ title: { text: "Events" } }],
-        plotOptions: {
-          series: {
-            marker: {
-              fillColor: "transparent",
-            },
-          },
-        },
       }}
       getTooltipContent={({ group }) => {
         const x = group[0].x;

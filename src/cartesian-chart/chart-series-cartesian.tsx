@@ -4,7 +4,7 @@
 import { useCallback } from "react";
 import type Highcharts from "highcharts";
 
-import { getOptionsId } from "../core/utils";
+import { createThresholdMetadata, getOptionsId, isXThreshold, isYThreshold } from "../core/utils";
 import { InternalCartesianChartOptions } from "./interfaces-cartesian";
 import * as Styles from "./styles";
 
@@ -139,27 +139,4 @@ function updateSeriesData(chart: Highcharts.Chart) {
     }
     return false;
   }
-}
-
-interface ThresholdOptions<T extends "x-threshold" | "y-threshold"> {
-  custom: {
-    awsui: {
-      type: T;
-      threshold: number;
-    };
-  };
-}
-
-function createThresholdMetadata<T extends "x-threshold" | "y-threshold">(type: T, value: number): ThresholdOptions<T> {
-  return { custom: { awsui: { type, threshold: value } } };
-}
-export function isXThreshold(
-  s: Highcharts.Series,
-): s is Highcharts.Series & { options: ThresholdOptions<"x-threshold"> } {
-  return typeof s.options.custom === "object" && s.options.custom.awsui?.type === "x-threshold";
-}
-export function isYThreshold(
-  s: Highcharts.Series,
-): s is Highcharts.Series & { options: ThresholdOptions<"y-threshold"> } {
-  return typeof s.options.custom === "object" && s.options.custom.awsui?.type === "y-threshold";
 }
