@@ -7,7 +7,7 @@ import { isEqualArrays } from "../../internal/utils/utils";
 import { ChartLegendItem } from "../interfaces-base";
 import { InternalChartLegendItemSpec, ReactiveChartState } from "../interfaces-core";
 
-// Handles reactive chart state the chart components can subscribe to.
+// Handles reactive state the chart components can subscribe to.
 export class ChartStore {
   private store = new AsyncStore<ReactiveChartState>({
     tooltip: { visible: false, pinned: false, point: null, group: [] },
