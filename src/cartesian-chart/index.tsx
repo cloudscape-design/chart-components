@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { forwardRef } from "react";
+import { forwardRef, useMemo } from "react";
 
 import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
 
@@ -20,12 +20,13 @@ import { CartesianChartProps, InternalCartesianChartOptions, InternalSeriesOptio
 const CartesianChart = forwardRef(
   ({ verticalAxisTitlePlacement = "top", ...props }: CartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
     const baseComponentProps = useBaseComponent("CartesianChart", { props: {} });
+    const validatedOptions = useValidatedOptions(props);
     return (
       <InternalCartesianChart
         ref={ref}
         highcharts={props.highcharts}
         fallback={props.fallback}
-        options={validateOptions(props)}
+        options={validatedOptions}
         fitHeight={props.fitHeight}
         chartHeight={props.chartHeight}
         chartMinHeight={props.chartMinHeight}
@@ -54,7 +55,8 @@ export default CartesianChart;
 
 // We explicitly transform component properties to Highcharts options and internal cartesian chart properties
 // to avoid accidental or intentional use of Highcharts features that are not yet supported by Cloudscape.
-function validateOptions(props: CartesianChartProps): InternalCartesianChartOptions {
+function useValidatedOptions(props: CartesianChartProps): InternalCartesianChartOptions {
+  const validatedSeries = useMemo(() => validateSeries(props.series, props.stacked), [props.series, props.stacked]);
   return {
     chart: {
       inverted: props.inverted,
@@ -72,7 +74,7 @@ function validateOptions(props: CartesianChartProps): InternalCartesianChartOpti
         stacking: props.stacked ? "normal" : undefined,
       },
     },
-    series: validateSeries(props.series, props.stacked),
+    series: validatedSeries,
     xAxis: props.xAxis ? [validateXAxis(props.xAxis)] : [{}],
     yAxis: props.yAxis ? [validateYAxis(props.yAxis)] : [{}],
   };
