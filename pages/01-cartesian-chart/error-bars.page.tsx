@@ -22,6 +22,8 @@ interface ThisPageSettings extends PageSettings {
   errorColor?: string;
   inverted?: boolean;
   customTooltipContent: boolean;
+  tooltipSeriesSubItems: boolean;
+  tooltipSeriesSubItemsExpandable: boolean;
 }
 
 interface ChartProps {
@@ -101,6 +103,8 @@ export default function () {
     errorSize: settings.errorSize ?? 800,
     errorColor: settings.errorColor || undefined,
     customTooltipContent: settings.customTooltipContent ?? false,
+    tooltipSeriesSubItems: settings.tooltipSeriesSubItems ?? false,
+    tooltipSeriesSubItemsExpandable: settings.tooltipSeriesSubItemsExpandable ?? false,
   };
   return (
     <Page
@@ -116,6 +120,24 @@ export default function () {
           >
             Custom tooltip content
           </Checkbox>
+          {chartProps.customTooltipContent && (
+            <>
+              <Checkbox
+                checked={chartProps.tooltipSeriesSubItems}
+                onChange={({ detail }) => setSettings({ tooltipSeriesSubItems: detail.checked })}
+              >
+                Sub-items
+              </Checkbox>
+              {chartProps.tooltipSeriesSubItems && (
+                <Checkbox
+                  checked={chartProps.tooltipSeriesSubItemsExpandable}
+                  onChange={({ detail }) => setSettings({ tooltipSeriesSubItemsExpandable: detail.checked })}
+                >
+                  Expandable
+                </Checkbox>
+              )}
+            </>
+          )}
           <FormField label="Error size">
             <Input
               type="number"
@@ -154,14 +176,22 @@ export default function () {
   );
 }
 
-const seriesFormatter: CartesianChartProps.TooltipOptions["series"] = ({ item }) => {
-  return {
+const seriesFormatter: (settings: ThisPageSettings) => CartesianChartProps.TooltipOptions["series"] =
+  (settings) =>
+  ({ item }) => ({
     key: item.series.name,
     value: (
       <Link external={true} href="#" ariaLabel={`See details for ${item.series.name} (opens in a new tab)`}>
         {item.y !== null ? moneyFormatter(item.y) : null}
       </Link>
     ),
+    subItems: settings.tooltipSeriesSubItems
+      ? [
+          { key: "sub-item 1", value: (item.y ?? 0) / 2 },
+          { key: "sub-item 2", value: (item.y ?? 0) / 2 },
+        ]
+      : undefined,
+    expandable: settings.tooltipSeriesSubItemsExpandable,
     details: item.errorRanges.length ? (
       <div>
         {item.errorRanges.map((errorRange, index) => (
@@ -171,11 +201,10 @@ const seriesFormatter: CartesianChartProps.TooltipOptions["series"] = ({ item })
         ))}
       </div>
     ) : null,
-  };
-};
+  });
 
 function ColumnChart({ inverted, errorSize, errorColor, customTooltipContent }: ChartProps) {
-  const { chartProps } = useChartSettings({ more: true });
+  const { chartProps, settings } = useChartSettings<ThisPageSettings>({ more: true });
   return (
     <CartesianChart
       {...chartProps.cartesian}
@@ -186,7 +215,7 @@ function ColumnChart({ inverted, errorSize, errorColor, customTooltipContent }: 
       tooltip={
         customTooltipContent
           ? {
-              series: seriesFormatter,
+              series: seriesFormatter(settings),
               footer: () => <Box fontSize="body-s">*Error range</Box>,
             }
           : undefined
@@ -198,7 +227,7 @@ function ColumnChart({ inverted, errorSize, errorColor, customTooltipContent }: 
 }
 
 function MixedChart({ inverted, errorSize, errorColor, customTooltipContent }: ChartProps) {
-  const { chartProps } = useChartSettings({ more: true });
+  const { chartProps, settings } = useChartSettings<ThisPageSettings>({ more: true });
   return (
     <CartesianChart
       {...chartProps.cartesian}
@@ -212,7 +241,7 @@ function MixedChart({ inverted, errorSize, errorColor, customTooltipContent }: C
       tooltip={
         customTooltipContent
           ? {
-              series: seriesFormatter,
+              series: seriesFormatter(settings),
               footer: () => <Box fontSize="body-s">*Error range</Box>,
             }
           : undefined
@@ -224,7 +253,7 @@ function MixedChart({ inverted, errorSize, errorColor, customTooltipContent }: C
 }
 
 function GroupedColumnChart({ inverted, errorSize, errorColor, customTooltipContent }: ChartProps) {
-  const { chartProps } = useChartSettings({ more: true });
+  const { chartProps, settings } = useChartSettings<ThisPageSettings>({ more: true });
   return (
     <CartesianChart
       {...chartProps.cartesian}
@@ -238,7 +267,7 @@ function GroupedColumnChart({ inverted, errorSize, errorColor, customTooltipCont
       tooltip={
         customTooltipContent
           ? {
-              series: seriesFormatter,
+              series: seriesFormatter(settings),
               footer: () => <Box fontSize="body-s">*Error range</Box>,
             }
           : undefined
@@ -256,7 +285,7 @@ function LineChart({
   customTooltipContent,
   numberOfSeries = 3,
 }: ChartProps & { numberOfSeries?: number }) {
-  const { chartProps } = useChartSettings({ more: true });
+  const { chartProps, settings } = useChartSettings<ThisPageSettings>({ more: true });
   const createSeries = (index: number) => {
     const data = costsData.map((y) => y + Math.floor(pseudoRandom() * 10000) - 5000);
     const lineSeries: CartesianChartProps.LineSeriesOptions = {
@@ -287,7 +316,7 @@ function LineChart({
       tooltip={
         customTooltipContent
           ? {
-              series: seriesFormatter,
+              series: seriesFormatter(settings),
               footer: () => <Box fontSize="body-s">*Error range</Box>,
             }
           : undefined
