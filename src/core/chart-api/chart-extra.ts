@@ -184,9 +184,7 @@ function getNextIndex(array: unknown[], pointIndex: number, delta: -1 | 1): numb
 }
 
 function getNextPageIndex(array: unknown[], pointIndex: number, delta: -1 | 1): number {
-  return delta > 0
-    ? Math.min(array.length - 1, pointIndex + delta * Math.floor(array.length * PAGE_SIZE_PERCENTAGE))
-    : Math.max(0, pointIndex - delta * Math.floor(array.length * PAGE_SIZE_PERCENTAGE));
+  return Math.min(array.length - 1, Math.max(0, pointIndex + delta * Math.floor(array.length * PAGE_SIZE_PERCENTAGE)));
 }
 
 // The points are sorted to ensure consistent navigation, including inverted chart orientation.
