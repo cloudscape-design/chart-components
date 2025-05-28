@@ -169,6 +169,19 @@ describe("CartesianChart: Error bars", () => {
       });
       expect(spy).toHaveBeenCalledOnce();
     });
+
+    test("emits a warning if linked series cannot be found when rendering the tooltip", async () => {
+      renderCartesianChart({
+        highcharts,
+        series: [
+          { type: "column", id: "column", name: "name", data: [1] },
+          { type: "errorbar", linkedTo: "nonExistingId", data: [{ low: 1, high: 2 }] },
+        ],
+      });
+      vi.resetAllMocks();
+      await highlightFirstPoint();
+      expect(spy).toHaveBeenCalledOnce();
+    });
   });
 });
 
