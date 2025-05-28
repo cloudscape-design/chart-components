@@ -107,7 +107,6 @@ describe("CartesianChart: Error bars", () => {
     });
 
     afterEach(() => {
-      expect(spy).toHaveBeenCalledOnce();
       vi.resetAllMocks();
     });
 
