@@ -183,15 +183,10 @@ function Charts() {
           const header = dateFormatter(x);
           const inAlarmState = inAlarmData.find(({ x: x1, x2 }) => x1 <= x && x <= x2);
           const inAlarm = inAlarmState?.color === red;
-          const footer = (
-            <div>
-              <hr />
-              {inAlarm ? (
-                <StatusIndicator type="warning">In alarm</StatusIndicator>
-              ) : (
-                <StatusIndicator type="success">Ok</StatusIndicator>
-              )}
-            </div>
+          const footer = inAlarm ? (
+            <StatusIndicator type="warning">In alarm</StatusIndicator>
+          ) : (
+            <StatusIndicator type="success">Ok</StatusIndicator>
           );
           const details: ChartSeriesDetailItem[] = [];
           for (const s of getScatterChart().chart.series) {
