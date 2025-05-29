@@ -9,17 +9,17 @@ import { renderMarker } from "../../internal/components/series-marker";
 import { Rect, RenderTooltipProps } from "../interfaces-core";
 import * as Styles from "../styles";
 import { getGroupRect, getPointRect, isXThreshold } from "../utils";
+import { ChartExtraBase } from "./chart-extra-base";
 
 // Chart helper that implements tooltip placement logic and cursors.
 // It handles cartesian and pie charts.
 export class ChartExtraTooltip {
-  // The chart is only initialized in the render event. Using any methods before that is not expected.
-  private _chart: null | Highcharts.Chart = null;
-  public get chart(): Highcharts.Chart {
-    if (!this._chart) {
-      throw new Error("Invariant violation: using chart API before initializing chart.");
-    }
-    return this._chart;
+  private chartExtra: ChartExtraBase;
+  private get chart() {
+    return this.chartExtra.chart;
+  }
+  constructor(chartExtra: ChartExtraBase) {
+    this.chartExtra = chartExtra;
   }
   private cursor = new HighlightCursorCartesian();
   private targetTrack: null | Highcharts.SVGElement = null;
@@ -30,10 +30,6 @@ export class ChartExtraTooltip {
   // The getTrack function ensures the latest element reference is given on each request.
   public getTargetTrack = () => (this.targetTrack?.element ?? null) as null | SVGElement;
   public getGroupTrack = () => (this.groupTrack?.element ?? null) as null | SVGElement;
-
-  public onChartRender = (chart: Highcharts.Chart) => {
-    this._chart = chart;
-  };
 
   public onRenderTooltip = (props: RenderTooltipProps) => {
     if (this.chart.series.some((s) => s.type === "pie")) {

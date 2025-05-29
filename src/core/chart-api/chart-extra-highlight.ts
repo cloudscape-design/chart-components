@@ -5,6 +5,7 @@ import type Highcharts from "highcharts";
 
 import * as Styles from "../styles";
 import { getPointId, getSeriesId } from "../utils";
+import { ChartExtraBase } from "./chart-extra-base";
 
 const SET_STATE_LOCK = Symbol("awsui-set-state-lock");
 
@@ -14,22 +15,21 @@ type PointSetStateWithLock = Highcharts.Point["setState"] & { [SET_STATE_LOCK]: 
 // Chart helper that mutes Highcharts default highlighting behavior and offers custom method
 // for customized control over series and points highlighting.
 export class ChartExtraHighlight {
-  // The chart is only initialized in the render event. Using any methods before that is not expected.
-  private _chart: null | Highcharts.Chart = null;
-  private get chart(): Highcharts.Chart {
-    if (!this._chart) {
-      throw new Error("Invariant violation: using chart API before initializing chart.");
-    }
-    return this._chart;
+  private chartExtra: ChartExtraBase;
+  private get chart() {
+    return this.chartExtra.chart;
   }
+  constructor(chartExtra: ChartExtraBase) {
+    this.chartExtra = chartExtra;
+  }
+
   // We keep track of the previously highlighted series and points to recover highlight state if needed.
   // The recover is necessary if the chart was re-rendered while the highlighting is set. For example, when
   // expanding a series drill-down in the tooltip.
   private seriesState = new Map<string, Highcharts.SeriesStateValue>();
   private pointState = new Map<string, Map<string, Highcharts.SeriesStateValue>>();
 
-  public onChartRender(chart: Highcharts.Chart) {
-    this._chart = chart;
+  public onChartRender() {
     this.overrideStateSetters();
     this.restoreHighlightState();
   }
