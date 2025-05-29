@@ -118,6 +118,7 @@ function LineChart() {
         ],
         yAxis: [{ title: { text: "Events" } }],
       }}
+      tooltip={{ placement: "outside" }}
       getTooltipContent={({ group }) => {
         const x = group[0].x;
         const header = dateFormatter(x);

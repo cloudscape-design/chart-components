@@ -35,6 +35,7 @@ import {
 import { ChartExtra } from "./chart-extra";
 import { ChartStore } from "./chart-store";
 import { NavigationController, NavigationControllerHandlers } from "./navigation-controller";
+import { throttle } from "./throttle";
 
 const MOUSE_LEAVE_DELAY = 200;
 const LAST_DISMISS_DELAY = 250;
@@ -84,6 +85,7 @@ export class ChartAPI {
   private groupTrack: null | Highcharts.SVGElement = null;
   private registeredLegend: null | RegisteredLegendAPI = null;
   private matchedGroup: Highcharts.Point[] = [];
+  private mouseOverPoint = false;
 
   constructor(chartId: string, getContext: () => ChartAPIContext) {
     this.chartId = chartId;
@@ -142,11 +144,14 @@ export class ChartAPI {
       }
     };
     const onSeriesPointMouseOver: Highcharts.PointMouseOverCallbackFunction = function () {
+      chartAPI.mouseOverPoint = true;
       if (chartAPI.context.isTooltipEnabled) {
         chartAPI.highlightChartPoint(this);
       }
     };
+    const onSeriesPointMouseOverThrottled = throttle(onSeriesPointMouseOver, 25);
     const onSeriesPointMouseOut: Highcharts.PointMouseOutCallbackFunction = function () {
+      chartAPI.mouseOverPoint = false;
       if (chartAPI.context.isTooltipEnabled) {
         chartAPI.clearChartHighlight();
       }
@@ -162,7 +167,7 @@ export class ChartAPI {
       onChartLoad,
       onChartRender,
       onChartClick,
-      onSeriesPointMouseOver,
+      onSeriesPointMouseOver: onSeriesPointMouseOverThrottled,
       onSeriesPointMouseOut,
       onSeriesPointClick,
       noData,
@@ -275,8 +280,8 @@ export class ChartAPI {
     }
   };
 
-  private onChartMousemove = (event: MouseEvent) => {
-    if (!this.ready) {
+  private onChartMousemove = throttle((event: MouseEvent) => {
+    if (!this.ready || this.mouseOverPoint) {
       return;
     }
 
@@ -286,11 +291,6 @@ export class ChartAPI {
     const { plotLeft, plotTop, plotWidth, plotHeight } = this.chart;
 
     if (plotX >= plotLeft && plotX <= plotLeft + plotWidth && plotY >= plotTop && plotY <= plotTop + plotHeight) {
-      const tooltip = this.store.get().tooltip;
-      if (tooltip.point && tooltip.visible) {
-        return;
-      }
-
       this.matchedGroup = [];
       let minDistance = Number.POSITIVE_INFINITY;
       for (const { group, rect } of this.chartExtra.groupRects) {
@@ -308,12 +308,11 @@ export class ChartAPI {
         }
       }
 
-      const current = this.store.get().tooltip;
-      if (this.matchedGroup.length > 0 && (!current.visible || current.point === null)) {
+      if (this.matchedGroup.length > 0) {
         this.highlightChartGroup(this.matchedGroup);
       }
     }
-  };
+  }, 25);
 
   private onChartMouseout = (event: MouseEvent) => {
     if (this.context.isTooltipEnabled) {
@@ -359,11 +358,7 @@ export class ChartAPI {
   };
 
   public clearChartHighlight = () => {
-    // The behavior is ignored if user hovers over the tooltip.
-    if (this.tooltipHovered) {
-      return;
-    }
-    if (!this.store.get().tooltip.pinned) {
+    if (!this.tooltipHovered && !this.store.get().tooltip.pinned) {
       this.mouseLeaveCall.call(() => {
         if (this.tooltipHovered) {
           return;
