@@ -75,6 +75,13 @@ const series: Highcharts.SeriesOptionsType[] = [
     type: "line",
     data: dataC,
   },
+  {
+    name: "X",
+    type: "scatter",
+    data: [{ x: 1601012700000, y: 500000 }],
+    marker: { symbol: "square" },
+    showInLegend: false,
+  },
 ];
 
 export default function () {

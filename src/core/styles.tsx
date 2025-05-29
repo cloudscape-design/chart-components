@@ -127,6 +127,6 @@ export const navigationFocusOutlineStyle = {
   zIndex: 10,
 };
 
-export const defaultMarker = { enabled: false, radius: 2, symbol: "circle" };
+export const defaultMarker = { enabled: false, radius: 3, symbol: "circle" };
 
 export const colorChartCursor = colorChartsLineTick;
