@@ -59,7 +59,7 @@ const dataA = baseline.map(({ x, y }) => ({ name: "A", x, y }));
 const dataB = baseline.map(({ x, y }) => ({ name: "B", x, y: y + randomInt(-100000, 100000) }));
 const dataC = baseline.map(({ x, y }) => ({ name: "C", x, y: y + randomInt(-150000, 50000) }));
 
-const scatterSeries: Highcharts.SeriesOptionsType[] = [
+const series: Highcharts.SeriesOptionsType[] = [
   {
     name: "A",
     type: "line",
@@ -96,10 +96,10 @@ function LineChart() {
         },
         lang: {
           accessibility: {
-            chartContainerLabel: "Scatter chart",
+            chartContainerLabel: "Line chart",
           },
         },
-        series: scatterSeries,
+        series: series,
         xAxis: [
           {
             type: "datetime",
