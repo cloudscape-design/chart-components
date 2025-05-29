@@ -18,20 +18,13 @@ import {
 } from "../core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../internal/components/series-details";
 import { ChartSeriesMarker } from "../internal/components/series-marker";
-import {
-  CartesianChartProps,
-  InternalCartesianChartOptions,
-  InternalSeriesOptions,
-  NonErrorBarSeriesOptions,
-} from "./interfaces-cartesian";
+import { CartesianChartProps, NonErrorBarSeriesOptions } from "./interfaces-cartesian";
 
 import styles from "./styles.css.js";
 
 export function useChartTooltipCartesian(props: {
-  options: InternalCartesianChartOptions;
   tooltip?: CartesianChartProps.TooltipOptions;
 }): Partial<CoreChartProps> {
-  const { series } = props.options;
   const [expandedSeries, setExpandedSeries] = useState<Record<string, Set<string>>>({});
 
   const getTooltipContent: CoreChartProps["getTooltipContent"] = ({ point, group }) => {
@@ -41,19 +34,15 @@ export function useChartTooltipCartesian(props: {
       return null;
     }
 
-    const seriesToChartSeries = new Map<InternalSeriesOptions, Highcharts.Series>();
-    for (const s of series) {
-      const chartSeries = chart.series.find((cs) => getOptionsId(cs.userOptions) === getOptionsId(s));
-      if (chartSeries) {
-        seriesToChartSeries.set(s, chartSeries);
-      }
+    const seriesToChartSeries = new Map<CartesianChartProps.SeriesOptions, Highcharts.Series>();
+    for (const s of chart.series) {
+      seriesToChartSeries.set(s.userOptions as any, s);
     }
-    const getSeriesMarker = (series: CartesianChartProps.SeriesOptions) => {
-      const hcSeries = seriesToChartSeries.get(series);
-      return <ChartSeriesMarker type={getSeriesMarkerType(hcSeries)} color={getSeriesColor(hcSeries)} />;
+    const getSeriesMarker = (series: Highcharts.Series) => {
+      return <ChartSeriesMarker type={getSeriesMarkerType(series)} color={getSeriesColor(series)} />;
     };
 
-    const matchedItems = findTooltipSeriesItems(series, group);
+    const matchedItems = findTooltipSeriesItems(chart.series, group);
 
     const detailItems: ChartSeriesDetailItem[] = matchedItems.flatMap((item) => {
       const yAxisProps = chart.yAxis[0].userOptions as InternalYAxisOptions;
@@ -89,7 +78,7 @@ export function useChartTooltipCartesian(props: {
       items.push({
         key: formatted.key,
         value: formatted.value,
-        marker: getSeriesMarker(item.series),
+        marker: getSeriesMarker(seriesToChartSeries.get(item.series)!),
         subItems: formatted.subItems,
         expandableId: formatted.expandable ? item.series.name : undefined,
         details: formatted.details,
@@ -140,13 +129,18 @@ export function useChartTooltipCartesian(props: {
 }
 
 function findTooltipSeriesItems(
-  series: InternalSeriesOptions[],
+  series: Highcharts.Series[],
   group: Highcharts.Point[],
 ): CartesianChartProps.TooltipSeriesItem[] {
-  const seriesDict = series.reduce((d, s) => d.set(getOptionsId(s), s), new Map<string, InternalSeriesOptions>());
-  const getSeries = (seriesId: string) => seriesDict.get(seriesId) as InternalSeriesOptions;
-  const seriesOrder = series.reduce((d, s, i) => d.set(s, i), new Map<InternalSeriesOptions, number>());
-  const getSeriesIndex = (s: InternalSeriesOptions) => seriesOrder.get(s) ?? -1;
+  const seriesToChartSeries = new Map<CartesianChartProps.SeriesOptions, Highcharts.Series>();
+  for (const s of series) {
+    seriesToChartSeries.set(s.userOptions as any, s);
+  }
+  const seriesOrder = series.reduce((d, s, i) => d.set(s, i), new Map<Highcharts.Series, number>());
+  const getSeriesIndex = (s: CartesianChartProps.SeriesOptions) => {
+    const series = seriesToChartSeries.get(s);
+    return series ? (seriesOrder.get(series) ?? -1) : -1;
+  };
 
   const seriesErrors = new Map<
     string,
@@ -173,22 +167,22 @@ function findTooltipSeriesItems(
       }
     } else {
       getMatchedPoints(point).forEach(([x, y]) => {
-        const series = getSeries(getSeriesId(point.series));
-        if (series && x !== null) {
-          matchedItems.push({ x, y, series: series as NonErrorBarSeriesOptions });
+        if (x !== null) {
+          const seriesOptions = point.series.userOptions as NonErrorBarSeriesOptions;
+          matchedItems.push({ x, y, series: seriesOptions });
         }
       });
     }
   }
 
   function addError(seriesId: string, errorPoint: Highcharts.Point) {
-    const errorSeries = errorPoint.series.options as null | CartesianChartProps.ErrorBarSeriesOptions;
-    if (errorPoint.options.low !== undefined && errorPoint.options.high !== undefined && errorSeries) {
+    const seriesOptions = errorPoint.series.userOptions as CartesianChartProps.ErrorBarSeriesOptions;
+    if (errorPoint.options.low !== undefined && errorPoint.options.high !== undefined) {
       const errorRanges = seriesErrors.get(seriesId) ?? [];
       errorRanges.push({
         low: errorPoint.options.low,
         high: errorPoint.options.high,
-        series: errorSeries,
+        series: seriesOptions,
       });
       seriesErrors.set(seriesId, errorRanges);
     }
@@ -217,10 +211,7 @@ function findTooltipSeriesItems(
       const errorRanges = seriesErrors.get(getOptionsId(item.series)) ?? [];
       return {
         ...item,
-        errorRanges: errorRanges.sort(
-          (i1, i2) =>
-            getSeriesIndex(getSeries(getOptionsId(i1.series))) - getSeriesIndex(getSeries(getOptionsId(i2.series))),
-        ),
+        errorRanges: errorRanges.sort((i1, i2) => getSeriesIndex(i1.series) - getSeriesIndex(i2.series)),
       };
     });
 }

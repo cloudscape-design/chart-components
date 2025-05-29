@@ -7,14 +7,11 @@ import { CoreChartProps } from "../core/interfaces-core";
 import { getOptionsId, getPointColor, getSeriesMarkerType } from "../core/utils";
 import ChartSeriesDetails from "../internal/components/series-details";
 import { ChartSeriesMarker } from "../internal/components/series-marker";
-import { InternalPieChartOptions, PieChartProps } from "./interfaces-pie";
+import { PieChartProps } from "./interfaces-pie";
 
 import styles from "./styles.css.js";
 
-export function useChartTooltipPie(props: {
-  options: InternalPieChartOptions;
-  tooltip?: PieChartProps.TooltipOptions;
-}): Partial<CoreChartProps> {
+export function useChartTooltipPie(props: { tooltip?: PieChartProps.TooltipOptions }): Partial<CoreChartProps> {
   const getTooltipContent: CoreChartProps["getTooltipContent"] = ({ point }) => {
     if (!point) {
       return null;
