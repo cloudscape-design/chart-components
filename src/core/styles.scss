@@ -65,3 +65,15 @@
     pointer-events: none;
   }
 }
+
+.error-range {
+  display: flex;
+  justify-content: space-between;
+  gap: cs.$space-scaled-s;
+}
+
+.tooltip-default-header {
+  display: inline-flex;
+  align-items: center;
+  gap: cs.$space-static-xxs;
+}

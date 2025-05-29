@@ -1,16 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useRef } from "react";
 import Highcharts from "highcharts";
 import { omit } from "lodash";
 
-import { CoreChartAPI } from "../../lib/components/core/interfaces-core";
-import { getSeriesColor, getSeriesMarkerType } from "../../lib/components/core/utils";
-import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../lib/components/internal/components/series-details";
-import { ChartSeriesMarker } from "../../lib/components/internal/components/series-marker";
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
-import { dateFormatter, numberFormatter } from "../common/formatters";
+import { dateFormatter } from "../common/formatters";
 import { PageSettings, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
@@ -92,13 +87,8 @@ export default function () {
 
 function LineChart() {
   const { chartProps } = useChartSettings<ThisPageSettings>({ more: true });
-  const chartRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
-  const getChart = () => chartRef.current!;
   return (
     <CoreChart
-      callback={(chart) => {
-        chartRef.current = chart;
-      }}
       {...omit(chartProps.cartesian, "ref")}
       options={{
         chart: {
@@ -120,26 +110,6 @@ function LineChart() {
         yAxis: [{ title: { text: "Events" } }],
       }}
       tooltip={{ placement: "outside" }}
-      getTooltipContent={({ group }) => {
-        const x = group[0].x;
-        const header = dateFormatter(x);
-        const details: ChartSeriesDetailItem[] = [];
-        for (const s of getChart().chart.series) {
-          for (const p of s.data) {
-            if (p.x === x) {
-              details.push({
-                key: p.name,
-                marker: <ChartSeriesMarker color={getSeriesColor(s)} type={getSeriesMarkerType(s)} />,
-                value: numberFormatter(p.y!),
-              });
-            }
-          }
-        }
-        return {
-          header,
-          body: <ChartSeriesDetails details={details} />,
-        };
-      }}
     />
   );
 }

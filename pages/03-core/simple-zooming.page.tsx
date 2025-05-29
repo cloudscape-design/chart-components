@@ -260,8 +260,8 @@ function Charts() {
             }
           }
           return {
-            header,
-            body: <ChartSeriesDetails details={details} />,
+            header: () => header,
+            body: () => <ChartSeriesDetails details={details} />,
           };
         }}
       />
@@ -271,6 +271,7 @@ function Charts() {
           navigatorChartRef.current = chart;
         }}
         {...omit(chartProps.cartesian, "ref")}
+        tooltip={{ enabled: false }}
         options={{
           chart: {
             height: 150,

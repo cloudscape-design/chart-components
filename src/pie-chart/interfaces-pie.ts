@@ -88,7 +88,7 @@ export namespace PieChartProps {
   export type TooltipHeaderRenderProps = TooltipSlotRenderProps;
   export type TooltipBodyRenderProps = TooltipSlotRenderProps;
   export type TooltipFooterRenderProps = TooltipSlotRenderProps;
-  interface TooltipSlotRenderProps {
+  export interface TooltipSlotRenderProps {
     segmentId?: string;
     segmentName: string;
     segmentValue: number;

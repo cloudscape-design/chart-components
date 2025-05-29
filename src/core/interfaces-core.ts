@@ -99,7 +99,7 @@ export interface CoreChartProps
   /**
    * Called whenever chart tooltip is rendered to provide content for tooltip's header, body, and (optional) footer.
    */
-  getTooltipContent?(props: { point: null | Highcharts.Point; group: Highcharts.Point[] }): null | TooltipContent;
+  getTooltipContent?: GetTooltipContent;
   /**
    * Called whenever chart point is highlighted and allows to specify custom tooltip target for the given point.
    */
@@ -112,6 +112,42 @@ export interface CoreChartProps
    * Use Cloudscape keyboard navigation.
    */
   keyboardNavigation?: boolean;
+}
+
+export type GetTooltipContent = (props: GetTooltipContentProps) => CoreTooltipContent;
+
+export interface GetTooltipContentProps {
+  point: null | Highcharts.Point;
+  group: Highcharts.Point[];
+}
+
+export interface CoreTooltipContent {
+  series?: (props: TooltipSeriesProps) => TooltipSeriesFormatted;
+  header?: (props: TooltipSlotProps) => React.ReactNode;
+  body?: (props: TooltipSlotProps) => React.ReactNode;
+  footer?: (props: TooltipSlotProps) => React.ReactNode;
+}
+
+export interface TooltipItem {
+  point: Highcharts.Point;
+  linkedErrorbars: Highcharts.Point[];
+}
+
+export interface TooltipSeriesProps {
+  item: TooltipItem;
+}
+
+export interface TooltipSlotProps {
+  x: number;
+  items: TooltipItem[];
+}
+
+export interface TooltipSeriesFormatted {
+  key: React.ReactNode;
+  value: React.ReactNode;
+  details?: React.ReactNode;
+  expandable?: boolean;
+  subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
 }
 
 // The extended version of Highcharts.Options;

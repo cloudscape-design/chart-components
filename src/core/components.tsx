@@ -5,7 +5,6 @@ import clsx from "clsx";
 
 import { Portal } from "@cloudscape-design/component-toolkit/internal";
 import Button from "@cloudscape-design/components/button";
-import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
 import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-use/i18n";
 import LiveRegion from "@cloudscape-design/components/live-region";
 import StatusIndicator from "@cloudscape-design/components/status-indicator";
@@ -15,8 +14,8 @@ import ChartSeriesFilter from "../internal/components/chart-series-filter";
 import { fireNonCancelableEvent } from "../internal/events";
 import { useSelector } from "../internal/utils/async-store";
 import { ChartAPI } from "./chart-api";
-import { ChartI18nStrings, ChartTooltipOptions } from "./interfaces-base";
-import { CoreI18nStrings, CoreNoDataProps, TooltipContent } from "./interfaces-core";
+import { ChartI18nStrings } from "./interfaces-base";
+import { CoreI18nStrings, CoreNoDataProps } from "./interfaces-core";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -58,60 +57,6 @@ export function ChartLegend({ title, actions, api, i18nStrings }: ChartLegendPro
       onItemHighlightEnter={(itemId) => api.highlightChartItems([itemId])}
       onItemHighlightExit={api.clearChartItemsHighlight}
     />
-  );
-}
-
-export function ChartTooltip({
-  getTooltipContent,
-  placement = "target",
-  size,
-  api,
-}: ChartTooltipOptions & {
-  getTooltipContent?: (props: { point: null | Highcharts.Point; group: Highcharts.Point[] }) => null | TooltipContent;
-  api: ChartAPI;
-}) {
-  const tooltip = useSelector(api.store, (s) => s.tooltip);
-  if (!tooltip.visible || tooltip.group.length === 0) {
-    return null;
-  }
-  const content = getTooltipContent?.({ point: tooltip.point, group: tooltip.group });
-  if (!content) {
-    return null;
-  }
-  const getTrack = placement === "target" ? api.getTargetTrack : api.getGroupTrack;
-  const orientation = tooltip.point?.series.chart.inverted ? "horizontal" : "vertical";
-  const position = (() => {
-    if (placement === "target" || placement === "middle") {
-      return orientation === "vertical" ? "right" : "bottom";
-    } else {
-      return orientation === "vertical" ? "bottom" : "right";
-    }
-  })();
-  const trackKey = `${tooltip.point ? "p" : "g"}_${tooltip.group.length}_${tooltip.group[0].x}_${tooltip.point?.y}`;
-  return (
-    <InternalChartTooltip
-      getTrack={getTrack}
-      trackKey={trackKey}
-      container={null}
-      dismissButton={tooltip.pinned}
-      onDismiss={api.onDismissTooltip}
-      onMouseEnter={api.onMouseEnterTooltip}
-      onMouseLeave={api.onMouseLeaveTooltip}
-      title={content.header}
-      footer={
-        content.footer ? (
-          <>
-            <hr aria-hidden={true} />
-            {content.footer}
-          </>
-        ) : null
-      }
-      size={size}
-      position={position}
-      minVisibleBlockSize={200}
-    >
-      {content.body}
-    </InternalChartTooltip>
   );
 }
 

@@ -10,11 +10,7 @@ import StatusIndicator from "@cloudscape-design/components/status-indicator";
 import { colorChartsGreen300, colorChartsRed500 } from "@cloudscape-design/design-tokens";
 
 import { CoreChartAPI } from "../../lib/components/core/interfaces-core";
-import { getSeriesColor, getSeriesMarkerType } from "../../lib/components/core/utils";
-import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../lib/components/internal/components/series-details";
-import { ChartSeriesMarker } from "../../lib/components/internal/components/series-marker";
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
-import { dateFormatter, numberFormatter } from "../common/formatters";
 import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
@@ -178,9 +174,9 @@ function Charts() {
             },
           },
         }}
+        tooltip={{ placement: "middle" }}
         getTooltipContent={({ group }) => {
           const x = group[0].x;
-          const header = dateFormatter(x);
           const inAlarmState = inAlarmData.find(({ x: x1, x2 }) => x1 <= x && x <= x2);
           const inAlarm = inAlarmState?.color === red;
           const footer = inAlarm ? (
@@ -188,22 +184,8 @@ function Charts() {
           ) : (
             <StatusIndicator type="success">Ok</StatusIndicator>
           );
-          const details: ChartSeriesDetailItem[] = [];
-          for (const s of getScatterChart().chart.series) {
-            for (const p of s.data) {
-              if (p.x === x) {
-                details.push({
-                  key: p.name,
-                  marker: <ChartSeriesMarker color={getSeriesColor(s)} type={getSeriesMarkerType(s)} />,
-                  value: numberFormatter(p.y!),
-                });
-              }
-            }
-          }
           return {
-            header,
-            body: <ChartSeriesDetails details={details} />,
-            footer,
+            footer: () => footer,
           };
         }}
       />

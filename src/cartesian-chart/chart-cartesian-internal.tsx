@@ -74,18 +74,14 @@ export const InternalCartesianChart = forwardRef(
           },
         },
       },
-      xAxis: castArray(xAxis)?.map((xAxisProps) => {
-        return {
-          ...xAxisProps,
-          plotLines: [...xPlotLines, ...(xAxisProps.plotLines ?? [])],
-        };
-      }),
-      yAxis: castArray(yAxis)?.map((yAxisProps) => {
-        return {
-          ...yAxisProps,
-          plotLines: [...yPlotLines, ...(yAxisProps.plotLines ?? [])],
-        };
-      }),
+      xAxis: castArray(xAxis)?.map((xAxisProps) => ({
+        ...xAxisProps,
+        plotLines: [...xPlotLines, ...(xAxisProps.plotLines ?? [])],
+      })),
+      yAxis: castArray(yAxis)?.map((yAxisProps) => ({
+        ...yAxisProps,
+        plotLines: [...yPlotLines, ...(yAxisProps.plotLines ?? [])],
+      })),
       series,
     };
 

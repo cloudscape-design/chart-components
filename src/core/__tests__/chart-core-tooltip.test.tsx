@@ -70,7 +70,11 @@ describe("CoreChart: tooltip", () => {
       options: { series },
       onRenderTooltip,
       onClearHighlight,
-      getTooltipContent: () => ({ header: "Tooltip title", body: "Tooltip body", footer: "Tooltip footer" }),
+      getTooltipContent: () => ({
+        header: () => "Tooltip title",
+        body: () => "Tooltip body",
+        footer: () => "Tooltip footer",
+      }),
     });
 
     act(() => hc.highlightChartPoint(0, 0));
@@ -100,7 +104,11 @@ describe("CoreChart: tooltip", () => {
       options: { series },
       onRenderTooltip,
       onClearHighlight,
-      getTooltipContent: () => ({ header: "Tooltip title", body: "Tooltip body", footer: "Tooltip footer" }),
+      getTooltipContent: () => ({
+        header: () => "Tooltip title",
+        body: () => "Tooltip body",
+        footer: () => "Tooltip footer",
+      }),
       callback: (apiRef) => (api = apiRef),
     });
 
@@ -131,7 +139,11 @@ describe("CoreChart: tooltip", () => {
     renderChart({
       highcharts,
       options: { series },
-      getTooltipContent: () => ({ header: "Tooltip title", body: "Tooltip body", footer: "Tooltip footer" }),
+      getTooltipContent: () => ({
+        header: () => "Tooltip title",
+        body: () => "Tooltip body",
+        footer: () => "Tooltip footer",
+      }),
       onRenderTooltip: () => ({ pointRect: { x: 1001, y: 1002, width: 1003, height: 1004 } }),
     });
 
@@ -151,7 +163,7 @@ describe("CoreChart: tooltip", () => {
     const { wrapper } = renderChart({
       highcharts,
       options: { series },
-      getTooltipContent: () => ({ header: "", body: "" }),
+      getTooltipContent: () => ({ header: () => "", body: () => "" }),
     });
 
     act(() => hc.highlightChartPoint(0, 0));
@@ -180,7 +192,7 @@ describe("CoreChart: tooltip", () => {
     const { wrapper } = renderChart({
       highcharts,
       options: { series },
-      getTooltipContent: ({ point }) => ({ header: `y${point?.y}`, body: "" }),
+      getTooltipContent: ({ point }) => ({ header: () => `y${point?.y}`, body: () => "" }),
     });
 
     // Hover point 1 to show the popover.

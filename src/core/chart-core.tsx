@@ -22,9 +22,9 @@ import {
   ChartHeader,
   ChartLegend,
   ChartNoData,
-  ChartTooltip,
   VerticalAxisTitle,
 } from "./components";
+import { ChartTooltip } from "./components-tooltip";
 import { getDefaultFormatter } from "./default-formatters";
 import { CoreChartProps, InternalXAxisOptions } from "./interfaces-core";
 import * as Styles from "./styles";
@@ -228,6 +228,16 @@ export function InternalCoreChart({
                 fillOpacity: Styles.areaFillOpacity,
                 ...options.plotOptions?.areaspline,
                 marker: { ...Styles.defaultMarker, ...options.plotOptions?.areaspline?.marker },
+              },
+              arearange: {
+                fillOpacity: Styles.areaFillOpacity,
+                ...options.plotOptions?.arearange,
+                marker: { ...Styles.defaultMarker, ...options.plotOptions?.arearange?.marker },
+              },
+              areasplinerange: {
+                fillOpacity: Styles.areaFillOpacity,
+                ...options.plotOptions?.areasplinerange,
+                marker: { ...Styles.defaultMarker, ...options.plotOptions?.areasplinerange?.marker },
               },
               line: {
                 ...options.plotOptions?.line,
