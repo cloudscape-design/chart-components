@@ -42,6 +42,8 @@ export class ChartExtra {
   private tooltipExtra = new ChartExtraTooltip();
   public onRenderTooltip = this.tooltipExtra.onRenderTooltip.bind(this.tooltipExtra);
   public onClearHighlight = this.tooltipExtra.onClearHighlight.bind(this.tooltipExtra);
+  public getTargetTrack = this.tooltipExtra.getTargetTrack.bind(this.tooltipExtra);
+  public getGroupTrack = this.tooltipExtra.getGroupTrack.bind(this.tooltipExtra);
 
   // The group rects are computed for every available x coordinate, each including at least one point with matching x value.
   // The reacts enclose all matching points of the group and are used to match hover position and place the tooltip or focus outline.

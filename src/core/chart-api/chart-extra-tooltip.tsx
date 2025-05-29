@@ -3,6 +3,8 @@
 
 import type Highcharts from "highcharts";
 
+import { getIsRtl } from "@cloudscape-design/component-toolkit/internal";
+
 import { renderMarker } from "../../internal/components/series-marker";
 import { Rect, RenderTooltipProps } from "../interfaces-core";
 import * as Styles from "../styles";
@@ -20,12 +22,20 @@ export class ChartExtraTooltip {
     return this._chart;
   }
   private cursor = new HighlightCursorCartesian();
+  private targetTrack: null | Highcharts.SVGElement = null;
+  private groupTrack: null | Highcharts.SVGElement = null;
+
+  // The targetElement.element can get invalidated by Highcharts, so we cannot use
+  // trackRef.current = targetElement.element as it might get invalidated unexpectedly.
+  // The getTrack function ensures the latest element reference is given on each request.
+  public getTargetTrack = () => (this.targetTrack?.element ?? null) as null | SVGElement;
+  public getGroupTrack = () => (this.groupTrack?.element ?? null) as null | SVGElement;
 
   public onChartRender = (chart: Highcharts.Chart) => {
     this._chart = chart;
   };
 
-  public onRenderTooltip = (props: RenderTooltipProps): { pointRect: Rect; groupRect: Rect } => {
+  public onRenderTooltip = (props: RenderTooltipProps) => {
     if (this.chart.series.some((s) => s.type === "pie")) {
       return this.onRenderTooltipPie(props);
     } else {
@@ -35,21 +45,48 @@ export class ChartExtraTooltip {
 
   public onClearHighlight = () => {
     this.cursor.destroy();
+    this.targetTrack?.destroy();
+    this.groupTrack?.destroy();
   };
 
-  private onRenderTooltipCartesian = ({ point, group }: RenderTooltipProps): { pointRect: Rect; groupRect: Rect } => {
+  private onRenderTooltipCartesian = ({ point, group }: RenderTooltipProps) => {
     const pointRect = point ? getPointRect(point) : getPointRect(group[0]);
     const groupRect = getGroupRect(group);
     const hasColumnSeries = this.chart.series.some((s) => s.type === "column");
     this.cursor.create(groupRect, point, group, !hasColumnSeries);
-    return { pointRect, groupRect };
+
+    this.targetTrack?.destroy();
+    this.groupTrack?.destroy();
+    this.createPointTrack(pointRect);
+    this.createGroupTrack(groupRect);
   };
 
-  private onRenderTooltipPie = ({ group }: RenderTooltipProps): { pointRect: Rect; groupRect: Rect } => {
+  private onRenderTooltipPie = ({ group }: RenderTooltipProps) => {
     const pointRect = getPieChartTargetPlacement(group[0]);
-    const groupRect = pointRect;
-    return { pointRect, groupRect };
+
+    this.targetTrack?.destroy();
+    this.createPointTrack(pointRect);
   };
+
+  private createPointTrack = (pointRect: Rect) => {
+    this.targetTrack = this.chart.renderer
+      .rect(pointRect.x, pointRect.y, pointRect.width, pointRect.height)
+      .attr({ fill: "transparent", zIndex: -1, direction: this.isRtl() ? "rtl" : "ltr", style: "pointer-events:none" })
+      .add();
+  };
+
+  private createGroupTrack = (groupRect: Rect) => {
+    this.groupTrack = this.chart.renderer
+      .rect(groupRect.x, groupRect.y, groupRect.width, groupRect.height)
+      .attr({ fill: "transparent", zIndex: -1, direction: this.isRtl() ? "rtl" : "ltr", style: "pointer-events:none" })
+      .add();
+  };
+
+  // We set the direction to target element so that the direction check done by the tooltip
+  // is done correctly. Without that, the asserted target direction always results to "ltr".
+  private isRtl() {
+    return getIsRtl(this.chart.container.parentElement);
+  }
 }
 
 class HighlightCursorCartesian {

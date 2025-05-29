@@ -5,18 +5,10 @@ import { useEffect, useId, useRef } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import type Highcharts from "highcharts";
 
-import { getIsRtl } from "@cloudscape-design/component-toolkit/internal";
-
 import { ReadonlyAsyncStore } from "../../internal/utils/async-store";
 import { DebouncedCall } from "../../internal/utils/utils";
 import { ChartLegendItem } from "../interfaces-base";
-import {
-  ChartLegendItemSpec,
-  ReactiveChartState,
-  Rect,
-  RegisteredLegendAPI,
-  RenderTooltipProps,
-} from "../interfaces-core";
+import { ChartLegendItemSpec, ReactiveChartState, RegisteredLegendAPI, RenderTooltipProps } from "../interfaces-core";
 import * as Styles from "../styles";
 import {
   findAllSeriesWithData,
@@ -78,8 +70,6 @@ export class ChartAPI {
   private lastDismissTime = 0;
   private mouseLeaveCall = new DebouncedCall();
   private tooltipHovered = false;
-  private targetTrack: null | Highcharts.SVGElement = null;
-  private groupTrack: null | Highcharts.SVGElement = null;
   private registeredLegend: null | RegisteredLegendAPI = null;
   private matchedGroup: Highcharts.Point[] = [];
   private mouseOverPoint = false;
@@ -109,11 +99,8 @@ export class ChartAPI {
     return this._store as ReadonlyAsyncStore<ReactiveChartState>;
   }
 
-  // The targetElement.element can get invalidated by Highcharts, so we cannot use
-  // trackRef.current = targetElement.element as it might get invalidated unexpectedly.
-  // The getTrack function ensures the latest element reference is given on each request.
-  public getTargetTrack = () => (this.targetTrack?.element ?? null) as null | SVGElement;
-  public getGroupTrack = () => (this.groupTrack?.element ?? null) as null | SVGElement;
+  public getTargetTrack = this.chartExtra.getTargetTrack.bind(this.chartExtra);
+  public getGroupTrack = this.chartExtra.getGroupTrack.bind(this.chartExtra);
 
   public setApplication = (element: null | HTMLElement) => {
     this.navigation?.setApplication(element);
@@ -500,13 +487,11 @@ export class ChartAPI {
   private highlightActionsPoint = (point: Highcharts.Point) => {
     const group = this.chartExtra.findMatchingGroup(point);
     this.setHighlightState(group);
-    const { pointRect, groupRect } = this.chartExtra.onRenderTooltip({ point, group });
+    this.chartExtra.onRenderTooltip({ point, group });
     this.context.onRenderTooltip?.({ point, group });
     const customMatchedLegendItems = this.context.getMatchedLegendItems?.({ point });
     const matchedLegendItems = customMatchedLegendItems ?? matchLegendItems(this.store.get().legend.items, point);
     this.registeredLegend?.highlightItems(matchedLegendItems);
-    this.destroyTracks();
-    this.createTracks({ pointRect, groupRect });
   };
 
   private highlightActionsGroup = (group: Highcharts.Point[]) => {
@@ -514,7 +499,7 @@ export class ChartAPI {
       return;
     }
     this.setHighlightState(group);
-    const { pointRect, groupRect } = this.chartExtra.onRenderTooltip({ point: null, group });
+    this.chartExtra.onRenderTooltip({ point: null, group });
     this.context.onRenderTooltip?.({ point: null, group });
     const matchedLegendItems = new Set<string>();
     for (const point of group) {
@@ -522,8 +507,6 @@ export class ChartAPI {
       matched.forEach((m) => matchedLegendItems.add(m));
     }
     this.registeredLegend?.highlightItems([...matchedLegendItems]);
-    this.destroyTracks();
-    this.createTracks({ pointRect, groupRect });
   };
 
   private setHighlightState(points: Highcharts.Point[]) {
@@ -545,24 +528,9 @@ export class ChartAPI {
     }
   }
 
-  private createTracks = ({ pointRect, groupRect }: { pointRect: Rect; groupRect: Rect }) => {
-    // We set the direction to target element so that the direction check done by the tooltip
-    // is done correctly. Without that, the asserted target direction always results to "ltr".
-    const isRtl = getIsRtl(this.chart.container.parentElement);
-    this.targetTrack = this.chart.renderer
-      .rect(pointRect.x, pointRect.y, pointRect.width, pointRect.height)
-      .attr({ fill: "transparent", zIndex: -1, direction: isRtl ? "rtl" : "ltr", style: "pointer-events:none" })
-      .add();
-    this.groupTrack = this.chart.renderer
-      .rect(groupRect.x, groupRect.y, groupRect.width, groupRect.height)
-      .attr({ fill: "transparent", zIndex: -1, direction: isRtl ? "rtl" : "ltr", style: "pointer-events:none" })
-      .add();
-  };
-
   private clearHighlightActions = () => {
     this.chartExtra.onClearHighlight();
     this.context.onClearHighlight?.();
-    this.destroyTracks();
     this.registeredLegend?.clearHighlight();
 
     if (!this.store.get().tooltip.pinned) {
@@ -573,10 +541,5 @@ export class ChartAPI {
         }
       }
     }
-  };
-
-  private destroyTracks = () => {
-    this.targetTrack?.destroy();
-    this.groupTrack?.destroy();
   };
 }
