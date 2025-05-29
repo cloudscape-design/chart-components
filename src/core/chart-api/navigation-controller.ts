@@ -329,8 +329,10 @@ export class NavigationController {
   private focusCurrent() {
     if (!this.focusedState || this.focusedState.type === "chart") {
       this.focusChart();
+    } else if (this.focusedState.type === "group") {
+      this.focusGroup(this.focusedState.group);
     } else {
-      this.focusGroup(this.chartExtra.findMatchingGroup(this.focusedState.group[0]));
+      this.focusPoint(this.focusedState.point, this.focusedState.group);
     }
   }
 
@@ -347,9 +349,9 @@ export class NavigationController {
     } else if (visiblePoints[0].series.type === "pie") {
       this.focusPoint(visiblePoints[0] ?? null, group);
     } else {
-      this.focusedState = { type: "group", group };
-      this.focusOutline.showXOutline(getGroupRect(group));
-      this.handlers.onFocusGroup(group);
+      this.focusedState = { type: "group", group: visiblePoints };
+      this.focusOutline.showXOutline(getGroupRect(visiblePoints));
+      this.handlers.onFocusGroup(visiblePoints);
     }
   }
 
@@ -358,8 +360,8 @@ export class NavigationController {
       this.focusedState = { type: "point", point, group };
       this.focusOutline.showPointOutline(getPointRect(point), point);
       this.handlers.onFocusPoint(point, group);
-    } else {
-      this.focusChart();
+    } else if (group.filter(isPointVisible).length > 0) {
+      this.focusGroup(group);
     }
   }
 }
