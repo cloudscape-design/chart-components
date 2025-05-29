@@ -4,11 +4,11 @@
 import type Highcharts from "highcharts";
 
 import { renderMarker } from "../../internal/components/series-marker";
-import { Rect, RenderTooltipProps, RenderTooltipResult } from "../interfaces-core";
+import { Rect, RenderTooltipProps } from "../interfaces-core";
 import * as Styles from "../styles";
-import { isXThreshold } from "../utils";
+import { getGroupRect, getPointRect, isXThreshold } from "../utils";
 
-// Chart helper that implements tooltip placement logic, content, and markers.
+// Chart helper that implements tooltip placement logic and cursors.
 // It handles cartesian and pie charts.
 export class ChartExtraTooltip {
   // The chart is only initialized in the render event. Using any methods before that is not expected.
@@ -25,7 +25,7 @@ export class ChartExtraTooltip {
     this._chart = chart;
   };
 
-  public onRenderTooltip = (props: RenderTooltipProps): void | RenderTooltipResult => {
+  public onRenderTooltip = (props: RenderTooltipProps): { pointRect: Rect; groupRect: Rect } => {
     if (this.chart.series.some((s) => s.type === "pie")) {
       return this.onRenderTooltipPie(props);
     } else {
@@ -37,13 +37,18 @@ export class ChartExtraTooltip {
     this.cursor.destroy();
   };
 
-  private onRenderTooltipCartesian = ({ point, group, groupRect }: RenderTooltipProps): void | RenderTooltipResult => {
+  private onRenderTooltipCartesian = ({ point, group }: RenderTooltipProps): { pointRect: Rect; groupRect: Rect } => {
+    const pointRect = point ? getPointRect(point) : getPointRect(group[0]);
+    const groupRect = getGroupRect(group);
     const hasColumnSeries = this.chart.series.some((s) => s.type === "column");
     this.cursor.create(groupRect, point, group, !hasColumnSeries);
+    return { pointRect, groupRect };
   };
 
-  private onRenderTooltipPie = ({ point }: RenderTooltipProps): void | RenderTooltipResult => {
-    return { pointRect: point ? getPieChartTargetPlacement(point) : undefined };
+  private onRenderTooltipPie = ({ group }: RenderTooltipProps): { pointRect: Rect; groupRect: Rect } => {
+    const pointRect = getPieChartTargetPlacement(group[0]);
+    const groupRect = pointRect;
+    return { pointRect, groupRect };
   };
 }
 
@@ -62,16 +67,15 @@ class HighlightCursorCartesian {
     // that do not include "column" series. That is because the cursor is not necessary for columns, assuming the number of
     // x data points is not very high.
     if (showCursor) {
-      const cursorStyle = { fill: Styles.colorChartCursor, zIndex: 5, style: "pointer-events: none" };
       this.refs.push(
         chart.inverted
           ? chart.renderer
               .rect(chart.plotLeft, chart.plotTop + (target.y - 2 * target.height), chart.plotWidth, 1)
-              .attr(cursorStyle)
+              .attr(Styles.cursorStyle)
               .add()
           : chart.renderer
               .rect(target.x + target.width / 2, chart.plotTop, 1, chart.plotHeight)
-              .attr(cursorStyle)
+              .attr(Styles.cursorStyle)
               .add(),
       );
     }

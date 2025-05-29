@@ -7,12 +7,12 @@ import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
 
-import ChartSeriesDetails, { ChartSeriesDetailItem } from "../internal/components/series-details";
-import { ChartSeriesMarker } from "../internal/components/series-marker";
-import { useSelector } from "../internal/utils/async-store";
-import { ChartAPI } from "./chart-api";
-import { getDefaultFormatter } from "./default-formatters";
-import { ChartTooltipOptions } from "./interfaces-base";
+import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../internal/components/series-details";
+import { ChartSeriesMarker } from "../../internal/components/series-marker";
+import { useSelector } from "../../internal/utils/async-store";
+import { ChartAPI } from "../chart-api";
+import { getDefaultFormatter } from "../default-formatters";
+import { ChartTooltipOptions } from "../interfaces-base";
 import {
   CoreTooltipContent,
   GetTooltipContent,
@@ -21,7 +21,7 @@ import {
   InternalYAxisOptions,
   TooltipSeriesFormatted,
   TooltipSlotProps,
-} from "./interfaces-core";
+} from "../interfaces-core";
 import {
   getDataExtremes,
   getPointColor,
@@ -29,9 +29,9 @@ import {
   getSeriesId,
   getSeriesMarkerType,
   isXThreshold,
-} from "./utils";
+} from "../utils";
 
-import styles from "./styles.css.js";
+import styles from "../styles.css.js";
 
 export function ChartTooltip({
   getTooltipContent,

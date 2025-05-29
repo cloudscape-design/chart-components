@@ -103,7 +103,7 @@ export interface CoreChartProps
   /**
    * Called whenever chart point is highlighted and allows to specify custom tooltip target for the given point.
    */
-  onRenderTooltip?(props: RenderTooltipProps): void | RenderTooltipResult;
+  onRenderTooltip?(props: RenderTooltipProps): void;
   /**
    * Called whenever chart point loses highlight.
    */
@@ -161,13 +161,6 @@ export type InternalYAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: 
 export interface RenderTooltipProps {
   point: null | Highcharts.Point;
   group: Highcharts.Point[];
-  pointRect: Rect;
-  groupRect: Rect;
-}
-
-export interface RenderTooltipResult {
-  pointRect?: Rect;
-  groupRect?: Rect;
 }
 
 // The API methods allow programmatic triggering of chart's behaviors, some of which are not accessible via React state.

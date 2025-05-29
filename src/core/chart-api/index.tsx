@@ -16,7 +16,6 @@ import {
   Rect,
   RegisteredLegendAPI,
   RenderTooltipProps,
-  RenderTooltipResult,
 } from "../interfaces-core";
 import * as Styles from "../styles";
 import {
@@ -25,9 +24,7 @@ import {
   getChartAccessibleDescription,
   getChartLegendItems,
   getGroupAccessibleDescription,
-  getGroupRect,
   getPointAccessibleDescription,
-  getPointRect,
   getVerticalAxesTitles,
   matchLegendItems,
   updateChartItemsVisibility,
@@ -46,7 +43,7 @@ interface ChartAPIContext {
   getMatchedLegendItems?(props: { point: Highcharts.Point }): readonly string[];
   onLegendItemsChange?: (legendItems: readonly ChartLegendItem[]) => void;
   isTooltipEnabled: boolean;
-  onRenderTooltip?(props: RenderTooltipProps): void | RenderTooltipResult;
+  onRenderTooltip?(props: RenderTooltipProps): void;
   onClearHighlight?(): void;
   keyboardNavigation: boolean;
 }
@@ -503,18 +500,13 @@ export class ChartAPI {
   private highlightActionsPoint = (point: Highcharts.Point) => {
     const group = this.chartExtra.findMatchingGroup(point);
     this.setHighlightState(group);
-    const pointRect = getPointRect(point);
-    const groupRect = getGroupRect(group);
-    const tooltipDefault = this.chartExtra.onRenderTooltip({ point, group, pointRect, groupRect });
-    const tooltipOverride = this.context.onRenderTooltip?.({ point, group, pointRect, groupRect });
+    const { pointRect, groupRect } = this.chartExtra.onRenderTooltip({ point, group });
+    this.context.onRenderTooltip?.({ point, group });
     const customMatchedLegendItems = this.context.getMatchedLegendItems?.({ point });
     const matchedLegendItems = customMatchedLegendItems ?? matchLegendItems(this.store.get().legend.items, point);
     this.registeredLegend?.highlightItems(matchedLegendItems);
     this.destroyTracks();
-    this.createTracks({
-      pointRect: tooltipOverride?.pointRect ?? tooltipDefault?.pointRect ?? pointRect,
-      groupRect: tooltipOverride?.groupRect ?? tooltipDefault?.groupRect ?? groupRect,
-    });
+    this.createTracks({ pointRect, groupRect });
   };
 
   private highlightActionsGroup = (group: Highcharts.Point[]) => {
@@ -522,10 +514,8 @@ export class ChartAPI {
       return;
     }
     this.setHighlightState(group);
-    const pointRect = getPointRect(group[0]);
-    const groupRect = getGroupRect(group);
-    const tooltipDefault = this.chartExtra.onRenderTooltip({ point: null, group, pointRect, groupRect });
-    const tooltipOverride = this.context.onRenderTooltip?.({ point: null, group, pointRect, groupRect });
+    const { pointRect, groupRect } = this.chartExtra.onRenderTooltip({ point: null, group });
+    this.context.onRenderTooltip?.({ point: null, group });
     const matchedLegendItems = new Set<string>();
     for (const point of group) {
       const matched = matchLegendItems(this.store.get().legend.items, point);
@@ -533,10 +523,7 @@ export class ChartAPI {
     }
     this.registeredLegend?.highlightItems([...matchedLegendItems]);
     this.destroyTracks();
-    this.createTracks({
-      pointRect: tooltipOverride?.pointRect ?? tooltipDefault?.pointRect ?? pointRect,
-      groupRect: tooltipOverride?.groupRect ?? tooltipDefault?.groupRect ?? groupRect,
-    });
+    this.createTracks({ pointRect, groupRect });
   };
 
   private setHighlightState(points: Highcharts.Point[]) {

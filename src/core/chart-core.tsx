@@ -15,16 +15,13 @@ import { InternalBaseComponentProps } from "../internal/base-component/use-base-
 import { castArray } from "../internal/utils/utils";
 import { useChartAPI } from "./chart-api";
 import { ChartContainer } from "./chart-container";
-import {
-  ChartApplication,
-  ChartFilter,
-  ChartFooter,
-  ChartHeader,
-  ChartLegend,
-  ChartNoData,
-  VerticalAxisTitle,
-} from "./components";
-import { ChartTooltip } from "./components-tooltip";
+import { ChartApplication } from "./components/core-application";
+import { ChartFilter } from "./components/core-filter";
+import { ChartLegend } from "./components/core-legend";
+import { ChartNoData } from "./components/core-no-data";
+import { ChartFooter, ChartHeader } from "./components/core-slots";
+import { ChartTooltip } from "./components/core-tooltip";
+import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
 import { getDefaultFormatter } from "./default-formatters";
 import { CoreChartProps, InternalXAxisOptions } from "./interfaces-core";
 import * as Styles from "./styles";
