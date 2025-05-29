@@ -526,12 +526,13 @@ export class ChartAPI {
       includedPoints.add(point);
       includedSeries.add(point.series);
     });
-
     if (!this.store.get().tooltip.pinned) {
       for (const s of this.chart.series) {
         this.chartExtra.setSeriesState(s, includedSeries.has(s) ? "normal" : "inactive");
-        for (const d of s.data) {
-          this.chartExtra.setPointState(d, includedPoints.has(d) ? "normal" : "inactive");
+        if (s.type === "column" || s.type === "pie") {
+          for (const d of s.data) {
+            this.chartExtra.setPointState(d, includedPoints.has(d) ? "normal" : "inactive");
+          }
         }
       }
     }

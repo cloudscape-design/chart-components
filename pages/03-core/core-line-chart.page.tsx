@@ -51,13 +51,13 @@ const baseline = [
   { x: 1601010000000, y: 183570 },
   { x: 1601010900000, y: 162592 },
   { x: 1601011800000, y: 148910 },
-  { x: 1601012700000, y: 229492 },
+  { x: 1601012700000, y: null },
   { x: 1601013600000, y: 293910 },
 ];
 
 const dataA = baseline.map(({ x, y }) => ({ name: "A", x, y }));
-const dataB = baseline.map(({ x, y }) => ({ name: "B", x, y: y + randomInt(-100000, 100000) }));
-const dataC = baseline.map(({ x, y }) => ({ name: "C", x, y: y + randomInt(-150000, 50000) }));
+const dataB = baseline.map(({ x, y }) => ({ name: "B", x, y: y === null ? null : y + randomInt(-100000, 100000) }));
+const dataC = baseline.map(({ x, y }) => ({ name: "C", x, y: y === null ? null : y + randomInt(-150000, 50000) }));
 
 const series: Highcharts.SeriesOptionsType[] = [
   {
