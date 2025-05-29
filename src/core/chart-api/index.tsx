@@ -383,7 +383,27 @@ export class ChartAPI {
     this.initChartLabel();
     this.handleDestroyedPoints();
     this.resetColorCounter();
+    this.showMarkersForIsolatedPoints();
   };
+
+  private showMarkersForIsolatedPoints() {
+    let shouldRedraw = false;
+    for (const s of this.chart.series) {
+      for (let i = 0; i < s.data.length; i++) {
+        if (
+          (s.data[i - 1]?.y === undefined || s.data[i - 1]?.y === null) &&
+          (s.data[i + 1]?.y === undefined || s.data[i + 1]?.y === null) &&
+          !s.data[i].options.marker?.enabled
+        ) {
+          s.data[i].update({ marker: { enabled: true } }, false);
+          shouldRedraw = true;
+        }
+      }
+    }
+    if (shouldRedraw) {
+      this.chart.redraw();
+    }
+  }
 
   // Highcharts sometimes destroys points upon re-rendering. As result, the already stored points can get
   // replaced by `{ destroyed: true }`. As we only store points (outside the render loop) for the tooltip,
