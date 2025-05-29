@@ -25,8 +25,10 @@ import {
   ChartTooltip,
   VerticalAxisTitle,
 } from "./components";
-import { CoreChartProps } from "./interfaces-core";
+import { getDefaultFormatter } from "./default-formatters";
+import { CoreChartProps, InternalXAxisOptions } from "./interfaces-core";
 import * as Styles from "./styles";
+import { getDataExtremes } from "./utils";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -169,6 +171,17 @@ export function InternalCoreChart({
                   ...options.accessibility?.keyboardNavigation?.focusBorder,
                 },
               },
+              point: {
+                descriptionFormatter(point) {
+                  const xAxisOptions = point.series.xAxis?.userOptions as undefined | InternalXAxisOptions;
+                  if (xAxisOptions) {
+                    const formattedX = getDefaultFormatter(xAxisOptions, getDataExtremes(point.series.xAxis))(point.x);
+                    return `${formattedX}\t${point.series.name}`;
+                  }
+                  return ""; // Using default Highcharts label.
+                },
+                ...options.accessibility?.point,
+              },
             },
             plotOptions: {
               ...options.plotOptions,
@@ -254,7 +267,16 @@ export function InternalCoreChart({
                 reserveSpace: inverted && verticalAxisTitlePlacement === "top" ? false : undefined,
                 ...xAxis.title,
               },
-              labels: { style: Styles.axisLabelsCss, ...xAxis.labels },
+              labels: {
+                style: Styles.axisLabelsCss,
+                // We use custom formatters instead of Highcharts defaults to ensure consistent formatting
+                // between x-axis ticks and tooltip header.
+                formatter: function () {
+                  const formattedValue = getDefaultFormatter(xAxis, getDataExtremes(this.axis))(this.value);
+                  return formattedValue.replace(/\n/g, "<br />");
+                },
+                ...xAxis.labels,
+              },
             })),
             yAxis: castArray(options.yAxis)?.map((yAxis) => ({
               ...Styles.yAxisOptions,
@@ -274,7 +296,16 @@ export function InternalCoreChart({
                 reserveSpace: !inverted && verticalAxisTitlePlacement === "top" ? false : undefined,
                 ...yAxis.title,
               },
-              labels: { style: Styles.axisLabelsCss, ...yAxis.labels },
+              labels: {
+                style: Styles.axisLabelsCss,
+                // We use custom formatters instead of Highcharts defaults to ensure consistent formatting
+                // between y-axis ticks and tooltip series values.
+                formatter: function () {
+                  const formattedValue = getDefaultFormatter(yAxis, getDataExtremes(this.axis))(this.value);
+                  return formattedValue.replace(/\n/g, "<br />");
+                },
+                ...yAxis.labels,
+              },
             })),
             // We don't use Highcharts tooltip, but certain tooltip options such as tooltip.snap or tooltip.shared
             // affect the hovering behavior of Highcharts. That is only the case when the tooltip is not disabled,

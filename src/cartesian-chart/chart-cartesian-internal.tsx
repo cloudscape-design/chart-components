@@ -11,11 +11,10 @@ import { getOptionsId } from "../core/utils";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import { fireNonCancelableEvent } from "../internal/events";
+import { castArray } from "../internal/utils/utils";
 import { useCartesianSeries } from "./chart-series-cartesian";
 import { useChartTooltipCartesian } from "./chart-tooltip-cartesian";
-import { getDefaultFormatter } from "./default-formatters";
 import { CartesianChartProps, InternalCartesianChartOptions } from "./interfaces-cartesian";
-import { getDataExtremes } from "./utils";
 
 import testClasses from "./test-classes/styles.css.js";
 
@@ -65,15 +64,6 @@ export const InternalCartesianChart = forwardRef(
     // precedence, so that it is possible to override or extend all Highcharts settings from the outside.
     const highchartsOptions: Highcharts.Options = {
       ...options,
-      accessibility: {
-        keyboardNavigation: { enabled: false },
-        point: {
-          descriptionFormatter(point) {
-            const formattedX = getDefaultFormatter(xAxis[0], getDataExtremes(point.series.xAxis))(point.x);
-            return `${formattedX}\t${point.series.name}`;
-          },
-        },
-      },
       chart: {
         ...options.chart,
         events: {
@@ -84,46 +74,16 @@ export const InternalCartesianChart = forwardRef(
           },
         },
       },
-      xAxis: xAxis.map((xAxisProps, index) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { title, valueFormatter, ...highchartsProps } = xAxisProps;
+      xAxis: castArray(xAxis)?.map((xAxisProps) => {
         return {
-          ...highchartsProps,
-          title: { text: title },
-          plotLines: [...xPlotLines, ...(highchartsProps.plotLines ?? [])],
-          labels: {
-            // We use custom formatters instead of Highcharts defaults to ensure consistent formatting
-            // between x-axis ticks and tooltip header.
-            formatter: function () {
-              const formattedValue = getDefaultFormatter(
-                xAxisProps,
-                getDataExtremes(this.chart.xAxis[index]),
-              )(this.value);
-              return formattedValue.replace(/\n/g, "<br />");
-            },
-            ...highchartsProps.labels,
-          },
+          ...xAxisProps,
+          plotLines: [...xPlotLines, ...(xAxisProps.plotLines ?? [])],
         };
       }),
-      yAxis: yAxis.map((yAxisProps, index) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { title, valueFormatter, ...highchartsProps } = yAxisProps;
+      yAxis: castArray(yAxis)?.map((yAxisProps) => {
         return {
-          ...highchartsProps,
-          title: { text: title },
-          plotLines: [...yPlotLines, ...(highchartsProps.plotLines ?? [])],
-          labels: {
-            // We use custom formatters instead of Highcharts defaults to ensure consistent formatting
-            // between y-axis ticks and tooltip series values.
-            formatter: function () {
-              const formattedValue = getDefaultFormatter(
-                yAxisProps,
-                getDataExtremes(this.chart.yAxis[index]),
-              )(this.value);
-              return formattedValue.replace(/\n/g, "<br />");
-            },
-            ...highchartsProps.labels,
-          },
+          ...yAxisProps,
+          plotLines: [...yPlotLines, ...(yAxisProps.plotLines ?? [])],
         };
       }),
       series,

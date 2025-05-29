@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as BaseTypes from "../core/interfaces-base";
+import { InternalChartOptions } from "../core/interfaces-core";
 import { NonCancelableEventHandler } from "../internal/events";
 
 export interface CartesianChartProps extends BaseTypes.BaseChartProps {
@@ -196,17 +197,11 @@ export namespace CartesianChartProps {
 // The internal chart options allow propagation of all Highcharts properties, including series types and axes options,
 // not supported by the public CartesianChart component.
 // This is done to facilitate easier prototyping and fast adoption of more Highcharts features.
-export type InternalCartesianChartOptions = Omit<Highcharts.Options, "series" | "xAxis" | "yAxis"> & {
+export type InternalCartesianChartOptions = Omit<InternalChartOptions, "series"> & {
   series: InternalSeriesOptions[];
-  xAxis: InternalXAxisOptions[];
-  yAxis: InternalYAxisOptions[];
 };
 
 export type InternalSeriesOptions = CartesianChartProps.SeriesOptions | Highcharts.SeriesOptionsType;
-
-export type InternalXAxisOptions = CartesianChartProps.XAxisOptions & Highcharts.XAxisOptions;
-
-export type InternalYAxisOptions = CartesianChartProps.YAxisOptions & Highcharts.YAxisOptions;
 
 export type NonErrorBarSeriesOptions = Exclude<
   CartesianChartProps.SeriesOptions,

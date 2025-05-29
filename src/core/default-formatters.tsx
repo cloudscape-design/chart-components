@@ -1,12 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { CartesianChartProps } from "./interfaces-cartesian";
+import { InternalXAxisOptions, InternalYAxisOptions } from "./interfaces-core";
 
-export function getDefaultFormatter(
-  axis: CartesianChartProps.XAxisOptions | CartesianChartProps.YAxisOptions,
-  extremes: [number, number],
-) {
+export function getDefaultFormatter(axis: InternalXAxisOptions | InternalYAxisOptions, extremes: [number, number]) {
   return (value: unknown): string => {
     if (typeof value === "string") {
       return value;

@@ -23,7 +23,7 @@ export interface CoreChartProps
    * overridden with explicitly provided options. An exception is event handlers - those are
    * not overridden, but merged with Cloudscape event handlers so that both are getting called.
    */
-  options: Highcharts.Options;
+  options: InternalChartOptions;
   /**
    * The Cloudscape tooltip, that comes with a vertical cursor when used on cartesian series.
    * The tooltip content is only shown when `getContent` property is defined, which is called
@@ -116,8 +116,8 @@ export interface CoreChartProps
 
 // The extended version of Highcharts.Options;
 export type InternalChartOptions = Omit<Highcharts.Options, "xAxis" | "yAxis"> & {
-  xAxis: InternalXAxisOptions | InternalXAxisOptions[];
-  yAxis: InternalYAxisOptions | InternalYAxisOptions[];
+  xAxis?: InternalXAxisOptions | InternalXAxisOptions[];
+  yAxis?: InternalYAxisOptions | InternalYAxisOptions[];
 };
 
 export type InternalXAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: number) => string };

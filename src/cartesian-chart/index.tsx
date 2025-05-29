@@ -6,6 +6,7 @@ import { forwardRef, useMemo } from "react";
 import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
 
 import { BaseCartesianSeriesOptions } from "../core/interfaces-base";
+import { InternalXAxisOptions, InternalYAxisOptions } from "../core/interfaces-core";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import useBaseComponent from "../internal/base-component/use-base-component";
 import { applyDisplayName } from "../internal/utils/apply-display-name";
@@ -174,27 +175,27 @@ function validateErrorBarSeries({
 
 const seriesTypesThatSupportErrorBars = ["column", "line", "spline"];
 
-function validateXAxis(axis: CartesianChartProps.XAxisOptions): CartesianChartProps.XAxisOptions {
-  return validateAxis(axis);
-}
-
-function validateYAxis(axis: CartesianChartProps.YAxisOptions): CartesianChartProps.YAxisOptions {
-  return {
-    ...validateAxis(axis),
-    reversedStacks: axis.reversedStacks,
-  };
-}
-
-function validateAxis(
-  axis: CartesianChartProps.XAxisOptions | CartesianChartProps.YAxisOptions,
-): CartesianChartProps.XAxisOptions | CartesianChartProps.YAxisOptions {
+function validateXAxis(axis: CartesianChartProps.XAxisOptions): InternalXAxisOptions {
   return {
     type: axis.type,
-    title: axis.title,
+    title: { text: axis.title },
     min: axis.min,
     max: axis.max,
     tickInterval: axis.tickInterval,
     categories: axis.categories,
     valueFormatter: axis.valueFormatter,
+  };
+}
+
+function validateYAxis(axis: CartesianChartProps.YAxisOptions): InternalYAxisOptions {
+  return {
+    type: axis.type,
+    title: { text: axis.title },
+    min: axis.min,
+    max: axis.max,
+    tickInterval: axis.tickInterval,
+    categories: axis.categories,
+    valueFormatter: axis.valueFormatter,
+    reversedStacks: axis.reversedStacks,
   };
 }

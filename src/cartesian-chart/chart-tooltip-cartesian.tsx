@@ -6,18 +6,24 @@ import type Highcharts from "highcharts";
 
 import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
 
-import { CoreChartProps } from "../core/interfaces-core";
-import { getOptionsId, getSeriesColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../core/utils";
+import { getDefaultFormatter } from "../core/default-formatters";
+import { CoreChartProps, InternalXAxisOptions, InternalYAxisOptions } from "../core/interfaces-core";
+import {
+  getDataExtremes,
+  getOptionsId,
+  getSeriesColor,
+  getSeriesId,
+  getSeriesMarkerType,
+  isXThreshold,
+} from "../core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../internal/components/series-details";
 import { ChartSeriesMarker } from "../internal/components/series-marker";
-import { getDefaultFormatter } from "./default-formatters";
 import {
   CartesianChartProps,
   InternalCartesianChartOptions,
   InternalSeriesOptions,
   NonErrorBarSeriesOptions,
 } from "./interfaces-cartesian";
-import { getDataExtremes } from "./utils";
 
 import styles from "./styles.css.js";
 
@@ -25,7 +31,7 @@ export function useChartTooltipCartesian(props: {
   options: InternalCartesianChartOptions;
   tooltip?: CartesianChartProps.TooltipOptions;
 }): Partial<CoreChartProps> {
-  const { xAxis, yAxis, series } = props.options;
+  const { series } = props.options;
   const [expandedSeries, setExpandedSeries] = useState<Record<string, Set<string>>>({});
 
   const getTooltipContent: CoreChartProps["getTooltipContent"] = ({ point, group }) => {
@@ -50,7 +56,7 @@ export function useChartTooltipCartesian(props: {
     const matchedItems = findTooltipSeriesItems(series, group);
 
     const detailItems: ChartSeriesDetailItem[] = matchedItems.flatMap((item) => {
-      const yAxisProps = yAxis[0];
+      const yAxisProps = chart.yAxis[0].userOptions as InternalYAxisOptions;
       const valueFormatter = yAxisProps
         ? getDefaultFormatter(yAxisProps, getDataExtremes(chart.xAxis[0]))
         : (value: number) => value;
@@ -92,7 +98,7 @@ export function useChartTooltipCartesian(props: {
       return items;
     });
 
-    const xAxisProps = xAxis[0];
+    const xAxisProps = chart.xAxis[0].userOptions as InternalXAxisOptions;
     const titleFormatter = xAxisProps
       ? getDefaultFormatter(xAxisProps, getDataExtremes(chart.xAxis[0]))
       : (value: number) => value;

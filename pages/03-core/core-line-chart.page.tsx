@@ -114,6 +114,7 @@ function LineChart() {
           {
             type: "datetime",
             title: { text: "Time (UTC)" },
+            valueFormatter: dateFormatter,
           },
         ],
         yAxis: [{ title: { text: "Events" } }],
