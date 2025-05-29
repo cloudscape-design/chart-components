@@ -310,7 +310,7 @@ export function InternalCoreChart({
             // We don't use Highcharts tooltip, but certain tooltip options such as tooltip.snap or tooltip.shared
             // affect the hovering behavior of Highcharts. That is only the case when the tooltip is not disabled,
             // so we render it, but hide with styles.
-            tooltip: options.tooltip ?? { enabled: true, snap: 0, style: { opacity: 0 } },
+            tooltip: options.tooltip ?? { enabled: true, snap: 4, style: { opacity: 0 } },
           };
           return (
             <>
