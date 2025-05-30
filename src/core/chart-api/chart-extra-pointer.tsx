@@ -50,6 +50,8 @@ export class ChartExtraPointer {
 
   public onMouseEnterTooltip = () => {
     this.tooltipHovered = true;
+    this.hoveredPoint = null;
+    this.hoveredGroup = null;
   };
 
   public onMouseLeaveTooltip = () => {
@@ -85,10 +87,7 @@ export class ChartExtraPointer {
           matchedGroup = group;
         }
       }
-
-      if (matchedGroup.length > 0) {
-        this.setHoveredGroup(matchedGroup);
-      }
+      this.setHoveredGroup(matchedGroup);
     } else {
       this.hoveredGroup = null;
       this.clearHover();

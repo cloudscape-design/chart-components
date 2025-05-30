@@ -7,7 +7,7 @@ import { getIsRtl } from "@cloudscape-design/component-toolkit/internal";
 
 import { renderMarker } from "../../internal/components/series-marker";
 import AsyncStore from "../../internal/utils/async-store";
-import { SVGRendererPool } from "../../internal/utils/utils";
+import { SVGRendererPool, SVGRendererSingle } from "../../internal/utils/renderer-utils";
 import { Rect, RenderTooltipProps } from "../interfaces-core";
 import * as Styles from "../styles";
 import { getGroupRect, getPointRect, isXThreshold } from "../utils";
@@ -28,21 +28,19 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     this.context = context;
   }
   private cursor = new HighlightCursorCartesian();
-  private targetTrack: null | Highcharts.SVGElement = null;
-  private groupTrack: null | Highcharts.SVGElement = null;
+  private targetTrack = new SVGRendererSingle();
+  private groupTrack = new SVGRendererSingle();
 
   // The targetElement.element can get invalidated by Highcharts, so we cannot use
   // trackRef.current = targetElement.element as it might get invalidated unexpectedly.
   // The getTrack function ensures the latest element reference is given on each request.
-  public getTargetTrack = () => (this.targetTrack?.element ?? null) as null | SVGElement;
-  public getGroupTrack = () => (this.groupTrack?.element ?? null) as null | SVGElement;
+  public getTargetTrack = () => (this.targetTrack.element?.element ?? null) as null | SVGElement;
+  public getGroupTrack = () => (this.groupTrack.element?.element ?? null) as null | SVGElement;
 
   public onChartDestroy() {
     this.cursor.destroy();
-    this.targetTrack?.destroy();
-    this.targetTrack = null;
-    this.groupTrack?.destroy();
-    this.groupTrack = null;
+    this.targetTrack.destroy();
+    this.groupTrack.destroy();
   }
 
   public setTooltipPoint(point: Highcharts.Point, matchingGroup: Highcharts.Point[]) {
@@ -71,8 +69,8 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
 
   public onClearHighlight = () => {
     this.cursor.hide();
-    this.targetTrack?.hide();
-    this.groupTrack?.hide();
+    this.targetTrack.hide();
+    this.groupTrack.hide();
   };
 
   private onRenderTooltipCartesian = ({ point, group }: RenderTooltipProps) => {
@@ -81,8 +79,8 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     const hasColumnSeries = this.context.chart().series.some((s) => s.type === "column");
     this.cursor.create(groupRect, point, group, !hasColumnSeries);
 
-    this.targetTrack?.hide();
-    this.groupTrack?.hide();
+    this.targetTrack.hide();
+    this.groupTrack.hide();
     this.createPointTrack(pointRect);
     this.createGroupTrack(groupRect);
   };
@@ -90,31 +88,23 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
   private onRenderTooltipPie = ({ group }: RenderTooltipProps) => {
     const pointRect = getPieChartTargetPlacement(group[0]);
 
-    this.targetTrack?.hide();
+    this.targetTrack.hide();
     this.createPointTrack(pointRect);
   };
 
   private createPointTrack = (pointRect: Rect) => {
-    if (!this.targetTrack) {
-      this.targetTrack = this.context.chart().renderer.rect().add();
-    }
-    this.targetTrack
-      .attr({
-        ...pointRect,
-        fill: "transparent",
-        zIndex: -1,
-        direction: this.isRtl() ? "rtl" : "ltr",
-        style: "pointer-events:none",
-      })
-      .show();
+    this.targetTrack.rect(this.context.chart().renderer, {
+      ...pointRect,
+      fill: "transparent",
+      zIndex: -1,
+      direction: this.isRtl() ? "rtl" : "ltr",
+      style: "pointer-events:none",
+    });
   };
 
   private createGroupTrack = (groupRect: Rect) => {
-    if (!this.groupTrack) {
-      this.groupTrack = this.context.chart().renderer.rect().add();
-    }
     this.groupTrack
-      .attr({
+      .rect(this.context.chart().renderer, {
         ...groupRect,
         fill: "transparent",
         zIndex: -1,

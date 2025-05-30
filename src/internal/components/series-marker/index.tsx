@@ -10,7 +10,7 @@ import {
   colorTextInteractiveDisabled,
 } from "@cloudscape-design/design-tokens";
 
-import { SVGRendererPool } from "../../utils/utils";
+import { SVGRendererPool } from "../../utils/renderer-utils";
 
 export type ChartSeriesMarkerType =
   | "line"
