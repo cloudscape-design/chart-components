@@ -91,6 +91,8 @@ export function ChartTooltip({
       className={testClasses.tooltip}
       dismissButton={tooltip.pinned}
       onDismiss={api.onDismissTooltip}
+      onMouseEnter={api.onMouseEnterTooltip}
+      onMouseLeave={api.onMouseLeaveTooltip}
       title={tooltipContent.header}
       footer={
         tooltipContent.footer ? (

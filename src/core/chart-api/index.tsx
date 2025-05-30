@@ -131,6 +131,9 @@ export class ChartAPI {
     };
   }
 
+  public onMouseEnterTooltip = this.chartExtraPointer.onMouseEnterTooltip.bind(this.chartExtraPointer);
+  public onMouseLeaveTooltip = this.chartExtraPointer.onMouseLeaveTooltip.bind(this.chartExtraPointer);
+
   public onChartDestroy = () => {
     this.chartExtraPointer.onChartDestroy();
     this.chartExtraTooltip.onChartDestroy();

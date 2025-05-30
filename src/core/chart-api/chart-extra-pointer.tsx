@@ -3,10 +3,11 @@
 
 import type Highcharts from "highcharts";
 
+import { DebouncedCall } from "../../internal/utils/utils";
 import { isPointVisible } from "../utils";
 import { ChartAPIContext } from "./chart-context";
 
-import testClasses from "../test-classes/styles.css.js";
+const HOVER_LOST_DELAY = 25;
 
 export interface ChartExtraPointerHandlers {
   onPointHover(point: Highcharts.Point): void;
@@ -22,6 +23,8 @@ export class ChartExtraPointer {
   private handlers: ChartExtraPointerHandlers;
   private hoveredPoint: null | Highcharts.Point = null;
   private hoveredGroup: null | Highcharts.Point[] = null;
+  private tooltipHovered = false;
+  private hoverLostCall = new DebouncedCall();
 
   constructor(context: ChartAPIContext, handlers: ChartExtraPointerHandlers) {
     this.context = context;
@@ -29,12 +32,10 @@ export class ChartExtraPointer {
   }
 
   public onChartLoad = (chart: Highcharts.Chart) => {
-    document.addEventListener("mousemove", this.onDocumentMousemove);
     chart.container.addEventListener("mousemove", this.onChartMousemove);
   };
 
   public onChartDestroy = () => {
-    document.removeEventListener("mousemove", this.onDocumentMousemove);
     this.context.chartOrNull?.container?.removeEventListener("mousemove", this.onChartMousemove);
   };
 
@@ -44,10 +45,24 @@ export class ChartExtraPointer {
 
   public onSeriesPointMouseOut = () => {
     this.hoveredPoint = null;
+    this.clearHover();
+  };
+
+  public onMouseEnterTooltip = () => {
+    this.tooltipHovered = true;
+  };
+
+  public onMouseLeaveTooltip = () => {
+    this.tooltipHovered = false;
+    this.clearHover();
   };
 
   private onChartMousemove = (event: MouseEvent) => {
     const chart = this.context.chart();
+    if (chart.series.some((s) => s.type === "pie")) {
+      return;
+    }
+
     const normalized = chart.pointer.normalize(event);
     const plotX = normalized.chartX;
     const plotY = normalized.chartY;
@@ -74,20 +89,8 @@ export class ChartExtraPointer {
       if (matchedGroup.length > 0) {
         this.setHoveredGroup(matchedGroup);
       }
-    }
-  };
-
-  private onDocumentMousemove = (event: MouseEvent) => {
-    if (!(event.target instanceof HTMLElement) && !(event.target instanceof SVGElement)) {
-      return;
-    }
-    if (!this.hoveredPoint && !this.hoveredGroup) {
-      return;
-    }
-    const svg = this.context.chartOrNull?.container.querySelector("svg");
-    const insideChart = svg?.contains(event.target);
-    const insideTooltip = !!event.target.closest(`.${testClasses.tooltip}`);
-    if (!insideChart && !insideTooltip) {
+    } else {
+      this.hoveredGroup = null;
       this.clearHover();
     }
   };
@@ -132,8 +135,10 @@ export class ChartExtraPointer {
   };
 
   private clearHover = () => {
-    this.hoveredPoint = null;
-    this.hoveredGroup = null;
-    this.handlers.onHoverLost();
+    this.hoverLostCall.call(() => {
+      if (!this.hoveredPoint && !this.hoveredGroup && !this.tooltipHovered) {
+        this.handlers.onHoverLost();
+      }
+    }, HOVER_LOST_DELAY);
   };
 }

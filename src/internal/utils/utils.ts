@@ -68,8 +68,11 @@ export class SVGRendererPool {
 
   public destroyAll() {
     this.circles.forEach((c) => c.destroy());
+    this.circles = [];
     this.rects.forEach((c) => c.destroy());
+    this.rects = [];
     this.paths.forEach((c) => c.destroy());
+    this.paths = [];
   }
 
   public circle(rr: Highcharts.SVGRenderer, attr: Highcharts.SVGAttributes): Highcharts.SVGElement {

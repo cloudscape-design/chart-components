@@ -40,7 +40,9 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
   public onChartDestroy() {
     this.cursor.destroy();
     this.targetTrack?.destroy();
+    this.targetTrack = null;
     this.groupTrack?.destroy();
+    this.groupTrack = null;
   }
 
   public setTooltipPoint(point: Highcharts.Point, matchingGroup: Highcharts.Point[]) {
