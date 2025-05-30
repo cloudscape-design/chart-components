@@ -7,6 +7,7 @@ import { getIsRtl } from "@cloudscape-design/component-toolkit/internal";
 
 import { renderMarker } from "../../internal/components/series-marker";
 import AsyncStore from "../../internal/utils/async-store";
+import { SVGRendererPool } from "../../internal/utils/utils";
 import { Rect, RenderTooltipProps } from "../interfaces-core";
 import * as Styles from "../styles";
 import { getGroupRect, getPointRect, isXThreshold } from "../utils";
@@ -36,6 +37,12 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
   public getTargetTrack = () => (this.targetTrack?.element ?? null) as null | SVGElement;
   public getGroupTrack = () => (this.groupTrack?.element ?? null) as null | SVGElement;
 
+  public onChartDestroy() {
+    this.cursor.destroy();
+    this.targetTrack?.destroy();
+    this.groupTrack?.destroy();
+  }
+
   public setTooltipPoint(point: Highcharts.Point, matchingGroup: Highcharts.Point[]) {
     this.set(() => ({ visible: true, pinned: false, point, group: matchingGroup }));
   }
@@ -61,9 +68,9 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
   };
 
   public onClearHighlight = () => {
-    this.cursor.destroy();
-    this.targetTrack?.destroy();
-    this.groupTrack?.destroy();
+    this.cursor.hide();
+    this.targetTrack?.hide();
+    this.groupTrack?.hide();
   };
 
   private onRenderTooltipCartesian = ({ point, group }: RenderTooltipProps) => {
@@ -72,8 +79,8 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     const hasColumnSeries = this.context.chart().series.some((s) => s.type === "column");
     this.cursor.create(groupRect, point, group, !hasColumnSeries);
 
-    this.targetTrack?.destroy();
-    this.groupTrack?.destroy();
+    this.targetTrack?.hide();
+    this.groupTrack?.hide();
     this.createPointTrack(pointRect);
     this.createGroupTrack(groupRect);
   };
@@ -81,24 +88,38 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
   private onRenderTooltipPie = ({ group }: RenderTooltipProps) => {
     const pointRect = getPieChartTargetPlacement(group[0]);
 
-    this.targetTrack?.destroy();
+    this.targetTrack?.hide();
     this.createPointTrack(pointRect);
   };
 
   private createPointTrack = (pointRect: Rect) => {
-    this.targetTrack = this.context
-      .chart()
-      .renderer.rect(pointRect.x, pointRect.y, pointRect.width, pointRect.height)
-      .attr({ fill: "transparent", zIndex: -1, direction: this.isRtl() ? "rtl" : "ltr", style: "pointer-events:none" })
-      .add();
+    if (!this.targetTrack) {
+      this.targetTrack = this.context.chart().renderer.rect().add();
+    }
+    this.targetTrack
+      .attr({
+        ...pointRect,
+        fill: "transparent",
+        zIndex: -1,
+        direction: this.isRtl() ? "rtl" : "ltr",
+        style: "pointer-events:none",
+      })
+      .show();
   };
 
   private createGroupTrack = (groupRect: Rect) => {
-    this.groupTrack = this.context
-      .chart()
-      .renderer.rect(groupRect.x, groupRect.y, groupRect.width, groupRect.height)
-      .attr({ fill: "transparent", zIndex: -1, direction: this.isRtl() ? "rtl" : "ltr", style: "pointer-events:none" })
-      .add();
+    if (!this.groupTrack) {
+      this.groupTrack = this.context.chart().renderer.rect().add();
+    }
+    this.groupTrack
+      .attr({
+        ...groupRect,
+        fill: "transparent",
+        zIndex: -1,
+        direction: this.isRtl() ? "rtl" : "ltr",
+        style: "pointer-events:none",
+      })
+      .show();
   };
 
   // We set the direction to target element so that the direction check done by the tooltip
@@ -109,10 +130,11 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
 }
 
 class HighlightCursorCartesian {
-  private refs: Highcharts.SVGElement[] = [];
+  private cursorElementsPool = new SVGRendererPool();
+  private markerElementsPool = new SVGRendererPool();
 
   public create(target: Rect, point: null | Highcharts.Point, group: Highcharts.Point[], showCursor: boolean) {
-    this.destroy();
+    this.hide();
 
     const chart = group[0]?.series.chart;
     if (!chart) {
@@ -123,17 +145,20 @@ class HighlightCursorCartesian {
     // that do not include "column" series. That is because the cursor is not necessary for columns, assuming the number of
     // x data points is not very high.
     if (showCursor) {
-      this.refs.push(
-        chart.inverted
-          ? chart.renderer
-              .rect(chart.plotLeft, chart.plotTop + (target.y - 2 * target.height), chart.plotWidth, 1)
-              .attr(Styles.cursorStyle)
-              .add()
-          : chart.renderer
-              .rect(target.x + target.width / 2, chart.plotTop, 1, chart.plotHeight)
-              .attr(Styles.cursorStyle)
-              .add(),
-      );
+      const cursorAttrs = chart.inverted
+        ? {
+            x: chart.plotLeft,
+            y: chart.plotTop + (target.y - 2 * target.height),
+            width: chart.plotWidth,
+            height: 1,
+          }
+        : {
+            x: target.x + target.width / 2,
+            y: chart.plotTop,
+            width: 1,
+            height: chart.plotHeight,
+          };
+      this.cursorElementsPool.rect(chart.renderer, { ...Styles.cursorStyle, ...cursorAttrs }).show();
     }
 
     const matchedPoints = group.filter(
@@ -142,13 +167,19 @@ class HighlightCursorCartesian {
 
     for (const p of matchedPoints) {
       if (p.plotX !== undefined && p.plotY !== undefined) {
-        this.refs.push(renderMarker(chart, p, p === point));
+        renderMarker(chart, this.markerElementsPool, p, p === point);
       }
     }
   }
 
+  public hide() {
+    this.cursorElementsPool.hideAll();
+    this.markerElementsPool.hideAll();
+  }
+
   public destroy() {
-    this.refs.forEach((ref) => ref.destroy());
+    this.cursorElementsPool.destroyAll();
+    this.markerElementsPool.destroyAll();
   }
 }
 

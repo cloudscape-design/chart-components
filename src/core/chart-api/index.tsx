@@ -133,6 +133,7 @@ export class ChartAPI {
 
   public onChartDestroy = () => {
     this.chartExtraPointer.onChartDestroy();
+    this.chartExtraTooltip.onChartDestroy();
   };
 
   private get navigationHandlers(): ChartExtraNavigationHandlers {

@@ -10,6 +10,8 @@ import {
   colorTextInteractiveDisabled,
 } from "@cloudscape-design/design-tokens";
 
+import { SVGRendererPool } from "../../utils/utils";
+
 export type ChartSeriesMarkerType =
   | "line"
   | "dashed"
@@ -94,11 +96,17 @@ export function ChartSeriesMarker({ type = "line", color, visible = true }: Char
   );
 }
 
-export function renderMarker(chart: Highcharts.Chart, point: Highcharts.Point, selected: boolean) {
+export function renderMarker(
+  chart: Highcharts.Chart,
+  pool: SVGRendererPool,
+  point: Highcharts.Point,
+  selected: boolean,
+) {
   if (point.plotX === undefined || point.plotY === undefined) {
-    return chart.renderer.circle(0, 0, 0).add();
+    return;
   }
 
+  const rr = chart.renderer;
   const inverted = !!chart.inverted;
   const size = selected ? 4 : 3;
   const pointStyle = {
@@ -106,47 +114,48 @@ export function renderMarker(chart: Highcharts.Chart, point: Highcharts.Point, s
     "stroke-width": selected ? 1 : 2,
     stroke: selected ? colorTextBodyDefault : point.color,
     fill: selected ? point.color : colorBackgroundLayoutMain,
+    opacity: 1,
     style: "pointer-events: none",
   };
-  const haloStyle = { zIndex: 6, fill: point.color, opacity: 0.4, style: "pointer-events: none" };
+  const haloStyle = {
+    zIndex: 6,
+    "stroke-width": 0,
+    stroke: point.color,
+    fill: point.color,
+    opacity: 0.4,
+    style: "pointer-events: none",
+  };
 
   const x = inverted ? chart.plotLeft + chart.plotWidth - point.plotY : chart.plotLeft + (point.plotX ?? 0);
   const y = inverted ? chart.plotTop + chart.plotHeight - point.plotX : chart.plotTop + (point.plotY ?? 0);
 
-  const render = (element: Highcharts.SVGElement) => {
-    if (selected) {
-      const group = chart.renderer.g().attr({ zIndex: pointStyle.zIndex }).add();
-      chart.renderer.circle(x, y, 10).attr(haloStyle).add(group);
-      element.add(group);
-      return group;
-    } else {
-      return element.add();
-    }
-  };
+  if (selected) {
+    pool.circle(rr, { ...haloStyle, x, y, r: 10 });
+  }
 
   const type = getSeriesMarkerType(point.series);
   switch (type) {
     case "square":
-      return render(chart.renderer.rect(x - size, y - size, size * 2, size * 2).attr(pointStyle));
+      return pool.rect(rr, { ...pointStyle, x: x - size, y: y - size, width: size * 2, height: size * 2 });
 
     case "diamond": {
-      const diamondPath = ["M", x, y - size, "L", x + size, y, "L", x, y + size, "L", x - size, y, "Z"] as any;
-      return render(chart.renderer.path(diamondPath).attr(pointStyle));
+      const path = ["M", x, y - size, "L", x + size, y, "L", x, y + size, "L", x - size, y, "Z"] as any;
+      return pool.path(rr, { ...pointStyle, d: path });
     }
 
     case "triangle": {
-      const trianglePath = ["M", x, y - size, "L", x + size, y + size, "L", x - size, y + size, "Z"] as any;
-      return render(chart.renderer.path(trianglePath).attr(pointStyle));
+      const path = ["M", x, y - size, "L", x + size, y + size, "L", x - size, y + size, "Z"] as any;
+      return pool.path(rr, { ...pointStyle, d: path });
     }
 
     case "triangle-down": {
-      const triangleDownPath = ["M", x, y + size, "L", x - size, y - size, "L", x + size, y - size, "Z"] as any;
-      return render(chart.renderer.path(triangleDownPath).attr(pointStyle));
+      const path = ["M", x, y + size, "L", x - size, y - size, "L", x + size, y - size, "Z"] as any;
+      return pool.path(rr, { ...pointStyle, d: path });
     }
 
     case "circle":
     default:
-      return render(chart.renderer.circle(x, y, size).attr(pointStyle));
+      return pool.circle(rr, { ...pointStyle, x, y, r: size });
   }
 }
 
