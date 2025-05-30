@@ -4,9 +4,16 @@
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
 
-export function ChartApplication({ keyboardNavigation, api }: { keyboardNavigation: boolean; api: ChartAPI }) {
-  const ariaLabel = useSelector(api.store, (s) => s.chartLabel);
-  const isNoData = !!useSelector(api.store, (s) => s.noData.container);
+export function ChartApplication({
+  api,
+  keyboardNavigation,
+  ariaLabel,
+}: {
+  api: ChartAPI;
+  keyboardNavigation: boolean;
+  ariaLabel?: string;
+}) {
+  const isNoData = !!useSelector(api.nodataStore, (s) => s.container);
   return keyboardNavigation && !isNoData ? (
     // Do not remove the empty outer div. It is used to contain the application element to perform
     // focus juggling, necessary to trigger a screen-reader announcement.

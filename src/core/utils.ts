@@ -4,7 +4,6 @@
 import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
-import { castArray } from "../internal/utils/utils";
 import { ChartLegendItem } from "./interfaces-base";
 import { ChartLegendItemSpec, InternalChartLegendItemSpec, Rect } from "./interfaces-core";
 
@@ -111,24 +110,6 @@ export function getPointColor(point?: Highcharts.Point): string {
   return typeof point?.color === "string" ? point.color : "black";
 }
 
-export function findAllSeriesWithData(chart: Highcharts.Chart) {
-  return chart.series.filter((s) => {
-    switch (s.type) {
-      case "pie":
-        return s.data && s.data.filter((d) => d.y !== null).length > 0;
-      default:
-        return s.data && s.data.length > 0;
-    }
-  });
-}
-
-export function findAllVisibleSeries(chart: Highcharts.Chart) {
-  const allSeriesWithData = findAllSeriesWithData(chart);
-  return allSeriesWithData.filter(
-    (s) => s.visible && (s.type !== "pie" || s.data.some((d) => d.y !== null && d.visible)),
-  );
-}
-
 // The custom legend implementation does not rely on the Highcharts legend. When Highcharts legend is disabled,
 // the chart object does not include information on legend items. Instead, we assume that all series but pie are
 // shown in the legend, and all pie series points are shown in the legend. Each item be it a series or a point should
@@ -216,28 +197,6 @@ export function updateChartItemsVisibility(
   if (updatesCounter > 0) {
     chart.redraw();
   }
-}
-
-export function getVerticalAxesTitles(chart: Highcharts.Chart) {
-  const isInverted = !!chart.options.chart?.inverted;
-  const hasSeries = chart.series.filter((s) => s.type !== "pie").length > 0;
-
-  // We extract multiple titles as there can be multiple axes. This supports up to 2 axes by
-  // using space-between placement of the labels in the corresponding component.
-  let titles: string[] = [];
-  if (hasSeries && isInverted) {
-    titles = (castArray(chart.options.xAxis) ?? [])
-      .filter((axis) => axis.visible)
-      .map((axis) => axis.title?.text ?? "")
-      .filter(Boolean);
-  }
-  if (hasSeries && !isInverted) {
-    titles = (castArray(chart.options.yAxis) ?? [])
-      .filter((axis) => axis.visible)
-      .map((axis) => axis.title?.text ?? "")
-      .filter(Boolean);
-  }
-  return titles;
 }
 
 export function getPointRect(point: Highcharts.Point): Rect {

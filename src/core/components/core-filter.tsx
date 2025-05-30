@@ -10,7 +10,7 @@ import { ChartI18nStrings } from "../interfaces-base";
 
 export function ChartFilter({ api, i18nStrings }: { api: ChartAPI; i18nStrings?: ChartI18nStrings }) {
   const i18n = useInternalI18n("[charts]");
-  const legendItems = useSelector(api.store, (s) => s.legend.items);
+  const legendItems = useSelector(api.legendStore, (s) => s.items);
   return (
     <ChartSeriesFilter
       items={legendItems}

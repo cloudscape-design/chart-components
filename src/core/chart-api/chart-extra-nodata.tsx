@@ -1,0 +1,73 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
+import { renderToStaticMarkup } from "react-dom/server";
+import type Highcharts from "highcharts";
+
+import AsyncStore from "../../internal/utils/async-store";
+import * as Styles from "../styles";
+import { ChartAPIContext } from "./chart-context";
+
+export interface ReactiveNodataState {
+  container: null | Element;
+  noMatch: boolean;
+}
+
+// Chart helper that implements custom nodata behaviors.
+export class ChartExtraNodata extends AsyncStore<ReactiveNodataState> {
+  private context: ChartAPIContext;
+  constructor(context: ChartAPIContext) {
+    super({ container: null, noMatch: false });
+    this.context = context;
+  }
+
+  public onChartRender = () => {
+    const chart = this.context.chart();
+    const allSeriesWithData = findAllSeriesWithData(chart);
+    const visibleSeries = findAllVisibleSeries(chart);
+    // The no-data is not shown when there is at least one series or point (for pie series) non-empty and visible.
+    if (visibleSeries.length > 0) {
+      this.set(() => ({ container: null, noMatch: false }));
+    }
+    // Otherwise, we rely on the Highcharts to render the no-data node, for which the no-data module must be available.
+    // We use timeout to make sure the no-data container is rendered.
+    else {
+      setTimeout(() => {
+        const noDataContainer = chart.container?.querySelector(`[id="${this.noDataId}"]`) as null | HTMLElement;
+        if (noDataContainer) {
+          noDataContainer.style.width = `${chart.plotWidth}px`;
+          noDataContainer.style.height = `${chart.plotHeight}px`;
+        }
+        this.set(() => ({ container: noDataContainer, noMatch: allSeriesWithData.length > 0 }));
+      }, 0);
+    }
+  };
+
+  public get options() {
+    const noData: Highcharts.NoDataOptions = { position: Styles.noDataPosition, useHTML: true };
+    const langNoData = renderToStaticMarkup(<div style={Styles.noDataCss} id={this.noDataId}></div>);
+    return { noData, langNoData };
+  }
+
+  private get noDataId() {
+    return `${this.context.settings.chartId}-nodata`;
+  }
+}
+
+function findAllSeriesWithData(chart: Highcharts.Chart) {
+  return chart.series.filter((s) => {
+    switch (s.type) {
+      case "pie":
+        return s.data && s.data.filter((d) => d.y !== null).length > 0;
+      default:
+        return s.data && s.data.length > 0;
+    }
+  });
+}
+
+function findAllVisibleSeries(chart: Highcharts.Chart) {
+  const allSeriesWithData = findAllSeriesWithData(chart);
+  return allSeriesWithData.filter(
+    (s) => s.visible && (s.type !== "pie" || s.data.some((d) => d.y !== null && d.visible)),
+  );
+}

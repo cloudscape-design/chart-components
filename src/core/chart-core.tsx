@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useRef } from "react";
+import { useId, useRef } from "react";
 import clsx from "clsx";
 import type Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
@@ -52,14 +52,26 @@ export function InternalCoreChart({
   footer,
   filter,
   keyboardNavigation = true,
+  onClearHighlight,
+  getChartLegendItems,
+  onLegendItemsChange,
+  onRenderTooltip,
+  visibleItems,
   __internalRootRef,
   ...rest
 }: CoreChartProps & InternalBaseComponentProps) {
   const highcharts = rest.highcharts as null | typeof Highcharts;
 
-  const isLegendEnabled = legendOptions?.enabled !== false;
-  const isTooltipEnabled = tooltipOptions?.enabled !== false;
-  const api = useChartAPI({ ...rest, isTooltipEnabled, keyboardNavigation });
+  const settings = {
+    chartId: useId(),
+    noDataEnabled: !!noDataOptions,
+    legendEnabled: legendOptions?.enabled !== false,
+    tooltipEnabled: tooltipOptions?.enabled !== false,
+    keyboardNavigationEnabled: keyboardNavigation,
+  };
+  const handlers = { onClearHighlight, getChartLegendItems, onLegendItemsChange, onRenderTooltip };
+  const state = { visibleItems };
+  const api = useChartAPI(settings, handlers, state);
 
   const rootClassName = clsx(styles.root, fitHeight && styles["root-fit-height"], className);
 
@@ -102,6 +114,7 @@ export function InternalCoreChart({
         chartMinHeight={chartMinHeight}
         chartMinWidth={chartMinWidth}
         chart={(height) => {
+          const ariaLabel = options.lang?.accessibility?.chartContainerLabel;
           const verticalTitleOffset = Styles.verticalAxisTitleBlockSize + Styles.verticalAxisTitleMargin;
           const heightOffset = verticalAxisTitlePlacement === "top" ? verticalTitleOffset : 0;
 
@@ -321,7 +334,7 @@ export function InternalCoreChart({
           };
           return (
             <>
-              <ChartApplication keyboardNavigation={keyboardNavigation} api={api} />
+              <ChartApplication keyboardNavigation={keyboardNavigation} api={api} ariaLabel={ariaLabel} />
               <HighchartsReact
                 highcharts={highcharts}
                 options={highchartsOptions}
@@ -337,7 +350,7 @@ export function InternalCoreChart({
             </>
           );
         }}
-        legend={isLegendEnabled ? <ChartLegend {...legendOptions} api={api} i18nStrings={i18nStrings} /> : null}
+        legend={settings.legendEnabled ? <ChartLegend {...legendOptions} api={api} i18nStrings={i18nStrings} /> : null}
         verticalAxisTitle={
           verticalAxisTitlePlacement === "top" ? <VerticalAxisTitle api={api} inverted={!!inverted} /> : null
         }
@@ -347,9 +360,11 @@ export function InternalCoreChart({
         additionalFilters={filter?.additionalFilters}
       />
 
-      {isTooltipEnabled && <ChartTooltip {...tooltipOptions} getTooltipContent={rest.getTooltipContent} api={api} />}
+      {settings.tooltipEnabled && (
+        <ChartTooltip {...tooltipOptions} getTooltipContent={rest.getTooltipContent} api={api} />
+      )}
 
-      {noDataOptions && <ChartNoData {...noDataOptions} i18nStrings={i18nStrings} api={api} />}
+      {settings.noDataEnabled && <ChartNoData {...noDataOptions} i18nStrings={i18nStrings} api={api} />}
     </div>
   );
 }

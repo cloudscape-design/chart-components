@@ -10,7 +10,7 @@ import styles from "../styles.css.js";
 import testClasses from "../test-classes/styles.css.js";
 
 export function VerticalAxisTitle({ api, inverted }: { api: ChartAPI; inverted: boolean }) {
-  const titles = useSelector(api.store, (s) => s.axes.verticalAxesTitles).filter(Boolean);
+  const titles = useSelector(api.axisTitlesStore, (s) => s.verticalAxesTitles).filter(Boolean);
   if (titles.length === 0) {
     return null;
   }

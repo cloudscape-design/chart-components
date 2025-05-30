@@ -6,20 +6,25 @@ import type Highcharts from "highcharts";
 import { getIsRtl } from "@cloudscape-design/component-toolkit/internal";
 
 import { renderMarker } from "../../internal/components/series-marker";
+import AsyncStore from "../../internal/utils/async-store";
 import { Rect, RenderTooltipProps } from "../interfaces-core";
 import * as Styles from "../styles";
 import { getGroupRect, getPointRect, isXThreshold } from "../utils";
-import { ChartExtraBase } from "./chart-extra-base";
+import { ChartAPIContext } from "./chart-context";
+
+export interface ReactiveTooltipState {
+  visible: boolean;
+  pinned: boolean;
+  point: null | Highcharts.Point;
+  group: Highcharts.Point[];
+}
 
 // Chart helper that implements tooltip placement logic and cursors.
-// It handles cartesian and pie charts.
-export class ChartExtraTooltip {
-  private chartExtra: ChartExtraBase;
-  private get chart() {
-    return this.chartExtra.chart;
-  }
-  constructor(chartExtra: ChartExtraBase) {
-    this.chartExtra = chartExtra;
+export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
+  private context: ChartAPIContext;
+  constructor(context: ChartAPIContext) {
+    super({ visible: false, pinned: false, point: null, group: [] });
+    this.context = context;
   }
   private cursor = new HighlightCursorCartesian();
   private targetTrack: null | Highcharts.SVGElement = null;
@@ -31,8 +36,24 @@ export class ChartExtraTooltip {
   public getTargetTrack = () => (this.targetTrack?.element ?? null) as null | SVGElement;
   public getGroupTrack = () => (this.groupTrack?.element ?? null) as null | SVGElement;
 
+  public setTooltipPoint(point: Highcharts.Point, matchingGroup: Highcharts.Point[]) {
+    this.set(() => ({ visible: true, pinned: false, point, group: matchingGroup }));
+  }
+
+  public setTooltipGroup(group: Highcharts.Point[]) {
+    this.set(() => ({ visible: true, pinned: false, point: null, group }));
+  }
+
+  public hideTooltip() {
+    this.set((prev) => ({ ...prev, visible: false, pinned: false }));
+  }
+
+  public pinTooltip() {
+    this.set((prev) => ({ ...prev, visible: true, pinned: true }));
+  }
+
   public onRenderTooltip = (props: RenderTooltipProps) => {
-    if (this.chart.series.some((s) => s.type === "pie")) {
+    if (this.context.chart().series.some((s) => s.type === "pie")) {
       return this.onRenderTooltipPie(props);
     } else {
       return this.onRenderTooltipCartesian(props);
@@ -48,7 +69,7 @@ export class ChartExtraTooltip {
   private onRenderTooltipCartesian = ({ point, group }: RenderTooltipProps) => {
     const pointRect = point ? getPointRect(point) : getPointRect(group[0]);
     const groupRect = getGroupRect(group);
-    const hasColumnSeries = this.chart.series.some((s) => s.type === "column");
+    const hasColumnSeries = this.context.chart().series.some((s) => s.type === "column");
     this.cursor.create(groupRect, point, group, !hasColumnSeries);
 
     this.targetTrack?.destroy();
@@ -65,15 +86,17 @@ export class ChartExtraTooltip {
   };
 
   private createPointTrack = (pointRect: Rect) => {
-    this.targetTrack = this.chart.renderer
-      .rect(pointRect.x, pointRect.y, pointRect.width, pointRect.height)
+    this.targetTrack = this.context
+      .chart()
+      .renderer.rect(pointRect.x, pointRect.y, pointRect.width, pointRect.height)
       .attr({ fill: "transparent", zIndex: -1, direction: this.isRtl() ? "rtl" : "ltr", style: "pointer-events:none" })
       .add();
   };
 
   private createGroupTrack = (groupRect: Rect) => {
-    this.groupTrack = this.chart.renderer
-      .rect(groupRect.x, groupRect.y, groupRect.width, groupRect.height)
+    this.groupTrack = this.context
+      .chart()
+      .renderer.rect(groupRect.x, groupRect.y, groupRect.width, groupRect.height)
       .attr({ fill: "transparent", zIndex: -1, direction: this.isRtl() ? "rtl" : "ltr", style: "pointer-events:none" })
       .add();
   };
@@ -81,7 +104,7 @@ export class ChartExtraTooltip {
   // We set the direction to target element so that the direction check done by the tooltip
   // is done correctly. Without that, the asserted target direction always results to "ltr".
   private isRtl() {
-    return getIsRtl(this.chart.container.parentElement);
+    return getIsRtl(this.context.chart().container.parentElement);
   }
 }
 

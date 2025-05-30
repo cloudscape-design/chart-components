@@ -24,7 +24,7 @@ export function ChartLegend({ title, actions, api, i18nStrings }: ChartLegendPro
   const i18n = useInternalI18n("[charts]");
   const ariaLabel = i18n("i18nStrings.legendAriaLabel", i18nStrings?.legendAriaLabel);
 
-  const legendItems = useSelector(api.store, (s) => s.legend.items);
+  const legendItems = useSelector(api.legendStore, (s) => s.items);
   if (legendItems.length === 0) {
     return null;
   }

@@ -32,6 +32,7 @@ import {
 } from "../utils";
 
 import styles from "../styles.css.js";
+import testClasses from "../test-classes/styles.css.js";
 
 export function ChartTooltip({
   getTooltipContent,
@@ -43,7 +44,7 @@ export function ChartTooltip({
   api: ChartAPI;
 }) {
   const [expandedSeries, setExpandedSeries] = useState<ExpandedSeriesState>({});
-  const tooltip = useSelector(api.store, (s) => s.tooltip);
+  const tooltip = useSelector(api.tooltipStore, (s) => s);
   if (!tooltip.visible || tooltip.group.length === 0) {
     return null;
   }
@@ -87,10 +88,9 @@ export function ChartTooltip({
       getTrack={getTrack}
       trackKey={trackKey}
       container={null}
+      className={testClasses.tooltip}
       dismissButton={tooltip.pinned}
       onDismiss={api.onDismissTooltip}
-      onMouseEnter={api.onMouseEnterTooltip}
-      onMouseLeave={api.onMouseLeaveTooltip}
       title={tooltipContent.header}
       footer={
         tooltipContent.footer ? (

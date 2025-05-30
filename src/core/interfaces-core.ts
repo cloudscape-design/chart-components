@@ -92,11 +92,6 @@ export interface CoreChartProps
    */
   getChartLegendItems?(props: { chart: Highcharts.Chart }): readonly ChartLegendItemSpec[];
   /**
-   * Called whenever chart point is highlighted to extract the relevant series to be highlighted in the legend.
-   * Be default, only one series or pie segment corresponding the selection is taken.
-   */
-  getMatchedLegendItems?(props: { point: Highcharts.Point }): readonly string[];
-  /**
    * Called whenever chart tooltip is rendered to provide content for tooltip's header, body, and (optional) footer.
    */
   getTooltipContent?: GetTooltipContent;
@@ -208,23 +203,3 @@ export interface TooltipContent {
 export type CoreNoDataProps = ChartNoDataOptions;
 
 export type CoreI18nStrings = ChartI18nStrings;
-
-export interface ReactiveChartState {
-  tooltip: {
-    visible: boolean;
-    pinned: boolean;
-    point: null | Highcharts.Point;
-    group: Highcharts.Point[];
-  };
-  legend: {
-    items: readonly ChartLegendItem[];
-  };
-  noData: {
-    container: null | Element;
-    noMatch: boolean;
-  };
-  axes: {
-    verticalAxesTitles: readonly string[];
-  };
-  chartLabel: string;
-}

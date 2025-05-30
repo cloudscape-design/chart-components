@@ -31,7 +31,7 @@ export function ChartNoData({
   api: ChartAPI;
 }) {
   const i18n = useInternalI18n("[charts]");
-  const state = useSelector(api.store, (s) => s.noData);
+  const state = useSelector(api.nodataStore, (s) => s);
   if (!state.container) {
     return null;
   }
