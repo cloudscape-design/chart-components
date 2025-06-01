@@ -225,6 +225,7 @@ export class ChartAPI {
     if (pinned) {
       this.lastDismissTime = new Date().getTime();
       this.chartExtraTooltip.hideTooltip();
+      this.clearChartHighlight();
       // Selecting the point on which the popover was pinned to bring focus back to it when the popover is dismissed.
       // This is unless the popover was dismissed by an outside click, in which case the focus should stay on the click target.
       if (!outsideClick) {
