@@ -4,7 +4,6 @@
 import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
-import { ChartLegendItem } from "./interfaces-base";
 import { InternalChartLegendItemSpec, Rect } from "./interfaces-core";
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
@@ -143,39 +142,6 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly InternalC
     s.data.forEach(addPointItem);
   }
   return legendItems;
-}
-
-export function updateChartItemsVisibility(
-  chart: Highcharts.Chart,
-  legendItems: readonly ChartLegendItem[],
-  visibleItems?: readonly string[],
-) {
-  const availableItemsSet = new Set(legendItems.map((i) => i.id));
-  const visibleItemsSet = new Set(visibleItems);
-
-  let updatesCounter = 0;
-  const getVisibleAndCount = (id: string, visible: boolean) => {
-    const nextVisible = visibleItemsSet.has(id);
-    updatesCounter += nextVisible !== visible ? 1 : 0;
-    return nextVisible;
-  };
-
-  for (const series of chart.series) {
-    if (availableItemsSet.has(getSeriesId(series))) {
-      series.setVisible(getVisibleAndCount(getSeriesId(series), series.visible), false);
-    }
-    for (const point of series.data) {
-      if (typeof point.setVisible === "function" && availableItemsSet.has(getPointId(point))) {
-        point.setVisible(getVisibleAndCount(getPointId(point), point.visible), false);
-      }
-    }
-  }
-
-  // The call `seriesOrPoint.setVisible(visible, false)` does not trigger the chart redraw, as it would otherwise
-  // impact the performance. Instead, we trigger the redraw explicitly, if any change to visibility has been made.
-  if (updatesCounter > 0) {
-    chart.redraw();
-  }
 }
 
 export function getPointRect(point: Highcharts.Point): Rect {

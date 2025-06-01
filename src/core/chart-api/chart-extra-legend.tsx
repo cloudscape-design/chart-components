@@ -7,7 +7,7 @@ import { ChartSeriesMarker, ChartSeriesMarkerType } from "../../internal/compone
 import AsyncStore from "../../internal/utils/async-store";
 import { isEqualArrays } from "../../internal/utils/utils";
 import { ChartLegendItem } from "../interfaces-base";
-import { getChartLegendItems, getPointId, getSeriesId, updateChartItemsVisibility } from "../utils";
+import { getChartLegendItems, getPointId, getSeriesId } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
 // The reactive state is used to propagate changes in legend items to the core legend React component.
@@ -18,6 +18,7 @@ export interface ReactiveLegendState {
 // Chart helper that implements custom legend behaviors.
 export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
   private context: ChartExtraContext;
+  private visibilityMode: "internal" | "external" = "external";
 
   constructor(context: ChartExtraContext) {
     super({ items: [] });
@@ -26,71 +27,78 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
 
   public onChartRender = () => {
     this.initLegend();
-    this.updateChartItemsVisibility(this.context.state.visibleItems);
+    this.updateItemsVisibility(this.context.state.visibleItems);
   };
 
-  public updateChartItemsVisibility = (visibleItems?: readonly string[]) => {
+  // If visible items are explicitly provided, we use them to update visibility of chart's series or points (by ID).
+  // If not provided, the visibility state is managed internally.
+  public updateItemsVisibility = (visibleItems?: readonly string[]) => {
     if (visibleItems) {
-      const currentVisibleItems = this.get().items;
-      updateChartItemsVisibility(this.context.chart(), currentVisibleItems, visibleItems);
+      this.visibilityMode = "external";
+      updateItemsVisibility(this.context.chart(), this.get().items, visibleItems);
+    } else {
+      this.visibilityMode = "internal";
     }
   };
 
+  // A callback to be called when items visibility changes from the outside or from the legend.
   public onItemVisibilityChange = (visibleItems: readonly string[]) => {
-    const currentLegendItems = this.get().items;
-    const updatedLegendItems = currentLegendItems.map((item) => ({ ...item, visible: visibleItems.includes(item.id) }));
-    this.context.handlers.onLegendItemsChange?.(updatedLegendItems);
+    const currentItems = this.get().items;
+    const updatedItems = currentItems.map((i) => ({ ...i, visible: visibleItems.includes(i.id) }));
+    if (this.visibilityMode === "internal") {
+      this.updateLegendItems(updatedItems);
+      updateItemsVisibility(this.context.chart(), this.get().items, visibleItems);
+    } else {
+      this.context.handlers.onLegendItemsChange?.(updatedItems);
+    }
   };
 
+  // Updates legend highlight state when chart's point is highlighted.
   public onHighlightPoint = (point: Highcharts.Point) => {
-    const currentItems = this.get().items;
-    const nextItems = currentItems.map(({ ...item }) => {
-      if (point.series.type === "pie") {
-        return { ...item, highlighted: item.id === getPointId(point) };
-      } else {
-        return { ...item, highlighted: item.id === getSeriesId(point.series) };
-      }
-    });
-    if (!isEqualArrays(currentItems, nextItems, isEqualLegendItems)) {
-      this.set(() => ({ items: nextItems }));
-    }
+    const visibleItems = point.series.type === "pie" ? [getPointId(point)] : [getSeriesId(point.series)];
+    this.onHighlightItems(visibleItems);
   };
 
+  // Updates legend highlight state when chart's group of points is highlighted.
   public onHighlightGroup = (group: Highcharts.Point[]) => {
-    const currentItems = this.get().items;
-    const nextItems = currentItems.map(({ ...item }) => ({
-      ...item,
-      highlighted: group.some((point) => item.id === getSeriesId(point.series)),
-    }));
-    if (!isEqualArrays(currentItems, nextItems, isEqualLegendItems)) {
-      this.set(() => ({ items: nextItems }));
-    }
+    const visibleItems = group.map((point) => getSeriesId(point.series));
+    this.onHighlightItems(visibleItems);
   };
 
-  public onHighlightItems = (itemIds: readonly string[]) => {
+  // Updates legend highlight state given an explicit list of item IDs. This is used to update state
+  // when a legend item gets hovered or focused.
+  public onHighlightItems = (highlightedItems: readonly string[]) => {
     const currentItems = this.get().items;
-    const nextItems = currentItems.map(({ ...item }) => ({ ...item, highlighted: itemIds.includes(item.id) }));
-    if (!isEqualArrays(currentItems, nextItems, isEqualLegendItems)) {
-      this.set(() => ({ items: nextItems }));
-    }
+    const updatedItems = currentItems.map(({ ...i }) => ({ ...i, highlighted: highlightedItems.includes(i.id) }));
+    this.updateLegendItems(updatedItems);
   };
 
+  // Clears legend highlight state.
   public onClearHighlight = () => {
-    const currentItems = this.get().items;
-    const nextItems = currentItems.map(({ ...item }) => ({ ...item, highlighted: false }));
-    if (!isEqualArrays(currentItems, nextItems, isEqualLegendItems)) {
-      this.set(() => ({ items: nextItems }));
-    }
+    const nextItems = this.get().items.map(({ ...item }) => ({ ...item, highlighted: false }));
+    this.updateLegendItems(nextItems);
   };
 
   private initLegend = () => {
-    const nextItemSpecs = getChartLegendItems(this.context.chart());
-    const currentItems = this.get().items;
-    const nextItems = nextItemSpecs.map(({ id, name, color, markerType, visible }) => {
+    const itemSpecs = getChartLegendItems(this.context.chart());
+    const legendItems = itemSpecs.map(({ id, name, color, markerType, visible }) => {
       const marker = this.renderMarker(markerType, color, visible);
       return { id, name, marker, visible, highlighted: false };
     });
-    if (!isEqualArrays(currentItems, nextItems, isEqualLegendItems)) {
+    this.updateLegendItems(legendItems);
+  };
+
+  private updateLegendItems = (nextItems: ChartLegendItem[]) => {
+    function isLegendItemsEqual(a: ChartLegendItem, b: ChartLegendItem) {
+      return (
+        a.id === b.id &&
+        a.name === b.name &&
+        a.marker === b.marker &&
+        a.visible === b.visible &&
+        a.highlighted === b.highlighted
+      );
+    }
+    if (!isEqualArrays(this.get().items, nextItems, isLegendItemsEqual)) {
       this.set(() => ({ items: nextItems }));
     }
   };
@@ -106,12 +114,35 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
   }
 }
 
-function isEqualLegendItems(a: ChartLegendItem, b: ChartLegendItem) {
-  return (
-    a.id === b.id &&
-    a.name === b.name &&
-    a.marker === b.marker &&
-    a.visible === b.visible &&
-    a.highlighted === b.highlighted
-  );
+function updateItemsVisibility(
+  chart: Highcharts.Chart,
+  legendItems: readonly ChartLegendItem[],
+  visibleItems?: readonly string[],
+) {
+  const availableItemsSet = new Set(legendItems.map((i) => i.id));
+  const visibleItemsSet = new Set(visibleItems);
+
+  let updatesCounter = 0;
+  const getVisibleAndCount = (id: string, visible: boolean) => {
+    const nextVisible = visibleItemsSet.has(id);
+    updatesCounter += nextVisible !== visible ? 1 : 0;
+    return nextVisible;
+  };
+
+  for (const series of chart.series) {
+    if (availableItemsSet.has(getSeriesId(series))) {
+      series.setVisible(getVisibleAndCount(getSeriesId(series), series.visible), false);
+    }
+    for (const point of series.data) {
+      if (typeof point.setVisible === "function" && availableItemsSet.has(getPointId(point))) {
+        point.setVisible(getVisibleAndCount(getPointId(point), point.visible), false);
+      }
+    }
+  }
+
+  // The call `seriesOrPoint.setVisible(visible, false)` does not trigger the chart redraw, as it would otherwise
+  // impact the performance. Instead, we trigger the redraw explicitly, if any change to visibility has been made.
+  if (updatesCounter > 0) {
+    chart.redraw();
+  }
 }

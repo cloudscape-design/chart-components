@@ -34,7 +34,7 @@ export function useChartAPI(
   const visibleItemsIndex = state.visibleItems ? state.visibleItems.join("::") : null;
   useEffect(() => {
     if (api.ready && visibleItemsIndex !== null) {
-      api.updateChartItemsVisibility(visibleItemsIndex.split("::").filter(Boolean));
+      api.updateItemsVisibility(visibleItemsIndex.split("::").filter(Boolean));
     }
   }, [api, visibleItemsIndex]);
 
@@ -208,7 +208,7 @@ export class ChartAPI {
   }
 
   public onItemVisibilityChange = this.chartExtraLegend.onItemVisibilityChange.bind(this.chartExtraLegend);
-  public updateChartItemsVisibility = this.chartExtraLegend.updateChartItemsVisibility.bind(this.chartExtraLegend);
+  public updateItemsVisibility = this.chartExtraLegend.updateItemsVisibility.bind(this.chartExtraLegend);
 
   public highlightChartItems = (itemIds: readonly string[]) => {
     this.chartExtraHighlight.highlightChartItems(itemIds);
