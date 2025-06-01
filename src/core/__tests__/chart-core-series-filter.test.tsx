@@ -61,8 +61,8 @@ describe("CoreChart: series filter", () => {
     createChartWrapper().findFilter()!.findSeriesFilter()!.findMultiselect()!.openDropdown();
     createChartWrapper().findFilter()!.findSeriesFilter()!.findMultiselect()!.selectOption(1);
     expect(onLegendItemsChange).toHaveBeenCalledWith([
-      { id: "L1", name: "L1", marker: expect.anything(), visible: false },
-      { id: "L2", name: "L2", marker: expect.anything(), visible: true },
+      { id: "L1", name: "L1", marker: expect.anything(), visible: false, highlighted: false },
+      { id: "L2", name: "L2", marker: expect.anything(), visible: true, highlighted: false },
     ]);
   });
 });

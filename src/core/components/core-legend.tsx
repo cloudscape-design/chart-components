@@ -30,13 +30,6 @@ export function ChartLegend({ title, actions, api, i18nStrings }: ChartLegendPro
   }
   return (
     <ChartLegendComponent
-      ref={(legend) => {
-        if (legend) {
-          api.registerLegend(legend);
-        } else {
-          api.unregisterLegend();
-        }
-      }}
       ariaLabel={ariaLabel}
       legendTitle={title}
       items={legendItems}

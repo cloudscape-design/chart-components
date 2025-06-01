@@ -121,6 +121,7 @@ export interface ChartLegendItem {
   name: string;
   marker: React.ReactNode;
   visible: boolean;
+  highlighted: boolean;
 }
 
 export interface ChartI18nStrings {

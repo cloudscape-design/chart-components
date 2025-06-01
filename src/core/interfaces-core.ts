@@ -162,11 +162,6 @@ export interface CoreChartAPI {
   clearChartHighlight(): void;
 }
 
-export interface RegisteredLegendAPI {
-  highlightItems: (ids: readonly string[]) => void;
-  clearHighlight: () => void;
-}
-
 export interface InternalChartLegendItemSpec {
   id: string;
   name: string;

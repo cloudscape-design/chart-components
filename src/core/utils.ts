@@ -145,18 +145,6 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly InternalC
   return legendItems;
 }
 
-export function matchLegendItems(legendItems: readonly ChartLegendItem[], point: Highcharts.Point): string[] {
-  return legendItems
-    .filter((item) => {
-      if (point.series.type !== "pie") {
-        return getSeriesId(point.series) === item.id;
-      } else {
-        return getPointId(point) === item.id;
-      }
-    })
-    .map((item) => item.id);
-}
-
 export function updateChartItemsVisibility(
   chart: Highcharts.Chart,
   legendItems: readonly ChartLegendItem[],

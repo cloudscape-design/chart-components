@@ -207,17 +207,17 @@ export class ChartAPI {
     this.chartExtraNavigation.announceElement(getPointAccessibleDescription(point), pinned);
   }
 
-  public registerLegend = this.chartExtraLegend.registerLegend.bind(this.chartExtraLegend);
-  public unregisterLegend = this.chartExtraLegend.unregisterLegend.bind(this.chartExtraLegend);
   public onItemVisibilityChange = this.chartExtraLegend.onItemVisibilityChange.bind(this.chartExtraLegend);
   public updateChartItemsVisibility = this.chartExtraLegend.updateChartItemsVisibility.bind(this.chartExtraLegend);
 
   public highlightChartItems = (itemIds: readonly string[]) => {
     this.chartExtraHighlight.highlightChartItems(itemIds);
+    this.chartExtraLegend.onHighlightItems(itemIds);
   };
 
   public clearChartItemsHighlight = () => {
     this.chartExtraHighlight.clearChartItemsHighlight();
+    this.chartExtraLegend.onClearHighlight();
   };
 
   public onDismissTooltip = (outsideClick?: boolean) => {
@@ -362,8 +362,8 @@ export class ChartAPI {
     const group = this.context.derived.getPointsByX(point.x);
     this.setHighlightState(group);
     this.chartExtraTooltip.onRenderTooltip({ point, group });
+    this.chartExtraLegend.onHighlightPoint(point);
     this.context.handlers.onHighlight?.({ point, group });
-    this.chartExtraLegend.highlightMatchedItems([point]);
   };
 
   private highlightActionsGroup = (group: Highcharts.Point[]) => {
@@ -372,8 +372,8 @@ export class ChartAPI {
     }
     this.setHighlightState(group);
     this.chartExtraTooltip.onRenderTooltip({ point: null, group });
+    this.chartExtraLegend.onHighlightGroup(group);
     this.context.handlers.onHighlight?.({ point: null, group });
-    this.chartExtraLegend.highlightMatchedItems(group);
   };
 
   private setHighlightState(points: Highcharts.Point[]) {
@@ -397,8 +397,8 @@ export class ChartAPI {
 
   private clearHighlightActions = () => {
     this.chartExtraTooltip.onClearHighlight();
+    this.chartExtraLegend.onClearHighlight();
     this.context.handlers.onClearHighlight?.();
-    this.chartExtraLegend.clearHighlightedItems();
 
     if (!this.chartExtraTooltip.get().pinned) {
       for (const s of this.chart.series ?? []) {

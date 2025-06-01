@@ -7,8 +7,7 @@ import { ChartSeriesMarker, ChartSeriesMarkerType } from "../../internal/compone
 import AsyncStore from "../../internal/utils/async-store";
 import { isEqualArrays } from "../../internal/utils/utils";
 import { ChartLegendItem } from "../interfaces-base";
-import { RegisteredLegendAPI } from "../interfaces-core";
-import { getChartLegendItems, matchLegendItems, updateChartItemsVisibility } from "../utils";
+import { getChartLegendItems, getPointId, getSeriesId, updateChartItemsVisibility } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
 // The reactive state is used to propagate changes in legend items to the core legend React component.
@@ -19,7 +18,6 @@ export interface ReactiveLegendState {
 // Chart helper that implements custom legend behaviors.
 export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
   private context: ChartExtraContext;
-  private registeredLegend: null | RegisteredLegendAPI = null;
 
   constructor(context: ChartExtraContext) {
     super({ items: [] });
@@ -29,14 +27,6 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
   public onChartRender = () => {
     this.initLegend();
     this.updateChartItemsVisibility(this.context.state.visibleItems);
-  };
-
-  public registerLegend = (legend: RegisteredLegendAPI) => {
-    this.registeredLegend = legend;
-  };
-
-  public unregisterLegend = () => {
-    this.registeredLegend = null;
   };
 
   public updateChartItemsVisibility = (visibleItems?: readonly string[]) => {
@@ -52,17 +42,45 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
     this.context.handlers.onLegendItemsChange?.(updatedLegendItems);
   };
 
-  public highlightMatchedItems = (points: Highcharts.Point[]) => {
-    const matchedLegendItems = new Set<string>();
-    for (const point of points) {
-      const matched = matchLegendItems(this.get().items, point);
-      matched.forEach((m) => matchedLegendItems.add(m));
+  public onHighlightPoint = (point: Highcharts.Point) => {
+    const currentItems = this.get().items;
+    const nextItems = currentItems.map(({ ...item }) => {
+      if (point.series.type === "pie") {
+        return { ...item, highlighted: item.id === getPointId(point) };
+      } else {
+        return { ...item, highlighted: item.id === getSeriesId(point.series) };
+      }
+    });
+    if (!isEqualArrays(currentItems, nextItems, isEqualLegendItems)) {
+      this.set(() => ({ items: nextItems }));
     }
-    this.registeredLegend?.highlightItems([...matchedLegendItems]);
   };
 
-  public clearHighlightedItems = () => {
-    this.registeredLegend?.clearHighlight();
+  public onHighlightGroup = (group: Highcharts.Point[]) => {
+    const currentItems = this.get().items;
+    const nextItems = currentItems.map(({ ...item }) => ({
+      ...item,
+      highlighted: group.some((point) => item.id === getSeriesId(point.series)),
+    }));
+    if (!isEqualArrays(currentItems, nextItems, isEqualLegendItems)) {
+      this.set(() => ({ items: nextItems }));
+    }
+  };
+
+  public onHighlightItems = (itemIds: readonly string[]) => {
+    const currentItems = this.get().items;
+    const nextItems = currentItems.map(({ ...item }) => ({ ...item, highlighted: itemIds.includes(item.id) }));
+    if (!isEqualArrays(currentItems, nextItems, isEqualLegendItems)) {
+      this.set(() => ({ items: nextItems }));
+    }
+  };
+
+  public onClearHighlight = () => {
+    const currentItems = this.get().items;
+    const nextItems = currentItems.map(({ ...item }) => ({ ...item, highlighted: false }));
+    if (!isEqualArrays(currentItems, nextItems, isEqualLegendItems)) {
+      this.set(() => ({ items: nextItems }));
+    }
   };
 
   private initLegend = () => {
@@ -70,7 +88,7 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
     const currentItems = this.get().items;
     const nextItems = nextItemSpecs.map(({ id, name, color, markerType, visible }) => {
       const marker = this.renderMarker(markerType, color, visible);
-      return { id, name, marker, visible };
+      return { id, name, marker, visible, highlighted: false };
     });
     if (!isEqualArrays(currentItems, nextItems, isEqualLegendItems)) {
       this.set(() => ({ items: nextItems }));
@@ -89,5 +107,11 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
 }
 
 function isEqualLegendItems(a: ChartLegendItem, b: ChartLegendItem) {
-  return a.id === b.id && a.name === b.name && a.marker === b.marker && a.visible === b.visible;
+  return (
+    a.id === b.id &&
+    a.name === b.name &&
+    a.marker === b.marker &&
+    a.visible === b.visible &&
+    a.highlighted === b.highlighted
+  );
 }
