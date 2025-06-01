@@ -5,6 +5,7 @@ import type Highcharts from "highcharts";
 
 import { circleIndex, getIsRtl, handleKey, KeyCode } from "@cloudscape-design/component-toolkit/internal";
 
+import { SVGRendererPool } from "../../internal/utils/renderer-utils";
 import { Rect } from "../interfaces-core";
 import * as Styles from "../styles";
 import { getGroupRect, getPointRect, isPointVisible } from "../utils";
@@ -41,16 +42,15 @@ interface FocusedStatePoint {
 // Navigation controller handles focus behavior and keyboard navigation for all charts.
 // When the chart is first focused, the focus lands on the chart plot. Once navigation is engaged,
 // the focus can land either on the group of points matched by X value, or on a specific point.
-// In either case, there is always some point that is considered highlighted.
 // The focused X value and point are stored so that navigating back to the chart will focus the previously
 // focused point. If the stored point no longer belongs to the chart the focus falls back to the chart plot.
 export class ChartExtraNavigation {
   private context: ChartExtraContext;
   private focusOutline: FocusOutline;
   private handlers: ChartExtraNavigationHandlers;
-  private applicationEl: null | HTMLElement = null;
+  private applicationElement: null | HTMLElement = null;
   private focusedState: null | FocusedState = null;
-  private fakeFocus = false;
+  private ignoreFocus = false;
 
   constructor(context: ChartExtraContext, handlers: ChartExtraNavigationHandlers) {
     this.context = context;
@@ -58,22 +58,28 @@ export class ChartExtraNavigation {
     this.handlers = handlers;
   }
 
+  public onChartDestroy() {
+    this.focusOutline.destroy();
+  }
+
   // This function is used as React ref on the application element, positioned right before the chart plot in the DOM.
   // Once the element reference is obtained, we assign the required event listeners directly to the element.
   // That is done for simplicity to avoid passing React event handlers down to the element.
   public setApplication = (element: null | HTMLElement) => {
-    if (this.applicationEl) {
-      this.applicationEl.removeEventListener("focus", this.onFocus);
-      this.applicationEl.removeEventListener("blur", this.onBlur);
-      this.applicationEl.removeEventListener("keydown", this.onKeyDown);
+    if (this.applicationElement) {
+      this.applicationElement.removeEventListener("focus", this.onFocus);
+      this.applicationElement.removeEventListener("blur", this.onBlur);
+      this.applicationElement.removeEventListener("keydown", this.onKeyDown);
     }
 
-    this.applicationEl = element;
+    if (this.context.settings.keyboardNavigationEnabled || !element) {
+      this.applicationElement = element;
+    }
 
-    if (this.applicationEl) {
-      this.applicationEl.addEventListener("focus", this.onFocus);
-      this.applicationEl.addEventListener("blur", this.onBlur);
-      this.applicationEl.addEventListener("keydown", this.onKeyDown);
+    if (this.applicationElement) {
+      this.applicationElement.addEventListener("focus", this.onFocus);
+      this.applicationElement.addEventListener("blur", this.onBlur);
+      this.applicationElement.addEventListener("keydown", this.onKeyDown);
     }
   };
 
@@ -81,7 +87,7 @@ export class ChartExtraNavigation {
   // This is used to restore focus after the tooltip is dismissed.
   public focusApplication(point: null | Highcharts.Point, group: Highcharts.Point[]) {
     this.focusedState = point ? { type: "point", point, group } : { type: "group", group };
-    this.applicationEl?.focus();
+    this.applicationElement?.focus();
   }
 
   public announceChart(ariaLabel: string) {
@@ -93,41 +99,41 @@ export class ChartExtraNavigation {
   }
 
   private announce(elementProps: React.ButtonHTMLAttributes<unknown>) {
-    if (!this.applicationEl) {
+    if (!this.applicationElement) {
       return;
     }
 
     // Remove prev attributes.
-    for (const attributeName of this.applicationEl.getAttributeNames()) {
+    for (const attributeName of this.applicationElement.getAttributeNames()) {
       if (attributeName === "role" || attributeName.slice(0, 4) === "aria") {
-        this.applicationEl.removeAttribute(attributeName);
+        this.applicationElement.removeAttribute(attributeName);
       }
     }
 
     // Copy new attributes.
     for (const [attributeName, attributeValue] of Object.entries(elementProps)) {
-      this.applicationEl.setAttribute(attributeName, `${attributeValue}`);
+      this.applicationElement.setAttribute(attributeName, `${attributeValue}`);
     }
 
-    this.fakeFocus = true;
+    this.ignoreFocus = true;
 
     // Re-attach and re-focus application element to trigger a screen-reader announcement.
-    const container = this.applicationEl.parentElement!;
-    container.removeChild(this.applicationEl);
-    container.appendChild(this.applicationEl);
-    this.applicationEl.focus({ preventScroll: true });
+    const container = this.applicationElement.parentElement!;
+    container.removeChild(this.applicationElement);
+    container.appendChild(this.applicationElement);
+    this.applicationElement.focus({ preventScroll: true });
 
-    setTimeout(() => (this.fakeFocus = false), 0);
+    setTimeout(() => (this.ignoreFocus = false), 0);
   }
 
   private onFocus = () => {
-    if (!this.fakeFocus) {
+    if (!this.ignoreFocus) {
       this.focusCurrent();
     }
   };
 
   private onBlur = () => {
-    if (!this.fakeFocus) {
+    if (!this.ignoreFocus) {
       this.focusOutline.hide();
       this.handlers.onBlur();
     }
@@ -338,7 +344,7 @@ export class ChartExtraNavigation {
 
   private focusChart = () => {
     this.focusedState = { type: "chart" };
-    this.focusOutline.showChartOutline();
+    this.focusOutline.chart();
     this.handlers.onFocusChart();
   };
 
@@ -350,7 +356,7 @@ export class ChartExtraNavigation {
       this.focusPoint(visiblePoints[0] ?? null, group);
     } else {
       this.focusedState = { type: "group", group: visiblePoints };
-      this.focusOutline.showXOutline(getGroupRect(visiblePoints));
+      this.focusOutline.group(getGroupRect(visiblePoints));
       this.handlers.onFocusGroup(visiblePoints);
     }
   }
@@ -358,7 +364,7 @@ export class ChartExtraNavigation {
   private focusPoint(point: null | Highcharts.Point, group: Highcharts.Point[]) {
     if (point && isPointVisible(point)) {
       this.focusedState = { type: "point", point, group };
-      this.focusOutline.showPointOutline(getPointRect(point), point);
+      this.focusOutline.point(getPointRect(point), point);
       this.handlers.onFocusPoint(point, group);
     } else if (group.filter(isPointVisible).length > 0) {
       this.focusGroup(group);
@@ -450,49 +456,49 @@ export class ChartExtraNavigation {
 
 class FocusOutline {
   private context: ChartExtraContext;
-  private refs: Highcharts.SVGElement[] = [];
+  private elementsPool = new SVGRendererPool();
 
   constructor(context: ChartExtraContext) {
     this.context = context;
   }
 
-  public showChartOutline = () => {
+  public chart = () => {
     const [x, y, width, height] = [
       this.context.chart().plotLeft,
       this.context.chart().plotTop,
       this.context.chart().plotWidth,
       this.context.chart().plotHeight,
     ];
-    this.showRectOutline({ x: x + 1, y: y + 1, width: width - 2, height: height - 2 });
+    this.rect({ x, y, width, height }, Styles.focusOutlineOffsets.chart);
   };
 
-  public showXOutline = (rect: Rect) => {
-    this.showRectOutline({ x: rect.x - 4, y: rect.y - 4, width: rect.width + 8, height: rect.height + 8 });
+  public group = (rect: Rect) => {
+    this.rect(rect, Styles.focusOutlineOffsets.group);
   };
 
-  public showPointOutline = (rect: Rect, point: Highcharts.Point) => {
-    const offset = point.series.type === "column" || point.series.type === "pie" ? 2 : 6;
-    this.showRectOutline({
-      x: rect.x - offset,
-      y: rect.y - offset,
-      width: rect.width + offset * 2,
-      height: rect.height + offset * 2,
+  public point = (rect: Rect, point: Highcharts.Point) => {
+    const offsetByType = Styles.focusOutlineOffsets.pointByType[point.series.type];
+    const offset = offsetByType ?? Styles.focusOutlineOffsets.point;
+    this.rect(rect, offset);
+  };
+
+  private rect = ({ x, y, width, height }: Rect, offset: number) => {
+    this.elementsPool.hideAll();
+    this.elementsPool.rect(this.context.chart().renderer, {
+      x: x - offset,
+      y: y - offset,
+      width: width + offset * 2,
+      height: height + offset * 2,
+      ...Styles.navigationFocusOutlineStyle,
     });
   };
 
-  private showRectOutline = (rect: Rect) => {
-    this.hide();
-    this.refs.push(
-      this.context
-        .chart()
-        .renderer.rect(rect.x, rect.y, rect.width, rect.height)
-        .attr(Styles.navigationFocusOutlineStyle)
-        .add(),
-    );
-  };
-
   public hide() {
-    this.refs.forEach((ref) => ref.destroy());
+    this.elementsPool.hideAll();
+  }
+
+  public destroy() {
+    this.elementsPool.destroyAll();
   }
 }
 
