@@ -3,7 +3,7 @@
 
 import AsyncStore from "../../internal/utils/async-store";
 import { castArray, isEqualArrays } from "../../internal/utils/utils";
-import { ChartAPIContext } from "./chart-context";
+import { ChartExtraContext } from "./chart-extra-context";
 
 // The reactive state is used to propagate changes to the corresponding vertical axis titles React component.
 export interface ReactiveAxisTitlesState {
@@ -12,8 +12,8 @@ export interface ReactiveAxisTitlesState {
 
 // Chart helper to fetch chart vertical axis labels for them to be rendered in a slot above the chart.
 export class ChartExtraAxisTitles extends AsyncStore<ReactiveAxisTitlesState> {
-  private context: ChartAPIContext;
-  constructor(context: ChartAPIContext) {
+  private context: ChartExtraContext;
+  constructor(context: ChartExtraContext) {
     super({ verticalAxesTitles: [] });
     this.context = context;
   }

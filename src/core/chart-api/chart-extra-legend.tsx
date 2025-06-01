@@ -9,7 +9,7 @@ import { isEqualArrays } from "../../internal/utils/utils";
 import { ChartLegendItem } from "../interfaces-base";
 import { RegisteredLegendAPI } from "../interfaces-core";
 import { getChartLegendItems, matchLegendItems, updateChartItemsVisibility } from "../utils";
-import { ChartAPIContext } from "./chart-context";
+import { ChartExtraContext } from "./chart-extra-context";
 
 // The reactive state is used to propagate changes in legend items to the core legend React component.
 export interface ReactiveLegendState {
@@ -18,10 +18,10 @@ export interface ReactiveLegendState {
 
 // Chart helper that implements custom legend behaviors.
 export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
-  private context: ChartAPIContext;
+  private context: ChartExtraContext;
   private registeredLegend: null | RegisteredLegendAPI = null;
 
-  constructor(context: ChartAPIContext) {
+  constructor(context: ChartExtraContext) {
     super({ items: [] });
     this.context = context;
   }
@@ -66,11 +66,10 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
   };
 
   private initLegend = () => {
-    const customLegendItems = this.context.handlers.getChartLegendItems?.({ chart: this.context.chart() });
-    const nextItemSpecs = getChartLegendItems(this.context.chart(), customLegendItems);
+    const nextItemSpecs = getChartLegendItems(this.context.chart());
     const currentItems = this.get().items;
-    const nextItems = nextItemSpecs.map(({ id, name, color, markerType, marker: customMarker, visible }) => {
-      const marker = customMarker ?? this.renderMarker(markerType, color, visible);
+    const nextItems = nextItemSpecs.map(({ id, name, color, markerType, visible }) => {
+      const marker = this.renderMarker(markerType, color, visible);
       return { id, name, marker, visible };
     });
     if (!isEqualArrays(currentItems, nextItems, isEqualLegendItems)) {

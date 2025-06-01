@@ -4,7 +4,7 @@
 import Highcharts from "highcharts";
 
 import { ChartLegendItem } from "../interfaces-base";
-import { ChartLegendItemSpec, Rect, RenderTooltipProps } from "../interfaces-core";
+import { ChartHighlightProps, Rect } from "../interfaces-core";
 import { getGroupRect, isSeriesStacked } from "../utils";
 
 // Chart API context is used for dependency injection for chart utilities.
@@ -12,16 +12,16 @@ import { getGroupRect, isSeriesStacked } from "../utils";
 // settings and state, and derived state, which is computed from the chart instance
 // on each render, and reused across utilities to avoid duplicate work.
 
-export interface ChartAPIContext {
-  settings: ChartAPIContext.Settings;
-  handlers: ChartAPIContext.Handlers;
-  state: ChartAPIContext.State;
-  derived: ChartAPIContext.DerivedState;
+export interface ChartExtraContext {
+  settings: ChartExtraContext.Settings;
+  handlers: ChartExtraContext.Handlers;
+  state: ChartExtraContext.State;
+  derived: ChartExtraContext.DerivedState;
   chartOrNull: null | Highcharts.Chart;
   chart: () => Highcharts.Chart;
 }
 
-export namespace ChartAPIContext {
+export namespace ChartExtraContext {
   export interface Settings {
     chartId: string;
     noDataEnabled: boolean;
@@ -31,10 +31,9 @@ export namespace ChartAPIContext {
   }
 
   export interface Handlers {
+    onHighlight?(props: ChartHighlightProps): void;
     onClearHighlight?(): void;
-    getChartLegendItems?(props: { chart: Highcharts.Chart }): readonly ChartLegendItemSpec[];
     onLegendItemsChange?: (legendItems: readonly ChartLegendItem[]) => void;
-    onRenderTooltip?(props: RenderTooltipProps): void;
   }
 
   export interface State {
@@ -51,7 +50,7 @@ export namespace ChartAPIContext {
 
 // The context is created when the chart component is rendered for the first time.
 // On every subsequent render the settings and state are updated directly in the context object.
-export function createChartContext(): ChartAPIContext {
+export function createChartContext(): ChartExtraContext {
   return {
     settings: {
       chartId: "",
@@ -75,13 +74,13 @@ export function createChartContext(): ChartAPIContext {
 
 // The update method is called on every chart render, before any other initialization code.
 // This ensures the context state is up to date and can be used for subsequent computations.
-export function updateChartContext(context: ChartAPIContext, chart: Highcharts.Chart) {
+export function updateChartContext(context: ChartExtraContext, chart: Highcharts.Chart) {
   context.chart = () => chart;
   context.chartOrNull = chart;
   context.derived = computeDerivedState(chart);
 }
 
-function computeDerivedState(chart: Highcharts.Chart): ChartAPIContext.DerivedState {
+function computeDerivedState(chart: Highcharts.Chart): ChartExtraContext.DerivedState {
   const allXSet = new Set<number>();
   const allXInSeries = new WeakMap<Highcharts.Series, number[]>();
   const pointsByX = new Map<number, Highcharts.Point[]>();

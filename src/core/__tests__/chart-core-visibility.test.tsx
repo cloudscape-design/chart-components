@@ -364,27 +364,4 @@ describe("CoreChart: visibility", () => {
       { id: "2", name: "Segment", marker: expect.anything(), visible: false },
     ]);
   });
-
-  test("uses customized set of legend items", () => {
-    renderChart({
-      ...defaultProps,
-      options: { series: pieSeries },
-      getChartLegendItems: () => [
-        { id: "Pie series", name: "Pie series item", marker: "Series marker" },
-        { id: "A", name: "Segment A", marker: "Segment A marker" },
-        { id: "B", name: "Segment B", marker: "Segment B marker" },
-        { id: "C", name: "Segment C", marker: "Segment C marker" },
-      ],
-      visibleItems: ["Pie series", "B"],
-    });
-
-    expect(getVisibilityState()).toEqual({
-      allLegendItems: ["Pie series item", "Segment A", "Segment B", "Segment C"],
-      hiddenLegendItems: ["Segment A", "Segment C"],
-      allSeries: ["Pie series"],
-      hiddenSeries: [],
-      allPoints: ["A", "B", "C"],
-      hiddenPoints: ["A", "C"],
-    });
-  });
 });

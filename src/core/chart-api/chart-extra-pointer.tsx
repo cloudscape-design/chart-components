@@ -5,7 +5,7 @@ import type Highcharts from "highcharts";
 
 import { DebouncedCall } from "../../internal/utils/utils";
 import { isPointVisible } from "../utils";
-import { ChartAPIContext } from "./chart-context";
+import { ChartExtraContext } from "./chart-extra-context";
 
 const HOVER_LOST_DELAY = 25;
 
@@ -19,14 +19,14 @@ export interface ChartExtraPointerHandlers {
 
 // Chart helper that implements pointer events (click and hover).
 export class ChartExtraPointer {
-  private context: ChartAPIContext;
+  private context: ChartExtraContext;
   private handlers: ChartExtraPointerHandlers;
   private hoveredPoint: null | Highcharts.Point = null;
   private hoveredGroup: null | Highcharts.Point[] = null;
   private tooltipHovered = false;
   private hoverLostCall = new DebouncedCall();
 
-  constructor(context: ChartAPIContext, handlers: ChartExtraPointerHandlers) {
+  constructor(context: ChartExtraContext, handlers: ChartExtraPointerHandlers) {
     this.context = context;
     this.handlers = handlers;
   }

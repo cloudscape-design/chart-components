@@ -8,10 +8,10 @@ import { getIsRtl } from "@cloudscape-design/component-toolkit/internal";
 import { renderMarker } from "../../internal/components/series-marker";
 import AsyncStore from "../../internal/utils/async-store";
 import { SVGRendererPool, SVGRendererSingle } from "../../internal/utils/renderer-utils";
-import { Rect, RenderTooltipProps } from "../interfaces-core";
+import { ChartHighlightProps, Rect } from "../interfaces-core";
 import * as Styles from "../styles";
 import { getGroupRect, getPointRect, isXThreshold } from "../utils";
-import { ChartAPIContext } from "./chart-context";
+import { ChartExtraContext } from "./chart-extra-context";
 
 export interface ReactiveTooltipState {
   visible: boolean;
@@ -22,8 +22,8 @@ export interface ReactiveTooltipState {
 
 // Chart helper that implements tooltip placement logic and cursors.
 export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
-  private context: ChartAPIContext;
-  constructor(context: ChartAPIContext) {
+  private context: ChartExtraContext;
+  constructor(context: ChartExtraContext) {
     super({ visible: false, pinned: false, point: null, group: [] });
     this.context = context;
   }
@@ -59,7 +59,7 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     this.set((prev) => ({ ...prev, visible: true, pinned: true }));
   }
 
-  public onRenderTooltip = (props: RenderTooltipProps) => {
+  public onRenderTooltip = (props: ChartHighlightProps) => {
     if (this.context.chart().series.some((s) => s.type === "pie")) {
       return this.onRenderTooltipPie(props);
     } else {
@@ -73,7 +73,7 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     this.groupTrack.hide();
   };
 
-  private onRenderTooltipCartesian = ({ point, group }: RenderTooltipProps) => {
+  private onRenderTooltipCartesian = ({ point, group }: ChartHighlightProps) => {
     const pointRect = point ? getPointRect(point) : getPointRect(group[0]);
     const groupRect = getGroupRect(group);
     const hasColumnSeries = this.context.chart().series.some((s) => s.type === "column");
@@ -85,7 +85,7 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     this.createGroupTrack(groupRect);
   };
 
-  private onRenderTooltipPie = ({ group }: RenderTooltipProps) => {
+  private onRenderTooltipPie = ({ group }: ChartHighlightProps) => {
     const pointRect = getPieChartTargetPlacement(group[0]);
 
     this.targetTrack.hide();

@@ -5,7 +5,7 @@ import type Highcharts from "highcharts";
 
 import * as Styles from "../styles";
 import { getPointId, getSeriesId } from "../utils";
-import { ChartAPIContext } from "./chart-context";
+import { ChartExtraContext } from "./chart-extra-context";
 
 const SET_STATE_LOCK = Symbol("awsui-set-state-lock");
 
@@ -15,8 +15,8 @@ type PointSetStateWithLock = Highcharts.Point["setState"] & { [SET_STATE_LOCK]: 
 // Chart helper that mutes Highcharts default highlighting behavior and offers custom methods
 // for customized control over series and points highlighting.
 export class ChartExtraHighlight {
-  private context: ChartAPIContext;
-  constructor(context: ChartAPIContext) {
+  private context: ChartExtraContext;
+  constructor(context: ChartExtraContext) {
     this.context = context;
   }
 

@@ -8,7 +8,7 @@ import { circleIndex, getIsRtl, handleKey, KeyCode } from "@cloudscape-design/co
 import { Rect } from "../interfaces-core";
 import * as Styles from "../styles";
 import { getGroupRect, getPointRect, isPointVisible } from "../utils";
-import { ChartAPIContext } from "./chart-context";
+import { ChartExtraContext } from "./chart-extra-context";
 
 // In charts with many data points one can navigate faster by using Page Down/Up keys that
 // navigate PAGE_SIZE_PERCENTAGE of the points forwards or backwards.
@@ -45,14 +45,14 @@ interface FocusedStatePoint {
 // The focused X value and point are stored so that navigating back to the chart will focus the previously
 // focused point. If the stored point no longer belongs to the chart the focus falls back to the chart plot.
 export class ChartExtraNavigation {
-  private context: ChartAPIContext;
+  private context: ChartExtraContext;
   private focusOutline: FocusOutline;
   private handlers: ChartExtraNavigationHandlers;
   private applicationEl: null | HTMLElement = null;
   private focusedState: null | FocusedState = null;
   private fakeFocus = false;
 
-  constructor(context: ChartAPIContext, handlers: ChartExtraNavigationHandlers) {
+  constructor(context: ChartExtraContext, handlers: ChartExtraNavigationHandlers) {
     this.context = context;
     this.focusOutline = new FocusOutline(context);
     this.handlers = handlers;
@@ -449,10 +449,10 @@ export class ChartExtraNavigation {
 }
 
 class FocusOutline {
-  private context: ChartAPIContext;
+  private context: ChartExtraContext;
   private refs: Highcharts.SVGElement[] = [];
 
-  constructor(context: ChartAPIContext) {
+  constructor(context: ChartExtraContext) {
     this.context = context;
   }
 

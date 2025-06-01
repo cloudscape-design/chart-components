@@ -52,10 +52,9 @@ export function InternalCoreChart({
   footer,
   filter,
   keyboardNavigation = true,
+  onHighlight,
   onClearHighlight,
-  getChartLegendItems,
   onLegendItemsChange,
-  onRenderTooltip,
   visibleItems,
   __internalRootRef,
   ...rest
@@ -69,7 +68,7 @@ export function InternalCoreChart({
     tooltipEnabled: tooltipOptions?.enabled !== false,
     keyboardNavigationEnabled: keyboardNavigation,
   };
-  const handlers = { onClearHighlight, getChartLegendItems, onLegendItemsChange, onRenderTooltip };
+  const handlers = { onHighlight, onClearHighlight, onLegendItemsChange };
   const state = { visibleItems };
   const api = useChartAPI(settings, handlers, state);
 

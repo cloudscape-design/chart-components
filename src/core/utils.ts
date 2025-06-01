@@ -5,7 +5,7 @@ import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
 import { ChartLegendItem } from "./interfaces-base";
-import { ChartLegendItemSpec, InternalChartLegendItemSpec, Rect } from "./interfaces-core";
+import { InternalChartLegendItemSpec, Rect } from "./interfaces-core";
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
 // We expect that items requiring referencing (e.g. in order to control their visibility) have the unique identifier defined.
@@ -114,21 +114,13 @@ export function getPointColor(point?: Highcharts.Point): string {
 // the chart object does not include information on legend items. Instead, we assume that all series but pie are
 // shown in the legend, and all pie series points are shown in the legend. Each item be it a series or a point should
 // have an ID, and all items with non-matched IDs are dimmed.
-export function getChartLegendItems(
-  chart: Highcharts.Chart,
-  specs?: readonly ChartLegendItemSpec[],
-): readonly InternalChartLegendItemSpec[] {
-  const itemToSpec = new Map(specs?.map((spec) => [spec.id, spec]));
+export function getChartLegendItems(chart: Highcharts.Chart): readonly InternalChartLegendItemSpec[] {
   const legendItems: InternalChartLegendItemSpec[] = [];
   const addSeriesItem = (series: Highcharts.Series) => {
-    const spec = itemToSpec.get(getSeriesId(series));
-    if (
-      spec ||
-      (!specs && series.type !== "pie" && series.type !== "errorbar" && series.options.showInLegend !== false)
-    ) {
+    if (series.type !== "pie" && series.type !== "errorbar" && series.options.showInLegend !== false) {
       legendItems.push({
         id: getSeriesId(series),
-        name: spec?.name ?? series.name,
+        name: series.name,
         markerType: getSeriesMarkerType(series),
         color: getSeriesColor(series),
         visible: series.visible,
@@ -136,11 +128,10 @@ export function getChartLegendItems(
     }
   };
   const addPointItem = (point: Highcharts.Point) => {
-    const spec = itemToSpec.get(getPointId(point));
-    if (spec || (!specs && point.series.type === "pie")) {
+    if (point.series.type === "pie") {
       legendItems.push({
         id: getPointId(point),
-        name: spec?.name ?? point.name,
+        name: point.name,
         markerType: getSeriesMarkerType(point.series),
         color: getPointColor(point),
         visible: point.visible,

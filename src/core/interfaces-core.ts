@@ -87,20 +87,15 @@ export interface CoreChartProps
    */
   onLegendItemsChange?: (legendItems: readonly ChartLegendItem[]) => void;
   /**
-   * Called on every chart render to extract series/points to be shown in legend, with ability to customize
-   * item names and markers. By default, all cartesian series and all pie segments are taken as legend items.
-   */
-  getChartLegendItems?(props: { chart: Highcharts.Chart }): readonly ChartLegendItemSpec[];
-  /**
    * Called whenever chart tooltip is rendered to provide content for tooltip's header, body, and (optional) footer.
    */
   getTooltipContent?: GetTooltipContent;
   /**
-   * Called whenever chart point is highlighted and allows to specify custom tooltip target for the given point.
+   * Called whenever chart point or group is highlighted.
    */
-  onRenderTooltip?(props: RenderTooltipProps): void;
+  onHighlight?(props: ChartHighlightProps): void;
   /**
-   * Called whenever chart point loses highlight.
+   * Called whenever chart point or group loses highlight.
    */
   onClearHighlight?(): void;
   /**
@@ -153,7 +148,7 @@ export type InternalChartOptions = Omit<Highcharts.Options, "xAxis" | "yAxis"> &
 
 export type InternalXAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: number) => string };
 export type InternalYAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: number) => string };
-export interface RenderTooltipProps {
+export interface ChartHighlightProps {
   point: null | Highcharts.Point;
   group: Highcharts.Point[];
 }
@@ -172,19 +167,12 @@ export interface RegisteredLegendAPI {
   clearHighlight: () => void;
 }
 
-export interface ChartLegendItemSpec {
-  id: string;
-  name?: string;
-  marker?: React.ReactNode;
-}
-
 export interface InternalChartLegendItemSpec {
   id: string;
   name: string;
   color: string;
   markerType: ChartSeriesMarkerType;
   visible: boolean;
-  marker?: React.ReactNode;
 }
 
 export interface Rect {

@@ -6,8 +6,8 @@ import type Highcharts from "highcharts";
 
 import { ReadonlyAsyncStore } from "../../internal/utils/async-store";
 import { getChartAccessibleDescription, getGroupAccessibleDescription, getPointAccessibleDescription } from "../utils";
-import { ChartAPIContext, createChartContext, updateChartContext } from "./chart-context";
 import { ChartExtraAxisTitles, ReactiveAxisTitlesState } from "./chart-extra-axis-titles";
+import { ChartExtraContext, createChartContext, updateChartContext } from "./chart-extra-context";
 import { ChartExtraHighlight } from "./chart-extra-highlight";
 import { ChartExtraLegend, ReactiveLegendState } from "./chart-extra-legend";
 import { ChartExtraNavigation, ChartExtraNavigationHandlers } from "./chart-extra-navigation";
@@ -18,9 +18,9 @@ import { ChartExtraTooltip, ReactiveTooltipState } from "./chart-extra-tooltip";
 const LAST_DISMISS_DELAY = 250;
 
 export function useChartAPI(
-  settings: ChartAPIContext.Settings,
-  handlers: ChartAPIContext.Handlers,
-  state: ChartAPIContext.State,
+  settings: ChartExtraContext.Settings,
+  handlers: ChartExtraContext.Handlers,
+  state: ChartExtraContext.State,
 ) {
   const api = useRef(new ChartAPI(settings, handlers, state)).current;
   useEffect(() => {
@@ -55,7 +55,11 @@ export class ChartAPI {
   private chartExtraAxisTitles = new ChartExtraAxisTitles(this.context);
   private lastDismissTime = 0;
 
-  constructor(settings: ChartAPIContext.Settings, handlers: ChartAPIContext.Handlers, state: ChartAPIContext.State) {
+  constructor(
+    settings: ChartExtraContext.Settings,
+    handlers: ChartExtraContext.Handlers,
+    state: ChartExtraContext.State,
+  ) {
     this.context.settings = settings;
     this.context.handlers = handlers;
     this.context.state = state;
@@ -357,7 +361,7 @@ export class ChartAPI {
     const group = this.context.derived.getPointsByX(point.x);
     this.setHighlightState(group);
     this.chartExtraTooltip.onRenderTooltip({ point, group });
-    this.context.handlers.onRenderTooltip?.({ point, group });
+    this.context.handlers.onHighlight?.({ point, group });
     this.chartExtraLegend.highlightMatchedItems([point]);
   };
 
@@ -367,7 +371,7 @@ export class ChartAPI {
     }
     this.setHighlightState(group);
     this.chartExtraTooltip.onRenderTooltip({ point: null, group });
-    this.context.handlers.onRenderTooltip?.({ point: null, group });
+    this.context.handlers.onHighlight?.({ point: null, group });
     this.chartExtraLegend.highlightMatchedItems(group);
   };
 

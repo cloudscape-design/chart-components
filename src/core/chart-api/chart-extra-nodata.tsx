@@ -6,7 +6,7 @@ import type Highcharts from "highcharts";
 
 import AsyncStore from "../../internal/utils/async-store";
 import * as Styles from "../styles";
-import { ChartAPIContext } from "./chart-context";
+import { ChartExtraContext } from "./chart-extra-context";
 
 export interface ReactiveNodataState {
   container: null | Element;
@@ -15,8 +15,8 @@ export interface ReactiveNodataState {
 
 // Chart helper that implements custom nodata behaviors.
 export class ChartExtraNodata extends AsyncStore<ReactiveNodataState> {
-  private context: ChartAPIContext;
-  constructor(context: ChartAPIContext) {
+  private context: ChartExtraContext;
+  constructor(context: ChartExtraContext) {
     super({ container: null, noMatch: false });
     this.context = context;
   }
