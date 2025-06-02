@@ -33,8 +33,12 @@ export const useCartesianSeries = ({
         ...Styles.thresholdSeriesOptions,
       };
     }
-    if (s.type === "errorbar" && s.color) {
-      return { ...s, stemColor: s.color, whiskerColor: s.color };
+    if (s.type === "errorbar") {
+      const whiskerLength = 9;
+      if (s.color) {
+        return { ...s, stemColor: s.color, whiskerColor: s.color, whiskerLength };
+      }
+      return { ...s, whiskerLength };
     }
     return { ...s };
   });
