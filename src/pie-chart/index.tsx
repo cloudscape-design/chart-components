@@ -70,7 +70,5 @@ function validateSeries(s: PieChartProps.SeriesOptions): PieChartProps.SeriesOpt
       return [{ type: s.type, id: s.id, name: s.name, color: s.color, data: s.data }];
     case "donut":
       return [{ type: s.type, id: s.id, name: s.name, color: s.color, data: s.data }];
-    default:
-      return [];
   }
 }
