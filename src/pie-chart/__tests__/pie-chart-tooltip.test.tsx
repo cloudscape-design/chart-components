@@ -28,8 +28,7 @@ const getTooltipHeader = () => getChart().findTooltip()!.findHeader()!;
 const getTooltipBody = () => getChart().findTooltip()!.findBody()!;
 const getTooltipFooter = () => getChart().findTooltip()!.findFooter()!;
 
-// TODO: restore
-describe.skip("PieChart: tooltip", () => {
+describe("PieChart: tooltip", () => {
   test("renders tooltip on point highlight", async () => {
     renderPieChart({ highcharts, series });
 
