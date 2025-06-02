@@ -344,6 +344,7 @@ export class ChartAPI {
   private highlightActions(target: Highcharts.Point | Highcharts.Point[], overrideTooltipLock = false) {
     const point = Array.isArray(target) ? null : target;
     const group = Array.isArray(target) ? target : this.context.derived.getPointsByX(target.x);
+
     if (!this.isTooltipPinned) {
       // Update Highcharts elements state.
       this.chartExtraHighlight.highlightChartPoints(group);
