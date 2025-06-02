@@ -4,28 +4,25 @@
 import { render } from "@testing-library/react";
 import Highcharts from "highcharts";
 
-import PieChart from "../../../lib/components/pie-chart";
+import PieChart, { PieChartProps } from "../../../lib/components/pie-chart";
 import createWrapper from "../../../lib/components/test-utils/dom";
 
 describe("PieChart: donut", () => {
+  const commonSeries: PieChartProps.DonutSeriesOptions = {
+    name: "Test",
+    type: "donut",
+    data: [
+      { id: "1", name: "P1", y: 10 },
+      { id: "2", name: "P2", y: 90 },
+    ],
+  };
+
   test.each(["pie", "donut"] as const)(
     "does not render inner value and description when not provided, series type=%s",
     (type) => {
-      render(
-        <PieChart
-          highcharts={Highcharts}
-          series={{
-            name: "Test",
-            type: type,
-            data: [
-              { id: "1", name: "P1", y: 10 },
-              { id: "2", name: "P2", y: 90 },
-            ],
-          }}
-        />,
-      );
-      expect(createWrapper().findChart("pie")!.findInnerValue()).toBe(null);
-      expect(createWrapper().findChart("pie")!.findInnerDescription()).toBe(null);
+      render(<PieChart highcharts={Highcharts} series={{ ...commonSeries, type }} />);
+      expect(findInnerValue()).toBe(null);
+      expect(findInnerDescription()).toBe(null);
     },
   );
 
@@ -33,39 +30,79 @@ describe("PieChart: donut", () => {
     render(
       <PieChart
         highcharts={Highcharts}
-        series={{
-          name: "Test",
-          type: "pie",
-          data: [
-            { id: "1", name: "P1", y: 10 },
-            { id: "2", name: "P2", y: 90 },
-          ],
-        }}
+        series={{ ...commonSeries, type: "pie" }}
         innerValue="Value"
         innerDescription="Description"
       />,
     );
-    expect(createWrapper().findChart("pie")!.findInnerValue()).toBe(null);
-    expect(createWrapper().findChart("pie")!.findInnerDescription()).toBe(null);
+    expect(findInnerValue()).toBe(null);
+    expect(findInnerDescription()).toBe(null);
   });
 
-  test("renders inner value and description for donut series", () => {
-    render(
+  test("renders inner value", () => {
+    render(<PieChart highcharts={Highcharts} series={commonSeries} innerValue="Value" />);
+    expect(findInnerValue()!.getElement().textContent).toBe("Value");
+  });
+
+  test("updates inner value", () => {
+    const { rerender } = render(<PieChart highcharts={Highcharts} series={commonSeries} innerValue="Value" />);
+    rerender(<PieChart highcharts={Highcharts} series={commonSeries} innerValue="New value" />);
+    expect(findInnerValue()!.getElement().textContent).toBe("New value");
+  });
+
+  test("renders inner description", () => {
+    render(<PieChart highcharts={Highcharts} series={commonSeries} innerDescription="Description" />);
+    expect(findInnerDescription()!.getElement().textContent).toBe("Description");
+  });
+
+  test("updates inner description", () => {
+    const { rerender } = render(
+      <PieChart highcharts={Highcharts} series={commonSeries} innerDescription="Description" />,
+    );
+    rerender(
       <PieChart
         highcharts={Highcharts}
-        series={{
-          name: "Test",
-          type: "donut",
-          data: [
-            { id: "1", name: "P1", y: 10 },
-            { id: "2", name: "P2", y: 90 },
-          ],
-        }}
-        innerValue="Value"
-        innerDescription="Description"
+        series={commonSeries}
+        innerValue="New value"
+        innerDescription="New description"
       />,
     );
-    expect(createWrapper().findChart("pie")!.findInnerValue()!.getElement().textContent).toBe("Value");
-    expect(createWrapper().findChart("pie")!.findInnerDescription()!.getElement().textContent).toBe("Description");
+    expect(findInnerDescription()!.getElement().textContent).toBe("New description");
+  });
+
+  test("renders inner value and inner description", () => {
+    render(
+      <PieChart highcharts={Highcharts} series={commonSeries} innerValue="Value" innerDescription="Description" />,
+    );
+    expect(findInnerValue()!.getElement().textContent).toBe("Value");
+    expect(findInnerDescription()!.getElement().textContent).toBe("Description");
+  });
+
+  test("updates inner value and inner description", () => {
+    const { rerender } = render(
+      <PieChart highcharts={Highcharts} series={commonSeries} innerValue="Value" innerDescription="Description" />,
+    );
+    rerender(
+      <PieChart
+        highcharts={Highcharts}
+        series={commonSeries}
+        innerValue="New value"
+        innerDescription="New description"
+      />,
+    );
+    expect(findInnerValue()!.getElement().textContent).toBe("New value");
+    expect(findInnerDescription()!.getElement().textContent).toBe("New description");
   });
 });
+
+function findChart() {
+  return createWrapper().findChart("pie")!;
+}
+
+function findInnerValue() {
+  return findChart()!.findInnerValue();
+}
+
+function findInnerDescription() {
+  return findChart()!.findInnerDescription();
+}
