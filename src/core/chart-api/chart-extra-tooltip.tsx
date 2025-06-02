@@ -8,11 +8,16 @@ import { getIsRtl } from "@cloudscape-design/component-toolkit/internal";
 import { renderMarker } from "../../internal/components/series-marker";
 import AsyncStore from "../../internal/utils/async-store";
 import { SVGRendererPool, SVGRendererSingle } from "../../internal/utils/renderer-utils";
+import { DebouncedCall } from "../../internal/utils/utils";
 import { ChartHighlightProps, Rect } from "../interfaces-core";
 import * as Styles from "../styles";
 import { getGroupRect, getPointRect, isXThreshold } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
+const TOOLTIP_LAST_DISMISS_DELAY = 250;
+
+// The reactive state is used to propagate updates to the chart tooltip React component. The tooltip
+// content is to be derived from the target point and group.
 export interface ReactiveTooltipState {
   visible: boolean;
   pinned: boolean;
@@ -23,13 +28,31 @@ export interface ReactiveTooltipState {
 // Chart helper that implements tooltip placement logic and cursors.
 export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
   private context: ChartExtraContext;
+
+  // The tooltip lock is used to prevent tooltip position changes shortly after it was dismissed, to
+  // deny its immediate re-appearance in the spot under where the dismiss button was.
+  public tooltipLock = false;
+  private tooltipLockCall = new DebouncedCall();
+  private setTooltipLock = () => {
+    if (this.get().pinned) {
+      this.tooltipLock = true;
+      this.tooltipLockCall.call(() => (this.tooltipLock = false), TOOLTIP_LAST_DISMISS_DELAY);
+    }
+  };
+
+  // The cursor is a vertical or horizontal (in inverted charts) line and hollow or filled markers,
+  // shown in cartesian charts on top of the matched group or point.
+  private cursor = new HighlightCursorCartesian();
+  // The track elements are invisible rectangles, compted for the given target point or group.
+  // The target track is used for the "target" tooltip placement. The group track is used for
+  // the "middle" and "outside" tooltip placement.
+  private targetTrack = new SVGRendererSingle();
+  private groupTrack = new SVGRendererSingle();
+
   constructor(context: ChartExtraContext) {
     super({ visible: false, pinned: false, point: null, group: [] });
     this.context = context;
   }
-  private cursor = new HighlightCursorCartesian();
-  private targetTrack = new SVGRendererSingle();
-  private groupTrack = new SVGRendererSingle();
 
   // The targetElement.element can get invalidated by Highcharts, so we cannot use
   // trackRef.current = targetElement.element as it might get invalidated unexpectedly.
@@ -43,15 +66,25 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     this.groupTrack.destroy();
   }
 
-  public setTooltipPoint(point: Highcharts.Point, matchingGroup: Highcharts.Point[]) {
-    this.set(() => ({ visible: true, pinned: false, point, group: matchingGroup }));
+  public showTooltipOnPoint(point: Highcharts.Point, matchingGroup: Highcharts.Point[], ignoreLock = false) {
+    if (!this.tooltipLock || ignoreLock) {
+      this.set(() => ({ visible: true, pinned: false, point, group: matchingGroup }));
+      this.onRenderTooltip({ point, group: matchingGroup });
+    }
   }
 
-  public setTooltipGroup(group: Highcharts.Point[]) {
-    this.set(() => ({ visible: true, pinned: false, point: null, group }));
+  public showTooltipOnGroup(group: Highcharts.Point[], ignoreLock = false) {
+    if (!this.tooltipLock || ignoreLock) {
+      this.set(() => ({ visible: true, pinned: false, point: null, group }));
+      this.onRenderTooltip({ point: null, group });
+    }
   }
 
   public hideTooltip() {
+    this.cursor.hide();
+    this.targetTrack.hide();
+    this.groupTrack.hide();
+    this.setTooltipLock();
     this.set((prev) => ({ ...prev, visible: false, pinned: false }));
   }
 
@@ -59,7 +92,7 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     this.set((prev) => ({ ...prev, visible: true, pinned: true }));
   }
 
-  public onRenderTooltip = (props: ChartHighlightProps) => {
+  private onRenderTooltip = (props: ChartHighlightProps) => {
     if (this.context.chart().series.some((s) => s.type === "pie")) {
       return this.onRenderTooltipPie(props);
     } else {
@@ -67,77 +100,48 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     }
   };
 
-  public onClearHighlight = () => {
-    this.cursor.hide();
-    this.targetTrack.hide();
-    this.groupTrack.hide();
-  };
-
   private onRenderTooltipCartesian = ({ point, group }: ChartHighlightProps) => {
     const pointRect = point ? getPointRect(point) : getPointRect(group[0]);
     const groupRect = getGroupRect(group);
+    // The cursor is not shown when column series are present (a UX decision).
     const hasColumnSeries = this.context.chart().series.some((s) => s.type === "column");
     this.cursor.create(groupRect, point, group, !hasColumnSeries);
-
-    this.targetTrack.hide();
-    this.groupTrack.hide();
-    this.createPointTrack(pointRect);
-    this.createGroupTrack(groupRect);
+    this.targetTrack.rect(this.context.chart().renderer, { ...pointRect, ...this.commonTrackAttrs });
+    this.groupTrack.rect(this.context.chart().renderer, { ...groupRect, ...this.commonTrackAttrs });
   };
 
   private onRenderTooltipPie = ({ group }: ChartHighlightProps) => {
+    // We only create target track for pie chart as pie chart does not support groups.
+    // It is also expected that only "target" tooltip position is used for pie charts.
     const pointRect = getPieChartTargetPlacement(group[0]);
-
-    this.targetTrack.hide();
-    this.createPointTrack(pointRect);
+    this.targetTrack.rect(this.context.chart().renderer, { ...pointRect, ...this.commonTrackAttrs });
   };
 
-  private createPointTrack = (pointRect: Rect) => {
-    this.targetTrack.rect(this.context.chart().renderer, {
-      ...pointRect,
-      fill: "transparent",
-      zIndex: -1,
-      direction: this.isRtl() ? "rtl" : "ltr",
-      style: "pointer-events:none",
-    });
-  };
+  private get commonTrackAttrs() {
+    return { fill: "transparent", zIndex: -1, style: "pointer-events:none", direction: this.direction };
+  }
 
-  private createGroupTrack = (groupRect: Rect) => {
-    this.groupTrack
-      .rect(this.context.chart().renderer, {
-        ...groupRect,
-        fill: "transparent",
-        zIndex: -1,
-        direction: this.isRtl() ? "rtl" : "ltr",
-        style: "pointer-events:none",
-      })
-      .show();
-  };
-
-  // We set the direction to target element so that the direction check done by the tooltip
-  // is done correctly. Without that, the asserted target direction always results to "ltr".
-  private isRtl() {
-    return getIsRtl(this.context.chart().container.parentElement);
+  // We compute the direction from the chart container and then explicitly set it to the track
+  // elements, as otherwise the direction check done for track elements always results to "ltr".
+  private get direction() {
+    const isRtl = getIsRtl(this.context.chart().container.parentElement);
+    return isRtl ? "rtl" : "ltr";
   }
 }
 
+// A helper class to draw the cursor elements (include cursor line and matched points markers).
 class HighlightCursorCartesian {
-  private cursorElementsPool = new SVGRendererPool();
+  private lineElement = new SVGRendererSingle();
   private markerElementsPool = new SVGRendererPool();
 
-  public create(target: Rect, point: null | Highcharts.Point, group: Highcharts.Point[], showCursor: boolean) {
+  public create(target: Rect, point: null | Highcharts.Point, group: Highcharts.Point[], showLine: boolean) {
     this.hide();
-
     const chart = group[0]?.series.chart;
     if (!chart) {
       return;
     }
-
-    // The cursor (vertical or horizontal line to make the highlighted point better prominent) is only added for charts
-    // that do not include "column" series. That is because the cursor is not necessary for columns, assuming the number of
-    // x data points is not very high.
-    if (showCursor) {
-      const cursorAttrs = chart.inverted
+    if (showLine) {
+      const lineAttrs = chart.inverted
         ? {
             x: chart.plotLeft,
             y: chart.plotTop + (target.y - 2 * target.height),
@@ -150,14 +154,9 @@ class HighlightCursorCartesian {
             width: 1,
             height: chart.plotHeight,
           };
-      this.cursorElementsPool.rect(chart.renderer, { ...Styles.cursorStyle, ...cursorAttrs }).show();
+      this.lineElement.rect(chart.renderer, { ...Styles.cursorStyle, ...lineAttrs });
     }
-
-    const matchedPoints = group.filter(
-      (p) => !isXThreshold(p.series) && p.series.type !== "column" && p.series.type !== "errorbar",
-    );
-
-    for (const p of matchedPoints) {
+    for (const p of group.filter(this.isPointEligibleForMarker)) {
       if (p.plotX !== undefined && p.plotY !== undefined) {
         renderMarker(chart, this.markerElementsPool, p, p === point);
       }
@@ -165,22 +164,29 @@ class HighlightCursorCartesian {
   }
 
   public hide() {
-    this.cursorElementsPool.hideAll();
+    this.lineElement.hide();
     this.markerElementsPool.hideAll();
   }
 
   public destroy() {
-    this.cursorElementsPool.destroyAll();
+    this.lineElement.destroy();
     this.markerElementsPool.destroyAll();
   }
+
+  private isPointEligibleForMarker = (point: Highcharts.Point) => {
+    return !isXThreshold(point.series) && point.series.type !== "column" && point.series.type !== "errorbar";
+  };
 }
 
 function getPieChartTargetPlacement(point: Highcharts.Point): Rect {
   // The pie series segments do not provide plotX, plotY to compute the tooltip placement.
   // Instead, there is a `tooltipPos` tuple, which is not covered by TS.
+  // See: https://github.com/highcharts/highcharts/issues/23118.
   if ("tooltipPos" in point && Array.isArray(point.tooltipPos)) {
     return { x: point.tooltipPos[0], y: point.tooltipPos[1], width: 0, height: 0 };
   }
+  // We use the alternative, middle, tooltip placement as a fallback, in case the undocumented "tooltipPos"
+  // is no longer available in the point.
   return getPieMiddlePlacement(point);
 }
 

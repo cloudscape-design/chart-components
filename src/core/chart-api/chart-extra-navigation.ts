@@ -3,7 +3,12 @@
 
 import type Highcharts from "highcharts";
 
-import { circleIndex, getIsRtl, handleKey, KeyCode } from "@cloudscape-design/component-toolkit/internal";
+import {
+  circleIndex,
+  getIsRtl,
+  handleKey as toolkitHandleKey,
+  KeyCode,
+} from "@cloudscape-design/component-toolkit/internal";
 
 import { SVGRendererPool } from "../../internal/utils/renderer-utils";
 import { Rect } from "../interfaces-core";
@@ -46,16 +51,20 @@ interface FocusedStatePoint {
 // focused point. If the stored point no longer belongs to the chart the focus falls back to the chart plot.
 export class ChartExtraNavigation {
   private context: ChartExtraContext;
-  private focusOutline: FocusOutline;
   private handlers: ChartExtraNavigationHandlers;
+  private focusOutline: FocusOutline;
+  // The application element is a dom element with role="application", rendered right before the chart plot.
+  // When the application element is in focus, the keyboard navigation is possible. Upon using navigation commands,
+  // we bring the visible focus state to the chart elements, such as points and groups of points. The last visible
+  // focus state is persisted.
   private applicationElement: null | HTMLElement = null;
   private focusedState: null | FocusedState = null;
   private ignoreFocus = false;
 
   constructor(context: ChartExtraContext, handlers: ChartExtraNavigationHandlers) {
     this.context = context;
-    this.focusOutline = new FocusOutline(context);
     this.handlers = handlers;
+    this.focusOutline = new FocusOutline(context);
   }
 
   public onChartDestroy() {
@@ -83,11 +92,13 @@ export class ChartExtraNavigation {
     }
   };
 
-  // Casting focus to the application element dispatches it to the previously focused element or the chart.
-  // This is used to restore focus after the tooltip is dismissed.
+  // Casting focus to the application element brings the visible focus state to the chart or last focused
+  // chart point or group of points. This is used to restore focus after the tooltip is dismissed.
   public focusApplication(point: null | Highcharts.Point, group: Highcharts.Point[]) {
-    this.focusedState = point ? { type: "point", point, group } : { type: "group", group };
-    this.applicationElement?.focus();
+    if (this.context.settings.keyboardNavigationEnabled) {
+      this.focusedState = point ? { type: "point", point, group } : { type: "group", group };
+      this.applicationElement?.focus();
+    }
   }
 
   public announceChart(ariaLabel: string) {
@@ -98,37 +109,47 @@ export class ChartExtraNavigation {
     this.announce({ role: "button", "aria-label": ariaLabel, "aria-haspopup": true, "aria-expanded": pinned });
   }
 
-  private announce(elementProps: React.ButtonHTMLAttributes<unknown>) {
-    if (!this.applicationElement) {
-      return;
-    }
-
-    // Remove prev attributes.
-    for (const attributeName of this.applicationElement.getAttributeNames()) {
-      if (attributeName === "role" || attributeName.slice(0, 4) === "aria") {
-        this.applicationElement.removeAttribute(attributeName);
+  // Every time the chart focus is obtained or a navigation action is performed, this needs to be announced
+  // to screen-readers. The announcement is made by updating the application element with the attributes of
+  // the visually focused element (chart, point, or group), and re-focusing it.
+  private announce(elementAttributes: React.ButtonHTMLAttributes<unknown>) {
+    if (this.applicationElement) {
+      // Remove prev attributes.
+      for (const attributeName of this.applicationElement.getAttributeNames()) {
+        if (attributeName === "role" || attributeName.slice(0, 4) === "aria") {
+          this.applicationElement.removeAttribute(attributeName);
+        }
       }
+      // Copy new attributes.
+      for (const [attributeName, attributeValue] of Object.entries(elementAttributes)) {
+        this.applicationElement.setAttribute(attributeName, `${attributeValue}`);
+      }
+      // Temporarily disable focus/blur event handlers to not respond to the next programmatically
+      // cast focus event, which has the only purpose of making the application element announced to
+      // the assistive software.
+      this.ignoreFocus = true;
+      // Re-attach and re-focus application element to trigger a screen-reader announcement.
+      const container = this.applicationElement.parentElement!;
+      container.removeChild(this.applicationElement);
+      container.appendChild(this.applicationElement);
+      this.applicationElement.focus({ preventScroll: true });
+      // Remove focus lock. The blur and focus events should have already occurred at this point.
+      setTimeout(() => (this.ignoreFocus = false), 0);
     }
-
-    // Copy new attributes.
-    for (const [attributeName, attributeValue] of Object.entries(elementProps)) {
-      this.applicationElement.setAttribute(attributeName, `${attributeValue}`);
-    }
-
-    this.ignoreFocus = true;
-
-    // Re-attach and re-focus application element to trigger a screen-reader announcement.
-    const container = this.applicationElement.parentElement!;
-    container.removeChild(this.applicationElement);
-    container.appendChild(this.applicationElement);
-    this.applicationElement.focus({ preventScroll: true });
-
-    setTimeout(() => (this.ignoreFocus = false), 0);
   }
 
+  // Upon obtaining focus, we show the visible focus state and announce the previously focused element
+  // (chart, point, or group). If the previously focused point or group is no longer available, the focus
+  // is shown for their respective parent.
   private onFocus = () => {
     if (!this.ignoreFocus) {
-      this.focusCurrent();
+      if (!this.focusedState || this.focusedState.type === "chart") {
+        this.focusChart();
+      } else if (this.focusedState.type === "group") {
+        this.focusGroup(this.focusedState.group);
+      } else {
+        this.focusPoint(this.focusedState.point, this.focusedState.group);
+      }
     }
   };
 
@@ -140,6 +161,8 @@ export class ChartExtraNavigation {
   };
 
   private onKeyDown = (event: KeyboardEvent) => {
+    // The `handleKey` helper we use does not prevent the default keys behavior, so we do it here for
+    // all used keyboard commands.
     if (
       [
         KeyCode.up,
@@ -156,6 +179,8 @@ export class ChartExtraNavigation {
     ) {
       event.preventDefault();
     }
+    // We execute different actions depending on the current focus target (chart, group, or point).
+    // It is expected, that the focused element is still available in the chart.
     if (this.focusedState && this.focusedState.type === "group") {
       this.onKeyDownGroup(event, this.focusedState.group);
     } else if (this.focusedState && this.focusedState.type === "point") {
@@ -166,7 +191,7 @@ export class ChartExtraNavigation {
   };
 
   private onKeyDownChart = (event: KeyboardEvent) => {
-    handleKey(event as any, {
+    handleKey(event, {
       onActivate: () => this.moveToFirstGroup(),
       onInlineStart: () => this.moveToLastGroup(),
       onInlineEnd: () => this.moveToFirstGroup(),
@@ -179,7 +204,7 @@ export class ChartExtraNavigation {
 
   private onKeyDownGroup = (event: KeyboardEvent, group: Highcharts.Point[]) => {
     const i = !!this.context.chart().inverted;
-    handleKey(event as any, {
+    handleKey(event, {
       onActivate: () => this.activateGroup(group),
       onEscape: () => this.moveToChart(),
       onInlineStart: () => (i ? this.moveToFirstInGroup(group) : this.moveToPrevGroup(group)),
@@ -195,7 +220,7 @@ export class ChartExtraNavigation {
 
   private onKeyDownPoint = (event: KeyboardEvent, point: Highcharts.Point, group: Highcharts.Point[]) => {
     const i = !!this.context.chart().inverted;
-    handleKey(event as any, {
+    handleKey(event, {
       onActivate: () => this.activatePoint(point, group),
       onEscape: () => this.moveToParentGroup(point),
       onInlineEnd: () => (i ? this.moveToPrevInGroup(point) : this.moveToNextInSeries(point)),
@@ -332,16 +357,6 @@ export class ChartExtraNavigation {
     this.handlers.onActivatePoint(point, group);
   }
 
-  private focusCurrent() {
-    if (!this.focusedState || this.focusedState.type === "chart") {
-      this.focusChart();
-    } else if (this.focusedState.type === "group") {
-      this.focusGroup(this.focusedState.group);
-    } else {
-      this.focusPoint(this.focusedState.point, this.focusedState.group);
-    }
-  }
-
   private focusChart = () => {
     this.focusedState = { type: "chart" };
     this.focusOutline.chart();
@@ -349,12 +364,20 @@ export class ChartExtraNavigation {
   };
 
   private focusGroup(group: Highcharts.Point[]) {
+    // When the chart is re-focused, the group that was focused before might no longer be valid if its
+    // points are no longer visible or were destroyed by Highcharts. In that case we focus the chart as
+    // a fallback.
     const visiblePoints = group.filter(isPointVisible);
     if (visiblePoints.length === 0) {
       this.focusChart();
-    } else if (visiblePoints[0].series.type === "pie") {
+    }
+    // In pie charts we only focus points, so moving focus to points and groups is equivalent.
+    else if (visiblePoints[0].series.type === "pie") {
       this.focusPoint(visiblePoints[0] ?? null, group);
-    } else {
+    }
+    // When focusing a group we draw the focus outline around the corresponding group rect, including
+    // all points of that group.
+    else {
       this.focusedState = { type: "group", group: visiblePoints };
       this.focusOutline.group(getGroupRect(visiblePoints));
       this.handlers.onFocusGroup(visiblePoints);
@@ -362,12 +385,17 @@ export class ChartExtraNavigation {
   }
 
   private focusPoint(point: null | Highcharts.Point, group: Highcharts.Point[]) {
-    if (point && isPointVisible(point)) {
+    // When the chart is re-focused, the point that was focused before might no longer be valid it became
+    // hidden or was destroyed by Highcharts. In that case we focus the point's parent group as a fallback.
+    if (!point || !isPointVisible(point)) {
+      this.focusGroup(group);
+    }
+    // When focusing a point we draw the focus outline around its corresponding rect, but with different offsets,
+    // depending on the point's series type.
+    else {
       this.focusedState = { type: "point", point, group };
       this.focusOutline.point(getPointRect(point), point);
       this.handlers.onFocusPoint(point, group);
-    } else if (group.filter(isPointVisible).length > 0) {
-      this.focusGroup(group);
     }
   }
 
@@ -454,6 +482,32 @@ export class ChartExtraNavigation {
   };
 }
 
+function handleKey(
+  event: KeyboardEvent,
+  handlers: {
+    onActivate?: () => void;
+    onBlockEnd?: () => void;
+    onBlockStart?: () => void;
+    onDefault?: () => void;
+    onEnd?: () => void;
+    onEscape?: () => void;
+    onHome?: () => void;
+    onInlineEnd?: () => void;
+    onInlineStart?: () => void;
+    onPageDown?: () => void;
+    onPageUp?: () => void;
+  },
+) {
+  if (!event.currentTarget) {
+    return;
+  }
+  if (!(event.currentTarget instanceof HTMLElement) && !(event.currentTarget instanceof SVGElement)) {
+    return;
+  }
+  toolkitHandleKey({ keyCode: event.keyCode, currentTarget: event.currentTarget }, handlers);
+}
+
+// A helper class to draw the focus outline around given chart elements.
 class FocusOutline {
   private context: ChartExtraContext;
   private elementsPool = new SVGRendererPool();
@@ -482,6 +536,14 @@ class FocusOutline {
     this.rect(rect, offset);
   };
 
+  public hide() {
+    this.elementsPool.hideAll();
+  }
+
+  public destroy() {
+    this.elementsPool.destroyAll();
+  }
+
   private rect = ({ x, y, width, height }: Rect, offset: number) => {
     this.elementsPool.hideAll();
     this.elementsPool.rect(this.context.chart().renderer, {
@@ -492,14 +554,6 @@ class FocusOutline {
       ...Styles.navigationFocusOutlineStyle,
     });
   };
-
-  public hide() {
-    this.elementsPool.hideAll();
-  }
-
-  public destroy() {
-    this.elementsPool.destroyAll();
-  }
 }
 
 // We do not invert the direction of pie segments when RTL, but swap the left/right keys.

@@ -35,8 +35,8 @@ export function ChartLegend({ title, actions, api, i18nStrings }: ChartLegendPro
       items={legendItems}
       actions={actions}
       onItemVisibilityChange={api.onItemVisibilityChange}
-      onItemHighlightEnter={(itemId) => api.highlightChartItems([itemId])}
-      onItemHighlightExit={api.clearChartItemsHighlight}
+      onItemHighlightEnter={(itemId) => api.onHighlightChartItems([itemId])}
+      onItemHighlightExit={api.onClearChartItemsHighlight}
     />
   );
 }

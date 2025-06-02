@@ -46,9 +46,32 @@ export class ChartExtraHighlight {
     setPlotLinesState(this.context.chart(), (lineId) => itemIds.includes(lineId));
   };
 
+  // This method is similar to the above, but it takes a collection of points. The cartesian chart points
+  // do not have IDs, so we match points and series by their references instead. This is used to control
+  // highlight state when chart elements are hovered or focused.
+  public highlightChartPoints = (points: readonly Highcharts.Point[]) => {
+    const includedPoints = new Set<Highcharts.Point>();
+    const includedSeries = new Set<Highcharts.Series>();
+    points.forEach((point) => {
+      includedPoints.add(point);
+      includedSeries.add(point.series);
+    });
+    for (const s of this.context.chart().series) {
+      this.setSeriesState(s, includedSeries.has(s) ? "normal" : "inactive");
+      // We use special handling for column- and pie series. In pie series, the state is meant to be set on points.
+      // In column series, we prefer the stacks of groups of column that have a shared X coordinate to be highlighted.
+      // See: https://github.com/highcharts/highcharts/issues/23076.
+      if (s.type === "column" || s.type === "pie") {
+        for (const d of s.data) {
+          this.setPointState(d, includedPoints.has(d) ? "normal" : "inactive");
+        }
+      }
+    }
+  };
+
   // Removes dimmed state from all series and points.
   public clearChartItemsHighlight = () => {
-    for (const s of this.context.chart().series) {
+    for (const s of this.context.chart().series ?? []) {
       this.setSeriesState(s, "normal");
       for (const p of s.data) {
         this.setPointState(p, "normal");
@@ -57,16 +80,16 @@ export class ChartExtraHighlight {
     setPlotLinesState(this.context.chart(), () => true);
   };
 
-  // Used to make the specified series active or dimmed.
-  public setSeriesState(series: Highcharts.Series, state: Highcharts.SeriesStateValue) {
+  // Makes the specified series active or dimmed.
+  private setSeriesState(series: Highcharts.Series, state: Highcharts.SeriesStateValue) {
     (series.setState as SeriesSetStateWithLock)[SET_STATE_LOCK] = false;
     series.setState(state, false);
     this.updateStoredSeriesState(series, state);
     (series.setState as SeriesSetStateWithLock)[SET_STATE_LOCK] = true;
   }
 
-  // Used to make the specified point active or dimmed.
-  public setPointState(point: Highcharts.Point, state: Highcharts.PointStateValue) {
+  // Makes the specified point active or dimmed.
+  private setPointState(point: Highcharts.Point, state: Highcharts.PointStateValue) {
     (point.setState as PointSetStateWithLock)[SET_STATE_LOCK] = false;
     point.setState(state, true);
     this.updateStoredPointState(point, state);

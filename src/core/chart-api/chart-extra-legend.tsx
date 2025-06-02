@@ -27,15 +27,15 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
 
   public onChartRender = () => {
     this.initLegend();
-    this.updateItemsVisibility(this.context.state.visibleItems);
+    this.updateItemsVisibility();
   };
 
   // If visible items are explicitly provided, we use them to update visibility of chart's series or points (by ID).
   // If not provided, the visibility state is managed internally.
-  public updateItemsVisibility = (visibleItems?: readonly string[]) => {
-    if (visibleItems) {
+  public updateItemsVisibility = () => {
+    if (this.context.state.visibleItems) {
       this.visibilityMode = "external";
-      updateItemsVisibility(this.context.chart(), this.get().items, visibleItems);
+      updateItemsVisibility(this.context.chart(), this.get().items, this.context.state.visibleItems);
     } else {
       this.visibilityMode = "internal";
     }

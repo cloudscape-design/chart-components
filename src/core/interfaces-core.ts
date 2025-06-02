@@ -159,6 +159,7 @@ export interface CoreChartAPI {
   chart: Highcharts.Chart;
   highcharts: typeof Highcharts;
   highlightChartPoint(point: Highcharts.Point): void;
+  highlightChartGroup(group: Highcharts.Point[]): void;
   clearChartHighlight(): void;
 }
 

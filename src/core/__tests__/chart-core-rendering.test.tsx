@@ -39,6 +39,7 @@ describe("CoreChart: rendering", () => {
       chart: hc.getChart(),
       highcharts,
       highlightChartPoint: expect.any(Function),
+      highlightChartGroup: expect.any(Function),
       clearChartHighlight: expect.any(Function),
     });
   });

@@ -342,6 +342,7 @@ export function InternalCoreChart({
                     chart,
                     highcharts: highcharts as typeof Highcharts,
                     highlightChartPoint: (point) => api.highlightChartPoint(point),
+                    highlightChartGroup: (group) => api.highlightChartGroup(group),
                     clearChartHighlight: () => api.clearChartHighlight(),
                   });
                 }}

@@ -15,26 +15,40 @@ import { ChartExtraNodata, ReactiveNodataState } from "./chart-extra-nodata";
 import { ChartExtraPointer, ChartExtraPointerHandlers } from "./chart-extra-pointer";
 import { ChartExtraTooltip, ReactiveTooltipState } from "./chart-extra-tooltip";
 
-const LAST_DISMISS_DELAY = 250;
-
+// The API helper injects Cloudscape custom behaviors, and returns the API instance that comes with
+// reactive state and handlers to be assigned as Highcharts options, used by Cloudscape components
+// (tooltip, legend, and other), or exposed as public core chart API.
 export function useChartAPI(
   settings: ChartExtraContext.Settings,
   handlers: ChartExtraContext.Handlers,
   state: ChartExtraContext.State,
 ) {
+  // The API helper instance defines many pieces of internal state with different lifecycles, most
+  // of which are not be invalidated when the hook re-renders, or properties change. That is why we
+  // create the instance once, when the component is mounted.
   const api = useRef(new ChartAPI(settings, handlers, state)).current;
+  // The consumer-defined properties can still change during the component lifecycle. We propagate the
+  // changes by updating the helper's context directly. That is fine for most of the properties, as those
+  // are only used in event-based callbacks, and require nothing to recompute when there is a change.
   useEffect(() => {
     api.context.settings = settings;
     api.context.handlers = handlers;
     api.context.state = state;
   });
 
-  // When series or items visibility change, we call setVisible Highcharts method on series and/or items
-  // for the change to take an effect.
+  // The only property that does require notifying the helper when it changes, is the visible items state.
+  // We stringify the visible items array so that it is compared by value, and the effect is only fired when
+  // there is an actual change to the visible items, including items order.
   const visibleItemsIndex = state.visibleItems ? state.visibleItems.join("::") : null;
   useEffect(() => {
+    // When visibleItemsIndex === null, it means the visible items state is managed internally inside the helper,
+    // so no need to call the API method.
+    // The api.updateItemsVisibility() can only be used once the chart is initialized, so we check for api.ready.
+    // The initialization happens after the first React render, so the chart is expected to not be ready when the
+    // effect is called for the first time. This is fine, as the initial visibility state is handled by the helper.
+    // The code below is needed to notify the helper any time the visible items state changes.
     if (api.ready && visibleItemsIndex !== null) {
-      api.updateItemsVisibility(visibleItemsIndex.split("::").filter(Boolean));
+      api.updateItemsVisibility();
     }
   }, [api, visibleItemsIndex]);
 
@@ -44,6 +58,11 @@ export function useChartAPI(
   return api;
 }
 
+// The main chart helper that provides customizations to Highcharts, including tooltip, legend, keyboard navigation, and more.
+// It is split into multiple dedicated (chart-extra) helpers (highlight, tooltip, navigation, and other), most of which define
+// internal state, and have a lifecycle based on Highcharts render event.
+// The helper code has a shared context, which includes the consumer settings, visible items state, and derived state, computed
+// from Highcharts.Chart on each render, and reused for downstream computations for better efficiency.
 export class ChartAPI {
   public context = createChartContext();
   private chartExtraHighlight = new ChartExtraHighlight(this.context);
@@ -53,7 +72,6 @@ export class ChartAPI {
   private chartExtraLegend = new ChartExtraLegend(this.context);
   private chartExtraNodata = new ChartExtraNodata(this.context);
   private chartExtraAxisTitles = new ChartExtraAxisTitles(this.context);
-  private lastDismissTime = 0;
 
   constructor(
     settings: ChartExtraContext.Settings,
@@ -65,37 +83,13 @@ export class ChartAPI {
     this.context.state = state;
   }
 
-  private get chart() {
-    return this.context.chart();
-  }
-
+  // The ready() returns true if the chart is initialized and helper methods are safe to use (after Highcharts triggers onChartRender).
+  // Using any of the helper methods before the chart is initialized will result in an exception.
   public get ready() {
     return !!this.context.chartOrNull;
   }
 
-  public get tooltipStore() {
-    return this.chartExtraTooltip as ReadonlyAsyncStore<ReactiveTooltipState>;
-  }
-
-  public get legendStore() {
-    return this.chartExtraLegend as ReadonlyAsyncStore<ReactiveLegendState>;
-  }
-
-  public get nodataStore() {
-    return this.chartExtraNodata as ReadonlyAsyncStore<ReactiveNodataState>;
-  }
-
-  public get axisTitlesStore() {
-    return this.chartExtraAxisTitles as ReadonlyAsyncStore<ReactiveAxisTitlesState>;
-  }
-
-  public getTargetTrack = this.chartExtraTooltip.getTargetTrack.bind(this.chartExtraTooltip);
-  public getGroupTrack = this.chartExtraTooltip.getGroupTrack.bind(this.chartExtraTooltip);
-
-  public setApplication = (element: null | HTMLElement) => {
-    this.chartExtraNavigation.setApplication(element);
-  };
-
+  // The Highcharts options to be merged with the rest of the configuration defined in the chart-core.
   public get options() {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const chartAPI = this;
@@ -135,47 +129,115 @@ export class ChartAPI {
     };
   }
 
-  public onMouseEnterTooltip = this.chartExtraPointer.onMouseEnterTooltip.bind(this.chartExtraPointer);
-  public onMouseLeaveTooltip = this.chartExtraPointer.onMouseLeaveTooltip.bind(this.chartExtraPointer);
-
+  // The is no cleanup or destroy event in Highcharts options, so we define a custom one
+  // to be used when the React component unmounts.
   public onChartDestroy = () => {
     this.chartExtraNavigation.onChartDestroy();
     this.chartExtraPointer.onChartDestroy();
     this.chartExtraTooltip.onChartDestroy();
   };
 
+  // Reactive state stores.
+  public get tooltipStore() {
+    return this.chartExtraTooltip as ReadonlyAsyncStore<ReactiveTooltipState>;
+  }
+  public get legendStore() {
+    return this.chartExtraLegend as ReadonlyAsyncStore<ReactiveLegendState>;
+  }
+  public get nodataStore() {
+    return this.chartExtraNodata as ReadonlyAsyncStore<ReactiveNodataState>;
+  }
+  public get axisTitlesStore() {
+    return this.chartExtraAxisTitles as ReadonlyAsyncStore<ReactiveAxisTitlesState>;
+  }
+
+  // References to SVG elements used for tooltip placement.
+  public getTargetTrack = this.chartExtraTooltip.getTargetTrack.bind(this.chartExtraTooltip);
+  public getGroupTrack = this.chartExtraTooltip.getGroupTrack.bind(this.chartExtraTooltip);
+
+  // Callbacks assigned to the tooltip.
+  public onMouseEnterTooltip = this.chartExtraPointer.onMouseEnterTooltip.bind(this.chartExtraPointer);
+  public onMouseLeaveTooltip = this.chartExtraPointer.onMouseLeaveTooltip.bind(this.chartExtraPointer);
+  public onDismissTooltip = (outsideClick?: boolean) => {
+    const { pinned, point, group } = this.chartExtraTooltip.get();
+    if (pinned) {
+      this.chartExtraTooltip.hideTooltip();
+      // The chart highlight is preserved while the tooltip is pinned. We need to clear it manually here, for the case
+      // when the pointer lands outside the chart after the tooltip is dismissed, so that the mouse-out event won't fire.
+      this.clearChartHighlight();
+      // If the tooltip was not dismissed by clicking outside, we bring focus to the point or group, that was
+      // associated with the tooltip, so that we user can continue keyboard navigation from that spot.
+      if (!outsideClick) {
+        this.chartExtraNavigation.focusApplication(point, group);
+      }
+    }
+  };
+
+  // Reference to the role="application" element used for navigation.
+  public setApplication = this.chartExtraNavigation.setApplication.bind(this.chartExtraNavigation);
+
+  // A callback to notify the helper when items visibility state changes.
+  public updateItemsVisibility = this.chartExtraLegend.updateItemsVisibility.bind(this.chartExtraLegend);
+
+  // A callback used by the legend and filter components when series/segments visibility changes.
+  public onItemVisibilityChange = this.chartExtraLegend.onItemVisibilityChange.bind(this.chartExtraLegend);
+
+  // Callbacks used by the legend component when items highlight state changes.
+  public onHighlightChartItems = (itemIds: readonly string[]) => {
+    this.chartExtraHighlight.highlightChartItems(itemIds);
+    this.chartExtraLegend.onHighlightItems(itemIds);
+  };
+  public onClearChartItemsHighlight = () => {
+    this.chartExtraHighlight.clearChartItemsHighlight();
+    this.chartExtraLegend.onClearHighlight();
+  };
+
+  // Callbacks used for hover and keyboard navigation, and also exposed to the public API to give the ability
+  // to highlight and show tooltip for the given point or group manually.
+  public highlightChartPoint = (point: Highcharts.Point) => {
+    this.highlightActions(point);
+  };
+  public highlightChartGroup = (group: Highcharts.Point[]) => {
+    this.highlightActions(group);
+  };
+  public clearChartHighlight = () => {
+    this.clearHighlightActions();
+  };
+
+  // A set of callbacks required for keyboard navigation.
   private get navigationHandlers(): ChartExtraNavigationHandlers {
     return {
       onFocusChart: () => {
         this.clearChartHighlight();
-        this.announceApplicationChart();
+        this.chartExtraNavigation.announceChart(getChartAccessibleDescription());
       },
       onFocusGroup: (group: Highcharts.Point[]) => {
         this.highlightChartGroup(group);
-        this.announceApplicationGroup(group, false);
+        this.chartExtraNavigation.announceElement(getGroupAccessibleDescription(group), false);
       },
       onFocusPoint: (point: Highcharts.Point) => {
         this.highlightChartPoint(point);
-        this.announceApplicationPoint(point, false);
+        this.chartExtraNavigation.announceElement(getPointAccessibleDescription(point), false);
       },
       onBlur: () => this.clearChartHighlight(),
       onActivateGroup: () => {
         const current = this.chartExtraTooltip.get();
         if (current.group.length > 0) {
           this.chartExtraTooltip.pinTooltip();
-          this.announceApplicationGroup(current.group, true);
+          this.chartExtraNavigation.announceElement(getGroupAccessibleDescription(current.group), true);
         }
       },
       onActivatePoint: () => {
         const current = this.chartExtraTooltip.get();
         if (current.point) {
           this.chartExtraTooltip.pinTooltip();
-          this.announceApplicationPoint(current.point, true);
+          this.chartExtraNavigation.announceElement(getPointAccessibleDescription(current.point), true);
         }
       },
     };
   }
 
+  // A set of callbacks required for pointer navigation.
   private get pointerHandlers(): ChartExtraPointerHandlers {
     return {
       onPointHover: (point) => {
@@ -188,88 +250,22 @@ export class ChartAPI {
         this.clearChartHighlight();
       },
       onPointClick: (point) => {
-        this.pinTooltipPoint(point);
+        this.pinTooltipOnPoint(point);
       },
       onGroupClick: (group) => {
-        this.pinTooltipGroup(group);
+        this.pinTooltipOnGroup(group);
       },
     };
   }
 
-  private announceApplicationChart() {
-    this.chartExtraNavigation.announceChart(getChartAccessibleDescription());
-  }
-
-  private announceApplicationGroup(group: Highcharts.Point[], pinned: boolean) {
-    this.chartExtraNavigation.announceElement(getGroupAccessibleDescription(group), pinned);
-  }
-
-  private announceApplicationPoint(point: Highcharts.Point, pinned: boolean) {
-    this.chartExtraNavigation.announceElement(getPointAccessibleDescription(point), pinned);
-  }
-
-  public onItemVisibilityChange = this.chartExtraLegend.onItemVisibilityChange.bind(this.chartExtraLegend);
-  public updateItemsVisibility = this.chartExtraLegend.updateItemsVisibility.bind(this.chartExtraLegend);
-
-  public highlightChartItems = (itemIds: readonly string[]) => {
-    this.chartExtraHighlight.highlightChartItems(itemIds);
-    this.chartExtraLegend.onHighlightItems(itemIds);
-  };
-
-  public clearChartItemsHighlight = () => {
-    this.chartExtraHighlight.clearChartItemsHighlight();
-    this.chartExtraLegend.onClearHighlight();
-  };
-
-  public onDismissTooltip = (outsideClick?: boolean) => {
-    const { pinned, point, group } = this.chartExtraTooltip.get();
-    if (pinned) {
-      this.lastDismissTime = new Date().getTime();
-      this.chartExtraTooltip.hideTooltip();
-      this.clearChartHighlight();
-      // Selecting the point on which the popover was pinned to bring focus back to it when the popover is dismissed.
-      // This is unless the popover was dismissed by an outside click, in which case the focus should stay on the click target.
-      if (!outsideClick) {
-        if (!this.context.settings.keyboardNavigationEnabled) {
-          // This brings the focus back to the chart.
-          // If the last focused target is no longer around - the focus goes back to the first data point.
-          this.chart.series?.[0]?.data?.[0].graphic?.element.focus();
-        } else {
-          this.chartExtraNavigation.focusApplication(point, group);
-        }
-      }
-    }
-  };
-
-  public highlightChartGroup = (group: Highcharts.Point[]) => {
-    // The behavior is ignored if the tooltip is already shown and pinned.
-    if (this.chartExtraTooltip.get().pinned) {
-      return false;
-    }
-    this.highlightActionsGroup(group);
-    this.chartExtraTooltip.setTooltipGroup(group);
-  };
-
-  // When hovering (or focusing) over the target (point, bar, segment, etc.) we show the tooltip in the target coordinate.
-  public highlightChartPoint = (point: Highcharts.Point) => {
-    // The behavior is ignored if the tooltip is already shown and pinned.
-    if (this.chartExtraTooltip.get().pinned) {
-      return false;
-    }
-    this.highlightActionsPoint(point);
-    this.chartExtraTooltip.setTooltipPoint(point, this.context.derived.getPointsByX(point.x));
-  };
-
-  public clearChartHighlight = () => {
-    if (!this.chartExtraTooltip.get().pinned) {
-      this.clearHighlightActions();
-      this.chartExtraTooltip.hideTooltip();
-    }
-  };
-
+  // Area- or line series can be defined with just a single point, or include missing data (y=null) in such
+  // a way, that certain points become isolated. As we prefer the markers to not be shown for area- and line
+  // series by default, those points become invisible, unless hovered. To fix this, we use the function below,
+  // that finds isolates points and overrides the marker.enabled configuration for those.
+  // See: https://github.com/highcharts/highcharts/issues/1210.
   private showMarkersForIsolatedPoints() {
     let shouldRedraw = false;
-    for (const s of this.chart.series) {
+    for (const s of this.context.chart().series) {
       for (let i = 0; i < s.data.length; i++) {
         if (
           (s.data[i - 1]?.y === undefined || s.data[i - 1]?.y === null) &&
@@ -282,15 +278,16 @@ export class ChartAPI {
       }
     }
     if (shouldRedraw) {
-      this.chart.redraw();
+      this.context.chart().redraw();
     }
   }
 
   // Highcharts sometimes destroys points upon re-rendering. As result, the already stored points can get
-  // replaced by `{ destroyed: true }`. As we only store points (outside the render loop) for the tooltip,
-  // we clear its state if detecting destroyed points to prevent crashing.
-  // The behavior is only observed during the initial chart loading and is not expected to cause UX issues with the
-  // tooltip being closed unexpectedly.
+  // replaced by `{ destroyed: true }`. This can affect the tooltip state, making the component crash when
+  // obtaining data from points, or making it hidden yet pinned, so not visible on hover until a click is made.
+  // To prevent these issues, on each render we check for destroyed points in the tooltip state, and proactively
+  // hide the tooltip if found. The behavior is only observed during the initial chart loading, and is not expected
+  // to cause UX issues with the tooltip being closed unexpectedly.
   private handleDestroyedPoints() {
     const tooltipState = this.chartExtraTooltip.get();
     if (tooltipState.group.some((p) => !p.series)) {
@@ -302,112 +299,88 @@ export class ChartAPI {
   // have the same color as before, not the next one in the color sequence.
   // See: https://github.com/highcharts/highcharts/issues/23077.
   private resetColorCounter() {
-    if ("colorCounter" in this.chart && typeof this.chart.colorCounter === "number") {
-      this.chart.colorCounter = this.chart.series.length;
+    const chart = this.context.chart();
+    if ("colorCounter" in chart && typeof chart.colorCounter === "number") {
+      chart.colorCounter = chart.series.length;
     }
   }
 
-  private pinTooltipPoint = (point: Highcharts.Point) => {
-    const current = this.chartExtraTooltip.get();
+  private pinTooltipOnPoint = (point: Highcharts.Point) => {
+    const currentPoint = this.chartExtraTooltip.get().point;
+    const currentGroup = this.chartExtraTooltip.get().group;
+    const positionsMatch = isPointsPositionsEqual(currentPoint ?? currentGroup[0], point);
 
-    // The behavior is ignored if the popover is already pinned.
-    if (current.pinned) {
-      return;
+    // If the previously hovered and now clicked positions match, and the the tooltip wasn't
+    // dismissed just a moment ago, we make the tooltip pinned in this position.
+    if (positionsMatch && !this.chartExtraTooltip.tooltipLock) {
+      this.highlightActions(point);
+      this.chartExtraTooltip.pinTooltip();
     }
-
-    const currentPosX = current.point?.x ?? current.group[0]?.x;
-    const currentPosY = current.point?.y ?? current.group[0]?.y;
-
-    // If the click point is different from the current position - the tooltip is moved to the new position.
-    if ((point.x !== undefined && point.x !== currentPosX) || (point.y !== undefined && point.y !== currentPosY)) {
-      this.highlightActionsPoint(point);
-      this.chartExtraTooltip.setTooltipPoint(point, this.context.derived.getPointsByX(point.x));
+    // If the tooltip was just dismissed, it means this happened by clicking somewhere in the plot area.
+    // If the clicked position differs from the one that was pinned - we show tooltip in the new position.
+    else if (!positionsMatch && this.chartExtraTooltip.tooltipLock) {
+      this.highlightActions(point, true);
     }
-    // If the click point is missing or matches the current position and it wasn't recently dismissed - it is pinned in this position.
-    else if (new Date().getTime() - this.lastDismissTime > LAST_DISMISS_DELAY) {
-      this.chartExtraTooltip.setTooltipPoint(point, this.context.derived.getPointsByX(point.x));
-      if (current.group.length > 0) {
-        this.chartExtraTooltip.pinTooltip();
+  };
+
+  private pinTooltipOnGroup = (group: Highcharts.Point[]) => {
+    const currentPoint = this.chartExtraTooltip.get().point;
+    const currentGroup = this.chartExtraTooltip.get().group;
+    const positionsMatch = isPointsPositionsEqual(currentPoint ?? currentGroup[0], group[0]);
+
+    // If the previously hovered and now clicked positions match, and the the tooltip wasn't
+    // dismissed just a moment ago, we make the tooltip pinned in this position.
+    if (positionsMatch && !this.chartExtraTooltip.tooltipLock) {
+      this.highlightActions(group);
+      this.chartExtraTooltip.pinTooltip();
+    }
+    // If the tooltip was just dismissed, it means this happened by clicking somewhere in the plot area.
+    // If the clicked position differs from the one that was pinned - we show tooltip in the new position.
+    else if (!positionsMatch && this.chartExtraTooltip.tooltipLock) {
+      this.highlightActions(group, true);
+    }
+  };
+
+  private highlightActions(target: Highcharts.Point | Highcharts.Point[], overrideTooltipLock = false) {
+    const point = Array.isArray(target) ? null : target;
+    const group = Array.isArray(target) ? target : this.context.derived.getPointsByX(target.x);
+    if (!this.isTooltipPinned) {
+      // Update Highcharts elements state.
+      this.chartExtraHighlight.highlightChartPoints(group);
+
+      // Update tooltip and legend state.
+      if (point) {
+        this.chartExtraLegend.onHighlightPoint(point);
+        this.chartExtraTooltip.showTooltipOnPoint(point, group, overrideTooltipLock);
+      } else {
+        this.chartExtraLegend.onHighlightGroup(group);
+        this.chartExtraTooltip.showTooltipOnGroup(group, overrideTooltipLock);
       }
-    }
-  };
 
-  private pinTooltipGroup = (group: Highcharts.Point[]) => {
-    const current = this.chartExtraTooltip.get();
-
-    // The behavior is ignored if the popover is already pinned.
-    if (current.pinned) {
-      return;
-    }
-
-    const currentPosX = current.point?.x ?? current.group[0]?.x;
-    const currentPosY = current.point?.y ?? current.group[0]?.y;
-    const nextPosX = group[0]?.x;
-    const nextPosY = group[0]?.y;
-
-    // If the click point is different from the current position - the tooltip is moved to the new position.
-    if ((nextPosX !== undefined && nextPosX !== currentPosX) || (nextPosY !== undefined && nextPosY !== currentPosY)) {
-      this.highlightActionsGroup(group);
-      this.chartExtraTooltip.setTooltipGroup(group);
-    }
-    // If the click point is missing or matches the current position and it wasn't recently dismissed - it is pinned in this position.
-    else if (new Date().getTime() - this.lastDismissTime > LAST_DISMISS_DELAY) {
-      this.chartExtraTooltip.setTooltipGroup(current.group);
-      if (current.group.length > 0) {
-        this.chartExtraTooltip.pinTooltip();
-      }
-    }
-  };
-
-  private highlightActionsPoint = (point: Highcharts.Point) => {
-    const group = this.context.derived.getPointsByX(point.x);
-    this.setHighlightState(group);
-    this.chartExtraTooltip.onRenderTooltip({ point, group });
-    this.chartExtraLegend.onHighlightPoint(point);
-    this.context.handlers.onHighlight?.({ point, group });
-  };
-
-  private highlightActionsGroup = (group: Highcharts.Point[]) => {
-    if (group.length === 0) {
-      return;
-    }
-    this.setHighlightState(group);
-    this.chartExtraTooltip.onRenderTooltip({ point: null, group });
-    this.chartExtraLegend.onHighlightGroup(group);
-    this.context.handlers.onHighlight?.({ point: null, group });
-  };
-
-  private setHighlightState(points: Highcharts.Point[]) {
-    const includedPoints = new Set<Highcharts.Point>();
-    const includedSeries = new Set<Highcharts.Series>();
-    points.forEach((point) => {
-      includedPoints.add(point);
-      includedSeries.add(point.series);
-    });
-    if (!this.chartExtraTooltip.get().pinned) {
-      for (const s of this.chart.series) {
-        this.chartExtraHighlight.setSeriesState(s, includedSeries.has(s) ? "normal" : "inactive");
-        if (s.type === "column" || s.type === "pie") {
-          for (const d of s.data) {
-            this.chartExtraHighlight.setPointState(d, includedPoints.has(d) ? "normal" : "inactive");
-          }
-        }
-      }
+      // Notify the consumer that a highlight action was made.
+      this.context.handlers.onHighlight?.({ point, group });
     }
   }
 
   private clearHighlightActions = () => {
-    this.chartExtraTooltip.onClearHighlight();
-    this.chartExtraLegend.onClearHighlight();
-    this.context.handlers.onClearHighlight?.();
+    if (!this.isTooltipPinned) {
+      // Update Highcharts elements state.
+      this.chartExtraHighlight.clearChartItemsHighlight();
 
-    if (!this.chartExtraTooltip.get().pinned) {
-      for (const s of this.chart.series ?? []) {
-        this.chartExtraHighlight.setSeriesState(s, "normal");
-        for (const d of s.data) {
-          this.chartExtraHighlight.setPointState(d, "normal");
-        }
-      }
+      // Update tooltip and legend state.
+      this.chartExtraTooltip.hideTooltip();
+      this.chartExtraLegend.onClearHighlight();
+
+      // Notify the consumer that a clear-highlight action was made.
+      this.context.handlers.onClearHighlight?.();
     }
   };
+
+  private get isTooltipPinned() {
+    return this.chartExtraTooltip.get().pinned;
+  }
+}
+
+export function isPointsPositionsEqual(current?: Highcharts.Point, next?: Highcharts.Point) {
+  return current?.x === next?.x && current?.y === next?.y;
 }

@@ -8,6 +8,8 @@ import AsyncStore from "../../internal/utils/async-store";
 import * as Styles from "../styles";
 import { ChartExtraContext } from "./chart-extra-context";
 
+// The reactive state is used to propagate updates to the corresponding no-data React component.
+// It can be used by other components to assert if the chart is in no-data state (by checking if container is present).
 export interface ReactiveNodataState {
   container: null | Element;
   noMatch: boolean;
@@ -46,7 +48,7 @@ export class ChartExtraNodata extends AsyncStore<ReactiveNodataState> {
   };
 
   // The related Highcharts options to make the no-data work.
-  // This relies on the Highcharts nodata module to be loaded.
+  // This relies on the Highcharts no-data module to be available.
   public get options() {
     if (this.context.settings.noDataEnabled) {
       const noData: Highcharts.NoDataOptions = { position: Styles.noDataPosition, useHTML: true };
