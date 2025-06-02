@@ -35,7 +35,7 @@ export function useSegmentDescriptions(props: InternalPieChartProps) {
       if (title || description) {
         return renderToStaticMarkup(
           <text>
-            {title ? <tspan>{this.name}</tspan> : null}
+            {title ? <tspan>{title}</tspan> : null}
             <br />
             {description ? <tspan style={Styles.segmentDescriptionCss}>{description}</tspan> : null}
           </text>,
