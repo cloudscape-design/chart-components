@@ -73,23 +73,54 @@ describe("PieChart: visibility", () => {
     );
   });
 
-  test("changes segments visibility using ref", () => {
-    renderPieChart({ ...defaultProps, series });
+  describe("changes segments visibility using imperative API", () => {
+    test("setVisibleSegments", () => {
+      renderPieChart({ ...defaultProps, series });
 
-    expect(getVisibilityState()).toEqual({
-      allLegendItems: ["P1", "P2", "P3"],
-      hiddenLegendItems: [],
-      allPoints: ["P1", "P2", "P3"],
-      hiddenPoints: [],
+      expect(getVisibilityState()).toEqual({
+        allLegendItems: ["P1", "P2", "P3"],
+        hiddenLegendItems: [],
+        allPoints: ["P1", "P2", "P3"],
+        hiddenPoints: [],
+      });
+
+      act(() => ref.current!.setVisibleSegments([]));
+
+      expect(getVisibilityState()).toEqual({
+        allLegendItems: ["P1", "P2", "P3"],
+        hiddenLegendItems: ["P1", "P2", "P3"],
+        allPoints: ["P1", "P2", "P3"],
+        hiddenPoints: ["P1", "P2", "P3"],
+      });
+
+      act(() => ref.current!.setVisibleSegments(["P1"]));
+
+      expect(getVisibilityState()).toEqual({
+        allLegendItems: ["P1", "P2", "P3"],
+        hiddenLegendItems: ["P2", "P3"],
+        allPoints: ["P1", "P2", "P3"],
+        hiddenPoints: ["P2", "P3"],
+      });
     });
 
-    act(() => ref.current!.setVisibleSegments([]));
+    test("showAllSegments", () => {
+      renderPieChart({ ...defaultProps, series });
 
-    expect(getVisibilityState()).toEqual({
-      allLegendItems: ["P1", "P2", "P3"],
-      hiddenLegendItems: ["P1", "P2", "P3"],
-      allPoints: ["P1", "P2", "P3"],
-      hiddenPoints: ["P1", "P2", "P3"],
+      expect(getVisibilityState()).toEqual({
+        allLegendItems: ["P1", "P2", "P3"],
+        hiddenLegendItems: [],
+        allPoints: ["P1", "P2", "P3"],
+        hiddenPoints: [],
+      });
+
+      act(() => ref.current!.showAllSegments());
+
+      expect(getVisibilityState()).toEqual({
+        allLegendItems: ["P1", "P2", "P3"],
+        hiddenLegendItems: [],
+        allPoints: ["P1", "P2", "P3"],
+        hiddenPoints: [],
+      });
     });
   });
 });
