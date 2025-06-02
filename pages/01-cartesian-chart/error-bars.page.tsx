@@ -311,7 +311,7 @@ function LineChart({
       {...chartProps.cartesian}
       chartHeight={CHART_HEIGHT}
       inverted={inverted}
-      ariaLabel="Scatter chart"
+      ariaLabel="Line chart"
       series={[
         ...new Array(numberOfSeries)
           .fill(null)
