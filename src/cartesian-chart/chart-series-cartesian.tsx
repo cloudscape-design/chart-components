@@ -34,7 +34,7 @@ export const useCartesianSeries = ({
       };
     }
     if (s.type === "errorbar") {
-      const whiskerLength = 9;
+      const whiskerLength = 13;
       if (s.color) {
         return { ...s, stemColor: s.color, whiskerColor: s.color, whiskerLength };
       }
