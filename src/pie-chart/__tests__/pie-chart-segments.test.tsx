@@ -60,6 +60,7 @@ describe("PieChart: segments", () => {
       series: commonSeries,
       segmentOptions: {
         title: null,
+        description: () => "Custom description",
       },
     });
 
