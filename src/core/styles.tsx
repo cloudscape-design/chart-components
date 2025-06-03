@@ -120,7 +120,7 @@ export const verticalAxisTitleMargin = 4;
 
 export const errorBarSeriesColor = colorChartsThresholdNeutral;
 
-export const navigationFocusOutlineStyle = {
+export const navigationFocusOutline = {
   class: styles["focus-outline"],
   "stroke-width": 2,
   rx: 4,
@@ -129,7 +129,7 @@ export const navigationFocusOutlineStyle = {
 
 export const defaultMarker = { enabled: false, radius: 3, symbol: "circle" };
 
-export const cursorStyle = {
+export const cursorLine = {
   fill: colorChartsLineTick,
   zIndex: 5,
   style: "pointer-events: none",

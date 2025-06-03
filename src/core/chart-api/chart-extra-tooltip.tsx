@@ -154,7 +154,7 @@ class HighlightCursorCartesian {
             width: 1,
             height: chart.plotHeight,
           };
-      this.lineElement.rect(chart.renderer, { ...Styles.cursorStyle, ...lineAttrs });
+      this.lineElement.rect(chart.renderer, { ...Styles.cursorLine, ...lineAttrs });
     }
     for (const p of group.filter(this.isPointEligibleForMarker)) {
       if (p.plotX !== undefined && p.plotY !== undefined) {

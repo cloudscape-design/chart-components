@@ -72,20 +72,20 @@ export function InternalCoreChart({
   const api = useChartAPI(settings, handlers, state);
 
   const rootClassName = clsx(styles.root, fitHeight && styles["root-fit-height"], className);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const mergedRootRef = useMergeRefs(rootRef, __internalRootRef);
+  const rootProps = { ref: mergedRootRef, className: rootClassName, ...getDataAttributes(rest) };
+  const containerProps = { fitHeight, chartHeight, chartMinHeight, chartMinWidth, verticalAxisTitlePlacement };
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const rootRef = useMergeRefs(containerRef, __internalRootRef);
-  const isRtl = () => getIsRtl(containerRef?.current);
-
+  // Render fallback using the same root and container props as for the chart to ensure consistent
+  // size, test classes, and data-attributes assignment.
   if (!highcharts) {
     return (
-      <div {...getDataAttributes(rest)} className={rootClassName}>
+      <div {...rootProps}>
         <ChartContainer
-          fitHeight={fitHeight}
-          chartMinHeight={chartMinHeight}
-          chartMinWidth={chartMinWidth}
-          chart={(height) => (
-            <div className={testClasses.fallback} style={{ minHeight: height ?? undefined }}>
+          {...containerProps}
+          chart={(minHeight) => (
+            <div className={testClasses.fallback} style={{ minHeight }}>
               {fallback}
             </div>
           )}
@@ -94,76 +94,69 @@ export function InternalCoreChart({
     );
   }
 
-  function withMinHeight(height: number | string | undefined | null, heightOffset: number) {
-    if (height === undefined) {
-      return chartMinHeight;
-    }
-    if (typeof height === "number") {
-      return Math.max(chartMinHeight ?? 0, height) - heightOffset;
-    }
-    return height;
-  }
-
+  const apiOptions = api.getOptions();
   const inverted = options.chart?.inverted;
+  const isRtl = () => getIsRtl(rootRef?.current);
   return (
-    <div ref={rootRef} {...getDataAttributes(rest)} className={rootClassName}>
+    <div {...rootProps}>
       <ChartContainer
-        fitHeight={fitHeight}
-        chartMinHeight={chartMinHeight}
-        chartMinWidth={chartMinWidth}
+        {...containerProps}
         chart={(height) => {
-          const ariaLabel = options.lang?.accessibility?.chartContainerLabel;
-          const verticalTitleOffset = Styles.verticalAxisTitleBlockSize + Styles.verticalAxisTitleMargin;
-          const heightOffset = verticalAxisTitlePlacement === "top" ? verticalTitleOffset : 0;
-
           // The Highcharts options takes all provided Highcharts options and custom properties and merges them together, so that
-          // the Cloudscape features and custom Highcharts extensions can co-exist.
+          // the Cloudscape features and custom Highcharts extensions co-exist.
           // For certain options we provide Cloudscape styling, but in all cases this can be explicitly overridden.
           const highchartsOptions: Highcharts.Options = {
             ...options,
-            // Credits label is disabled by default, but can be set explicitly.
+            // Hide credits by default.
             credits: { enabled: false, ...options.credits },
-            // Title text is disabled by default, but can be set explicitly.
+            // Hide chart title by default.
             title: { text: "", ...options.title },
-            // Using default Cloudscape colors unless explicit colors are given.
+            // Use Cloudscape color palette by default.
+            // This cannot be reset to Highcharts' default from the outside, but it is possible to provide custom palette.
             colors: options.colors ?? Styles.colors,
             chart: {
+              // Animations are disabled by default.
+              // This is done for UX and a11y reasons as Highcharts animations do not match our animation timings, and do
+              // not respect disabled motion settings. These issues can likely be resolved or we can provide custom animations
+              // instead, but this is not a priority.
               animation: false,
               ...Styles.chart,
               ...options.chart,
               className: clsx(testClasses["chart-plot"], options.chart?.className),
-              height: fitHeight
-                ? height - heightOffset
-                : withMinHeight(chartHeight ?? options.chart?.height, heightOffset),
+              // Use height computed from chartHeight, chartMinHeight, and fitHeight settings by default.
+              // It is possible to override it by explicitly providing chart.height, but this will not be
+              // compatible with any of the above settings.
+              height: options.chart?.height ?? height,
+              // The debug errors are enabled by default in development mode, but this only works
+              // if the Highcharts debugger module is loaded.
               displayErrors: options.chart?.displayErrors ?? isDevelopment,
-              style: options.chart?.style ?? Styles.chartPlotCss,
+              style: { ...Styles.chartPlotCss, ...options.chart?.style },
               backgroundColor: options.chart?.backgroundColor ?? Styles.chartPlotBackgroundColor,
-              // We override chart events to add custom noData and tooltip behaviors.
-              // If the event callbacks are present in the given options - we execute them, too.
+              // We override certain chart events to inject additional behaviors, but it is still possible to define
+              // custom callbacks. The Cloudscape behaviors can be disabled or altered via components API. For instance,
+              // if no-data props are not provided - the related on-render computations will be skipped.
               events: {
                 ...options.chart?.events,
                 load(event) {
-                  api.options.onChartLoad.call(this, event);
+                  apiOptions.onChartLoad.call(this, event);
                   return options.chart?.events?.load?.call(this, event);
                 },
                 render(event) {
-                  api.options.onChartRender.call(this, event);
+                  apiOptions.onChartRender.call(this, event);
                   return options.chart?.events?.render?.call(this, event);
                 },
                 click(event) {
-                  api.options.onChartClick.call(this, event);
+                  apiOptions.onChartClick.call(this, event);
                   return options.chart?.events?.click?.call(this, event);
                 },
               },
             },
             series: options.series,
+            // The Highcharts legend is disabled by default in favour of the custom Cloudscape legend.
             legend: { enabled: false, ...options.legend },
-            // We override noData options if Cloudscape noData props is used instead.
-            noData: noDataOptions ? api.options.noData : options.noData,
-            lang: {
-              ...options.lang,
-              noData: noDataOptions ? api.options.langNoData : options.lang?.noData,
-            },
+            // Use Cloudscape no-data defaults if no-data props are defined.
+            noData: settings.noDataEnabled ? apiOptions.noData : options.noData,
+            lang: settings.noDataEnabled ? { ...options.lang, noData: apiOptions.langNoData } : options.lang,
             accessibility: {
               ...options.accessibility,
               screenReaderSection: {
@@ -213,15 +206,15 @@ export function InternalCoreChart({
                   events: {
                     ...options.plotOptions?.series?.point?.events,
                     mouseOver(event) {
-                      api.options.onSeriesPointMouseOver.call(this, event);
+                      apiOptions.onSeriesPointMouseOver.call(this, event);
                       return options.plotOptions?.series?.point?.events?.mouseOver?.call(this, event);
                     },
                     mouseOut(event) {
-                      api.options.onSeriesPointMouseOut.call(this, event);
+                      apiOptions.onSeriesPointMouseOut.call(this, event);
                       return options.plotOptions?.series?.point?.events?.mouseOut?.call(this, event);
                     },
                     click(event) {
-                      api.options.onSeriesPointClick.call(this, event);
+                      apiOptions.onSeriesPointClick.call(this, event);
                       return options.plotOptions?.series?.point?.events?.click?.call(this, event);
                     },
                   },
@@ -332,7 +325,11 @@ export function InternalCoreChart({
           };
           return (
             <>
-              <ChartApplication keyboardNavigation={keyboardNavigation} api={api} ariaLabel={ariaLabel} />
+              <ChartApplication
+                api={api}
+                keyboardNavigation={keyboardNavigation}
+                ariaLabel={options.lang?.accessibility?.chartContainerLabel}
+              />
               <HighchartsReact
                 highcharts={highcharts}
                 options={highchartsOptions}

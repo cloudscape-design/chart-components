@@ -58,7 +58,7 @@ describe("CoreChart: fit-size", () => {
 
     rerender({
       highcharts,
-      options: { chart: { height: "20rem" } },
+      options: {},
       chartHeight: 444,
       verticalAxisTitlePlacement: "side",
     });
@@ -67,7 +67,7 @@ describe("CoreChart: fit-size", () => {
 
     rerender({
       highcharts,
-      options: { chart: { height: "20rem" } },
+      options: {},
       chartHeight: 444,
       chartMinHeight: 500,
       verticalAxisTitlePlacement: "side",
@@ -77,7 +77,7 @@ describe("CoreChart: fit-size", () => {
 
     rerender({
       highcharts,
-      options: { chart: { height: "20rem" } },
+      options: {},
       chartHeight: 444,
       verticalAxisTitlePlacement: "top",
     });
@@ -86,7 +86,7 @@ describe("CoreChart: fit-size", () => {
 
     rerender({
       highcharts,
-      options: { chart: { height: "20rem" } },
+      options: {},
       chartHeight: 444,
       chartMinHeight: 500,
       verticalAxisTitlePlacement: "top",

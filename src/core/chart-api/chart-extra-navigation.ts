@@ -551,7 +551,7 @@ class FocusOutline {
       y: y - offset,
       width: width + offset * 2,
       height: height + offset * 2,
-      ...Styles.navigationFocusOutlineStyle,
+      ...Styles.navigationFocusOutline,
     });
   };
 }

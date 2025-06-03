@@ -90,7 +90,7 @@ export class ChartAPI {
   }
 
   // The Highcharts options to be merged with the rest of the configuration defined in the chart-core.
-  public get options() {
+  public getOptions() {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const chartAPI = this;
     const onChartLoad: Highcharts.ChartLoadCallbackFunction = function (this) {

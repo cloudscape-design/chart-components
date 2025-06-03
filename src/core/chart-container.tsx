@@ -6,6 +6,7 @@ import { useCallback, useRef, useState } from "react";
 import { useResizeObserver } from "@cloudscape-design/component-toolkit/internal";
 
 import { DebouncedCall } from "../internal/utils/utils.js";
+import * as Styles from "./styles";
 
 import testClasses from "./test-classes/styles.css.js";
 
@@ -16,13 +17,15 @@ interface ChartContainerProps {
   // The header, footer, vertical axis title, and legend are rendered as is, and we measure the height of these components
   // to compute the available height for the chart plot when fitHeight=true. When there is not enough vertical space, the
   // container will ensure the overflow behavior.
-  chart: (height: number) => React.ReactNode;
+  chart: (height: undefined | number) => React.ReactNode;
   verticalAxisTitle?: React.ReactNode;
+  verticalAxisTitlePlacement: "top" | "side";
   header?: React.ReactNode;
   filter?: React.ReactNode;
   legend?: React.ReactNode;
   footer?: React.ReactNode;
   fitHeight?: boolean;
+  chartHeight?: number;
   chartMinHeight?: number;
   chartMinWidth?: number;
 }
@@ -30,16 +33,26 @@ interface ChartContainerProps {
 export function ChartContainer({
   chart,
   verticalAxisTitle,
+  verticalAxisTitlePlacement,
   header,
   filter,
   footer,
   legend,
   fitHeight,
+  chartHeight,
   chartMinHeight,
   chartMinWidth,
 }: ChartContainerProps) {
+  // The vertical axis title is rendered above the chart, and is technically not a part of the chart plot.
+  // However, we want to include it to the chart's height computations as it does belong to the chart logically.
+  // We do so by taking the title's constant height into account, when "top" axis placement is chosen.
+  const verticalTitleOffset = Styles.verticalAxisTitleBlockSize + Styles.verticalAxisTitleMargin;
+  const heightOffset = verticalAxisTitlePlacement === "top" ? verticalTitleOffset : 0;
+  const withMinHeight = (height?: number) =>
+    height === undefined ? chartMinHeight : Math.max(chartMinHeight ?? 0, height) - heightOffset;
+
   const { refs, measures } = useContainerQueries();
-  const chartHeight = Math.max(chartMinHeight ?? 0, measures.chart - measures.header - measures.footer);
+  const measuredChartHeight = withMinHeight(measures.chart - measures.header - measures.footer);
   const overflowX = chartMinWidth !== undefined ? "auto" : undefined;
   return (
     <div ref={refs.chart} style={fitHeight ? { position: "absolute", inset: 0, overflowX } : { overflowX }}>
@@ -53,7 +66,7 @@ export function ChartContainer({
         className={testClasses["chart-plot-wrapper"]}
       >
         {verticalAxisTitle}
-        {chart(chartHeight)}
+        {chart(fitHeight ? measuredChartHeight : withMinHeight(chartHeight))}
       </div>
 
       <div ref={refs.footer}>
@@ -64,6 +77,7 @@ export function ChartContainer({
   );
 }
 
+// This hook combines 3 resize observer and does a small optimization to batch their updates in a single set-state.
 function useContainerQueries() {
   const [measuresState, setMeasuresState] = useState({ ready: false, chart: 0, header: 0, footer: 0 });
   const measuresRef = useRef({ ready: false, chart: 0, header: 0, footer: 0 });
