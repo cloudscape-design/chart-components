@@ -42,7 +42,7 @@
     "./test-utils/dom": "./test-utils/dom/index.js",
     "./test-utils/selectors": "./test-utils/selectors/index.js",
     "./internal/api-docs/*.js": "./internal/api-docs/*.js",
-    "./internal-do-not-use": "./internal-do-not-use/index.js"
+    "./internal-do-not-use/core-chart": "./internal-do-not-use/core-chart.js"
   },
   "dependencies": {
     "@cloudscape-design/component-toolkit": "^1.0.0-beta",
@@ -52,7 +52,7 @@
   "peerDependencies": {
     "@cloudscape-design/components": "^3",
     "@cloudscape-design/design-tokens": "^3",
-    "highcharts": "^12.1.2",
+    "highcharts": "^12.2.0",
     "react": ">=18.2.0"
   },
   "devDependencies": {
