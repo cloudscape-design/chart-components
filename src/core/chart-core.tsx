@@ -16,9 +16,9 @@ import { castArray } from "../internal/utils/utils";
 import { useChartAPI } from "./chart-api";
 import { ChartContainer } from "./chart-container";
 import { ChartApplication } from "./components/core-application";
+import { ChartFilters } from "./components/core-filters";
 import { ChartLegend } from "./components/core-legend";
 import { ChartNoData } from "./components/core-no-data";
-import { ChartSeriesFilter } from "./components/core-series-filter";
 import { ChartFooter, ChartHeader } from "./components/core-slots";
 import { ChartTooltip } from "./components/core-tooltip";
 import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
@@ -355,8 +355,16 @@ export function InternalCoreChart({
         }
         header={header?.content ? <ChartHeader>{header.content}</ChartHeader> : null}
         footer={footer?.content ? <ChartFooter>{footer.content}</ChartFooter> : null}
-        seriesFilter={filter?.seriesFilter ? <ChartSeriesFilter api={api} i18nStrings={i18nStrings} /> : null}
-        additionalFilters={filter?.additionalFilters}
+        filter={
+          filter?.seriesFilter || filter?.additionalFilters ? (
+            <ChartFilters
+              api={api}
+              seriesFilter={filter?.seriesFilter}
+              additionalFilters={filter?.additionalFilters}
+              i18nStrings={i18nStrings}
+            />
+          ) : null
+        }
       />
 
       {settings.tooltipEnabled && (
