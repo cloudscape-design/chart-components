@@ -28,6 +28,8 @@ const CartesianChart = forwardRef(
         highcharts={props.highcharts}
         fallback={props.fallback}
         options={validatedOptions}
+        ariaLabel={props.ariaLabel}
+        ariaDescription={props.ariaDescription}
         fitHeight={props.fitHeight}
         chartHeight={props.chartHeight}
         chartMinHeight={props.chartMinHeight}
@@ -62,14 +64,6 @@ function useValidatedOptions(props: CartesianChartProps): InternalCartesianChart
   return {
     chart: {
       inverted: props.inverted,
-    },
-    accessibility: {
-      description: props.ariaDescription,
-    },
-    lang: {
-      accessibility: {
-        chartContainerLabel: props.ariaLabel,
-      },
     },
     plotOptions: {
       series: {

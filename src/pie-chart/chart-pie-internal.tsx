@@ -99,8 +99,6 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
     plotOptions: {
       ...props.options.plotOptions,
       pie: {
-        showInLegend: true,
-        borderWidth: Styles.segmentBorderWidth,
         ...props.options.plotOptions?.pie,
         dataLabels: {
           ...segmentDescriptions.dataLabels,
@@ -116,6 +114,8 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
       highcharts={props.highcharts}
       fallback={props.fallback}
       options={highchartsOptions}
+      ariaLabel={props.ariaLabel}
+      ariaDescription={props.ariaDescription}
       fitHeight={props.fitHeight}
       chartHeight={props.chartHeight}
       chartMinHeight={props.chartMinHeight}

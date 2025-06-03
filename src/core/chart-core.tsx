@@ -23,7 +23,7 @@ import { ChartFooter, ChartHeader } from "./components/core-slots";
 import { ChartTooltip } from "./components/core-tooltip";
 import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
 import { getFormatter } from "./formatters";
-import { CoreChartProps, InternalXAxisOptions } from "./interfaces-core";
+import { CoreChartProps } from "./interfaces-core";
 import * as Styles from "./styles";
 
 import styles from "./styles.css.js";
@@ -35,6 +35,8 @@ import testClasses from "./test-classes/styles.css.js";
  */
 export function InternalCoreChart({
   options,
+  ariaLabel,
+  ariaDescription,
   fitHeight,
   chartHeight,
   chartMinHeight,
@@ -152,30 +154,28 @@ export function InternalCoreChart({
               },
             },
             series: options.series,
-            // The Highcharts legend is disabled by default in favour of the custom Cloudscape legend.
+            // Highcharts legend is disabled by default in favour of the custom Cloudscape legend.
             legend: { enabled: false, ...options.legend },
             // Use Cloudscape no-data defaults if no-data props are defined.
             noData: settings.noDataEnabled ? apiOptions.noData : options.noData,
-            lang: settings.noDataEnabled ? { ...options.lang, noData: apiOptions.langNoData } : options.lang,
+            lang: {
+              ...options.lang,
+              // Use Cloudscape no-data defaults if no-data props are defined.
+              noData: settings.noDataEnabled ? apiOptions.langNoData : options.lang?.noData,
+              // The default chart title is disabled by default to prevent the default "Chart" in the screen-reader detail.
+              accessibility: { defaultChartTitle: "", chartContainerLabel: ariaLabel, ...options.lang?.accessibility },
+            },
             accessibility: {
+              description: ariaDescription,
               ...options.accessibility,
-              screenReaderSection: {
-                beforeChartFormat:
-                  "<div>{typeDescription}</div><div>{chartSubtitle}</div><div>{chartLongdesc}</div><div>{playAsSoundButton}</div><div>{viewTableButton}</div><div>{xAxisDescription}</div><div>{yAxisDescription}</div><div>{annotationsTitle}{annotationsList}</div>",
-                ...options.accessibility?.screenReaderSection,
-              },
-              keyboardNavigation: {
-                enabled: !keyboardNavigation,
-                ...options.accessibility?.keyboardNavigation,
-                focusBorder: {
-                  style: Styles.focusBorderCss,
-                  ...options.accessibility?.keyboardNavigation?.focusBorder,
-                },
-              },
+              // Highcharts keyboard navigation is disabled by default in favour of the custom Cloudscape navigation.
+              keyboardNavigation: { enabled: !keyboardNavigation, ...options.accessibility?.keyboardNavigation },
               point: {
+                // Point description formatter is overridden to respect custom axes value formatters in the point's accessible
+                // description. We don't do it for pie charts, as there are no formatters, so we return an empty string, and
+                // Highcharts renders the default point description in that case.
                 descriptionFormatter(point) {
-                  const xAxisOptions = point.series.xAxis?.userOptions as undefined | InternalXAxisOptions;
-                  if (xAxisOptions) {
+                  if (point.series.xAxis) {
                     const formattedX = getFormatter(point.series.xAxis)(point.x);
                     return `${formattedX}\t${point.series.name}`;
                   }
@@ -187,20 +187,19 @@ export function InternalCoreChart({
             plotOptions: {
               ...options.plotOptions,
               series: {
+                // Animations are disabled by default, same as in the options.chart.
                 animation: false,
+                // Sticky tracking is disabled by default due to sub-optimal UX in dense charts.
                 stickyTracking: false,
                 borderColor: Styles.seriesBorderColor,
                 ...options.plotOptions?.series,
                 dataLabels: { style: Styles.seriesDataLabelsCss, ...options.plotOptions?.series?.dataLabels },
                 states: {
                   ...options.plotOptions?.series?.states,
-                  inactive: {
-                    opacity: Styles.seriesOpacityInactive,
-                    ...options.plotOptions?.series?.states?.inactive,
-                  },
+                  inactive: { opacity: Styles.seriesOpacityInactive, ...options.plotOptions?.series?.states?.inactive },
                 },
-                // We override point events to add custom tooltip behaviors.
-                // If the event callbacks are present in the given options - we execute them, too.
+                // We override certain point events to inject additional behaviors, but it is still possible to define
+                // custom callbacks. The Cloudscape behaviors can be disabled or altered via components API.
                 point: {
                   ...options.plotOptions?.series?.point,
                   events: {
@@ -220,45 +219,16 @@ export function InternalCoreChart({
                   },
                 },
               },
-              area: {
-                fillOpacity: Styles.areaFillOpacity,
-                ...options.plotOptions?.area,
-                marker: { ...Styles.defaultMarker, ...options.plotOptions?.area?.marker },
-              },
-              areaspline: {
-                fillOpacity: Styles.areaFillOpacity,
-                ...options.plotOptions?.areaspline,
-                marker: { ...Styles.defaultMarker, ...options.plotOptions?.areaspline?.marker },
-              },
-              arearange: {
-                fillOpacity: Styles.areaFillOpacity,
-                ...options.plotOptions?.arearange,
-                marker: { ...Styles.defaultMarker, ...options.plotOptions?.arearange?.marker },
-              },
-              areasplinerange: {
-                fillOpacity: Styles.areaFillOpacity,
-                ...options.plotOptions?.areasplinerange,
-                marker: { ...Styles.defaultMarker, ...options.plotOptions?.areasplinerange?.marker },
-              },
-              line: {
-                ...options.plotOptions?.line,
-                marker: { ...Styles.defaultMarker, ...options.plotOptions?.line?.marker },
-              },
-              spline: {
-                ...options.plotOptions?.spline,
-                marker: { ...Styles.defaultMarker, ...options.plotOptions?.spline?.marker },
-              },
-              column: {
-                groupPadding: Styles.columnGroupPadding,
-                borderRadius: Styles.columnBorderRadius,
-                borderWidth: Styles.columnBorderWidth,
-                ...options.plotOptions?.column,
-              },
-              errorbar: {
-                stemColor: Styles.errorBarSeriesColor,
-                whiskerColor: Styles.errorBarSeriesColor,
-                ...options.plotOptions?.errorbar,
-              },
+              area: { ...Styles.areaSeries, ...options.plotOptions?.area },
+              areaspline: { ...Styles.areaSeries, ...options.plotOptions?.areaspline },
+              arearange: { ...Styles.areaSeries, ...options.plotOptions?.arearange },
+              areasplinerange: { ...Styles.areaSeries, ...options.plotOptions?.areasplinerange },
+              line: { ...Styles.lineSeries, ...options.plotOptions?.line },
+              spline: { ...Styles.lineSeries, ...options.plotOptions?.spline },
+              column: { ...Styles.columnSeries, ...options.plotOptions?.column },
+              errorbar: { ...Styles.errorbarSeries, ...options.plotOptions?.errorbar },
+              // Pie chart is shown in legend by default, that is required for standalone pie charts.
+              pie: { showInLegend: true, ...Styles.pieSeries, ...options.plotOptions?.pie },
             },
             xAxis: castArray(options.xAxis)?.map((xAxis) => ({
               ...Styles.xAxisOptions,
@@ -325,11 +295,7 @@ export function InternalCoreChart({
           };
           return (
             <>
-              <ChartApplication
-                api={api}
-                keyboardNavigation={keyboardNavigation}
-                ariaLabel={options.lang?.accessibility?.chartContainerLabel}
-              />
+              <ChartApplication api={api} keyboardNavigation={keyboardNavigation} ariaLabel={ariaLabel} />
               <HighchartsReact
                 highcharts={highcharts}
                 options={highchartsOptions}

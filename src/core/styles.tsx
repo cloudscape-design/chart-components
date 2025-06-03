@@ -5,7 +5,6 @@ import type Highcharts from "highcharts";
 
 import {
   colorBackgroundLayoutMain,
-  colorBorderItemFocused,
   colorChartsLineTick,
   colorChartsPaletteCategorical1,
   colorChartsPaletteCategorical2,
@@ -82,13 +81,32 @@ export const chartPlotBackgroundColor = "transparent";
 
 export const seriesBorderColor = colorBackgroundLayoutMain;
 
-export const areaFillOpacity = 0.4;
+export const hiddenSeriesMarker = { enabled: false, radius: 3, symbol: "circle" };
 
-export const columnGroupPadding = 0.075;
+export const areaSeries = {
+  areaFillOpacity: 0.4,
+  marker: hiddenSeriesMarker,
+};
 
-export const columnBorderRadius = 4;
+export const lineSeries = {
+  marker: hiddenSeriesMarker,
+};
 
-export const columnBorderWidth = 2;
+export const columnSeries = {
+  groupPadding: 0.075,
+  borderRadius: 4,
+  borderWidth: 2,
+  marker: hiddenSeriesMarker,
+};
+
+export const errorbarSeries = {
+  stemColor: colorChartsThresholdNeutral,
+  whiskerColor: colorChartsThresholdNeutral,
+};
+
+export const pieSeries = {
+  borderWidth: 2,
+};
 
 export const dimmedPlotLineOpacity = 0.4;
 
@@ -102,10 +120,6 @@ export const seriesDataLabelsCss: Highcharts.CSSObject = {
 
 export const seriesOpacityInactive = 0.2;
 
-export const focusBorderCss: Highcharts.CSSObject = {
-  color: colorBorderItemFocused,
-};
-
 export const noDataPosition: Highcharts.NoDataPositionOptions = { align: "left", verticalAlign: "top" };
 
 export const noDataCss: React.CSSProperties = {
@@ -118,16 +132,12 @@ export const noDataCss: React.CSSProperties = {
 export const verticalAxisTitleBlockSize = 24;
 export const verticalAxisTitleMargin = 4;
 
-export const errorBarSeriesColor = colorChartsThresholdNeutral;
-
 export const navigationFocusOutline = {
   class: styles["focus-outline"],
   "stroke-width": 2,
   rx: 4,
   zIndex: 10,
 };
-
-export const defaultMarker = { enabled: false, radius: 3, symbol: "circle" };
 
 export const cursorLine = {
   fill: colorChartsLineTick,
