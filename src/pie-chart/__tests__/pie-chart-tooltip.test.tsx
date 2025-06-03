@@ -36,7 +36,7 @@ describe("PieChart: tooltip", () => {
 
     await waitFor(() => {
       expect(getTooltip()).not.toBe(null);
-      expect(getTooltipHeader().getElement().textContent).toBe(" P2");
+      expect(getTooltipHeader().getElement().textContent).toBe("P2");
       expect(getTooltipBody().getElement().textContent).toBe("Pie20");
       expect(getTooltipFooter()).toBe(null);
     });

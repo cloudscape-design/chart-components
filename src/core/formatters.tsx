@@ -1,9 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import type Highcharts from "highcharts";
+
 import { InternalXAxisOptions, InternalYAxisOptions } from "./interfaces-core";
 
-export function getDefaultFormatter(axis: InternalXAxisOptions | InternalYAxisOptions, extremes: [number, number]) {
+export function getFormatter(axis?: Highcharts.Axis) {
   return (value: unknown): string => {
     if (typeof value === "string") {
       return value;
@@ -11,14 +13,19 @@ export function getDefaultFormatter(axis: InternalXAxisOptions | InternalYAxisOp
     if (typeof value !== "number") {
       return "";
     }
-    if (axis.valueFormatter) {
-      return axis.valueFormatter(value);
+    if (!axis) {
+      return `${value}`;
     }
-    if (axis.type === "category") {
+    const axisOptions = axis.userOptions as InternalXAxisOptions | InternalYAxisOptions;
+    if (axisOptions.valueFormatter) {
+      return axisOptions.valueFormatter(value);
+    }
+    if (axis.options.type === "category") {
       return axis.categories?.[value] ?? value.toString();
     }
-    if (axis.type === "datetime") {
-      const formatter = getDefaultDatetimeFormatter(extremes);
+    if (axis.options.type === "datetime") {
+      const extremes = axis.getExtremes();
+      const formatter = getDefaultDatetimeFormatter([extremes.dataMin, extremes.dataMax]);
       return formatter(value);
     }
     return numberFormatter(value);
@@ -32,7 +39,6 @@ function getDefaultDatetimeFormatter(extremes: [number, number]): (value: number
   const day = 24 * hour;
   const month = 30 * day;
   const year = 365 * day;
-
   if (extremes[1] - extremes[0] > 5 * year) {
     return yearFormatter;
   }

@@ -163,7 +163,10 @@ function validateErrorBarSeries({
     linkedSeries = previousSeries;
   }
   if (!linkedSeries) {
-    warnOnce("CartesianChart", 'Could not find the series that a series of type "errorbar" is linked to.');
+    warnOnce(
+      "CartesianChart",
+      'The `linkedTo` property of "errorbar" series is missing, or points to a series that does not exist.',
+    );
     return;
   }
   if (!seriesTypesThatSupportErrorBars.includes(linkedSeries.type)) {

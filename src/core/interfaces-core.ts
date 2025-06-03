@@ -146,8 +146,8 @@ export type InternalChartOptions = Omit<Highcharts.Options, "xAxis" | "yAxis"> &
   yAxis?: InternalYAxisOptions | InternalYAxisOptions[];
 };
 
-export type InternalXAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: number) => string };
-export type InternalYAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: number) => string };
+export type InternalXAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: null | number) => string };
+export type InternalYAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: null | number) => string };
 export interface ChartHighlightProps {
   point: null | Highcharts.Point;
   group: Highcharts.Point[];

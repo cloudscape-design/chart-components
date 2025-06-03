@@ -21,6 +21,8 @@ export function VerticalAxisTitle({ api, inverted }: { api: ChartAPI; inverted: 
         inverted ? testClasses["axis-x-title"] : testClasses["axis-y-title"],
         styles["axis-vertical-title"],
       )}
+      // The vertical axis label is still rendered by Highcharts and accessible by screen-readers, yet
+      // not visible on the screen. We make this one ARIA-hidden to avoid duplication.
       aria-hidden={true}
     >
       {titles.map((text, index) => (

@@ -8,108 +8,22 @@ import Box from "@cloudscape-design/components/box";
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
 
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../internal/components/series-details";
-import { ChartSeriesMarker } from "../../internal/components/series-marker";
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
-import { getDefaultFormatter } from "../default-formatters";
+import { getFormatter } from "../formatters";
 import { ChartTooltipOptions } from "../interfaces-base";
 import {
   CoreTooltipContent,
   GetTooltipContent,
   GetTooltipContentProps,
-  InternalXAxisOptions,
-  InternalYAxisOptions,
   TooltipSeriesFormatted,
   TooltipSlotProps,
 } from "../interfaces-core";
-import {
-  getDataExtremes,
-  getPointColor,
-  getSeriesColor,
-  getSeriesId,
-  getSeriesMarkerType,
-  isXThreshold,
-} from "../utils";
+import { getPointColor, getSeriesColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../utils";
 
 import styles from "../styles.css.js";
-import testClasses from "../test-classes/styles.css.js";
 
-export function ChartTooltip({
-  getTooltipContent,
-  placement = "target",
-  size,
-  api,
-}: ChartTooltipOptions & {
-  getTooltipContent?: GetTooltipContent;
-  api: ChartAPI;
-}) {
-  const [expandedSeries, setExpandedSeries] = useState<ExpandedSeriesState>({});
-  const tooltip = useSelector(api.tooltipStore, (s) => s);
-  if (!tooltip.visible || tooltip.group.length === 0) {
-    return null;
-  }
-  const overrides = getTooltipContent?.({ point: tooltip.point, group: tooltip.group });
-  const getTrack = placement === "target" ? api.getTargetTrack : api.getGroupTrack;
-  const orientation = tooltip.point?.series.chart.inverted ? "horizontal" : "vertical";
-  const position = (() => {
-    if (placement === "target" || placement === "middle") {
-      return orientation === "vertical" ? "right" : "bottom";
-    } else {
-      return orientation === "vertical" ? "bottom" : "right";
-    }
-  })();
-  const trackKey = `${tooltip.point ? "p" : "g"}_${tooltip.group.length}_${tooltip.group[0].x}_${tooltip.point?.y}`;
-
-  let tooltipContent: RenderedTooltipContent = { header: null, body: null, footer: null };
-  if (tooltip.point && tooltip.point.series.type === "pie") {
-    tooltipContent = getTooltipContentPie({
-      point: tooltip.point,
-      header: overrides?.header,
-      body: overrides?.body,
-      footer: overrides?.footer,
-    });
-  } else if (tooltip.group.length > 0 && tooltip.group[0].series.type !== "pie") {
-    tooltipContent = getTooltipContentCartesian({
-      point: tooltip.point,
-      group: tooltip.group,
-      series: overrides?.series,
-      header: overrides?.header,
-      body: overrides?.body,
-      footer: overrides?.footer,
-      expandedSeries,
-      setExpandedSeries,
-    });
-  } else {
-    return null;
-  }
-
-  return (
-    <InternalChartTooltip
-      getTrack={getTrack}
-      trackKey={trackKey}
-      container={null}
-      className={testClasses.tooltip}
-      dismissButton={tooltip.pinned}
-      onDismiss={api.onDismissTooltip}
-      onMouseEnter={api.onMouseEnterTooltip}
-      onMouseLeave={api.onMouseLeaveTooltip}
-      title={tooltipContent.header}
-      footer={
-        tooltipContent.footer ? (
-          <>
-            <hr aria-hidden={true} />
-            {tooltipContent.footer}
-          </>
-        ) : null
-      }
-      size={size}
-      position={position}
-      minVisibleBlockSize={200}
-    >
-      {tooltipContent.body}
-    </InternalChartTooltip>
-  );
-}
+const MIN_VISIBLE_BLOCK_SIZE = 200;
 
 type ExpandedSeriesState = Record<string, Set<string>>;
 
@@ -124,41 +38,128 @@ interface RenderedTooltipContent {
   footer: React.ReactNode;
 }
 
-function getTooltipContentCartesian({
-  point,
-  group,
-  series: seriesOverride,
-  header: headerOverride,
-  body: bodyOverride,
-  footer: footerOverride,
-  expandedSeries,
-  setExpandedSeries,
-}: GetTooltipContentProps & CoreTooltipContent & ExpandedSeriesStateProps): RenderedTooltipContent {
+interface MatchedItem {
+  point: Highcharts.Point;
+  linkedErrorbars: Highcharts.Point[];
+}
+
+export function ChartTooltip({
+  placement = "target",
+  size,
+  getTooltipContent: getTooltipContentOverrides,
+  api,
+}: ChartTooltipOptions & {
+  getTooltipContent?: GetTooltipContent;
+  api: ChartAPI;
+}) {
+  const [expandedSeries, setExpandedSeries] = useState<ExpandedSeriesState>({});
+  const tooltip = useSelector(api.tooltipStore, (s) => s);
+  if (!tooltip.visible || tooltip.group.length === 0) {
+    return null;
+  }
+  const overrides = getTooltipContentOverrides?.({ point: tooltip.point, group: tooltip.group });
+  const getTrack = placement === "target" ? api.getTargetTrack : api.getGroupTrack;
+  const orientation = tooltip.point?.series.chart.inverted ? "horizontal" : "vertical";
+  const position = (() => {
+    if (placement === "target" || placement === "middle") {
+      return orientation === "vertical" ? "right" : "bottom";
+    } else {
+      return orientation === "vertical" ? "bottom" : "right";
+    }
+  })();
+  const content = getTooltipContent(api, {
+    point: tooltip.point,
+    group: tooltip.group,
+    series: overrides?.series,
+    header: overrides?.header,
+    body: overrides?.body,
+    footer: overrides?.footer,
+    expandedSeries,
+    setExpandedSeries,
+  });
+  if (!content) {
+    return null;
+  }
+  return (
+    <InternalChartTooltip
+      getTrack={getTrack}
+      trackKey={getTrackKey(tooltip.point, tooltip.group)}
+      container={null}
+      dismissButton={tooltip.pinned}
+      onDismiss={api.onDismissTooltip}
+      onMouseEnter={api.onMouseEnterTooltip}
+      onMouseLeave={api.onMouseLeaveTooltip}
+      title={content.header}
+      footer={
+        content.footer ? (
+          <>
+            <hr aria-hidden={true} />
+            {content.footer}
+          </>
+        ) : null
+      }
+      size={size}
+      position={position}
+      minVisibleBlockSize={MIN_VISIBLE_BLOCK_SIZE}
+    >
+      {content.body}
+    </InternalChartTooltip>
+  );
+}
+
+function getTrackKey(point: null | Highcharts.Point, group: Highcharts.Point[]) {
+  const pointId = point && (point.options.id || point.options.name);
+  if (point && pointId) {
+    return `p-${pointId}`;
+  }
+  if (point) {
+    return `p-${point.x}-${point.y}`;
+  }
+  return `g_${group.length}_${group[0].x}`;
+}
+
+function getTooltipContent(
+  api: ChartAPI,
+  props: GetTooltipContentProps & CoreTooltipContent & ExpandedSeriesStateProps,
+): null | RenderedTooltipContent {
+  if (props.point && props.point.series.type === "pie") {
+    return getTooltipContentPie(api, { ...props, point: props.point });
+  } else if (props.group.length > 0 && props.group[0].series.type !== "pie") {
+    return getTooltipContentCartesian(api, props);
+  } else {
+    return null;
+  }
+}
+
+function getTooltipContentCartesian(
+  api: ChartAPI,
+  {
+    point,
+    group,
+    series: seriesOverride,
+    header: headerOverride,
+    body: bodyOverride,
+    footer: footerOverride,
+    expandedSeries,
+    setExpandedSeries,
+  }: GetTooltipContentProps & CoreTooltipContent & ExpandedSeriesStateProps,
+): RenderedTooltipContent {
   const x = group[0].x;
   const chart = group[0].series.chart;
-
-  const getSeriesMarker = (series: Highcharts.Series) => {
-    return <ChartSeriesMarker type={getSeriesMarkerType(series)} color={getSeriesColor(series)} />;
-  };
-
+  const getSeriesMarker = (series: Highcharts.Series) =>
+    api.renderMarker(getSeriesMarkerType(series), getSeriesColor(series));
   const matchedItems = findTooltipSeriesItems(chart.series, group);
-
-  const detailItems: ChartSeriesDetailItem[] = matchedItems.flatMap((item) => {
-    const yAxisProps = chart.yAxis[0].userOptions as InternalYAxisOptions;
-    const valueFormatter = yAxisProps
-      ? getDefaultFormatter(yAxisProps, getDataExtremes(chart.xAxis[0]))
-      : (value: number) => value;
-
+  const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
+    const valueFormatter = getFormatter(item.point.series.yAxis);
     const formatted: TooltipSeriesFormatted = (() => {
       // Using consumer-defined details.
       if (seriesOverride) {
         return seriesOverride({ item });
       }
-
       const itemY = isXThreshold(item.point.series) ? null : (item.point.y ?? null);
       return {
         key: item.point.series.name,
-        value: itemY !== null ? valueFormatter(itemY) : null,
+        value: valueFormatter(itemY),
         details: item.linkedErrorbars.length ? (
           <div>
             {item.linkedErrorbars.map((errorBarPoint, index) => (
@@ -173,9 +174,7 @@ function getTooltipContentCartesian({
         ) : null,
       };
     })();
-
-    const items: ChartSeriesDetailItem[] = [];
-    items.push({
+    return {
       key: formatted.key,
       value: formatted.value,
       marker: getSeriesMarker(item.point.series),
@@ -183,20 +182,10 @@ function getTooltipContentCartesian({
       expandableId: formatted.expandable ? item.point.series.name : undefined,
       details: formatted.details,
       selected: item.point.x === point?.x && item.point.y === point?.y,
-    });
-    return items;
+    };
   });
-
-  const xAxisProps = chart.xAxis[0].userOptions as InternalXAxisOptions;
-  const titleFormatter = xAxisProps
-    ? getDefaultFormatter(xAxisProps, getDataExtremes(chart.xAxis[0]))
-    : (value: number) => value;
-
-  const slotRenderProps: TooltipSlotProps = {
-    x: x,
-    items: matchedItems,
-  };
-
+  const titleFormatter = getFormatter(chart.xAxis[0]);
+  const slotRenderProps: TooltipSlotProps = { x, items: matchedItems };
   return {
     header: headerOverride?.(slotRenderProps) ?? titleFormatter(x),
     body: bodyOverride?.(slotRenderProps) ?? (
@@ -220,18 +209,20 @@ function getTooltipContentCartesian({
   };
 }
 
-function getTooltipContentPie({
-  point,
-  header: headerOverride,
-  body: bodyOverride,
-  footer: footerOverride,
-}: { point: Highcharts.Point } & CoreTooltipContent): RenderedTooltipContent {
+function getTooltipContentPie(
+  api: ChartAPI,
+  {
+    point,
+    header: headerOverride,
+    body: bodyOverride,
+    footer: footerOverride,
+  }: { point: Highcharts.Point } & CoreTooltipContent,
+): RenderedTooltipContent {
   const tooltipDetails: TooltipSlotProps = { x: point.x, items: [{ point, linkedErrorbars: [] }] };
-
   return {
     header: headerOverride?.(tooltipDetails) ?? (
       <div className={styles["tooltip-default-header"]}>
-        <ChartSeriesMarker color={getPointColor(point)} type={getSeriesMarkerType(point.series)} />{" "}
+        {api.renderMarker(getSeriesMarkerType(point.series), getPointColor(point))}
         <Box variant="span" fontWeight="bold">
           {point.name}
         </Box>
@@ -244,45 +235,28 @@ function getTooltipContentPie({
   };
 }
 
-interface MatchedItem {
-  point: Highcharts.Point;
-  linkedErrorbars: Highcharts.Point[];
-}
-
 function findTooltipSeriesItems(series: Highcharts.Series[], group: Highcharts.Point[]): MatchedItem[] {
   const seriesOrder = series.reduce((d, s, i) => d.set(s, i), new Map<Highcharts.Series, number>());
-  const getSeriesIndex = (s: Highcharts.Series) => {
-    return seriesOrder.get(s) ?? -1;
-  };
-
+  const getSeriesIndex = (s: Highcharts.Series) => seriesOrder.get(s) ?? -1;
   const seriesErrors = new Map<string, Highcharts.Point[]>();
   const matchedSeries = new Set<Highcharts.Series>();
-
   const matchedItems: MatchedItem[] = [];
-
   for (const point of group) {
+    // We only support errorbar series that are linked to other series. In tooltip content we add
+    // linked error bars to series detail slot.
     if (point.series.type === "errorbar") {
-      // Error bar point found for this point
-      const linkedSeries = point.series.linkedParent;
-      if (linkedSeries) {
-        addError(getSeriesId(linkedSeries), point);
+      if (point.series.linkedParent) {
+        addError(getSeriesId(point.series.linkedParent), point);
       } else {
         warnOnce(
-          "Charts",
-          'Could not find the series that a series of type "errorbar" is linked to. ' +
-            "The error range will not be displayed in the tooltip out of the box. " +
-            'Make sure that the "linkedTo" property points to an existing series.',
+          "chart-components",
+          'The `linkedTo` property of "errorbar" series is missing, or points to a series that does not exist.',
         );
       }
     } else {
-      getMatchedPoints(point).forEach((point) => {
-        if (point.x !== null) {
-          matchedItems.push({ point, linkedErrorbars: [] });
-        }
-      });
+      addMatchedPoints(point);
     }
   }
-
   function addError(seriesId: string, errorPoint: Highcharts.Point) {
     if (errorPoint.options.low !== undefined && errorPoint.options.high !== undefined) {
       const errorRanges = seriesErrors.get(seriesId) ?? [];
@@ -290,27 +264,31 @@ function findTooltipSeriesItems(series: Highcharts.Series[], group: Highcharts.P
       seriesErrors.set(seriesId, errorRanges);
     }
   }
-
-  function getMatchedPoints(point: Highcharts.Point): Highcharts.Point[] {
-    if (matchedSeries.has(point.series)) {
-      return [];
+  function addMatchedPoints(point: Highcharts.Point) {
+    if (!matchedSeries.has(point.series)) {
+      matchedSeries.add(point.series);
+      if (isXThreshold(point.series)) {
+        matchedItems.push({ point, linkedErrorbars: [] });
+      } else {
+        point.series.data
+          .filter((d) => d.x === point.x)
+          .sort((a, b) => (a.y ?? 0) - (b.y ?? 0))
+          .forEach((point) => matchedItems.push({ point, linkedErrorbars: [] }));
+      }
     }
-    matchedSeries.add(point.series);
-    return isXThreshold(point.series)
-      ? [point]
-      : point.series.data.filter((d) => d.x === point.x).sort((a, b) => (a.y ?? 0) - (b.y ?? 0));
   }
-
-  return matchedItems
-    .sort((i1, i2) => {
-      const s1 = getSeriesIndex(i1.point.series) - getSeriesIndex(i2.point.series);
-      return s1 || (i1.point.y ?? 0) - (i2.point.y ?? 0);
-    })
-    .map((item) => {
-      const errorRanges = seriesErrors.get(getSeriesId(item.point.series)) ?? [];
-      return {
-        ...item,
-        linkedErrorbars: errorRanges.sort((i1, i2) => getSeriesIndex(i1.series) - getSeriesIndex(i2.series)),
-      };
-    });
+  return (
+    matchedItems
+      // We sort matched items by series order. If there are multiple items that belong to the same series, we sort them by value.
+      .sort((i1, i2) => {
+        const s1 = getSeriesIndex(i1.point.series) - getSeriesIndex(i2.point.series);
+        return s1 || (i1.point.y ?? 0) - (i2.point.y ?? 0);
+      })
+      // For each series item we add linked error ranges, sorted by their respective series indices.
+      .map((item) => {
+        const errorRanges = seriesErrors.get(getSeriesId(item.point.series)) ?? [];
+        const sortedErrorRanges = errorRanges.sort((i1, i2) => getSeriesIndex(i1.series) - getSeriesIndex(i2.series));
+        return { ...item, linkedErrorbars: sortedErrorRanges };
+      })
+  );
 }

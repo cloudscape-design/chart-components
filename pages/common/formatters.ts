@@ -1,9 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-export function dateFormatter(value: number | string) {
-  if (typeof value === "string") {
-    return value;
+export function dateFormatter(value: null | number) {
+  if (value === null) {
+    return "";
   }
   return new Date(value)
     .toLocaleDateString("en-US", {
@@ -17,9 +17,9 @@ export function dateFormatter(value: number | string) {
     .join("\n");
 }
 
-export function numberFormatter(value: number | string) {
-  if (typeof value === "string") {
-    return value;
+export function numberFormatter(value: null | number) {
+  if (value === null) {
+    return "";
   }
   return Math.abs(value) >= 1e9
     ? (value / 1e9).toFixed(1).replace(/\.0$/, "") + "G"
@@ -30,11 +30,17 @@ export function numberFormatter(value: number | string) {
         : value.toFixed(2);
 }
 
-export function moneyFormatter(value: string | number) {
+export function moneyFormatter(value: null | number) {
+  if (value === null) {
+    return "";
+  }
   return "$" + value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-export function priceFormatter(value: number) {
+export function priceFormatter(value: null | number) {
+  if (value === null) {
+    return "";
+  }
   return (
     "$" +
     value.toLocaleString("en-US", {
@@ -44,6 +50,9 @@ export function priceFormatter(value: number) {
   );
 }
 
-export function percentageFormatter(value: string | number) {
-  return typeof value === "number" ? `${(100 * value).toFixed(0)}%` : value;
+export function percentageFormatter(value: null | number) {
+  if (value === null) {
+    return "";
+  }
+  return `${(100 * value).toFixed(0)}%`;
 }

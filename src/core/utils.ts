@@ -27,11 +27,6 @@ export function isSeriesStacked(series: Highcharts.Series) {
   return (series.options as any).stacking === "normal";
 }
 
-export function getDataExtremes(axis?: Highcharts.Axis): [number, number] {
-  const extremes = axis?.getExtremes();
-  return [extremes?.dataMin ?? 0, extremes?.dataMax ?? 0];
-}
-
 interface ThresholdOptions<T extends "x-threshold" | "y-threshold"> {
   custom: {
     awsui: {

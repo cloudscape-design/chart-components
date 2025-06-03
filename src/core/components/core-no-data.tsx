@@ -24,11 +24,11 @@ export function ChartNoData({
   error,
   noMatch,
   onRecoveryClick,
-  i18nStrings,
   api,
+  i18nStrings,
 }: CoreNoDataProps & {
-  i18nStrings?: CoreI18nStrings;
   api: ChartAPI;
+  i18nStrings?: CoreI18nStrings;
 }) {
   const i18n = useInternalI18n("[charts]");
   const state = useSelector(api.nodataStore, (s) => s);

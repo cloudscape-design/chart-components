@@ -149,7 +149,7 @@ export namespace CartesianChartProps {
     max?: number;
     tickInterval?: number;
     categories?: string[];
-    valueFormatter?: (value: number) => string;
+    valueFormatter?: (value: null | number) => string;
   }
 
   export type XAxisOptions = AxisOptions;

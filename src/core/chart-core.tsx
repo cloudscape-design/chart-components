@@ -22,10 +22,9 @@ import { ChartSeriesFilter } from "./components/core-series-filter";
 import { ChartFooter, ChartHeader } from "./components/core-slots";
 import { ChartTooltip } from "./components/core-tooltip";
 import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
-import { getDefaultFormatter } from "./default-formatters";
+import { getFormatter } from "./formatters";
 import { CoreChartProps, InternalXAxisOptions } from "./interfaces-core";
 import * as Styles from "./styles";
-import { getDataExtremes } from "./utils";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -184,7 +183,7 @@ export function InternalCoreChart({
                 descriptionFormatter(point) {
                   const xAxisOptions = point.series.xAxis?.userOptions as undefined | InternalXAxisOptions;
                   if (xAxisOptions) {
-                    const formattedX = getDefaultFormatter(xAxisOptions, getDataExtremes(point.series.xAxis))(point.x);
+                    const formattedX = getFormatter(point.series.xAxis)(point.x);
                     return `${formattedX}\t${point.series.name}`;
                   }
                   return ""; // Using default Highcharts label.
@@ -291,7 +290,7 @@ export function InternalCoreChart({
                 // We use custom formatters instead of Highcharts defaults to ensure consistent formatting
                 // between x-axis ticks and tooltip header.
                 formatter: function () {
-                  const formattedValue = getDefaultFormatter(xAxis, getDataExtremes(this.axis))(this.value);
+                  const formattedValue = getFormatter(this.axis)(this.value);
                   return formattedValue.replace(/\n/g, "<br />");
                 },
                 ...xAxis.labels,
@@ -320,7 +319,7 @@ export function InternalCoreChart({
                 // We use custom formatters instead of Highcharts defaults to ensure consistent formatting
                 // between y-axis ticks and tooltip series values.
                 formatter: function () {
-                  const formattedValue = getDefaultFormatter(yAxis, getDataExtremes(this.axis))(this.value);
+                  const formattedValue = getFormatter(this.axis)(this.value);
                   return formattedValue.replace(/\n/g, "<br />");
                 },
                 ...yAxis.labels,

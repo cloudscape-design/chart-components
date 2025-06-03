@@ -155,6 +155,9 @@ export class ChartAPI {
   public getTargetTrack = this.chartExtraTooltip.getTargetTrack.bind(this.chartExtraTooltip);
   public getGroupTrack = this.chartExtraTooltip.getGroupTrack.bind(this.chartExtraTooltip);
 
+  // Legend marker renderer.
+  public renderMarker = this.chartExtraLegend.renderMarker.bind(this.chartExtraLegend);
+
   // Callbacks assigned to the tooltip.
   public onMouseEnterTooltip = this.chartExtraPointer.onMouseEnterTooltip.bind(this.chartExtraPointer);
   public onMouseLeaveTooltip = this.chartExtraPointer.onMouseLeaveTooltip.bind(this.chartExtraPointer);
