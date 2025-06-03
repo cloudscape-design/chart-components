@@ -84,7 +84,7 @@ function updateSeriesData(chart: Highcharts.Chart) {
   const allX = new Set<number>();
   const allY = new Set<number>();
   for (const s of chart.series) {
-    if (!s.visible) {
+    if (!s.visible || isXThreshold(s) || isYThreshold(s)) {
       continue;
     }
     for (const p of s.data) {
