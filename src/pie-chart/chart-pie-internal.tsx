@@ -82,28 +82,17 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
   // Render pie/donut segment descriptions.
   const segmentDescriptions = useSegmentDescriptions(props);
 
-  // Merging Highcharts options defined by the component and those provided explicitly as `options`, the latter has
-  // precedence, so that it is possible to override or extend all Highcharts settings from the outside.
   const highchartsOptions: Highcharts.Options = {
-    ...props.options,
     chart: {
-      ...props.options.chart,
       events: {
-        ...props.options.chart?.events,
         render(event) {
           innerDescriptions.onChartRender.call(this, event);
-          props.options.chart?.events?.render?.call(this, event);
         },
       },
     },
     plotOptions: {
-      ...props.options.plotOptions,
       pie: {
-        ...props.options.plotOptions?.pie,
-        dataLabels: {
-          ...segmentDescriptions.dataLabels,
-          ...props.options.plotOptions?.pie?.dataLabels,
-        },
+        dataLabels: segmentDescriptions.dataLabels,
       },
     },
     series,
