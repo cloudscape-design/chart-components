@@ -23,10 +23,15 @@ function noIdPlaceholder(): string {
   return "awsui-no-id-placeholder-" + rand;
 }
 
+// There are more possible values that series.stacking can take, but we only explicitly support "normal".
 export function isSeriesStacked(series: Highcharts.Series) {
   return (series.options as any).stacking === "normal";
 }
 
+// The threshold series are custom series, implemented as a combination of line series, and plot lines.
+// As Highcharts does not support custom series declaration, we annotate threshold series by using the
+// series.custom property. This is then used in our utilities to recognize threshold series, and retrieve
+// the associated threshold value.
 interface ThresholdOptions<T extends "x-threshold" | "y-threshold"> {
   custom: {
     awsui: {
@@ -52,8 +57,8 @@ export function isYThreshold(
   return typeof s.options.custom === "object" && s.options.custom.awsui?.type === "y-threshold";
 }
 
-// We check point.series explicitly because if the point was destroyed by Highcharts it is replaced by
-// { destroyed: true } object, where the series array is no longer present despite the TS definition.
+// We check point.series explicitly because Highcharts can destroy point objects, replacing the
+// contents with { destroyed: true }, violating the point's TS contract.
 export function isPointVisible(point: Highcharts.Point) {
   return point.visible && point.series && point.series.visible;
 }
@@ -96,22 +101,36 @@ export function getSeriesMarkerType(series?: Highcharts.Series): ChartSeriesMark
   }
 }
 
+// Highcharts supports color objects to represent gradients and more, but we only support string
+// colors in our markers. In case a non-string color is defined, we use black color as as fallback.
 export function getSeriesColor(series?: Highcharts.Series): string {
   return typeof series?.color === "string" ? series.color : "black";
 }
-
 export function getPointColor(point?: Highcharts.Point): string {
   return typeof point?.color === "string" ? point.color : "black";
 }
 
 // The custom legend implementation does not rely on the Highcharts legend. When Highcharts legend is disabled,
-// the chart object does not include information on legend items. Instead, we assume that all series but pie are
-// shown in the legend, and all pie series points are shown in the legend. Each item be it a series or a point should
-// have an ID, and all items with non-matched IDs are dimmed.
+// the chart object does not include information on legend items. Instead, we collect series and pie segments
+// using this custom function, respecting Highcharts' showInLegend flag (defined for series only).
+
+// There exists a Highcharts APIs to access legend items, but it is unfortunately not available, when
+// Highcharts legend is disabled. Instead, we use this custom method to collect legend items from the chart.
 export function getChartLegendItems(chart: Highcharts.Chart): readonly InternalChartLegendItemSpec[] {
   const legendItems: InternalChartLegendItemSpec[] = [];
   const addSeriesItem = (series: Highcharts.Series) => {
-    if (series.type !== "pie" && series.type !== "errorbar" && series.options.showInLegend !== false) {
+    // The pie series is not shown in the legend. Instead, we show pie segments.
+    if (series.type === "pie") {
+      return;
+    }
+    // We only support errorbar series that are linked to other series. Those are not represented separately
+    // in the legend, but can be controlled from the outside, using controllable items visibility API.
+    if (series.type === "errorbar") {
+      return;
+    }
+    // We respect Highcharts showInLegend option to allow hiding certain series from the legend.
+    // The same is not supported for pie chart segments.
+    if (series.options.showInLegend !== false) {
       legendItems.push({
         id: getSeriesId(series),
         name: series.name,
@@ -139,6 +158,9 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly InternalC
   return legendItems;
 }
 
+// This function returns coordinates of a rectangle, including the target point.
+// There are differences in how the rectangle is computed, but in all cases it is supposed to
+// enclose the point's visual representation in the chart, with no extra offsets.
 export function getPointRect(point: Highcharts.Point): Rect {
   switch (point.series.type) {
     case "column":
@@ -150,73 +172,21 @@ export function getPointRect(point: Highcharts.Point): Rect {
   }
 }
 
-export function getDefaultPointRect(point: Highcharts.Point) {
-  const chart = point.series.chart;
-  if (point.graphic) {
-    const box = point.graphic.getBBox();
-    return {
-      x: chart.plotLeft + box.x,
-      y: chart.plotTop + box.y,
-      width: box.width,
-      height: box.height,
-    };
-  }
-  return { x: 0, y: 0, width: 0, height: 0 };
-}
-
-export function getColumnPointRect(point: Highcharts.Point) {
-  const chart = point.series.chart;
-  if (point.graphic) {
-    const box = point.graphic.getBBox();
-    return chart.inverted
-      ? {
-          x: chart.plotWidth + chart.plotLeft - (box.y + box.height),
-          y: chart.plotHeight + chart.plotTop - (box.x + box.width),
-          width: box.height,
-          height: box.width,
-        }
-      : {
-          x: chart.plotLeft + box.x,
-          y: chart.plotTop + box.y,
-          width: box.width,
-          height: box.height,
-        };
-  }
-  return { x: 0, y: 0, width: 0, height: 0 };
-}
-
-export function getErrorBarPointRect(point: Highcharts.Point) {
-  const chart = point.series.chart;
-  if ("whiskers" in point) {
-    const box = (point.whiskers as Highcharts.SVGElement).getBBox();
-    return chart.inverted
-      ? {
-          x: chart.plotWidth + chart.plotLeft - (box.y + box.height),
-          y: chart.plotHeight + chart.plotTop - (box.x + box.width),
-          width: box.height,
-          height: box.width,
-        }
-      : {
-          x: chart.plotLeft + box.x,
-          y: chart.plotTop + box.y,
-          width: box.width,
-          height: box.height,
-        };
-  }
-  return { x: 0, y: 0, width: 0, height: 0 };
-}
-
+// The group rect is only used for cartesian charts. It returns coordinates of a rectangle,
+// which includes all given points, but also stretched vertically or horizontally (in inverted charts)
+// to the entire chart's height or width.
 export function getGroupRect(points: Highcharts.Point[]): Rect {
   if (points.length === 0) {
     return { x: 0, y: 0, width: 0, height: 0 };
   }
   const chart = points[0].series.chart;
   const rects = points.map(getPointRect);
-  let minX = rects[0].x;
-  let minY = rects[0].y;
-  let maxX = rects[0].x + rects[0].width;
-  let maxY = rects[0].y + rects[0].height;
-  for (const r of rects) {
+  const [first, ...rest] = rects;
+  let minX = first.x,
+    minY = first.y,
+    maxX = first.x + first.width,
+    maxY = first.y + first.height;
+  for (const r of rest) {
     minX = Math.min(minX, r.x);
     minY = Math.min(minY, r.y);
     maxX = Math.max(maxX, r.x + r.width);
@@ -242,4 +212,56 @@ export function getGroupAccessibleDescription(group: Highcharts.Point[]) {
   const firstPointLabel = group[0] ? getPointAccessibleDescription(group[0]) : "";
   const firstPointX = firstPointLabel.split("\t")[0];
   return `${firstPointX}, ${group.length} points`;
+}
+
+// The area-, line-, or scatter series markers are rendered as single graphic elements,
+// and we can use their respective b-boxes to compute rects.
+function getDefaultPointRect(point: Highcharts.Point): Rect {
+  const chart = point.series.chart;
+  if (point.graphic) {
+    const box = point.graphic.getBBox();
+    return {
+      x: chart.plotLeft + box.x,
+      y: chart.plotTop + box.y,
+      width: box.width,
+      height: box.height,
+    };
+  }
+  return { x: 0, y: 0, width: 0, height: 0 };
+}
+
+// The column series graphic elements are rectangles, and they are inverted if the chart is inverted,
+// so that rect's width becomes height and vice-versa.
+function getColumnPointRect(point: Highcharts.Point): Rect {
+  const chart = point.series.chart;
+  if (point.graphic) {
+    return getInvertedRect(point.graphic.getBBox(), chart);
+  }
+  return { x: 0, y: 0, width: 0, height: 0 };
+}
+
+// The errorbar series point rect cannot be computed from the respective graphic element (it gives wrong position).
+// Instead, we have to rely on the internal "whiskers" element b-box, which can be inverted, too.
+function getErrorBarPointRect(point: Highcharts.Point): Rect {
+  const chart = point.series.chart;
+  if ("whiskers" in point) {
+    return getInvertedRect((point.whiskers as Highcharts.SVGElement).getBBox(), chart);
+  }
+  return { x: 0, y: 0, width: 0, height: 0 };
+}
+
+function getInvertedRect(rect: Rect, chart: Highcharts.Chart): Rect {
+  return chart.inverted
+    ? {
+        x: chart.plotWidth + chart.plotLeft - (rect.y + rect.height),
+        y: chart.plotHeight + chart.plotTop - (rect.x + rect.width),
+        width: rect.height,
+        height: rect.width,
+      }
+    : {
+        x: chart.plotLeft + rect.x,
+        y: chart.plotTop + rect.y,
+        width: rect.width,
+        height: rect.height,
+      };
 }

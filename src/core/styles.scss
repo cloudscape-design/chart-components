@@ -8,6 +8,10 @@
 
 .root {
   position: relative;
+
+  .highcharts-grid-line {
+    pointer-events: none;
+  }
 }
 
 .root-fit-height {
@@ -57,12 +61,6 @@
 .focus-outline {
   @include focus-visible.when-visible-unfocused {
     stroke: cs.$color-border-item-focused;
-  }
-}
-
-:global {
-  .highcharts-grid-line {
-    pointer-events: none;
   }
 }
 

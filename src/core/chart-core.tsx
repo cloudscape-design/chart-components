@@ -97,7 +97,7 @@ export function InternalCoreChart({
   }
 
   const apiOptions = api.getOptions();
-  const inverted = options.chart?.inverted;
+  const inverted = !!options.chart?.inverted;
   const isRtl = () => getIsRtl(rootRef?.current);
   return (
     <div {...rootProps}>
@@ -230,63 +230,25 @@ export function InternalCoreChart({
               // Pie chart is shown in legend by default, that is required for standalone pie charts.
               pie: { showInLegend: true, ...Styles.pieSeries, ...options.plotOptions?.pie },
             },
-            xAxis: castArray(options.xAxis)?.map((xAxis) => ({
+            xAxis: castArray(options.xAxis)?.map((xAxisOptions) => ({
               ...Styles.xAxisOptions,
-              ...xAxis,
-              reversed: !inverted && isRtl() ? !xAxis.reversed : xAxis.reversed,
-              opposite: inverted && isRtl() ? !xAxis.opposite : xAxis.opposite,
-              className: clsx(
-                testClasses["axis-x"],
-                inverted ? testClasses["axis-vertical"] : testClasses["axis-horizontal"],
-                xAxis.className,
-              ),
-              title: {
-                style: {
-                  ...Styles.axisTitleCss,
-                  opacity: inverted && verticalAxisTitlePlacement === "top" ? 0 : undefined,
-                },
-                reserveSpace: inverted && verticalAxisTitlePlacement === "top" ? false : undefined,
-                ...xAxis.title,
-              },
-              labels: {
-                style: Styles.axisLabelsCss,
-                // We use custom formatters instead of Highcharts defaults to ensure consistent formatting
-                // between x-axis ticks and tooltip header.
-                formatter: function () {
-                  const formattedValue = getFormatter(this.axis)(this.value);
-                  return formattedValue.replace(/\n/g, "<br />");
-                },
-                ...xAxis.labels,
-              },
+              ...xAxisOptions,
+              // Depending on the chart.inverted the x-axis can be rendered as vertical, and needs to respect page direction.
+              reversed: !inverted && isRtl() ? !xAxisOptions.reversed : xAxisOptions.reversed,
+              opposite: inverted && isRtl() ? !xAxisOptions.opposite : xAxisOptions.opposite,
+              className: xAxisClassName(inverted, xAxisOptions.className),
+              title: axisTitle(xAxisOptions.title ?? {}, !inverted || verticalAxisTitlePlacement === "side"),
+              labels: axisLabels(xAxisOptions.labels ?? {}),
             })),
-            yAxis: castArray(options.yAxis)?.map((yAxis) => ({
+            yAxis: castArray(options.yAxis)?.map((yAxisOptions) => ({
               ...Styles.yAxisOptions,
-              ...yAxis,
-              reversed: inverted && isRtl() ? !yAxis.reversed : yAxis.reversed,
-              opposite: !inverted && isRtl() ? !yAxis.opposite : yAxis.opposite,
-              className: clsx(
-                testClasses["axis-y"],
-                inverted ? testClasses["axis-horizontal"] : testClasses["axis-vertical"],
-                yAxis.className,
-              ),
-              title: {
-                style: {
-                  ...Styles.axisTitleCss,
-                  opacity: !inverted && verticalAxisTitlePlacement === "top" ? 0 : undefined,
-                },
-                reserveSpace: !inverted && verticalAxisTitlePlacement === "top" ? false : undefined,
-                ...yAxis.title,
-              },
-              labels: {
-                style: Styles.axisLabelsCss,
-                // We use custom formatters instead of Highcharts defaults to ensure consistent formatting
-                // between y-axis ticks and tooltip series values.
-                formatter: function () {
-                  const formattedValue = getFormatter(this.axis)(this.value);
-                  return formattedValue.replace(/\n/g, "<br />");
-                },
-                ...yAxis.labels,
-              },
+              ...yAxisOptions,
+              // Depending on the chart.inverted the y-axis can be rendered as vertical, and needs to respect page direction.
+              reversed: inverted && isRtl() ? !yAxisOptions.reversed : yAxisOptions.reversed,
+              opposite: !inverted && isRtl() ? !yAxisOptions.opposite : yAxisOptions.opposite,
+              className: yAxisClassName(inverted, yAxisOptions.className),
+              title: axisTitle(yAxisOptions.title ?? {}, inverted || verticalAxisTitlePlacement === "side"),
+              labels: axisLabels(yAxisOptions.labels ?? {}),
             })),
             // We don't use Highcharts tooltip, but certain tooltip options such as tooltip.snap or tooltip.shared
             // affect the hovering behavior of Highcharts. That is only the case when the tooltip is not disabled,
@@ -337,4 +299,48 @@ export function InternalCoreChart({
       {settings.noDataEnabled && <ChartNoData {...noDataOptions} i18nStrings={i18nStrings} api={api} />}
     </div>
   );
+}
+
+function xAxisClassName(inverted: boolean, customClassName?: string) {
+  return clsx(
+    testClasses["axis-x"],
+    inverted ? testClasses["axis-vertical"] : testClasses["axis-horizontal"],
+    customClassName,
+  );
+}
+
+function yAxisClassName(inverted: boolean, customClassName?: string) {
+  return clsx(
+    testClasses["axis-y"],
+    inverted ? testClasses["axis-horizontal"] : testClasses["axis-vertical"],
+    customClassName,
+  );
+}
+
+// When placing vertical axis title in the chart's top, the actual axis title rendered by Highcharts
+// needs to be visually hidden (it is still accessible by screen-readers). We then set title's
+// opacity to 0, and use reserveSpace=false, so that Highcharts stretches the plot area to all available
+// container width.
+function axisTitle<O extends Highcharts.XAxisTitleOptions | Highcharts.YAxisTitleOptions>(
+  options: O,
+  visible: boolean,
+): O {
+  return {
+    style: { ...Styles.axisTitleCss, opacity: visible ? undefined : 0 },
+    reserveSpace: visible ? undefined : false,
+    ...options,
+  };
+}
+
+// We use custom formatters instead of Highcharts defaults to ensure consistent formatting
+// between axis ticks and tooltip contents.
+function axisLabels<O extends Highcharts.XAxisLabelsOptions | Highcharts.YAxisLabelsOptions>(options: O): O {
+  return {
+    style: Styles.axisLabelsCss,
+    formatter: function () {
+      const formattedValue = getFormatter(this.axis)(this.value);
+      return formattedValue.replace(/\n/g, "<br />");
+    },
+    ...options,
+  };
 }
