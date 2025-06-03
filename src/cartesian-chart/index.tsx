@@ -39,6 +39,7 @@ const CartesianChart = forwardRef(
         onChangeVisibleSeries={props.onChangeVisibleSeries}
         emphasizeBaselineAxis={props.emphasizeBaselineAxis ?? true}
         verticalAxisTitlePlacement={verticalAxisTitlePlacement}
+        filter={getAllowedProps(props.filter)}
         header={getAllowedProps(props.header)}
         footer={getAllowedProps(props.footer)}
         {...getDataAttributes(props)}

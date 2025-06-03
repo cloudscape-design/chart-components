@@ -4,6 +4,7 @@
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
 
+// An invisible component rendered before chart plot to capture focus for custom keyboard navigation.
 export function ChartApplication({
   api,
   keyboardNavigation,
