@@ -97,6 +97,34 @@ const series: CartesianChartProps.ScatterSeriesOptions[] = [
   },
 ];
 
+const matchingSeries: CartesianChartProps.ScatterSeriesOptions[] = [
+  {
+    name: "A",
+    type: "scatter",
+    data: baseline.map(({ x, y }, i) => ({ name: "A" + i, x, y })),
+  },
+  {
+    name: "B",
+    type: "scatter",
+    data: baseline.map(({ x, y }, i) => ({ name: "B" + i, x, y: y + randomInt(-100000, 100000) })),
+  },
+  {
+    name: "C",
+    type: "scatter",
+    data: baseline.map(({ x, y }, i) => ({ name: "C" + i, x, y: y + randomInt(-150000, 50000) })),
+  },
+  {
+    name: "D",
+    type: "scatter",
+    data: baseline.map(({ x, y }, i) => ({ name: "D" + i, x, y: y + randomInt(-200000, -100000) })),
+  },
+  {
+    name: "E",
+    type: "scatter",
+    data: baseline.map(({ x, y }, i) => ({ name: "E" + i, x, y: y + randomInt(50000, 75000) })),
+  },
+];
+
 const seriesWithCustomMarkers: CartesianChartProps.ScatterSeriesOptions[] = [
   { ...series[0], color: "#71a8a1", marker: { symbol: "triangle" } },
   { ...series[1], color: "#de954a", marker: { symbol: "triangle-down" } },
@@ -245,6 +273,10 @@ function ExampleScatterSimple() {
     <>
       <PageSection title="Scatter chart">
         <CartesianChart {...commonProps} series={series} />
+      </PageSection>
+
+      <PageSection title="Scatter chart with matching X">
+        <CartesianChart {...commonProps} series={matchingSeries} />
       </PageSection>
 
       <PageSection title="Scatter chart with explicit markers and colors">

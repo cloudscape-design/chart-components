@@ -68,13 +68,8 @@ export default function () {
             bullets: [
               `In the old cartesian charts series without data do not count towards empty or no-match state, so no indicator is shown.
               In the new cartesian charts the empty or no-match state can be added if all series are empty.`,
-            ],
-          },
-          visualDesign: {
-            bullets: [
-              "In the new pie chart no-data state we show an empty circle.",
-              `In the old charts there is a bottom margin present when the chart is empty.
-              This creates a small difference in vertical alignment of the no-data state indicator.`,
+              "In the new charts the threshold series are always empty. These series get their data points only if there are other non-empty " +
+                "series available in the chart. This means, the empty or no-match state can be shown on top of thresholds.",
             ],
           },
           implementation: {
