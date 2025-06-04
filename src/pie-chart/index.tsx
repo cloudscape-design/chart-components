@@ -8,7 +8,7 @@ import useBaseComponent from "../internal/base-component/use-base-component";
 import { applyDisplayName } from "../internal/utils/apply-display-name";
 import { getAllowedProps } from "../internal/utils/utils";
 import { InternalPieChart } from "./chart-pie-internal";
-import { InternalPieChartOptions, PieChartProps } from "./interfaces-pie";
+import { PieChartProps } from "./interfaces-pie";
 
 /**
  * PieChart is a public Cloudscape component. It features a custom API, which resembles the Highcharts API where appropriate,
@@ -21,7 +21,7 @@ const PieChart = forwardRef((props: PieChartProps, ref: React.Ref<PieChartProps.
       ref={ref}
       highcharts={props.highcharts}
       fallback={props.fallback}
-      options={validateOptions(props)}
+      series={props.series ? validateSeries(props.series) : []}
       ariaLabel={props.ariaLabel}
       ariaDescription={props.ariaDescription}
       fitHeight={props.fitHeight}
@@ -50,14 +50,6 @@ export type { PieChartProps };
 applyDisplayName(PieChart, "PieChart");
 
 export default PieChart;
-
-// We explicitly transform component properties to Highcharts options and internal cartesian chart properties
-// to avoid accidental or intentional use of Highcharts features that are not yet supported by Cloudscape.
-function validateOptions(props: PieChartProps): InternalPieChartOptions {
-  return {
-    series: props.series ? validateSeries(props.series) : [],
-  };
-}
 
 function validateSeries(s: PieChartProps.SeriesOptions): PieChartProps.SeriesOptions[] {
   switch (s.type) {

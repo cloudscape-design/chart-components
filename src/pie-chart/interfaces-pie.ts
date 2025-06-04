@@ -104,10 +104,4 @@ export namespace PieChartProps {
   }
 }
 
-// The internal chart options allow propagation of all Highcharts properties.
-// This is done to facilitate easier prototyping and fast adoption of more Highcharts features.
-export type InternalPieChartOptions = Omit<Highcharts.Options, "series"> & {
-  series: InternalSeriesOptions[];
-};
-
 export type InternalSeriesOptions = PieChartProps.SeriesOptions | Highcharts.SeriesOptionsType;

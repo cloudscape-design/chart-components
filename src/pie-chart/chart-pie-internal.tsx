@@ -13,7 +13,7 @@ import { fireNonCancelableEvent } from "../internal/events";
 import { useInnerDescriptions } from "./chart-inner-descriptions";
 import { useSegmentDescriptions } from "./chart-segment-descriptions";
 import { useChartTooltipPie } from "./chart-tooltip-pie";
-import { InternalPieChartOptions, PieChartProps } from "./interfaces-pie";
+import { InternalSeriesOptions, PieChartProps } from "./interfaces-pie";
 import * as Styles from "./styles";
 import { getAllSegmentIds } from "./utils";
 
@@ -21,7 +21,7 @@ import testClasses from "./test-classes/styles.css.js";
 
 interface InternalPieChartProps extends InternalBaseComponentProps, Omit<PieChartProps, "series"> {
   highcharts: null | object;
-  options: InternalPieChartOptions;
+  series: InternalSeriesOptions[];
 }
 
 /**
@@ -47,14 +47,14 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
     (value, handler) => fireNonCancelableEvent(handler, { visibleSegments: value ? [...value] : [] }),
   );
   // Unless visible segments are explicitly set, we start from all segments being visible.
-  const allSegmentIds = getAllSegmentIds(props.options.series);
+  const allSegmentIds = getAllSegmentIds(props.series);
   const visibleSegments = visibleSegmentsState ?? allSegmentIds;
 
   // Converting donut series to Highcharts pie series.
   // We set series color to transparent to visually hide the empty pie/donut ring.
   // That does not affect how the chart looks in non-empty state.
   const series: Highcharts.SeriesOptionsRegistry["SeriesPieOptions"][] = [];
-  for (const s of props.options.series) {
+  for (const s of props.series) {
     if (s.type === "pie") {
       series.push({ ...s, size: Styles.pieSeriesSize, color: "transparent" });
     }
@@ -76,7 +76,7 @@ export const InternalPieChart = forwardRef((props: InternalPieChartProps, ref: R
   }));
 
   // Render inner value and description for donut chart.
-  const hasDonutSeries = props.options.series.some((s) => s.type === "donut");
+  const hasDonutSeries = props.series.some((s) => s.type === "donut");
   const innerDescriptions = useInnerDescriptions(props, hasDonutSeries);
 
   // Render pie/donut segment descriptions.

@@ -4,14 +4,13 @@
 import { useRef } from "react";
 import type Highcharts from "highcharts";
 
-import { InternalPieChartOptions, PieChartProps } from "./interfaces-pie";
+import { PieChartProps } from "./interfaces-pie";
 import * as Styles from "./styles";
 
 import testClasses from "./test-classes/styles.css.js";
 
 interface InternalPieChartProps extends Omit<PieChartProps, "series"> {
   highcharts: null | object;
-  options: InternalPieChartOptions;
 }
 
 /**

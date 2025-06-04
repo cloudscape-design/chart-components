@@ -4,12 +4,11 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import type Highcharts from "highcharts";
 
-import { InternalPieChartOptions, PieChartProps } from "./interfaces-pie";
+import { PieChartProps } from "./interfaces-pie";
 import * as Styles from "./styles";
 
 interface InternalPieChartProps extends Omit<PieChartProps, "series"> {
   highcharts: null | object;
-  options: InternalPieChartOptions;
 }
 
 /**
