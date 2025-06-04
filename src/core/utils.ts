@@ -220,14 +220,9 @@ function getDefaultPointRect(point: Highcharts.Point): Rect {
   const chart = point.series.chart;
   if (point.graphic) {
     const box = point.graphic.getBBox();
-    return {
-      x: chart.plotLeft + box.x,
-      y: chart.plotTop + box.y,
-      width: box.width,
-      height: box.height,
-    };
+    return getChartRect(box, chart, false);
   }
-  return { x: 0, y: 0, width: 0, height: 0 };
+  return getPointRectFromCoordinates(point);
 }
 
 // The column series graphic elements are rectangles, and they are inverted if the chart is inverted,
@@ -235,9 +230,9 @@ function getDefaultPointRect(point: Highcharts.Point): Rect {
 function getColumnPointRect(point: Highcharts.Point): Rect {
   const chart = point.series.chart;
   if (point.graphic) {
-    return getInvertedRect(point.graphic.getBBox(), chart);
+    return getChartRect(point.graphic.getBBox(), chart, true);
   }
-  return { x: 0, y: 0, width: 0, height: 0 };
+  return getPointRectFromCoordinates(point);
 }
 
 // The errorbar series point rect cannot be computed from the respective graphic element (it gives wrong position).
@@ -245,13 +240,25 @@ function getColumnPointRect(point: Highcharts.Point): Rect {
 function getErrorBarPointRect(point: Highcharts.Point): Rect {
   const chart = point.series.chart;
   if ("whiskers" in point) {
-    return getInvertedRect((point.whiskers as Highcharts.SVGElement).getBBox(), chart);
+    return getChartRect((point.whiskers as Highcharts.SVGElement).getBBox(), chart, true);
   }
-  return { x: 0, y: 0, width: 0, height: 0 };
+  return getPointRectFromCoordinates(point);
 }
 
-function getInvertedRect(rect: Rect, chart: Highcharts.Chart): Rect {
-  return chart.inverted
+// The point graphic is not present in large charts to optimize performance.
+// In that case we compute point rects from their coordinates. We also assume the point
+// size is small, and thereby give it 0 width and height, which is alright as there is a
+// small offset that we use for focus outline anyways.
+// See: https://www.highcharts.com/blog/news/175-highcharts-performance-boost/
+function getPointRectFromCoordinates(point: Highcharts.Point) {
+  const chart = point.series.chart;
+  const plotX = point.plotX ?? 0;
+  const plotY = point.plotY ?? 0;
+  return getChartRect({ x: plotX, y: plotY, width: 0, height: 0 }, chart, true);
+}
+
+function getChartRect(rect: Rect, chart: Highcharts.Chart, canBeInverted: boolean): Rect {
+  return canBeInverted && chart.inverted
     ? {
         x: chart.plotWidth + chart.plotLeft - (rect.y + rect.height),
         y: chart.plotHeight + chart.plotTop - (rect.x + rect.width),
