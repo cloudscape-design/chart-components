@@ -4,6 +4,7 @@
 import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
+import { getFormatter } from "./formatters";
 import { InternalChartLegendItemSpec, Rect } from "./interfaces-core";
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
@@ -207,11 +208,11 @@ export function getPointAccessibleDescription(point: Highcharts.Point) {
   return point.graphic?.element.getAttribute("aria-label") ?? "\tchart point";
 }
 
-// TODO: i18n and format x
+// TODO: i18n
 export function getGroupAccessibleDescription(group: Highcharts.Point[]) {
-  const firstPointLabel = group[0] ? getPointAccessibleDescription(group[0]) : "";
-  const firstPointX = firstPointLabel.split("\t")[0];
-  return `${firstPointX}, ${group.length} points`;
+  const firstPoint = group[0];
+  const formattedX = getFormatter(firstPoint.series.xAxis)(firstPoint.x);
+  return `${formattedX}, group of ${group.length} points`;
 }
 
 // The area-, line-, or scatter series markers are rendered as single graphic elements,
