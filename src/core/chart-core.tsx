@@ -177,7 +177,8 @@ export function InternalCoreChart({
                 descriptionFormatter(point) {
                   if (point.series.xAxis) {
                     const formattedX = getFormatter(point.series.xAxis)(point.x);
-                    return `${formattedX}\t${point.series.name}`;
+                    const formattedY = getFormatter(point.series.yAxis)(point.y);
+                    return `${formattedX} ${formattedY}, ${point.series.name}`;
                   }
                   return ""; // Using default Highcharts label.
                 },
