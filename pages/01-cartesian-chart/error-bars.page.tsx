@@ -81,19 +81,13 @@ function getCostSeriesWithError({
 function getLastYearCostsSeriesWithError({
   type = "spline",
   errorSize,
+  errorColor,
 }: {
   errorSize: number;
   errorColor?: string;
   type?: "column" | "spline";
 }) {
-  return [
-    { ...costsLastYearSeries, type },
-    getLastYearCostsSeries({ errorColor: "blue", errorSize: errorSize / 1.5 }),
-    {
-      ...getLastYearCostsSeries({ errorColor: "red", errorSize: errorSize * 1.5 }),
-      name: "Error range 2",
-    },
-  ];
+  return [{ ...costsLastYearSeries, type }, getLastYearCostsSeries({ errorColor, errorSize })];
 }
 
 export default function () {
@@ -170,6 +164,9 @@ export default function () {
         </PageSection>
         <PageSection title="Line chart with many series">
           <LineChart {...chartProps} numberOfSeries={8} />
+        </PageSection>
+        <PageSection title="Multiple error bars per series">
+          <MultipleErrorBars {...chartProps} />
         </PageSection>
       </ColumnLayout>
     </Page>
@@ -321,6 +318,35 @@ function LineChart({
           name: "Series without error",
           type: "line",
           data: costsData.map((y) => y + Math.floor(pseudoRandom() * 10000) - 5000),
+        },
+      ]}
+      tooltip={
+        customTooltipContent
+          ? {
+              series: seriesFormatter(settings),
+              footer: customFooter,
+            }
+          : undefined
+      }
+      xAxis={{ type: "category", title: "Budget month", categories }}
+      yAxis={{ title: "Costs (USD)", valueFormatter: numberFormatter }}
+    />
+  );
+}
+
+function MultipleErrorBars({ inverted, errorSize, customTooltipContent }: ChartProps) {
+  const { chartProps, settings } = useChartSettings<ThisPageSettings>({ more: true });
+  return (
+    <CartesianChart
+      {...chartProps.cartesian}
+      chartHeight={CHART_HEIGHT}
+      inverted={inverted}
+      ariaLabel="Chart with multiple error bars"
+      series={[
+        ...getLastYearCostsSeriesWithError({ errorColor: "blue", errorSize: errorSize / 1.5 }),
+        {
+          ...getLastYearCostsSeries({ errorColor: "red", errorSize: errorSize * 1.5 }),
+          name: "Error range 2",
         },
       ]}
       tooltip={
