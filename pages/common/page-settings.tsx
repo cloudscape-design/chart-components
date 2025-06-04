@@ -114,17 +114,23 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
   const noData: CartesianChartProps.NoDataOptions | PieChartProps.NoDataOptions = {
     statusType: settings.seriesLoading ? "loading" : settings.seriesError ? "error" : "finished",
     empty: (
-      <Box textAlign="center">
-        <b>No data available</b>
-        <Box variant="p">There is no data available</Box>
-      </Box>
+      <div>
+        <Box fontWeight="bold" textAlign="center">
+          No data available
+        </Box>
+        <Box textAlign="center">There is no data available</Box>
+      </div>
     ),
     noMatch: (
-      <Box textAlign="center">
-        <b>No matching data</b>
-        <Box variant="p">There is no matching data to display</Box>
+      <SpaceBetween size="xs" alignItems="center">
+        <div>
+          <Box fontWeight="bold" textAlign="center">
+            No matching data
+          </Box>
+          <Box>There is no matching data to display</Box>
+        </div>
         <Button onClick={onClearFilter}>Clear filter</Button>
-      </Box>
+      </SpaceBetween>
     ),
     // Not including loading and empty states to let those be served from i18n.
     // Adding an empty recovery click handler to make the default recovery button appear.

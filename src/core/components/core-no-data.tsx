@@ -7,6 +7,7 @@ import { Portal } from "@cloudscape-design/component-toolkit/internal";
 import Button from "@cloudscape-design/components/button";
 import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-use/i18n";
 import LiveRegion from "@cloudscape-design/components/live-region";
+import SpaceBetween from "@cloudscape-design/components/space-between";
 import StatusIndicator from "@cloudscape-design/components/status-indicator";
 
 import { fireNonCancelableEvent } from "../../internal/events";
@@ -41,7 +42,7 @@ export function ChartNoData({
     content = loading ? (
       <div className={testClasses["no-data-loading"]}>{loading}</div>
     ) : (
-      <StatusIndicator type="loading" className={testClasses["no-data-loading"]}>
+      <StatusIndicator type="loading" className={testClasses["no-data-loading"]} wrapText={true}>
         {loadingText}
       </StatusIndicator>
     );
@@ -51,26 +52,23 @@ export function ChartNoData({
     content = error ? (
       <div className={testClasses["no-data-error"]}>{error}</div>
     ) : (
-      <span>
-        <StatusIndicator type="error" className={testClasses["no-data-error"]}>
+      <SpaceBetween direction="horizontal" size="xxs">
+        <StatusIndicator type="error" className={testClasses["no-data-error"]} wrapText={true}>
           {i18n("errorText", errorText)}
         </StatusIndicator>
         {!!recoveryText && !!onRecoveryClick && (
-          <>
-            {" "}
-            <Button
-              onClick={(event: CustomEvent) => {
-                event.preventDefault();
-                fireNonCancelableEvent(onRecoveryClick);
-              }}
-              variant="inline-link"
-              className={testClasses["no-data-retry"]}
-            >
-              {recoveryText}
-            </Button>
-          </>
+          <Button
+            onClick={(event: CustomEvent) => {
+              event.preventDefault();
+              fireNonCancelableEvent(onRecoveryClick);
+            }}
+            variant="inline-link"
+            className={testClasses["no-data-retry"]}
+          >
+            {recoveryText}
+          </Button>
         )}
-      </span>
+      </SpaceBetween>
     );
   } else if (state.noMatch) {
     content = <div className={testClasses["no-data-no-match"]}>{noMatch}</div>;
@@ -81,7 +79,9 @@ export function ChartNoData({
     <Portal container={state.container}>
       <div className={styles["no-data-wrapper"]}>
         <div className={clsx(testClasses["no-data"], styles["no-data"])}>
-          <LiveRegion>{content}</LiveRegion>
+          <div className={styles["no-data-content"]}>
+            <LiveRegion>{content}</LiveRegion>
+          </div>
         </div>
       </div>
     </Portal>

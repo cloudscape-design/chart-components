@@ -112,8 +112,8 @@ describe("CoreChart: no-data", () => {
       i18nProvider,
     });
     await waitFor(() => {
-      expect(getNoDataText()).toBe("provider: error provider: retry");
-      expect(getNoDataLiveRegionText()).toBe("provider: error provider: retry");
+      expect(getNoDataText()).toBe(["provider: error", "provider: retry"].join(""));
+      expect(getNoDataLiveRegionText()).toBe(["provider: error", "provider: retry"].join(""));
     });
 
     createWrapper().findButton()!.click();
@@ -142,8 +142,8 @@ describe("CoreChart: no-data", () => {
       i18nProvider,
     });
     await waitFor(() => {
-      expect(getNoDataText()).toBe("i18n: error i18n: retry");
-      expect(getNoDataLiveRegionText()).toBe("i18n: error i18n: retry");
+      expect(getNoDataText()).toBe(["i18n: error", "i18n: retry"].join(""));
+      expect(getNoDataLiveRegionText()).toBe(["i18n: error", "i18n: retry"].join(""));
     });
 
     createWrapper().findButton()!.click();
