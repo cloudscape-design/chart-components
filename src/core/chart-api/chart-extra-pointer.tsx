@@ -157,6 +157,7 @@ export class ChartExtraPointer {
       this.hoveredPoint = point;
       this.hoveredGroup = null;
       this.handlers.onPointHover(point);
+      this.applyCursorStyle();
     }
   };
 
@@ -166,6 +167,7 @@ export class ChartExtraPointer {
       this.hoveredPoint = null;
       this.hoveredGroup = availablePoints;
       this.handlers.onGroupHover(availablePoints);
+      this.applyCursorStyle();
     }
   };
 
@@ -176,7 +178,22 @@ export class ChartExtraPointer {
     this.hoverLostCall.call(() => {
       if (!this.hoveredPoint && !this.hoveredGroup && !this.tooltipHovered) {
         this.handlers.onHoverLost();
+        this.applyCursorStyle();
       }
     }, HOVER_LOST_DELAY);
+  };
+
+  private applyCursorStyle = () => {
+    const container = this.context.chart().container;
+    const setCursor = (value: "pointer" | "default") => {
+      if (container && container.style.cursor !== value) {
+        container.style.cursor = value;
+      }
+    };
+    if (this.hoveredPoint || this.hoveredGroup) {
+      setCursor("pointer");
+    } else {
+      setCursor("default");
+    }
   };
 }
