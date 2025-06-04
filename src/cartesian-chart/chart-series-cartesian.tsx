@@ -10,6 +10,8 @@ import * as Styles from "./styles";
 
 import testClasses from "./test-classes/styles.css.js";
 
+const whiskerLength = 17;
+
 export const useCartesianSeries = ({
   options,
   visibleSeries,
@@ -34,7 +36,6 @@ export const useCartesianSeries = ({
       };
     }
     if (s.type === "errorbar") {
-      const whiskerLength = 13;
       if (s.color) {
         return { ...s, stemColor: s.color, whiskerColor: s.color, whiskerLength };
       }
