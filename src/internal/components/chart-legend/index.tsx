@@ -132,6 +132,8 @@ export const ChartLegend = ({
     } else {
       onItemVisibilityChange([...visibleItems, itemId]);
     }
+    // Needed for touch devices.
+    onItemHighlightExit();
   };
 
   const selectItem = (itemId: string) => {
@@ -141,6 +143,8 @@ export const ChartLegend = ({
     } else {
       onItemVisibilityChange([itemId]);
     }
+    // Needed for touch devices.
+    onItemHighlightExit();
   };
 
   return (
