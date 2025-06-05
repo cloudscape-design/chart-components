@@ -37,7 +37,6 @@ export class ChartExtraNodata extends AsyncStore<ReactiveNodataState> {
       else {
         setTimeout(() => {
           const noDataContainer = chart.container?.querySelector(`[id="${this.noDataId}"]`) as null | HTMLElement;
-          console.log(chart.plotWidth);
           if (noDataContainer) {
             noDataContainer.style.width = `${chart.plotWidth}px`;
             noDataContainer.style.height = `${chart.plotHeight}px`;

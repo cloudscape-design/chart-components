@@ -49,7 +49,7 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
       this.updateLegendItems(updatedItems);
       updateItemsVisibility(this.context.chart(), this.get().items, visibleItems);
     } else {
-      this.context.handlers.onLegendItemsChange?.(updatedItems);
+      this.context.handlers.onVisibleItemsChange?.(updatedItems);
     }
   };
 

@@ -5,7 +5,12 @@ import { useEffect, useRef } from "react";
 import type Highcharts from "highcharts";
 
 import { ReadonlyAsyncStore } from "../../internal/utils/async-store";
-import { getChartAccessibleDescription, getGroupAccessibleDescription, getPointAccessibleDescription } from "../utils";
+import {
+  getChartAccessibleDescription,
+  getGroupAccessibleDescription,
+  getPointAccessibleDescription,
+  isXThreshold,
+} from "../utils";
 import { ChartExtraAxisTitles, ReactiveAxisTitlesState } from "./chart-extra-axis-titles";
 import { ChartExtraContext, createChartContext, updateChartContext } from "./chart-extra-context";
 import { ChartExtraHighlight } from "./chart-extra-highlight";
@@ -215,11 +220,11 @@ export class ChartAPI {
         this.chartExtraNavigation.announceChart(getChartAccessibleDescription());
       },
       onFocusGroup: (group: Highcharts.Point[]) => {
-        this.highlightChartGroup(group);
+        this.highlightActions(group, true);
         this.chartExtraNavigation.announceElement(getGroupAccessibleDescription(group), false);
       },
       onFocusPoint: (point: Highcharts.Point) => {
-        this.highlightChartPoint(point);
+        this.highlightActions(point, true);
         this.chartExtraNavigation.announceElement(getPointAccessibleDescription(point), false);
       },
       onBlur: () => this.clearChartHighlight(),
@@ -271,6 +276,7 @@ export class ChartAPI {
     for (const s of this.context.chart().series) {
       for (let i = 0; i < s.data.length; i++) {
         if (
+          !isXThreshold(s) &&
           (s.data[i - 1]?.y === undefined || s.data[i - 1]?.y === null) &&
           (s.data[i + 1]?.y === undefined || s.data[i + 1]?.y === null) &&
           !s.data[i].options.marker?.enabled

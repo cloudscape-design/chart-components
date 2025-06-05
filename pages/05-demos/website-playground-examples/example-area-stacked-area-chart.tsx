@@ -104,7 +104,7 @@ export function ExampleAreaChartStackedAreaChart() {
         {...chartProps.cartesian}
         chartHeight={379}
         ariaLabel="Stacked area chart"
-        stacked={true}
+        stacking={true}
         series={isEmpty ? [] : series}
         tooltip={{
           ...chartProps.cartesian.tooltip,

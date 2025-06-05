@@ -91,7 +91,7 @@ describe.skip("CartesianChart: axes", () => {
       series,
       xAxis: { title: "X axis" },
       yAxis: { title: "Y axis" },
-      emphasizeBaselineAxis: false,
+      emphasizeBaseline: false,
     });
     expect(InternalCoreChart).toHaveBeenCalledWith(
       expect.objectContaining({

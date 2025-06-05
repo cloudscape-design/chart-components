@@ -46,7 +46,10 @@ export function InternalCoreChart({
   legend: legendOptions,
   fallback = <Spinner />,
   callback,
-  verticalAxisTitlePlacement = "side",
+  cartesian: { emphasizeBaseline = true, verticalAxisTitlePlacement = "side" } = {
+    emphasizeBaseline: true,
+    verticalAxisTitlePlacement: "side",
+  },
   i18nStrings,
   className,
   header,
@@ -55,7 +58,7 @@ export function InternalCoreChart({
   keyboardNavigation = true,
   onHighlight,
   onClearHighlight,
-  onLegendItemsChange,
+  onVisibleItemsChange,
   visibleItems,
   __internalRootRef,
   ...rest
@@ -69,7 +72,7 @@ export function InternalCoreChart({
     tooltipEnabled: tooltipOptions?.enabled !== false,
     keyboardNavigationEnabled: keyboardNavigation,
   };
-  const handlers = { onHighlight, onClearHighlight, onLegendItemsChange };
+  const handlers = { onHighlight, onClearHighlight, onVisibleItemsChange };
   const state = { visibleItems };
   const api = useChartAPI(settings, handlers, state);
 
@@ -255,6 +258,7 @@ export function InternalCoreChart({
               className: yAxisClassName(inverted, yAxisOptions.className),
               title: axisTitle(yAxisOptions.title ?? {}, inverted || verticalAxisTitlePlacement === "side"),
               labels: axisLabels(yAxisOptions.labels ?? {}),
+              plotLines: yAxisPlotLines(yAxisOptions.plotLines, emphasizeBaseline),
             })),
             // We don't use Highcharts tooltip, but certain tooltip options such as tooltip.snap or tooltip.shared
             // affect the hovering behavior of Highcharts. That is only the case when the tooltip is not disabled,
@@ -349,4 +353,13 @@ function axisLabels<O extends Highcharts.XAxisLabelsOptions | Highcharts.YAxisLa
     },
     ...options,
   };
+}
+
+function yAxisPlotLines(
+  plotLineOptions: Highcharts.YAxisPlotLinesOptions[] = [],
+  emphasizeBaseline: boolean,
+): Highcharts.YAxisPlotLinesOptions[] {
+  return emphasizeBaseline
+    ? [{ value: 0, ...Styles.chatPlotBaseline, className: testClasses["emphasized-baseline"] }, ...plotLineOptions]
+    : plotLineOptions;
 }

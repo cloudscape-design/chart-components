@@ -60,7 +60,7 @@ describe("CoreChart: fit-size", () => {
       highcharts,
       options: {},
       chartHeight: 444,
-      verticalAxisTitlePlacement: "side",
+      cartesian: { verticalAxisTitlePlacement: "side" },
     });
 
     expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(444), expect.anything());
@@ -70,7 +70,7 @@ describe("CoreChart: fit-size", () => {
       options: {},
       chartHeight: 444,
       chartMinHeight: 500,
-      verticalAxisTitlePlacement: "side",
+      cartesian: { verticalAxisTitlePlacement: "side" },
     });
 
     expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(500), expect.anything());
@@ -79,7 +79,7 @@ describe("CoreChart: fit-size", () => {
       highcharts,
       options: {},
       chartHeight: 444,
-      verticalAxisTitlePlacement: "top",
+      cartesian: { verticalAxisTitlePlacement: "top" },
     });
 
     expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(444 - 28), expect.anything());
@@ -89,7 +89,7 @@ describe("CoreChart: fit-size", () => {
       options: {},
       chartHeight: 444,
       chartMinHeight: 500,
-      verticalAxisTitlePlacement: "top",
+      cartesian: { verticalAxisTitlePlacement: "top" },
     });
 
     expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(500 - 28), expect.anything());
@@ -113,25 +113,20 @@ describe("CoreChart: fit-size", () => {
     "uses measured or min height when fitHeight=true, verticalAxisTitlePlacement=$verticalAxisTitlePlacement",
     async ({ verticalAxisTitlePlacement }) => {
       const offset = verticalAxisTitlePlacement === "top" ? 28 : 0;
-      const { rerender } = renderChart({ highcharts, fitHeight: true, verticalAxisTitlePlacement });
+      const cartesian = { verticalAxisTitlePlacement };
+      const { rerender } = renderChart({ highcharts, fitHeight: true, cartesian });
 
       await waitFor(() => {
         expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(80 - offset), expect.anything());
       });
 
-      rerender({ highcharts, fitHeight: true, chartHeight: 300, verticalAxisTitlePlacement });
+      rerender({ highcharts, fitHeight: true, chartHeight: 300, cartesian });
 
       await waitFor(() => {
         expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(80 - offset), expect.anything());
       });
 
-      rerender({
-        highcharts,
-        fitHeight: true,
-        chartHeight: 300,
-        chartMinHeight: 200,
-        verticalAxisTitlePlacement,
-      });
+      rerender({ highcharts, fitHeight: true, chartHeight: 300, chartMinHeight: 200, cartesian });
 
       await waitFor(() => {
         expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(200 - offset), expect.anything());

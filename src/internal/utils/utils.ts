@@ -1,6 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+export type SomeRequired<Type, Keys extends keyof Type> = Type & {
+  [Key in Keys]-?: Type[Key];
+};
+
 export const getAllowedProps = <T extends Record<string, any>>(props?: T): undefined | T => {
   if (!props) {
     return undefined;

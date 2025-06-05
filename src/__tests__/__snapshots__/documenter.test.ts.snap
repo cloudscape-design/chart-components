@@ -6,7 +6,7 @@ exports[`definition for cartesian-chart matches the snapshot > cartesian-chart 1
   "events": [
     {
       "cancelable": false,
-      "description": "A callback, executed when series visibility is toggled by clicking on legend items.",
+      "description": "A callback, triggered when series visibility changes as result of user interacting with the legend or filter.",
       "detailInlineType": {
         "name": "{ visibleSeries: Array<string>; }",
         "properties": [
@@ -79,8 +79,9 @@ width value, the horizontal scrollbar is automatically added.",
       "type": "number",
     },
     {
+      "defaultValue": "true",
       "description": "When set to \`true\`, adds a visual emphasis on the zero baseline axis.",
-      "name": "emphasizeBaselineAxis",
+      "name": "emphasizeBaseline",
       "optional": true,
       "type": "boolean",
     },
@@ -107,44 +108,11 @@ width value, the horizontal scrollbar is automatically added.",
       "type": "ChartFilterOptions",
     },
     {
+      "defaultValue": "false",
       "description": "When set, the chart grows automatically to fill the parent container.",
       "name": "fitHeight",
       "optional": true,
       "type": "boolean",
-    },
-    {
-      "description": "Use header to render custom content below the chart (under the legend if present).",
-      "inlineType": {
-        "name": "ChartFooterOptions",
-        "properties": [
-          {
-            "name": "content",
-            "optional": true,
-            "type": "React.ReactNode",
-          },
-        ],
-        "type": "object",
-      },
-      "name": "footer",
-      "optional": true,
-      "type": "ChartFooterOptions",
-    },
-    {
-      "description": "Use header to render custom content above the chart.",
-      "inlineType": {
-        "name": "ChartHeaderOptions",
-        "properties": [
-          {
-            "name": "content",
-            "optional": true,
-            "type": "React.ReactNode",
-          },
-        ],
-        "type": "object",
-      },
-      "name": "header",
-      "optional": true,
-      "type": "ChartHeaderOptions",
     },
     {
       "description": "The Highcharts instance, that can be obtained as \`import Highcharts from 'highcharts'\`.
@@ -155,6 +123,7 @@ Supported Highcharts versions:
       "type": "object | null",
     },
     {
+      "defaultValue": "false",
       "description": "Inverts X and Y axes. Use it to show horizontal columns (bars).
 This property corresponds to [chart.inverted](https://api.highcharts.com/highcharts/chart.inverted).",
       "name": "inverted",
@@ -232,10 +201,11 @@ It requires the \`no-data-to-display\` module.",
       "type": "ChartNoDataOptions",
     },
     {
-      "description": "Chart series and data.
-This property corresponds to [series](https://api.highcharts.com/highcharts/series).
+      "description": "Chart series options.
+This property corresponds to [series](https://api.highcharts.com/highcharts/series), and extends it
+with two additional series types: "x-threshold", and "y-threshold".
 
-Supported series types:
+Supported types:
 * [area](https://api.highcharts.com/highcharts/series.area).
 * [areaspline](https://api.highcharts.com/highcharts/series.areaspline).
 * [column](https://api.highcharts.com/highcharts/series.column).
@@ -247,26 +217,27 @@ Supported series types:
 * y-threshold - The line-like series to represent y-axis threshold (horizontal, when \`inverted=false\`).",
       "name": "series",
       "optional": false,
-      "type": "Array<CartesianChartProps.SeriesOptions>",
+      "type": "ReadonlyArray<CartesianChartProps.SeriesOptions>",
     },
     {
-      "description": "Specifies series stacking behavior. Use it for column- or area- series.",
-      "name": "stacked",
+      "defaultValue": "false",
+      "description": "Specifies series stacking behavior. Use it for column- or area- series.
+This property corresponds to "normal" stacking type in Highcharts ([plotOptions.series.stacking](https://api.highcharts.com/highcharts/plotOptions.series.stacking)).",
+      "name": "stacking",
       "optional": true,
       "type": "boolean",
     },
     {
-      "description": "Chart tooltip that replaces [tooltip](https://api.highcharts.com/highcharts/tooltip).
+      "description": "Chart tooltip options.
 
-Supported properties:
+Supported options:
 * \`enabled\` - (optional, boolean) - Use it to hide the tooltip.
 * \`size\` - (optional, "small" | "medium" | "large") - Use it to specify max tooltip size.
-* \`placement\` - (optional, "middle" | "outside" | "target") - Use it to specify preferred tooltip placement.
-* \`title\` - (optional, function) - Use it to provide a custom tooltip title.
-* \`content\` - (optional, function) - Use it to provide a custom tooltip content.
-* \`footer\` - (optional, function) - Use it to add a tooltip footer.
-* \`series\` - (optional, function) - Use it to extend the default series list, in order to use custom value formatting,
-inject links, or add expandable items.",
+* \`placement\` - (optional, "middle" | "outside") - Use it to specify preferred tooltip placement.
+* \`series\` - (optional, function) - Use it to customize tooltip series rendering.
+* \`header\` - (optional, function) - Use it to provide a custom tooltip title.
+* \`body\` - (optional, function) - Use it to provide a custom tooltip content.
+* \`footer\` - (optional, function) - Use it to add a tooltip footer.",
       "inlineType": {
         "name": "CartesianChartProps.TooltipOptions",
         "properties": [
@@ -293,7 +264,7 @@ inject links, or add expandable items.",
           {
             "name": "placement",
             "optional": true,
-            "type": ""target" | "middle" | "outside"",
+            "type": ""middle" | "outside"",
           },
           {
             "name": "series",
@@ -314,7 +285,8 @@ inject links, or add expandable items.",
     },
     {
       "defaultValue": ""top"",
-      "description": "Defines placement of the vertical axis (can be either Y or X depending on \`inverted\`).",
+      "description": "When set to "top", the title of the vertical axis (can be x or y)
+is shown right above the chart plot.",
       "inlineType": {
         "name": ""top" | "side"",
         "type": "union",
@@ -328,28 +300,28 @@ inject links, or add expandable items.",
       "type": "string",
     },
     {
-      "description": "List of series IDs to be visible. When unset, all series are visible by default, but can be hidden by clicking on the
-legend. When a series does not have an ID, a series name is used instead.
-When the property is provided, use \`onChangeVisibleSegments\` to update it when the legend series filtering is used.",
+      "description": "Specifies visible series by their IDs. When unset, all series are visible by default, and the visibility state
+is managed internally by the component. When a series does not have an ID, a series name is used instead.
+When the property is provided, use \`onChangeVisibleSeries\` to manage state updates.",
       "name": "visibleSeries",
       "optional": true,
       "type": "ReadonlyArray<string>",
     },
     {
-      "description": "X-axis options that extend [xAxis](https://api.highcharts.com/highcharts/xAxis).
+      "description": "X-axis options.
+This property corresponds to [xAxis](https://api.highcharts.com/highcharts/xAxis), and extends it
+with a custom value formatter.
 
-Supported properties (Highcharts):
-* \`title\` (optional, string) - The axis title.
-* \`type\` (optional, 'linear' | 'datetime' | 'category' | 'logarithmic') - The axis type.
+Supported options:
+* \`title\` (optional, string) - Axis title.
+* \`type\` (optional, 'linear' | 'datetime' | 'category' | 'logarithmic') - Axis type.
 * * linear - Uses continuous proportional values scale.
 * * datetime - Similar to linear, but takes epoch time as values.
 * * category - Uses discrete scale, requires \`categories\` to be set.
 * * logarithmic - Uses continuous logarithmic values scale.
-* \`min\`, \`max\` (optional, number) - The axis value boundaries.
-* \`tickInterval\` (optional, number) - The tick distance.
-* \`categories\` (optional, Array<string>) - The predefined list of axis values to be used for categorical axes.
-
-Additional properties (Cloudscape):
+* \`min\`, \`max\` (optional, number) - Axis value boundaries.
+* \`tickInterval\` (optional, number) - Distance between axis ticks.
+* \`categories\` (optional, Array<string>) - Predefined list of values, used for categorical axis type.
 * \`valueFormatter\` (optional, function) - Takes axis tick as input and returns a formatted string. This formatter also
 applies to the tooltip header.",
       "inlineType": {
@@ -398,23 +370,23 @@ applies to the tooltip header.",
       "type": "AxisOptions",
     },
     {
-      "description": "Y-axis options that extend [xAxis](https://api.highcharts.com/highcharts/yAxis).
+      "description": "Y-axis options.
+This property corresponds to [xAxis](https://api.highcharts.com/highcharts/yAxis), and extends it
+with a custom value formatter.
 
-Supported properties (Highcharts):
-* \`title\` (optional, string) - The axis title.
-* \`type\` (optional, 'linear' | 'datetime' | 'category' | 'logarithmic') - The axis type.
+Supported options:
+* \`title\` (optional, string) - Axis title.
+* \`type\` (optional, 'linear' | 'datetime' | 'category' | 'logarithmic') - Axis type.
 * * linear - Uses continuous proportional values scale.
 * * datetime - Similar to linear, but takes epoch time as values.
 * * category - Uses discrete scale, requires \`categories\` to be set.
 * * logarithmic - Uses continuous logarithmic values scale.
-* \`min\`, \`max\` (optional, number) - The axis value boundaries.
-* \`tickInterval\` (optional, number) - The tick distance.
-* \`categories\` (optional, Array<string>) - The predefined list of axis values to be used for categorical axes.
+* \`min\`, \`max\` (optional, number) - Axis value boundaries.
+* \`tickInterval\` (optional, number) - Distance between axis ticks.
+* \`categories\` (optional, Array<string>) - Predefined list of values, used for categorical axis type.
 * \`reversedStacks\` (optional, boolean) - Reverts series order in stacked series.
-
-Additional properties (Cloudscape):
 * \`valueFormatter\` (optional, function) - Takes axis tick as input and returns a formatted string. This formatter also
-applies to the tooltip header.",
+applies to the tooltip series value.",
       "inlineType": {
         "name": "CartesianChartProps.YAxisOptions",
         "properties": [
@@ -582,40 +554,6 @@ width value, the horizontal scrollbar is automatically added.",
       "name": "fitHeight",
       "optional": true,
       "type": "boolean",
-    },
-    {
-      "description": "Use header to render custom content below the chart (under the legend if present).",
-      "inlineType": {
-        "name": "ChartFooterOptions",
-        "properties": [
-          {
-            "name": "content",
-            "optional": true,
-            "type": "React.ReactNode",
-          },
-        ],
-        "type": "object",
-      },
-      "name": "footer",
-      "optional": true,
-      "type": "ChartFooterOptions",
-    },
-    {
-      "description": "Use header to render custom content above the chart.",
-      "inlineType": {
-        "name": "ChartHeaderOptions",
-        "properties": [
-          {
-            "name": "content",
-            "optional": true,
-            "type": "React.ReactNode",
-          },
-        ],
-        "type": "object",
-      },
-      "name": "header",
-      "optional": true,
-      "type": "ChartHeaderOptions",
     },
     {
       "description": "The Highcharts instance, that can be obtained as \`import Highcharts from 'highcharts'\`.

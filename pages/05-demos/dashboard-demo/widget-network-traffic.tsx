@@ -170,7 +170,7 @@ export function NetworkTrafficWidget() {
           };
         },
       }}
-      emphasizeBaselineAxis={true}
+      emphasizeBaseline={true}
     />
   );
 }

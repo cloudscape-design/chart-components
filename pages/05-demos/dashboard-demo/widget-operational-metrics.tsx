@@ -83,7 +83,7 @@ export function WidgetOperationalMetrics() {
           legend={{
             enabled: false,
           }}
-          emphasizeBaselineAxis={true}
+          emphasizeBaseline={true}
         />
       </ResponsiveLayoutColumn>
     </ResponsiveLayout>

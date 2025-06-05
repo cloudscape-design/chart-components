@@ -109,7 +109,7 @@ function ExampleMixedChart() {
       }}
       visibleSeries={visibleSeries}
       onChangeVisibleSeries={({ detail: { visibleSeries } }) => setSettings({ visibleItems: visibleSeries.join(",") })}
-      emphasizeBaselineAxis={settings.emphasizeBaselineAxis}
+      emphasizeBaseline={settings.emphasizeBaseline}
     />
   );
 }

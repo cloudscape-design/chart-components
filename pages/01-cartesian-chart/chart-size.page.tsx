@@ -12,27 +12,27 @@ const splineSeries: CartesianChartProps.SeriesOptions[] = [
   {
     type: "spline",
     name: "Demo spline fifty",
-    data: range(0, 100).map((i) => [i * 10, Math.floor((pseudoRandom() + i / 25) * 50)]),
+    data: range(0, 100).map((i) => ({ x: i * 10, y: Math.floor((pseudoRandom() + i / 25) * 50) })),
   },
   {
     type: "spline",
     name: "Demo spline seventy-five",
-    data: range(0, 100).map((i) => [i * 10, Math.floor((pseudoRandom() + i / 25) * 75)]),
+    data: range(0, 100).map((i) => ({ x: i * 10, y: Math.floor((pseudoRandom() + i / 25) * 75) })),
   },
   {
     type: "spline",
     name: "Demo spline one hundred",
-    data: range(0, 100).map((i) => [i * 10, Math.floor((pseudoRandom() + i / 25) * 100)]),
+    data: range(0, 100).map((i) => ({ x: i * 10, y: Math.floor((pseudoRandom() + i / 25) * 100) })),
   },
   {
     type: "spline",
     name: "Demo spline one hundred twenty-five",
-    data: range(0, 100).map((i) => [i * 10, Math.floor((pseudoRandom() + i / 25) * 125)]),
+    data: range(0, 100).map((i) => ({ x: i * 10, y: Math.floor((pseudoRandom() + i / 25) * 125) })),
   },
   {
     type: "spline",
     name: "Demo spline one hundred fifty",
-    data: range(0, 100).map((i) => [i * 10, Math.floor((pseudoRandom() + i / 25) * 150)]),
+    data: range(0, 100).map((i) => ({ x: i * 10, y: Math.floor((pseudoRandom() + i / 25) * 150) })),
   },
 ];
 

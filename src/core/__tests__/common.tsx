@@ -22,10 +22,10 @@ export function StatefulChart(props: CoreChartProps) {
     <CoreChart
       {...props}
       visibleItems={visibleItems}
-      onLegendItemsChange={(legendItems) => {
+      onVisibleItemsChange={(legendItems) => {
         const visibleItems = legendItems.filter((i) => i.visible).map((i) => i.id);
         setVisibleItems(visibleItems);
-        props.onLegendItemsChange?.(legendItems);
+        props.onVisibleItemsChange?.(legendItems);
       }}
     />
   );

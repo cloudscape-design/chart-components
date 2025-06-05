@@ -4,7 +4,9 @@
 import { act } from "react";
 import { waitFor } from "@testing-library/react";
 import highcharts from "highcharts";
-import { MockInstance, vi } from "vitest";
+import { vi } from "vitest";
+
+import * as ComponentToolkitInternal from "@cloudscape-design/component-toolkit/internal";
 
 import "highcharts/highcharts-more";
 import "highcharts/modules/accessibility";
@@ -100,87 +102,60 @@ describe("CartesianChart: Error bars", () => {
     });
   });
 
-  describe("Warnings", () => {
-    let spy: MockInstance;
-    beforeEach(() => {
-      spy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    });
+  describe("validation", () => {
+    const warnOnce = vi.spyOn(ComponentToolkitInternal, "warnOnce");
 
     afterEach(() => {
-      vi.resetAllMocks();
+      warnOnce.mockReset();
     });
 
-    test("emits a warning if linkedTo does not refer to an existing series id", () => {
-      renderCartesianChart({
-        highcharts,
-        series: [{ type: "errorbar", linkedTo: "nonExistingId", data: [{ low: 1, high: 2 }] }],
-      });
-      expect(spy).toHaveBeenCalledOnce();
-    });
-
-    test.each(["area", "areaspline", "scatter"] as const)(
-      "emits a warning if error bar is attached to a non-supported series type: %s",
-      (type) => {
-        renderCartesianChart({
-          highcharts,
-          series: [
-            { type, id: "id", name: "name", data: [1] },
-            { type: "errorbar", linkedTo: "id", data: [{ low: 1, high: 2 }] },
-          ],
-        });
-        expect(spy).toHaveBeenCalledOnce();
-      },
-    );
-
-    test.each(["x-threshold", "y-threshold"] as const)(
-      "emits a warning if error bar is attached to a non-supported series type: %s",
-      (type) => {
-        renderCartesianChart({
-          highcharts,
-          series: [
-            { type, id: "id", name: "name", value: 1 },
-            { type: "errorbar", linkedTo: "id", data: [{ low: 1, high: 2 }] },
-          ],
-        });
-        expect(spy).toHaveBeenCalledOnce();
-      },
-    );
-
-    test("emits a warning if error bar is attached to a non-supported series type: errorbar", () => {
+    test("emits a warning and removes error-bar series if it is linked to a missing series", () => {
       renderCartesianChart({
         highcharts,
         series: [
-          { type: "column", id: "column", name: "name", data: [1] },
-          { type: "errorbar", linkedTo: "column", id: "errorbar-1", name: "name", data: [{ low: 1, high: 2 }] },
-          { type: "errorbar", linkedTo: "errorbar-1", data: [{ low: 1, high: 2 }] },
-        ],
-      });
-      expect(spy).toHaveBeenCalledOnce();
-    });
-
-    test("emits a warning if error bar is attached to a stacked column series", () => {
-      renderCartesianChart({
-        highcharts,
-        series: [
-          { type: "column", id: "id", name: "name", data: [1] },
-          { type: "errorbar", linkedTo: "id", data: [{ low: 1, high: 2 }] },
-        ],
-        stacked: true,
-      });
-      expect(spy).toHaveBeenCalledOnce();
-    });
-
-    test("emits a warning if linked series cannot be found when rendering the tooltip", async () => {
-      renderCartesianChart({
-        highcharts,
-        series: [
-          { type: "column", id: "column", name: "name", data: [1] },
+          { type: "line", name: "line", data: [1.5] },
           { type: "errorbar", linkedTo: "nonExistingId", data: [{ low: 1, high: 2 }] },
         ],
       });
-      vi.resetAllMocks();
-      await highlightFirstPoint();
-      expect(spy).toHaveBeenCalledOnce();
+      expect(warnOnce).toHaveBeenCalledWith(
+        "CartesianChart",
+        'The `linkedTo` property of "errorbar" series points to a missing, or unsupported series.',
+      );
+      expect(hc.getChart().series).toHaveLength(1);
+    });
+
+    test.each(["errorbar", "x-threshold", "y-threshold"])(
+      "emits a warning and removes error-bar series if it is linked to an unsupported series type: %s",
+      (linkedTo) => {
+        renderCartesianChart({
+          highcharts,
+          series: [
+            { type: "line", id: "line", name: "line", data: [] },
+            { type: "errorbar", id: "errorbar", name: "errorbar", data: [], linkedTo: "line" },
+            { type: "x-threshold", id: "x-threshold", name: "x-threshold", value: 0 },
+            { type: "y-threshold", id: "y-threshold", name: "y-threshold", value: 0 },
+            { type: "errorbar", data: [], linkedTo },
+          ],
+        });
+        expect(warnOnce).toHaveBeenCalledWith(
+          "CartesianChart",
+          'The `linkedTo` property of "errorbar" series points to a missing, or unsupported series.',
+        );
+        expect(hc.getChart().series).toHaveLength(4);
+      },
+    );
+
+    test("emits a warning and removes error-bar series if using error bars with stacked series", () => {
+      renderCartesianChart({
+        highcharts,
+        series: [
+          { type: "line", id: "id", name: "line", data: [] },
+          { type: "errorbar", data: [], linkedTo: "id" },
+        ],
+        stacking: true,
+      });
+      expect(warnOnce).toHaveBeenCalledWith("CartesianChart", "Error bars are not supported for stacked series.");
+      expect(hc.getChart().series).toHaveLength(1);
     });
   });
 });

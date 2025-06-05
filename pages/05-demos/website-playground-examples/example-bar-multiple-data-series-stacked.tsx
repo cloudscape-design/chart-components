@@ -46,7 +46,7 @@ export function ExampleBarChartMultipleDataSeriesStacked() {
         {...chartProps.cartesian}
         chartHeight={423}
         ariaLabel="Stacked bar chart"
-        stacked={true}
+        stacking={true}
         series={isEmpty ? [] : series}
         xAxis={{
           type: "category",

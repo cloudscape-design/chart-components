@@ -48,11 +48,11 @@ const seriesOld: BarChartProps<Date>["series"] = series.map((s) => ({
 
 export function ComponentNew({
   single,
-  stacked,
+  stacking,
   inverted,
 }: {
   single?: boolean;
-  stacked?: boolean;
+  stacking?: boolean;
   inverted?: boolean;
 }) {
   const { chartProps } = useChartSettings();
@@ -63,7 +63,7 @@ export function ComponentNew({
       chartMinHeight={100}
       ariaLabel="Bar chart"
       inverted={inverted}
-      stacked={stacked}
+      stacking={stacking}
       series={single ? seriesNew.slice(1, 2) : seriesNew}
       xAxis={{
         type: "category",
@@ -78,11 +78,11 @@ export function ComponentNew({
 
 export function ComponentOld({
   single,
-  stacked,
+  stacking,
   inverted,
 }: {
   single?: boolean;
-  stacked?: boolean;
+  stacking?: boolean;
   inverted?: boolean;
 }) {
   const { chartProps } = useChartSettings();
@@ -97,7 +97,7 @@ export function ComponentOld({
         xTickFormatter: (value) => dateFormatter(value.getTime()),
       }}
       ariaLabel="Bar chart"
-      stackedBars={stacked}
+      stackedBars={stacking}
       horizontalBars={inverted}
       xTitle="Time (UTC)"
       yTitle="Error count"

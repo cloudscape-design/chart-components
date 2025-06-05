@@ -1,145 +1,103 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useCallback } from "react";
 import type Highcharts from "highcharts";
 
-import { createThresholdMetadata, getOptionsId, isXThreshold, isYThreshold } from "../core/utils";
-import { CartesianChartProps } from "./interfaces-cartesian";
-import * as Styles from "./styles";
+import { PointDataItemType, RangeDataItemOptions } from "../core/interfaces";
+import * as Styles from "../core/styles";
+import { createThresholdMetadata, getOptionsId } from "../core/utils";
+import { CartesianChartProps as C } from "./interfaces-cartesian";
 
-import testClasses from "./test-classes/styles.css.js";
+// Highcharts series and data arrays are not marked as readonly in TS, but are readonly effectively.
+// This creates a conflict with Cloudscape type definitions as we use readonly arrays on input.
+// To resolve the conflict, we cast out readonly types to writeable.
+type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
-export const useCartesianSeries = ({
-  series: externalSeries,
-  visibleSeries,
-  emphasizeBaselineAxis,
-}: {
-  series: CartesianChartProps.SeriesOptions[];
-  visibleSeries: readonly string[];
-  emphasizeBaselineAxis?: boolean;
-}) => {
-  // The threshold series are added as a combination of series and plot lines.
-  // The series are hidden in the plot area, but are visible in the legend.
-  const series: Highcharts.SeriesOptionsType[] = externalSeries.map((s) => {
-    if (s.type === "x-threshold" || s.type === "y-threshold") {
-      return {
-        type: "line",
-        id: s.id,
-        name: s.name,
-        color: s.color ?? Styles.thresholdSeriesDefaultColor,
-        data: [],
-        custom: createThresholdMetadata(s.type, s.value).custom,
-        ...Styles.thresholdSeriesOptions,
-      };
-    }
-    if (s.type === "errorbar") {
-      if (s.color) {
-        return { ...s, stemColor: s.color, whiskerColor: s.color };
-      }
-      return { ...s };
-    }
-    return { ...s };
-  });
-
-  // When chart is re-rendered, there is a chance its thresholds series data or extremes changed.
-  // We compare the new state against the already rendered one and make adjustments if needed.
-  const onChartRender: Highcharts.ChartRenderCallbackFunction = useCallback(function () {
-    updateSeriesData(this);
-  }, []);
-
-  // The plot lines for threshold series are visible in the chart plot area. Unlike the line series,
-  // the plot lines render across the entire chart plot height or width.
+// The utility transforms cartesian chart component's series to Highcharts series. This includes transforming
+// custom x- and y-threshold series types, that are represented as a combination of invisible line series, and plot lines.
+// The plot lines, unlike series, are rendered across the entire chart plot width or height.
+export const transformCartesianSeries = (
+  originalSeries: readonly C.SeriesOptions[],
+  visibleSeries: readonly string[],
+) => {
+  // The injected plot lines have IDs matching the IDs of the threshold series. This is used by the core chart
+  // to manage visibility and highlight state for them, when the corresponding threshold series are toggled
+  // or highlighted in the legend or filter.
   const xPlotLines: Highcharts.XAxisPlotLinesOptions[] = [];
   const yPlotLines: Highcharts.YAxisPlotLinesOptions[] = [];
-  for (const s of externalSeries) {
+  for (const s of originalSeries) {
     const seriesId = getOptionsId(s);
+    const style = { ...Styles.thresholdPlotLine, color: s.color ?? Styles.thresholdPlotLine.color };
     if (s.type === "x-threshold" && visibleSeries.includes(seriesId)) {
-      xPlotLines.push({
-        id: seriesId,
-        value: s.value,
-        color: s.color ?? Styles.thresholdSeriesDefaultColor,
-        ...Styles.thresholdPlotLineOptions,
-      });
+      xPlotLines.push({ id: seriesId, value: s.value, ...style });
     }
     if (s.type === "y-threshold" && visibleSeries.includes(seriesId)) {
-      yPlotLines.push({
-        id: seriesId,
-        value: s.value,
-        color: s.color ?? Styles.thresholdSeriesDefaultColor,
-        ...Styles.thresholdPlotLineOptions,
-      });
+      yPlotLines.push({ id: seriesId, value: s.value, ...style });
     }
   }
-
-  // This makes the baseline better prominent in the plot.
-  if (emphasizeBaselineAxis) {
-    yPlotLines.push({ value: 0, ...Styles.chatPlotBaselineOptions, className: testClasses["emphasized-baseline"] });
+  // The threshold series require data points to enable keyboard navigation and hover effects.
+  // For y-threshold we find all defined x values from other series and use it those to create an array of
+  // data points. As result, the y-threshold series becomes properly navigable.
+  const xs = getAllX(originalSeries, visibleSeries);
+  // For x-threshold the point-based navigation is disabled as irrelevant. However, we still need at least
+  // one data point for core chart to work correctly, for that we find the first visible y value from other series.
+  const ys = getFirstY(originalSeries, visibleSeries);
+  function transformSeriesToHighcharts(s: C.SeriesOptions): Highcharts.SeriesOptionsType {
+    if (s.type === "x-threshold" || s.type === "y-threshold") {
+      const data = s.type === "x-threshold" ? ys.map((y) => ({ x: s.value, y })) : xs.map((x) => ({ x, y: s.value }));
+      const { custom } = createThresholdMetadata(s.type, s.value);
+      const enableMouseTracking = s.type === "y-threshold";
+      const style = { ...Styles.thresholdSeries, color: s.color ?? Styles.thresholdSeries.color };
+      return { type: "line", id: s.id, name: s.name, data, custom, enableMouseTracking, ...style };
+    }
+    if (s.type === "errorbar") {
+      // In Highcharts, the error-bar series graphic color is represented as stem-, and whisker colors.
+      // We simplify that, and only expose a single color prop that sets both of those.
+      return { ...s, data: s.data as Writeable<RangeDataItemOptions[]>, stemColor: s.color, whiskerColor: s.color };
+    }
+    return { ...s, data: s.data as Writeable<PointDataItemType[]> };
   }
-  return { series, xPlotLines, yPlotLines, options: { onChartRender } };
+  return { series: originalSeries.map(transformSeriesToHighcharts), xPlotLines, yPlotLines };
 };
 
-function updateSeriesData(chart: Highcharts.Chart) {
+function getFirstY(series: readonly C.SeriesOptions[], visibleSeries: readonly string[]) {
+  for (const s of getVisibleDataSeries(series, visibleSeries)) {
+    for (const d of s.data) {
+      const y = d === null ? null : typeof d === "number" ? d : d.y;
+      if (y !== null) {
+        return [y];
+      }
+    }
+  }
+  return [];
+}
+
+function getAllX(series: readonly C.SeriesOptions[], visibleSeries: readonly string[]) {
   const allX = new Set<number>();
-  const allY = new Set<number>();
-  for (const s of chart.series) {
-    if (!s.visible || isXThreshold(s) || isYThreshold(s)) {
-      continue;
-    }
-    for (const p of s.data) {
-      if (p.visible) {
-        allX.add(p.x);
-      }
-      if (p.visible && p.y !== undefined && p.y !== null) {
-        allY.add(p.y);
-      }
+  for (const s of getVisibleDataSeries(series, visibleSeries)) {
+    for (let i = 0; i < s.data.length; i++) {
+      const d = s.data[i];
+      const x = (typeof d === "object" ? d?.x : i) ?? i;
+      allX.add(x);
     }
   }
-  const sortedAllX = [...allX].sort((a, b) => a - b);
-  const sortedAllY = [...allY].sort((a, b) => a - b);
+  return [...allX].sort((a, b) => a - b);
+}
 
-  let updated = false;
-  for (const s of chart.series) {
-    if (isXThreshold(s)) {
-      updated = updateXfNeeded(s, s.options.custom.awsui.threshold, sortedAllY) || updated;
-    }
-    if (isYThreshold(s)) {
-      updated = updateYfNeeded(s, s.options.custom.awsui.threshold, sortedAllX) || updated;
+function getVisibleDataSeries(series: readonly C.SeriesOptions[], visibleSeries: readonly string[]) {
+  const dataSeries: Exclude<
+    C.SeriesOptions,
+    C.XThresholdSeriesOptions | C.YThresholdSeriesOptions | C.ErrorBarSeriesOptions
+  >[] = [];
+  for (const s of series) {
+    if (
+      s.type !== "x-threshold" &&
+      s.type !== "y-threshold" &&
+      s.type !== "errorbar" &&
+      visibleSeries.includes(getOptionsId(s))
+    ) {
+      dataSeries.push(s);
     }
   }
-  if (updated) {
-    chart.redraw();
-  }
-
-  // The update only happens if the new coordinates are different from the old.
-  function updateXfNeeded(series: Highcharts.Series, x: number, yValues: number[]) {
-    if (!series.visible) {
-      return false;
-    }
-    for (let i = 0; i < Math.max(series.data.length, yValues.length); i++) {
-      if (series.data[i]?.x !== x || series.data[i]?.y !== yValues[i]) {
-        series.setData(
-          yValues.map((y) => ({ x, y })),
-          false,
-        );
-        return true;
-      }
-    }
-    return false;
-  }
-  function updateYfNeeded(series: Highcharts.Series, y: number, xValues: number[]) {
-    if (!series.visible) {
-      return false;
-    }
-    for (let i = 0; i < Math.max(series.data.length, xValues.length); i++) {
-      if (series.data[i]?.x !== xValues[i] || series.data[i]?.y !== y) {
-        series.setData(
-          xValues.map((x) => ({ x, y })),
-          false,
-        );
-        return true;
-      }
-    }
-    return false;
-  }
+  return dataSeries;
 }

@@ -36,7 +36,7 @@ export default function () {
             "showLegendTitle",
             "tooltipSize",
             "tooltipPlacement",
-            "emphasizeBaselineAxis",
+            "emphasizeBaseline",
           ]}
         />
       }

@@ -84,7 +84,7 @@ export const seriesBorderColor = colorBackgroundLayoutMain;
 export const hiddenSeriesMarker = { enabled: false, radius: 3, symbol: "circle" };
 
 export const areaSeries = {
-  areaFillOpacity: 0.4,
+  fillOpacity: 0.4,
   marker: hiddenSeriesMarker,
 };
 
@@ -100,6 +100,7 @@ export const columnSeries = {
 };
 
 export const errorbarSeries = {
+  color: colorChartsThresholdNeutral,
   stemColor: colorChartsThresholdNeutral,
   whiskerColor: colorChartsThresholdNeutral,
 };
@@ -154,4 +155,23 @@ export const focusOutlineOffsets = {
   group: 4,
   point: 6,
   pointByType: { column: 2, pie: 2 } as Record<string, number | undefined>,
+};
+
+export const thresholdSeries: Partial<Highcharts.SeriesLineOptions> = {
+  dashStyle: "ShortDash",
+  lineWidth: 0,
+  color: colorChartsThresholdNeutral,
+};
+
+export const thresholdPlotLine: Partial<Highcharts.XAxisPlotLinesOptions | Highcharts.YAxisPlotLinesOptions> = {
+  width: 2,
+  dashStyle: "ShortDash",
+  zIndex: 3,
+  color: colorChartsThresholdNeutral,
+};
+
+export const chatPlotBaseline: Partial<Highcharts.XAxisPlotLinesOptions> = {
+  color: colorChartsLineTick,
+  width: 2,
+  zIndex: 3,
 };

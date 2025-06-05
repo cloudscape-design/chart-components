@@ -7,7 +7,7 @@ import "highcharts/highcharts-more";
 import { CartesianChartProps } from "../../../lib/components/cartesian-chart";
 import createWrapper from "../../../lib/components/test-utils/dom";
 import { HighchartsTestHelper } from "../../core/__tests__/highcharts-utils";
-import { renderCartesianChart, renderInternalCartesianChart } from "./common";
+import { renderCartesianChart } from "./common";
 
 const hc = new HighchartsTestHelper(highcharts);
 
@@ -138,7 +138,7 @@ describe("CartesianChart: series", () => {
         rerender({
           highcharts,
           series: [
-            { type: "line", name: "Line", data: [[x, y]] },
+            { type: "line", name: "Line", data: [{ x, y }] },
             { type: "x-threshold", name: "X threshold", value: 1 },
             { type: "y-threshold", name: "Y threshold", value: 1 },
           ],
@@ -150,24 +150,5 @@ describe("CartesianChart: series", () => {
         expect(getLastPoint(hc.getChartSeries(2).data)).toEqual([x, 1]);
       }
     }
-  });
-
-  test.skip("renders internal series with custom options along thresholds", () => {
-    renderInternalCartesianChart({
-      highcharts,
-      options: {
-        series: [
-          { type: "line", name: "Custom line", data: [[1, 2]], custom: { ref: "X" } },
-          { type: "x-threshold", name: "X threshold", value: 5 },
-          { type: "y-threshold", name: "Y threshold", value: 6 },
-        ],
-        xAxis: [{ title: { text: "X" } }],
-        yAxis: [{ title: { text: "T" } }],
-      },
-    });
-    expect(getChart().findSeries()).toHaveLength(3);
-    expect(hc.getChartSeries(0).data).toHaveLength(1);
-    expect(hc.getChartSeries(1).data).toHaveLength(1);
-    expect(hc.getChartSeries(2).data).toHaveLength(1);
   });
 });

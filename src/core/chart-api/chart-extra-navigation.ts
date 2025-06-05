@@ -13,7 +13,7 @@ import {
 import { SVGRendererPool } from "../../internal/utils/renderer-utils";
 import { Rect } from "../interfaces";
 import * as Styles from "../styles";
-import { getGroupRect, getPointRect, isPointVisible } from "../utils";
+import { getGroupRect, getPointRect, isPointVisible, isXThreshold } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
 // In charts with many data points one can navigate faster by using Page Down/Up keys that
@@ -266,23 +266,25 @@ export class ChartExtraNavigation {
   }
 
   private moveToFirstInGroup(group: Highcharts.Point[]) {
-    this.focusPoint(group[0], group);
+    const points = group.filter((p) => !isXThreshold(p.series));
+    this.focusPoint(points[0], group);
   }
 
   private moveToLastInGroup(group: Highcharts.Point[]) {
-    this.focusPoint(group[group.length - 1], group);
+    const points = group.filter((p) => !isXThreshold(p.series));
+    this.focusPoint(points[points.length - 1], group);
   }
 
   private moveToPrevInGroup(point: Highcharts.Point) {
-    const group = this.findMatchingGroup(point);
-    const pointIndex = group.indexOf(point);
-    this.focusPoint(group[circleIndex(pointIndex - 1, [0, group.length - 1])], group);
+    const points = this.findMatchingGroup(point).filter((p) => !isXThreshold(p.series));
+    const pointIndex = points.indexOf(point);
+    this.focusPoint(points[circleIndex(pointIndex - 1, [0, points.length - 1])], points);
   }
 
   private moveToNextInGroup(point: Highcharts.Point) {
-    const group = this.findMatchingGroup(point);
-    const pointIndex = group.indexOf(point);
-    this.focusPoint(group[circleIndex(pointIndex + 1, [0, group.length - 1])], group);
+    const points = this.findMatchingGroup(point).filter((p) => !isXThreshold(p.series));
+    const pointIndex = points.indexOf(point);
+    this.focusPoint(points[circleIndex(pointIndex + 1, [0, points.length - 1])], points);
   }
 
   private moveToFirstInSeries(point: Highcharts.Point) {

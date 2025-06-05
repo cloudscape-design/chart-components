@@ -37,8 +37,6 @@ const PieChart = forwardRef((props: PieChartProps, ref: React.Ref<PieChartProps.
       innerValue={props.innerValue}
       innerDescription={props.innerDescription}
       filter={getAllowedProps(props.filter)}
-      header={getAllowedProps(props.header)}
-      footer={getAllowedProps(props.footer)}
       {...getDataAttributes(props)}
       {...baseComponentProps}
     />

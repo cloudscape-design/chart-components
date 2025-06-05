@@ -1,51 +1,60 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { forwardRef, useMemo } from "react";
+import { forwardRef } from "react";
 
 import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
 
-import { BaseCartesianSeriesOptions } from "../core/interfaces";
+import { PointDataItemType, RangeDataItemOptions } from "../core/interfaces";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import useBaseComponent from "../internal/base-component/use-base-component";
 import { applyDisplayName } from "../internal/utils/apply-display-name";
-import { getAllowedProps } from "../internal/utils/utils";
+import { SomeRequired } from "../internal/utils/utils";
 import { InternalCartesianChart } from "./chart-cartesian-internal";
-import { CartesianChartProps, InternalSeriesOptions } from "./interfaces-cartesian";
+import { CartesianChartProps as C, CartesianChartProps } from "./interfaces-cartesian";
+
+export type { CartesianChartProps };
 
 const CartesianChart = forwardRef(
-  ({ verticalAxisTitlePlacement = "top", ...props }: CartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
-    const baseComponentProps = useBaseComponent("CartesianChart", { props: {} });
+  (
+    {
+      fitHeight = false,
+      inverted = false,
+      stacking = false,
+      emphasizeBaseline = true,
+      verticalAxisTitlePlacement = "top",
+      ...props
+    }: CartesianChartProps,
+    ref: React.Ref<CartesianChartProps.Ref>,
+  ) => {
+    // We validate series and axes options before propagating them to the internal chart to ensure only those
+    // options defined in the component's contract can be propagated down to the underlying Highcharts component.
+    // Additionally, we assign all default options, including the nested ones.
+    const series = validateSeries(props.series, stacking);
+    const xAxis = validateXAxisOptions(props.xAxis);
+    const yAxis = validateYAxisOptions(props.yAxis);
+    const tooltip = validateTooltip(props.tooltip);
+    const legend = validateLegend(props.legend);
 
-    // We explicitly transform component properties to Highcharts options and internal cartesian chart properties
-    // to avoid accidental or intentional use of Highcharts features that are not yet supported by Cloudscape.
-    const validatedSeries = useMemo(() => validateSeries(props.series, props.stacked), [props.series, props.stacked]);
+    const baseComponentProps = useBaseComponent("CartesianChart", {
+      props: { fitHeight, inverted, stacking, emphasizeBaseline, verticalAxisTitlePlacement },
+      metadata: {},
+    });
+
     return (
       <InternalCartesianChart
         ref={ref}
-        highcharts={props.highcharts}
-        fallback={props.fallback}
-        inverted={props.inverted}
-        stacked={props.stacked}
-        series={validatedSeries}
-        xAxis={props.xAxis ? validateXAxis(props.xAxis) : {}}
-        yAxis={props.yAxis ? validateYAxis(props.yAxis) : {}}
-        ariaLabel={props.ariaLabel}
-        ariaDescription={props.ariaDescription}
-        fitHeight={props.fitHeight}
-        chartHeight={props.chartHeight}
-        chartMinHeight={props.chartMinHeight}
-        chartMinWidth={props.chartMinWidth}
-        noData={getAllowedProps(props.noData)}
-        tooltip={getAllowedProps(props.tooltip)}
-        legend={getAllowedProps(props.legend)}
-        visibleSeries={props.visibleSeries}
-        onChangeVisibleSeries={props.onChangeVisibleSeries}
-        emphasizeBaselineAxis={props.emphasizeBaselineAxis ?? true}
+        {...props}
+        fitHeight={fitHeight}
+        inverted={inverted}
+        stacking={stacking}
+        emphasizeBaseline={emphasizeBaseline}
         verticalAxisTitlePlacement={verticalAxisTitlePlacement}
-        filter={getAllowedProps(props.filter)}
-        header={getAllowedProps(props.header)}
-        footer={getAllowedProps(props.footer)}
+        series={series}
+        xAxis={xAxis}
+        yAxis={yAxis}
+        tooltip={tooltip}
+        legend={legend}
         {...getDataAttributes(props)}
         {...baseComponentProps}
       />
@@ -53,130 +62,132 @@ const CartesianChart = forwardRef(
   },
 );
 
-export type { CartesianChartProps };
-
 applyDisplayName(CartesianChart, "CartesianChart");
 
 export default CartesianChart;
 
-function validateSeries(
-  unvalidatedSeries: CartesianChartProps.SeriesOptions[],
-  stacked?: boolean,
-): CartesianChartProps.SeriesOptions[] {
-  const validatedSeries: CartesianChartProps.SeriesOptions[] = [];
-
-  function getValidatedSeries(s: CartesianChartProps.SeriesOptions): null | CartesianChartProps.SeriesOptions {
-    const getBaseProps = (s: BaseCartesianSeriesOptions) => ({ id: s.id, name: s.name, color: s.color });
+function validateSeries(unvalidatedSeries: readonly C.SeriesOptions[], stacking: boolean): C.SeriesOptions[] {
+  const validatedSeries: C.SeriesOptions[] = [];
+  function validateSingleSeries(s: C.SeriesOptions): null | C.SeriesOptions {
     switch (s.type) {
       case "area":
-        return { type: s.type, ...getBaseProps(s), data: s.data } as CartesianChartProps.AreaSeriesOptions;
       case "areaspline":
-        return { type: s.type, ...getBaseProps(s), data: s.data } as CartesianChartProps.AreaSplineSeriesOptions;
-      case "column":
-        return { type: s.type, ...getBaseProps(s), data: s.data } as CartesianChartProps.ColumnSeriesOptions;
-      case "errorbar":
-        validateErrorBarSeries({ series: s, allSeries: unvalidatedSeries, stacked });
-        return {
-          type: s.type,
-          ...getBaseProps(s),
-          data: s.data,
-          linkedTo: s.linkedTo,
-        } as CartesianChartProps.ErrorBarSeriesOptions;
       case "line":
-        return { type: s.type, ...getBaseProps(s), data: s.data } as CartesianChartProps.LineSeriesOptions;
-      case "scatter":
-        return {
-          type: s.type,
-          ...getBaseProps(s),
-          data: s.data,
-          marker: s.marker || {},
-        } as CartesianChartProps.ScatterSeriesOptions;
       case "spline":
-        return { type: s.type, ...getBaseProps(s), data: s.data } as CartesianChartProps.SplineSeriesOptions;
+        return validateLineLikeSeries(s);
+      case "column":
+        return validateColumnSeries(s);
+      case "scatter":
+        return validateScatterSeries(s);
+      case "errorbar":
+        return validateErrorBarSeries(s, unvalidatedSeries, stacking);
       case "x-threshold":
-        return { type: s.type, ...getBaseProps(s), value: s.value } as CartesianChartProps.XThresholdSeriesOptions;
       case "y-threshold":
-        return { type: s.type, ...getBaseProps(s), value: s.value } as CartesianChartProps.YThresholdSeriesOptions;
+        return validateThresholdSeries(s);
       default:
         return null;
     }
   }
-
   for (const series of unvalidatedSeries) {
-    const filtered = getValidatedSeries(series);
-    if (filtered) {
-      validatedSeries.push(filtered);
+    const validated = validateSingleSeries(series);
+    if (validated) {
+      validatedSeries.push(validated);
     }
   }
-
   return validatedSeries;
 }
 
-function validateErrorBarSeries({
-  series,
-  allSeries,
-  stacked,
-}: {
-  series: CartesianChartProps.ErrorBarSeriesOptions;
-  allSeries: CartesianChartProps.SeriesOptions[];
-  stacked?: boolean;
-}) {
-  let previousSeries: CartesianChartProps.SeriesOptions | undefined;
-  let foundLinkingSeries = false;
-  const seriesDict = new Map<string, InternalSeriesOptions>();
-  for (const s of allSeries) {
-    if (s === series) {
-      foundLinkingSeries = true;
-    }
-    if (!foundLinkingSeries) {
-      previousSeries = s;
-    }
-    if (s.id !== undefined) {
-      seriesDict.set(s.id, s);
-    }
+function validateLineLikeSeries<
+  S extends C.AreaSeriesOptions | C.AreaSplineSeriesOptions | C.LineSeriesOptions | C.SplineSeriesOptions,
+>(s: S): null | S {
+  const data = validatePointData(s.data);
+  return { type: s.type, id: s.id, name: s.name, color: s.color, data } as S;
+}
+
+function validateColumnSeries<S extends C.ColumnSeriesOptions>(s: S): null | S {
+  const data = validatePointData(s.data);
+  return { type: s.type, id: s.id, name: s.name, color: s.color, data } as S;
+}
+
+function validateScatterSeries<S extends C.ScatterSeriesOptions>(s: S): null | S {
+  const data = validatePointData(s.data);
+  const marker = s.marker ?? {};
+  return { type: s.type, id: s.id, name: s.name, color: s.color, data, marker } as S;
+}
+
+function validateThresholdSeries<S extends C.XThresholdSeriesOptions | C.YThresholdSeriesOptions>(s: S): null | S {
+  return { type: s.type, id: s.id, name: s.name, color: s.color, value: s.value } as S;
+}
+
+function validateErrorBarSeries(
+  series: C.ErrorBarSeriesOptions,
+  allSeries: readonly C.SeriesOptions[],
+  stacking: boolean,
+): null | C.ErrorBarSeriesOptions {
+  // Highcharts only supports error bars for non-stacked series.
+  // See: https://github.com/highcharts/highcharts/issues/23080.
+  if (stacking) {
+    warnOnce("CartesianChart", "Error bars are not supported for stacked series.");
+    return null;
   }
-  let linkedSeries = seriesDict.get(series.linkedTo);
-  if (!linkedSeries && series.linkedTo === ":previous") {
-    linkedSeries = previousSeries;
-  }
-  if (!linkedSeries) {
+  // We only support error bars that are linked to some other series. It is only possible to link it
+  // using series ID (but not name), or by using ":previous" pseudo-selector.
+  // See: https://api.highcharts.com/highcharts/series.errorbar.linkedTo.
+  const linkedSeries =
+    series.linkedTo === ":previous"
+      ? allSeries[allSeries.indexOf(series) - 1]
+      : allSeries.find(({ id }) => id === series.linkedTo);
+  // The non-linked error bars are not supported: those will not appear in our custom legend and tooltip,
+  // so we remove them from the series array. We also do not support linking them to other error bars,
+  // or our custom threshold series.
+  if (!linkedSeries || ["errorbar", "x-threshold", "y-threshold"].includes(linkedSeries.type)) {
     warnOnce(
       "CartesianChart",
-      'The `linkedTo` property of "errorbar" series is missing, or points to a series that does not exist.',
+      'The `linkedTo` property of "errorbar" series points to a missing, or unsupported series.',
     );
-    return;
+    return null;
   }
-  if (!seriesTypesThatSupportErrorBars.includes(linkedSeries.type)) {
-    warnOnce("CartesianChart", `Error bars are not supported for series of type "${linkedSeries.type}".`);
-  }
-  if (linkedSeries.type === "column" && stacked) {
-    warnOnce("CartesianChart", "Error bars are not supported for stacked columns");
-  }
+  const data = validateRangeData(series.data);
+  return { type: series.type, id: series.id, name: series.name, color: series.color, linkedTo: series.linkedTo, data };
 }
 
-const seriesTypesThatSupportErrorBars = ["column", "line", "spline"];
+function validatePointData(data: readonly PointDataItemType[]): readonly PointDataItemType[] {
+  return data.map((d) => (d && typeof d === "object" ? { x: d.x, y: d.y } : d));
+}
 
-function validateXAxis(axis: CartesianChartProps.XAxisOptions): CartesianChartProps.XAxisOptions {
+function validateRangeData(data: readonly RangeDataItemOptions[]): readonly RangeDataItemOptions[] {
+  return data.map((d) => ({ x: d.x, low: d.low, high: d.high }));
+}
+
+function validateXAxisOptions(axis?: C.XAxisOptions): C.XAxisOptions {
+  return validateAxisOptions(axis);
+}
+
+function validateYAxisOptions(axis?: C.YAxisOptions): C.YAxisOptions {
+  return { ...validateAxisOptions(axis), reversedStacks: axis?.reversedStacks };
+}
+
+function validateAxisOptions<O extends C.XAxisOptions | C.YAxisOptions>(axis?: O): O {
   return {
-    type: axis.type,
-    title: axis.title,
-    min: axis.min,
-    max: axis.max,
-    tickInterval: axis.tickInterval,
-    categories: axis.categories,
-    valueFormatter: axis.valueFormatter,
+    type: axis?.type,
+    title: axis?.title,
+    min: axis?.min,
+    max: axis?.max,
+    tickInterval: axis?.tickInterval,
+    categories: axis?.categories,
+    valueFormatter: axis?.valueFormatter,
+  } as O;
+}
+
+function validateTooltip(tooltip?: C.TooltipOptions): SomeRequired<C.TooltipOptions, "enabled" | "placement" | "size"> {
+  return {
+    ...tooltip,
+    enabled: tooltip?.enabled ?? true,
+    placement: tooltip?.placement ?? "middle",
+    size: tooltip?.size ?? "medium",
   };
 }
 
-function validateYAxis(axis: CartesianChartProps.YAxisOptions): CartesianChartProps.YAxisOptions {
-  return {
-    type: axis.type,
-    title: axis.title,
-    min: axis.min,
-    max: axis.max,
-    tickInterval: axis.tickInterval,
-    categories: axis.categories,
-    valueFormatter: axis.valueFormatter,
-    reversedStacks: axis.reversedStacks,
-  };
+function validateLegend(legend?: C.LegendOptions): SomeRequired<C.LegendOptions, "enabled"> {
+  return { ...legend, enabled: legend?.enabled ?? true };
 }

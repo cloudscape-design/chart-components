@@ -5,6 +5,7 @@ import {
   colorChartsPaletteCategorical1,
   colorChartsPaletteCategorical2,
   colorChartsPaletteCategorical3,
+  colorTextBodyDefault,
 } from "@cloudscape-design/design-tokens";
 
 import { CartesianChart, CartesianChartProps } from "../../lib/components";
@@ -69,7 +70,7 @@ const baseline = [
 
 const randX = (x: number) => x - randomInt(0, 900000);
 
-const series: CartesianChartProps.ScatterSeriesOptions[] = [
+const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "A",
     type: "scatter",
@@ -94,6 +95,11 @@ const series: CartesianChartProps.ScatterSeriesOptions[] = [
     name: "E",
     type: "scatter",
     data: baseline.map(({ x, y }, i) => ({ name: "E" + i, x: randX(x), y: y + randomInt(50000, 75000) })),
+  },
+  {
+    name: "Threshold",
+    type: "x-threshold",
+    value: 1600993000000,
   },
 ];
 
@@ -125,12 +131,28 @@ const matchingSeries: CartesianChartProps.ScatterSeriesOptions[] = [
   },
 ];
 
-const seriesWithCustomMarkers: CartesianChartProps.ScatterSeriesOptions[] = [
-  { ...series[0], color: "#71a8a1", marker: { symbol: "triangle" } },
-  { ...series[1], color: "#de954a", marker: { symbol: "triangle-down" } },
-  { ...series[2], color: "#da2b22", marker: { symbol: "diamond" } },
-  { ...series[3], color: "#0ec0aa", marker: { symbol: "circle" } },
-  { ...series[4], color: "#c548db", marker: { symbol: "square" } },
+const seriesWithCustomMarkers: CartesianChartProps.SeriesOptions[] = [
+  {
+    name: "A",
+    type: "scatter",
+    data: baseline.map(({ x, y }, i) => ({ name: "A" + i, x: randX(x), y })),
+    color: "#ed1b76",
+    marker: { symbol: "triangle" },
+  },
+  {
+    name: "B",
+    type: "scatter",
+    data: baseline.map(({ x, y }, i) => ({ name: "B" + i, x: randX(x), y: y + randomInt(-100000, 100000) })),
+    color: "#249f9c",
+    marker: { symbol: "circle" },
+  },
+  {
+    name: "C",
+    type: "scatter",
+    data: baseline.map(({ x, y }, i) => ({ name: "C" + i, x: randX(x), y: y + randomInt(-150000, 50000) })),
+    color: colorTextBodyDefault,
+    marker: { symbol: "square" },
+  },
 ];
 
 const dataA = [
@@ -267,7 +289,7 @@ function ExampleScatterSimple() {
     ariaLabel: "Scatter chart",
     xAxis: { type: "datetime", title: "Time (UTC)", valueFormatter: dateFormatter },
     yAxis: { title: "Events" },
-    emphasizeBaselineAxis: false,
+    emphasizeBaseline: false,
   } as const;
   return (
     <>

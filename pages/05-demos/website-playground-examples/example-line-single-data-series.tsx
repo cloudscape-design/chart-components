@@ -35,10 +35,6 @@ const series: CartesianChartProps.SeriesOptions[] = [
       { x: 1601001000000, y: 361845 },
       { x: 1601001900000, y: 339058 },
       { x: 1601002800000, y: 298028 },
-      // The below line was inserted because it represents an intersection between the series and the threshold.
-      // That is mandatory for the thresholds to appear in the tooltip as otherwise it is inaccessible.
-      // The thresholds w/o intersections with data series are inaccessible.
-      { x: 1601003400000, y: 255555 },
       { x: 1601003700000, y: 231902 },
       { x: 1601004600000, y: 224558 },
       { x: 1601005500000, y: 253901 },

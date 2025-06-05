@@ -96,13 +96,15 @@ for (let index = 0; index < 20; index++) {
     })),
   });
 }
+series.push({ type: "x-threshold", name: "X Threshold", value: 1601000100000 });
+series.push({ type: "y-threshold", name: "Y Threshold", value: 1_500_000 });
 
 function Component() {
   const { chartProps } = useChartSettings();
   return (
     <CartesianChart
       {...chartProps.cartesian}
-      stacked={true}
+      stacking={true}
       chartHeight={400}
       ariaLabel="Area chart"
       series={series}

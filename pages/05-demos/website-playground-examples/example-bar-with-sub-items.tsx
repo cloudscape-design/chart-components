@@ -56,7 +56,7 @@ export function ExampleBarChartWithSubItems() {
         {...chartProps.cartesian}
         chartHeight={423}
         ariaLabel="Costs chart"
-        stacked={true}
+        stacking={true}
         series={isEmpty ? [] : series}
         tooltip={{
           ...chartProps.cartesian.tooltip,

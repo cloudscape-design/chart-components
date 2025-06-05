@@ -53,7 +53,7 @@ function Component() {
     <CartesianChart
       {...chartProps.cartesian}
       chartHeight={500}
-      stacked={true}
+      stacking={true}
       ariaLabel="Large area chart"
       series={series}
       xAxis={{

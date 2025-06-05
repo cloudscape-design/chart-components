@@ -14,7 +14,7 @@ describe("CoreChart: container", () => {
         xAxis: { title: { text: "X-axis title" } },
         yAxis: { title: { text: "Y-axis title" } },
       },
-      verticalAxisTitlePlacement: "top",
+      cartesian: { verticalAxisTitlePlacement: "top" },
       header: { content: "Custom header" },
       filter: {
         seriesFilter: true,
@@ -69,7 +69,7 @@ describe("CoreChart: container", () => {
           xAxis: { title: { text: "" } },
           yAxis: { title: { text: "" } },
         },
-        verticalAxisTitlePlacement,
+        cartesian: { verticalAxisTitlePlacement },
       });
       expect(wrapper.findXAxisTitle()).toBe(null);
       expect(wrapper.findYAxisTitle()).toBe(null);
@@ -94,7 +94,7 @@ describe("CoreChart: container", () => {
           xAxis: { title: { text: "X-title" } },
           yAxis: { title: { text: "Y-title" } },
         },
-        verticalAxisTitlePlacement,
+        cartesian: { verticalAxisTitlePlacement },
       });
       expect(wrapper.findXAxisTitle()!.getElement().textContent).toBe("X-title");
       expect(wrapper.findYAxisTitle()!.getElement().textContent).toBe("Y-title");

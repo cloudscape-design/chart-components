@@ -53,14 +53,14 @@ export default function () {
           examples={[
             {
               tags: ["vertical"],
-              old: <BarChartExample.ComponentOld stacked={true} />,
-              new: <BarChartExample.ComponentNew stacked={true} />,
+              old: <BarChartExample.ComponentOld stacking={true} />,
+              new: <BarChartExample.ComponentNew stacking={true} />,
               containerHeight: 300,
             },
             {
               tags: ["horizontal"],
-              old: <BarChartExample.ComponentOld stacked={true} inverted={true} />,
-              new: <BarChartExample.ComponentNew stacked={true} inverted={true} />,
+              old: <BarChartExample.ComponentOld stacking={true} inverted={true} />,
+              new: <BarChartExample.ComponentNew stacking={true} inverted={true} />,
               containerHeight: 300,
             },
           ]}

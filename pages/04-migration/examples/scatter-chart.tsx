@@ -85,7 +85,7 @@ export function ComponentNew() {
     ariaLabel: "Scatter chart",
     xAxis: { type: "datetime", title: "Time (UTC)", valueFormatter: dateFormatter },
     yAxis: { title: "Events" },
-    emphasizeBaselineAxis: false,
+    emphasizeBaseline: false,
   } as const;
   return (
     <CartesianChart {...commonProps} fitHeight={true} chartMinHeight={200} ariaLabel="Scatter chart" series={series} />

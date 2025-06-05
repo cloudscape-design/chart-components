@@ -27,8 +27,8 @@ export interface PageSettings {
   emptySeries: boolean;
   seriesLoading: boolean;
   seriesError: boolean;
-  emphasizeBaselineAxis: boolean;
-  tooltipPlacement: "default" | "middle" | "outside" | "target";
+  emphasizeBaseline: boolean;
+  tooltipPlacement: "default" | "middle" | "outside";
   tooltipSize: "small" | "medium" | "large";
   showLegend: boolean;
   showLegendTitle: boolean;
@@ -51,7 +51,7 @@ const DEFAULT_SETTINGS: PageSettings = {
   emptySeries: false,
   seriesLoading: false,
   seriesError: false,
-  emphasizeBaselineAxis: true,
+  emphasizeBaseline: true,
   tooltipPlacement: "default",
   tooltipSize: "medium",
   showLegend: true,
@@ -91,7 +91,7 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
     emptySeries: parseBoolean(defaultSettings.emptySeries, urlParams.emptySeries),
     seriesLoading: parseBoolean(defaultSettings.seriesLoading, urlParams.seriesLoading),
     seriesError: parseBoolean(defaultSettings.seriesError, urlParams.seriesError),
-    emphasizeBaselineAxis: parseBoolean(defaultSettings.emphasizeBaselineAxis, urlParams.emphasizeBaselineAxis),
+    emphasizeBaseline: parseBoolean(defaultSettings.emphasizeBaseline, urlParams.emphasizeBaseline),
     showLegend: parseBoolean(defaultSettings.showLegend, urlParams.showLegend),
     showLegendTitle: parseBoolean(defaultSettings.showLegendTitle, urlParams.showLegendTitle),
     showLegendActions: parseBoolean(defaultSettings.showLegendActions, urlParams.showLegendActions),
@@ -154,7 +154,7 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
           size: settings.tooltipSize,
         },
         legend,
-        emphasizeBaselineAxis: settings.emphasizeBaselineAxis,
+        emphasizeBaseline: settings.emphasizeBaseline,
         verticalAxisTitlePlacement: settings.verticalAxisTitlePlacement,
       },
       pie: {
@@ -169,7 +169,7 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
   };
 }
 
-const tooltipPlacementOptions = [{ value: "default" }, { value: "middle" }, { value: "outside" }, { value: "target" }];
+const tooltipPlacementOptions = [{ value: "default" }, { value: "middle" }, { value: "outside" }];
 
 const tooltipSizeOptions = [{ value: "small" }, { value: "medium" }, { value: "large" }];
 
@@ -282,11 +282,11 @@ export function PageSettingsForm({
                   Apply error state
                 </Checkbox>
               );
-            case "emphasizeBaselineAxis":
+            case "emphasizeBaseline":
               return (
                 <Checkbox
-                  checked={settings.emphasizeBaselineAxis}
-                  onChange={({ detail }) => setSettings({ emphasizeBaselineAxis: detail.checked })}
+                  checked={settings.emphasizeBaseline}
+                  onChange={({ detail }) => setSettings({ emphasizeBaseline: detail.checked })}
                 >
                   Emphasize baseline axis
                 </Checkbox>
@@ -302,11 +302,7 @@ export function PageSettingsForm({
                     }
                     onChange={({ detail }) =>
                       setSettings({
-                        tooltipPlacement: detail.selectedOption.value as string as
-                          | "default"
-                          | "middle"
-                          | "outside"
-                          | "target",
+                        tooltipPlacement: detail.selectedOption.value as string as "default" | "middle" | "outside",
                       })
                     }
                   />

@@ -13,7 +13,7 @@ import { NonCancelableEventHandler } from "../internal/events";
 /**
  * This interface includes common public chart properties, applicable for all chart types.
  */
-export interface BaseChartProps {
+export interface BaseChartOptions {
   /**
    * The Highcharts instance, that can be obtained as `import Highcharts from 'highcharts'`.
    * Supported Highcharts versions:
@@ -75,16 +75,6 @@ export interface BaseChartProps {
   noData?: ChartNoDataOptions;
 
   /**
-   * Use header to render custom content above the chart.
-   */
-  header?: ChartHeaderOptions;
-
-  /**
-   * Use header to render custom content below the chart (under the legend if present).
-   */
-  footer?: ChartFooterOptions;
-
-  /**
    * Use filter to render default series filter, custom series filter, and/or additional filters.
    */
   filter?: ChartFilterOptions;
@@ -143,38 +133,38 @@ export interface ChartFilterOptions {
 
 export interface AreaSeriesOptions extends BaseCartesianSeriesOptionsWithName {
   type: "area";
-  data: PointDataItemType[];
+  data: readonly PointDataItemType[];
 }
 
 export interface AreaSplineSeriesOptions extends BaseCartesianSeriesOptionsWithName {
   type: "areaspline";
-  data: PointDataItemType[];
+  data: readonly PointDataItemType[];
 }
 
 export interface ColumnSeriesOptions extends BaseCartesianSeriesOptionsWithName {
   type: "column";
-  data: PointDataItemType[];
+  data: readonly PointDataItemType[];
 }
 
 export interface LineSeriesOptions extends BaseCartesianSeriesOptionsWithName {
   type: "line";
-  data: PointDataItemType[];
+  data: readonly PointDataItemType[];
 }
 
 export interface SplineSeriesOptions extends BaseCartesianSeriesOptionsWithName {
   type: "spline";
-  data: PointDataItemType[];
+  data: readonly PointDataItemType[];
 }
 
 export interface ScatterSeriesOptions extends BaseCartesianSeriesOptionsWithName {
   type: "scatter";
-  data: PointDataItemType[];
+  data: readonly PointDataItemType[];
   marker?: PointMarkerOptions;
 }
 
 export interface ErrorBarSeriesOptions extends BaseCartesianSeriesOptions {
   type: "errorbar";
-  data: RangeDataItemType[];
+  data: readonly RangeDataItemOptions[];
   linkedTo: string;
 }
 
@@ -207,12 +197,10 @@ export interface PieSegmentOptions {
   color?: string;
 }
 
-export type PointDataItemType = null | number | [number, number | null] | PointDataItemOptions;
-
-export type RangeDataItemType = [number, number] | [number, number, number] | RangeDataItemOptions;
+export type PointDataItemType = null | number | PointDataItemOptions;
 
 export interface PointDataItemOptions {
-  x: number;
+  x?: number;
   y: number | null;
 }
 
@@ -239,7 +227,7 @@ export interface PointMarkerOptions {
 
 export interface CoreChartProps
   extends Pick<
-    BaseChartProps,
+    BaseChartOptions,
     "highcharts" | "fitHeight" | "chartHeight" | "chartMinHeight" | "chartMinWidth" | "ariaLabel" | "ariaDescription"
   > {
   /**
@@ -298,18 +286,13 @@ export interface CoreChartProps
    */
   className?: string;
   /**
-   * This property is only relevant for cartesian charts. When set to "top", the title of the vertical axis (can be x or y)
-   * is shown right above the chart plot.
-   */
-  verticalAxisTitlePlacement?: "top" | "side";
-  /**
    * IDs of visible series or points.
    */
   visibleItems?: readonly string[];
   /**
    * Called when series/points visibility changes due to user interaction with legend or filter.
    */
-  onLegendItemsChange?: (legendItems: readonly ChartLegendItem[]) => void;
+  onVisibleItemsChange?: (legendItems: readonly ChartLegendItem[]) => void;
   /**
    * Called whenever chart tooltip is rendered to provide content for tooltip's header, body, and (optional) footer.
    */
@@ -326,6 +309,22 @@ export interface CoreChartProps
    * Use Cloudscape keyboard navigation.
    */
   keyboardNavigation?: boolean;
+  /**
+   * Options for cartesian charts.
+   */
+  cartesian?: CoreCartesianOptions;
+}
+
+export interface CoreCartesianOptions {
+  /**
+   * When set to `true`, adds a visual emphasis on the zero baseline axis.
+   */
+  emphasizeBaseline?: boolean;
+  /**
+   * When set to "top", the title of the vertical axis (can be x or y)
+   * is shown right above the chart plot.
+   */
+  verticalAxisTitlePlacement?: "top" | "side";
 }
 
 export type GetTooltipContent = (props: GetTooltipContentProps) => CoreTooltipContent;

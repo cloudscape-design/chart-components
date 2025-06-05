@@ -4,7 +4,7 @@
 import * as CoreTypes from "../core/interfaces";
 import { NonCancelableEventHandler } from "../internal/events";
 
-export interface PieChartProps extends CoreTypes.BaseChartProps {
+export interface PieChartProps extends CoreTypes.BaseChartOptions {
   /**
    * Chart series and data.
    * This property corresponds to [series](https://api.highcharts.com/highcharts/series).

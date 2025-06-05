@@ -87,7 +87,7 @@ function LinearLinear() {
         {
           type: "spline",
           name: "Demo",
-          data: range(0, 50).map((i) => [i * 10, Math.floor((pseudoRandom() + i / 25) * 50)]),
+          data: range(0, 50).map((i) => ({ x: i * 10, y: Math.floor((pseudoRandom() + i / 25) * 50) })),
         },
         {
           type: "x-threshold",
@@ -126,7 +126,7 @@ function LinearLog() {
         {
           type: "spline",
           name: "Demo",
-          data: range(0, 50).map((i) => [i * 10, i * i]),
+          data: range(0, 50).map((i) => ({ x: i * 10, y: i * i })),
         },
         {
           type: "x-threshold",
@@ -163,7 +163,7 @@ function LogLinear() {
         {
           type: "spline",
           name: "Demo",
-          data: range(0, 50).map((i) => [i * i, i * 20]),
+          data: range(0, 50).map((i) => ({ x: i * i, y: i * 20 })),
         },
         {
           type: "x-threshold",
@@ -200,7 +200,7 @@ function LogLog() {
         {
           type: "spline",
           name: "Demo",
-          data: range(0, 50).map((i) => [i * i, Math.pow(2, i / 2)]),
+          data: range(0, 50).map((i) => ({ x: i * i, y: Math.pow(2, i / 2) })),
         },
         {
           type: "x-threshold",
@@ -273,7 +273,7 @@ function LinearCategory() {
         {
           type: "scatter",
           name: "Demo",
-          data: range(0, 50).map((i) => [i * 2, Math.floor(pseudoRandom() * 10)]),
+          data: range(0, 50).map((i) => ({ x: i * 2, y: Math.floor(pseudoRandom() * 10) })),
         },
         {
           type: "x-threshold",
@@ -308,14 +308,11 @@ function CategoryCategory() {
       {...chartProps.cartesian}
       {...defaultSettings}
       series={[
-        ...range(0, 5).map(
-          (seriesIndex) =>
-            ({
-              type: "scatter",
-              name: `Demo ${seriesIndex + 1}`,
-              data: range(0, 15).map((i) => [i, Math.floor(pseudoRandom() * 15)]),
-            }) as any,
-        ),
+        ...range(0, 5).map((seriesIndex) => ({
+          type: "scatter" as const,
+          name: `Demo ${seriesIndex + 1}`,
+          data: range(0, 15).map((i) => ({ x: i, y: Math.floor(pseudoRandom() * 15) })),
+        })),
         {
           type: "x-threshold",
           name: "X threshold",
@@ -351,7 +348,10 @@ function DatetimeLinear() {
         {
           type: "spline",
           name: "Demo",
-          data: range(0, 50).map((i) => [addDays(new Date(), i).getTime(), Math.floor((pseudoRandom() + i / 25) * 50)]),
+          data: range(0, 50).map((i) => ({
+            x: addDays(new Date(), i).getTime(),
+            y: Math.floor((pseudoRandom() + i / 25) * 50),
+          })),
         },
         {
           type: "x-threshold",
@@ -388,7 +388,10 @@ function LinearDatetime() {
         {
           type: "scatter",
           name: "Demo",
-          data: range(0, 50).map((i) => [Math.floor((pseudoRandom() + i / 25) * 50), addDays(new Date(), i).getTime()]),
+          data: range(0, 50).map((i) => ({
+            x: Math.floor((pseudoRandom() + i / 25) * 50),
+            y: addDays(new Date(), i).getTime(),
+          })),
         },
         {
           type: "x-threshold",
@@ -430,13 +433,10 @@ function DatetimeDatetime() {
             .flatMap((x) =>
               range(0, 10)
                 .filter((i) => !(i % 2))
-                .map(
-                  (y) =>
-                    [addDays(new Date(), x).getTime(), subYears(addDays(new Date(), y), 1).getTime()] as [
-                      number,
-                      number,
-                    ],
-                ),
+                .map((y) => ({
+                  x: addDays(new Date(), x).getTime(),
+                  y: subYears(addDays(new Date(), y), 1).getTime(),
+                })),
             ),
         },
         {
@@ -474,7 +474,7 @@ function LogCategory() {
         {
           type: "spline",
           name: "Demo",
-          data: range(0, 50).map((i) => [i * 5, (i - i * 0.2) % 5]),
+          data: range(0, 50).map((i) => ({ x: i * 5, y: (i - i * 0.2) % 5 })),
         },
         {
           type: "x-threshold",
@@ -509,7 +509,7 @@ function CategoryLog() {
         {
           type: "column",
           name: "Demo",
-          data: range(0, 5).map((i) => [i, 13 + i * 2 * (i + i)]),
+          data: range(0, 5).map((i) => ({ x: i, y: 13 + i * 2 * (i + i) })),
         },
         {
           type: "x-threshold",
@@ -544,7 +544,10 @@ function DatetimeLog() {
         {
           type: "spline",
           name: "Demo",
-          data: range(0, 50).map((i) => [addDays(new Date(), i).getTime(), Math.floor((pseudoRandom() + i / 25) * 50)]),
+          data: range(0, 50).map((i) => ({
+            x: addDays(new Date(), i).getTime(),
+            y: Math.floor((pseudoRandom() + i / 25) * 50),
+          })),
         },
         {
           type: "x-threshold",
@@ -579,7 +582,10 @@ function LogDatetime() {
         {
           type: "scatter",
           name: "Demo",
-          data: range(0, 50).map((i) => [Math.floor((pseudoRandom() + i / 25) * 50), addDays(new Date(), i).getTime()]),
+          data: range(0, 50).map((i) => ({
+            x: Math.floor((pseudoRandom() + i / 25) * 50),
+            y: addDays(new Date(), i).getTime(),
+          })),
         },
         {
           type: "x-threshold",
@@ -614,7 +620,7 @@ function DatetimeCategory() {
         {
           type: "line",
           name: "Demo",
-          data: range(0, 10).map((i) => [addDays(new Date(), i).getTime(), Math.abs(i - 5)]),
+          data: range(0, 10).map((i) => ({ x: addDays(new Date(), i).getTime(), y: Math.abs(i - 5) })),
         },
         {
           type: "x-threshold",
@@ -649,7 +655,7 @@ function CategoryDatetime() {
         {
           type: "scatter",
           name: "Demo",
-          data: range(0, 10).map((i) => [Math.abs(i - 5), addDays(new Date(), i).getTime()]),
+          data: range(0, 10).map((i) => ({ x: Math.abs(i - 5), y: addDays(new Date(), i).getTime() })),
         },
         {
           type: "x-threshold",

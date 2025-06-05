@@ -2,10 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as CoreTypes from "../core/interfaces";
-import { InternalChartOptions } from "../core/interfaces";
 import { NonCancelableEventHandler } from "../internal/events";
 
-export interface CartesianChartProps extends CoreTypes.BaseChartProps {
+// CartesianChartProps is the type for CartesianChart React component properties. Unlike in Highcharts API,
+// we pass options directly to the component, instead of grouping them all into a single "options" property.
+// We do still organize related options in groups, e.g.: "SeriesOptions", "TooltipOptions".
+export interface CartesianChartProps extends CoreTypes.BaseChartOptions, CoreTypes.CoreCartesianOptions {
   /**
    * Inverts X and Y axes. Use it to show horizontal columns (bars).
    * This property corresponds to [chart.inverted](https://api.highcharts.com/highcharts/chart.inverted).
@@ -14,14 +16,16 @@ export interface CartesianChartProps extends CoreTypes.BaseChartProps {
 
   /**
    * Specifies series stacking behavior. Use it for column- or area- series.
+   * This property corresponds to "normal" stacking type in Highcharts ([plotOptions.series.stacking](https://api.highcharts.com/highcharts/plotOptions.series.stacking)).
    */
-  stacked?: boolean;
+  stacking?: boolean;
 
   /**
-   * Chart series and data.
-   * This property corresponds to [series](https://api.highcharts.com/highcharts/series).
+   * Chart series options.
+   * This property corresponds to [series](https://api.highcharts.com/highcharts/series), and extends it
+   * with two additional series types: "x-threshold", and "y-threshold".
    *
-   * Supported series types:
+   * Supported types:
    * * [area](https://api.highcharts.com/highcharts/series.area).
    * * [areaspline](https://api.highcharts.com/highcharts/series.areaspline).
    * * [column](https://api.highcharts.com/highcharts/series.column).
@@ -32,92 +36,82 @@ export interface CartesianChartProps extends CoreTypes.BaseChartProps {
    * * x-threshold - The line-like series to represent x-axis threshold (vertical, when `inverted=false`).
    * * y-threshold - The line-like series to represent y-axis threshold (horizontal, when `inverted=false`).
    */
-  series: CartesianChartProps.SeriesOptions[];
+  series: readonly CartesianChartProps.SeriesOptions[];
 
   /**
-   * Chart tooltip that replaces [tooltip](https://api.highcharts.com/highcharts/tooltip).
+   * Chart tooltip options.
    *
-   * Supported properties:
+   * Supported options:
    * * `enabled` - (optional, boolean) - Use it to hide the tooltip.
    * * `size` - (optional, "small" | "medium" | "large") - Use it to specify max tooltip size.
-   * * `placement` - (optional, "middle" | "outside" | "target") - Use it to specify preferred tooltip placement.
-   * * `title` - (optional, function) - Use it to provide a custom tooltip title.
-   * * `content` - (optional, function) - Use it to provide a custom tooltip content.
+   * * `placement` - (optional, "middle" | "outside") - Use it to specify preferred tooltip placement.
+   * * `series` - (optional, function) - Use it to customize tooltip series rendering.
+   * * `header` - (optional, function) - Use it to provide a custom tooltip title.
+   * * `body` - (optional, function) - Use it to provide a custom tooltip content.
    * * `footer` - (optional, function) - Use it to add a tooltip footer.
-   * * `series` - (optional, function) - Use it to extend the default series list, in order to use custom value formatting,
-   * inject links, or add expandable items.
    */
   tooltip?: CartesianChartProps.TooltipOptions;
 
   /**
-   * X-axis options that extend [xAxis](https://api.highcharts.com/highcharts/xAxis).
+   * X-axis options.
+   * This property corresponds to [xAxis](https://api.highcharts.com/highcharts/xAxis), and extends it
+   * with a custom value formatter.
    *
-   * Supported properties (Highcharts):
-   * * `title` (optional, string) - The axis title.
-   * * `type` (optional, 'linear' | 'datetime' | 'category' | 'logarithmic') - The axis type.
+   * Supported options:
+   * * `title` (optional, string) - Axis title.
+   * * `type` (optional, 'linear' | 'datetime' | 'category' | 'logarithmic') - Axis type.
    * * * linear - Uses continuous proportional values scale.
    * * * datetime - Similar to linear, but takes epoch time as values.
    * * * category - Uses discrete scale, requires `categories` to be set.
    * * * logarithmic - Uses continuous logarithmic values scale.
-   * * `min`, `max` (optional, number) - The axis value boundaries.
-   * * `tickInterval` (optional, number) - The tick distance.
-   * * `categories` (optional, Array<string>) - The predefined list of axis values to be used for categorical axes.
-   *
-   * Additional properties (Cloudscape):
+   * * `min`, `max` (optional, number) - Axis value boundaries.
+   * * `tickInterval` (optional, number) - Distance between axis ticks.
+   * * `categories` (optional, Array<string>) - Predefined list of values, used for categorical axis type.
    * * `valueFormatter` (optional, function) - Takes axis tick as input and returns a formatted string. This formatter also
    * applies to the tooltip header.
    */
   xAxis?: CartesianChartProps.XAxisOptions;
 
   /**
-   * Y-axis options that extend [xAxis](https://api.highcharts.com/highcharts/yAxis).
+   * Y-axis options.
+   * This property corresponds to [xAxis](https://api.highcharts.com/highcharts/yAxis), and extends it
+   * with a custom value formatter.
    *
-   * Supported properties (Highcharts):
-   * * `title` (optional, string) - The axis title.
-   * * `type` (optional, 'linear' | 'datetime' | 'category' | 'logarithmic') - The axis type.
+   * Supported options:
+   * * `title` (optional, string) - Axis title.
+   * * `type` (optional, 'linear' | 'datetime' | 'category' | 'logarithmic') - Axis type.
    * * * linear - Uses continuous proportional values scale.
    * * * datetime - Similar to linear, but takes epoch time as values.
    * * * category - Uses discrete scale, requires `categories` to be set.
    * * * logarithmic - Uses continuous logarithmic values scale.
-   * * `min`, `max` (optional, number) - The axis value boundaries.
-   * * `tickInterval` (optional, number) - The tick distance.
-   * * `categories` (optional, Array<string>) - The predefined list of axis values to be used for categorical axes.
+   * * `min`, `max` (optional, number) - Axis value boundaries.
+   * * `tickInterval` (optional, number) - Distance between axis ticks.
+   * * `categories` (optional, Array<string>) - Predefined list of values, used for categorical axis type.
    * * `reversedStacks` (optional, boolean) - Reverts series order in stacked series.
-   *
-   * Additional properties (Cloudscape):
    * * `valueFormatter` (optional, function) - Takes axis tick as input and returns a formatted string. This formatter also
-   * applies to the tooltip header.
+   * applies to the tooltip series value.
    */
   yAxis?: CartesianChartProps.YAxisOptions;
 
   /**
-   * Defines placement of the vertical axis (can be either Y or X depending on `inverted`).
-   */
-  verticalAxisTitlePlacement?: "top" | "side";
-
-  /**
-   * List of series IDs to be visible. When unset, all series are visible by default, but can be hidden by clicking on the
-   * legend. When a series does not have an ID, a series name is used instead.
-   * When the property is provided, use `onChangeVisibleSegments` to update it when the legend series filtering is used.
+   * Specifies visible series by their IDs. When unset, all series are visible by default, and the visibility state
+   * is managed internally by the component. When a series does not have an ID, a series name is used instead.
+   * When the property is provided, use `onChangeVisibleSeries` to manage state updates.
    */
   visibleSeries?: readonly string[];
 
   /**
-   * A callback, executed when series visibility is toggled by clicking on legend items.
+   * A callback, triggered when series visibility changes as result of user interacting with the legend or filter.
    */
   onChangeVisibleSeries?: NonCancelableEventHandler<{ visibleSeries: string[] }>;
-
-  /**
-   * When set to `true`, adds a visual emphasis on the zero baseline axis.
-   */
-  emphasizeBaselineAxis?: boolean;
 }
 
 export namespace CartesianChartProps {
   export interface Ref {
     // Controls series visibility that works with both controlled and uncontrolled visibility mode.
-    // This is useful to clear selected series from no-match state.
     setVisibleSeries(visibleSeries: readonly string[]): void;
+    // Same as above, but applies to all series and requires no series IDs on input. This is useful when
+    // implementing clear-filter action in no-match state.
     showAllSeries(): void;
   }
 
@@ -158,13 +152,15 @@ export namespace CartesianChartProps {
     reversedStacks?: boolean;
   }
 
-  export interface TooltipOptions extends CoreTypes.ChartTooltipOptions {
+  export interface TooltipOptions {
+    enabled?: boolean;
+    placement?: "middle" | "outside";
+    size?: "small" | "medium" | "large";
     series?: (props: TooltipSeriesRenderProps) => TooltipSeriesFormatted;
     header?: (props: TooltipHeaderRenderProps) => React.ReactNode;
     body?: (props: TooltipBodyRenderProps) => React.ReactNode;
     footer?: (props: TooltipFooterRenderProps) => React.ReactNode;
   }
-
   export type TooltipHeaderRenderProps = TooltipSlotRenderProps;
   export type TooltipBodyRenderProps = TooltipSlotRenderProps;
   export type TooltipFooterRenderProps = TooltipSlotRenderProps;
@@ -175,14 +171,12 @@ export namespace CartesianChartProps {
   export interface TooltipSeriesRenderProps {
     item: TooltipSeriesItem;
   }
-
   export interface TooltipSeriesItem {
     x: number;
     y: number | null;
     errorRanges: { low: number; high: number; series: CartesianChartProps.ErrorBarSeriesOptions }[];
     series: NonErrorBarSeriesOptions;
   }
-
   export interface TooltipSeriesFormatted {
     key: React.ReactNode;
     value: React.ReactNode;
@@ -191,17 +185,12 @@ export namespace CartesianChartProps {
     subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
   }
 
+  export type LegendOptions = CoreTypes.ChartLegendOptions;
+
   export type NoDataOptions = CoreTypes.ChartNoDataOptions;
 }
 
-// The internal chart options allow propagation of all Highcharts properties, including series types and axes options,
-// not supported by the public CartesianChart component.
-// This is done to facilitate easier prototyping and fast adoption of more Highcharts features.
-export type InternalCartesianChartOptions = Omit<InternalChartOptions, "series"> & {
-  series: InternalSeriesOptions[];
-};
-
-export type InternalSeriesOptions = CartesianChartProps.SeriesOptions | Highcharts.SeriesOptionsType;
+// Internal types
 
 export type NonErrorBarSeriesOptions = Exclude<
   CartesianChartProps.SeriesOptions,

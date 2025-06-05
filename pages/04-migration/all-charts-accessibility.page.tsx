@@ -65,14 +65,14 @@ export default function () {
             },
             {
               tags: ["column", "stacked"],
-              old: <BarChartExample.ComponentOld stacked={true} />,
-              new: <BarChartExample.ComponentNew stacked={true} />,
+              old: <BarChartExample.ComponentOld stacking={true} />,
+              new: <BarChartExample.ComponentNew stacking={true} />,
               containerHeight: 300,
             },
             {
               tags: ["column", "stacked", "inverted"],
-              old: <BarChartExample.ComponentOld stacked={true} inverted={true} />,
-              new: <BarChartExample.ComponentNew stacked={true} inverted={true} />,
+              old: <BarChartExample.ComponentOld stacking={true} inverted={true} />,
+              new: <BarChartExample.ComponentNew stacking={true} inverted={true} />,
               containerHeight: 300,
             },
             {

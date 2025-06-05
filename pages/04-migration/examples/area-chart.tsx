@@ -112,7 +112,7 @@ export function ComponentNew() {
       chartMinHeight={100}
       ariaLabel="Area chart"
       series={seriesNew}
-      stacked={true}
+      stacking={true}
       xAxis={{
         type: "datetime",
         title: "Time (UTC)",
