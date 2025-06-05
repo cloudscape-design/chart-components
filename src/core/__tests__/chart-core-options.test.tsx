@@ -6,7 +6,7 @@ import highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import { vi } from "vitest";
 
-import { CoreChartProps } from "../../../lib/components/core/interfaces-core";
+import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import { renderChart } from "./common";
 import { ChartRendererStub } from "./highcharts-utils";
 

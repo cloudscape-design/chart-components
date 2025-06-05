@@ -23,7 +23,7 @@ import { ChartFooter, ChartHeader } from "./components/core-slots";
 import { ChartTooltip } from "./components/core-tooltip";
 import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
 import { getFormatter } from "./formatters";
-import { CoreChartProps } from "./interfaces-core";
+import { CoreChartProps } from "./interfaces";
 import * as Styles from "./styles";
 
 import styles from "./styles.css.js";

@@ -9,7 +9,7 @@ import SpaceBetween from "@cloudscape-design/components/space-between";
 import StatusIndicator from "@cloudscape-design/components/status-indicator";
 import { colorChartsGreen300, colorChartsRed500 } from "@cloudscape-design/design-tokens";
 
-import { CoreChartAPI } from "../../lib/components/core/interfaces-core";
+import { CoreChartAPI } from "../../lib/components/core/interfaces";
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
 import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";

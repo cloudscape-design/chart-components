@@ -11,14 +11,14 @@ import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../internal/compon
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
 import { getFormatter } from "../formatters";
-import { ChartTooltipOptions } from "../interfaces-base";
 import {
+  ChartTooltipOptions,
   CoreTooltipContent,
   GetTooltipContent,
   GetTooltipContentProps,
   TooltipSeriesFormatted,
   TooltipSlotProps,
-} from "../interfaces-core";
+} from "../interfaces";
 import { getPointColor, getSeriesColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../utils";
 
 import styles from "../styles.css.js";

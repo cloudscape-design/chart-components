@@ -6,7 +6,7 @@ import type Highcharts from "highcharts";
 import { ChartSeriesMarker, ChartSeriesMarkerType } from "../../internal/components/series-marker";
 import AsyncStore from "../../internal/utils/async-store";
 import { isEqualArrays } from "../../internal/utils/utils";
-import { ChartLegendItem } from "../interfaces-base";
+import { ChartLegendItem } from "../interfaces";
 import { getChartLegendItems, getPointId, getSeriesId } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 

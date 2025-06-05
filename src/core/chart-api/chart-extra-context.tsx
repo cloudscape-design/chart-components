@@ -3,8 +3,7 @@
 
 import Highcharts from "highcharts";
 
-import { ChartLegendItem } from "../interfaces-base";
-import { ChartHighlightProps, Rect } from "../interfaces-core";
+import { ChartHighlightProps, ChartLegendItem, Rect } from "../interfaces";
 import { getGroupRect, isSeriesStacked } from "../utils";
 
 // Chart API context is used for dependency injection for chart utilities.

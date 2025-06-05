@@ -13,7 +13,7 @@ import StatusIndicator from "@cloudscape-design/components/status-indicator";
 import { fireNonCancelableEvent } from "../../internal/events";
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
-import { CoreI18nStrings, CoreNoDataProps } from "../interfaces-core";
+import { CoreI18nStrings, CoreNoDataProps } from "../interfaces";
 
 import styles from "../styles.css.js";
 import testClasses from "../test-classes/styles.css.js";

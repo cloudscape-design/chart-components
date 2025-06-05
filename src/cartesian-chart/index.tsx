@@ -5,29 +5,31 @@ import { forwardRef, useMemo } from "react";
 
 import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
 
-import { BaseCartesianSeriesOptions } from "../core/interfaces-base";
-import { InternalXAxisOptions, InternalYAxisOptions } from "../core/interfaces-core";
+import { BaseCartesianSeriesOptions } from "../core/interfaces";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import useBaseComponent from "../internal/base-component/use-base-component";
 import { applyDisplayName } from "../internal/utils/apply-display-name";
 import { getAllowedProps } from "../internal/utils/utils";
 import { InternalCartesianChart } from "./chart-cartesian-internal";
-import { CartesianChartProps, InternalCartesianChartOptions, InternalSeriesOptions } from "./interfaces-cartesian";
+import { CartesianChartProps, InternalSeriesOptions } from "./interfaces-cartesian";
 
-/**
- * CartesianChart is a public Cloudscape component. It features a custom API, which resembles the Highcharts API where appropriate,
- * and adds extra features such as additional series types (thresholds), alternative tooltip, no-data, legend, and more.
- */
 const CartesianChart = forwardRef(
   ({ verticalAxisTitlePlacement = "top", ...props }: CartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
     const baseComponentProps = useBaseComponent("CartesianChart", { props: {} });
-    const validatedOptions = useValidatedOptions(props);
+
+    // We explicitly transform component properties to Highcharts options and internal cartesian chart properties
+    // to avoid accidental or intentional use of Highcharts features that are not yet supported by Cloudscape.
+    const validatedSeries = useMemo(() => validateSeries(props.series, props.stacked), [props.series, props.stacked]);
     return (
       <InternalCartesianChart
         ref={ref}
         highcharts={props.highcharts}
         fallback={props.fallback}
-        options={validatedOptions}
+        inverted={props.inverted}
+        stacked={props.stacked}
+        series={validatedSeries}
+        xAxis={props.xAxis ? validateXAxis(props.xAxis) : {}}
+        yAxis={props.yAxis ? validateYAxis(props.yAxis) : {}}
         ariaLabel={props.ariaLabel}
         ariaDescription={props.ariaDescription}
         fitHeight={props.fitHeight}
@@ -56,25 +58,6 @@ export type { CartesianChartProps };
 applyDisplayName(CartesianChart, "CartesianChart");
 
 export default CartesianChart;
-
-// We explicitly transform component properties to Highcharts options and internal cartesian chart properties
-// to avoid accidental or intentional use of Highcharts features that are not yet supported by Cloudscape.
-function useValidatedOptions(props: CartesianChartProps): InternalCartesianChartOptions {
-  const validatedSeries = useMemo(() => validateSeries(props.series, props.stacked), [props.series, props.stacked]);
-  return {
-    chart: {
-      inverted: props.inverted,
-    },
-    plotOptions: {
-      series: {
-        stacking: props.stacked ? "normal" : undefined,
-      },
-    },
-    series: validatedSeries,
-    xAxis: props.xAxis ? [validateXAxis(props.xAxis)] : [{}],
-    yAxis: props.yAxis ? [validateYAxis(props.yAxis)] : [{}],
-  };
-}
 
 function validateSeries(
   unvalidatedSeries: CartesianChartProps.SeriesOptions[],
@@ -173,10 +156,10 @@ function validateErrorBarSeries({
 
 const seriesTypesThatSupportErrorBars = ["column", "line", "spline"];
 
-function validateXAxis(axis: CartesianChartProps.XAxisOptions): InternalXAxisOptions {
+function validateXAxis(axis: CartesianChartProps.XAxisOptions): CartesianChartProps.XAxisOptions {
   return {
     type: axis.type,
-    title: { text: axis.title },
+    title: axis.title,
     min: axis.min,
     max: axis.max,
     tickInterval: axis.tickInterval,
@@ -185,10 +168,10 @@ function validateXAxis(axis: CartesianChartProps.XAxisOptions): InternalXAxisOpt
   };
 }
 
-function validateYAxis(axis: CartesianChartProps.YAxisOptions): InternalYAxisOptions {
+function validateYAxis(axis: CartesianChartProps.YAxisOptions): CartesianChartProps.YAxisOptions {
   return {
     type: axis.type,
-    title: { text: axis.title },
+    title: axis.title,
     min: axis.min,
     max: axis.max,
     tickInterval: axis.tickInterval,

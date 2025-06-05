@@ -1,10 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import * as BaseTypes from "../core/interfaces-base";
+import * as CoreTypes from "../core/interfaces";
 import { NonCancelableEventHandler } from "../internal/events";
 
-export interface PieChartProps extends BaseTypes.BaseChartProps {
+export interface PieChartProps extends CoreTypes.BaseChartProps {
   /**
    * Chart series and data.
    * This property corresponds to [series](https://api.highcharts.com/highcharts/series).
@@ -66,15 +66,15 @@ export namespace PieChartProps {
 
   export type SeriesOptions = PieSeriesOptions | DonutSeriesOptions;
 
-  export type PieSeriesOptions = BaseTypes.PieSeriesOptions;
+  export type PieSeriesOptions = CoreTypes.PieSeriesOptions;
 
-  export type DonutSeriesOptions = BaseTypes.DonutSeriesOptions;
+  export type DonutSeriesOptions = CoreTypes.DonutSeriesOptions;
 
-  export type PieSegmentOptions = BaseTypes.PieSegmentOptions;
+  export type PieSegmentOptions = CoreTypes.PieSegmentOptions;
 
-  export type NoDataOptions = BaseTypes.ChartNoDataOptions;
+  export type NoDataOptions = CoreTypes.ChartNoDataOptions;
 
-  export interface TooltipOptions extends BaseTypes.ChartTooltipOptions {
+  export interface TooltipOptions extends CoreTypes.ChartTooltipOptions {
     header?: (props: TooltipHeaderRenderProps) => React.ReactNode;
     body?: (props: TooltipBodyRenderProps) => React.ReactNode;
     footer?: (props: TooltipFooterRenderProps) => React.ReactNode;

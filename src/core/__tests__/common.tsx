@@ -6,7 +6,7 @@ import { render } from "@testing-library/react";
 import type Highcharts from "highcharts";
 
 import "@cloudscape-design/components/test-utils/dom";
-import { CoreChartProps } from "../../../lib/components/core/interfaces-core";
+import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import { TestI18nProvider } from "../../../lib/components/internal/utils/test-i18n-provider";
 import CoreChart from "../../../lib/components/internal-do-not-use/core-chart";
 import createWrapper from "../../../lib/components/test-utils/dom";

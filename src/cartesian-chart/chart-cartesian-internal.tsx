@@ -14,14 +14,11 @@ import { fireNonCancelableEvent } from "../internal/events";
 import { castArray } from "../internal/utils/utils";
 import { useCartesianSeries } from "./chart-series-cartesian";
 import { useChartTooltipCartesian } from "./chart-tooltip-cartesian";
-import { CartesianChartProps, InternalCartesianChartOptions } from "./interfaces-cartesian";
+import { CartesianChartProps } from "./interfaces-cartesian";
 
 import testClasses from "./test-classes/styles.css.js";
 
-export interface InternalCartesianChartProps extends InternalBaseComponentProps, Omit<CartesianChartProps, "series"> {
-  highcharts: null | object;
-  options: InternalCartesianChartOptions;
-}
+export interface InternalCartesianChartProps extends InternalBaseComponentProps, CartesianChartProps {}
 
 /**
  * The InternalCartesianChart component takes public CartesianChart properties, but also Highcharts options.
@@ -47,12 +44,11 @@ export const InternalCartesianChart = forwardRef(
       (value, handler) => fireNonCancelableEvent(handler, { visibleSeries: [...value!] }),
     );
     // Unless visible series are explicitly set, we start from all series being visible.
-    const allSeriesIds = props.options.series.map((s) => getOptionsId(s));
+    const allSeriesIds = props.series.map((s) => getOptionsId(s));
     const visibleSeries = visibleSeriesState ?? allSeriesIds;
 
     // Converting threshold series and baseline setting to Highcharts options.
     const { series, xPlotLines, yPlotLines, ...seriesProps } = useCartesianSeries({ ...props, visibleSeries });
-    const { chart, plotOptions, xAxis, yAxis } = props.options;
 
     // Cartesian chart imperative API.
     useImperativeHandle(ref, () => ({
@@ -62,21 +58,27 @@ export const InternalCartesianChart = forwardRef(
 
     const highchartsOptions: Highcharts.Options = {
       chart: {
-        ...chart,
+        inverted: props.inverted,
         events: {
           render(event) {
             seriesProps.options.onChartRender.call(this, event);
           },
         },
       },
-      plotOptions,
-      xAxis: castArray(xAxis)?.map((xAxisProps) => ({
+      plotOptions: {
+        series: {
+          stacking: props.stacked ? "normal" : undefined,
+        },
+      },
+      xAxis: castArray(props.xAxis)?.map((xAxisProps) => ({
         ...xAxisProps,
-        plotLines: [...xPlotLines, ...(xAxisProps.plotLines ?? [])],
+        title: { text: xAxisProps.title },
+        plotLines: xPlotLines,
       })),
-      yAxis: castArray(yAxis)?.map((yAxisProps) => ({
+      yAxis: castArray(props.yAxis)?.map((yAxisProps) => ({
         ...yAxisProps,
-        plotLines: [...yPlotLines, ...(yAxisProps.plotLines ?? [])],
+        title: { text: yAxisProps.title },
+        plotLines: yPlotLines,
       })),
       series,
     };

@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { CoreChartProps, TooltipSlotProps } from "../core/interfaces-core";
+import { CoreChartProps, TooltipSlotProps } from "../core/interfaces";
 import { getOptionsId } from "../core/utils";
 import { PieChartProps } from "./interfaces-pie";
 

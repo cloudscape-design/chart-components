@@ -1,8 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { ErrorBarSeriesOptions } from "../core/interfaces-base";
-import { CoreChartProps, TooltipItem, TooltipSeriesProps, TooltipSlotProps } from "../core/interfaces-core";
+import {
+  CoreChartProps,
+  ErrorBarSeriesOptions,
+  TooltipItem,
+  TooltipSeriesProps,
+  TooltipSlotProps,
+} from "../core/interfaces";
 import { isXThreshold } from "../core/utils";
 import { CartesianChartProps, NonErrorBarSeriesOptions } from "./interfaces-cartesian";
 

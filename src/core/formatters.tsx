@@ -3,7 +3,7 @@
 
 import type Highcharts from "highcharts";
 
-import { InternalXAxisOptions, InternalYAxisOptions } from "./interfaces-core";
+import { InternalXAxisOptions, InternalYAxisOptions } from "./interfaces";
 
 // Takes value formatter from the axis options (InternalXAxisOptions.valueFormatter or InternalYAxisOptions.valueFormatter),
 // or provides a default formatter for numeric and datetime values.

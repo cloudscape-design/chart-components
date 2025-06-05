@@ -9,7 +9,7 @@ import { renderMarker } from "../../internal/components/series-marker";
 import AsyncStore from "../../internal/utils/async-store";
 import { SVGRendererPool, SVGRendererSingle } from "../../internal/utils/renderer-utils";
 import { DebouncedCall } from "../../internal/utils/utils";
-import { ChartHighlightProps, Rect } from "../interfaces-core";
+import { ChartHighlightProps, Rect } from "../interfaces";
 import * as Styles from "../styles";
 import { getGroupRect, getPointRect, isXThreshold } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";

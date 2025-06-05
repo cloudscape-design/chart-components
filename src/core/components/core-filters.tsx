@@ -8,7 +8,7 @@ import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-u
 import InternalChartSeriesFilter from "../../internal/components/chart-series-filter";
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
-import { ChartI18nStrings } from "../interfaces-base";
+import { ChartI18nStrings } from "../interfaces";
 
 import styles from "../styles.css.js";
 import testClasses from "../test-classes/styles.css.js";

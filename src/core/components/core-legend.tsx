@@ -6,7 +6,7 @@ import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-u
 import { ChartLegend as ChartLegendComponent } from "../../internal/components/chart-legend";
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
-import { ChartI18nStrings } from "../interfaces-base";
+import { ChartI18nStrings } from "../interfaces";
 
 export function ChartLegend({
   api,

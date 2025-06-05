@@ -1,11 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import * as BaseTypes from "../core/interfaces-base";
-import { InternalChartOptions } from "../core/interfaces-core";
+import * as CoreTypes from "../core/interfaces";
+import { InternalChartOptions } from "../core/interfaces";
 import { NonCancelableEventHandler } from "../internal/events";
 
-export interface CartesianChartProps extends BaseTypes.BaseChartProps {
+export interface CartesianChartProps extends CoreTypes.BaseChartProps {
   /**
    * Inverts X and Y axes. Use it to show horizontal columns (bars).
    * This property corresponds to [chart.inverted](https://api.highcharts.com/highcharts/chart.inverted).
@@ -132,15 +132,15 @@ export namespace CartesianChartProps {
     | XThresholdSeriesOptions
     | YThresholdSeriesOptions;
 
-  export type AreaSeriesOptions = BaseTypes.AreaSeriesOptions;
-  export type AreaSplineSeriesOptions = BaseTypes.AreaSplineSeriesOptions;
-  export type ColumnSeriesOptions = BaseTypes.ColumnSeriesOptions;
-  export type ErrorBarSeriesOptions = BaseTypes.ErrorBarSeriesOptions;
-  export type LineSeriesOptions = BaseTypes.LineSeriesOptions;
-  export type ScatterSeriesOptions = BaseTypes.ScatterSeriesOptions;
-  export type SplineSeriesOptions = BaseTypes.SplineSeriesOptions;
-  export type XThresholdSeriesOptions = BaseTypes.XThresholdSeriesOptions;
-  export type YThresholdSeriesOptions = BaseTypes.YThresholdSeriesOptions;
+  export type AreaSeriesOptions = CoreTypes.AreaSeriesOptions;
+  export type AreaSplineSeriesOptions = CoreTypes.AreaSplineSeriesOptions;
+  export type ColumnSeriesOptions = CoreTypes.ColumnSeriesOptions;
+  export type ErrorBarSeriesOptions = CoreTypes.ErrorBarSeriesOptions;
+  export type LineSeriesOptions = CoreTypes.LineSeriesOptions;
+  export type ScatterSeriesOptions = CoreTypes.ScatterSeriesOptions;
+  export type SplineSeriesOptions = CoreTypes.SplineSeriesOptions;
+  export type XThresholdSeriesOptions = CoreTypes.XThresholdSeriesOptions;
+  export type YThresholdSeriesOptions = CoreTypes.YThresholdSeriesOptions;
 
   interface AxisOptions {
     title?: string;
@@ -158,7 +158,7 @@ export namespace CartesianChartProps {
     reversedStacks?: boolean;
   }
 
-  export interface TooltipOptions extends BaseTypes.ChartTooltipOptions {
+  export interface TooltipOptions extends CoreTypes.ChartTooltipOptions {
     series?: (props: TooltipSeriesRenderProps) => TooltipSeriesFormatted;
     header?: (props: TooltipHeaderRenderProps) => React.ReactNode;
     body?: (props: TooltipBodyRenderProps) => React.ReactNode;
@@ -191,7 +191,7 @@ export namespace CartesianChartProps {
     subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
   }
 
-  export type NoDataOptions = BaseTypes.ChartNoDataOptions;
+  export type NoDataOptions = CoreTypes.ChartNoDataOptions;
 }
 
 // The internal chart options allow propagation of all Highcharts properties, including series types and axes options,

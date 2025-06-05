@@ -5,7 +5,7 @@ import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
 import { getFormatter } from "./formatters";
-import { InternalChartLegendItemSpec, Rect } from "./interfaces-core";
+import { InternalChartLegendItemSpec, Rect } from "./interfaces";
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
 // We expect that items requiring referencing (e.g. in order to control their visibility) have the unique identifier defined.

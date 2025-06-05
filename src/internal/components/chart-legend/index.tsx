@@ -16,7 +16,7 @@ import {
 import Box from "@cloudscape-design/components/box";
 import { colorBorderDividerDefault } from "@cloudscape-design/design-tokens";
 
-import { ChartLegendItem } from "../../../core/interfaces-base";
+import { ChartLegendItem } from "../../../core/interfaces";
 import { DebouncedCall } from "../../utils/utils";
 
 import styles from "./styles.css.js";

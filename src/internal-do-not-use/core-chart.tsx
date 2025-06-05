@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { InternalCoreChart } from "../core/chart-core";
-import { CoreChartProps } from "../core/interfaces-core";
+import { CoreChartProps } from "../core/interfaces";
 import useBaseComponent from "../internal/base-component/use-base-component";
 import { applyDisplayName } from "../internal/utils/apply-display-name";
 

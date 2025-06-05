@@ -3,7 +3,7 @@
 
 import { InternalChartFilter } from "@cloudscape-design/components/internal/do-not-use/chart-filter";
 
-import { ChartLegendItem } from "../../../core/interfaces-base.js";
+import { ChartLegendItem } from "../../../core/interfaces";
 import { fireNonCancelableEvent, NonCancelableEventHandler } from "../../../internal/events";
 
 interface ChartSeriesFilterProps {

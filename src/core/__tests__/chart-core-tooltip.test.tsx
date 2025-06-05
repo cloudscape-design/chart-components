@@ -6,7 +6,7 @@ import { waitFor } from "@testing-library/react";
 import highcharts from "highcharts";
 import { vi } from "vitest";
 
-import { CoreChartAPI } from "../../../lib/components/core/interfaces-core";
+import { CoreChartAPI } from "../../../lib/components/core/interfaces";
 import { createChartWrapper, renderChart } from "./common";
 import { createProxyRenderer, HighchartsTestHelper } from "./highcharts-utils";
 

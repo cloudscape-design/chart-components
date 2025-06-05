@@ -5,23 +5,23 @@ import { useCallback } from "react";
 import type Highcharts from "highcharts";
 
 import { createThresholdMetadata, getOptionsId, isXThreshold, isYThreshold } from "../core/utils";
-import { InternalCartesianChartOptions } from "./interfaces-cartesian";
+import { CartesianChartProps } from "./interfaces-cartesian";
 import * as Styles from "./styles";
 
 import testClasses from "./test-classes/styles.css.js";
 
 export const useCartesianSeries = ({
-  options,
+  series: externalSeries,
   visibleSeries,
   emphasizeBaselineAxis,
 }: {
-  options: InternalCartesianChartOptions;
+  series: CartesianChartProps.SeriesOptions[];
   visibleSeries: readonly string[];
   emphasizeBaselineAxis?: boolean;
 }) => {
   // The threshold series are added as a combination of series and plot lines.
   // The series are hidden in the plot area, but are visible in the legend.
-  const series: Highcharts.SeriesOptionsType[] = options.series.map((s) => {
+  const series: Highcharts.SeriesOptionsType[] = externalSeries.map((s) => {
     if (s.type === "x-threshold" || s.type === "y-threshold") {
       return {
         type: "line",
@@ -52,7 +52,7 @@ export const useCartesianSeries = ({
   // the plot lines render across the entire chart plot height or width.
   const xPlotLines: Highcharts.XAxisPlotLinesOptions[] = [];
   const yPlotLines: Highcharts.YAxisPlotLinesOptions[] = [];
-  for (const s of options.series) {
+  for (const s of externalSeries) {
     const seriesId = getOptionsId(s);
     if (s.type === "x-threshold" && visibleSeries.includes(seriesId)) {
       xPlotLines.push({

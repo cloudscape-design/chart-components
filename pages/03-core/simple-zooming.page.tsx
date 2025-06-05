@@ -11,7 +11,7 @@ import Checkbox from "@cloudscape-design/components/checkbox";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import { colorChartsBlue1400, colorChartsLineTick } from "@cloudscape-design/design-tokens";
 
-import { CoreChartAPI } from "../../lib/components/core/interfaces-core";
+import { CoreChartAPI } from "../../lib/components/core/interfaces";
 import { getSeriesColor, getSeriesMarkerType } from "../../lib/components/core/utils";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../lib/components/internal/components/series-details";
 import { ChartSeriesMarker } from "../../lib/components/internal/components/series-marker";
