@@ -229,7 +229,12 @@ export function InternalCoreChart({
               column: { ...Styles.columnSeries, ...options.plotOptions?.column },
               errorbar: { ...Styles.errorbarSeries, ...options.plotOptions?.errorbar },
               // Pie chart is shown in legend by default, that is required for standalone pie charts.
-              pie: { showInLegend: true, ...Styles.pieSeries, ...options.plotOptions?.pie },
+              pie: {
+                showInLegend: true,
+                ...Styles.pieSeries,
+                ...options.plotOptions?.pie,
+                dataLabels: { ...Styles.pieSeriesDataLabels, ...options.plotOptions?.pie?.dataLabels },
+              },
             },
             xAxis: castArray(options.xAxis)?.map((xAxisOptions) => ({
               ...Styles.xAxisOptions,

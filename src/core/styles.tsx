@@ -108,6 +108,10 @@ export const pieSeries = {
   borderWidth: 2,
 };
 
+export const pieSeriesDataLabels = {
+  connectorColor: colorChartsThresholdNeutral,
+};
+
 export const dimmedPlotLineOpacity = 0.4;
 
 export const seriesDataLabelsCss: Highcharts.CSSObject = {
