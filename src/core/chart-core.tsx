@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useId, useRef } from "react";
+import { useRef } from "react";
 import clsx from "clsx";
 import type Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
@@ -64,7 +64,7 @@ export function InternalCoreChart({
   const highcharts = rest.highcharts as null | typeof Highcharts;
 
   const settings = {
-    chartId: useId(),
+    chartId: crypto.randomUUID(),
     noDataEnabled: !!noDataOptions,
     legendEnabled: legendOptions?.enabled !== false,
     tooltipEnabled: tooltipOptions?.enabled !== false,
