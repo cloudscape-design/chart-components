@@ -19,18 +19,15 @@ export function useSegmentDescriptions(props: InternalPieChartProps) {
   const dataLabels: Highcharts.SeriesPieDataLabelsOptionsObject | Highcharts.SeriesPieDataLabelsOptionsObject[] = {
     position: "left",
     formatter() {
-      if (!props.segmentOptions) {
-        return null;
-      }
-      const { title: renderTitle, description: renderDescription } = props.segmentOptions;
+      const { segmentTitle, segmentDescription } = props;
       const segmentProps = {
         totalValue: this.total ?? 0,
         segmentValue: this.y ?? 0,
         segmentId: this.options.id,
         segmentName: this.options.name ?? "",
       };
-      const title = renderTitle === null ? null : (renderTitle?.(segmentProps) ?? this.name);
-      const description = renderDescription?.(segmentProps);
+      const title = segmentTitle ? segmentTitle(segmentProps) : this.name;
+      const description = segmentDescription?.(segmentProps);
       if (title || description) {
         return renderToStaticMarkup(
           <text>

@@ -33,10 +33,8 @@ export default function () {
   const commonChartProps: PieChartProps = {
     ...chartProps.pie,
     series: pieSeries,
-    segmentOptions: {
-      description: ({ segmentValue, totalValue }) =>
-        `${segmentValue} units, ${((segmentValue / totalValue) * 100).toFixed(0)}%`,
-    },
+    segmentDescription: ({ segmentValue, totalValue }) =>
+      `${segmentValue} units, ${((segmentValue / totalValue) * 100).toFixed(0)}%`,
   };
   return (
     <Page

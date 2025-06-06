@@ -51,7 +51,7 @@ export function ExamplePieChartSmallDonutChart() {
             );
           },
         }}
-        innerValue="80%"
+        innerAreaTitle="80%"
       />
     </PageSection>
   );

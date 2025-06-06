@@ -72,7 +72,6 @@ export function ComponentNew({
       chartMinHeight={200}
       ariaLabel="Pie chart"
       series={{ ...seriesNew, type }}
-      segmentOptions={{}}
       filter={
         headerFilter
           ? {
@@ -95,8 +94,8 @@ export function ComponentNew({
       }}
       visibleSegments={visibleSegments}
       onChangeVisibleSegments={({ detail }) => setVisibleSegments(detail.visibleSegments)}
-      innerValue="60"
-      innerDescription="total instances"
+      innerAreaTitle="60"
+      innerAreaDescription="total instances"
     />
   );
 }

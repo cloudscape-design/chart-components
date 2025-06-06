@@ -30,12 +30,13 @@ const PieChart = forwardRef((props: PieChartProps, ref: React.Ref<PieChartProps.
       chartMinWidth={props.chartMinWidth}
       tooltip={getAllowedProps(props.tooltip)}
       legend={getAllowedProps(props.legend)}
-      segmentOptions={getAllowedProps(props.segmentOptions)}
       noData={getAllowedProps(props.noData)}
       visibleSegments={props.visibleSegments}
       onChangeVisibleSegments={props.onChangeVisibleSegments}
-      innerValue={props.innerValue}
-      innerDescription={props.innerDescription}
+      segmentTitle={props.segmentTitle}
+      segmentDescription={props.segmentDescription}
+      innerAreaTitle={props.innerAreaTitle}
+      innerAreaDescription={props.innerAreaDescription}
       filter={getAllowedProps(props.filter)}
       {...getDataAttributes(props)}
       {...baseComponentProps}

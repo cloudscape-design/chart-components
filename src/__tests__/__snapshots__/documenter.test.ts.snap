@@ -301,7 +301,7 @@ is shown right above the chart plot.",
     },
     {
       "description": "Specifies visible series by their IDs. When unset, all series are visible by default, and the visibility state
-is managed internally by the component. When a series does not have an ID, a series name is used instead.
+is managed internally by the component. When a series does not have an ID, its name is used instead.
 When the property is provided, use \`onChangeVisibleSeries\` to manage state updates.",
       "name": "visibleSeries",
       "optional": true,
@@ -455,7 +455,7 @@ exports[`definition for pie-chart matches the snapshot > pie-chart 1`] = `
   "events": [
     {
       "cancelable": false,
-      "description": "A callback, executed when segments visibility is toggled by clicking on legend items.",
+      "description": "A callback, triggered when segments visibility changes as result of user interacting with the legend or filter.",
       "detailInlineType": {
         "name": "{ visibleSegments: Array<string>; }",
         "properties": [
@@ -564,14 +564,14 @@ Supported Highcharts versions:
       "type": "object | null",
     },
     {
-      "description": "Inner description of the donut chart.",
-      "name": "innerDescription",
+      "description": "Description of the inner chart area. Only supported for donut series.",
+      "name": "innerAreaDescription",
       "optional": true,
       "type": "string",
     },
     {
-      "description": "Inner title of the donut chart.",
-      "name": "innerValue",
+      "description": "Title of the inner chart area. Only supported for donut series.",
+      "name": "innerAreaTitle",
       "optional": true,
       "type": "string",
     },
@@ -646,26 +646,38 @@ It requires the \`no-data-to-display\` module.",
       "type": "ChartNoDataOptions",
     },
     {
-      "description": "Chart segment options.",
+      "description": "Segment description.",
       "inlineType": {
-        "name": "PieChartProps.SegmentOptions",
-        "properties": [
+        "name": "(props: PieChartProps.SegmentDescriptionRenderProps) => string",
+        "parameters": [
           {
-            "name": "description",
-            "optional": true,
-            "type": "((props: PieChartProps.SegmentDescriptionRenderProps) => string) | null",
-          },
-          {
-            "name": "title",
-            "optional": true,
-            "type": "((props: PieChartProps.SegmentDescriptionRenderProps) => string) | null",
+            "name": "props",
+            "type": "PieChartProps.SegmentDescriptionRenderProps",
           },
         ],
-        "type": "object",
+        "returnType": "string",
+        "type": "function",
       },
-      "name": "segmentOptions",
+      "name": "segmentDescription",
       "optional": true,
-      "type": "PieChartProps.SegmentOptions",
+      "type": "((props: PieChartProps.SegmentDescriptionRenderProps) => string)",
+    },
+    {
+      "description": "Segment title.",
+      "inlineType": {
+        "name": "(props: PieChartProps.SegmentDescriptionRenderProps) => string",
+        "parameters": [
+          {
+            "name": "props",
+            "type": "PieChartProps.SegmentDescriptionRenderProps",
+          },
+        ],
+        "returnType": "string",
+        "type": "function",
+      },
+      "name": "segmentTitle",
+      "optional": true,
+      "type": "((props: PieChartProps.SegmentDescriptionRenderProps) => string)",
     },
     {
       "description": "Chart series options.
@@ -737,9 +749,9 @@ Supported options:
       "type": "PieChartProps.TooltipOptions",
     },
     {
-      "description": "List of segments IDs to be visible. When unset, all segments are visible by default, but can be hidden by clicking on the
-legend. When a segment does not have an ID, a segment name is used instead.
-When the property is provided, use \`onChangeVisibleSegments\` to update it when the legend segment filtering is used.",
+      "description": "Specifies visible segments by their IDs. When unset, all segments are visible by default, and the visibility state
+is managed internally by the component. When a segment does not have an ID, its name is used instead.
+When the property is provided, use \`onChangeVisibleSegments\` to manage state updates.",
       "name": "visibleSegments",
       "optional": true,
       "type": "ReadonlyArray<string>",

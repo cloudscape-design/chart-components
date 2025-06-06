@@ -35,9 +35,7 @@ describe("PieChart: segments", () => {
     renderPieChart({
       highcharts,
       series: commonSeries,
-      segmentOptions: {
-        description: () => "Custom description",
-      },
+      segmentDescription: () => "Custom description",
     });
     expect(getChart().getElement().textContent).toContain("Custom description");
   });
@@ -46,9 +44,7 @@ describe("PieChart: segments", () => {
     renderPieChart({
       highcharts,
       series: commonSeries,
-      segmentOptions: {
-        title: () => "Custom title",
-      },
+      segmentTitle: () => "Custom title",
     });
 
     expect(getChart().getElement().textContent).toContain("Custom title");
@@ -58,10 +54,8 @@ describe("PieChart: segments", () => {
     renderPieChart({
       highcharts,
       series: commonSeries,
-      segmentOptions: {
-        title: null,
-        description: () => "Custom description",
-      },
+      segmentTitle: () => "",
+      segmentDescription: () => "Custom description",
     });
 
     expect(getChart().getElement().textContent).not.toContain("Pie");

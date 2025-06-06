@@ -54,12 +54,11 @@ export function ExamplePieChartDonutChart() {
             );
           },
         }}
-        segmentOptions={{
-          description: ({ totalValue, segmentValue }) =>
-            `${segmentValue} units, ${((segmentValue / totalValue) * 100).toFixed(0)}%`,
-        }}
-        innerValue="100"
-        innerDescription="total units"
+        segmentDescription={({ totalValue, segmentValue }) =>
+          `${segmentValue} units, ${((segmentValue / totalValue) * 100).toFixed(0)}%`
+        }
+        innerAreaTitle="100"
+        innerAreaDescription="total units"
       />
     </PageSection>
   );

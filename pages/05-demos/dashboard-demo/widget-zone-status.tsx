@@ -27,11 +27,9 @@ export function ZoneStatusWidget() {
       series={isEmpty ? null : series}
       ariaLabel="Zone status chart"
       ariaDescription="Pie chart summarizing the status of all zones."
-      segmentOptions={{
-        description({ segmentValue, totalValue }) {
-          return `${segmentValue} zones, ${percentageFormatter(segmentValue / totalValue)}`;
-        },
-      }}
+      segmentDescription={({ segmentValue, totalValue }) =>
+        `${segmentValue} zones, ${percentageFormatter(segmentValue / totalValue)}`
+      }
       tooltip={{
         ...chartProps.pie.tooltip,
         body(details) {

@@ -135,13 +135,13 @@ export default function () {
             chartHeight={settings.height}
             ariaLabel={`Pie chart with ${index + 1} segments`}
             series={getPieSeries(index + 1)}
-            segmentOptions={{
-              title: showTitles ? undefined : null,
-              description: showDescriptions
+            segmentTitle={showTitles ? undefined : () => ""}
+            segmentDescription={
+              showDescriptions
                 ? ({ segmentValue, totalValue }) =>
                     `${segmentValue} units, ${((segmentValue / totalValue) * 100).toFixed(1)}%`
-                : null,
-            }}
+                : undefined
+            }
           />
         ))}
       </ColumnLayout>

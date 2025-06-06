@@ -32,31 +32,42 @@ export interface PieChartProps extends CoreTypes.BaseChartOptions {
   tooltip?: PieChartProps.TooltipOptions;
 
   /**
-   * Chart segment options.
-   */
-  segmentOptions?: PieChartProps.SegmentOptions;
-
-  /**
    * List of segments IDs to be visible. When unset, all segments are visible by default, but can be hidden by clicking on the
    * legend. When a segment does not have an ID, a segment name is used instead.
    * When the property is provided, use `onChangeVisibleSegments` to update it when the legend segment filtering is used.
    */
+
+  /**
+   * Specifies visible segments by their IDs. When unset, all segments are visible by default, and the visibility state
+   * is managed internally by the component. When a segment does not have an ID, its name is used instead.
+   * When the property is provided, use `onChangeVisibleSegments` to manage state updates.
+   */
   visibleSegments?: readonly string[];
 
   /**
-   * A callback, executed when segments visibility is toggled by clicking on legend items.
+   * A callback, triggered when segments visibility changes as result of user interacting with the legend or filter.
    */
   onChangeVisibleSegments?: NonCancelableEventHandler<{ visibleSegments: string[] }>;
 
   /**
-   * Inner title of the donut chart.
+   * Segment title.
    */
-  innerValue?: string;
+  segmentTitle?: (props: PieChartProps.SegmentTitleRenderProps) => string;
 
   /**
-   * Inner description of the donut chart.
+   * Segment description.
    */
-  innerDescription?: string;
+  segmentDescription?: (props: PieChartProps.SegmentDescriptionRenderProps) => string;
+
+  /**
+   * Title of the inner chart area. Only supported for donut series.
+   */
+  innerAreaTitle?: string;
+
+  /**
+   * Description of the inner chart area. Only supported for donut series.
+   */
+  innerAreaDescription?: string;
 }
 
 export namespace PieChartProps {
@@ -83,11 +94,6 @@ export namespace PieChartProps {
     footer?: (props: TooltipFooterRenderProps) => React.ReactNode;
   }
 
-  export interface SegmentOptions {
-    title?: null | ((props: SegmentDescriptionTitleProps) => string);
-    description?: null | ((props: SegmentDescriptionRenderProps) => string);
-  }
-
   export type TooltipHeaderRenderProps = TooltipSlotRenderProps;
   export type TooltipBodyRenderProps = TooltipSlotRenderProps;
   export type TooltipFooterRenderProps = TooltipSlotRenderProps;
@@ -98,7 +104,7 @@ export namespace PieChartProps {
     totalValue: number;
   }
 
-  export type SegmentDescriptionTitleProps = SegmentDescriptionRenderProps;
+  export type SegmentTitleRenderProps = SegmentDescriptionRenderProps;
   export interface SegmentDescriptionRenderProps {
     segmentId?: string;
     segmentName: string;

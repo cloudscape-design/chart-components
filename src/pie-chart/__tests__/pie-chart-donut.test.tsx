@@ -31,8 +31,8 @@ describe("PieChart: donut", () => {
       <PieChart
         highcharts={Highcharts}
         series={{ ...commonSeries, type: "pie" }}
-        innerValue="Value"
-        innerDescription="Description"
+        innerAreaTitle="Value"
+        innerAreaDescription="Description"
       />,
     );
     expect(findInnerValue()).toBe(null);
@@ -40,31 +40,31 @@ describe("PieChart: donut", () => {
   });
 
   test("renders inner value", () => {
-    render(<PieChart highcharts={Highcharts} series={commonSeries} innerValue="Value" />);
+    render(<PieChart highcharts={Highcharts} series={commonSeries} innerAreaTitle="Value" />);
     expect(findInnerValue()!.getElement().textContent).toBe("Value");
   });
 
   test("updates inner value", () => {
-    const { rerender } = render(<PieChart highcharts={Highcharts} series={commonSeries} innerValue="Value" />);
-    rerender(<PieChart highcharts={Highcharts} series={commonSeries} innerValue="New value" />);
+    const { rerender } = render(<PieChart highcharts={Highcharts} series={commonSeries} innerAreaTitle="Value" />);
+    rerender(<PieChart highcharts={Highcharts} series={commonSeries} innerAreaTitle="New value" />);
     expect(findInnerValue()!.getElement().textContent).toBe("New value");
   });
 
   test("renders inner description", () => {
-    render(<PieChart highcharts={Highcharts} series={commonSeries} innerDescription="Description" />);
+    render(<PieChart highcharts={Highcharts} series={commonSeries} innerAreaDescription="Description" />);
     expect(findInnerDescription()!.getElement().textContent).toBe("Description");
   });
 
   test("updates inner description", () => {
     const { rerender } = render(
-      <PieChart highcharts={Highcharts} series={commonSeries} innerDescription="Description" />,
+      <PieChart highcharts={Highcharts} series={commonSeries} innerAreaDescription="Description" />,
     );
     rerender(
       <PieChart
         highcharts={Highcharts}
         series={commonSeries}
-        innerValue="New value"
-        innerDescription="New description"
+        innerAreaTitle="New value"
+        innerAreaDescription="New description"
       />,
     );
     expect(findInnerDescription()!.getElement().textContent).toBe("New description");
@@ -72,7 +72,12 @@ describe("PieChart: donut", () => {
 
   test("renders inner value and inner description", () => {
     render(
-      <PieChart highcharts={Highcharts} series={commonSeries} innerValue="Value" innerDescription="Description" />,
+      <PieChart
+        highcharts={Highcharts}
+        series={commonSeries}
+        innerAreaTitle="Value"
+        innerAreaDescription="Description"
+      />,
     );
     expect(findInnerValue()!.getElement().textContent).toBe("Value");
     expect(findInnerDescription()!.getElement().textContent).toBe("Description");
@@ -80,14 +85,19 @@ describe("PieChart: donut", () => {
 
   test("updates inner value and inner description", () => {
     const { rerender } = render(
-      <PieChart highcharts={Highcharts} series={commonSeries} innerValue="Value" innerDescription="Description" />,
+      <PieChart
+        highcharts={Highcharts}
+        series={commonSeries}
+        innerAreaTitle="Value"
+        innerAreaDescription="Description"
+      />,
     );
     rerender(
       <PieChart
         highcharts={Highcharts}
         series={commonSeries}
-        innerValue="New value"
-        innerDescription="New description"
+        innerAreaTitle="New value"
+        innerAreaDescription="New description"
       />,
     );
     expect(findInnerValue()!.getElement().textContent).toBe("New value");

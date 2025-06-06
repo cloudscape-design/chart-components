@@ -95,7 +95,7 @@ export interface CartesianChartProps extends CoreTypes.BaseChartOptions, CoreTyp
 
   /**
    * Specifies visible series by their IDs. When unset, all series are visible by default, and the visibility state
-   * is managed internally by the component. When a series does not have an ID, a series name is used instead.
+   * is managed internally by the component. When a series does not have an ID, its name is used instead.
    * When the property is provided, use `onChangeVisibleSeries` to manage state updates.
    */
   visibleSeries?: readonly string[];
