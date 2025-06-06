@@ -38,6 +38,7 @@ describe("CoreChart: rendering", () => {
     expect(callback).toHaveBeenCalledWith({
       chart: hc.getChart(),
       highcharts,
+      setItemsVisible: expect.any(Function),
       highlightChartPoint: expect.any(Function),
       highlightChartGroup: expect.any(Function),
       clearChartHighlight: expect.any(Function),

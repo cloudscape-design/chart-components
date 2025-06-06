@@ -6,32 +6,28 @@ import { renderToStaticMarkup } from "react-dom/server";
 import type Highcharts from "highcharts";
 
 import { useControllableState } from "@cloudscape-design/component-toolkit";
-import Box from "@cloudscape-design/components/box";
 
 import { InternalCoreChart } from "../core/chart-core";
 import { CoreChartProps, TooltipSlotProps } from "../core/interfaces";
+import * as Styles from "../core/styles";
 import { getOptionsId } from "../core/utils";
-import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
+import ChartSeriesDetails from "../internal/components/series-details";
 import { fireNonCancelableEvent } from "../internal/events";
-import { useInnerDescriptions } from "./chart-inner-area";
-import { InternalSeriesOptions, PieChartProps } from "./interfaces";
-import * as Styles from "./styles";
-import { getAllSegmentIds } from "./utils";
+import { SomeRequired, Writeable } from "../internal/utils/utils";
+import { useInnerArea } from "./chart-inner-area";
+import { PieChartProps as P } from "./interfaces";
 
 import testClasses from "./test-classes/styles.css.js";
 
-interface InternalPieChartProps extends InternalBaseComponentProps, Omit<PieChartProps, "series"> {
-  highcharts: null | object;
-  series: InternalSeriesOptions[];
+interface InternalPieChartProps extends InternalBaseComponentProps, Omit<P, "series"> {
+  series: readonly P.SeriesOptions[];
+  tooltip: SomeRequired<P.TooltipOptions, "enabled" | "size">;
+  legend: SomeRequired<P.LegendOptions, "enabled">;
 }
 
-/**
- * The InternalPieChart component takes public PieChart properties, but also Highcharts options.
- * This allows using it as a Highcharts wrapper to mix Cloudscape and Highcharts features.
- */
 export const InternalPieChart = forwardRef(
-  ({ tooltip, ...props }: InternalPieChartProps, ref: React.Ref<PieChartProps.Ref>) => {
+  ({ series: originalSeries, tooltip, ...props }: InternalPieChartProps, ref: React.Ref<P.Ref>) => {
     // When visibleSegments and onChangeVisibleSegments are provided - the segments visibility can be controlled from the outside.
     // Otherwise - the component handles segments visibility using its internal state.
     const [visibleSegmentsState, setVisibleSegments] = useControllableState(
@@ -46,27 +42,15 @@ export const InternalPieChart = forwardRef(
       (value, handler) => fireNonCancelableEvent(handler, { visibleSegments: value ? [...value] : [] }),
     );
     // Unless visible segments are explicitly set, we start from all segments being visible.
-    const allSegmentIds = getAllSegmentIds(props.series);
+    const allSegmentIds = originalSeries.flatMap((s) => s.data.map((d) => getOptionsId(d)));
     const visibleSegments = visibleSegmentsState ?? allSegmentIds;
 
     // Converting donut series to Highcharts pie series.
-    // We set series color to transparent to visually hide the empty pie/donut ring.
-    // That does not affect how the chart looks in non-empty state.
-    const series: Highcharts.SeriesOptionsRegistry["SeriesPieOptions"][] = [];
-    for (const s of props.series) {
-      if (s.type === "pie") {
-        series.push({ ...s, size: Styles.pieSeriesSize, color: "transparent" });
-      }
-      if (s.type === "donut") {
-        series.push({
-          ...s,
-          type: "pie",
-          color: "transparent",
-          size: Styles.donutSeriesSize,
-          innerSize: Styles.donutSeriesInnerSize,
-        });
-      }
-    }
+    const series: Highcharts.SeriesOptionsType[] = originalSeries.map((s) => {
+      const data = s.data as Writeable<P.PieSegmentOptions[]>;
+      const style = s.type === "pie" ? Styles.pieSeries : Styles.donutSeries;
+      return { ...s, type: "pie", data, ...style };
+    });
 
     // Pie chart imperative API.
     useImperativeHandle(ref, () => ({
@@ -74,12 +58,13 @@ export const InternalPieChart = forwardRef(
       showAllSegments: () => setVisibleSegments(allSegmentIds),
     }));
 
-    // Render inner value and description for donut chart.
-    const hasDonutSeries = props.series.some((s) => s.type === "donut");
-    const innerDescriptions = useInnerDescriptions(props, hasDonutSeries);
+    // Get inner area title and description for donut chart.
+    const innerArea = useInnerArea(originalSeries, props);
 
+    // We convert pie tooltip options to the core chart's getTooltipContent callback,
+    // ensuring no internal types are exposed to the consumer-defined render functions.
     const getTooltipContent: CoreChartProps["getTooltipContent"] = () => {
-      const transformSlotProps = (props: TooltipSlotProps): PieChartProps.TooltipDetailsRenderProps => {
+      const transformSlotProps = (props: TooltipSlotProps): P.TooltipDetailsRenderProps => {
         const point = props.items[0].point;
         return {
           totalValue: point.total ?? 0,
@@ -92,18 +77,21 @@ export const InternalPieChart = forwardRef(
         header: tooltip?.header ? (props) => tooltip.header!(transformSlotProps(props)) : undefined,
         body:
           tooltip?.body || tooltip?.details
-            ? (props) => {
-                if (tooltip.body) {
-                  return tooltip.body!(transformSlotProps(props));
-                }
-                const details = tooltip?.details?.(transformSlotProps(props)) ?? [];
-                return <TooltipDetails details={details} />;
-              }
+            ? (props) =>
+                tooltip.body ? (
+                  tooltip.body(transformSlotProps(props))
+                ) : (
+                  <ChartSeriesDetails
+                    details={tooltip?.details?.(transformSlotProps(props)) ?? []}
+                    compactList={true}
+                  />
+                )
             : undefined,
         footer: tooltip?.footer ? (props) => tooltip.footer!(transformSlotProps(props)) : undefined,
       };
     };
 
+    // Convert pie segment props to Highcharts segment data labels.
     const segmentDataLabels:
       | Highcharts.SeriesPieDataLabelsOptionsObject
       | Highcharts.SeriesPieDataLabelsOptionsObject[] = {
@@ -136,7 +124,7 @@ export const InternalPieChart = forwardRef(
       chart: {
         events: {
           render(event) {
-            innerDescriptions.onChartRender.call(this, event);
+            innerArea.onChartRender.call(this, event);
           },
         },
       },
@@ -150,41 +138,14 @@ export const InternalPieChart = forwardRef(
 
     return (
       <InternalCoreChart
-        highcharts={props.highcharts}
-        fallback={props.fallback}
+        {...props}
         options={highchartsOptions}
-        ariaLabel={props.ariaLabel}
-        ariaDescription={props.ariaDescription}
-        fitHeight={props.fitHeight}
-        chartHeight={props.chartHeight}
-        chartMinHeight={props.chartMinHeight}
-        chartMinWidth={props.chartMinWidth}
         tooltip={tooltip}
         getTooltipContent={getTooltipContent}
-        noData={props.noData}
-        legend={props.legend}
         visibleItems={visibleSegments}
-        onVisibleItemsChange={(legendItems) =>
-          setVisibleSegments(legendItems.filter((i) => i.visible).map((i) => i.id))
-        }
-        filter={props.filter}
+        onVisibleItemsChange={(items) => setVisibleSegments(items.filter((i) => i.visible).map((i) => i.id))}
         className={testClasses.root}
-        __internalRootRef={props.__internalRootRef}
-        {...getDataAttributes(props)}
       />
     );
   },
 );
-
-function TooltipDetails({ details }: { details: readonly PieChartProps.TooltipDetail[] }) {
-  return (
-    <div>
-      {details.map((d, index) => (
-        <div key={index} style={{ display: "flex", justifyContent: "space-between", gap: "16px", marginLeft: "18px" }}>
-          <Box variant="span">{d.key}</Box>
-          <Box variant="span">{d.value}</Box>
-        </div>
-      ))}
-    </div>
-  );
-}

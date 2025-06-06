@@ -22,11 +22,11 @@ const PAGE_SIZE_PERCENTAGE = 0.05;
 
 export interface ChartExtraNavigationHandlers {
   onFocusChart(): void;
-  onFocusPoint(point: Highcharts.Point, group: Highcharts.Point[]): void;
-  onFocusGroup(group: Highcharts.Point[]): void;
+  onFocusPoint(point: Highcharts.Point, group: readonly Highcharts.Point[]): void;
+  onFocusGroup(group: readonly Highcharts.Point[]): void;
   onBlur(): void;
-  onActivatePoint(point: Highcharts.Point, group: Highcharts.Point[]): void;
-  onActivateGroup(group: Highcharts.Point[]): void;
+  onActivatePoint(point: Highcharts.Point, group: readonly Highcharts.Point[]): void;
+  onActivateGroup(group: readonly Highcharts.Point[]): void;
 }
 
 export type FocusedState = FocusedStateChart | FocusedStateGroup | FocusedStatePoint;
@@ -36,12 +36,12 @@ interface FocusedStateChart {
 }
 interface FocusedStateGroup {
   type: "group";
-  group: Highcharts.Point[];
+  group: readonly Highcharts.Point[];
 }
 interface FocusedStatePoint {
   type: "point";
   point: Highcharts.Point;
-  group: Highcharts.Point[];
+  group: readonly Highcharts.Point[];
 }
 
 // Navigation controller handles focus behavior and keyboard navigation for all charts.
@@ -94,7 +94,7 @@ export class ChartExtraNavigation {
 
   // Casting focus to the application element brings the visible focus state to the chart or last focused
   // chart point or group of points. This is used to restore focus after the tooltip is dismissed.
-  public focusApplication(point: null | Highcharts.Point, group: Highcharts.Point[]) {
+  public focusApplication(point: null | Highcharts.Point, group: readonly Highcharts.Point[]) {
     if (this.context.settings.keyboardNavigationEnabled) {
       this.focusedState = point ? { type: "point", point, group } : { type: "group", group };
       this.applicationElement?.focus();
@@ -202,7 +202,7 @@ export class ChartExtraNavigation {
     });
   };
 
-  private onKeyDownGroup = (event: KeyboardEvent, group: Highcharts.Point[]) => {
+  private onKeyDownGroup = (event: KeyboardEvent, group: readonly Highcharts.Point[]) => {
     const i = !!this.context.chart().inverted;
     handleKey(event, {
       onActivate: () => this.activateGroup(group),
@@ -218,7 +218,7 @@ export class ChartExtraNavigation {
     });
   };
 
-  private onKeyDownPoint = (event: KeyboardEvent, point: Highcharts.Point, group: Highcharts.Point[]) => {
+  private onKeyDownPoint = (event: KeyboardEvent, point: Highcharts.Point, group: readonly Highcharts.Point[]) => {
     const i = !!this.context.chart().inverted;
     handleKey(event, {
       onActivate: () => this.activatePoint(point, group),
@@ -242,12 +242,12 @@ export class ChartExtraNavigation {
     this.focusGroup(this.findLastGroup());
   }
 
-  private moveToNextGroup(group: Highcharts.Point[]) {
+  private moveToNextGroup(group: readonly Highcharts.Point[]) {
     const nextGroup = group[0] ? this.findNextGroup(group[0]) : [];
     this.focusGroup(nextGroup);
   }
 
-  private moveToPrevGroup(group: Highcharts.Point[]) {
+  private moveToPrevGroup(group: readonly Highcharts.Point[]) {
     const prevGroup = group[0] ? this.findPrevGroup(group[0]) : [];
     this.focusGroup(prevGroup);
   }
@@ -265,12 +265,12 @@ export class ChartExtraNavigation {
     this.focusChart();
   }
 
-  private moveToFirstInGroup(group: Highcharts.Point[]) {
+  private moveToFirstInGroup(group: readonly Highcharts.Point[]) {
     const points = group.filter((p) => !isXThreshold(p.series));
     this.focusPoint(points[0], group);
   }
 
-  private moveToLastInGroup(group: Highcharts.Point[]) {
+  private moveToLastInGroup(group: readonly Highcharts.Point[]) {
     const points = group.filter((p) => !isXThreshold(p.series));
     this.focusPoint(points[points.length - 1], group);
   }
@@ -323,12 +323,12 @@ export class ChartExtraNavigation {
     }
   }
 
-  private moveToNextPageGroup(group: Highcharts.Point[]) {
+  private moveToNextPageGroup(group: readonly Highcharts.Point[]) {
     const nextPageGroup = group[0] ? this.findNextPageGroup(group[0]) : [];
     this.focusGroup(nextPageGroup);
   }
 
-  private moveToPrevPageGroup(group: Highcharts.Point[]) {
+  private moveToPrevPageGroup(group: readonly Highcharts.Point[]) {
     const prevPageGroup = group[0] ? this.findPrevPageGroup(group[0]) : [];
     this.focusGroup(prevPageGroup);
   }
@@ -351,11 +351,11 @@ export class ChartExtraNavigation {
     }
   }
 
-  private activateGroup(group: Highcharts.Point[]) {
+  private activateGroup(group: readonly Highcharts.Point[]) {
     this.handlers.onActivateGroup(group);
   }
 
-  private activatePoint(point: Highcharts.Point, group: Highcharts.Point[]) {
+  private activatePoint(point: Highcharts.Point, group: readonly Highcharts.Point[]) {
     this.handlers.onActivatePoint(point, group);
   }
 
@@ -365,7 +365,7 @@ export class ChartExtraNavigation {
     this.handlers.onFocusChart();
   };
 
-  private focusGroup(group: Highcharts.Point[]) {
+  private focusGroup(group: readonly Highcharts.Point[]) {
     // When the chart is re-focused, the group that was focused before might no longer be valid if its
     // points are no longer visible or were destroyed by Highcharts. In that case we focus the chart as
     // a fallback.
@@ -386,7 +386,7 @@ export class ChartExtraNavigation {
     }
   }
 
-  private focusPoint(point: null | Highcharts.Point, group: Highcharts.Point[]) {
+  private focusPoint(point: null | Highcharts.Point, group: readonly Highcharts.Point[]) {
     // When the chart is re-focused, the point that was focused before might no longer be valid it became
     // hidden or was destroyed by Highcharts. In that case we focus the point's parent group as a fallback.
     if (!point || !isPointVisible(point)) {

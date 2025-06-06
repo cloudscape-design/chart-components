@@ -25,17 +25,12 @@ export interface PieChartProps extends CoreTypes.BaseChartOptions {
    * Supported options:
    * * `enabled` - (optional, boolean) - Use it to hide the tooltip.
    * * `size` - (optional, "small" | "medium" | "large") - Use it to specify max tooltip size.
+   * * `details` - (optional, function) - Use it to provide a list of key-value pairs as tooltip's body.
    * * `header` - (optional, function) - Use it to provide a custom tooltip header.
    * * `body` - (optional, function) - Use it to provide a custom tooltip content.
    * * `footer` - (optional, function) - Use it to add a tooltip footer.
    */
   tooltip?: PieChartProps.TooltipOptions;
-
-  /**
-   * List of segments IDs to be visible. When unset, all segments are visible by default, but can be hidden by clicking on the
-   * legend. When a segment does not have an ID, a segment name is used instead.
-   * When the property is provided, use `onChangeVisibleSegments` to update it when the legend segment filtering is used.
-   */
 
   /**
    * Specifies visible segments by their IDs. When unset, all segments are visible by default, and the visibility state
@@ -50,12 +45,12 @@ export interface PieChartProps extends CoreTypes.BaseChartOptions {
   onChangeVisibleSegments?: NonCancelableEventHandler<{ visibleSegments: string[] }>;
 
   /**
-   * Segment title.
+   * Segment title renderer.
    */
   segmentTitle?: (props: PieChartProps.SegmentTitleRenderProps) => string;
 
   /**
-   * Segment description.
+   * Segment description renderer.
    */
   segmentDescription?: (props: PieChartProps.SegmentDescriptionRenderProps) => string;
 
@@ -73,8 +68,9 @@ export interface PieChartProps extends CoreTypes.BaseChartOptions {
 export namespace PieChartProps {
   export interface Ref {
     // Controls segments visibility that works with both controlled and uncontrolled visibility mode.
-    // This is useful to clear selected segments from no-match state.
     setVisibleSegments(visibleSegments: readonly string[]): void;
+    // Same as above, but applies to all segments and requires no segments IDs on input. This is useful when
+    // implementing clear-filter action in no-match state.
     showAllSegments(): void;
   }
 
@@ -86,18 +82,13 @@ export namespace PieChartProps {
 
   export type PieSegmentOptions = CoreTypes.PieSegmentOptions;
 
-  export type NoDataOptions = CoreTypes.ChartNoDataOptions;
-
-  export interface TooltipOptions extends CoreTypes.ChartTooltipOptions {
-    details?: (props: TooltipDetailsRenderProps) => TooltipDetail[];
+  export interface TooltipOptions {
+    enabled?: boolean;
+    size?: "small" | "medium" | "large";
+    details?: (props: TooltipDetailsRenderProps) => readonly TooltipDetail[];
     header?: (props: TooltipHeaderRenderProps) => React.ReactNode;
     body?: (props: TooltipBodyRenderProps) => React.ReactNode;
     footer?: (props: TooltipFooterRenderProps) => React.ReactNode;
-  }
-
-  export interface TooltipDetail {
-    key: React.ReactNode;
-    value: React.ReactNode;
   }
 
   export type TooltipDetailsRenderProps = TooltipSlotRenderProps;
@@ -111,6 +102,11 @@ export namespace PieChartProps {
     totalValue: number;
   }
 
+  export interface TooltipDetail {
+    key: React.ReactNode;
+    value: React.ReactNode;
+  }
+
   export type SegmentTitleRenderProps = SegmentDescriptionRenderProps;
   export interface SegmentDescriptionRenderProps {
     segmentId?: string;
@@ -118,6 +114,10 @@ export namespace PieChartProps {
     segmentValue: number;
     totalValue: number;
   }
-}
 
-export type InternalSeriesOptions = PieChartProps.SeriesOptions | Highcharts.SeriesOptionsType;
+  export type LegendOptions = CoreTypes.ChartLegendOptions;
+
+  export type FilterOptions = CoreTypes.ChartFilterOptions;
+
+  export type NoDataOptions = CoreTypes.ChartNoDataOptions;
+}

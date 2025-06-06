@@ -4,76 +4,66 @@
 import { useRef } from "react";
 import type Highcharts from "highcharts";
 
-import { PieChartProps } from "./interfaces";
-import * as Styles from "./styles";
+import * as Styles from "../core/styles";
+import { PieChartProps as P } from "./interfaces";
 
 import testClasses from "./test-classes/styles.css.js";
 
-interface InternalPieChartProps extends Omit<PieChartProps, "series"> {
-  highcharts: null | object;
+interface InnerAreaProps {
+  innerAreaTitle?: string;
+  innerAreaDescription?: string;
 }
 
-/**
- * The InternalPieChart component takes public PieChart properties, but also Highcharts options.
- * This allows using it as a Highcharts wrapper to mix Cloudscape and Highcharts features.
- */
-export function useInnerDescriptions(props: InternalPieChartProps, hasDonutSeries: boolean) {
+export function useInnerArea(series: readonly P.SeriesOptions[], innerAreaProps: InnerAreaProps) {
+  const hasDonutSeries = series.some((s) => s.type === "donut");
   const innerAreaRef = useRef(new ChartInnerDescriptions());
-
   const onChartRender: Highcharts.ChartRenderCallbackFunction = function () {
     innerAreaRef.current.destroy();
-
-    // The inner descriptions are only shown when at least one pie/donut segment is visible.
-    const hasVisibleSeries =
-      this.series.filter((s) => s.visible && s.data.some((d) => d.y !== null && d.visible)).length > 0;
-
-    if (hasVisibleSeries && hasDonutSeries) {
-      innerAreaRef.current.createDescriptions(props, this);
+    if (hasDonutSeries && findVisibleSeries(this.series).length > 0) {
+      innerAreaRef.current.create(innerAreaProps, this);
     }
   };
-
   return { onChartRender };
 }
 
 class ChartInnerDescriptions {
-  private valueEl: null | Highcharts.SVGElement = null;
-  private descriptionEl: null | Highcharts.SVGElement = null;
+  private titleElement: null | Highcharts.SVGElement = null;
+  private descriptionElement: null | Highcharts.SVGElement = null;
 
-  public createDescriptions(
-    { innerAreaTitle, innerAreaDescription }: { innerAreaTitle?: string; innerAreaDescription?: string },
-    chart: Highcharts.Chart,
-  ) {
+  public create({ innerAreaTitle, innerAreaDescription }: InnerAreaProps, chart: Highcharts.Chart) {
     const textX = chart.plotLeft + chart.series[0].center[0];
     const textY = chart.plotTop + chart.series[0].center[1];
 
     if (innerAreaTitle) {
-      this.valueEl = chart.renderer
+      this.titleElement = chart.renderer
         .text(innerAreaTitle, textX, textY)
-        .attr({ zIndex: Styles.innerDescriptionZIndex, class: testClasses["inner-value"] })
-        .css(Styles.donutInnerValueCss)
+        .attr({ zIndex: 5, class: testClasses["inner-value"] })
+        .css(Styles.innerAreaTitleCss)
         .add();
-
-      this.valueEl.attr({
-        x: textX - this.valueEl.getBBox().width / 2,
+      this.titleElement.attr({
+        x: textX - this.titleElement.getBBox().width / 2,
         y: innerAreaDescription ? textY : textY + 10,
       });
     }
     if (innerAreaDescription) {
-      this.descriptionEl = chart.renderer
+      this.descriptionElement = chart.renderer
         .text(innerAreaDescription, textX, textY)
-        .attr({ zIndex: Styles.innerDescriptionZIndex, class: testClasses["inner-description"] })
-        .css(Styles.donutInnerDescriptionCss)
+        .attr({ zIndex: 5, class: testClasses["inner-description"] })
+        .css(Styles.innerAreaDescriptionCss)
         .add();
-
-      this.descriptionEl.attr({
-        x: textX - this.descriptionEl.getBBox().width / 2,
+      this.descriptionElement.attr({
+        x: textX - this.descriptionElement.getBBox().width / 2,
         y: textY + 20,
       });
     }
   }
 
   public destroy() {
-    this.valueEl?.destroy();
-    this.descriptionEl?.destroy();
+    this.titleElement?.destroy();
+    this.descriptionElement?.destroy();
   }
+}
+
+function findVisibleSeries(series: Highcharts.Series[]) {
+  return series.filter((s) => s.visible && s.data.some((d) => d.y !== null && d.visible));
 }

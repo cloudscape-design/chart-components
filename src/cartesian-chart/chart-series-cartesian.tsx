@@ -6,12 +6,8 @@ import type Highcharts from "highcharts";
 import { PointDataItemType, RangeDataItemOptions } from "../core/interfaces";
 import * as Styles from "../core/styles";
 import { createThresholdMetadata, getOptionsId } from "../core/utils";
+import { Writeable } from "../internal/utils/utils";
 import { CartesianChartProps as C } from "./interfaces";
-
-// Highcharts series and data arrays are not marked as readonly in TS, but are readonly effectively.
-// This creates a conflict with Cloudscape type definitions as we use readonly arrays on input.
-// To resolve the conflict, we cast out readonly types to writeable.
-type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
 // The utility transforms cartesian chart component's series to Highcharts series. This includes transforming
 // custom x- and y-threshold series types, that are represented as a combination of invisible line series, and plot lines.

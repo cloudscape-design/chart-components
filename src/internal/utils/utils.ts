@@ -5,18 +5,10 @@ export type SomeRequired<Type, Keys extends keyof Type> = Type & {
   [Key in Keys]-?: Type[Key];
 };
 
-export const getAllowedProps = <T extends Record<string, any>>(props?: T): undefined | T => {
-  if (!props) {
-    return undefined;
-  }
-  return Object.keys(props).reduce<Partial<T>>((acc: Partial<T>, propName: keyof T) => {
-    if (typeof propName === "string" && propName.startsWith("__")) {
-      return acc;
-    }
-    acc[propName] = props[propName];
-    return acc;
-  }, {}) as T;
-};
+// Highcharts series and data arrays are not marked as readonly in TS, but are readonly effectively.
+// This creates a conflict with Cloudscape type definitions as we use readonly arrays on input.
+// To resolve the conflict, we cast out readonly types to writeable.
+export type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
 export function castArray<T>(valueOrArray?: T | T[]): undefined | T[] {
   if (!valueOrArray) {

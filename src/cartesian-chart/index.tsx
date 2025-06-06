@@ -27,8 +27,8 @@ const CartesianChart = forwardRef(
     }: CartesianChartProps,
     ref: React.Ref<CartesianChartProps.Ref>,
   ) => {
-    // We validate series and axes options before propagating them to the internal chart to ensure only those
-    // options defined in the component's contract can be propagated down to the underlying Highcharts component.
+    // We validate options before propagating them to the internal chart to ensure only those
+    // defined in the component's contract can be propagated down to the underlying Highcharts.
     // Additionally, we assign all default options, including the nested ones.
     const series = validateSeries(props.series, stacking);
     const xAxis = validateXAxisOptions(props.xAxis);

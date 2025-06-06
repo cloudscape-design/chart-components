@@ -176,7 +176,7 @@ export function getPointRect(point: Highcharts.Point): Rect {
 // The group rect is only used for cartesian charts. It returns coordinates of a rectangle,
 // which includes all given points, but also stretched vertically or horizontally (in inverted charts)
 // to the entire chart's height or width.
-export function getGroupRect(points: Highcharts.Point[]): Rect {
+export function getGroupRect(points: readonly Highcharts.Point[]): Rect {
   if (points.length === 0) {
     return { x: 0, y: 0, width: 0, height: 0 };
   }
@@ -209,7 +209,7 @@ export function getPointAccessibleDescription(point: Highcharts.Point) {
 }
 
 // TODO: i18n
-export function getGroupAccessibleDescription(group: Highcharts.Point[]) {
+export function getGroupAccessibleDescription(group: readonly Highcharts.Point[]) {
   const firstPoint = group[0];
   const formattedX = getFormatter(firstPoint.series.xAxis)(firstPoint.x);
   return `${formattedX}, group of ${group.length} points`;

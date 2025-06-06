@@ -60,7 +60,7 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
   };
 
   // Updates legend highlight state when chart's group of points is highlighted.
-  public onHighlightGroup = (group: Highcharts.Point[]) => {
+  public onHighlightGroup = (group: readonly Highcharts.Point[]) => {
     const visibleItems = group.map((point) => getSeriesId(point.series));
     this.onHighlightItems(visibleItems);
   };

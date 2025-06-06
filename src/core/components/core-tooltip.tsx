@@ -104,7 +104,7 @@ export function ChartTooltip({
   );
 }
 
-function getTrackKey(point: null | Highcharts.Point, group: Highcharts.Point[]) {
+function getTrackKey(point: null | Highcharts.Point, group: readonly Highcharts.Point[]) {
   const pointId = point && (point.options.id || point.options.name);
   if (point && pointId) {
     return `p-${pointId}`;
@@ -224,7 +224,10 @@ function getTooltipContentPie(
   };
 }
 
-function findTooltipSeriesItems(series: Highcharts.Series[], group: Highcharts.Point[]): MatchedItem[] {
+function findTooltipSeriesItems(
+  series: readonly Highcharts.Series[],
+  group: readonly Highcharts.Point[],
+): MatchedItem[] {
   const seriesOrder = series.reduce((d, s, i) => d.set(s, i), new Map<Highcharts.Series, number>());
   const getSeriesIndex = (s: Highcharts.Series) => seriesOrder.get(s) ?? -1;
   const seriesErrors = new Map<string, Highcharts.Point[]>();

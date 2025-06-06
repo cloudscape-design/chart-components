@@ -107,6 +107,14 @@ export const errorbarSeries = {
 
 export const pieSeries = {
   borderWidth: 2,
+  // This sets the color of the empty pie/donut ring.
+  // See: https://github.com/highcharts/highcharts/issues/23073.
+  color: "transparent",
+  size: "60%",
+};
+export const donutSeries = {
+  ...pieSeries,
+  innerSize: "80%",
 };
 
 export const pieSeriesDataLabels = {
@@ -174,4 +182,22 @@ export const chatPlotBaseline: Partial<Highcharts.XAxisPlotLinesOptions> = {
   color: colorChartsLineTick,
   width: 2,
   zIndex: 3,
+};
+
+export const innerAreaTitleCss: Highcharts.CSSObject = {
+  fontSize: "28",
+  fontWeight: "bold",
+};
+
+export const innerAreaDescriptionCss: Highcharts.CSSObject = {
+  fontSize: "18",
+  fontWeight: "bold",
+  color: colorTextBodySecondary,
+};
+
+export const segmentDescriptionCss: React.CSSProperties = {
+  fontFamily: fontFamilyBase,
+  fontWeight: "normal",
+  fontSize: fontSizeBodyS,
+  color: colorTextBodySecondary,
 };

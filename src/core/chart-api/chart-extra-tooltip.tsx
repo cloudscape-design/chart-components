@@ -22,7 +22,7 @@ export interface ReactiveTooltipState {
   visible: boolean;
   pinned: boolean;
   point: null | Highcharts.Point;
-  group: Highcharts.Point[];
+  group: readonly Highcharts.Point[];
 }
 
 // Chart helper that implements tooltip placement logic and cursors.
@@ -66,14 +66,14 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     this.groupTrack.destroy();
   }
 
-  public showTooltipOnPoint(point: Highcharts.Point, matchingGroup: Highcharts.Point[], ignoreLock = false) {
+  public showTooltipOnPoint(point: Highcharts.Point, matchingGroup: readonly Highcharts.Point[], ignoreLock = false) {
     if (!this.tooltipLock || ignoreLock) {
       this.set(() => ({ visible: true, pinned: false, point, group: matchingGroup }));
       this.onRenderTooltip({ point, group: matchingGroup });
     }
   }
 
-  public showTooltipOnGroup(group: Highcharts.Point[], ignoreLock = false) {
+  public showTooltipOnGroup(group: readonly Highcharts.Point[], ignoreLock = false) {
     if (!this.tooltipLock || ignoreLock) {
       this.set(() => ({ visible: true, pinned: false, point: null, group }));
       this.onRenderTooltip({ point: null, group });
@@ -134,7 +134,7 @@ class HighlightCursorCartesian {
   private lineElement = new SVGRendererSingle();
   private markerElementsPool = new SVGRendererPool();
 
-  public create(target: Rect, point: null | Highcharts.Point, group: Highcharts.Point[], showLine: boolean) {
+  public create(target: Rect, point: null | Highcharts.Point, group: readonly Highcharts.Point[], showLine: boolean) {
     this.hide();
     const chart = group[0]?.series.chart;
     if (!chart) {

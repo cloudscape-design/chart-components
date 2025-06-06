@@ -123,7 +123,7 @@ export const InternalCartesianChart = forwardRef(
         tooltip={tooltip}
         getTooltipContent={getTooltipContent}
         visibleItems={visibleSeries}
-        onVisibleItemsChange={(legendItems) => setVisibleSeries(legendItems.filter((i) => i.visible).map((i) => i.id))}
+        onVisibleItemsChange={(items) => setVisibleSeries(items.filter((i) => i.visible).map((i) => i.id))}
         className={testClasses.root}
       />
     );

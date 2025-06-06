@@ -180,12 +180,12 @@ export interface YThresholdSeriesOptions extends BaseCartesianSeriesOptionsWithN
 
 export interface PieSeriesOptions extends BaseCartesianSeriesOptionsWithName {
   type: "pie";
-  data: PieSegmentOptions[];
+  data: readonly PieSegmentOptions[];
 }
 
 export interface DonutSeriesOptions extends BaseCartesianSeriesOptionsWithName {
   type: "donut";
-  data: PieSegmentOptions[];
+  data: readonly PieSegmentOptions[];
 }
 
 // The data items are simpler versions of Highcharts.PointOptionsObject
@@ -328,7 +328,7 @@ export type GetTooltipContent = (props: GetTooltipContentProps) => CoreTooltipCo
 
 export interface GetTooltipContentProps {
   point: null | Highcharts.Point;
-  group: Highcharts.Point[];
+  group: readonly Highcharts.Point[];
 }
 
 export interface CoreTooltipContent {
@@ -370,7 +370,7 @@ export type InternalXAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: 
 export type InternalYAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: null | number) => string };
 export interface ChartHighlightProps {
   point: null | Highcharts.Point;
-  group: Highcharts.Point[];
+  group: readonly Highcharts.Point[];
 }
 
 // The API methods allow programmatic triggering of chart's behaviors, some of which are not accessible via React state.
@@ -378,8 +378,9 @@ export interface ChartHighlightProps {
 export interface CoreChartAPI {
   chart: Highcharts.Chart;
   highcharts: typeof Highcharts;
+  setItemsVisible(itemIds: readonly string[]): void;
   highlightChartPoint(point: Highcharts.Point): void;
-  highlightChartGroup(group: Highcharts.Point[]): void;
+  highlightChartGroup(group: readonly Highcharts.Point[]): void;
   clearChartHighlight(): void;
 }
 

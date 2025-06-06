@@ -273,6 +273,7 @@ export function InternalCoreChart({
                   callback?.({
                     chart,
                     highcharts: highcharts as typeof Highcharts,
+                    setItemsVisible: (visibleItemIds) => api.setItemsVisible(visibleItemIds),
                     highlightChartPoint: (point) => api.highlightChartPoint(point),
                     highlightChartGroup: (group) => api.highlightChartGroup(group),
                     clearChartHighlight: () => api.clearChartHighlight(),

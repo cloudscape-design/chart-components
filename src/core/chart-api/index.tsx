@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import type Highcharts from "highcharts";
 
 import { ReadonlyAsyncStore } from "../../internal/utils/async-store";
+import { Writeable } from "../../internal/utils/utils";
 import {
   getChartAccessibleDescription,
   getGroupAccessibleDescription,
@@ -202,11 +203,14 @@ export class ChartAPI {
 
   // Callbacks used for hover and keyboard navigation, and also exposed to the public API to give the ability
   // to highlight and show tooltip for the given point or group manually.
+  public setItemsVisible = (visibleItemsIds: readonly string[]) => {
+    this.chartExtraLegend.onItemVisibilityChange(visibleItemsIds);
+  };
   public highlightChartPoint = (point: Highcharts.Point) => {
     this.highlightActions(point);
   };
-  public highlightChartGroup = (group: Highcharts.Point[]) => {
-    this.highlightActions(group);
+  public highlightChartGroup = (group: readonly Highcharts.Point[]) => {
+    this.highlightActions(group as Writeable<Highcharts.Point[]>);
   };
   public clearChartHighlight = () => {
     this.clearHighlightActions();
