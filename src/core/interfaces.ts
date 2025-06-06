@@ -227,9 +227,10 @@ export interface PointMarkerOptions {
 
 export interface CoreChartProps
   extends Pick<
-    BaseChartOptions,
-    "highcharts" | "fitHeight" | "chartHeight" | "chartMinHeight" | "chartMinWidth" | "ariaLabel" | "ariaDescription"
-  > {
+      BaseChartOptions,
+      "highcharts" | "fitHeight" | "chartHeight" | "chartMinHeight" | "chartMinWidth" | "ariaLabel" | "ariaDescription"
+    >,
+    CoreCartesianOptions {
   /**
    * The Highcharts options. Cloudscape injects custom styles and settings, but all can be
    * overridden with explicitly provided options. An exception is event handlers - those are
@@ -309,10 +310,6 @@ export interface CoreChartProps
    * Use Cloudscape keyboard navigation.
    */
   keyboardNavigation?: boolean;
-  /**
-   * Options for cartesian charts.
-   */
-  cartesian?: CoreCartesianOptions;
 }
 
 export interface CoreCartesianOptions {

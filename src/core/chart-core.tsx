@@ -46,10 +46,8 @@ export function InternalCoreChart({
   legend: legendOptions,
   fallback = <Spinner />,
   callback,
-  cartesian: { emphasizeBaseline = true, verticalAxisTitlePlacement = "side" } = {
-    emphasizeBaseline: true,
-    verticalAxisTitlePlacement: "side",
-  },
+  emphasizeBaseline = true,
+  verticalAxisTitlePlacement = "side",
   i18nStrings,
   className,
   header,

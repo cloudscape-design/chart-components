@@ -40,7 +40,7 @@ export const transformCartesianSeries = (
   // data points. As result, the y-threshold series becomes properly navigable.
   const xs = getAllX(originalSeries, visibleSeries);
   // For x-threshold the point-based navigation is disabled as irrelevant. However, we still need at least
-  // one data point for core chart to work correctly, for that we find the first visible y value from other series.
+  // one data point for core chart to work correctly, so we find the first visible y value from other series.
   const ys = getFirstY(originalSeries, visibleSeries);
   function transformSeriesToHighcharts(s: C.SeriesOptions): Highcharts.SeriesOptionsType {
     if (s.type === "x-threshold" || s.type === "y-threshold") {

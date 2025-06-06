@@ -187,6 +187,8 @@ export namespace CartesianChartProps {
 
   export type LegendOptions = CoreTypes.ChartLegendOptions;
 
+  export type FilterOptions = CoreTypes.ChartFilterOptions;
+
   export type NoDataOptions = CoreTypes.ChartNoDataOptions;
 }
 

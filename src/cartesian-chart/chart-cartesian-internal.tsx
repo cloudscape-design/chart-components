@@ -29,10 +29,7 @@ interface InternalCartesianChartProps extends InternalBaseComponentProps, C {
 }
 
 export const InternalCartesianChart = forwardRef(
-  (
-    { emphasizeBaseline, verticalAxisTitlePlacement, tooltip, ...props }: InternalCartesianChartProps,
-    ref: React.Ref<C.Ref>,
-  ) => {
+  ({ tooltip, ...props }: InternalCartesianChartProps, ref: React.Ref<C.Ref>) => {
     // When visibleSeries and onChangeVisibleSeries are provided - the series visibility can be controlled from the outside.
     // Otherwise - the component handles series visibility using its internal state.
     const [visibleSeriesState, setVisibleSeries] = useControllableState(
@@ -125,7 +122,6 @@ export const InternalCartesianChart = forwardRef(
         options={highchartsOptions}
         tooltip={tooltip}
         getTooltipContent={getTooltipContent}
-        cartesian={{ emphasizeBaseline, verticalAxisTitlePlacement }}
         visibleItems={visibleSeries}
         onVisibleItemsChange={(legendItems) => setVisibleSeries(legendItems.filter((i) => i.visible).map((i) => i.id))}
         className={testClasses.root}
