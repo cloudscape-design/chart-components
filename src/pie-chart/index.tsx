@@ -8,7 +8,7 @@ import useBaseComponent from "../internal/base-component/use-base-component";
 import { applyDisplayName } from "../internal/utils/apply-display-name";
 import { getAllowedProps } from "../internal/utils/utils";
 import { InternalPieChart } from "./chart-pie-internal";
-import { PieChartProps } from "./interfaces-pie";
+import { PieChartProps } from "./interfaces";
 
 /**
  * PieChart is a public Cloudscape component. It features a custom API, which resembles the Highcharts API where appropriate,

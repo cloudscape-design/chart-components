@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { getOptionsId } from "../core/utils";
-import { InternalSeriesOptions } from "./interfaces-pie";
+import { InternalSeriesOptions } from "./interfaces";
 
 export function getAllSegmentIds(series: InternalSeriesOptions[]): string[] {
   const allSegmentIds = series.flatMap((s) => {

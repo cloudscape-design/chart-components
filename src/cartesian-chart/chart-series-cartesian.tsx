@@ -6,7 +6,7 @@ import type Highcharts from "highcharts";
 import { PointDataItemType, RangeDataItemOptions } from "../core/interfaces";
 import * as Styles from "../core/styles";
 import { createThresholdMetadata, getOptionsId } from "../core/utils";
-import { CartesianChartProps as C } from "./interfaces-cartesian";
+import { CartesianChartProps as C } from "./interfaces";
 
 // Highcharts series and data arrays are not marked as readonly in TS, but are readonly effectively.
 // This creates a conflict with Cloudscape type definitions as we use readonly arrays on input.

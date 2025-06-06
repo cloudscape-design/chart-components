@@ -3,7 +3,7 @@
 
 import { CoreChartProps, TooltipSlotProps } from "../core/interfaces";
 import { getOptionsId } from "../core/utils";
-import { PieChartProps } from "./interfaces-pie";
+import { PieChartProps } from "./interfaces";
 
 export function useChartTooltipPie({ tooltip }: { tooltip?: PieChartProps.TooltipOptions }): Partial<CoreChartProps> {
   const getTooltipContent: CoreChartProps["getTooltipContent"] = () => {

@@ -11,7 +11,7 @@ import useBaseComponent from "../internal/base-component/use-base-component";
 import { applyDisplayName } from "../internal/utils/apply-display-name";
 import { SomeRequired } from "../internal/utils/utils";
 import { InternalCartesianChart } from "./chart-cartesian-internal";
-import { CartesianChartProps as C, CartesianChartProps } from "./interfaces-cartesian";
+import { CartesianChartProps as C, CartesianChartProps } from "./interfaces";
 
 export type { CartesianChartProps };
 

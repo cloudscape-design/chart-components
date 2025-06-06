@@ -19,7 +19,7 @@ import { InternalBaseComponentProps } from "../internal/base-component/use-base-
 import { fireNonCancelableEvent } from "../internal/events";
 import { castArray, SomeRequired } from "../internal/utils/utils";
 import { transformCartesianSeries } from "./chart-series-cartesian";
-import { CartesianChartProps as C, NonErrorBarSeriesOptions } from "./interfaces-cartesian";
+import { CartesianChartProps as C, NonErrorBarSeriesOptions } from "./interfaces";
 
 import testClasses from "./test-classes/styles.css.js";
 

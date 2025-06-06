@@ -13,7 +13,7 @@ import { fireNonCancelableEvent } from "../internal/events";
 import { useInnerDescriptions } from "./chart-inner-descriptions";
 import { useSegmentDescriptions } from "./chart-segment-descriptions";
 import { useChartTooltipPie } from "./chart-tooltip-pie";
-import { InternalSeriesOptions, PieChartProps } from "./interfaces-pie";
+import { InternalSeriesOptions, PieChartProps } from "./interfaces";
 import * as Styles from "./styles";
 import { getAllSegmentIds } from "./utils";
 
