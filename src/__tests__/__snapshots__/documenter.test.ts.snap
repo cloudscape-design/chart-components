@@ -234,8 +234,8 @@ Supported options:
 * \`enabled\` - (optional, boolean) - Use it to hide the tooltip.
 * \`size\` - (optional, "small" | "medium" | "large") - Use it to specify max tooltip size.
 * \`placement\` - (optional, "middle" | "outside") - Use it to specify preferred tooltip placement.
-* \`series\` - (optional, function) - Use it to customize tooltip series rendering.
-* \`header\` - (optional, function) - Use it to provide a custom tooltip title.
+* \`point\` - (optional, function) - Use it to customize tooltip series point rendering.
+* \`header\` - (optional, function) - Use it to provide a custom tooltip header.
 * \`body\` - (optional, function) - Use it to provide a custom tooltip content.
 * \`footer\` - (optional, function) - Use it to add a tooltip footer.",
       "inlineType": {
@@ -267,9 +267,9 @@ Supported options:
             "type": ""middle" | "outside"",
           },
           {
-            "name": "series",
+            "name": "point",
             "optional": true,
-            "type": "((props: CartesianChartProps.TooltipSeriesRenderProps) => CartesianChartProps.TooltipSeriesFormatted)",
+            "type": "((props: CartesianChartProps.TooltipPointRenderProps) => CartesianChartProps.TooltipPointFormatted)",
           },
           {
             "name": "size",
@@ -668,8 +668,9 @@ It requires the \`no-data-to-display\` module.",
       "type": "PieChartProps.SegmentOptions",
     },
     {
-      "description": "Chart series and data.
-This property corresponds to [series](https://api.highcharts.com/highcharts/series).
+      "description": "Chart series options.
+This property corresponds to [series](https://api.highcharts.com/highcharts/series), and extends it
+with an additional "donut" series type.
 
 Supported series types:
 * [pie](https://api.highcharts.com/highcharts/series.pie).
@@ -687,14 +688,13 @@ Supported series types:
       "type": "PieChartProps.SeriesOptions",
     },
     {
-      "description": "Chart tooltip that replaces [tooltip](https://api.highcharts.com/highcharts/tooltip).
+      "description": "Chart tooltip options.
 
-Supported properties:
+Supported options:
 * \`enabled\` - (optional, boolean) - Use it to hide the tooltip.
 * \`size\` - (optional, "small" | "medium" | "large") - Use it to specify max tooltip size.
-* \`placement\` - (optional, "target" | "middle" | "outside") - Use it to specify preferred tooltip placement.
-* \`title\` - (optional, function) - Use it to provide a custom tooltip title.
-* \`content\` - (optional, function) - Use it to provide a custom tooltip content.
+* \`header\` - (optional, function) - Use it to provide a custom tooltip header.
+* \`body\` - (optional, function) - Use it to provide a custom tooltip content.
 * \`footer\` - (optional, function) - Use it to add a tooltip footer.",
       "inlineType": {
         "name": "PieChartProps.TooltipOptions",

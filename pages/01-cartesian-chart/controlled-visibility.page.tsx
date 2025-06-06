@@ -83,7 +83,7 @@ function ExampleMixedChart() {
       ariaLabel="Mixed bar chart"
       series={mixedChartSeries}
       tooltip={{
-        series: ({ item }) => {
+        point: ({ item }) => {
           return {
             key: item.series.name,
             value: (

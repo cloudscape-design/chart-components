@@ -74,7 +74,7 @@ export function ExampleLineChartSingleDataSeries() {
         series={isEmpty ? [] : series}
         tooltip={{
           ...chartProps.cartesian.tooltip,
-          series: ({ item }) => {
+          point: ({ item }) => {
             return {
               key: (
                 <Link external={true} href="#">

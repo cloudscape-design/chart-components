@@ -4,10 +4,14 @@
 import * as CoreTypes from "../core/interfaces";
 import { NonCancelableEventHandler } from "../internal/events";
 
+// PieChartProps is the type for PieChart React component properties. Unlike in Highcharts API,
+// we pass options directly to the component, instead of grouping them all into a single "options" property.
+// We do still organize related options in groups, e.g.: "SeriesOptions", "TooltipOptions".
 export interface PieChartProps extends CoreTypes.BaseChartOptions {
   /**
-   * Chart series and data.
-   * This property corresponds to [series](https://api.highcharts.com/highcharts/series).
+   * Chart series options.
+   * This property corresponds to [series](https://api.highcharts.com/highcharts/series), and extends it
+   * with an additional "donut" series type.
    *
    * Supported series types:
    * * [pie](https://api.highcharts.com/highcharts/series.pie).
@@ -16,14 +20,13 @@ export interface PieChartProps extends CoreTypes.BaseChartOptions {
   series: null | PieChartProps.SeriesOptions;
 
   /**
-   * Chart tooltip that replaces [tooltip](https://api.highcharts.com/highcharts/tooltip).
+   * Chart tooltip options.
    *
-   * Supported properties:
+   * Supported options:
    * * `enabled` - (optional, boolean) - Use it to hide the tooltip.
    * * `size` - (optional, "small" | "medium" | "large") - Use it to specify max tooltip size.
-   * * `placement` - (optional, "target" | "middle" | "outside") - Use it to specify preferred tooltip placement.
-   * * `title` - (optional, function) - Use it to provide a custom tooltip title.
-   * * `content` - (optional, function) - Use it to provide a custom tooltip content.
+   * * `header` - (optional, function) - Use it to provide a custom tooltip header.
+   * * `body` - (optional, function) - Use it to provide a custom tooltip content.
    * * `footer` - (optional, function) - Use it to add a tooltip footer.
    */
   tooltip?: PieChartProps.TooltipOptions;

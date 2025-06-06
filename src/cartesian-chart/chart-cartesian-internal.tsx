@@ -11,7 +11,7 @@ import {
   CoreChartProps,
   ErrorBarSeriesOptions,
   TooltipItem,
-  TooltipSeriesProps,
+  TooltipPointProps,
   TooltipSlotProps,
 } from "../core/interfaces";
 import { getOptionsId, isXThreshold } from "../core/utils";
@@ -54,7 +54,7 @@ export const InternalCartesianChart = forwardRef(
       // assuming Highcharts makes no modifications for those. These options are not referentially equal
       // to the ones we get from the consumer due to the internal validation/transformation we run on them.
       // See: https://api.highcharts.com/class-reference/Highcharts.Chart#userOptions.
-      const transformItem = (item: TooltipItem): C.TooltipSeriesItem => {
+      const transformItem = (item: TooltipItem): C.TooltipPointItem => {
         return {
           x: item.point.x,
           y: isXThreshold(item.point.series) ? null : (item.point.y ?? null),
@@ -66,7 +66,7 @@ export const InternalCartesianChart = forwardRef(
           })),
         };
       };
-      const transformSeriesProps = (props: TooltipSeriesProps): C.TooltipSeriesRenderProps => {
+      const transformSeriesProps = (props: TooltipPointProps): C.TooltipPointRenderProps => {
         return {
           item: transformItem(props.item),
         };
@@ -78,7 +78,7 @@ export const InternalCartesianChart = forwardRef(
         };
       };
       return {
-        series: tooltip.series ? (props) => tooltip.series!(transformSeriesProps(props)) : undefined,
+        point: tooltip.point ? (props) => tooltip.point!(transformSeriesProps(props)) : undefined,
         header: tooltip.header ? (props) => tooltip.header!(transformSlotProps(props)) : undefined,
         body: tooltip.body ? (props) => tooltip.body!(transformSlotProps(props)) : undefined,
         footer: tooltip.footer ? (props) => tooltip.footer!(transformSlotProps(props)) : undefined,

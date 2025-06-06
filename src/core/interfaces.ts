@@ -332,7 +332,7 @@ export interface GetTooltipContentProps {
 }
 
 export interface CoreTooltipContent {
-  series?: (props: TooltipSeriesProps) => TooltipSeriesFormatted;
+  point?: (props: TooltipPointProps) => TooltipPointFormatted;
   header?: (props: TooltipSlotProps) => React.ReactNode;
   body?: (props: TooltipSlotProps) => React.ReactNode;
   footer?: (props: TooltipSlotProps) => React.ReactNode;
@@ -343,7 +343,7 @@ export interface TooltipItem {
   linkedErrorbars: Highcharts.Point[];
 }
 
-export interface TooltipSeriesProps {
+export interface TooltipPointProps {
   item: TooltipItem;
 }
 
@@ -352,7 +352,7 @@ export interface TooltipSlotProps {
   items: TooltipItem[];
 }
 
-export interface TooltipSeriesFormatted {
+export interface TooltipPointFormatted {
   key: React.ReactNode;
   value: React.ReactNode;
   details?: React.ReactNode;

@@ -39,7 +39,7 @@ export function ExampleBarChartSingleDataSeries() {
         series={isEmpty ? [] : series}
         tooltip={{
           ...chartProps.cartesian.tooltip,
-          series({ item }) {
+          point({ item }) {
             return { key: item.series.name, value: item.y !== null ? priceFormatter(item.y) : 0 };
           },
         }}

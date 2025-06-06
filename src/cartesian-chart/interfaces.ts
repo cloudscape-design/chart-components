@@ -45,8 +45,8 @@ export interface CartesianChartProps extends CoreTypes.BaseChartOptions, CoreTyp
    * * `enabled` - (optional, boolean) - Use it to hide the tooltip.
    * * `size` - (optional, "small" | "medium" | "large") - Use it to specify max tooltip size.
    * * `placement` - (optional, "middle" | "outside") - Use it to specify preferred tooltip placement.
-   * * `series` - (optional, function) - Use it to customize tooltip series rendering.
-   * * `header` - (optional, function) - Use it to provide a custom tooltip title.
+   * * `point` - (optional, function) - Use it to customize tooltip series point rendering.
+   * * `header` - (optional, function) - Use it to provide a custom tooltip header.
    * * `body` - (optional, function) - Use it to provide a custom tooltip content.
    * * `footer` - (optional, function) - Use it to add a tooltip footer.
    */
@@ -156,7 +156,7 @@ export namespace CartesianChartProps {
     enabled?: boolean;
     placement?: "middle" | "outside";
     size?: "small" | "medium" | "large";
-    series?: (props: TooltipSeriesRenderProps) => TooltipSeriesFormatted;
+    point?: (props: TooltipPointRenderProps) => TooltipPointFormatted;
     header?: (props: TooltipHeaderRenderProps) => React.ReactNode;
     body?: (props: TooltipBodyRenderProps) => React.ReactNode;
     footer?: (props: TooltipFooterRenderProps) => React.ReactNode;
@@ -166,18 +166,18 @@ export namespace CartesianChartProps {
   export type TooltipFooterRenderProps = TooltipSlotRenderProps;
   export interface TooltipSlotRenderProps {
     x: number;
-    items: TooltipSeriesItem[];
+    items: TooltipPointItem[];
   }
-  export interface TooltipSeriesRenderProps {
-    item: TooltipSeriesItem;
+  export interface TooltipPointRenderProps {
+    item: TooltipPointItem;
   }
-  export interface TooltipSeriesItem {
+  export interface TooltipPointItem {
     x: number;
     y: number | null;
     errorRanges: { low: number; high: number; series: CartesianChartProps.ErrorBarSeriesOptions }[];
     series: NonErrorBarSeriesOptions;
   }
-  export interface TooltipSeriesFormatted {
+  export interface TooltipPointFormatted {
     key: React.ReactNode;
     value: React.ReactNode;
     details?: React.ReactNode;

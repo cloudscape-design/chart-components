@@ -184,7 +184,7 @@ export default function () {
 function tooltipContent(settings: ThisPageSettings): CartesianChartProps.TooltipOptions | undefined {
   return settings.customTooltipContent
     ? {
-        series: ({ item }) => ({
+        point: ({ item }) => ({
           key: item.series.name,
           value: (
             <Link external={true} href="#" ariaLabel={`See details for ${item.series.name} (opens in a new tab)`}>

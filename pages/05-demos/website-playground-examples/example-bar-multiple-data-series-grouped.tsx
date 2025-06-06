@@ -59,7 +59,7 @@ export function ExampleBarChartMultipleDataSeriesGrouped() {
         series={isEmpty ? [] : series}
         tooltip={{
           ...chartProps.cartesian.tooltip,
-          series: ({ item }) => {
+          point: ({ item }) => {
             const formattedValue = item.y !== null ? numberFormatter(item.y) : null;
             return {
               key: item.series.name,

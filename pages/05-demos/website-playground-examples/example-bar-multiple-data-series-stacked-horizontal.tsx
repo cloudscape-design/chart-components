@@ -57,7 +57,7 @@ export function ExampleBarChartMultipleDataSeriesStackedHorizontal() {
         series={isEmpty ? [] : series}
         tooltip={{
           ...chartProps.cartesian.tooltip,
-          series: ({ item }) => {
+          point: ({ item }) => {
             const valueLink = ({ key, value }: { key: string; value: number }) => (
               <Link
                 external={true}

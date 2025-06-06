@@ -16,7 +16,7 @@ import {
   CoreTooltipContent,
   GetTooltipContent,
   GetTooltipContentProps,
-  TooltipSeriesFormatted,
+  TooltipPointFormatted,
   TooltipSlotProps,
 } from "../interfaces";
 import { getPointColor, getSeriesColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../utils";
@@ -57,7 +57,7 @@ export function ChartTooltip({
   if (!tooltip.visible || tooltip.group.length === 0) {
     return null;
   }
-  const overrides = getTooltipContentOverrides?.({ point: tooltip.point, group: tooltip.group });
+  const renderers = getTooltipContentOverrides?.({ point: tooltip.point, group: tooltip.group });
   const getTrack = placement === "target" ? api.getTargetTrack : api.getGroupTrack;
   const orientation = tooltip.point?.series.chart.inverted ? "horizontal" : "vertical";
   const position = (() => {
@@ -68,12 +68,9 @@ export function ChartTooltip({
     }
   })();
   const content = getTooltipContent(api, {
+    renderers,
     point: tooltip.point,
     group: tooltip.group,
-    series: overrides?.series,
-    header: overrides?.header,
-    body: overrides?.body,
-    footer: overrides?.footer,
     expandedSeries,
     setExpandedSeries,
   });
@@ -120,7 +117,7 @@ function getTrackKey(point: null | Highcharts.Point, group: Highcharts.Point[]) 
 
 function getTooltipContent(
   api: ChartAPI,
-  props: GetTooltipContentProps & CoreTooltipContent & ExpandedSeriesStateProps,
+  props: GetTooltipContentProps & { renderers?: CoreTooltipContent } & ExpandedSeriesStateProps,
 ): null | RenderedTooltipContent {
   if (props.point && props.point.series.type === "pie") {
     return getTooltipContentPie(api, { ...props, point: props.point });
@@ -136,13 +133,10 @@ function getTooltipContentCartesian(
   {
     point,
     group,
-    series: seriesOverride,
-    header: headerOverride,
-    body: bodyOverride,
-    footer: footerOverride,
     expandedSeries,
+    renderers = {},
     setExpandedSeries,
-  }: GetTooltipContentProps & CoreTooltipContent & ExpandedSeriesStateProps,
+  }: GetTooltipContentProps & { renderers?: CoreTooltipContent } & ExpandedSeriesStateProps,
 ): RenderedTooltipContent {
   const x = group[0].x;
   const chart = group[0].series.chart;
@@ -151,10 +145,10 @@ function getTooltipContentCartesian(
   const matchedItems = findTooltipSeriesItems(chart.series, group);
   const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
     const valueFormatter = getFormatter(item.point.series.yAxis);
-    const formatted: TooltipSeriesFormatted = (() => {
+    const formatted: TooltipPointFormatted = (() => {
       // Using consumer-defined details.
-      if (seriesOverride) {
-        return seriesOverride({ item });
+      if (renderers.point) {
+        return renderers.point({ item });
       }
       const itemY = isXThreshold(item.point.series) ? null : (item.point.y ?? null);
       return {
@@ -187,8 +181,8 @@ function getTooltipContentCartesian(
   const titleFormatter = getFormatter(chart.xAxis[0]);
   const slotRenderProps: TooltipSlotProps = { x, items: matchedItems };
   return {
-    header: headerOverride?.(slotRenderProps) ?? titleFormatter(x),
-    body: bodyOverride?.(slotRenderProps) ?? (
+    header: renderers.header?.(slotRenderProps) ?? titleFormatter(x),
+    body: renderers.body?.(slotRenderProps) ?? (
       <ChartSeriesDetails
         details={detailItems}
         expandedSeries={expandedSeries[x]}
@@ -205,22 +199,17 @@ function getTooltipContentCartesian(
         }}
       />
     ),
-    footer: footerOverride?.(slotRenderProps),
+    footer: renderers.footer?.(slotRenderProps),
   };
 }
 
 function getTooltipContentPie(
   api: ChartAPI,
-  {
-    point,
-    header: headerOverride,
-    body: bodyOverride,
-    footer: footerOverride,
-  }: { point: Highcharts.Point } & CoreTooltipContent,
+  { point, renderers = {} }: { point: Highcharts.Point } & { renderers?: CoreTooltipContent },
 ): RenderedTooltipContent {
   const tooltipDetails: TooltipSlotProps = { x: point.x, items: [{ point, linkedErrorbars: [] }] };
   return {
-    header: headerOverride?.(tooltipDetails) ?? (
+    header: renderers.header?.(tooltipDetails) ?? (
       <div className={styles["tooltip-default-header"]}>
         {api.renderMarker(getSeriesMarkerType(point.series), getPointColor(point))}
         <Box variant="span" fontWeight="bold">
@@ -228,10 +217,10 @@ function getTooltipContentPie(
         </Box>
       </div>
     ),
-    body: bodyOverride?.(tooltipDetails) ?? (
+    body: renderers.body?.(tooltipDetails) ?? (
       <ChartSeriesDetails details={[{ key: point.series.name, value: point.y ?? 0 }]} />
     ),
-    footer: footerOverride?.(tooltipDetails),
+    footer: renderers.footer?.(tooltipDetails),
   };
 }
 

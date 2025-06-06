@@ -87,7 +87,7 @@ describe("CartesianChart: Error bars", () => {
           { type: "errorbar", name: "Column 2", data: [{ low: 1, high: 3 }], linkedTo: "column-1" },
         ],
         tooltip: {
-          series: ({ item }) => ({
+          point: ({ item }) => ({
             key: `Custom key ${item.series.name}`,
             value: `Custom value ${item.y}`,
             details: `Custom details ${item.errorRanges![0].low} - ${item.errorRanges![0].high}`,

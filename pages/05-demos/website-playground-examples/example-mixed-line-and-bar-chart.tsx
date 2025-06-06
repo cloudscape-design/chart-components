@@ -49,7 +49,7 @@ export function ExampleMixedLineAndBarChart() {
         series={isEmpty ? [] : series}
         tooltip={{
           ...chartProps.cartesian.tooltip,
-          series: ({ item }) => {
+          point: ({ item }) => {
             return {
               key: item.series.name,
               value:

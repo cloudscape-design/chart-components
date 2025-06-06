@@ -60,7 +60,7 @@ export function ExampleBarChartWithSubItems() {
         series={isEmpty ? [] : series}
         tooltip={{
           ...chartProps.cartesian.tooltip,
-          series: ({ item }) => {
+          point: ({ item }) => {
             return {
               key: item.series.name,
               value: item.y !== null ? moneyFormatter(item.y) : null,
