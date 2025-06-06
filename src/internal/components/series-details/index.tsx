@@ -95,7 +95,7 @@ function ChartSeriesDetails(
                 [styles.expandable]: !!expandableId,
               })}
             >
-              {selected ? (
+              {details.length > 1 && selected ? (
                 <div
                   ref={selectedRef}
                   style={{
