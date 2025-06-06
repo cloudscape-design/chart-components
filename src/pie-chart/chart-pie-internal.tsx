@@ -1,14 +1,14 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { forwardRef, useImperativeHandle } from "react";
+import { forwardRef, useImperativeHandle, useRef } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import type Highcharts from "highcharts";
 
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
 import { InternalCoreChart } from "../core/chart-core";
-import { CoreChartProps, TooltipSlotProps } from "../core/interfaces";
+import { CoreChartAPI, CoreChartProps, TooltipSlotProps } from "../core/interfaces";
 import * as Styles from "../core/styles";
 import { getOptionsId } from "../core/utils";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
@@ -28,22 +28,20 @@ interface InternalPieChartProps extends InternalBaseComponentProps, Omit<P, "ser
 
 export const InternalPieChart = forwardRef(
   ({ series: originalSeries, tooltip, ...props }: InternalPieChartProps, ref: React.Ref<P.Ref>) => {
+    const apiRef = useRef<null | CoreChartAPI>(null);
+
     // When visibleSegments and onChangeVisibleSegments are provided - the segments visibility can be controlled from the outside.
     // Otherwise - the component handles segments visibility using its internal state.
-    const [visibleSegmentsState, setVisibleSegments] = useControllableState(
-      props.visibleSegments,
-      props.onChangeVisibleSegments,
-      null,
-      {
-        componentName: "PieChart",
-        propertyName: "visibleSegments",
-        changeHandlerName: "onChangeVisibleSegments",
-      },
-      (value, handler) => fireNonCancelableEvent(handler, { visibleSegments: value ? [...value] : [] }),
-    );
-    // Unless visible segments are explicitly set, we start from all segments being visible.
+    useControllableState(props.visibleSegments, props.onChangeVisibleSegments, undefined, {
+      componentName: "PieChart",
+      propertyName: "visibleSegments",
+      changeHandlerName: "onChangeVisibleSegments",
+    });
     const allSegmentIds = originalSeries.flatMap((s) => s.data.map((d) => getOptionsId(d)));
-    const visibleSegments = visibleSegmentsState ?? allSegmentIds;
+    const onVisibleSegmentsChange: CoreChartProps["onVisibleItemsChange"] = (items) => {
+      const visibleSegments = items.filter((i) => i.visible).map((i) => i.id);
+      fireNonCancelableEvent(props.onChangeVisibleSegments, { visibleSegments });
+    };
 
     // Converting donut series to Highcharts pie series.
     const series: Highcharts.SeriesOptionsType[] = originalSeries.map((s) => {
@@ -54,8 +52,8 @@ export const InternalPieChart = forwardRef(
 
     // Pie chart imperative API.
     useImperativeHandle(ref, () => ({
-      setVisibleSegments: setVisibleSegments,
-      showAllSegments: () => setVisibleSegments(allSegmentIds),
+      setVisibleSegments: (visibleSegmentsIds) => apiRef.current?.setItemsVisible(visibleSegmentsIds),
+      showAllSegments: () => apiRef.current?.setItemsVisible(allSegmentIds),
     }));
 
     // Get inner area title and description for donut chart.
@@ -139,11 +137,12 @@ export const InternalPieChart = forwardRef(
     return (
       <InternalCoreChart
         {...props}
+        callback={(api) => (apiRef.current = api)}
         options={highchartsOptions}
         tooltip={tooltip}
         getTooltipContent={getTooltipContent}
-        visibleItems={visibleSegments}
-        onVisibleItemsChange={(items) => setVisibleSegments(items.filter((i) => i.visible).map((i) => i.id))}
+        visibleItems={props.visibleSegments}
+        onVisibleItemsChange={onVisibleSegmentsChange}
         className={testClasses.root}
       />
     );
