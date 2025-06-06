@@ -1,13 +1,14 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { forwardRef, useImperativeHandle } from "react";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import type Highcharts from "highcharts";
 
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
 import { InternalCoreChart } from "../core/chart-core";
 import {
+  CoreChartAPI,
   CoreChartProps,
   ErrorBarSeriesOptions,
   TooltipItem,
@@ -30,22 +31,23 @@ interface InternalCartesianChartProps extends InternalBaseComponentProps, C {
 
 export const InternalCartesianChart = forwardRef(
   ({ tooltip, ...props }: InternalCartesianChartProps, ref: React.Ref<C.Ref>) => {
+    const apiRef = useRef<null | CoreChartAPI>(null);
+
     // When visibleSeries and onChangeVisibleSeries are provided - the series visibility can be controlled from the outside.
     // Otherwise - the component handles series visibility using its internal state.
-    const [visibleSeriesState, setVisibleSeries] = useControllableState(
-      props.visibleSeries,
-      props.onChangeVisibleSeries,
-      null,
-      {
-        componentName: "CartesianChart",
-        propertyName: "visibleSeries",
-        changeHandlerName: "onChangeVisibleSeries",
-      },
-      (value, handler) => fireNonCancelableEvent(handler, { visibleSeries: [...value!] }),
-    );
-    // Unless visible series are explicitly set, we start from all series being visible.
+    useControllableState(props.visibleSeries, props.onChangeVisibleSeries, undefined, {
+      componentName: "CartesianChart",
+      propertyName: "visibleSeries",
+      changeHandlerName: "onChangeVisibleSeries",
+    });
     const allSeriesIds = props.series.map((s) => getOptionsId(s));
-    const visibleSeries = visibleSeriesState ?? allSeriesIds;
+    // We keep local visible series state to compute threshold series data, that depends on series visibility.
+    const [visibleSeriesLocal, setVisibleSeriesLocal] = useState(props.visibleSeries ?? allSeriesIds);
+    const onVisibleSeriesChange: CoreChartProps["onVisibleItemsChange"] = (items) => {
+      const visibleSeries = items.filter((i) => i.visible).map((i) => i.id);
+      fireNonCancelableEvent(props.onChangeVisibleSeries, { visibleSeries });
+      setVisibleSeriesLocal(visibleSeries);
+    };
 
     // We convert cartesian tooltip options to the core chart's getTooltipContent callback,
     // ensuring no internal types are exposed to the consumer-defined render functions.
@@ -86,12 +88,12 @@ export const InternalCartesianChart = forwardRef(
     };
 
     // Converting x-, and y-threshold series to Highcharts series and plot lines.
-    const { series, xPlotLines, yPlotLines } = transformCartesianSeries(props.series, visibleSeries);
+    const { series, xPlotLines, yPlotLines } = transformCartesianSeries(props.series, visibleSeriesLocal);
 
     // Cartesian chart imperative API.
     useImperativeHandle(ref, () => ({
-      setVisibleSeries: setVisibleSeries,
-      showAllSeries: () => setVisibleSeries(allSeriesIds),
+      setVisibleSeries: (visibleSeriesIds) => apiRef.current?.setItemsVisible(visibleSeriesIds),
+      showAllSeries: () => apiRef.current?.setItemsVisible(allSeriesIds),
     }));
 
     const highchartsOptions: Highcharts.Options = {
@@ -119,11 +121,12 @@ export const InternalCartesianChart = forwardRef(
     return (
       <InternalCoreChart
         {...props}
+        callback={(api) => (apiRef.current = api)}
         options={highchartsOptions}
         tooltip={tooltip}
         getTooltipContent={getTooltipContent}
-        visibleItems={visibleSeries}
-        onVisibleItemsChange={(items) => setVisibleSeries(items.filter((i) => i.visible).map((i) => i.id))}
+        visibleItems={props.visibleSeries}
+        onVisibleItemsChange={onVisibleSeriesChange}
         className={testClasses.root}
       />
     );
