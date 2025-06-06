@@ -1,7 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import Box from "@cloudscape-design/components/box";
 import { colorChartsStatusHigh, colorChartsStatusPositive } from "@cloudscape-design/design-tokens";
 
 import { PieChart, PieChartProps } from "../../../lib/components";
@@ -32,19 +31,11 @@ export function ZoneStatusWidget() {
       }
       tooltip={{
         ...chartProps.pie.tooltip,
-        body(details) {
-          return (
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", marginLeft: "18px" }}>
-                <Box variant="span">Zone count</Box>
-                <Box variant="span">{details.segmentValue}</Box>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", marginLeft: "18px" }}>
-                <Box variant="span">Percentage</Box>
-                <Box variant="span">{`${((details.segmentValue / details.totalValue) * 100).toFixed(0)}%`}</Box>
-              </div>
-            </div>
-          );
+        details({ segmentValue, totalValue }) {
+          return [
+            { key: "Zone count", value: segmentValue },
+            { key: "Percentage", value: `${((segmentValue / totalValue) * 100).toFixed(0)}%` },
+          ];
         },
       }}
     />

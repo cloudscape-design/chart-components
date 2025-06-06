@@ -3,8 +3,6 @@
 
 import { sum } from "lodash";
 
-import Box from "@cloudscape-design/components/box";
-
 import { PieChart, PieChartProps } from "../../lib/components";
 import { PageSettings, PageSettingsForm, SeriesFilter, useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
@@ -67,19 +65,11 @@ function ExamplePieChart() {
       ariaLabel="Pie chart"
       series={pieChartSeries}
       tooltip={{
-        body(details) {
-          return (
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", marginLeft: "18px" }}>
-                <Box variant="span">Value</Box>
-                <Box variant="span">{details.segmentValue}</Box>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", marginLeft: "18px" }}>
-                <Box variant="span">Percentage</Box>
-                <Box variant="span">{`${((details.segmentValue / details.totalValue) * 100).toFixed(0)}%`}</Box>
-              </div>
-            </div>
-          );
+        details({ segmentValue, totalValue }) {
+          return [
+            { key: "Value", value: segmentValue },
+            { key: "Percentage", value: `${((segmentValue / totalValue) * 100).toFixed(0)}%` },
+          ];
         },
       }}
       segmentDescription={({ segmentValue, totalValue }) =>

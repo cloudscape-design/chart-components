@@ -1,7 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import Box from "@cloudscape-design/components/box";
 import Link from "@cloudscape-design/components/link";
 
 import { PieChart, PieChartProps } from "../../../lib/components";
@@ -36,19 +35,11 @@ export function ExamplePieChartSmallDonutChart() {
         series={isEmpty ? null : series}
         tooltip={{
           ...chartProps.pie.tooltip,
-          body(details) {
-            return (
-              <div>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", marginLeft: "18px" }}>
-                  <Box variant="span">Units</Box>
-                  <Box variant="span">{details.segmentValue}</Box>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", marginLeft: "18px" }}>
-                  <Box variant="span">Percentage</Box>
-                  <Box variant="span">{`${((details.segmentValue / details.totalValue) * 100).toFixed(0)}%`}</Box>
-                </div>
-              </div>
-            );
+          details({ segmentValue, totalValue }) {
+            return [
+              { key: "Units", value: segmentValue },
+              { key: "Percentage", value: `${((segmentValue / totalValue) * 100).toFixed(0)}%` },
+            ];
           },
         }}
         innerAreaTitle="80%"

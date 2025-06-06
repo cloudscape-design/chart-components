@@ -89,15 +89,22 @@ export namespace PieChartProps {
   export type NoDataOptions = CoreTypes.ChartNoDataOptions;
 
   export interface TooltipOptions extends CoreTypes.ChartTooltipOptions {
+    details?: (props: TooltipDetailsRenderProps) => TooltipDetail[];
     header?: (props: TooltipHeaderRenderProps) => React.ReactNode;
     body?: (props: TooltipBodyRenderProps) => React.ReactNode;
     footer?: (props: TooltipFooterRenderProps) => React.ReactNode;
   }
 
+  export interface TooltipDetail {
+    key: React.ReactNode;
+    value: React.ReactNode;
+  }
+
+  export type TooltipDetailsRenderProps = TooltipSlotRenderProps;
   export type TooltipHeaderRenderProps = TooltipSlotRenderProps;
   export type TooltipBodyRenderProps = TooltipSlotRenderProps;
   export type TooltipFooterRenderProps = TooltipSlotRenderProps;
-  export interface TooltipSlotRenderProps {
+  interface TooltipSlotRenderProps {
     segmentId?: string;
     segmentName: string;
     segmentValue: number;

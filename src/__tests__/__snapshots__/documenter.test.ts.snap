@@ -714,7 +714,12 @@ Supported options:
           {
             "name": "body",
             "optional": true,
-            "type": "((props: PieChartProps.TooltipSlotRenderProps) => React.ReactNode)",
+            "type": "((props: TooltipSlotRenderProps) => React.ReactNode)",
+          },
+          {
+            "name": "details",
+            "optional": true,
+            "type": "((props: TooltipSlotRenderProps) => Array<PieChartProps.TooltipDetail>)",
           },
           {
             "name": "enabled",
@@ -724,12 +729,12 @@ Supported options:
           {
             "name": "footer",
             "optional": true,
-            "type": "((props: PieChartProps.TooltipSlotRenderProps) => React.ReactNode)",
+            "type": "((props: TooltipSlotRenderProps) => React.ReactNode)",
           },
           {
             "name": "header",
             "optional": true,
-            "type": "((props: PieChartProps.TooltipSlotRenderProps) => React.ReactNode)",
+            "type": "((props: TooltipSlotRenderProps) => React.ReactNode)",
           },
           {
             "name": "placement",
