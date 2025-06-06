@@ -159,7 +159,7 @@ export const cursorLine = {
 };
 
 export const focusOutlineOffsets = {
-  chart: 1,
+  chart: -1,
   group: 4,
   point: 6,
   pointByType: { column: 2, pie: 2 } as Record<string, number | undefined>,
