@@ -37,7 +37,9 @@ export class ChartExtraHighlight {
       // In pie charts it is the points, not series, that are shown in the legend, and can be highlighted.
       if (s.type === "pie") {
         for (const p of s.data) {
-          this.setPointState(p, itemIds.includes(getPointId(p)) ? "normal" : "inactive");
+          if (itemIds.includes(getPointId(p))) {
+            this.setPointState(p, "hover");
+          }
         }
       } else {
         this.setSeriesState(s, itemIds.includes(getSeriesId(s)) ? "normal" : "inactive");
@@ -61,9 +63,18 @@ export class ChartExtraHighlight {
       // We use special handling for column- and pie series. In pie series, the state is meant to be set on points.
       // In column series, we prefer the stacks of groups of column that have a shared X coordinate to be highlighted.
       // See: https://github.com/highcharts/highcharts/issues/23076.
-      if (s.type === "column" || s.type === "pie") {
+      if (s.type === "column") {
         for (const d of s.data) {
           this.setPointState(d, includedPoints.has(d) ? "normal" : "inactive");
+        }
+      }
+      // In pie series, the state needs to be touched on a single segment only. Otherwise, the highlighting "halo"
+      // around the segment is not displayed.
+      if (s.type === "pie") {
+        for (const d of s.data) {
+          if (includedPoints.has(d)) {
+            this.setPointState(d, "hover");
+          }
         }
       }
     }
