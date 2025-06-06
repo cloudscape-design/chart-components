@@ -33,6 +33,7 @@ export function ChartSeriesMarker({ type = "line", color, visible = true }: Char
   color = visible ? color : colorTextInteractiveDisabled;
   const size = 14;
   const halfSize = size / 2;
+  const lineWidth = 12;
   const scale = (value: number) =>
     `translate(${size * ((1 - value) / 2)}, ${size * ((1 - value) / 2)}) scale(${value})`;
   return (
@@ -45,10 +46,29 @@ export function ChartSeriesMarker({ type = "line", color, visible = true }: Char
       xmlns="http://www.w3.org/2000/svg"
     >
       <g transform="translate(4, 4)">
-        {type === "line" && <line x1={0} y1={halfSize} x2={size} y2={halfSize} stroke={color} strokeWidth={2} />}
+        {type === "line" && (
+          <line
+            x1={0}
+            y1={halfSize}
+            x2={lineWidth}
+            y2={halfSize}
+            stroke={color}
+            strokeWidth={4}
+            strokeLinecap="round"
+          />
+        )}
 
         {type === "dashed" && (
-          <line x1={0} y1={halfSize} x2={size} y2={halfSize} stroke={color} strokeWidth={2} strokeDasharray="6,2" />
+          <line
+            x1={0}
+            y1={halfSize}
+            x2={lineWidth}
+            y2={halfSize}
+            stroke={color}
+            strokeWidth={4}
+            strokeDasharray="3,6"
+            strokeLinecap="round"
+          />
         )}
 
         {type === "large-square" && (
