@@ -117,6 +117,7 @@ function LineChart() {
         yAxis: [{ title: { text: "Events" } }],
       }}
       tooltip={{ placement: "outside" }}
+      getLegendPopoverContent={({ legendItem }) => <div>{legendItem.name}</div>}
     />
   );
 }

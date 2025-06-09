@@ -16,8 +16,9 @@ import {
 import Box from "@cloudscape-design/components/box";
 import { colorBorderDividerDefault } from "@cloudscape-design/design-tokens";
 
-import { ChartLegendItem } from "../../../core/interfaces";
+import { ChartLegendItem, GetLegendPopoverContent } from "../../../core/interfaces";
 import { DebouncedCall } from "../../utils/utils";
+import { ChartLegendPopover } from "../chart-legend-popover";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -30,6 +31,7 @@ export interface ChartLegendOptions {
   onItemHighlightEnter: (itemId: string) => void;
   onItemHighlightExit: () => void;
   onItemVisibilityChange: (hiddenItems: string[]) => void;
+  getLegendPopoverContent?: GetLegendPopoverContent;
 }
 
 export const ChartLegend = ({
@@ -40,12 +42,17 @@ export const ChartLegend = ({
   onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
+  getLegendPopoverContent,
 }: ChartLegendOptions) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const segmentsRef = useRef<Record<number, HTMLElement>>([]);
   const focusedRef = useRef(false);
   const highlightControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [popoverState, setPopoverState] = useState<{ visible: boolean; itemId: string | null }>({
+    visible: false,
+    itemId: null,
+  });
   const showHighlight = (itemId: string) => {
     const item = items.find((item) => item.id === itemId);
     if (item?.visible) {
@@ -179,9 +186,11 @@ export const ChartLegend = ({
             const handlers = {
               onMouseEnter: () => {
                 showHighlight(item.id);
+                setPopoverState({ visible: true, itemId: item.id });
               },
               onMouseLeave: () => {
                 clearHighlight();
+                setPopoverState({ visible: false, itemId: null });
               },
               onFocus: () => {
                 onFocus(index, item.id);
@@ -223,6 +232,17 @@ export const ChartLegend = ({
           })}
         </div>
       </div>
+
+      {/* Render the popover when visible */}
+      {popoverState.visible && popoverState.itemId && getLegendPopoverContent && (
+        <ChartLegendPopover
+          legendItem={items.find((item) => item.id === popoverState.itemId)!}
+          getLegendPopoverContent={getLegendPopoverContent}
+          visible={popoverState.visible}
+          onDismiss={() => setPopoverState({ visible: false, itemId: null })}
+          trackRef={{ current: segmentsRef.current[items.findIndex((item) => item.id === popoverState.itemId)] }}
+        />
+      )}
     </SingleTabStopNavigationProvider>
   );
 };

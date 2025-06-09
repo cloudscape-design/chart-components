@@ -283,7 +283,16 @@ export function InternalCoreChart({
             </>
           );
         }}
-        legend={settings.legendEnabled ? <ChartLegend {...legendOptions} api={api} i18nStrings={i18nStrings} /> : null}
+        legend={
+          settings.legendEnabled && (
+            <ChartLegend
+              {...legendOptions}
+              api={api}
+              i18nStrings={i18nStrings}
+              getLegendPopoverContent={rest.getLegendPopoverContent}
+            />
+          )
+        }
         verticalAxisTitle={
           verticalAxisTitlePlacement === "top" ? <VerticalAxisTitle api={api} inverted={!!inverted} /> : null
         }
