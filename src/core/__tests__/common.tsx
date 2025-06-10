@@ -60,3 +60,21 @@ export function renderStatefulChart(props: TestProps) {
 export function createChartWrapper() {
   return new ExtendedTestWrapper(createWrapper().findByClassName("test-chart")!.getElement());
 }
+
+export function objectContainingDeep(root: object) {
+  function isJestMatcher(value: object): boolean {
+    return "asymmetricMatch" in value;
+  }
+  function transformLevel(obj: object) {
+    const transformed: object = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value && typeof value === "object" && !isJestMatcher(value)) {
+        transformed[key] = expect.objectContaining(transformLevel(value));
+      } else {
+        transformed[key] = value;
+      }
+    }
+    return transformed;
+  }
+  return expect.objectContaining(transformLevel(root));
+}

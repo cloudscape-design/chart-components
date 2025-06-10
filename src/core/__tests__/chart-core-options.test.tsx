@@ -7,7 +7,7 @@ import HighchartsReact from "highcharts-react-official";
 import { vi } from "vitest";
 
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
-import { renderChart } from "./common";
+import { objectContainingDeep, renderChart } from "./common";
 import { ChartRendererStub } from "./highcharts-utils";
 
 vi.mock("highcharts-react-official", () => ({ __esModule: true, default: vi.fn(() => null) }));
@@ -33,11 +33,7 @@ describe("CoreChart: options", () => {
     renderChart({ highcharts, options: { chart: { className: "custom-class" } } });
 
     expect(HighchartsReact).toHaveBeenCalledWith(
-      expect.objectContaining({
-        options: expect.objectContaining({
-          chart: expect.objectContaining({ className: expect.stringContaining("custom-class") }),
-        }),
-      }),
+      objectContainingDeep({ options: { chart: { className: expect.stringContaining("custom-class") } } }),
       expect.anything(),
     );
   });
@@ -46,65 +42,38 @@ describe("CoreChart: options", () => {
     const colors = ["black", "red", "gold"];
     renderChart({ highcharts, options: { colors } });
 
-    expect(HighchartsReact).toHaveBeenCalledWith(
-      expect.objectContaining({
-        options: expect.objectContaining({ colors }),
-      }),
-      expect.anything(),
-    );
+    expect(HighchartsReact).toHaveBeenCalledWith(objectContainingDeep({ options: { colors } }), expect.anything());
   });
 
   test("propagates highcharts credits", () => {
     const credits = { enabled: true, text: "credits-text", custom: "custom" };
     renderChart({ highcharts, options: { credits } });
 
-    expect(HighchartsReact).toHaveBeenCalledWith(
-      expect.objectContaining({
-        options: expect.objectContaining({ credits }),
-      }),
-      expect.anything(),
-    );
+    expect(HighchartsReact).toHaveBeenCalledWith(objectContainingDeep({ options: { credits } }), expect.anything());
   });
 
   test("propagates highcharts title", () => {
     const title = { text: "title-text", custom: "custom" };
     renderChart({ highcharts, options: { title } });
 
-    expect(HighchartsReact).toHaveBeenCalledWith(
-      expect.objectContaining({
-        options: expect.objectContaining({ title }),
-      }),
-      expect.anything(),
-    );
+    expect(HighchartsReact).toHaveBeenCalledWith(objectContainingDeep({ options: { title } }), expect.anything());
   });
 
   test("propagates highcharts noData", () => {
     const noData = { position: { align: "right" }, useHTML: false, custom: "custom" } as const;
     renderChart({ highcharts, options: { noData } });
 
-    expect(HighchartsReact).toHaveBeenCalledWith(
-      expect.objectContaining({
-        options: expect.objectContaining({ noData }),
-      }),
-      expect.anything(),
-    );
+    expect(HighchartsReact).toHaveBeenCalledWith(objectContainingDeep({ options: { noData } }), expect.anything());
   });
 
-  // TODO: restore
-  test.skip("propagates highcharts lang", () => {
-    const lang = { noData: "nodata", custom: "custom" } as const;
+  test("propagates highcharts lang", () => {
+    const lang = { noData: "nodata", custom: "custom", accessibility: { defaultChartTitle: "X" } } as const;
     renderChart({ highcharts, options: { lang } });
 
-    expect(HighchartsReact).toHaveBeenCalledWith(
-      expect.objectContaining({
-        options: expect.objectContaining({ lang }),
-      }),
-      expect.anything(),
-    );
+    expect(HighchartsReact).toHaveBeenCalledWith(objectContainingDeep({ options: { lang } }), expect.anything());
   });
 
-  // TODO: restore and test for custom navigation
-  test.skip("propagates highcharts accessibility", () => {
+  test("propagates highcharts accessibility", () => {
     const accessibility = {
       screenReaderSection: { beforeChartFormat: "format", custom: "custom" },
       keyboardNavigation: { focusBorder: { style: { color: "border-color" } }, custom: "custom" },
@@ -113,9 +82,7 @@ describe("CoreChart: options", () => {
     renderChart({ highcharts, options: { accessibility } });
 
     expect(HighchartsReact).toHaveBeenCalledWith(
-      expect.objectContaining({
-        options: expect.objectContaining({ accessibility }),
-      }),
+      objectContainingDeep({ options: { accessibility } }),
       expect.anything(),
     );
   });
@@ -124,9 +91,7 @@ describe("CoreChart: options", () => {
     renderChart({ highcharts, options: { legend: { enabled: true, align: "right" } } });
 
     expect(HighchartsReact).toHaveBeenCalledWith(
-      expect.objectContaining({
-        options: expect.objectContaining({ legend: { enabled: true, align: "right" } }),
-      }),
+      objectContainingDeep({ options: { legend: { enabled: true, align: "right" } } }),
       expect.anything(),
     );
   });
@@ -135,15 +100,12 @@ describe("CoreChart: options", () => {
     renderChart({ highcharts, options: { tooltip: { enabled: true, stickOnContact: true } } });
 
     expect(HighchartsReact).toHaveBeenCalledWith(
-      expect.objectContaining({
-        options: expect.objectContaining({ tooltip: { enabled: true, stickOnContact: true } }),
-      }),
+      objectContainingDeep({ options: { tooltip: { enabled: true, stickOnContact: true } } }),
       expect.anything(),
     );
   });
 
-  // TODO: restore
-  test.skip("propagates axes", () => {
+  test("propagates axes", () => {
     const createAxis = (text: string) =>
       ({
         lineWidth: 99,
@@ -159,15 +121,11 @@ describe("CoreChart: options", () => {
     renderChart({ highcharts, options: { xAxis: xAxis1, yAxis: yAxis1 } });
 
     expect(HighchartsReact).toHaveBeenCalledWith(
-      expect.objectContaining({
-        options: expect.objectContaining({
-          xAxis: expect.arrayContaining([
-            expect.objectContaining({ ...xAxis1, title: expect.objectContaining(xAxis1.title) }),
-          ]),
-          yAxis: expect.arrayContaining([
-            expect.objectContaining({ ...yAxis1, title: expect.objectContaining(yAxis1.title) }),
-          ]),
-        }),
+      objectContainingDeep({
+        options: {
+          xAxis: expect.arrayContaining([objectContainingDeep(xAxis1)]),
+          yAxis: expect.arrayContaining([objectContainingDeep(yAxis1)]),
+        },
       }),
       expect.anything(),
     );
@@ -175,17 +133,11 @@ describe("CoreChart: options", () => {
     renderChart({ highcharts, options: { xAxis: [xAxis1, xAxis2], yAxis: [yAxis1, yAxis2] } });
 
     expect(HighchartsReact).toHaveBeenCalledWith(
-      expect.objectContaining({
-        options: expect.objectContaining({
-          xAxis: expect.arrayContaining([
-            expect.objectContaining({ ...xAxis1, title: expect.objectContaining(xAxis1.title) }),
-            expect.objectContaining({ ...xAxis2, title: expect.objectContaining(xAxis2.title) }),
-          ]),
-          yAxis: expect.arrayContaining([
-            expect.objectContaining({ ...yAxis1, title: expect.objectContaining(yAxis1.title) }),
-            expect.objectContaining({ ...yAxis2, title: expect.objectContaining(yAxis2.title) }),
-          ]),
-        }),
+      objectContainingDeep({
+        options: {
+          xAxis: expect.arrayContaining([objectContainingDeep(xAxis1), objectContainingDeep(xAxis2)]),
+          yAxis: expect.arrayContaining([objectContainingDeep(yAxis1), objectContainingDeep(yAxis2)]),
+        },
       }),
       expect.anything(),
     );
@@ -204,17 +156,7 @@ describe("CoreChart: options", () => {
 
     renderChart({ highcharts, options: { plotOptions } });
 
-    expect(HighchartsReact).toHaveBeenCalledWith(
-      expect.objectContaining({
-        options: expect.objectContaining({
-          plotOptions: expect.objectContaining({
-            custom: "custom",
-            series: expect.objectContaining(plotOptions.series),
-          }),
-        }),
-      }),
-      expect.anything(),
-    );
+    expect(HighchartsReact).toHaveBeenCalledWith(objectContainingDeep({ options: { plotOptions } }), expect.anything());
   });
 
   test.each([0, 1])("propagates plotOptions.series.point, inputs=%s", (index) => {
@@ -241,8 +183,8 @@ describe("CoreChart: options", () => {
     renderChart(inputs[index]);
 
     expect(HighchartsReact).toHaveBeenCalledWith(
-      expect.objectContaining({
-        options: expect.objectContaining({
+      objectContainingDeep({
+        options: {
           plotOptions: expect.objectContaining({
             series: expect.objectContaining({
               point: {
@@ -250,7 +192,7 @@ describe("CoreChart: options", () => {
               },
             }),
           }),
-        }),
+        },
       }),
       expect.anything(),
     );
@@ -268,8 +210,7 @@ describe("CoreChart: options", () => {
     expect(click).toHaveBeenCalledWith(clickEvent);
   });
 
-  // TODO: restore
-  test.skip.each([0, 1, 2])("propagates highcharts chart options, inputs=%s", (index) => {
+  test.each([0, 1, 2])("propagates highcharts chart options, inputs=%s", (index) => {
     const loadEvent = {};
     const load = vi.fn();
     const renderEvent = {};
@@ -294,15 +235,13 @@ describe("CoreChart: options", () => {
     renderChart(inputs[index]);
 
     expect(HighchartsReact).toHaveBeenCalledWith(
-      expect.objectContaining({
-        options: expect.objectContaining({
-          chart: expect.objectContaining({
+      objectContainingDeep({
+        options: {
+          chart: objectContainingDeep({
             ...options.chart,
-            events: expect.objectContaining({
-              redraw,
-            }),
+            events: expect.objectContaining({ redraw }),
           }),
-        }),
+        },
       }),
       expect.anything(),
     );

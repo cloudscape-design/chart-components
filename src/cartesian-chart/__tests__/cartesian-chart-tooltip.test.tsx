@@ -27,8 +27,7 @@ const lineSeries: CartesianChartProps.SeriesOptions[] = [
   { type: "line", name: "Line 3", data: [7, 8, 9] },
 ];
 
-// TODO: restore
-describe.skip("CartesianChart: tooltip", () => {
+describe("CartesianChart: tooltip", () => {
   test("renders tooltip on point highlight", async () => {
     renderCartesianChart({
       highcharts,
@@ -57,8 +56,7 @@ describe.skip("CartesianChart: tooltip", () => {
     });
   });
 
-  // TODO: this test fails with Highcharts error. Investigate and recover.
-  test.skip.each([{ x: 0.01 }, { x: 1 }, { x: 999 }])(
+  test.each([{ x: 0.01 }, { x: 1 }, { x: 999 }])(
     "renders all supported series types in tooltip details, x=$x",
     async ({ x }) => {
       renderCartesianChart({
@@ -83,7 +81,7 @@ describe.skip("CartesianChart: tooltip", () => {
       });
 
       expect(getTooltipHeader().getElement().textContent).toBe(x === 0.01 ? "0.01" : x.toString());
-      expect(getAllTooltipSeries()).toHaveLength(9);
+      expect(getAllTooltipSeries()).toHaveLength(8); // Error bar is not counted as a series
       expect(getTooltipBody().getElement().textContent).toBe(
         `Area1\nArea spline2\nColumn3\nError bar4 - 5\nLine6\nScatter7\nSpline8\nX threshold\nY threshold9`,
       );
@@ -124,7 +122,7 @@ describe.skip("CartesianChart: tooltip", () => {
         { type: "x-threshold", name: "Threshold", value: 1 },
       ],
       tooltip: {
-        series({ item }) {
+        point({ item }) {
           return {
             key: <span>{item.series.name}</span>,
             value: <button onClick={() => onClickValue("root")}>{item.y ?? "T"}</button>,
