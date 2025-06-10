@@ -6,20 +6,20 @@ import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-u
 import { ChartLegend as ChartLegendComponent } from "../../internal/components/chart-legend";
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
-import { ChartI18nStrings, GetLegendPopoverContent } from "../interfaces";
+import { ChartI18nStrings, GetLegendTooltipContent } from "../interfaces";
 
 export function ChartLegend({
   api,
   title,
   actions,
   i18nStrings,
-  getLegendPopoverContent,
+  getLegendTooltipContent,
 }: {
   api: ChartAPI;
   title?: string;
   actions?: React.ReactNode;
   i18nStrings?: ChartI18nStrings;
-  getLegendPopoverContent?: GetLegendPopoverContent;
+  getLegendTooltipContent?: GetLegendTooltipContent;
 }) {
   const i18n = useInternalI18n("[charts]");
   const ariaLabel = i18n("i18nStrings.legendAriaLabel", i18nStrings?.legendAriaLabel);
@@ -36,7 +36,7 @@ export function ChartLegend({
       onItemVisibilityChange={api.onItemVisibilityChange}
       onItemHighlightEnter={(itemId) => api.onHighlightChartItems([itemId])}
       onItemHighlightExit={api.onClearChartItemsHighlight}
-      getLegendPopoverContent={getLegendPopoverContent}
+      getLegendTooltipContent={getLegendTooltipContent}
     />
   );
 }

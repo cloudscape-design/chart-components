@@ -289,7 +289,7 @@ export function InternalCoreChart({
               {...legendOptions}
               api={api}
               i18nStrings={i18nStrings}
-              getLegendPopoverContent={rest.getLegendPopoverContent}
+              getLegendTooltipContent={rest.getLegendTooltipContent}
             />
           )
         }

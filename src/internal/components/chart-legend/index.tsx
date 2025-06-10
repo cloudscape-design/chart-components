@@ -16,9 +16,9 @@ import {
 import Box from "@cloudscape-design/components/box";
 import { colorBorderDividerDefault } from "@cloudscape-design/design-tokens";
 
-import { ChartLegendItem, GetLegendPopoverContent } from "../../../core/interfaces";
+import { ChartLegendItem, GetLegendTooltipContent } from "../../../core/interfaces";
 import { DebouncedCall } from "../../utils/utils";
-import { ChartLegendPopover } from "../chart-legend-popover";
+import { ChartLegendTooltip } from "../chart-legend-tooltip";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -31,7 +31,7 @@ export interface ChartLegendOptions {
   onItemHighlightEnter: (itemId: string) => void;
   onItemHighlightExit: () => void;
   onItemVisibilityChange: (hiddenItems: string[]) => void;
-  getLegendPopoverContent?: GetLegendPopoverContent;
+  getLegendTooltipContent?: GetLegendTooltipContent;
 }
 
 export const ChartLegend = ({
@@ -42,17 +42,14 @@ export const ChartLegend = ({
   onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
-  getLegendPopoverContent,
+  getLegendTooltipContent,
 }: ChartLegendOptions) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const segmentsRef = useRef<Record<number, HTMLElement>>([]);
   const focusedRef = useRef(false);
   const highlightControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
-  const [popoverState, setPopoverState] = useState<{ visible: boolean; itemId: string | null }>({
-    visible: false,
-    itemId: null,
-  });
+  const [tooltipItemId, setTooltipItemId] = useState<string | null>(null);
   const showHighlight = (itemId: string) => {
     const item = items.find((item) => item.id === itemId);
     if (item?.visible) {
@@ -71,11 +68,16 @@ export const ChartLegend = ({
     setSelectedIndex(index);
     navigationAPI.current!.updateFocusTarget();
     showHighlight(itemId);
+
+    setTooltipItemId(null);
+    // Force separate render cycle to dismiss the existing popover first
+    setTimeout(() => setTooltipItemId(itemId), 0);
   }
 
   function onBlur() {
     focusedRef.current = false;
     navigationAPI.current!.updateFocusTarget();
+    setTooltipItemId(null);
   }
 
   function focusElement(index: number) {
@@ -186,11 +188,11 @@ export const ChartLegend = ({
             const handlers = {
               onMouseEnter: () => {
                 showHighlight(item.id);
-                setPopoverState({ visible: true, itemId: item.id });
+                setTooltipItemId(item.id);
               },
               onMouseLeave: () => {
                 clearHighlight();
-                setPopoverState({ visible: false, itemId: null });
+                setTooltipItemId(null);
               },
               onFocus: () => {
                 onFocus(index, item.id);
@@ -234,13 +236,11 @@ export const ChartLegend = ({
       </div>
 
       {/* Render the popover when visible */}
-      {popoverState.visible && popoverState.itemId && getLegendPopoverContent && (
-        <ChartLegendPopover
-          legendItem={items.find((item) => item.id === popoverState.itemId)!}
-          getLegendPopoverContent={getLegendPopoverContent}
-          visible={popoverState.visible}
-          onDismiss={() => setPopoverState({ visible: false, itemId: null })}
-          trackRef={{ current: segmentsRef.current[items.findIndex((item) => item.id === popoverState.itemId)] }}
+      {tooltipItemId && (
+        <ChartLegendTooltip
+          legendItem={items.find((item) => item.id === tooltipItemId)!}
+          getLegendTooltipContent={getLegendTooltipContent}
+          trackRef={{ current: segmentsRef.current[items.findIndex((item) => item.id === tooltipItemId)] }}
         />
       )}
     </SingleTabStopNavigationProvider>

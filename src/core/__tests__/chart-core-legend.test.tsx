@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { act } from "react";
-import { fireEvent } from "@testing-library/react";
+import { fireEvent, waitFor } from "@testing-library/react";
 import highcharts from "highcharts";
 
 import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
@@ -140,8 +140,62 @@ describe("CoreChart: legend", () => {
     expect(hc.getPlotLinesById("L3").map((l) => l.svgElem.opacity)).toEqual([1, 1]);
   });
 
-  // TODO: restore
-  test.skip("legend items are highlighted on hover in pie chart", async () => {
+  test("renders legend tooltip on hover in cartesian chart, if specified", async () => {
+    const { wrapper } = renderChart({
+      highcharts,
+      options: {
+        series: series.filter((s) => s.type === "line"),
+        xAxis: { plotLines: [{ id: "L3", value: 0 }] },
+        yAxis: { plotLines: [{ id: "L3", value: 0 }] },
+      },
+      visibleItems: ["L1", "L3"],
+      getLegendTooltipContent: ({ legendItem }) => <div>{legendItem.name}</div>,
+    });
+
+    expect(wrapper.findTooltip()).toBe(null);
+
+    act(() => mouseOver(getItem(0).getElement()));
+    expect(wrapper.findTooltip()).not.toBe(null);
+    expect(wrapper.findTooltip()!.getElement().textContent).toBe("L1");
+
+    act(() => mouseOut(getItem(0).getElement()));
+    act(() => mouseOver(getItem(2).getElement()));
+    expect(wrapper.findTooltip()).not.toBe(null);
+    expect(wrapper.findTooltip()!.getElement().textContent).toBe("Line 3");
+
+    act(() => mouseOut(getItem(2).getElement()));
+    await clearHighlightPause();
+    expect(wrapper.findTooltip()).toBe(null);
+  });
+
+  test("renders legend tooltip if specified on focus in cartesian chart, if specified", async () => {
+    const { wrapper } = renderChart({
+      highcharts,
+      options: {
+        series: series.filter((s) => s.type === "line"),
+        xAxis: { plotLines: [{ id: "L3", value: 0 }] },
+        yAxis: { plotLines: [{ id: "L3", value: 0 }] },
+      },
+      visibleItems: ["L1", "L3"],
+      getLegendTooltipContent: ({ legendItem }) => <div>{legendItem.name}</div>,
+    });
+
+    expect(wrapper.findTooltip()).toBe(null);
+
+    act(() => getItem(0).focus());
+    await waitFor(() => {
+      expect(wrapper.findTooltip()).not.toBe(null);
+    });
+    expect(wrapper.findTooltip()!.getElement().textContent).toBe("L1");
+
+    fireEvent.keyDown(getItem(0).getElement(), { keyCode: KeyCode.right });
+    await waitFor(() => {
+      expect(wrapper.findTooltip()).not.toBe(null);
+    });
+    expect(wrapper.findTooltip()!.getElement().textContent).toBe("L2");
+  });
+
+  test("legend items are highlighted on hover in pie chart", async () => {
     renderChart({
       highcharts,
       options: { series: series.filter((s) => s.type === "pie") },
@@ -170,6 +224,53 @@ describe("CoreChart: legend", () => {
     expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
     expect(hc.getChartPoint(0, 0).state).toBe("normal");
     expect(hc.getChartPoint(0, 2).state).toBe("normal");
+  });
+
+  test("renders legend tooltip on hover in pie chart, if specified", async () => {
+    const { wrapper } = renderChart({
+      highcharts,
+      options: { series: series.filter((s) => s.type === "pie") },
+      visibleItems: ["P1", "P3"],
+      getLegendTooltipContent: ({ legendItem }) => <div>{legendItem.name}</div>,
+    });
+
+    expect(wrapper.findTooltip()).toBe(null);
+
+    act(() => mouseOver(getItem(0).getElement()));
+    expect(wrapper.findTooltip()).not.toBe(null);
+    expect(wrapper.findTooltip()!.getElement().textContent).toBe("P1");
+
+    act(() => mouseOut(getItem(0).getElement()));
+    act(() => mouseOver(getItem(2).getElement()));
+    expect(wrapper.findTooltip()).not.toBe(null);
+    expect(wrapper.findTooltip()!.getElement().textContent).toBe("Pie 3");
+
+    act(() => mouseOut(getItem(2).getElement()));
+    await clearHighlightPause();
+    expect(wrapper.findTooltip()).toBe(null);
+  });
+
+  test("renders legend tooltip on focus in pie chart, if specified", async () => {
+    const { wrapper } = renderChart({
+      highcharts,
+      options: { series: series.filter((s) => s.type === "pie") },
+      visibleItems: ["P1", "P3"],
+      getLegendTooltipContent: ({ legendItem }) => <div>{legendItem.name}</div>,
+    });
+
+    expect(wrapper.findTooltip()).toBe(null);
+
+    act(() => getItem(0).focus());
+    await waitFor(() => {
+      expect(wrapper.findTooltip()).not.toBe(null);
+    });
+    expect(wrapper.findTooltip()!.getElement().textContent).toBe("P1");
+
+    fireEvent.keyDown(getItem(0).getElement(), { keyCode: KeyCode.right });
+    await waitFor(() => {
+      expect(wrapper.findTooltip()).not.toBe(null);
+    });
+    expect(wrapper.findTooltip()!.getElement().textContent).toBe("P2");
   });
 
   // TODO: restore
