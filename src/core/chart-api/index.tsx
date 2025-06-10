@@ -221,7 +221,7 @@ export class ChartAPI {
     return {
       onFocusChart: () => {
         this.clearChartHighlight();
-        this.chartExtraNavigation.announceChart(getChartAccessibleDescription());
+        this.chartExtraNavigation.announceChart(getChartAccessibleDescription(this.context.chart()));
       },
       onFocusGroup: (group: Highcharts.Point[]) => {
         this.highlightActions(group, true);

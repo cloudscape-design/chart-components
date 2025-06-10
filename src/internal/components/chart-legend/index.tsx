@@ -268,6 +268,7 @@ const LegendItemTrigger = forwardRef(
       <button
         data-itemid={itemId}
         aria-pressed={visible}
+        aria-current={isHighlighted}
         className={clsx(testClasses.item, styles.marker, {
           [styles["marker--inactive"]]: !visible,
           [testClasses["hidden-item"]]: !visible,

@@ -198,21 +198,17 @@ export function getGroupRect(points: readonly Highcharts.Point[]): Rect {
     : { x: minX, y: chart.plotTop, width: maxX - minX, height: chart.plotHeight };
 }
 
-// TODO: i18n
-export function getChartAccessibleDescription() {
-  return "chart plot";
+export function getChartAccessibleDescription(chart: Highcharts.Chart) {
+  return chart.options.lang?.accessibility?.chartContainerLabel ?? "";
 }
 
-// TODO: i18n
 export function getPointAccessibleDescription(point: Highcharts.Point) {
-  return point.graphic?.element.getAttribute("aria-label") ?? "\tchart point";
+  return point.graphic?.element.getAttribute("aria-label") ?? "";
 }
 
-// TODO: i18n
 export function getGroupAccessibleDescription(group: readonly Highcharts.Point[]) {
   const firstPoint = group[0];
-  const formattedX = getFormatter(firstPoint.series.xAxis)(firstPoint.x);
-  return `${formattedX}, group of ${group.length} points`;
+  return getFormatter(firstPoint.series.xAxis)(firstPoint.x);
 }
 
 // The area-, line-, or scatter series markers are rendered as single graphic elements,
