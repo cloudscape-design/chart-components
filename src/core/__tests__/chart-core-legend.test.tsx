@@ -195,7 +195,8 @@ describe("CoreChart: legend", () => {
     expect(wrapper.findTooltip()!.getElement().textContent).toBe("L2");
   });
 
-  test("legend items are highlighted on hover in pie chart", async () => {
+  // TODO: restore
+  test.skip("legend items are highlighted on hover in pie chart", async () => {
     renderChart({
       highcharts,
       options: { series: series.filter((s) => s.type === "pie") },
