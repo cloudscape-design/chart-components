@@ -79,8 +79,7 @@ describe("CartesianChart: series", () => {
     expect(hc.getChartSeries(1).data).toHaveLength(0);
   });
 
-  // TODO: restore
-  test.skip("renders threshold series along non-empty series", () => {
+  test("renders threshold series along non-empty series", () => {
     renderCartesianChart({
       highcharts,
       series: [
@@ -101,20 +100,14 @@ describe("CartesianChart: series", () => {
       [1, 2],
       [3, 4],
     ]);
-    expect(hc.getChartSeries(1).data.map((d) => [d.x, d.y])).toEqual([
-      [5, 2],
-      [5, 4],
-      [5, 6],
-    ]);
+    expect(hc.getChartSeries(1).data.map((d) => [d.x, d.y])).toEqual([[5, 2]]);
     expect(hc.getChartSeries(2).data.map((d) => [d.x, d.y])).toEqual([
       [1, 6],
       [3, 6],
-      [5, 6],
     ]);
   });
 
-  // TODO: restore
-  test.skip("updates thresholds when extremes change", () => {
+  test("updates thresholds when extremes change", () => {
     const { rerender } = renderCartesianChart({
       highcharts,
       series: [
@@ -144,9 +137,9 @@ describe("CartesianChart: series", () => {
           ],
         });
 
-        expect(getFirstPoint(hc.getChartSeries(1).data)).toEqual([1, 1]);
+        expect(getFirstPoint(hc.getChartSeries(1).data)).toEqual([1, y]);
         expect(getLastPoint(hc.getChartSeries(1).data)).toEqual([1, y]);
-        expect(getFirstPoint(hc.getChartSeries(2).data)).toEqual([1, 1]);
+        expect(getFirstPoint(hc.getChartSeries(2).data)).toEqual([x, 1]);
         expect(getLastPoint(hc.getChartSeries(2).data)).toEqual([x, 1]);
       }
     }

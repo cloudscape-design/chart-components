@@ -3,7 +3,6 @@
 
 import styles from "./styles.css.js";
 
-// TODO: fix expandable section text selector
 export default function getSeriesDetailsText(element: HTMLElement) {
   const elementsWithText = Array.from(element.querySelectorAll(`.${styles.announced}`));
   return elementsWithText
