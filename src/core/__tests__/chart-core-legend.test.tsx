@@ -47,7 +47,7 @@ const getItem = (index: number, options?: { hidden?: boolean; dimmed?: boolean }
   createChartWrapper().findLegend()!.findItems(options)[index];
 const mouseOver = (element: HTMLElement) => element.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
 const mouseOut = (element: HTMLElement) => element.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
-const clearHighlightPause = () => new Promise((resolve) => setTimeout(resolve, 50));
+const clearHighlightPause = () => new Promise((resolve) => setTimeout(resolve, 100));
 const mouseLeavePause = () => new Promise((resolve) => setTimeout(resolve, 300));
 
 describe("CoreChart: legend", () => {
@@ -140,8 +140,7 @@ describe("CoreChart: legend", () => {
     expect(hc.getPlotLinesById("L3").map((l) => l.svgElem.opacity)).toEqual([1, 1]);
   });
 
-  // TODO: restore
-  test.skip("legend items are highlighted on hover in pie chart", async () => {
+  test("legend items are highlighted on hover in pie chart", async () => {
     renderChart({
       highcharts,
       options: { series: series.filter((s) => s.type === "pie") },
@@ -155,25 +154,30 @@ describe("CoreChart: legend", () => {
 
     act(() => mouseOver(getItem(0).getElement()));
     expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["P1"]);
+    expect(getItems({ dimmed: true, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["Pie 3"]);
     expect(hc.getChartPoint(0, 0).state).toBe("hover");
     expect(hc.getChartPoint(0, 2).state).toBe(undefined);
-
-    act(() => mouseOut(getItem(0).getElement()));
-    await clearHighlightPause();
-    act(() => mouseOver(getItem(2).getElement()));
-    expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["Pie 3"]);
-    expect(hc.getChartPoint(0, 0).state).toBe("normal");
-    expect(hc.getChartPoint(0, 2).state).toBe("hover");
 
     act(() => mouseOut(getItem(0).getElement()));
     await clearHighlightPause();
     expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
     expect(hc.getChartPoint(0, 0).state).toBe("normal");
     expect(hc.getChartPoint(0, 2).state).toBe("normal");
+
+    act(() => mouseOver(getItem(2).getElement()));
+    expect(getItems({ dimmed: true, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["P1"]);
+    expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["Pie 3"]);
+    expect(hc.getChartPoint(0, 0).state).toBe("normal");
+    expect(hc.getChartPoint(0, 2).state).toBe("hover");
+
+    act(() => mouseOut(getItem(2).getElement()));
+    await clearHighlightPause();
+    expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
+    expect(hc.getChartPoint(0, 0).state).toBe("normal");
+    expect(hc.getChartPoint(0, 2).state).toBe("normal");
   });
 
-  // TODO: restore
-  test.skip("legend items are highlighted when cartesian chart series point is highlighted", async () => {
+  test("legend items are highlighted when cartesian chart series point is highlighted", async () => {
     renderChart({
       highcharts,
       options: { series: series.filter((s) => s.type === "line") },
@@ -195,8 +199,7 @@ describe("CoreChart: legend", () => {
     expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["L1", "Line 3"]);
   });
 
-  // TODO: restore
-  test.skip("legend items are highlighted when pie chart segment is highlighted", async () => {
+  test("legend items are highlighted when pie chart segment is highlighted", async () => {
     renderChart({
       highcharts,
       options: { series: series.filter((s) => s.type === "pie") },
