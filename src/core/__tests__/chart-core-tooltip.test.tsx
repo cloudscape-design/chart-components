@@ -200,142 +200,42 @@ describe("CoreChart: tooltip", () => {
     });
   });
 
-  test("provides point and group for tooltip.getContent", async () => {
+  test("provides point and group for onHighlight and getTooltipContent", async () => {
+    const onHighlight = vi.fn();
     const getTooltipContent = vi.fn();
-    renderChart({ highcharts, options: { series }, getTooltipContent });
+    renderChart({ highcharts, options: { series }, onHighlight, getTooltipContent });
 
     for (let i = 0; i < data.length; i++) {
       act(() => hc.highlightChartPoint(0, i));
 
       const point = hc.getChartPoint(0, i);
       await waitFor(() => {
+        expect(onHighlight).toHaveBeenCalledWith({ point, group: expect.arrayContaining([point]) });
         expect(getTooltipContent).toHaveBeenCalledWith({ point, group: expect.arrayContaining([point]) });
       });
     }
   });
 
-  // TODO: update placement tests
-  test("uses target placement", () => {
-    const onHighlight = vi.fn();
-    renderChart({
-      highcharts,
-      options: { series: lineSeries },
-      tooltip: { placement: "target" },
-      onHighlight,
-    });
+  test.each([
+    { placement: "target", inverted: false },
+    { placement: "target", inverted: true },
+    { placement: "middle", inverted: false },
+    { placement: "middle", inverted: true },
+    { placement: "outside", inverted: false },
+    { placement: "outside", inverted: true },
+  ] as const)(
+    "renders tooltip with different placement options, placement=$placement, inverted=$inverted",
+    ({ placement, inverted }) => {
+      const onHighlight = vi.fn();
+      renderChart({
+        highcharts,
+        options: { chart: { inverted }, series: lineSeries },
+        tooltip: { placement },
+        onHighlight,
+      });
 
-    hc.getChart().plotLeft = 10;
-    hc.getChart().plotTop = 15;
-    hc.getChartPoint(0, 1).plotX = 3;
-    hc.getChartPoint(0, 1).plotY = 5;
-
-    act(() => hc.highlightChartPoint(0, 1));
-
-    expect(onHighlight).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 1) }));
-  });
-
-  test("uses target placement on inverted chart", () => {
-    const onHighlight = vi.fn();
-    renderChart({
-      highcharts,
-      options: { series: lineSeries, chart: { inverted: true } },
-      tooltip: { placement: "target" },
-      onHighlight,
-    });
-
-    hc.getChart().plotLeft = 10;
-    hc.getChart().plotWidth = 100;
-    hc.getChart().plotTop = 15;
-    hc.getChart().plotHeight = 150;
-    hc.getChartPoint(0, 1).plotX = 3;
-    hc.getChartPoint(0, 1).plotY = 5;
-
-    act(() => hc.highlightChartPoint(0, 1));
-
-    expect(onHighlight).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 1) }));
-  });
-
-  test("uses middle placement", () => {
-    const onHighlight = vi.fn();
-    renderChart({
-      highcharts,
-      options: { series: lineSeries },
-      tooltip: { placement: "middle" },
-      onHighlight,
-    });
-
-    hc.getChart().plotLeft = 10;
-    hc.getChart().plotWidth = 100;
-    hc.getChart().plotTop = 15;
-    hc.getChart().plotHeight = 150;
-    hc.getChartPoint(0, 1).plotX = 3;
-    hc.getChartPoint(0, 1).plotY = 5;
-
-    act(() => hc.highlightChartPoint(0, 1));
-
-    expect(onHighlight).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 1) }));
-  });
-
-  test("uses middle placement on inverted chart", () => {
-    const onHighlight = vi.fn();
-    renderChart({
-      highcharts,
-      options: { series: lineSeries, chart: { inverted: true } },
-      tooltip: { placement: "middle" },
-      onHighlight,
-    });
-
-    hc.getChart().plotLeft = 10;
-    hc.getChart().plotWidth = 100;
-    hc.getChart().plotTop = 15;
-    hc.getChart().plotHeight = 150;
-    hc.getChartPoint(0, 1).plotX = 3;
-    hc.getChartPoint(0, 1).plotY = 5;
-
-    act(() => hc.highlightChartPoint(0, 1));
-
-    expect(onHighlight).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 1) }));
-  });
-
-  test("uses outside placement", () => {
-    const onHighlight = vi.fn();
-    renderChart({
-      highcharts,
-      options: { series: lineSeries },
-      tooltip: { placement: "outside" },
-      onHighlight,
-    });
-
-    hc.getChart().plotLeft = 10;
-    hc.getChart().plotWidth = 100;
-    hc.getChart().plotTop = 15;
-    hc.getChart().plotHeight = 150;
-    hc.getChartPoint(0, 1).plotX = 3;
-    hc.getChartPoint(0, 1).plotY = 5;
-
-    act(() => hc.highlightChartPoint(0, 1));
-
-    expect(onHighlight).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 1) }));
-  });
-
-  test("uses outside placement on inverted chart", () => {
-    const onHighlight = vi.fn();
-    renderChart({
-      highcharts,
-      options: { series: lineSeries, chart: { inverted: true } },
-      tooltip: { placement: "outside" },
-      onHighlight,
-    });
-
-    hc.getChart().plotLeft = 10;
-    hc.getChart().plotWidth = 100;
-    hc.getChart().plotTop = 15;
-    hc.getChart().plotHeight = 150;
-    hc.getChartPoint(0, 1).plotX = 3;
-    hc.getChartPoint(0, 1).plotY = 5;
-
-    act(() => hc.highlightChartPoint(0, 1));
-
-    expect(onHighlight).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 1) }));
-  });
+      act(() => hc.highlightChartPoint(0, 1));
+      expect(onHighlight).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 1) }));
+    },
+  );
 });
