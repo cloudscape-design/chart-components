@@ -17,7 +17,7 @@ import { getAllTooltipSeries, getTooltip, getTooltipSeries } from "./tooltip-uti
 const hc = new HighchartsTestHelper(highcharts);
 
 describe("CartesianChart: Error bars", () => {
-  describe("Tooltip", () => {
+  describe("tooltip", () => {
     test("renders error bar information in the tooltip", async () => {
       renderCartesianChart({
         highcharts,

@@ -7,7 +7,7 @@ import HighchartsReact from "highcharts-react-official";
 import { vi } from "vitest";
 
 import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
-import { renderChart } from "./common";
+import { objectContainingDeep, renderChart } from "./common";
 
 vi.mock("highcharts-react-official", () => ({ __esModule: true, default: vi.fn(() => null) }));
 
@@ -51,7 +51,6 @@ function mockAxisContext({
     },
   } as unknown as Highcharts.AxisLabelsFormatterContextObject;
 }
-
 function optionsContaining({
   xTitle,
   yTitle,
@@ -61,22 +60,20 @@ function optionsContaining({
   yTitle?: string;
   emphasizeBaseline?: boolean;
 }) {
-  return expect.objectContaining({
-    options: expect.objectContaining({
+  return objectContainingDeep({
+    options: {
       xAxis: [
-        expect.objectContaining({
-          title: expect.objectContaining({ text: xTitle }),
-        }),
+        {
+          title: { text: xTitle },
+        },
       ],
       yAxis: [
-        expect.objectContaining({
-          title: expect.objectContaining({ text: yTitle }),
-          ...(emphasizeBaseline
-            ? { plotLines: [expect.objectContaining({ className: testClasses["emphasized-baseline"] })] }
-            : {}),
-        }),
+        {
+          title: { text: yTitle },
+          ...(emphasizeBaseline ? { plotLines: [{ className: testClasses["emphasized-baseline"] }] } : {}),
+        },
       ],
-    }),
+    },
   });
 }
 
@@ -90,12 +87,7 @@ describe("CoreChart: axes", () => {
     ({ emphasizeBaseline }) => {
       renderChart({ highcharts, options: { series }, emphasizeBaseline });
       expect(HighchartsReact).toHaveBeenCalledWith(
-        expect.objectContaining({
-          options: expect.objectContaining({
-            xAxis: undefined,
-            yAxis: undefined,
-          }),
-        }),
+        objectContainingDeep({ options: { xAxis: undefined, yAxis: undefined } }),
         expect.anything(),
       );
     },

@@ -185,13 +185,13 @@ describe("CoreChart: options", () => {
     expect(HighchartsReact).toHaveBeenCalledWith(
       objectContainingDeep({
         options: {
-          plotOptions: expect.objectContaining({
-            series: expect.objectContaining({
+          plotOptions: {
+            series: {
               point: {
-                events: expect.objectContaining({ remove }),
+                events: { remove },
               },
-            }),
-          }),
+            },
+          },
         },
       }),
       expect.anything(),
@@ -235,14 +235,7 @@ describe("CoreChart: options", () => {
     renderChart(inputs[index]);
 
     expect(HighchartsReact).toHaveBeenCalledWith(
-      objectContainingDeep({
-        options: {
-          chart: objectContainingDeep({
-            ...options.chart,
-            events: expect.objectContaining({ redraw }),
-          }),
-        },
-      }),
+      objectContainingDeep({ options: { chart: { ...options.chart, events: { redraw } } } }),
       expect.anything(),
     );
 

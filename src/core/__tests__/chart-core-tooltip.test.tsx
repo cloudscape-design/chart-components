@@ -114,11 +114,7 @@ describe("CoreChart: tooltip", () => {
 
     act(() => api!.highlightChartPoint(hc.getChartPoint(0, 0)));
 
-    expect(onHighlight).toHaveBeenCalledWith(
-      expect.objectContaining({
-        point: hc.getChartPoint(0, 0),
-      }),
-    );
+    expect(onHighlight).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 0) }));
     await waitFor(() => {
       expect(wrapper.findTooltip()).not.toBe(null);
       expect(wrapper.findTooltip()!.findHeader()!.getElement().textContent).toBe("Tooltip title");
@@ -218,6 +214,7 @@ describe("CoreChart: tooltip", () => {
     }
   });
 
+  // TODO: update placement tests
   test("uses target placement", () => {
     const onHighlight = vi.fn();
     renderChart({
@@ -276,11 +273,7 @@ describe("CoreChart: tooltip", () => {
 
     act(() => hc.highlightChartPoint(0, 1));
 
-    expect(onHighlight).toHaveBeenCalledWith(
-      expect.objectContaining({
-        point: hc.getChartPoint(0, 1),
-      }),
-    );
+    expect(onHighlight).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 1) }));
   });
 
   test("uses middle placement on inverted chart", () => {
@@ -301,11 +294,7 @@ describe("CoreChart: tooltip", () => {
 
     act(() => hc.highlightChartPoint(0, 1));
 
-    expect(onHighlight).toHaveBeenCalledWith(
-      expect.objectContaining({
-        point: hc.getChartPoint(0, 1),
-      }),
-    );
+    expect(onHighlight).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 1) }));
   });
 
   test("uses outside placement", () => {
@@ -326,11 +315,7 @@ describe("CoreChart: tooltip", () => {
 
     act(() => hc.highlightChartPoint(0, 1));
 
-    expect(onHighlight).toHaveBeenCalledWith(
-      expect.objectContaining({
-        point: hc.getChartPoint(0, 1),
-      }),
-    );
+    expect(onHighlight).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 1) }));
   });
 
   test("uses outside placement on inverted chart", () => {
@@ -351,10 +336,6 @@ describe("CoreChart: tooltip", () => {
 
     act(() => hc.highlightChartPoint(0, 1));
 
-    expect(onHighlight).toHaveBeenCalledWith(
-      expect.objectContaining({
-        point: hc.getChartPoint(0, 1),
-      }),
-    );
+    expect(onHighlight).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 1) }));
   });
 });
