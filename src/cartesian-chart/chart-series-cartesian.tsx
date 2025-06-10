@@ -53,7 +53,12 @@ export const transformCartesianSeries = (
     }
     return { ...s, data: s.data as Writeable<PointDataItemType[]> };
   }
-  return { series: originalSeries.map(transformSeriesToHighcharts), xPlotLines, yPlotLines };
+  const series = originalSeries.map(transformSeriesToHighcharts);
+  // We inject a fake empty series so that the empty state still shows axes, if defined.
+  if (series.length === 0) {
+    series.push({ type: "line", data: [], showInLegend: false });
+  }
+  return { series, xPlotLines, yPlotLines };
 };
 
 function getFirstY(series: readonly C.SeriesOptions[], visibleSeries: readonly string[]) {
