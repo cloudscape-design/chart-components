@@ -25,6 +25,7 @@ import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
 import { getFormatter } from "./formatters";
 import { CoreChartProps } from "./interfaces";
 import * as Styles from "./styles";
+import { getFormattedPointDescription } from "./utils";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -172,17 +173,8 @@ export function InternalCoreChart({
               // Highcharts keyboard navigation is disabled by default in favour of the custom Cloudscape navigation.
               keyboardNavigation: { enabled: !keyboardNavigation, ...options.accessibility?.keyboardNavigation },
               point: {
-                // Point description formatter is overridden to respect custom axes value formatters in the point's accessible
-                // description. We don't do it for pie charts, as there are no formatters, so we return an empty string, and
-                // Highcharts renders the default point description in that case.
-                descriptionFormatter(point) {
-                  if (point.series.xAxis) {
-                    const formattedX = getFormatter(point.series.xAxis)(point.x);
-                    const formattedY = getFormatter(point.series.yAxis)(point.y);
-                    return `${formattedX} ${formattedY}, ${point.series.name}`;
-                  }
-                  return ""; // Using default Highcharts label.
-                },
+                // Point description formatter is overridden to respect custom axes value formatters.
+                descriptionFormatter: getFormattedPointDescription,
                 ...options.accessibility?.point,
               },
             },
@@ -261,7 +253,7 @@ export function InternalCoreChart({
             // We don't use Highcharts tooltip, but certain tooltip options such as tooltip.snap or tooltip.shared
             // affect the hovering behavior of Highcharts. That is only the case when the tooltip is not disabled,
             // so we render it, but hide with styles.
-            tooltip: options.tooltip ?? { enabled: true, snap: 4, style: { opacity: 0 } },
+            tooltip: options.tooltip ?? { enabled: true, snap: Styles.tooltipSnap, style: { opacity: 0 } },
           };
           return (
             <>
@@ -302,7 +294,12 @@ export function InternalCoreChart({
       />
 
       {settings.tooltipEnabled && (
-        <ChartTooltip {...tooltipOptions} getTooltipContent={rest.getTooltipContent} api={api} />
+        <ChartTooltip
+          {...tooltipOptions}
+          i18nStrings={i18nStrings}
+          getTooltipContent={rest.getTooltipContent}
+          api={api}
+        />
       )}
 
       {settings.noDataEnabled && <ChartNoData {...noDataOptions} i18nStrings={i18nStrings} api={api} />}

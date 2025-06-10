@@ -203,12 +203,28 @@ export function getChartAccessibleDescription(chart: Highcharts.Chart) {
 }
 
 export function getPointAccessibleDescription(point: Highcharts.Point) {
+  if (point.series.xAxis && point.series.yAxis) {
+    const formattedX = getFormatter(point.series.xAxis)(point.x);
+    const formattedY = getFormatter(point.series.yAxis)(point.y);
+    return `${formattedX} ${formattedY}, ${point.series.name}`;
+  }
   return point.graphic?.element.getAttribute("aria-label") ?? "";
 }
 
 export function getGroupAccessibleDescription(group: readonly Highcharts.Point[]) {
   const firstPoint = group[0];
   return getFormatter(firstPoint.series.xAxis)(firstPoint.x);
+}
+
+// We don't format points for pie charts as unnecessary. Instead, we return an empty string, so
+// that Highcharts renders the default point description in that case.
+export function getFormattedPointDescription(point: Highcharts.Point) {
+  if (point.series.xAxis && point.series.yAxis) {
+    const formattedX = getFormatter(point.series.xAxis)(point.x);
+    const formattedY = getFormatter(point.series.yAxis)(point.y);
+    return `${formattedX} ${formattedY}, ${point.series.name}`;
+  }
+  return "";
 }
 
 // The area-, line-, or scatter series markers are rendered as single graphic elements,

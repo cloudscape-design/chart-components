@@ -3,7 +3,6 @@
 
 import { useState } from "react";
 import { render } from "@testing-library/react";
-import type Highcharts from "highcharts";
 
 import "@cloudscape-design/components/test-utils/dom";
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
@@ -32,7 +31,6 @@ export function StatefulChart(props: CoreChartProps) {
 }
 
 type TestProps = Partial<CoreChartProps> & {
-  highcharts: null | typeof Highcharts;
   i18nProvider?: Record<string, Record<string, string>>;
 };
 

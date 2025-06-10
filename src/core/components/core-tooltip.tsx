@@ -12,6 +12,7 @@ import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
 import { getFormatter } from "../formatters";
 import {
+  ChartI18nStrings,
   ChartTooltipOptions,
   CoreTooltipContent,
   GetTooltipContent,
@@ -48,7 +49,9 @@ export function ChartTooltip({
   size,
   getTooltipContent: getTooltipContentOverrides,
   api,
+  i18nStrings,
 }: ChartTooltipOptions & {
+  i18nStrings?: ChartI18nStrings;
   getTooltipContent?: GetTooltipContent;
   api: ChartAPI;
 }) {
@@ -83,6 +86,7 @@ export function ChartTooltip({
       trackKey={getTrackKey(tooltip.point, tooltip.group)}
       container={null}
       dismissButton={tooltip.pinned}
+      dismissAriaLabel={i18nStrings?.detailPopoverDismissAriaLabel}
       onDismiss={api.onDismissTooltip}
       onMouseEnter={api.onMouseEnterTooltip}
       onMouseLeave={api.onMouseLeaveTooltip}

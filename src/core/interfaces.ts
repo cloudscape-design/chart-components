@@ -124,6 +124,7 @@ export interface ChartI18nStrings {
   seriesFilterLabel?: string;
   seriesFilterPlaceholder?: string;
   legendAriaLabel?: string;
+  detailPopoverDismissAriaLabel?: string;
 }
 
 export interface ChartFilterOptions {
