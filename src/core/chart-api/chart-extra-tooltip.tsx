@@ -101,7 +101,7 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
   };
 
   private onRenderTooltipCartesian = ({ point, group }: ChartHighlightProps) => {
-    const pointRect = point ? getPointRect(point) : getPointRect(group[0]);
+    const pointRect = point ? getPointRect(point) : getGroupRect(group.slice(0, 1));
     const groupRect = getGroupRect(group);
     // The cursor is not shown when column series are present (a UX decision).
     const hasColumnSeries = this.context.chart().series.some((s) => s.type === "column");
