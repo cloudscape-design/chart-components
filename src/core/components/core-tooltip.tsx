@@ -12,9 +12,9 @@ import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
 import { getFormatter } from "../formatters";
 import {
-  ChartI18nStrings,
-  ChartTooltipOptions,
+  BaseI18nStrings,
   CoreTooltipContent,
+  CoreTooltipOptions,
   GetTooltipContent,
   GetTooltipContentProps,
   TooltipPointFormatted,
@@ -50,8 +50,8 @@ export function ChartTooltip({
   getTooltipContent: getTooltipContentOverrides,
   api,
   i18nStrings,
-}: ChartTooltipOptions & {
-  i18nStrings?: ChartI18nStrings;
+}: CoreTooltipOptions & {
+  i18nStrings?: BaseI18nStrings;
   getTooltipContent?: GetTooltipContent;
   api: ChartAPI;
 }) {

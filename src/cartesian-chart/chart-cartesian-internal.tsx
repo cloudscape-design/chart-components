@@ -11,7 +11,7 @@ import {
   CoreChartAPI,
   CoreChartProps,
   ErrorBarSeriesOptions,
-  TooltipItem,
+  TooltipContentItem,
   TooltipPointProps,
   TooltipSlotProps,
 } from "../core/interfaces";
@@ -56,7 +56,7 @@ export const InternalCartesianChart = forwardRef(
       // assuming Highcharts makes no modifications for those. These options are not referentially equal
       // to the ones we get from the consumer due to the internal validation/transformation we run on them.
       // See: https://api.highcharts.com/class-reference/Highcharts.Chart#userOptions.
-      const transformItem = (item: TooltipItem): C.TooltipPointItem => {
+      const transformItem = (item: TooltipContentItem): C.TooltipPointItem => {
         return {
           x: item.point.x,
           y: isXThreshold(item.point.series) ? null : (item.point.y ?? null),

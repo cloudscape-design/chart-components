@@ -13,7 +13,7 @@ import StatusIndicator from "@cloudscape-design/components/status-indicator";
 import { fireNonCancelableEvent } from "../../internal/events";
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
-import { CoreI18nStrings, CoreNoDataProps } from "../interfaces";
+import { BaseI18nStrings, BaseNoDataOptions } from "../interfaces";
 
 import styles from "../styles.css.js";
 import testClasses from "../test-classes/styles.css.js";
@@ -27,9 +27,9 @@ export function ChartNoData({
   onRecoveryClick,
   api,
   i18nStrings,
-}: CoreNoDataProps & {
+}: BaseNoDataOptions & {
   api: ChartAPI;
-  i18nStrings?: CoreI18nStrings;
+  i18nStrings?: BaseI18nStrings;
 }) {
   const i18n = useInternalI18n("[charts]");
   const state = useSelector(api.nodataStore, (s) => s);

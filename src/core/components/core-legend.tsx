@@ -6,7 +6,7 @@ import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-u
 import { ChartLegend as ChartLegendComponent } from "../../internal/components/chart-legend";
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
-import { ChartI18nStrings } from "../interfaces";
+import { BaseI18nStrings } from "../interfaces";
 
 export function ChartLegend({
   api,
@@ -17,7 +17,7 @@ export function ChartLegend({
   api: ChartAPI;
   title?: string;
   actions?: React.ReactNode;
-  i18nStrings?: ChartI18nStrings;
+  i18nStrings?: BaseI18nStrings;
 }) {
   const i18n = useInternalI18n("[charts]");
   const ariaLabel = i18n("i18nStrings.legendAriaLabel", i18nStrings?.legendAriaLabel);

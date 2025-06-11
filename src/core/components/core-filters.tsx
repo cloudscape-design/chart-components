@@ -8,7 +8,7 @@ import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-u
 import InternalChartSeriesFilter from "../../internal/components/chart-series-filter";
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
-import { ChartI18nStrings } from "../interfaces";
+import { BaseI18nStrings } from "../interfaces";
 
 import styles from "../styles.css.js";
 import testClasses from "../test-classes/styles.css.js";
@@ -22,7 +22,7 @@ export function ChartFilters({
   seriesFilter?: boolean;
   additionalFilters?: React.ReactNode;
   api: ChartAPI;
-  i18nStrings?: ChartI18nStrings;
+  i18nStrings?: BaseI18nStrings;
 }) {
   return (
     <div className={clsx(testClasses["chart-filters"], styles["chart-filters"])}>
@@ -36,7 +36,7 @@ export function ChartFilters({
   );
 }
 
-function ChartSeriesFilter({ api, i18nStrings }: { api: ChartAPI; i18nStrings?: ChartI18nStrings }) {
+function ChartSeriesFilter({ api, i18nStrings }: { api: ChartAPI; i18nStrings?: BaseI18nStrings }) {
   const i18n = useInternalI18n("[charts]");
   const legendItems = useSelector(api.legendStore, (s) => s.items);
   return (

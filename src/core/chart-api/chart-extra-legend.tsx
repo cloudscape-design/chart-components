@@ -6,13 +6,13 @@ import type Highcharts from "highcharts";
 import { ChartSeriesMarker, ChartSeriesMarkerType } from "../../internal/components/series-marker";
 import AsyncStore from "../../internal/utils/async-store";
 import { isEqualArrays } from "../../internal/utils/utils";
-import { ChartLegendItem } from "../interfaces";
+import { CoreLegendItem } from "../interfaces";
 import { getChartLegendItems, getPointId, getSeriesId } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
 // The reactive state is used to propagate changes in legend items to the core legend React component.
 export interface ReactiveLegendState {
-  items: readonly ChartLegendItem[];
+  items: readonly CoreLegendItem[];
 }
 
 // Chart helper that implements custom legend behaviors.
@@ -88,8 +88,8 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
     this.updateLegendItems(legendItems);
   };
 
-  private updateLegendItems = (nextItems: ChartLegendItem[]) => {
-    function isLegendItemsEqual(a: ChartLegendItem, b: ChartLegendItem) {
+  private updateLegendItems = (nextItems: CoreLegendItem[]) => {
+    function isLegendItemsEqual(a: CoreLegendItem, b: CoreLegendItem) {
       return (
         a.id === b.id &&
         a.name === b.name &&
@@ -116,7 +116,7 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
 
 function updateItemsVisibility(
   chart: Highcharts.Chart,
-  legendItems: readonly ChartLegendItem[],
+  legendItems: readonly CoreLegendItem[],
   visibleItems?: readonly string[],
 ) {
   const availableItemsSet = new Set(legendItems.map((i) => i.id));

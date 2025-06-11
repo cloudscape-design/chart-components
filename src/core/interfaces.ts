@@ -66,33 +66,33 @@ export interface BaseChartOptions {
   /**
    * Chart legend options.
    */
-  legend?: ChartLegendOptions;
+  legend?: BaseLegendOptions;
 
   /**
    * The empty, no-match, loading, or error state of the chart.
    * It requires the `no-data-to-display` module.
    */
-  noData?: ChartNoDataOptions;
+  noData?: BaseNoDataOptions;
 
   /**
    * Use filter to render default series filter, custom series filter, and/or additional filters.
    */
-  filter?: ChartFilterOptions;
+  filter?: BaseFilterOptions;
+
+  /**
+   * An object that contains all of the localized strings required by the component.
+   * @i18n
+   */
+  i18nStrings?: BaseI18nStrings;
 }
 
-export interface ChartTooltipOptions {
-  enabled?: boolean;
-  placement?: "middle" | "outside" | "target";
-  size?: "small" | "medium" | "large";
-}
-
-export interface ChartLegendOptions {
+export interface BaseLegendOptions {
   enabled?: boolean;
   title?: string;
   actions?: React.ReactNode;
 }
 
-export interface ChartNoDataOptions {
+export interface BaseNoDataOptions {
   statusType?: "finished" | "loading" | "error";
   empty?: React.ReactNode;
   error?: React.ReactNode;
@@ -101,23 +101,7 @@ export interface ChartNoDataOptions {
   onRecoveryClick?: NonCancelableEventHandler;
 }
 
-export interface ChartHeaderOptions {
-  content: React.ReactNode;
-}
-
-export interface ChartFooterOptions {
-  content: React.ReactNode;
-}
-
-export interface ChartLegendItem {
-  id: string;
-  name: string;
-  marker: React.ReactNode;
-  visible: boolean;
-  highlighted: boolean;
-}
-
-export interface ChartI18nStrings {
+export interface BaseI18nStrings {
   loadingText?: string;
   errorText?: string;
   recoveryText?: string;
@@ -127,69 +111,68 @@ export interface ChartI18nStrings {
   detailPopoverDismissAriaLabel?: string;
 }
 
-export interface ChartFilterOptions {
+export interface BaseFilterOptions {
   seriesFilter?: boolean;
   additionalFilters?: React.ReactNode;
 }
 
-export interface AreaSeriesOptions extends BaseCartesianSeriesOptionsWithName {
+export interface AreaSeriesOptions extends BaseCartesianSeriesOptions {
   type: "area";
   data: readonly PointDataItemType[];
 }
 
-export interface AreaSplineSeriesOptions extends BaseCartesianSeriesOptionsWithName {
+export interface AreaSplineSeriesOptions extends BaseCartesianSeriesOptions {
   type: "areaspline";
   data: readonly PointDataItemType[];
 }
 
-export interface ColumnSeriesOptions extends BaseCartesianSeriesOptionsWithName {
+export interface ColumnSeriesOptions extends BaseCartesianSeriesOptions {
   type: "column";
   data: readonly PointDataItemType[];
 }
 
-export interface LineSeriesOptions extends BaseCartesianSeriesOptionsWithName {
+export interface LineSeriesOptions extends BaseCartesianSeriesOptions {
   type: "line";
   data: readonly PointDataItemType[];
 }
 
-export interface SplineSeriesOptions extends BaseCartesianSeriesOptionsWithName {
+export interface SplineSeriesOptions extends BaseCartesianSeriesOptions {
   type: "spline";
   data: readonly PointDataItemType[];
 }
 
-export interface ScatterSeriesOptions extends BaseCartesianSeriesOptionsWithName {
+export interface ScatterSeriesOptions extends BaseCartesianSeriesOptions {
   type: "scatter";
   data: readonly PointDataItemType[];
   marker?: PointMarkerOptions;
 }
 
-export interface ErrorBarSeriesOptions extends BaseCartesianSeriesOptions {
+export interface ErrorBarSeriesOptions extends Omit<BaseCartesianSeriesOptions, "name"> {
   type: "errorbar";
+  name?: string;
   data: readonly RangeDataItemOptions[];
   linkedTo: string;
 }
 
-export interface XThresholdSeriesOptions extends BaseCartesianSeriesOptionsWithName {
+export interface XThresholdSeriesOptions extends BaseCartesianSeriesOptions {
   type: "x-threshold";
   value: number;
 }
 
-export interface YThresholdSeriesOptions extends BaseCartesianSeriesOptionsWithName {
+export interface YThresholdSeriesOptions extends BaseCartesianSeriesOptions {
   type: "y-threshold";
   value: number;
 }
 
-export interface PieSeriesOptions extends BaseCartesianSeriesOptionsWithName {
+export interface PieSeriesOptions extends BaseCartesianSeriesOptions {
   type: "pie";
   data: readonly PieSegmentOptions[];
 }
 
-export interface DonutSeriesOptions extends BaseCartesianSeriesOptionsWithName {
+export interface DonutSeriesOptions extends BaseCartesianSeriesOptions {
   type: "donut";
   data: readonly PieSegmentOptions[];
 }
-
-// The data items are simpler versions of Highcharts.PointOptionsObject
 
 export interface PieSegmentOptions {
   y: number | null;
@@ -211,25 +194,32 @@ export interface RangeDataItemOptions {
   high: number;
 }
 
-export interface BaseCartesianSeriesOptions {
+interface BaseCartesianSeriesOptions {
   id?: string;
-  name?: string;
+  name: string;
   color?: string;
 }
 
-export interface BaseCartesianSeriesOptionsWithName extends BaseCartesianSeriesOptions {
-  name: string;
-}
-
-// The simpler version of Highcharts.PointMarkerOptionsObject
-export interface PointMarkerOptions {
+// The symbols union matches that of Highcharts.PointMarkerOptionsObject
+interface PointMarkerOptions {
   symbol?: "circle" | "diamond" | "square" | "triangle" | "triangle-down";
 }
 
 export interface CoreChartProps
   extends Pick<
       BaseChartOptions,
-      "highcharts" | "fitHeight" | "chartHeight" | "chartMinHeight" | "chartMinWidth" | "ariaLabel" | "ariaDescription"
+      | "highcharts"
+      | "fallback"
+      | "fitHeight"
+      | "chartHeight"
+      | "chartMinHeight"
+      | "chartMinWidth"
+      | "ariaLabel"
+      | "ariaDescription"
+      | "legend"
+      | "filter"
+      | "noData"
+      | "i18nStrings"
     >,
     CoreCartesianOptions {
   /**
@@ -243,46 +233,20 @@ export interface CoreChartProps
    * The tooltip content is only shown when `getContent` property is defined, which is called
    * for each visited { x, y } point.
    */
-  tooltip?: ChartTooltipOptions;
-  /**
-   * The Cloudscape legend, that is rendered outside the Highcharts container. It uses Cloudscape markers
-   * and menu actions.
-   */
-  legend?: ChartLegendOptions;
-  /**
-   * Represents chart's empty, no-match, loading, and error states. It requires the Highcharts nodata module.
-   */
-  noData?: CoreNoDataProps;
+  tooltip?: CoreTooltipOptions;
   /**
    * A custom slot above the chart plot, chart's axis title, and filter.
    */
-  header?: ChartHeaderOptions;
+  header?: CoreHeaderOptions;
   /**
    * A custom slot below the chart plot and legend.
    */
-  footer?: ChartFooterOptions;
-  /**
-   * Chart series/custom filter options.
-   */
-  filter?: ChartFilterOptions;
-  /**
-   * Custom content to be rendered when `highcharts=null`. It defaults to a spinner.
-   */
-  fallback?: React.ReactNode;
+  footer?: CoreFooterOptions;
   /**
    * The callback to init the chart's API when it is ready. The API includes the Highcharts chart object, and
-   * additional Cloudscape methods:
-   * - `showTooltipOnPoint(Highcharts.Point)` - shows Cloudscape tooltip for the given point, if tooltip content is defined.
-   * - `hideTooltip()` - hides Cloudscape tooltip until the next user event or `showTooltipOnPoint(point)` call.
-   * - `highlightLegendItems(string[])` - makes specified legend items highlighted (when Cloudscape legend is used).
-   * - `clearLegendHighlight()` - clears legend highlight.
+   * additional Cloudscape methods.
    */
   callback?: (chart: CoreChartAPI) => void;
-  /**
-   * An object that contains all of the localized strings required by the component.
-   * @i18n
-   */
-  i18nStrings?: CoreI18nStrings;
   /**
    * This is used to provide a test-utils selector. Do not use this property to provide custom styles.
    */
@@ -294,7 +258,7 @@ export interface CoreChartProps
   /**
    * Called when series/points visibility changes due to user interaction with legend or filter.
    */
-  onVisibleItemsChange?: (legendItems: readonly ChartLegendItem[]) => void;
+  onVisibleItemsChange?: (legendItems: readonly CoreLegendItem[]) => void;
   /**
    * Called whenever chart tooltip is rendered to provide content for tooltip's header, body, and (optional) footer.
    */
@@ -308,9 +272,39 @@ export interface CoreChartProps
    */
   onClearHighlight?(): void;
   /**
-   * Use Cloudscape keyboard navigation.
+   * Use Cloudscape keyboard navigation, `true` by default.
    */
   keyboardNavigation?: boolean;
+}
+
+export interface CoreLegendItem {
+  id: string;
+  name: string;
+  marker: React.ReactNode;
+  visible: boolean;
+  highlighted: boolean;
+}
+
+export interface CoreLegendItemSpec {
+  id: string;
+  name: string;
+  markerType: ChartSeriesMarkerType;
+  color: string;
+  visible: boolean;
+}
+
+export interface CoreTooltipOptions {
+  enabled?: boolean;
+  placement?: "middle" | "outside" | "target";
+  size?: "small" | "medium" | "large";
+}
+
+export interface CoreHeaderOptions {
+  content: React.ReactNode;
+}
+
+export interface CoreFooterOptions {
+  content: React.ReactNode;
 }
 
 export interface CoreCartesianOptions {
@@ -339,18 +333,18 @@ export interface CoreTooltipContent {
   footer?: (props: TooltipSlotProps) => React.ReactNode;
 }
 
-export interface TooltipItem {
+export interface TooltipContentItem {
   point: Highcharts.Point;
   linkedErrorbars: Highcharts.Point[];
 }
 
 export interface TooltipPointProps {
-  item: TooltipItem;
+  item: TooltipContentItem;
 }
 
 export interface TooltipSlotProps {
   x: number;
-  items: TooltipItem[];
+  items: TooltipContentItem[];
 }
 
 export interface TooltipPointFormatted {
@@ -361,7 +355,8 @@ export interface TooltipPointFormatted {
   subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
 }
 
-// The extended version of Highcharts.Options;
+// The extended version of Highcharts.Options. The axes types are extended with Cloudscape value formatter.
+// We use a custom formatter because we cannot use the built-in Highcharts formatter for our tooltip.
 export type InternalChartOptions = Omit<Highcharts.Options, "xAxis" | "yAxis"> & {
   xAxis?: InternalXAxisOptions | InternalXAxisOptions[];
   yAxis?: InternalYAxisOptions | InternalYAxisOptions[];
@@ -385,14 +380,6 @@ export interface CoreChartAPI {
   clearChartHighlight(): void;
 }
 
-export interface InternalChartLegendItemSpec {
-  id: string;
-  name: string;
-  color: string;
-  markerType: ChartSeriesMarkerType;
-  visible: boolean;
-}
-
 export interface Rect {
   x: number;
   y: number;
@@ -405,7 +392,3 @@ export interface TooltipContent {
   body: React.ReactNode;
   footer?: React.ReactNode;
 }
-
-export type CoreNoDataProps = ChartNoDataOptions;
-
-export type CoreI18nStrings = ChartI18nStrings;

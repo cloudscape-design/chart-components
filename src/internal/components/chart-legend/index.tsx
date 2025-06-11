@@ -16,14 +16,14 @@ import {
 import Box from "@cloudscape-design/components/box";
 import { colorBorderDividerDefault } from "@cloudscape-design/design-tokens";
 
-import { ChartLegendItem } from "../../../core/interfaces";
+import { CoreLegendItem } from "../../../core/interfaces";
 import { DebouncedCall } from "../../utils/utils";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
 
-export interface ChartLegendOptions {
-  items: readonly ChartLegendItem[];
+export interface ChartLegendProps {
+  items: readonly CoreLegendItem[];
   legendTitle?: string;
   ariaLabel?: string;
   actions?: React.ReactNode;
@@ -40,7 +40,7 @@ export const ChartLegend = ({
   onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
-}: ChartLegendOptions) => {
+}: ChartLegendProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const segmentsRef = useRef<Record<number, HTMLElement>>([]);
   const focusedRef = useRef(false);
