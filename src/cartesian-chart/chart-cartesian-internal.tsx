@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
-import type Highcharts from "highcharts";
 
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
@@ -56,29 +55,23 @@ export const InternalCartesianChart = forwardRef(
       // assuming Highcharts makes no modifications for those. These options are not referentially equal
       // to the ones we get from the consumer due to the internal validation/transformation we run on them.
       // See: https://api.highcharts.com/class-reference/Highcharts.Chart#userOptions.
-      const transformItem = (item: TooltipContentItem): C.TooltipPointItem => {
-        return {
-          x: item.point.x,
-          y: isXThreshold(item.point.series) ? null : (item.point.y ?? null),
-          series: item.point.series.userOptions as NonErrorBarSeriesOptions,
-          errorRanges: item.linkedErrorbars.map((point) => ({
-            low: point.options.low ?? 0,
-            high: point.options.high ?? 0,
-            series: point.series.userOptions as ErrorBarSeriesOptions,
-          })),
-        };
-      };
-      const transformSeriesProps = (props: TooltipPointProps): C.TooltipPointRenderProps => {
-        return {
-          item: transformItem(props.item),
-        };
-      };
-      const transformSlotProps = (props: TooltipSlotProps): C.TooltipSlotRenderProps => {
-        return {
-          x: props.x,
-          items: props.items.map(transformItem),
-        };
-      };
+      const transformItem = (item: TooltipContentItem): C.TooltipPointItem => ({
+        x: item.point.x,
+        y: isXThreshold(item.point.series) ? null : (item.point.y ?? null),
+        series: item.point.series.userOptions as NonErrorBarSeriesOptions,
+        errorRanges: item.linkedErrorbars.map((point) => ({
+          low: point.options.low ?? 0,
+          high: point.options.high ?? 0,
+          series: point.series.userOptions as ErrorBarSeriesOptions,
+        })),
+      });
+      const transformSeriesProps = (props: TooltipPointProps): C.TooltipPointRenderProps => ({
+        item: transformItem(props.item),
+      });
+      const transformSlotProps = (props: TooltipSlotProps): C.TooltipSlotRenderProps => ({
+        x: props.x,
+        items: props.items.map(transformItem),
+      });
       return {
         point: tooltip.point ? (props) => tooltip.point!(transformSeriesProps(props)) : undefined,
         header: tooltip.header ? (props) => tooltip.header!(transformSlotProps(props)) : undefined,
@@ -96,33 +89,31 @@ export const InternalCartesianChart = forwardRef(
       showAllSeries: () => apiRef.current?.setItemsVisible(allSeriesIds),
     }));
 
-    const highchartsOptions: Highcharts.Options = {
-      chart: {
-        inverted: props.inverted,
-      },
-      plotOptions: {
-        series: {
-          stacking: props.stacking ? "normal" : undefined,
-        },
-      },
-      series,
-      xAxis: castArray(props.xAxis)?.map((xAxisProps) => ({
-        ...xAxisProps,
-        title: { text: xAxisProps.title },
-        plotLines: xPlotLines,
-      })),
-      yAxis: castArray(props.yAxis)?.map((yAxisProps) => ({
-        ...yAxisProps,
-        title: { text: yAxisProps.title },
-        plotLines: yPlotLines,
-      })),
-    };
-
     return (
       <InternalCoreChart
         {...props}
         callback={(api) => (apiRef.current = api)}
-        options={highchartsOptions}
+        options={{
+          chart: {
+            inverted: props.inverted,
+          },
+          plotOptions: {
+            series: {
+              stacking: props.stacking ? "normal" : undefined,
+            },
+          },
+          series,
+          xAxis: castArray(props.xAxis)?.map((xAxisProps) => ({
+            ...xAxisProps,
+            title: { text: xAxisProps.title },
+            plotLines: xPlotLines,
+          })),
+          yAxis: castArray(props.yAxis)?.map((yAxisProps) => ({
+            ...yAxisProps,
+            title: { text: yAxisProps.title },
+            plotLines: yPlotLines,
+          })),
+        }}
         tooltip={tooltip}
         getTooltipContent={getTooltipContent}
         visibleItems={props.visibleSeries}

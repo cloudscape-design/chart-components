@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import Highcharts from "highcharts";
+import type Highcharts from "highcharts";
 
 import { ChartHighlightProps, CoreLegendItem, Rect } from "../interfaces";
 import { getGroupRect, isSeriesStacked } from "../utils";
