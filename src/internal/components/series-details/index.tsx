@@ -10,7 +10,6 @@ import { InternalExpandableSection } from "@cloudscape-design/components/interna
 import { colorBorderControlDefault } from "@cloudscape-design/design-tokens";
 
 import { getDataAttributes } from "../../base-component/get-data-attributes";
-import getSeriesDetailsText from "./series-details-text";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -41,7 +40,6 @@ export type ExpandedSeries = Set<string>;
 interface ChartSeriesDetailsProps extends BaseComponentProps {
   details: ReadonlyArray<ChartSeriesDetailItem>;
   expandedSeries?: ExpandedSeries;
-  setPopoverText?: (s: string) => void;
   setExpandedState?: (seriesTitle: string, state: boolean) => void;
   compactList?: boolean;
 }
@@ -49,7 +47,7 @@ interface ChartSeriesDetailsProps extends BaseComponentProps {
 export default memo(forwardRef(ChartSeriesDetails));
 
 function ChartSeriesDetails(
-  { details, expandedSeries, setPopoverText, setExpandedState, compactList, ...restProps }: ChartSeriesDetailsProps,
+  { details, expandedSeries, setExpandedState, compactList, ...restProps }: ChartSeriesDetailsProps,
   ref: React.Ref<HTMLDivElement>,
 ) {
   const baseProps = getDataAttributes(restProps);
@@ -57,19 +55,6 @@ function ChartSeriesDetails(
   const detailsRef = useRef<HTMLDivElement | null>(null);
   const mergedRef = useMergeRefs(ref, detailsRef);
   const selectedRef = useRef<HTMLDivElement>(null);
-
-  // Once the component has rendered, pass its content in plain text
-  // so that it can be used by screen readers.
-  useEffect(() => {
-    if (setPopoverText) {
-      if (detailsRef.current) {
-        setPopoverText(getSeriesDetailsText(detailsRef.current));
-      }
-      return () => {
-        setPopoverText("");
-      };
-    }
-  }, [details, setPopoverText]);
 
   const isExpanded = (seriesTitle: string) => !!expandedSeries && expandedSeries.has(seriesTitle);
 

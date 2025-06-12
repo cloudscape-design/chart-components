@@ -6,6 +6,7 @@ import { useState } from "react";
 import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
+import LiveRegion from "@cloudscape-design/components/live-region";
 
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../internal/components/series-details";
 import { useSelector } from "../../internal/utils/async-store";
@@ -103,7 +104,7 @@ export function ChartTooltip({
       position={position}
       minVisibleBlockSize={MIN_VISIBLE_BLOCK_SIZE}
     >
-      {content.body}
+      <LiveRegion>{content.body}</LiveRegion>
     </InternalChartTooltip>
   );
 }
