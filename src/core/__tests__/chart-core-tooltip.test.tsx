@@ -20,6 +20,21 @@ function leaveTooltip() {
   const tooltipElement = createChartWrapper().findTooltip()!.getElement();
   tooltipElement.dispatchEvent(new MouseEvent("mouseout", { bubbles: true, cancelable: true }));
 }
+// We set pageX, and pageY because Highcharts relies on these readonly event properties in chart.pointer.normalize();
+function createMouseMoveEvent({ pageX, pageY }: { pageX: number; pageY: number }) {
+  const event = new MouseEvent("mousemove", { clientX: 0, clientY: 0, bubbles: true, cancelable: true });
+  Object.defineProperty(event, "pageX", {
+    get() {
+      return pageX;
+    },
+  });
+  Object.defineProperty(event, "pageY", {
+    get() {
+      return pageY;
+    },
+  });
+  return event;
+}
 
 const data = [
   { name: "P1", y: 10 },
@@ -38,11 +53,20 @@ const series: Highcharts.SeriesOptionsType[] = [
 const lineSeries: Highcharts.SeriesOptionsType[] = [
   {
     type: "line",
-    name: "Line series",
+    name: "Line series 1",
     data: [
       { x: 1, y: 11 },
       { x: 2, y: 12 },
       { x: 3, y: 13 },
+    ],
+  },
+  {
+    type: "line",
+    name: "Line series 2",
+    data: [
+      { x: 1, y: 21 },
+      { x: 3, y: 23 },
+      { x: 4, y: 24 },
     ],
   },
 ];
@@ -62,12 +86,12 @@ describe("CoreChart: tooltip", () => {
     expect(wrapper.findHighchartsTooltip()!.getElement().textContent).toBe("Custom content");
   });
 
-  test("shows tooltip on hover", async () => {
+  test("shows tooltip on point hover", async () => {
     const onHighlight = vi.fn();
     const onClearHighlight = vi.fn();
     const { wrapper } = renderChart({
       highcharts,
-      options: { series },
+      options: { series: lineSeries },
       onHighlight,
       onClearHighlight,
       getTooltipContent: () => ({
@@ -79,7 +103,12 @@ describe("CoreChart: tooltip", () => {
 
     act(() => hc.highlightChartPoint(0, 0));
 
-    expect(onHighlight).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 0) }));
+    expect(onHighlight).toHaveBeenCalledWith(
+      expect.objectContaining({
+        point: hc.getChartPoint(0, 0),
+        group: expect.arrayContaining([hc.getChartPoint(0, 0), hc.getChartPoint(1, 0)]),
+      }),
+    );
     await waitFor(() => {
       expect(wrapper.findTooltip()).not.toBe(null);
       expect(wrapper.findTooltip()!.findHeader()!.getElement().textContent).toBe("Tooltip title");
@@ -88,6 +117,56 @@ describe("CoreChart: tooltip", () => {
     });
 
     act(() => hc.leaveChartPoint(0, 0));
+
+    await waitFor(() => {
+      expect(onClearHighlight).toHaveBeenCalled();
+      expect(wrapper.findTooltip()).toBe(null);
+    });
+  });
+
+  test("shows tooltip on chart hover", async () => {
+    const onHighlight = vi.fn();
+    const onClearHighlight = vi.fn();
+    const { wrapper } = renderChart({
+      highcharts,
+      options: {
+        series: lineSeries,
+        chart: {
+          events: {
+            load() {
+              this.plotTop = 0;
+              this.plotLeft = 0;
+              this.plotWidth = 100;
+              this.plotHeight = 100;
+            },
+          },
+        },
+      },
+      onHighlight,
+      onClearHighlight,
+      getTooltipContent: () => ({
+        header: () => "Tooltip title",
+        body: () => "Tooltip body",
+        footer: () => "Tooltip footer",
+      }),
+    });
+
+    act(() => hc.getChart().container.dispatchEvent(createMouseMoveEvent({ pageX: 0, pageY: 0 })));
+
+    expect(onHighlight).toHaveBeenCalledWith(
+      expect.objectContaining({
+        point: null,
+        group: expect.arrayContaining([hc.getChartPoint(0, 0), hc.getChartPoint(1, 0)]),
+      }),
+    );
+    await waitFor(() => {
+      expect(wrapper.findTooltip()).not.toBe(null);
+      expect(wrapper.findTooltip()!.findHeader()!.getElement().textContent).toBe("Tooltip title");
+      expect(wrapper.findTooltip()!.findBody()!.getElement().textContent).toBe("Tooltip body");
+      expect(wrapper.findTooltip()!.findFooter()!.getElement().textContent).toBe("Tooltip footer");
+    });
+
+    act(() => hc.getChart().container.dispatchEvent(new MouseEvent("mouseout", { bubbles: true, cancelable: true })));
 
     await waitFor(() => {
       expect(onClearHighlight).toHaveBeenCalled();
