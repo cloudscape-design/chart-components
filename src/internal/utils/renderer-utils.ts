@@ -5,7 +5,7 @@ export class SVGRendererSingle {
   public element: null | Highcharts.SVGElement = null;
 
   public hide() {
-    this.element?.hide();
+    this.element?.attr({ class: undefined }).hide();
   }
 
   public destroy() {
@@ -44,11 +44,11 @@ export class SVGRendererPool {
   private pathIndex = 0;
 
   public hideAll() {
-    this.circles.forEach((c) => c.hide());
+    this.circles.forEach((c) => c.attr({ class: undefined }).hide());
     this.circleIndex = 0;
-    this.rects.forEach((c) => c.hide());
+    this.rects.forEach((c) => c.attr({ class: undefined }).hide());
     this.rectIndex = 0;
-    this.paths.forEach((c) => c.hide());
+    this.paths.forEach((c) => c.attr({ class: undefined }).hide());
     this.pathIndex = 0;
   }
 

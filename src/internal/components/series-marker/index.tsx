@@ -121,6 +121,7 @@ export function renderMarker(
   pool: SVGRendererPool,
   point: Highcharts.Point,
   selected: boolean,
+  className?: string,
 ) {
   if (point.plotX === undefined || point.plotY === undefined) {
     return;
@@ -136,6 +137,7 @@ export function renderMarker(
     fill: selected ? point.color : colorBackgroundLayoutMain,
     opacity: 1,
     style: "pointer-events: none",
+    class: className,
   };
   const haloStyle = {
     zIndex: 6,

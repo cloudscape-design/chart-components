@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import clsx from "clsx";
 import type Highcharts from "highcharts";
 
 import { getIsRtl } from "@cloudscape-design/component-toolkit/internal";
@@ -13,6 +14,8 @@ import { ChartHighlightProps, Rect } from "../interfaces";
 import * as Styles from "../styles";
 import { getGroupRect, getPointRect, isXThreshold } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
+
+import testClasses from "../test-classes/styles.css.js";
 
 const TOOLTIP_LAST_DISMISS_DELAY = 250;
 
@@ -158,7 +161,9 @@ class HighlightCursorCartesian {
     }
     for (const p of group.filter(this.isPointEligibleForMarker)) {
       if (p.plotX !== undefined && p.plotY !== undefined) {
-        renderMarker(chart, this.markerElementsPool, p, p === point);
+        const selected = p === point;
+        const className = clsx(testClasses["highlight-marker"], selected && testClasses["highlight-marker-selected"]);
+        renderMarker(chart, this.markerElementsPool, p, selected, className);
       }
     }
   }

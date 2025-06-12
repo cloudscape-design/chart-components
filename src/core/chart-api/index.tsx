@@ -279,11 +279,11 @@ export class ChartAPI {
     let shouldRedraw = false;
     for (const s of this.context.chart().series) {
       for (let i = 0; i < s.data.length; i++) {
+        const isEligibleSeries = !isXThreshold(s) && s.type !== "scatter" && !s.data[i].options.marker?.enabled;
         if (
-          !isXThreshold(s) &&
+          isEligibleSeries &&
           (s.data[i - 1]?.y === undefined || s.data[i - 1]?.y === null) &&
-          (s.data[i + 1]?.y === undefined || s.data[i + 1]?.y === null) &&
-          !s.data[i].options.marker?.enabled
+          (s.data[i + 1]?.y === undefined || s.data[i + 1]?.y === null)
         ) {
           s.data[i].update({ marker: { enabled: true } }, false);
           shouldRedraw = true;

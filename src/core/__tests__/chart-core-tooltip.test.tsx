@@ -7,6 +7,7 @@ import highcharts from "highcharts";
 import { vi } from "vitest";
 
 import { CoreChartAPI } from "../../../lib/components/core/interfaces";
+import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
 import { createChartWrapper, renderChart } from "./common";
 import { HighchartsTestHelper } from "./highcharts-utils";
 
@@ -34,6 +35,14 @@ function createMouseMoveEvent({ pageX, pageY }: { pageX: number; pageY: number }
     },
   });
   return event;
+}
+function mockPointCoordinates() {
+  hc.getChart().series.forEach((s, sIndex) => {
+    s.points.forEach((p) => {
+      p.plotX = 0;
+      p.plotY = 1 + sIndex;
+    });
+  });
 }
 
 const data = [
@@ -293,6 +302,50 @@ describe("CoreChart: tooltip", () => {
         expect(getTooltipContent).toHaveBeenCalledWith({ point, group: expect.arrayContaining([point]) });
       });
     }
+  });
+
+  test("renders highlight markers", async () => {
+    const { wrapper } = renderChart({
+      highcharts,
+      options: {
+        series: [
+          { type: "scatter", name: "S1", data: [{ x: 1, y: 11 }] },
+          { type: "scatter", name: "S2", data: [{ x: 1, y: 21 }] },
+          { type: "scatter", name: "S3", data: [{ x: 1, y: 31 }] },
+          { type: "scatter", name: "S4", data: [{ x: 1, y: 41 }] },
+          { type: "scatter", name: "S5", data: [{ x: 1, y: 51 }] },
+        ],
+        chart: {
+          events: {
+            load() {
+              hc.getChart().plotTop = 0;
+              hc.getChart().plotLeft = 0;
+              hc.getChart().plotWidth = 100;
+              hc.getChart().plotHeight = 100;
+            },
+          },
+        },
+      },
+      getTooltipContent: () => ({ header: () => "Header", body: () => "Body" }),
+    });
+
+    mockPointCoordinates();
+    act(() => hc.getChart().container.dispatchEvent(createMouseMoveEvent({ pageX: 0, pageY: 1 })));
+
+    expect(wrapper.findAllByClassName(testClasses["highlight-marker"])).toHaveLength(5);
+    expect(wrapper.findAllByClassName(testClasses["highlight-marker-selected"])).toHaveLength(0);
+
+    mockPointCoordinates();
+    act(() => hc.highlightChartPoint(0, 0));
+
+    expect(wrapper.findAllByClassName(testClasses["highlight-marker"])).toHaveLength(5);
+    expect(wrapper.findAllByClassName(testClasses["highlight-marker-selected"])).toHaveLength(1);
+
+    act(() => hc.leaveChartPoint(0, 0));
+
+    await waitFor(() => {
+      expect(wrapper.findAllByClassName(testClasses["highlight-marker"])).toHaveLength(0);
+    });
   });
 
   test.each([
