@@ -8,10 +8,10 @@ import { vi } from "vitest";
 import "@cloudscape-design/components/test-utils/dom";
 import { PieChartProps } from "../../../lib/components/pie-chart";
 import createWrapper from "../../../lib/components/test-utils/dom";
+import { toggleLegendItem } from "../../core/__tests__/common";
 import { ref, renderPieChart, renderStatefulPieChart } from "./common";
 
 const getChart = () => createWrapper().findChart("pie")!;
-const getLegend = () => getChart().findLegend()!;
 
 function getVisibilityState() {
   const legend = getChart().findLegend();
@@ -55,7 +55,7 @@ describe("PieChart: visibility", () => {
       hiddenPoints: [],
     });
 
-    act(() => getLegend()!.findItems()[0].click());
+    toggleLegendItem(0);
 
     expect(getVisibilityState()).toEqual({
       allLegendItems: ["P1", "P2", "P3"],

@@ -75,7 +75,7 @@ export function InternalCoreChart({
   const state = { visibleItems };
   const api = useChartAPI(settings, handlers, state);
 
-  const rootClassName = clsx(styles.root, fitHeight && styles["root-fit-height"], className);
+  const rootClassName = clsx(testClasses.root, styles.root, fitHeight && styles["root-fit-height"], className);
   const rootRef = useRef<HTMLDivElement>(null);
   const mergedRootRef = useMergeRefs(rootRef, __internalRootRef);
   const rootProps = { ref: mergedRootRef, className: rootClassName, ...getDataAttributes(rest) };

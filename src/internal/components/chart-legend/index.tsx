@@ -207,9 +207,9 @@ export const ChartLegend = ({
                 ref={thisTriggerRef}
                 onClick={(event) => {
                   if (event.metaKey || event.ctrlKey) {
-                    selectItem(item.id);
-                  } else {
                     toggleItem(item.id);
+                  } else {
+                    selectItem(item.id);
                   }
                 }}
                 isHighlighted={item.highlighted}

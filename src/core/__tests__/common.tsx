@@ -1,14 +1,16 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useState } from "react";
+import { act, useState } from "react";
 import { render } from "@testing-library/react";
 
 import "@cloudscape-design/components/test-utils/dom";
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
+import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
 import { TestI18nProvider } from "../../../lib/components/internal/utils/test-i18n-provider";
 import CoreChart from "../../../lib/components/internal-do-not-use/core-chart";
 import createWrapper from "../../../lib/components/test-utils/dom";
+import BaseChartWrapper from "../../../lib/components/test-utils/dom/base";
 import CoreChartWrapper from "../../../lib/components/test-utils/dom/core";
 
 export class ExtendedTestWrapper extends CoreChartWrapper {
@@ -38,10 +40,10 @@ export function renderChart({ i18nProvider, ...props }: TestProps, Component = C
   const ComponentWrapper = (props: CoreChartProps) => {
     return i18nProvider ? (
       <TestI18nProvider messages={i18nProvider}>
-        <Component options={{}} className="test-chart" {...props} />
+        <Component options={{}} {...props} />
       </TestI18nProvider>
     ) : (
-      <Component options={{}} className="test-chart" {...props} />
+      <Component options={{}} {...props} />
     );
   };
   const { rerender } = render(<ComponentWrapper {...props} />);
@@ -56,7 +58,7 @@ export function renderStatefulChart(props: TestProps) {
 }
 
 export function createChartWrapper() {
-  return new ExtendedTestWrapper(createWrapper().findByClassName("test-chart")!.getElement());
+  return new ExtendedTestWrapper(createWrapper().findByClassName(testClasses.root)!.getElement());
 }
 
 export function objectContainingDeep(root: object) {
@@ -75,4 +77,18 @@ export function objectContainingDeep(root: object) {
     return transformed;
   }
   return expect.objectContaining(transformLevel(root));
+}
+
+export function selectLegendItem(index: number, wrapper: BaseChartWrapper = createChartWrapper()) {
+  act(() => wrapper.findLegend()!.findItems()[index].click());
+}
+export function toggleLegendItem(index: number, wrapper: BaseChartWrapper = createChartWrapper()) {
+  const modifier = Math.random() > 0.5 ? { metaKey: true } : { ctrlKey: true };
+  act(() =>
+    wrapper
+      .findLegend()!
+      .findItems()
+      [index].getElement()
+      .dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, ...modifier })),
+  );
 }

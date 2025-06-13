@@ -7,7 +7,6 @@ import clsx from "clsx";
 import { useMergeRefs } from "@cloudscape-design/component-toolkit/internal";
 import { BaseComponentProps } from "@cloudscape-design/components/internal/base-component";
 import { InternalExpandableSection } from "@cloudscape-design/components/internal/do-not-use/expandable-section";
-import { colorBorderControlDefault } from "@cloudscape-design/design-tokens";
 
 import { getDataAttributes } from "../../base-component/get-data-attributes";
 
@@ -81,18 +80,7 @@ function ChartSeriesDetails(
               })}
             >
               {details.length > 1 && selected ? (
-                <div
-                  ref={selectedRef}
-                  style={{
-                    position: "absolute",
-                    top: 2,
-                    left: -2,
-                    width: 2,
-                    height: 18,
-                    borderRadius: 4,
-                    background: colorBorderControlDefault,
-                  }}
-                ></div>
+                <div ref={selectedRef} className={styles["highlight-indicator"]}></div>
               ) : null}
               {subItems?.length && !!expandableId ? (
                 <ExpandableSeries
