@@ -29,6 +29,7 @@ interface ListItemProps {
 export interface ChartSeriesDetailItem extends ChartDetailPair {
   selected?: boolean;
   marker?: React.ReactNode;
+  color?: string;
   isDimmed?: boolean;
   subItems?: ReadonlyArray<ChartDetailPair>;
   expandableId?: string;
@@ -68,7 +69,7 @@ function ChartSeriesDetails(
     <div {...baseProps} className={className} ref={mergedRef}>
       <ul className={clsx(styles.list, compactList && styles.compact)}>
         {details.map(
-          ({ key, value, marker, isDimmed, subItems, expandableId, details: extraDetails, selected }, index) => (
+          ({ key, value, marker, color, isDimmed, subItems, expandableId, details: extraDetails, selected }, index) => (
             <li
               key={index}
               className={clsx({
@@ -80,7 +81,11 @@ function ChartSeriesDetails(
               })}
             >
               {details.length > 1 && selected ? (
-                <div ref={selectedRef} className={styles["highlight-indicator"]}></div>
+                <div
+                  ref={selectedRef}
+                  className={styles["highlight-indicator"]}
+                  style={{ "--glow-color": color } as React.CSSProperties}
+                ></div>
               ) : null}
               {subItems?.length && !!expandableId ? (
                 <ExpandableSeries
@@ -153,7 +158,7 @@ function ExpandableSeries({
   }) {
   return (
     <div className={styles["expandable-section"]}>
-      {marker && <div style={{ blockSize: "20px", inlineSize: "20px", marginInlineEnd: "2px" }}>{marker}</div>}
+      {marker && <div className={styles.marker}>{marker}</div>}
       <div className={styles["full-width"]}>
         <InternalExpandableSection
           headerText={<span className={clsx(testClasses.key, styles.key)}>{itemKey}</span>}
@@ -175,7 +180,7 @@ function NonExpandableSeries({ itemKey, value, subItems, marker, details }: List
     <>
       <div className={clsx(styles["key-value-pair"], styles.announced)}>
         <div className={clsx(testClasses.key, styles.key)}>
-          {marker && <div style={{ blockSize: "20px", inlineSize: "20px", marginInlineEnd: "2px" }}>{marker}</div>}
+          {marker && <div className={styles.marker}>{marker}</div>}
           <span>{itemKey}</span>
         </div>
         <span className={clsx(testClasses.value, styles.value)}>{value}</span>
