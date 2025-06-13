@@ -5,12 +5,10 @@ import highcharts from "highcharts";
 import { vi } from "vitest";
 
 import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
-import { createWrapper } from "@cloudscape-design/test-utils-core/dom";
 
 import "highcharts/modules/accessibility";
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
-import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
-import { renderChart } from "./common";
+import { createChartWrapper, renderChart } from "./common";
 
 const series: Highcharts.SeriesOptionsType[] = [
   {
@@ -31,10 +29,10 @@ const commonProps: CoreChartProps = {
 };
 
 function focusApplication() {
-  createWrapper().findByClassName(testClasses.application)!.focus();
+  createChartWrapper().findApplication()!.focus();
 }
 function keyDown(keyCode: number) {
-  createWrapper().findByClassName(testClasses.application)!.keydown(keyCode);
+  createChartWrapper().findApplication()!.keydown(keyCode);
 }
 function describeFocusedElement() {
   const el = document.activeElement!;

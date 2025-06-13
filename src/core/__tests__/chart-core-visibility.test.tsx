@@ -65,7 +65,7 @@ function getVisibilityState() {
   const hiddenPoints = points.filter((p) => !p.visible);
   return {
     allLegendItems: legend?.findItems().map((w) => w.getElement().textContent) ?? [],
-    hiddenLegendItems: legend?.findItems({ hidden: true }).map((w) => w.getElement().textContent) ?? [],
+    hiddenLegendItems: legend?.findItems({ active: false }).map((w) => w.getElement().textContent) ?? [],
     allSeries: series.map((s) => s.options.id ?? s.name),
     hiddenSeries: hiddenSeries.map((s) => s.options.id ?? s.name),
     allPoints: points.map((p) => p.options.id ?? p.name),
@@ -99,7 +99,7 @@ function expectedPieItems(visible: string[]) {
   };
 }
 
-const getItem = (index: number, options?: { hidden?: boolean; dimmed?: boolean }) =>
+const getItem = (index: number, options?: { active?: boolean }) =>
   createChartWrapper().findLegend()!.findItems(options)[index];
 
 const clickItem = (index: number) => act(() => getItem(index).click());

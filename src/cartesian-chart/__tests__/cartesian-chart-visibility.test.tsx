@@ -20,7 +20,7 @@ function getVisibilityState() {
   const hiddenSeries = series.filter((s) => !s.visible);
   return {
     allLegendItems: legend?.findItems().map((w) => w.getElement().textContent) ?? [],
-    hiddenLegendItems: legend?.findItems({ hidden: true }).map((w) => w.getElement().textContent) ?? [],
+    hiddenLegendItems: legend?.findItems({ active: false }).map((w) => w.getElement().textContent) ?? [],
     allSeries: series.map((s) => s.options.id ?? s.name),
     hiddenSeries: hiddenSeries.map((s) => s.options.id ?? s.name),
   };

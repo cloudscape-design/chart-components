@@ -20,7 +20,7 @@ function getVisibilityState() {
   const hiddenPoints = points.filter((p) => !p.visible);
   return {
     allLegendItems: legend?.findItems().map((w) => w.getElement().textContent) ?? [],
-    hiddenLegendItems: legend?.findItems({ hidden: true }).map((w) => w.getElement().textContent) ?? [],
+    hiddenLegendItems: legend?.findItems({ active: false }).map((w) => w.getElement().textContent) ?? [],
     allPoints: points.map((p) => p.options.id ?? p.name),
     hiddenPoints: hiddenPoints.map((p) => p.options.id ?? p.name),
   };
