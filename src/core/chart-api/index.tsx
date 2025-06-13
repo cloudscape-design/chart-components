@@ -301,6 +301,7 @@ export class ChartAPI {
   // To prevent these issues, on each render we check for destroyed points in the tooltip state, and proactively
   // hide the tooltip if found. The behavior is only observed during the initial chart loading, and is not expected
   // to cause UX issues with the tooltip being closed unexpectedly.
+  // See: https://github.com/highcharts/highcharts/issues/23175.
   private handleDestroyedPoints() {
     const tooltipState = this.chartExtraTooltip.get();
     if (tooltipState.group.some((p) => !p.series)) {
@@ -395,6 +396,6 @@ export class ChartAPI {
   }
 }
 
-export function isPointsPositionsEqual(current?: Highcharts.Point, next?: Highcharts.Point) {
+function isPointsPositionsEqual(current?: Highcharts.Point, next?: Highcharts.Point) {
   return current?.x === next?.x && current?.y === next?.y;
 }

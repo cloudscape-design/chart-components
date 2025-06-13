@@ -60,6 +60,7 @@ export function isYThreshold(
 
 // We check point.series explicitly because Highcharts can destroy point objects, replacing the
 // contents with { destroyed: true }, violating the point's TS contract.
+// See: https://github.com/highcharts/highcharts/issues/23175.
 export function isPointVisible(point: Highcharts.Point) {
   return point.visible && point.series && point.series.visible;
 }
