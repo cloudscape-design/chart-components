@@ -101,12 +101,12 @@ $font-weight-bold: cs.$font-weight-heading-s;
 
 .highlight-indicator {
   position: absolute;
-  top: 4px;
+  top: 5px;
   left: -2px;
   width: 3px;
-  height: 14px;
+  height: 12px;
   border-radius: 4px;
-  background: cs.$color-text-body-default;
+  background: cs.$color-text-body-secondary;
 }
 
 .marker {

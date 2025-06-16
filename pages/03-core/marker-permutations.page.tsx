@@ -53,7 +53,6 @@ const permutationsForColors = [
         "triangle-down",
       ],
       color: [color],
-      highlighted: [false, true],
     },
   ]),
 );

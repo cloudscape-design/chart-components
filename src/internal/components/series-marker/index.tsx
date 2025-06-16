@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseComponentProps } from "@cloudscape-design/components/internal/base-component";
-import { colorTextBodyDefault, colorTextInteractiveDisabled } from "@cloudscape-design/design-tokens";
+import { colorTextInteractiveDisabled } from "@cloudscape-design/design-tokens";
 
 export type ChartSeriesMarkerType =
   | "line"
@@ -19,22 +19,14 @@ export interface ChartSeriesMarkerProps extends BaseComponentProps {
   type: ChartSeriesMarkerType;
   color: string;
   visible?: boolean;
-  highlighted?: boolean;
 }
 
 function scale(size: number, value: number) {
   return `translate(${size * ((1 - value) / 2)}, ${size * ((1 - value) / 2)}) scale(${value})`;
 }
 
-export function ChartSeriesMarker({
-  type = "line",
-  color,
-  visible = true,
-  highlighted = false,
-}: ChartSeriesMarkerProps) {
+export function ChartSeriesMarker({ type = "line", color, visible = true }: ChartSeriesMarkerProps) {
   color = visible ? color : colorTextInteractiveDisabled;
-  const strokeColor = highlighted ? colorTextBodyDefault : "transparent";
-  const strokeColorSquare = highlighted ? colorTextBodyDefault : color;
   return (
     <svg
       focusable={false}
@@ -45,72 +37,72 @@ export function ChartSeriesMarker({
       xmlns="http://www.w3.org/2000/svg"
     >
       <g transform="translate(4, 4)">
-        {type === "line" && <SVGLine strokeColor={strokeColor} fillColor={color} />}
+        {type === "line" && <SVGLine color={color} />}
 
-        {type === "dashed" && <SVGLineDashed strokeColor={strokeColor} fillColor={color} />}
+        {type === "dashed" && <SVGLineDashed color={color} />}
 
-        {type === "large-square" && <SVGLargeSquare strokeColor={strokeColorSquare} fillColor={color} />}
+        {type === "large-square" && <SVGLargeSquare color={color} />}
 
-        {type === "hollow-square" && <SVGHollowSquare strokeColor={strokeColorSquare} fillColor={color} />}
+        {type === "hollow-square" && <SVGHollowSquare color={color} />}
 
-        {type === "square" && <SVGSquare strokeColor={strokeColor} fillColor={color} />}
+        {type === "square" && <SVGSquare color={color} />}
 
-        {type === "diamond" && <SVGDiamond strokeColor={strokeColor} fillColor={color} />}
+        {type === "diamond" && <SVGDiamond color={color} />}
 
-        {type === "triangle" && <SVGTriangle strokeColor={strokeColor} fillColor={color} />}
+        {type === "triangle" && <SVGTriangle color={color} />}
 
-        {type === "triangle-down" && <SVGTriangleDown strokeColor={strokeColor} fillColor={color} />}
+        {type === "triangle-down" && <SVGTriangleDown color={color} />}
 
-        {type === "circle" && <SVGCircle strokeColor={strokeColor} fillColor={color} />}
+        {type === "circle" && <SVGCircle color={color} />}
       </g>
     </svg>
   );
 }
 
-function SVGLine({ strokeColor, fillColor }: { strokeColor: string; fillColor: string }) {
-  return <rect x={0} y={5} height={4} width={14} strokeWidth={2} stroke={strokeColor} fill={fillColor} rx={2} />;
+function SVGLine({ color }: { color: string }) {
+  return <rect x={0} y={5} height={4} width={14} strokeWidth={0} fill={color} rx={2} />;
 }
 
-function SVGLineDashed({ strokeColor, fillColor }: { strokeColor: string; fillColor: string }) {
+function SVGLineDashed({ color }: { color: string }) {
   return (
     <>
-      <rect x={0} y={6} height={4} width={7} strokeWidth={2} stroke={strokeColor} fill={fillColor} rx={2} />
-      <rect x={8} y={6} height={4} width={7} strokeWidth={2} stroke={strokeColor} fill={fillColor} rx={2} />
+      <rect x={0} y={5} height={4} width={7} strokeWidth={0} fill={color} rx={2} />
+      <rect x={8} y={5} height={4} width={7} strokeWidth={0} fill={color} rx={2} />
     </>
   );
 }
 
-function SVGLargeSquare({ strokeColor, fillColor }: { strokeColor: string; fillColor: string }) {
+function SVGLargeSquare({ color }: { color: string }) {
   const shape = { x: 0, y: 0, width: 14, height: 14, transform: scale(14, 0.8), rx: 2 };
-  return <rect {...shape} strokeWidth={2} stroke={strokeColor} fill={fillColor} />;
+  return <rect {...shape} strokeWidth={2} stroke={color} fill={color} />;
 }
 
-function SVGHollowSquare({ strokeColor, fillColor }: { strokeColor: string; fillColor: string }) {
+function SVGHollowSquare({ color }: { color: string }) {
   const size = { x: 0, y: 0, width: 14, height: 14, transform: scale(14, 0.8), rx: 2 };
-  return <rect {...size} strokeWidth={2} stroke={strokeColor} fill={fillColor} fillOpacity="0.40" />;
+  return <rect {...size} strokeWidth={2} stroke={color} fill={color} fillOpacity="0.40" />;
 }
 
-function SVGSquare({ strokeColor, fillColor }: { strokeColor: string; fillColor: string }) {
+function SVGSquare({ color }: { color: string }) {
   const size = { x: 0, y: 0, width: 14, height: 14, transform: scale(14, 0.65), rx: 2 };
-  return <rect {...size} strokeWidth={2} stroke={strokeColor} fill={fillColor} />;
+  return <rect {...size} strokeWidth={0} fill={color} />;
 }
 
-function SVGDiamond({ strokeColor, fillColor }: { strokeColor: string; fillColor: string }) {
+function SVGDiamond({ color }: { color: string }) {
   const shape = { points: "7,0 14,7 7,14 0,7", transform: scale(14, 0.75) };
-  return <polygon {...shape} strokeWidth={2} stroke={strokeColor} fill={fillColor} />;
+  return <polygon {...shape} strokeWidth={0} fill={color} />;
 }
 
-function SVGTriangle({ strokeColor, fillColor }: { strokeColor: string; fillColor: string }) {
+function SVGTriangle({ color }: { color: string }) {
   const shape = { points: "7,0 14,14 0,14", transform: scale(14, 0.65) };
-  return <polygon {...shape} strokeWidth={2} stroke={strokeColor} fill={fillColor} />;
+  return <polygon {...shape} strokeWidth={0} fill={color} />;
 }
 
-function SVGTriangleDown({ strokeColor, fillColor }: { strokeColor: string; fillColor: string }) {
+function SVGTriangleDown({ color }: { color: string }) {
   const shape = { points: "7,14 0,0 14,0", transform: scale(14, 0.65) };
-  return <polygon {...shape} strokeWidth={2} stroke={strokeColor} fill={fillColor} />;
+  return <polygon {...shape} strokeWidth={0} fill={color} />;
 }
 
-function SVGCircle({ strokeColor, fillColor }: { strokeColor: string; fillColor: string }) {
+function SVGCircle({ color }: { color: string }) {
   const shape = { cx: 7, cy: 7, r: 7, transform: scale(14, 0.65) };
-  return <circle {...shape} strokeWidth={2} stroke={strokeColor} fill={fillColor} />;
+  return <circle {...shape} strokeWidth={0} fill={color} />;
 }
