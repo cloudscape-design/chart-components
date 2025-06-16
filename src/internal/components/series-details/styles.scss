@@ -38,6 +38,7 @@ $font-weight-bold: cs.$font-weight-heading-s;
   inline-size: 100%;
 
   > .key {
+    @include styles.text-wrapping;
     display: inline-flex;
     color: cs.$color-text-group-label;
   }
