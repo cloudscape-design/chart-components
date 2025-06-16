@@ -27,7 +27,7 @@ interface ListItemProps {
 }
 
 export interface ChartSeriesDetailItem extends ChartDetailPair {
-  selected?: boolean;
+  highlighted?: boolean;
   marker?: React.ReactNode;
   color?: string;
   isDimmed?: boolean;
@@ -58,7 +58,7 @@ function ChartSeriesDetails(
 
   const isExpanded = (seriesTitle: string) => !!expandedSeries && expandedSeries.has(seriesTitle);
 
-  const selectedIndex = details.findIndex((d) => d.selected);
+  const selectedIndex = details.findIndex((d) => d.highlighted);
   useEffect(() => {
     if (selectedIndex !== -1 && selectedRef.current && "scrollIntoView" in selectedRef.current) {
       selectedRef.current.scrollIntoView({ behavior: "smooth" });
@@ -69,7 +69,10 @@ function ChartSeriesDetails(
     <div {...baseProps} className={className} ref={mergedRef}>
       <ul className={clsx(styles.list, compactList && styles.compact)}>
         {details.map(
-          ({ key, value, marker, color, isDimmed, subItems, expandableId, details: extraDetails, selected }, index) => (
+          (
+            { key, value, marker, color, isDimmed, subItems, expandableId, details: extraDetails, highlighted },
+            index,
+          ) => (
             <li
               key={index}
               className={clsx({
@@ -80,7 +83,7 @@ function ChartSeriesDetails(
                 [styles.expandable]: !!expandableId,
               })}
             >
-              {details.length > 1 && selected ? (
+              {details.length > 1 && highlighted ? (
                 <div
                   ref={selectedRef}
                   className={styles["highlight-indicator"]}

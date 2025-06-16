@@ -13,6 +13,10 @@ import {
   colorChartsPaletteCategorical8,
   colorChartsPaletteCategorical9,
   colorChartsPaletteCategorical10,
+  colorChartsThresholdInfo,
+  colorChartsThresholdNegative,
+  colorChartsThresholdNeutral,
+  colorChartsThresholdPositive,
 } from "@cloudscape-design/design-tokens";
 
 import { ChartSeriesMarker, ChartSeriesMarkerProps } from "../../lib/components/internal/components/series-marker";
@@ -30,6 +34,10 @@ const permutationsForColors = [
   colorChartsPaletteCategorical8,
   colorChartsPaletteCategorical9,
   colorChartsPaletteCategorical10,
+  colorChartsThresholdInfo,
+  colorChartsThresholdNegative,
+  colorChartsThresholdNeutral,
+  colorChartsThresholdPositive,
 ].map((color) =>
   createPermutations<ChartSeriesMarkerProps>([
     {
@@ -45,6 +53,7 @@ const permutationsForColors = [
         "triangle-down",
       ],
       color: [color],
+      highlighted: [false, true],
     },
   ]),
 );

@@ -106,9 +106,16 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
   // The chart markers derive from type and color and are cached to avoid unnecessary renders,
   // and allow comparing them by reference.
   private markersCache = new Map<string, React.ReactNode>();
-  public renderMarker(type: ChartSeriesMarkerType, color: string, visible = true): React.ReactNode {
-    const key = `${type}:${color}:${visible}`;
-    const marker = this.markersCache.get(key) ?? <ChartSeriesMarker type={type} color={color} visible={visible} />;
+  public renderMarker(
+    type: ChartSeriesMarkerType,
+    color: string,
+    visible = true,
+    highlighted = false,
+  ): React.ReactNode {
+    const key = `${type}:${color}:${visible}:${highlighted}`;
+    const marker = this.markersCache.get(key) ?? (
+      <ChartSeriesMarker type={type} color={color} visible={visible} highlighted={highlighted} />
+    );
     this.markersCache.set(key, marker);
     return marker;
   }

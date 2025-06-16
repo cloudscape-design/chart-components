@@ -145,8 +145,8 @@ function getTooltipContentCartesian(
 ): RenderedTooltipContent {
   const x = group[0].x;
   const chart = group[0].series.chart;
-  const getSeriesMarker = (series: Highcharts.Series) =>
-    api.renderMarker(getSeriesMarkerType(series), getSeriesColor(series));
+  const getSeriesMarker = (series: Highcharts.Series, highlighted: boolean) =>
+    api.renderMarker(getSeriesMarkerType(series), getSeriesColor(series), true, highlighted);
   const matchedItems = findTooltipSeriesItems(chart.series, group);
   const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
     const valueFormatter = getFormatter(item.point.series.yAxis);
@@ -173,15 +173,16 @@ function getTooltipContentCartesian(
         ) : null,
       };
     })();
+    const highlighted = item.point.x === point?.x && item.point.y === point?.y;
     return {
       key: formatted.key,
       value: formatted.value,
-      marker: getSeriesMarker(item.point.series),
+      marker: getSeriesMarker(item.point.series, highlighted),
       color: getSeriesColor(item.point.series),
       subItems: formatted.subItems,
       expandableId: formatted.expandable ? item.point.series.name : undefined,
       details: formatted.details,
-      selected: item.point.x === point?.x && item.point.y === point?.y,
+      highlighted,
     };
   });
   const titleFormatter = getFormatter(chart.xAxis[0]);

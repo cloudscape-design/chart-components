@@ -6,7 +6,7 @@ import type Highcharts from "highcharts";
 
 import { getIsRtl } from "@cloudscape-design/component-toolkit/internal";
 
-import { renderMarker } from "../../internal/components/series-marker";
+import { renderMarker } from "../../internal/components/series-marker/render-marker";
 import AsyncStore from "../../internal/utils/async-store";
 import { SVGRendererPool, SVGRendererSingle } from "../../internal/utils/renderer-utils";
 import { DebouncedCall } from "../../internal/utils/utils";
