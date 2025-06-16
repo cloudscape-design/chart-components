@@ -24,7 +24,7 @@ export function renderMarker(
   const size = selected ? 4 : 3;
   const pointStyle = {
     zIndex: selected ? 6 : 5,
-    "stroke-width": selected ? 1 : 2,
+    "stroke-width": 2,
     stroke: selected ? colorTextBodyDefault : point.color,
     fill: selected ? point.color : colorBackgroundLayoutMain,
     opacity: 1,
