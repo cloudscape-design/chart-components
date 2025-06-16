@@ -60,7 +60,7 @@ function ChartSeriesDetails(
   const selectedIndex = details.findIndex((d) => d.highlighted);
   useEffect(() => {
     if (selectedIndex !== -1 && selectedRef.current && "scrollIntoView" in selectedRef.current) {
-      selectedRef.current.scrollIntoView({ behavior: "smooth" });
+      selectedRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }, [selectedIndex]);
 

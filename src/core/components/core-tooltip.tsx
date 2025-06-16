@@ -183,6 +183,9 @@ function getTooltipContentCartesian(
       highlighted: item.point.x === point?.x && item.point.y === point?.y,
     };
   });
+  if (chart.options.plotOptions?.series?.stacking) {
+    detailItems.reverse();
+  }
   const titleFormatter = getFormatter(chart.xAxis[0]);
   const slotRenderProps: TooltipSlotProps = { x, items: matchedItems };
   return {
