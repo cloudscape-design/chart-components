@@ -46,14 +46,7 @@ export default class AsyncStore<S> implements ReadonlyAsyncStore<S> {
   }
 
   public unsubscribe(listener: Listener<S>): void {
-    for (let index = 0; index < this._listeners.length; index++) {
-      const [, storedListener] = this._listeners[index];
-
-      if (storedListener === listener) {
-        this._listeners.splice(index, 1);
-        break;
-      }
-    }
+    this._listeners = this._listeners.filter(([, storedListener]) => storedListener !== listener);
   }
 }
 
