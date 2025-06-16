@@ -93,7 +93,7 @@ function DefaultErrorMessage({
       <StatusIndicator type="error" wrapText={true}>
         {errorText}
       </StatusIndicator>
-      {!!recoveryText && !!onRecoveryClick && (
+      {recoveryText && onRecoveryClick ? (
         <Button
           onClick={(event: CustomEvent) => {
             event.preventDefault();
@@ -104,7 +104,7 @@ function DefaultErrorMessage({
         >
           {recoveryText}
         </Button>
-      )}
+      ) : null}
     </SpaceBetween>
   );
 }
