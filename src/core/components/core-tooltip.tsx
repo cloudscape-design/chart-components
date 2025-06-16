@@ -177,7 +177,6 @@ function getTooltipContentCartesian(
       key: formatted.key,
       value: formatted.value,
       marker: getSeriesMarker(item.point.series),
-      color: getSeriesColor(item.point.series),
       subItems: formatted.subItems,
       expandableId: formatted.expandable ? item.point.series.name : undefined,
       details: formatted.details,

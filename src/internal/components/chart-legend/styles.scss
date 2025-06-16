@@ -67,3 +67,15 @@
     /* used in test utils */
   }
 }
+
+.actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.actions-divider {
+  background: cs.$color-border-divider-default;
+  width: 1px;
+  height: 80%;
+}

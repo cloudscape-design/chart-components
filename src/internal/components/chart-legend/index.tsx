@@ -14,7 +14,6 @@ import {
   useSingleTabStopNavigation,
 } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
-import { colorBorderDividerDefault } from "@cloudscape-design/design-tokens";
 
 import { CoreLegendItem } from "../../../core/interfaces";
 import { DebouncedCall } from "../../utils/utils";
@@ -168,10 +167,9 @@ export const ChartLegend = ({
 
         <div className={styles.list}>
           {actions && (
-            <div style={{ display: "flex", gap: 4, alignItems: "center" }} className={testClasses.actions}>
+            <div className={clsx(testClasses.actions, styles.actions)}>
               {actions}
-
-              <div style={{ background: colorBorderDividerDefault, width: 1, height: "80%" }} />
+              <div className={styles["actions-divider"]} />
             </div>
           )}
 

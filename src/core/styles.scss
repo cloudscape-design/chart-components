@@ -35,6 +35,10 @@
   background-color: cs.$color-background-container-content;
 }
 
+.no-data-empty {
+  color: cs.$color-text-empty;
+}
+
 .no-data-content {
   overflow-x: auto;
   overflow-y: hidden;

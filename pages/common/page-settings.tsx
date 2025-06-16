@@ -115,19 +115,21 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
     statusType: settings.seriesLoading ? "loading" : settings.seriesError ? "error" : "finished",
     empty: (
       <div>
-        <Box fontWeight="bold" textAlign="center">
+        <Box fontWeight="bold" textAlign="center" color="inherit">
           No data available
         </Box>
-        <Box textAlign="center">There is no data available</Box>
+        <Box textAlign="center" color="inherit">
+          There is no data available
+        </Box>
       </div>
     ),
     noMatch: (
       <SpaceBetween size="xs" alignItems="center">
         <div>
-          <Box fontWeight="bold" textAlign="center">
+          <Box fontWeight="bold" textAlign="center" color="inherit">
             No matching data
           </Box>
-          <Box>There is no matching data to display</Box>
+          <Box color="inherit">There is no matching data to display</Box>
         </div>
         <Button onClick={onClearFilter}>Clear filter</Button>
       </SpaceBetween>

@@ -71,9 +71,9 @@ export function ChartNoData({
       </SpaceBetween>
     );
   } else if (state.noMatch) {
-    content = <div className={testClasses["no-data-no-match"]}>{noMatch}</div>;
+    content = <div className={clsx(testClasses["no-data-no-match"], styles["no-data-empty"])}>{noMatch}</div>;
   } else {
-    content = <div className={testClasses["no-data-empty"]}>{empty}</div>;
+    content = <div className={clsx(testClasses["no-data-empty"], styles["no-data-empty"])}>{empty}</div>;
   }
   return (
     <Portal container={state.container}>

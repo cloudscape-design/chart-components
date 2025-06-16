@@ -29,7 +29,6 @@ interface ListItemProps {
 export interface ChartSeriesDetailItem extends ChartDetailPair {
   highlighted?: boolean;
   marker?: React.ReactNode;
-  color?: string;
   isDimmed?: boolean;
   subItems?: ReadonlyArray<ChartDetailPair>;
   expandableId?: string;
@@ -69,10 +68,7 @@ function ChartSeriesDetails(
     <div {...baseProps} className={className} ref={mergedRef}>
       <ul className={clsx(styles.list, compactList && styles.compact)}>
         {details.map(
-          (
-            { key, value, marker, color, isDimmed, subItems, expandableId, details: extraDetails, highlighted },
-            index,
-          ) => (
+          ({ key, value, marker, isDimmed, subItems, expandableId, details: extraDetails, highlighted }, index) => (
             <li
               key={index}
               className={clsx({
@@ -84,11 +80,7 @@ function ChartSeriesDetails(
               })}
             >
               {details.length > 1 && highlighted ? (
-                <div
-                  ref={selectedRef}
-                  className={styles["highlight-indicator"]}
-                  style={{ "--glow-color": color } as React.CSSProperties}
-                ></div>
+                <div ref={selectedRef} className={styles["highlight-indicator"]}></div>
               ) : null}
               {subItems?.length && !!expandableId ? (
                 <ExpandableSeries
