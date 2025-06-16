@@ -48,9 +48,8 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
     if (this.visibilityMode === "internal") {
       this.updateLegendItems(updatedItems);
       updateItemsVisibility(this.context.chart(), this.get().items, visibleItems);
-    } else {
-      this.context.handlers.onVisibleItemsChange?.(updatedItems);
     }
+    this.context.handlers.onVisibleItemsChange?.(updatedItems);
   };
 
   // Updates legend highlight state when chart's point is highlighted.
