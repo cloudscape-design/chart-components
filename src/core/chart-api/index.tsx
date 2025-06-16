@@ -125,7 +125,6 @@ export class ChartAPI {
       chartAPI.chartExtraPointer.onSeriesPointClick(this);
     };
     return {
-      ...this.chartExtraNodata.options,
       onChartLoad,
       onChartRender,
       onChartClick,

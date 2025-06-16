@@ -1,7 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { waitFor } from "@testing-library/react";
 import highcharts from "highcharts";
 import { vi } from "vitest";
 
@@ -58,20 +57,18 @@ describe("CoreChart: no-data", () => {
     expect(createChartWrapper().findNoData()).toBe(null);
   });
 
-  test('renders no-data loading when statusType="loading" using provider i18n', async () => {
+  test('renders no-data loading when statusType="loading" using provider i18n', () => {
     renderChart({
       highcharts,
       options: { series: [] },
       noData: { statusType: "loading" },
       i18nProvider: i18nProvider,
     });
-    await waitFor(() => {
-      expect(getNoDataText("loading")).toBe("provider: loading");
-      expect(getNoDataLiveRegionText()).toBe("provider: loading");
-    });
+    expect(getNoDataText("loading")).toBe("provider: loading");
+    expect(getNoDataLiveRegionText()).toBe("provider: loading");
   });
 
-  test('renders no-data loading when statusType="loading" using i18n strings', async () => {
+  test('renders no-data loading when statusType="loading" using i18n strings', () => {
     renderChart({
       highcharts,
       options: { series: [] },
@@ -79,14 +76,11 @@ describe("CoreChart: no-data", () => {
       i18nStrings,
       i18nProvider,
     });
-
-    await waitFor(() => {
-      expect(getNoDataText("loading")).toBe("i18n: loading");
-      expect(getNoDataLiveRegionText()).toBe("i18n: loading");
-    });
+    expect(getNoDataText("loading")).toBe("i18n: loading");
+    expect(getNoDataLiveRegionText()).toBe("i18n: loading");
   });
 
-  test('renders no-data loading when statusType="loading" using loading slot', async () => {
+  test('renders no-data loading when statusType="loading" using loading slot', () => {
     renderChart({
       highcharts,
       options: { series: [] },
@@ -94,24 +88,19 @@ describe("CoreChart: no-data", () => {
       i18nStrings,
       i18nProvider,
     });
-
-    await waitFor(() => {
-      expect(getNoDataText("loading")).toBe("slot: loading");
-      expect(getNoDataLiveRegionText()).toBe("slot: loading");
-    });
+    expect(getNoDataText("loading")).toBe("slot: loading");
+    expect(getNoDataLiveRegionText()).toBe("slot: loading");
   });
 
-  test('renders no-data error when statusType="error" using provider i18n', async () => {
+  test('renders no-data error when statusType="error" using provider i18n', () => {
     const { rerender } = renderChart({
       highcharts,
       options: { series: [] },
       noData: { statusType: "error" },
       i18nProvider,
     });
-    await waitFor(() => {
-      expect(getNoDataText("error")).toBe("provider: error");
-      expect(getNoDataLiveRegionText()).toBe("provider: error");
-    });
+    expect(getNoDataText("error")).toBe("provider: error");
+    expect(getNoDataLiveRegionText()).toBe("provider: error");
 
     const onRecoveryClick = vi.fn();
     rerender({
@@ -120,16 +109,14 @@ describe("CoreChart: no-data", () => {
       noData: { statusType: "error", onRecoveryClick },
       i18nProvider,
     });
-    await waitFor(() => {
-      expect(getNoDataText("error")).toBe(["provider: error", "provider: retry"].join(""));
-      expect(getNoDataLiveRegionText()).toBe(["provider: error", "provider: retry"].join(""));
-    });
+    expect(getNoDataText("error")).toBe(["provider: error", "provider: retry"].join(""));
+    expect(getNoDataLiveRegionText()).toBe(["provider: error", "provider: retry"].join(""));
 
     createWrapper().findButton()!.click();
     expect(onRecoveryClick).toHaveBeenCalled();
   });
 
-  test('renders no-data error when statusType="error" using i18n strings', async () => {
+  test('renders no-data error when statusType="error" using i18n strings', () => {
     const { rerender } = renderChart({
       highcharts,
       options: { series: [] },
@@ -137,10 +124,8 @@ describe("CoreChart: no-data", () => {
       i18nStrings,
       i18nProvider,
     });
-    await waitFor(() => {
-      expect(getNoDataText("error")).toBe("i18n: error");
-      expect(getNoDataLiveRegionText()).toBe("i18n: error");
-    });
+    expect(getNoDataText("error")).toBe("i18n: error");
+    expect(getNoDataLiveRegionText()).toBe("i18n: error");
 
     const onRecoveryClick = vi.fn();
     rerender({
@@ -150,16 +135,14 @@ describe("CoreChart: no-data", () => {
       i18nStrings,
       i18nProvider,
     });
-    await waitFor(() => {
-      expect(getNoDataText("error")).toBe(["i18n: error", "i18n: retry"].join(""));
-      expect(getNoDataLiveRegionText()).toBe(["i18n: error", "i18n: retry"].join(""));
-    });
+    expect(getNoDataText("error")).toBe(["i18n: error", "i18n: retry"].join(""));
+    expect(getNoDataLiveRegionText()).toBe(["i18n: error", "i18n: retry"].join(""));
 
     createWrapper().findButton()!.click();
     expect(onRecoveryClick).toHaveBeenCalled();
   });
 
-  test('renders no-data error when statusType="error" using error slot', async () => {
+  test('renders no-data error when statusType="error" using error slot', () => {
     renderChart({
       highcharts,
       options: { series: [] },
@@ -167,70 +150,60 @@ describe("CoreChart: no-data", () => {
       i18nStrings,
       i18nProvider,
     });
-    await waitFor(() => {
-      expect(getNoDataText("error")).toBe("slot: error");
-      expect(getNoDataLiveRegionText()).toBe("slot: error");
-    });
+    expect(getNoDataText("error")).toBe("slot: error");
+    expect(getNoDataLiveRegionText()).toBe("slot: error");
   });
 
-  test('renders no-data empty when statusType="finished" and no series provided', async () => {
+  test('renders no-data empty when statusType="finished" and no series provided', () => {
     renderChart({
       highcharts,
       options: { series: [] },
       noData: { statusType: "finished", ...slots },
     });
-    await waitFor(() => {
-      expect(getNoDataText("empty")).toBe("slot: empty");
-      expect(getNoDataLiveRegionText()).toBe("slot: empty");
-    });
+    expect(getNoDataText("empty")).toBe("slot: empty");
+    expect(getNoDataLiveRegionText()).toBe("slot: empty");
   });
 
-  test('does not render no-data empty when statusType="finished" and no series provided when empty is null', async () => {
+  test('does not render no-data empty when statusType="finished" and no series provided when empty is null', () => {
     renderChart({
       highcharts,
       options: { series: [] },
       noData: { statusType: "finished", ...slots, empty: null },
     });
-    await new Promise((resolve) => setTimeout(resolve, 10));
     expect(createChartWrapper().findNoData()).toBe(null);
   });
 
   test.each(["line", "pie"] as const)(
     'renders no-data empty when statusType="finished" and no series data provided, series type = %s',
-    async (seriesType) => {
+    (seriesType) => {
       renderChart({
         highcharts,
         options: { series: [{ type: seriesType, name: "Empty data series", data: [] }] },
         noData: { statusType: "finished", ...slots },
       });
-      await waitFor(() => {
-        expect(getNoDataText("empty")).toBe("slot: empty");
-        expect(getNoDataLiveRegionText()).toBe("slot: empty");
-      });
+      expect(getNoDataText("empty")).toBe("slot: empty");
+      expect(getNoDataLiveRegionText()).toBe("slot: empty");
     },
   );
 
-  test('renders no-data no-match when statusType="finished" and no series visible', async () => {
+  test('renders no-data no-match when statusType="finished" and no series visible', () => {
     renderChart({
       highcharts,
       options: { series },
       noData: { statusType: "finished", ...slots },
       visibleItems: [],
     });
-    await waitFor(() => {
-      expect(getNoDataText("no-match")).toBe("slot: no-match");
-      expect(getNoDataLiveRegionText()).toBe("slot: no-match");
-    });
+    expect(getNoDataText("no-match")).toBe("slot: no-match");
+    expect(getNoDataLiveRegionText()).toBe("slot: no-match");
   });
 
-  test('does not render no-data no-match when statusType="finished" and no series visible when noMatch is null', async () => {
+  test('does not render no-data no-match when statusType="finished" and no series visible when noMatch is null', () => {
     renderChart({
       highcharts,
       options: { series },
       noData: { statusType: "finished", ...slots, noMatch: null },
       visibleItems: [],
     });
-    await new Promise((resolve) => setTimeout(resolve, 10));
     expect(createChartWrapper().findNoData()).toBe(null);
   });
 });

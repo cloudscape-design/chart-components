@@ -18,6 +18,14 @@
   block-size: 100%;
 }
 
+.no-data-container {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .no-data {
   overflow: hidden;
   padding-block: cs.$space-static-xs;

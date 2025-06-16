@@ -158,12 +158,8 @@ export function InternalCoreChart({
             series: options.series,
             // Highcharts legend is disabled by default in favour of the custom Cloudscape legend.
             legend: { enabled: false, ...options.legend },
-            // Use Cloudscape no-data defaults if no-data props are defined.
-            noData: settings.noDataEnabled ? apiOptions.noData : options.noData,
             lang: {
               ...options.lang,
-              // Use Cloudscape no-data defaults if no-data props are defined.
-              noData: settings.noDataEnabled ? apiOptions.langNoData : options.lang?.noData,
               // The default chart title is disabled by default to prevent the default "Chart" in the screen-reader detail.
               accessibility: { defaultChartTitle: "", chartContainerLabel: ariaLabel, ...options.lang?.accessibility },
             },
