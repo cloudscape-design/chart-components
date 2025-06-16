@@ -53,10 +53,10 @@
   }
 
   &.marker--inactive {
-    color: cs.$color-text-interactive-disabled;
+    color: cs.$color-text-body-secondary;
     text-decoration: line-through;
     text-decoration-thickness: 2px;
-    text-decoration-color: cs.$color-text-interactive-disabled;
+    text-decoration-color: cs.$color-text-body-secondary;
   }
 
   &.marker--dimmed {

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseComponentProps } from "@cloudscape-design/components/internal/base-component";
-import { colorTextInteractiveDisabled } from "@cloudscape-design/design-tokens";
 
 export type ChartSeriesMarkerType =
   | "line"
@@ -26,7 +25,8 @@ function scale(size: number, value: number) {
 }
 
 export function ChartSeriesMarker({ type = "line", color, visible = true }: ChartSeriesMarkerProps) {
-  color = visible ? color : colorTextInteractiveDisabled;
+  const opacity = visible ? 1 : 0.35;
+  const markerProps = { color, opacity };
   return (
     <svg
       focusable={false}
@@ -37,72 +37,72 @@ export function ChartSeriesMarker({ type = "line", color, visible = true }: Char
       xmlns="http://www.w3.org/2000/svg"
     >
       <g transform="translate(4, 4)">
-        {type === "line" && <SVGLine color={color} />}
+        {type === "line" && <SVGLine {...markerProps} />}
 
-        {type === "dashed" && <SVGLineDashed color={color} />}
+        {type === "dashed" && <SVGLineDashed {...markerProps} />}
 
-        {type === "large-square" && <SVGLargeSquare color={color} />}
+        {type === "large-square" && <SVGLargeSquare {...markerProps} />}
 
-        {type === "hollow-square" && <SVGHollowSquare color={color} />}
+        {type === "hollow-square" && <SVGHollowSquare {...markerProps} />}
 
-        {type === "square" && <SVGSquare color={color} />}
+        {type === "square" && <SVGSquare {...markerProps} />}
 
-        {type === "diamond" && <SVGDiamond color={color} />}
+        {type === "diamond" && <SVGDiamond {...markerProps} />}
 
-        {type === "triangle" && <SVGTriangle color={color} />}
+        {type === "triangle" && <SVGTriangle {...markerProps} />}
 
-        {type === "triangle-down" && <SVGTriangleDown color={color} />}
+        {type === "triangle-down" && <SVGTriangleDown {...markerProps} />}
 
-        {type === "circle" && <SVGCircle color={color} />}
+        {type === "circle" && <SVGCircle {...markerProps} />}
       </g>
     </svg>
   );
 }
 
-function SVGLine({ color }: { color: string }) {
-  return <rect x={0} y={5} height={4} width={14} strokeWidth={0} fill={color} rx={2} />;
+function SVGLine({ color, opacity }: { color: string; opacity: number }) {
+  return <rect x={0} y={5} height={4} width={14} strokeWidth={0} rx={2} fill={color} opacity={opacity} />;
 }
 
-function SVGLineDashed({ color }: { color: string }) {
+function SVGLineDashed({ color, opacity }: { color: string; opacity: number }) {
   return (
     <>
-      <rect x={0} y={5} height={4} width={7} strokeWidth={0} fill={color} rx={2} />
-      <rect x={8} y={5} height={4} width={7} strokeWidth={0} fill={color} rx={2} />
+      <rect x={0} y={5} height={4} width={7} strokeWidth={0} rx={2} fill={color} opacity={opacity} />
+      <rect x={8} y={5} height={4} width={7} strokeWidth={0} rx={2} fill={color} opacity={opacity} />
     </>
   );
 }
 
-function SVGLargeSquare({ color }: { color: string }) {
+function SVGLargeSquare({ color, opacity }: { color: string; opacity: number }) {
   const shape = { x: 0, y: 0, width: 14, height: 14, transform: scale(14, 0.8), rx: 2 };
-  return <rect {...shape} strokeWidth={2} stroke={color} fill={color} />;
+  return <rect {...shape} strokeWidth={2} stroke={color} fill={color} opacity={opacity} />;
 }
 
-function SVGHollowSquare({ color }: { color: string }) {
+function SVGHollowSquare({ color, opacity }: { color: string; opacity: number }) {
   const size = { x: 0, y: 0, width: 14, height: 14, transform: scale(14, 0.8), rx: 2 };
-  return <rect {...size} strokeWidth={2} stroke={color} fill={color} fillOpacity="0.40" />;
+  return <rect {...size} strokeWidth={2} stroke={color} fill={color} opacity={opacity} fillOpacity="0.40" />;
 }
 
-function SVGSquare({ color }: { color: string }) {
+function SVGSquare({ color, opacity }: { color: string; opacity: number }) {
   const size = { x: 0, y: 0, width: 14, height: 14, transform: scale(14, 0.65), rx: 2 };
-  return <rect {...size} strokeWidth={0} fill={color} />;
+  return <rect {...size} strokeWidth={0} fill={color} opacity={opacity} />;
 }
 
-function SVGDiamond({ color }: { color: string }) {
+function SVGDiamond({ color, opacity }: { color: string; opacity: number }) {
   const shape = { points: "7,0 14,7 7,14 0,7", transform: scale(14, 0.75) };
-  return <polygon {...shape} strokeWidth={0} fill={color} />;
+  return <polygon {...shape} strokeWidth={0} fill={color} opacity={opacity} />;
 }
 
-function SVGTriangle({ color }: { color: string }) {
+function SVGTriangle({ color, opacity }: { color: string; opacity: number }) {
   const shape = { points: "7,0 14,14 0,14", transform: scale(14, 0.65) };
-  return <polygon {...shape} strokeWidth={0} fill={color} />;
+  return <polygon {...shape} strokeWidth={0} fill={color} opacity={opacity} />;
 }
 
-function SVGTriangleDown({ color }: { color: string }) {
+function SVGTriangleDown({ color, opacity }: { color: string; opacity: number }) {
   const shape = { points: "7,14 0,0 14,0", transform: scale(14, 0.65) };
-  return <polygon {...shape} strokeWidth={0} fill={color} />;
+  return <polygon {...shape} strokeWidth={0} fill={color} opacity={opacity} />;
 }
 
-function SVGCircle({ color }: { color: string }) {
+function SVGCircle({ color, opacity }: { color: string; opacity: number }) {
   const shape = { cx: 7, cy: 7, r: 7, transform: scale(14, 0.65) };
-  return <circle {...shape} strokeWidth={0} fill={color} />;
+  return <circle {...shape} strokeWidth={0} fill={color} opacity={opacity} />;
 }
