@@ -49,7 +49,8 @@ export const transformCartesianSeries = (
     if (s.type === "errorbar") {
       // In Highcharts, the error-bar series graphic color is represented as stem-, and whisker colors.
       // We simplify that, and only expose a single color prop that sets both of those.
-      return { ...s, data: s.data as Writeable<RangeDataItemOptions[]>, stemColor: s.color, whiskerColor: s.color };
+      const colors = s.color ? { stemColor: s.color, whiskerColor: s.color } : {};
+      return { ...s, data: s.data as Writeable<RangeDataItemOptions[]>, ...colors };
     }
     return { ...s, data: s.data as Writeable<PointDataItemType[]> };
   }
