@@ -206,8 +206,7 @@ This property corresponds to [chart.inverted](https://api.highcharts.com/highcha
       "type": "BaseLegendOptions",
     },
     {
-      "description": "The empty, no-match, loading, or error state of the chart.
-It requires the \`no-data-to-display\` module.",
+      "description": "The empty, no-match, loading, or error state of the chart.",
       "inlineType": {
         "name": "BaseNoDataOptions",
         "properties": [
@@ -700,8 +699,7 @@ Supported Highcharts versions:
       "type": "BaseLegendOptions",
     },
     {
-      "description": "The empty, no-match, loading, or error state of the chart.
-It requires the \`no-data-to-display\` module.",
+      "description": "The empty, no-match, loading, or error state of the chart.",
       "inlineType": {
         "name": "BaseNoDataOptions",
         "properties": [

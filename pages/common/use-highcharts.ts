@@ -24,7 +24,6 @@ export function useHighcharts({ more = false, xrange = false }: { more?: boolean
 
       await import("highcharts/modules/accessibility");
       await import("highcharts/modules/heatmap"); // Required for point visibility API!
-      await import("highcharts/modules/no-data-to-display");
 
       // Required for arearange, areasplinerange, columnrange, gauge, boxplot, errorbar, waterfall, polygon, bubble
       if (more) {

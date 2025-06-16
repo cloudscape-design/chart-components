@@ -70,7 +70,6 @@ export interface BaseChartOptions {
 
   /**
    * The empty, no-match, loading, or error state of the chart.
-   * It requires the `no-data-to-display` module.
    */
   noData?: BaseNoDataOptions;
 

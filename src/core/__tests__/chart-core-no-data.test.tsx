@@ -4,7 +4,6 @@
 import highcharts from "highcharts";
 import { vi } from "vitest";
 
-import "highcharts/modules/no-data-to-display";
 import createWrapper from "../../../lib/components/test-utils/dom";
 import { createChartWrapper, renderChart } from "./common";
 
