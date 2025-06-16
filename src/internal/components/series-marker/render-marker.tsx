@@ -3,7 +3,7 @@
 
 import type Highcharts from "highcharts";
 
-import { colorBackgroundLayoutMain, colorTextBodyDefault } from "@cloudscape-design/design-tokens";
+import { colorBackgroundContainerContent, colorTextBodyDefault } from "@cloudscape-design/design-tokens";
 
 import { SVGRendererPool } from "../../utils/renderer-utils";
 import { ChartSeriesMarkerType } from "./interfaces";
@@ -26,7 +26,7 @@ export function renderMarker(
     zIndex: selected ? 6 : 5,
     "stroke-width": 2,
     stroke: selected ? colorTextBodyDefault : point.color,
-    fill: selected ? point.color : colorBackgroundLayoutMain,
+    fill: selected ? point.color : colorBackgroundContainerContent,
     opacity: 1,
     style: "pointer-events: none",
     class: className,

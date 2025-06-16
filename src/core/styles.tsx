@@ -4,7 +4,7 @@
 import type Highcharts from "highcharts";
 
 import {
-  colorBackgroundLayoutMain,
+  colorBackgroundContainerContent,
   colorChartsLineTick,
   colorChartsPaletteCategorical1,
   colorChartsPaletteCategorical2,
@@ -79,7 +79,7 @@ export const chartPlotCss: Highcharts.CSSObject = {
 
 export const chartPlotBackgroundColor = "transparent";
 
-export const seriesBorderColor = colorBackgroundLayoutMain;
+export const seriesBorderColor = colorBackgroundContainerContent;
 
 export const hiddenSeriesMarker = { enabled: false, radius: 3, symbol: "circle" };
 
