@@ -135,7 +135,7 @@ export class ChartAPI {
     };
   }
 
-  // The is no cleanup or destroy event in Highcharts options, so we define a custom one
+  // There is no cleanup or destroy event in Highcharts options, so we define a custom one
   // to be used when the React component unmounts.
   public onChartDestroy = () => {
     this.chartExtraNavigation.onChartDestroy();
