@@ -42,10 +42,14 @@ export const InternalCartesianChart = forwardRef(
     const allSeriesIds = props.series.map((s) => getOptionsId(s));
     // We keep local visible series state to compute threshold series data, that depends on series visibility.
     const [visibleSeriesLocal, setVisibleSeriesLocal] = useState(props.visibleSeries ?? allSeriesIds);
+    const visibleSeriesState = props.visibleSeries ?? visibleSeriesLocal;
     const onVisibleSeriesChange: CoreChartProps["onVisibleItemsChange"] = (items) => {
       const visibleSeries = items.filter((i) => i.visible).map((i) => i.id);
-      fireNonCancelableEvent(props.onChangeVisibleSeries, { visibleSeries });
-      setVisibleSeriesLocal(visibleSeries);
+      if (props.visibleSeries) {
+        fireNonCancelableEvent(props.onChangeVisibleSeries, { visibleSeries });
+      } else {
+        setVisibleSeriesLocal(visibleSeries);
+      }
     };
 
     // We convert cartesian tooltip options to the core chart's getTooltipContent callback,
@@ -81,7 +85,7 @@ export const InternalCartesianChart = forwardRef(
     };
 
     // Converting x-, and y-threshold series to Highcharts series and plot lines.
-    const { series, xPlotLines, yPlotLines } = transformCartesianSeries(props.series, visibleSeriesLocal);
+    const { series, xPlotLines, yPlotLines } = transformCartesianSeries(props.series, visibleSeriesState);
 
     // Cartesian chart imperative API.
     useImperativeHandle(ref, () => ({
