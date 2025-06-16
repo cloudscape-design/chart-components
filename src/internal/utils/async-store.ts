@@ -82,9 +82,9 @@ export function useSelector<S, R>(store: ReadonlyAsyncStore<S>, selector: Select
     () => {
       setState(selector(store.get()));
     },
-    // ignoring selector as new only need a single time update
+    // ignoring selector as we only need a single time update
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selector],
+    [],
   );
 
   // When store changes we need the state to be updated synchronously to avoid inconsistencies.
