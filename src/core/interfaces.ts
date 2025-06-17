@@ -242,6 +242,12 @@ export interface CoreChartProps
    */
   footer?: CoreFooterOptions;
   /**
+   * Defines the position of the chart legend.
+   * - "bottom": Legend is displayed below the chart
+   * - "side": Legend is displayed on the side of the chart
+   */
+  legendPosition?: "bottom" | "side";
+  /**
    * The callback to init the chart's API when it is ready. The API includes the Highcharts chart object, and
    * additional Cloudscape methods.
    */

@@ -26,6 +26,7 @@ export interface ChartLegendProps {
   legendTitle?: string;
   ariaLabel?: string;
   actions?: React.ReactNode;
+  position: "bottom" | "side";
   onItemHighlightEnter: (itemId: string) => void;
   onItemHighlightExit: () => void;
   onItemVisibilityChange: (hiddenItems: string[]) => void;
@@ -36,6 +37,7 @@ export const ChartLegend = ({
   legendTitle,
   ariaLabel,
   actions,
+  position,
   onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
@@ -154,7 +156,9 @@ export const ChartLegend = ({
         ref={containerRef}
         role="toolbar"
         aria-label={legendTitle || ariaLabel}
-        className={clsx(testClasses.root, styles.root)}
+        className={clsx(testClasses.root, styles.root, {
+          [styles["root-side"]]: position === "side",
+        })}
       >
         {legendTitle && (
           <Box fontWeight="bold" className={testClasses.title}>
@@ -162,60 +166,83 @@ export const ChartLegend = ({
           </Box>
         )}
 
-        <div className={styles.list}>
-          {actions && (
-            <div className={clsx(testClasses.actions, styles.actions)}>
-              {actions}
-              <div className={styles["actions-divider"]} />
-            </div>
-          )}
-
-          {items.map((item, index) => {
-            const handlers = {
-              onMouseEnter: () => {
-                showHighlight(item.id);
-              },
-              onMouseLeave: () => {
-                clearHighlight();
-              },
-              onFocus: () => {
-                onFocus(index, item.id);
-              },
-              onBlur: () => {
-                onBlur();
-                clearHighlight();
-              },
-              onKeyDown,
-            };
-            const thisTriggerRef = (elem: null | HTMLElement) => {
-              if (elem) {
-                segmentsRef.current[index] = elem;
-              } else {
-                delete segmentsRef.current[index];
-              }
-            };
-
-            return (
-              <LegendItemTrigger
-                key={index}
-                {...handlers}
-                ref={thisTriggerRef}
-                onClick={(event) => {
-                  if (event.metaKey || event.ctrlKey) {
-                    toggleItem(item.id);
-                  } else {
-                    selectItem(item.id);
-                  }
-                }}
-                isHighlighted={item.highlighted}
-                someHighlighted={items.some((item) => item.highlighted)}
-                itemId={item.id}
-                label={item.name}
-                visible={item.visible}
-                marker={item.marker}
-              />
-            );
+        <div
+          className={clsx(styles.list, {
+            [styles["list-bottom"]]: position === "bottom",
+            [styles["list-side"]]: position === "side",
           })}
+        >
+          {actions && (
+            <>
+              <div
+                className={clsx(testClasses.actions, styles.actions, {
+                  [styles["actions-bottom"]]: position === "bottom",
+                  [styles["actions-side"]]: position === "side",
+                })}
+              >
+                {actions}
+                <div
+                  className={clsx(styles["actions-divider"], {
+                    [styles["actions-divider-bottom"]]: position === "bottom",
+                    [styles["actions-divider-side"]]: position === "side",
+                  })}
+                />
+              </div>
+            </>
+          )}
+          <div
+            className={clsx({
+              [styles["legend-bottom"]]: position === "bottom",
+              [styles["legend-side"]]: position === "side",
+            })}
+          >
+            {items.map((item, index) => {
+              const handlers = {
+                onMouseEnter: () => {
+                  showHighlight(item.id);
+                },
+                onMouseLeave: () => {
+                  clearHighlight();
+                },
+                onFocus: () => {
+                  onFocus(index, item.id);
+                },
+                onBlur: () => {
+                  onBlur();
+                  clearHighlight();
+                },
+                onKeyDown,
+              };
+              const thisTriggerRef = (elem: null | HTMLElement) => {
+                if (elem) {
+                  segmentsRef.current[index] = elem;
+                } else {
+                  delete segmentsRef.current[index];
+                }
+              };
+
+              return (
+                <LegendItemTrigger
+                  key={index}
+                  {...handlers}
+                  ref={thisTriggerRef}
+                  onClick={(event) => {
+                    if (event.metaKey || event.ctrlKey) {
+                      toggleItem(item.id);
+                    } else {
+                      selectItem(item.id);
+                    }
+                  }}
+                  isHighlighted={item.highlighted}
+                  someHighlighted={items.some((item) => item.highlighted)}
+                  itemId={item.id}
+                  label={item.name}
+                  visible={item.visible}
+                  marker={item.marker}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
     </SingleTabStopNavigationProvider>

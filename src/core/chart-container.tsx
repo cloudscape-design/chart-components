@@ -2,12 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { useCallback, useRef, useState } from "react";
+import clsx from "clsx";
 
 import { useResizeObserver } from "@cloudscape-design/component-toolkit/internal";
 
 import { DebouncedCall } from "../internal/utils/utils.js";
 import * as Styles from "./styles";
 
+import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
 
 // Chart container implements the layout for top-level components, including chart plot, legend, and more.
@@ -23,6 +25,7 @@ interface ChartContainerProps {
   header?: React.ReactNode;
   filter?: React.ReactNode;
   legend?: React.ReactNode;
+  legendPosition: "bottom" | "side";
   footer?: React.ReactNode;
   fitHeight?: boolean;
   chartHeight?: number;
@@ -38,6 +41,7 @@ export function ChartContainer({
   filter,
   footer,
   legend,
+  legendPosition,
   fitHeight,
   chartHeight,
   chartMinHeight,
@@ -54,6 +58,8 @@ export function ChartContainer({
   const { refs, measures } = useContainerQueries();
   const measuredChartHeight = withMinHeight(measures.chart - measures.header - measures.footer);
   const overflowX = chartMinWidth !== undefined ? "auto" : undefined;
+  const effectiveChartHeight = fitHeight ? measuredChartHeight : withMinHeight(chartHeight);
+
   return (
     <div ref={refs.chart} style={fitHeight ? { position: "absolute", inset: 0, overflowX } : { overflowX }}>
       <div ref={refs.header}>
@@ -61,16 +67,31 @@ export function ChartContainer({
         {filter}
       </div>
 
-      <div
-        style={chartMinWidth !== undefined ? { minWidth: chartMinWidth } : {}}
-        className={testClasses["chart-plot-wrapper"]}
-      >
-        {verticalAxisTitle}
-        {chart(fitHeight ? measuredChartHeight : withMinHeight(chartHeight))}
-      </div>
+      {legend && legendPosition === "side" ? (
+        <div className={styles["chart-plot-and-legend-wrapper"]}>
+          <div
+            style={{ minWidth: chartMinWidth ?? 0 }}
+            className={clsx(styles["chart-plot-wrapper"], testClasses["chart-plot-wrapper"])}
+          >
+            {verticalAxisTitle}
+            {chart(effectiveChartHeight)}
+          </div>
+          <div style={{ maxHeight: effectiveChartHeight }} className={styles["side-legend-container"]}>
+            {legend}
+          </div>
+        </div>
+      ) : (
+        <div
+          style={chartMinWidth !== undefined ? { minWidth: chartMinWidth } : {}}
+          className={testClasses["chart-plot-wrapper"]}
+        >
+          {verticalAxisTitle}
+          {chart(fitHeight ? measuredChartHeight : withMinHeight(chartHeight))}
+        </div>
+      )}
 
       <div ref={refs.footer}>
-        {legend}
+        {legendPosition === "bottom" && legend}
         {footer}
       </div>
     </div>
