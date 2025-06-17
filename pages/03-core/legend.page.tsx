@@ -102,7 +102,6 @@ const options: InternalChartOptions = {
 
 export default function () {
   const { settings, chartProps } = useChartSettings();
-  console.log(omit(chartProps.cartesian, "ref"));
   return (
     <Page
       title="Chart size"
