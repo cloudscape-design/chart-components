@@ -3,7 +3,7 @@
 
 import { ElementWrapper } from "@cloudscape-design/test-utils-core/dom";
 
-import BaseChartWrapper from "../base";
+import BaseChartWrapper from "../internal/base";
 import { CartesianChartTooltipWrapper } from "./tooltip";
 
 import testClasses from "../../../cartesian-chart/test-classes/styles.selectors.js";

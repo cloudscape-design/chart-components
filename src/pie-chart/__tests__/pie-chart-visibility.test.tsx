@@ -11,7 +11,7 @@ import createWrapper from "../../../lib/components/test-utils/dom";
 import { toggleLegendItem } from "../../core/__tests__/common";
 import { ref, renderPieChart, renderStatefulPieChart } from "./common";
 
-const getChart = () => createWrapper().findChart("pie")!;
+const getChart = () => createWrapper().findPieHighcharts()!;
 
 function getVisibilityState() {
   const legend = getChart().findLegend();

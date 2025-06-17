@@ -11,7 +11,7 @@ import createWrapper from "../../../lib/components/test-utils/dom";
 import { toggleLegendItem } from "../../core/__tests__/common";
 import { ref, renderCartesianChart, renderStatefulCartesianChart } from "./common";
 
-const getChart = () => createWrapper().findChart("cartesian")!;
+const getChart = () => createWrapper().findCartesianHighcharts()!;
 
 function getVisibilityState() {
   const legend = getChart().findLegend();

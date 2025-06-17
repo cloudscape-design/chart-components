@@ -44,7 +44,7 @@ export function renderPieChart({ i18nProvider, ...props }: TestProps, Component 
   };
   const { rerender } = render(<ComponentWrapper {...props} />);
   return {
-    wrapper: createWrapper().findChart("pie")!,
+    wrapper: createWrapper().findPieHighcharts()!,
     rerender: (props: TestProps) => rerender(<ComponentWrapper {...props} />),
   };
 }

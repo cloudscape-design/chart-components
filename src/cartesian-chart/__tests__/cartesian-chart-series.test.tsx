@@ -11,7 +11,7 @@ import { renderCartesianChart } from "./common";
 
 const hc = new HighchartsTestHelper(highcharts);
 
-const getChart = () => createWrapper().findChart("cartesian")!;
+const getChart = () => createWrapper().findCartesianHighcharts()!;
 
 const allSeries: CartesianChartProps.SeriesOptions[] = [
   { type: "area", name: "Area", data: [{ x: 1, y: 1 }], color: "1" },

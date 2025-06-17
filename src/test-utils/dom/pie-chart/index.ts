@@ -3,7 +3,7 @@
 
 import { ElementWrapper } from "@cloudscape-design/test-utils-core/dom";
 
-import BaseChartWrapper from "../base";
+import BaseChartWrapper from "../internal/base";
 
 import testClasses from "../../../pie-chart/test-classes/styles.selectors.js";
 

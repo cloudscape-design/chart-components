@@ -10,11 +10,11 @@ import createWrapper from "../../../lib/components/test-utils/dom";
 describe("PieChart: rendering", () => {
   test("renders chart with highcharts=null", () => {
     render(<PieChart highcharts={null} series={null} />);
-    expect(createWrapper().findChart("pie")).not.toBe(null);
+    expect(createWrapper().findPieHighcharts()).not.toBe(null);
   });
 
   test("renders chart with highcharts=Highcharts", () => {
     render(<PieChart highcharts={Highcharts} series={null} />);
-    expect(createWrapper().findChart("pie")).not.toBe(null);
+    expect(createWrapper().findPieHighcharts()).not.toBe(null);
   });
 });
