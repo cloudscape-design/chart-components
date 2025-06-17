@@ -42,7 +42,6 @@ export const ChartLegend = ({
 }: ChartLegendProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const segmentsRef = useRef<Record<number, HTMLElement>>([]);
-  const focusedRef = useRef(false);
   const highlightControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const showHighlight = (itemId: string) => {
@@ -59,14 +58,12 @@ export const ChartLegend = ({
   const navigationAPI = useRef<SingleTabStopNavigationAPI>(null);
 
   function onFocus(index: number, itemId: string) {
-    focusedRef.current = true;
     setSelectedIndex(index);
     navigationAPI.current!.updateFocusTarget();
     showHighlight(itemId);
   }
 
   function onBlur() {
-    focusedRef.current = false;
     navigationAPI.current!.updateFocusTarget();
   }
 
