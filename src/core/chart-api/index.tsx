@@ -370,7 +370,11 @@ export class ChartAPI {
 
     if (!this.isTooltipPinned) {
       // Update Highcharts elements state.
-      this.chartExtraHighlight.highlightChartPoints(group);
+      if (point) {
+        this.chartExtraHighlight.highlightChartPoint(point);
+      } else {
+        this.chartExtraHighlight.highlightChartGroup(group);
+      }
 
       // Update tooltip and legend state.
       if (point) {
