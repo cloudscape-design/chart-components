@@ -215,7 +215,6 @@ export interface CoreChartProps
       | "chartMinWidth"
       | "ariaLabel"
       | "ariaDescription"
-      | "legend"
       | "filter"
       | "noData"
       | "i18nStrings"
@@ -241,6 +240,10 @@ export interface CoreChartProps
    * A custom slot below the chart plot and legend.
    */
   footer?: CoreFooterOptions;
+  /**
+   * Chart legend options.
+   */
+  legend?: CoreLegendOptions;
   /**
    * The callback to init the chart's API when it is ready. The API includes the Highcharts chart object, and
    * additional Cloudscape methods.
@@ -274,6 +277,10 @@ export interface CoreChartProps
    * Use Cloudscape keyboard navigation, `true` by default.
    */
   keyboardNavigation?: boolean;
+}
+
+export interface CoreLegendOptions extends BaseLegendOptions {
+  position?: "bottom" | "side";
 }
 
 export interface CoreLegendItem {

@@ -6,6 +6,9 @@
 @use "../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
 @use "@cloudscape-design/component-toolkit/internal/focus-visible" as focus-visible;
 
+$side-legend-max-inline-size: 30%;
+$side-legend-min-inline-size: max(20%, 150px);
+
 .root {
   position: relative;
 
@@ -95,4 +98,19 @@
   display: inline-flex;
   align-items: center;
   gap: cs.$space-static-xxs;
+}
+
+.chart-plot-and-legend-wrapper {
+  display: flex;
+}
+
+.chart-plot-wrapper {
+  flex: 1;
+}
+
+.side-legend-container {
+  flex: 0;
+  overflow-y: auto;
+  max-inline-size: $side-legend-max-inline-size;
+  min-inline-size: $side-legend-min-inline-size;
 }
