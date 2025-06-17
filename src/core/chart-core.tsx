@@ -12,7 +12,7 @@ import Spinner from "@cloudscape-design/components/spinner";
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
-import { castArray } from "../internal/utils/utils";
+import { castArray, mergeDeep } from "../internal/utils/utils";
 import { useChartAPI } from "./chart-api";
 import { ChartContainer } from "./chart-container";
 import { ChartApplication } from "./components/core-application";
@@ -118,113 +118,113 @@ export function InternalCoreChart({
             // Use Cloudscape color palette by default.
             // This cannot be reset to Highcharts' default from the outside, but it is possible to provide custom palette.
             colors: options.colors ?? Styles.colors,
-            chart: {
-              // Animations are disabled by default.
-              // This is done for UX and a11y reasons as Highcharts animations do not match our animation timings, and do
-              // not respect disabled motion settings. These issues can likely be resolved or we can provide custom animations
-              // instead, but this is not a priority.
-              animation: false,
-              ...Styles.chart,
-              ...options.chart,
-              className: clsx(testClasses["chart-plot"], options.chart?.className),
-              // Use height computed from chartHeight, chartMinHeight, and fitHeight settings by default.
-              // It is possible to override it by explicitly providing chart.height, but this will not be
-              // compatible with any of the above settings.
-              height: options.chart?.height ?? height,
-              // The debug errors are enabled by default in development mode, but this only works
-              // if the Highcharts debugger module is loaded.
-              displayErrors: options.chart?.displayErrors ?? isDevelopment,
-              style: { ...Styles.chartPlotCss, ...options.chart?.style },
-              backgroundColor: options.chart?.backgroundColor ?? Styles.chartPlotBackgroundColor,
-              // We override certain chart events to inject additional behaviors, but it is still possible to define
-              // custom callbacks. The Cloudscape behaviors can be disabled or altered via components API. For instance,
-              // if no-data props are not provided - the related on-render computations will be skipped.
-              events: {
-                ...options.chart?.events,
-                load(event) {
-                  apiOptions.onChartLoad.call(this, event);
-                  return options.chart?.events?.load?.call(this, event);
-                },
-                render(event) {
-                  apiOptions.onChartRender.call(this, event);
-                  return options.chart?.events?.render?.call(this, event);
-                },
-                click(event) {
-                  apiOptions.onChartClick.call(this, event);
-                  return options.chart?.events?.click?.call(this, event);
-                },
-              },
-            },
-            series: options.series,
-            // Highcharts legend is disabled by default in favour of the custom Cloudscape legend.
-            legend: { enabled: false, ...options.legend },
-            lang: {
-              ...options.lang,
-              // The default chart title is disabled by default to prevent the default "Chart" in the screen-reader detail.
-              accessibility: { defaultChartTitle: "", chartContainerLabel: ariaLabel, ...options.lang?.accessibility },
-            },
-            accessibility: {
-              description: ariaDescription,
-              ...options.accessibility,
-              // Highcharts keyboard navigation is disabled by default in favour of the custom Cloudscape navigation.
-              keyboardNavigation: { enabled: !keyboardNavigation, ...options.accessibility?.keyboardNavigation },
-              point: {
-                // Point description formatter is overridden to respect custom axes value formatters.
-                descriptionFormatter: getFormattedPointDescription,
-                ...options.accessibility?.point,
-              },
-            },
-            plotOptions: {
-              ...options.plotOptions,
-              series: {
-                // Animations are disabled by default, same as in the options.chart.
+            chart: mergeDeep(
+              {
+                ...Styles.chart,
+                // Animations are disabled by default.
+                // This is done for UX and a11y reasons as Highcharts animations do not match our animation timings, and do
+                // not respect disabled motion settings. These issues can likely be resolved or we can provide custom animations
+                // instead, but this is not a priority.
                 animation: false,
-                // Sticky tracking is disabled by default due to sub-optimal UX in dense charts.
-                stickyTracking: false,
-                borderColor: Styles.seriesBorderColor,
-                ...options.plotOptions?.series,
-                dataLabels: { style: Styles.seriesDataLabelsCss, ...options.plotOptions?.series?.dataLabels },
-                states: {
-                  ...options.plotOptions?.series?.states,
-                  inactive: { opacity: Styles.seriesOpacityInactive, ...options.plotOptions?.series?.states?.inactive },
-                },
-                // We override certain point events to inject additional behaviors, but it is still possible to define
-                // custom callbacks. The Cloudscape behaviors can be disabled or altered via components API.
-                point: {
-                  ...options.plotOptions?.series?.point,
-                  events: {
-                    ...options.plotOptions?.series?.point?.events,
-                    mouseOver(event) {
-                      apiOptions.onSeriesPointMouseOver.call(this, event);
-                      return options.plotOptions?.series?.point?.events?.mouseOver?.call(this, event);
-                    },
-                    mouseOut(event) {
-                      apiOptions.onSeriesPointMouseOut.call(this, event);
-                      return options.plotOptions?.series?.point?.events?.mouseOut?.call(this, event);
-                    },
-                    click(event) {
-                      apiOptions.onSeriesPointClick.call(this, event);
-                      return options.plotOptions?.series?.point?.events?.click?.call(this, event);
-                    },
+                // The debug errors are enabled by default in development mode, but this only works
+                // if the Highcharts debugger module is loaded.
+                displayErrors: isDevelopment,
+                style: Styles.chartPlotCss,
+                backgroundColor: Styles.chartPlotBackgroundColor,
+              },
+              options.chart,
+              {
+                className: clsx(testClasses["chart-plot"], options.chart?.className),
+                // Use height computed from chartHeight, chartMinHeight, and fitHeight settings by default.
+                // It is possible to override it by explicitly providing chart.height, but this will not be
+                // compatible with any of the above settings.
+                height: options.chart?.height ?? height,
+                // We override certain chart events to inject additional behaviors, but it is still possible to define
+                // custom callbacks. The Cloudscape behaviors can be disabled or altered via components API. For instance,
+                // if no-data props are not provided - the related on-render computations will be skipped.
+                events: {
+                  ...options.chart?.events,
+                  load(event) {
+                    apiOptions.onChartLoad.call(this, event);
+                    return options.chart?.events?.load?.call(this, event);
+                  },
+                  render(event) {
+                    apiOptions.onChartRender.call(this, event);
+                    return options.chart?.events?.render?.call(this, event);
+                  },
+                  click(event) {
+                    apiOptions.onChartClick.call(this, event);
+                    return options.chart?.events?.click?.call(this, event);
                   },
                 },
               },
-              area: { ...Styles.areaSeries, ...options.plotOptions?.area },
-              areaspline: { ...Styles.areaSeries, ...options.plotOptions?.areaspline },
-              arearange: { ...Styles.areaSeries, ...options.plotOptions?.arearange },
-              areasplinerange: { ...Styles.areaSeries, ...options.plotOptions?.areasplinerange },
-              line: { ...Styles.lineSeries, ...options.plotOptions?.line },
-              spline: { ...Styles.lineSeries, ...options.plotOptions?.spline },
-              column: { ...Styles.columnSeries, ...options.plotOptions?.column },
-              errorbar: { ...Styles.errorbarSeries, ...options.plotOptions?.errorbar },
-              // Pie chart is shown in legend by default, that is required for standalone pie charts.
-              pie: {
-                showInLegend: true,
-                ...Styles.pieSeries,
-                ...options.plotOptions?.pie,
-                dataLabels: { ...Styles.pieSeriesDataLabels, ...options.plotOptions?.pie?.dataLabels },
+            ),
+            series: options.series,
+            // Highcharts legend is disabled by default in favour of the custom Cloudscape legend.
+            legend: { enabled: false, ...options.legend },
+            // The default chart title is disabled by default to prevent the default "Chart" in the screen-reader detail.
+            lang: mergeDeep({ accessibility: { defaultChartTitle: "", chartContainerLabel: ariaLabel } }, options.lang),
+            accessibility: mergeDeep(
+              {
+                description: ariaDescription,
+                // Highcharts keyboard navigation is disabled by default in favour of the custom Cloudscape navigation.
+                keyboardNavigation: { enabled: !keyboardNavigation },
+                // Point description formatter is overridden to respect custom axes value formatters.
+                point: { descriptionFormatter: getFormattedPointDescription },
               },
-            },
+              options.accessibility,
+            ),
+            plotOptions: mergeDeep(
+              {
+                area: Styles.areaSeries,
+                areaspline: Styles.areaSeries,
+                arearange: Styles.areaSeries,
+                areasplinerange: Styles.areaSeries,
+                line: Styles.lineSeries,
+                spline: Styles.lineSeries,
+                column: Styles.columnSeries,
+                errorbar: Styles.errorbarSeries,
+                // Pie chart is shown in legend by default, that is required for standalone pie charts.
+                pie: { showInLegend: true, ...Styles.pieSeries, dataLabels: Styles.pieSeriesDataLabels },
+              },
+              options.plotOptions,
+              {
+                series: mergeDeep(
+                  {
+                    // Animations are disabled by default, same as in the options.chart.
+                    animation: false,
+                    // Sticky tracking is disabled by default due to sub-optimal UX in dense charts.
+                    stickyTracking: false,
+                    borderColor: Styles.seriesBorderColor,
+                    dataLabels: { style: Styles.seriesDataLabelsCss },
+                    states: { inactive: { opacity: Styles.seriesOpacityInactive } },
+                  },
+                  options.plotOptions?.series,
+                  {
+                    // We override certain point events to inject additional behaviors, but it is still possible to define
+                    // custom callbacks. The Cloudscape behaviors can be disabled or altered via components API.
+                    point: {
+                      ...options.plotOptions?.series?.point,
+                      events: {
+                        ...options.plotOptions?.series?.point?.events,
+                        mouseOver(event) {
+                          apiOptions.onSeriesPointMouseOver.call(this, event);
+                          return options.plotOptions?.series?.point?.events?.mouseOver?.call(this, event);
+                        },
+                        mouseOut(event) {
+                          apiOptions.onSeriesPointMouseOut.call(this, event);
+                          return options.plotOptions?.series?.point?.events?.mouseOut?.call(this, event);
+                        },
+                        click(event) {
+                          apiOptions.onSeriesPointClick.call(this, event);
+                          return options.plotOptions?.series?.point?.events?.click?.call(this, event);
+                        },
+                      },
+                    },
+                  },
+                ),
+              },
+            ),
             xAxis: castArray(options.xAxis)?.map((xAxisOptions) => ({
               ...Styles.xAxisOptions,
               ...xAxisOptions,

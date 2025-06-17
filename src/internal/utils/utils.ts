@@ -32,6 +32,35 @@ export function isEqualArrays<T>(a: readonly T[], b: readonly T[], eq: (a: T, b:
   return true;
 }
 
+export function mergeDeep<T extends object>(defaultOptions?: T, consumerOptions?: T, overrideOptions?: T): T {
+  const merged: Partial<T> = {};
+  for (const key of getAllKeys(defaultOptions, consumerOptions, overrideOptions)) {
+    const defaultValue = defaultOptions?.[key];
+    const consumerValue = consumerOptions?.[key];
+    const overrideValue = overrideOptions?.[key];
+    if (overrideValue !== undefined) {
+      merged[key] = overrideValue;
+    } else if (defaultValue !== undefined && consumerValue === undefined) {
+      merged[key] = defaultValue;
+    } else if (defaultValue && typeof defaultValue === "object" && consumerValue && typeof consumerValue === "object") {
+      merged[key] = mergeDeep(defaultValue, consumerValue);
+    } else {
+      merged[key] = consumerValue;
+    }
+  }
+  return merged as T;
+}
+
+export function getAllKeys<T extends object>(...objects: (undefined | T)[]): (keyof T)[] {
+  const keysSet = new Set<keyof T>();
+  for (const obj of objects) {
+    for (const key of Object.keys(obj ?? {})) {
+      keysSet.add(key as keyof T);
+    }
+  }
+  return [...keysSet];
+}
+
 export class DebouncedCall {
   private timeoutRef = setTimeout(() => {}, 0);
 
