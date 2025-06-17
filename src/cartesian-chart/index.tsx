@@ -11,7 +11,7 @@ import useBaseComponent from "../internal/base-component/use-base-component";
 import { applyDisplayName } from "../internal/utils/apply-display-name";
 import { SomeRequired } from "../internal/utils/utils";
 import { InternalCartesianChart } from "./chart-cartesian-internal";
-import { CartesianChartProps as C, CartesianChartProps } from "./interfaces";
+import { CartesianChartProps } from "./interfaces";
 
 export type { CartesianChartProps };
 
@@ -66,9 +66,12 @@ applyDisplayName(CartesianChart, "CartesianChart");
 
 export default CartesianChart;
 
-function validateSeries(unvalidatedSeries: readonly C.SeriesOptions[], stacking: boolean): C.SeriesOptions[] {
-  const validatedSeries: C.SeriesOptions[] = [];
-  function validateSingleSeries(s: C.SeriesOptions): null | C.SeriesOptions {
+function validateSeries(
+  unvalidatedSeries: readonly CartesianChartProps.SeriesOptions[],
+  stacking: boolean,
+): CartesianChartProps.SeriesOptions[] {
+  const validatedSeries: CartesianChartProps.SeriesOptions[] = [];
+  function validateSingleSeries(s: CartesianChartProps.SeriesOptions): null | CartesianChartProps.SeriesOptions {
     switch (s.type) {
       case "area":
       case "areaspline":
@@ -98,32 +101,38 @@ function validateSeries(unvalidatedSeries: readonly C.SeriesOptions[], stacking:
 }
 
 function validateLineLikeSeries<
-  S extends C.AreaSeriesOptions | C.AreaSplineSeriesOptions | C.LineSeriesOptions | C.SplineSeriesOptions,
+  S extends
+    | CartesianChartProps.AreaSeriesOptions
+    | CartesianChartProps.AreaSplineSeriesOptions
+    | CartesianChartProps.LineSeriesOptions
+    | CartesianChartProps.SplineSeriesOptions,
 >(s: S): null | S {
   const data = validatePointData(s.data);
   return { type: s.type, id: s.id, name: s.name, color: s.color, data } as S;
 }
 
-function validateColumnSeries<S extends C.ColumnSeriesOptions>(s: S): null | S {
+function validateColumnSeries<S extends CartesianChartProps.ColumnSeriesOptions>(s: S): null | S {
   const data = validatePointData(s.data);
   return { type: s.type, id: s.id, name: s.name, color: s.color, data } as S;
 }
 
-function validateScatterSeries<S extends C.ScatterSeriesOptions>(s: S): null | S {
+function validateScatterSeries<S extends CartesianChartProps.ScatterSeriesOptions>(s: S): null | S {
   const data = validatePointData(s.data);
   const marker = s.marker ?? {};
   return { type: s.type, id: s.id, name: s.name, color: s.color, data, marker } as S;
 }
 
-function validateThresholdSeries<S extends C.XThresholdSeriesOptions | C.YThresholdSeriesOptions>(s: S): null | S {
+function validateThresholdSeries<
+  S extends CartesianChartProps.XThresholdSeriesOptions | CartesianChartProps.YThresholdSeriesOptions,
+>(s: S): null | S {
   return { type: s.type, id: s.id, name: s.name, color: s.color, value: s.value } as S;
 }
 
 function validateErrorBarSeries(
-  series: C.ErrorBarSeriesOptions,
-  allSeries: readonly C.SeriesOptions[],
+  series: CartesianChartProps.ErrorBarSeriesOptions,
+  allSeries: readonly CartesianChartProps.SeriesOptions[],
   stacking: boolean,
-): null | C.ErrorBarSeriesOptions {
+): null | CartesianChartProps.ErrorBarSeriesOptions {
   // Highcharts only supports error bars for non-stacked series.
   // See: https://github.com/highcharts/highcharts/issues/23080.
   if (stacking) {
@@ -159,15 +168,17 @@ function validateRangeData(data: readonly RangeDataItemOptions[]): readonly Rang
   return data.map((d) => ({ x: d.x, low: d.low, high: d.high }));
 }
 
-function validateXAxisOptions(axis?: C.XAxisOptions): C.XAxisOptions {
+function validateXAxisOptions(axis?: CartesianChartProps.XAxisOptions): CartesianChartProps.XAxisOptions {
   return validateAxisOptions(axis);
 }
 
-function validateYAxisOptions(axis?: C.YAxisOptions): C.YAxisOptions {
+function validateYAxisOptions(axis?: CartesianChartProps.YAxisOptions): CartesianChartProps.YAxisOptions {
   return { ...validateAxisOptions(axis), reversedStacks: axis?.reversedStacks };
 }
 
-function validateAxisOptions<O extends C.XAxisOptions | C.YAxisOptions>(axis?: O): O {
+function validateAxisOptions<O extends CartesianChartProps.XAxisOptions | CartesianChartProps.YAxisOptions>(
+  axis?: O,
+): O {
   return {
     type: axis?.type,
     title: axis?.title,
@@ -179,7 +190,9 @@ function validateAxisOptions<O extends C.XAxisOptions | C.YAxisOptions>(axis?: O
   } as O;
 }
 
-function validateTooltip(tooltip?: C.TooltipOptions): SomeRequired<C.TooltipOptions, "enabled" | "placement" | "size"> {
+function validateTooltip(
+  tooltip?: CartesianChartProps.TooltipOptions,
+): SomeRequired<CartesianChartProps.TooltipOptions, "enabled" | "placement" | "size"> {
   return {
     ...tooltip,
     enabled: tooltip?.enabled ?? true,
@@ -188,6 +201,8 @@ function validateTooltip(tooltip?: C.TooltipOptions): SomeRequired<C.TooltipOpti
   };
 }
 
-function validateLegend(legend?: C.LegendOptions): SomeRequired<C.LegendOptions, "enabled"> {
+function validateLegend(
+  legend?: CartesianChartProps.LegendOptions,
+): SomeRequired<CartesianChartProps.LegendOptions, "enabled"> {
   return { ...legend, enabled: legend?.enabled ?? true };
 }
