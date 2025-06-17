@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 const defaultProps: Record<string, Record<string, any>> = {
-  "pie-chart": {},
+  "pie-chart": { series: null },
   "cartesian-chart": { series: [] },
 };
 
