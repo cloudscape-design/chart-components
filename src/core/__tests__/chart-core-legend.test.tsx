@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { act } from "react";
-import { fireEvent } from "@testing-library/react";
 import highcharts from "highcharts";
 
 import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
@@ -248,57 +247,57 @@ describe("CoreChart: legend", () => {
       visibleItems: ["L1", "L2", "L3"],
     });
 
-    act(() => getItem(0).focus());
+    getItem(0).focus();
     expect(getItem(0).getElement()).toHaveFocus();
     expect(getItems({ dimmed: false })).toHaveLength(1);
     expect(getItems({ dimmed: false })[0].getElement()).toBe(getItem(0).getElement());
 
-    fireEvent.keyDown(getItem(0).getElement(), { keyCode: KeyCode.right });
+    getItem(0).keydown({ keyCode: KeyCode.right });
     expect(getItem(1).getElement()).toHaveFocus();
     expect(getItems({ dimmed: false })).toHaveLength(1);
     expect(getItems({ dimmed: false })[0].getElement()).toBe(getItem(1).getElement());
 
-    fireEvent.keyDown(getItem(1).getElement(), { keyCode: KeyCode.down });
+    getItem(1).keydown({ keyCode: KeyCode.down });
     expect(getItem(2).getElement()).toHaveFocus();
     expect(getItems({ dimmed: false })).toHaveLength(1);
     expect(getItems({ dimmed: false })[0].getElement()).toBe(getItem(2).getElement());
 
-    fireEvent.keyDown(getItem(2).getElement(), { keyCode: KeyCode.left });
+    getItem(2).keydown({ keyCode: KeyCode.left });
     expect(getItem(1).getElement()).toHaveFocus();
     expect(getItems({ dimmed: false })).toHaveLength(1);
     expect(getItems({ dimmed: false })[0].getElement()).toBe(getItem(1).getElement());
 
-    fireEvent.keyDown(getItem(1).getElement(), { keyCode: KeyCode.up });
+    getItem(1).keydown({ keyCode: KeyCode.up });
     expect(getItem(0).getElement()).toHaveFocus();
     expect(getItems({ dimmed: false })).toHaveLength(1);
     expect(getItems({ dimmed: false })[0].getElement()).toBe(getItem(0).getElement());
 
-    fireEvent.keyDown(getItem(0).getElement(), { keyCode: KeyCode.end });
+    getItem(0).keydown({ keyCode: KeyCode.end });
     expect(getItem(2).getElement()).toHaveFocus();
     expect(getItems({ dimmed: false })).toHaveLength(1);
     expect(getItems({ dimmed: false })[0].getElement()).toBe(getItem(2).getElement());
 
-    fireEvent.keyDown(getItem(2).getElement(), { keyCode: KeyCode.home });
+    getItem(2).keydown({ keyCode: KeyCode.home });
     expect(getItem(0).getElement()).toHaveFocus();
     expect(getItems({ dimmed: false })).toHaveLength(1);
     expect(getItems({ dimmed: false })[0].getElement()).toBe(getItem(0).getElement());
 
-    fireEvent.keyDown(getItem(0).getElement(), { keyCode: KeyCode.left });
+    getItem(0).keydown({ keyCode: KeyCode.left });
     expect(getItem(2).getElement()).toHaveFocus();
 
-    fireEvent.keyDown(getItem(2).getElement(), { keyCode: KeyCode.right });
+    getItem(2).keydown({ keyCode: KeyCode.right });
     expect(getItem(0).getElement()).toHaveFocus();
     expect(hc.getChartSeries(0).state).toBe("normal");
     expect(hc.getChartSeries(1).state).toBe("inactive");
     expect(hc.getChartSeries(2).state).toBe("inactive");
 
-    fireEvent.keyDown(getItem(0).getElement(), { keyCode: KeyCode.escape });
+    getItem(0).keydown({ keyCode: KeyCode.escape });
     expect(getItem(0).getElement()).toHaveFocus();
     expect(hc.getChartSeries(0).state).toBe("normal");
     expect(hc.getChartSeries(1).state).toBe("normal");
     expect(hc.getChartSeries(2).state).toBe("normal");
 
-    fireEvent.keyDown(getItem(0).getElement(), { keyCode: KeyCode.right });
+    getItem(0).keydown({ keyCode: KeyCode.right });
     expect(getItem(1).getElement()).toHaveFocus();
     expect(hc.getChartSeries(0).state).toBe("inactive");
     expect(hc.getChartSeries(1).state).toBe("normal");

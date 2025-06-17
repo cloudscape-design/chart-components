@@ -84,11 +84,5 @@ export function selectLegendItem(index: number, wrapper: BaseChartWrapper = crea
 }
 export function toggleLegendItem(index: number, wrapper: BaseChartWrapper = createChartWrapper()) {
   const modifier = Math.random() > 0.5 ? { metaKey: true } : { ctrlKey: true };
-  act(() =>
-    wrapper
-      .findLegend()!
-      .findItems()
-      [index].getElement()
-      .dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, ...modifier })),
-  );
+  act(() => wrapper.findLegend()!.findItems()[index].click(modifier));
 }
