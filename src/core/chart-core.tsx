@@ -1,12 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useId, useRef } from "react";
+import { useRef } from "react";
 import clsx from "clsx";
 import type Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 
-import { getIsRtl, useMergeRefs } from "@cloudscape-design/component-toolkit/internal";
+import { getIsRtl, useMergeRefs, useUniqueId } from "@cloudscape-design/component-toolkit/internal";
 import { isDevelopment } from "@cloudscape-design/component-toolkit/internal";
 import Spinner from "@cloudscape-design/components/spinner";
 
@@ -25,6 +25,7 @@ import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
 import { getFormatter } from "./formatters";
 import { CoreChartProps } from "./interfaces";
 import * as Styles from "./styles";
+import { getFormattedPointDescription } from "./utils";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -64,7 +65,7 @@ export function InternalCoreChart({
   const highcharts = rest.highcharts as null | typeof Highcharts;
 
   const settings = {
-    chartId: useId(),
+    chartId: useUniqueId(),
     noDataEnabled: !!noDataOptions,
     legendEnabled: legendOptions?.enabled !== false,
     tooltipEnabled: tooltipOptions?.enabled !== false,
@@ -74,7 +75,7 @@ export function InternalCoreChart({
   const state = { visibleItems };
   const api = useChartAPI(settings, handlers, state);
 
-  const rootClassName = clsx(styles.root, fitHeight && styles["root-fit-height"], className);
+  const rootClassName = clsx(testClasses.root, styles.root, fitHeight && styles["root-fit-height"], className);
   const rootRef = useRef<HTMLDivElement>(null);
   const mergedRootRef = useMergeRefs(rootRef, __internalRootRef);
   const rootProps = { ref: mergedRootRef, className: rootClassName, ...getDataAttributes(rest) };
@@ -157,12 +158,8 @@ export function InternalCoreChart({
             series: options.series,
             // Highcharts legend is disabled by default in favour of the custom Cloudscape legend.
             legend: { enabled: false, ...options.legend },
-            // Use Cloudscape no-data defaults if no-data props are defined.
-            noData: settings.noDataEnabled ? apiOptions.noData : options.noData,
             lang: {
               ...options.lang,
-              // Use Cloudscape no-data defaults if no-data props are defined.
-              noData: settings.noDataEnabled ? apiOptions.langNoData : options.lang?.noData,
               // The default chart title is disabled by default to prevent the default "Chart" in the screen-reader detail.
               accessibility: { defaultChartTitle: "", chartContainerLabel: ariaLabel, ...options.lang?.accessibility },
             },
@@ -172,17 +169,8 @@ export function InternalCoreChart({
               // Highcharts keyboard navigation is disabled by default in favour of the custom Cloudscape navigation.
               keyboardNavigation: { enabled: !keyboardNavigation, ...options.accessibility?.keyboardNavigation },
               point: {
-                // Point description formatter is overridden to respect custom axes value formatters in the point's accessible
-                // description. We don't do it for pie charts, as there are no formatters, so we return an empty string, and
-                // Highcharts renders the default point description in that case.
-                descriptionFormatter(point) {
-                  if (point.series.xAxis) {
-                    const formattedX = getFormatter(point.series.xAxis)(point.x);
-                    const formattedY = getFormatter(point.series.yAxis)(point.y);
-                    return `${formattedX} ${formattedY}, ${point.series.name}`;
-                  }
-                  return ""; // Using default Highcharts label.
-                },
+                // Point description formatter is overridden to respect custom axes value formatters.
+                descriptionFormatter: getFormattedPointDescription,
                 ...options.accessibility?.point,
               },
             },
@@ -261,7 +249,7 @@ export function InternalCoreChart({
             // We don't use Highcharts tooltip, but certain tooltip options such as tooltip.snap or tooltip.shared
             // affect the hovering behavior of Highcharts. That is only the case when the tooltip is not disabled,
             // so we render it, but hide with styles.
-            tooltip: options.tooltip ?? { enabled: true, snap: 4, style: { opacity: 0 } },
+            tooltip: options.tooltip ?? { enabled: true, snap: Styles.tooltipSnap, style: { opacity: 0 } },
           };
           return (
             <>
@@ -311,7 +299,12 @@ export function InternalCoreChart({
       />
 
       {settings.tooltipEnabled && (
-        <ChartTooltip {...tooltipOptions} getTooltipContent={rest.getTooltipContent} api={api} />
+        <ChartTooltip
+          {...tooltipOptions}
+          i18nStrings={i18nStrings}
+          getTooltipContent={rest.getTooltipContent}
+          api={api}
+        />
       )}
 
       {settings.noDataEnabled && <ChartNoData {...noDataOptions} i18nStrings={i18nStrings} api={api} />}

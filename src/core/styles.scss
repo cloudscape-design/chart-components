@@ -18,11 +18,19 @@
   block-size: 100%;
 }
 
+.no-data-container {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .no-data {
   overflow: hidden;
   padding-block: cs.$space-static-xs;
   padding-inline: cs.$space-static-m;
-  background-color: cs.$color-background-layout-main;
+  background-color: cs.$color-background-container-content;
   border-radius: 8px;
   border: 1px solid cs.$color-border-divider-default;
 }
@@ -32,7 +40,11 @@
   padding-block: cs.$space-static-xxs;
   padding-inline: cs.$space-static-xxs;
   border-radius: 8px;
-  background-color: cs.$color-background-layout-main;
+  background-color: cs.$color-background-container-content;
+}
+
+.no-data-empty {
+  color: cs.$color-text-empty;
 }
 
 .no-data-content {

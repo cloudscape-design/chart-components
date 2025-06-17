@@ -22,7 +22,7 @@ const series: PieChartProps.SeriesOptions = {
   ],
 };
 
-const getChart = () => createWrapper().findChart("pie")!;
+const getChart = () => createWrapper().findPieHighcharts()!;
 const getTooltip = () => getChart().findTooltip()!;
 const getTooltipHeader = () => getChart().findTooltip()!.findHeader()!;
 const getTooltipBody = () => getChart().findTooltip()!.findBody()!;

@@ -6,14 +6,16 @@ import { useState } from "react";
 import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
+import LiveRegion from "@cloudscape-design/components/live-region";
 
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../internal/components/series-details";
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
 import { getFormatter } from "../formatters";
 import {
-  ChartTooltipOptions,
+  BaseI18nStrings,
   CoreTooltipContent,
+  CoreTooltipOptions,
   GetTooltipContent,
   GetTooltipContentProps,
   TooltipPointFormatted,
@@ -48,7 +50,9 @@ export function ChartTooltip({
   size,
   getTooltipContent: getTooltipContentOverrides,
   api,
-}: ChartTooltipOptions & {
+  i18nStrings,
+}: CoreTooltipOptions & {
+  i18nStrings?: BaseI18nStrings;
   getTooltipContent?: GetTooltipContent;
   api: ChartAPI;
 }) {
@@ -83,6 +87,7 @@ export function ChartTooltip({
       trackKey={getTrackKey(tooltip.point, tooltip.group)}
       container={null}
       dismissButton={tooltip.pinned}
+      dismissAriaLabel={i18nStrings?.detailPopoverDismissAriaLabel}
       onDismiss={api.onDismissTooltip}
       onMouseEnter={api.onMouseEnterTooltip}
       onMouseLeave={api.onMouseLeaveTooltip}
@@ -99,7 +104,7 @@ export function ChartTooltip({
       position={position}
       minVisibleBlockSize={MIN_VISIBLE_BLOCK_SIZE}
     >
-      {content.body}
+      <LiveRegion>{content.body}</LiveRegion>
     </InternalChartTooltip>
   );
 }
@@ -141,7 +146,7 @@ function getTooltipContentCartesian(
   const x = group[0].x;
   const chart = group[0].series.chart;
   const getSeriesMarker = (series: Highcharts.Series) =>
-    api.renderMarker(getSeriesMarkerType(series), getSeriesColor(series));
+    api.renderMarker(getSeriesMarkerType(series), getSeriesColor(series), true);
   const matchedItems = findTooltipSeriesItems(chart.series, group);
   const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
     const valueFormatter = getFormatter(item.point.series.yAxis);
@@ -175,9 +180,12 @@ function getTooltipContentCartesian(
       subItems: formatted.subItems,
       expandableId: formatted.expandable ? item.point.series.name : undefined,
       details: formatted.details,
-      selected: item.point.x === point?.x && item.point.y === point?.y,
+      highlighted: item.point.x === point?.x && item.point.y === point?.y,
     };
   });
+  if (chart.options.plotOptions?.series?.stacking) {
+    detailItems.reverse();
+  }
   const titleFormatter = getFormatter(chart.xAxis[0]);
   const slotRenderProps: TooltipSlotProps = { x, items: matchedItems };
   return {

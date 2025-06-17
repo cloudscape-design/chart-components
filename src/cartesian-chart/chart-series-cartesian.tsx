@@ -7,13 +7,13 @@ import { PointDataItemType, RangeDataItemOptions } from "../core/interfaces";
 import * as Styles from "../core/styles";
 import { createThresholdMetadata, getOptionsId } from "../core/utils";
 import { Writeable } from "../internal/utils/utils";
-import { CartesianChartProps as C } from "./interfaces";
+import { CartesianChartProps } from "./interfaces";
 
 // The utility transforms cartesian chart component's series to Highcharts series. This includes transforming
 // custom x- and y-threshold series types, that are represented as a combination of invisible line series, and plot lines.
 // The plot lines, unlike series, are rendered across the entire chart plot width or height.
 export const transformCartesianSeries = (
-  originalSeries: readonly C.SeriesOptions[],
+  originalSeries: readonly CartesianChartProps.SeriesOptions[],
   visibleSeries: readonly string[],
 ) => {
   // The injected plot lines have IDs matching the IDs of the threshold series. This is used by the core chart
@@ -38,7 +38,7 @@ export const transformCartesianSeries = (
   // For x-threshold the point-based navigation is disabled as irrelevant. However, we still need at least
   // one data point for core chart to work correctly, so we find the first visible y value from other series.
   const ys = getFirstY(originalSeries, visibleSeries);
-  function transformSeriesToHighcharts(s: C.SeriesOptions): Highcharts.SeriesOptionsType {
+  function transformSeriesToHighcharts(s: CartesianChartProps.SeriesOptions): Highcharts.SeriesOptionsType {
     if (s.type === "x-threshold" || s.type === "y-threshold") {
       const data = s.type === "x-threshold" ? ys.map((y) => ({ x: s.value, y })) : xs.map((x) => ({ x, y: s.value }));
       const { custom } = createThresholdMetadata(s.type, s.value);
@@ -49,7 +49,8 @@ export const transformCartesianSeries = (
     if (s.type === "errorbar") {
       // In Highcharts, the error-bar series graphic color is represented as stem-, and whisker colors.
       // We simplify that, and only expose a single color prop that sets both of those.
-      return { ...s, data: s.data as Writeable<RangeDataItemOptions[]>, stemColor: s.color, whiskerColor: s.color };
+      const colors = s.color ? { stemColor: s.color, whiskerColor: s.color } : {};
+      return { ...s, data: s.data as Writeable<RangeDataItemOptions[]>, ...colors };
     }
     return { ...s, data: s.data as Writeable<PointDataItemType[]> };
   }
@@ -61,7 +62,7 @@ export const transformCartesianSeries = (
   return { series, xPlotLines, yPlotLines };
 };
 
-function getFirstY(series: readonly C.SeriesOptions[], visibleSeries: readonly string[]) {
+function getFirstY(series: readonly CartesianChartProps.SeriesOptions[], visibleSeries: readonly string[]) {
   for (const s of getVisibleDataSeries(series, visibleSeries)) {
     for (const d of s.data) {
       const y = d === null ? null : typeof d === "number" ? d : d.y;
@@ -73,7 +74,7 @@ function getFirstY(series: readonly C.SeriesOptions[], visibleSeries: readonly s
   return [];
 }
 
-function getAllX(series: readonly C.SeriesOptions[], visibleSeries: readonly string[]) {
+function getAllX(series: readonly CartesianChartProps.SeriesOptions[], visibleSeries: readonly string[]) {
   const allX = new Set<number>();
   for (const s of getVisibleDataSeries(series, visibleSeries)) {
     for (let i = 0; i < s.data.length; i++) {
@@ -85,10 +86,12 @@ function getAllX(series: readonly C.SeriesOptions[], visibleSeries: readonly str
   return [...allX].sort((a, b) => a - b);
 }
 
-function getVisibleDataSeries(series: readonly C.SeriesOptions[], visibleSeries: readonly string[]) {
+function getVisibleDataSeries(series: readonly CartesianChartProps.SeriesOptions[], visibleSeries: readonly string[]) {
   const dataSeries: Exclude<
-    C.SeriesOptions,
-    C.XThresholdSeriesOptions | C.YThresholdSeriesOptions | C.ErrorBarSeriesOptions
+    CartesianChartProps.SeriesOptions,
+    | CartesianChartProps.XThresholdSeriesOptions
+    | CartesianChartProps.YThresholdSeriesOptions
+    | CartesianChartProps.ErrorBarSeriesOptions
   >[] = [];
   for (const s of series) {
     if (

@@ -19,14 +19,6 @@ import { pages, pagesMap } from "./pages";
 
 import "@cloudscape-design/global-styles/index.css";
 
-const awsuiVisualRefreshFlag = Symbol.for("awsui-visual-refresh-flag");
-window[awsuiVisualRefreshFlag] = () => true;
-
-interface ExtendedWindow extends Window {
-  [awsuiVisualRefreshFlag]?: () => boolean;
-}
-declare const window: ExtendedWindow;
-
 export default function App() {
   return (
     <HashRouter>

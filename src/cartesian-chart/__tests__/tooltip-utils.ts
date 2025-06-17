@@ -3,7 +3,7 @@
 
 import createWrapper from "../../../lib/components/test-utils/dom";
 
-export const getChart = () => createWrapper().findChart("cartesian")!;
+export const getChart = () => createWrapper().findCartesianHighcharts()!;
 export const getTooltip = () => getChart().findTooltip()!;
 export const getTooltipHeader = () => getChart().findTooltip()!.findHeader()!;
 export const getTooltipBody = () => getChart().findTooltip()!.findBody()!;

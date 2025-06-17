@@ -3,11 +3,11 @@
 
 import { ElementWrapper } from "@cloudscape-design/test-utils-core/dom";
 
-import CoreChartWrapper from "../core";
+import BaseChartWrapper from "../internal/base";
 
 import testClasses from "../../../pie-chart/test-classes/styles.selectors.js";
 
-export default class PieChartWrapper extends CoreChartWrapper {
+export default class PieChartWrapper extends BaseChartWrapper {
   static rootSelector: string = testClasses.root;
 
   public findSegments(): Array<ElementWrapper> {

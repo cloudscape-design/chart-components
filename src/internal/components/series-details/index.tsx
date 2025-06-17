@@ -7,10 +7,8 @@ import clsx from "clsx";
 import { useMergeRefs } from "@cloudscape-design/component-toolkit/internal";
 import { BaseComponentProps } from "@cloudscape-design/components/internal/base-component";
 import { InternalExpandableSection } from "@cloudscape-design/components/internal/do-not-use/expandable-section";
-import { colorBorderControlDefault } from "@cloudscape-design/design-tokens";
 
 import { getDataAttributes } from "../../base-component/get-data-attributes";
-import getSeriesDetailsText from "./series-details-text";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -29,7 +27,7 @@ interface ListItemProps {
 }
 
 export interface ChartSeriesDetailItem extends ChartDetailPair {
-  selected?: boolean;
+  highlighted?: boolean;
   marker?: React.ReactNode;
   isDimmed?: boolean;
   subItems?: ReadonlyArray<ChartDetailPair>;
@@ -41,7 +39,6 @@ export type ExpandedSeries = Set<string>;
 interface ChartSeriesDetailsProps extends BaseComponentProps {
   details: ReadonlyArray<ChartSeriesDetailItem>;
   expandedSeries?: ExpandedSeries;
-  setPopoverText?: (s: string) => void;
   setExpandedState?: (seriesTitle: string, state: boolean) => void;
   compactList?: boolean;
 }
@@ -49,7 +46,7 @@ interface ChartSeriesDetailsProps extends BaseComponentProps {
 export default memo(forwardRef(ChartSeriesDetails));
 
 function ChartSeriesDetails(
-  { details, expandedSeries, setPopoverText, setExpandedState, compactList, ...restProps }: ChartSeriesDetailsProps,
+  { details, expandedSeries, setExpandedState, compactList, ...restProps }: ChartSeriesDetailsProps,
   ref: React.Ref<HTMLDivElement>,
 ) {
   const baseProps = getDataAttributes(restProps);
@@ -58,25 +55,12 @@ function ChartSeriesDetails(
   const mergedRef = useMergeRefs(ref, detailsRef);
   const selectedRef = useRef<HTMLDivElement>(null);
 
-  // Once the component has rendered, pass its content in plain text
-  // so that it can be used by screen readers.
-  useEffect(() => {
-    if (setPopoverText) {
-      if (detailsRef.current) {
-        setPopoverText(getSeriesDetailsText(detailsRef.current));
-      }
-      return () => {
-        setPopoverText("");
-      };
-    }
-  }, [details, setPopoverText]);
-
   const isExpanded = (seriesTitle: string) => !!expandedSeries && expandedSeries.has(seriesTitle);
 
-  const selectedIndex = details.findIndex((d) => d.selected);
+  const selectedIndex = details.findIndex((d) => d.highlighted);
   useEffect(() => {
     if (selectedIndex !== -1 && selectedRef.current && "scrollIntoView" in selectedRef.current) {
-      selectedRef.current.scrollIntoView({ behavior: "smooth" });
+      selectedRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }, [selectedIndex]);
 
@@ -84,7 +68,7 @@ function ChartSeriesDetails(
     <div {...baseProps} className={className} ref={mergedRef}>
       <ul className={clsx(styles.list, compactList && styles.compact)}>
         {details.map(
-          ({ key, value, marker, isDimmed, subItems, expandableId, details: extraDetails, selected }, index) => (
+          ({ key, value, marker, isDimmed, subItems, expandableId, details: extraDetails, highlighted }, index) => (
             <li
               key={index}
               className={clsx({
@@ -95,19 +79,8 @@ function ChartSeriesDetails(
                 [styles.expandable]: !!expandableId,
               })}
             >
-              {details.length > 1 && selected ? (
-                <div
-                  ref={selectedRef}
-                  style={{
-                    position: "absolute",
-                    top: 2,
-                    left: -2,
-                    width: 2,
-                    height: 18,
-                    borderRadius: 4,
-                    background: colorBorderControlDefault,
-                  }}
-                ></div>
+              {details.length > 1 && highlighted ? (
+                <div ref={selectedRef} className={styles["highlight-indicator"]}></div>
               ) : null}
               {subItems?.length && !!expandableId ? (
                 <ExpandableSeries
@@ -180,7 +153,7 @@ function ExpandableSeries({
   }) {
   return (
     <div className={styles["expandable-section"]}>
-      {marker && <div style={{ blockSize: "20px", inlineSize: "20px", marginInlineEnd: "2px" }}>{marker}</div>}
+      {marker && <div className={styles.marker}>{marker}</div>}
       <div className={styles["full-width"]}>
         <InternalExpandableSection
           headerText={<span className={clsx(testClasses.key, styles.key)}>{itemKey}</span>}
@@ -202,7 +175,7 @@ function NonExpandableSeries({ itemKey, value, subItems, marker, details }: List
     <>
       <div className={clsx(styles["key-value-pair"], styles.announced)}>
         <div className={clsx(testClasses.key, styles.key)}>
-          {marker && <div style={{ blockSize: "20px", inlineSize: "20px", marginInlineEnd: "2px" }}>{marker}</div>}
+          {marker && <div className={styles.marker}>{marker}</div>}
           <span>{itemKey}</span>
         </div>
         <span className={clsx(testClasses.value, styles.value)}>{value}</span>

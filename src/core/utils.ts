@@ -5,7 +5,7 @@ import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
 import { getFormatter } from "./formatters";
-import { InternalChartLegendItemSpec, Rect } from "./interfaces";
+import { CoreLegendItemSpec, Rect } from "./interfaces";
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
 // We expect that items requiring referencing (e.g. in order to control their visibility) have the unique identifier defined.
@@ -60,6 +60,7 @@ export function isYThreshold(
 
 // We check point.series explicitly because Highcharts can destroy point objects, replacing the
 // contents with { destroyed: true }, violating the point's TS contract.
+// See: https://github.com/highcharts/highcharts/issues/23175.
 export function isPointVisible(point: Highcharts.Point) {
   return point.visible && point.series && point.series.visible;
 }
@@ -117,8 +118,8 @@ export function getPointColor(point?: Highcharts.Point): string {
 
 // There exists a Highcharts APIs to access legend items, but it is unfortunately not available, when
 // Highcharts legend is disabled. Instead, we use this custom method to collect legend items from the chart.
-export function getChartLegendItems(chart: Highcharts.Chart): readonly InternalChartLegendItemSpec[] {
-  const legendItems: InternalChartLegendItemSpec[] = [];
+export function getChartLegendItems(chart: Highcharts.Chart): readonly CoreLegendItemSpec[] {
+  const legendItems: CoreLegendItemSpec[] = [];
   const addSeriesItem = (series: Highcharts.Series) => {
     // The pie series is not shown in the legend. Instead, we show pie segments.
     if (series.type === "pie") {
@@ -198,21 +199,33 @@ export function getGroupRect(points: readonly Highcharts.Point[]): Rect {
     : { x: minX, y: chart.plotTop, width: maxX - minX, height: chart.plotHeight };
 }
 
-// TODO: i18n
-export function getChartAccessibleDescription() {
-  return "chart plot";
+export function getChartAccessibleDescription(chart: Highcharts.Chart) {
+  return chart.options.lang?.accessibility?.chartContainerLabel ?? "";
 }
 
-// TODO: i18n
 export function getPointAccessibleDescription(point: Highcharts.Point) {
-  return point.graphic?.element.getAttribute("aria-label") ?? "\tchart point";
+  if (point.series.xAxis && point.series.yAxis) {
+    const formattedX = getFormatter(point.series.xAxis)(point.x);
+    const formattedY = getFormatter(point.series.yAxis)(point.y);
+    return `${formattedX} ${formattedY}, ${point.series.name}`;
+  }
+  return point.graphic?.element.getAttribute("aria-label") ?? "";
 }
 
-// TODO: i18n
 export function getGroupAccessibleDescription(group: readonly Highcharts.Point[]) {
   const firstPoint = group[0];
-  const formattedX = getFormatter(firstPoint.series.xAxis)(firstPoint.x);
-  return `${formattedX}, group of ${group.length} points`;
+  return getFormatter(firstPoint.series.xAxis)(firstPoint.x);
+}
+
+// We don't format points for pie charts as unnecessary. Instead, we return an empty string, so
+// that Highcharts renders the default point description in that case.
+export function getFormattedPointDescription(point: Highcharts.Point) {
+  if (point.series.xAxis && point.series.yAxis) {
+    const formattedX = getFormatter(point.series.xAxis)(point.x);
+    const formattedY = getFormatter(point.series.yAxis)(point.y);
+    return `${formattedX} ${formattedY}, ${point.series.name}`;
+  }
+  return "";
 }
 
 // The area-, line-, or scatter series markers are rendered as single graphic elements,

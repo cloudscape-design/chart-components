@@ -125,7 +125,6 @@ export class ChartAPI {
       chartAPI.chartExtraPointer.onSeriesPointClick(this);
     };
     return {
-      ...this.chartExtraNodata.options,
       onChartLoad,
       onChartRender,
       onChartClick,
@@ -135,7 +134,7 @@ export class ChartAPI {
     };
   }
 
-  // The is no cleanup or destroy event in Highcharts options, so we define a custom one
+  // There is no cleanup or destroy event in Highcharts options, so we define a custom one
   // to be used when the React component unmounts.
   public onChartDestroy = () => {
     this.chartExtraNavigation.onChartDestroy();
@@ -193,12 +192,16 @@ export class ChartAPI {
 
   // Callbacks used by the legend component when items highlight state changes.
   public onHighlightChartItems = (itemIds: readonly string[]) => {
-    this.chartExtraHighlight.highlightChartItems(itemIds);
-    this.chartExtraLegend.onHighlightItems(itemIds);
+    if (!this.isTooltipPinned) {
+      this.chartExtraHighlight.highlightChartItems(itemIds);
+      this.chartExtraLegend.onHighlightItems(itemIds);
+    }
   };
   public onClearChartItemsHighlight = () => {
-    this.chartExtraHighlight.clearChartItemsHighlight();
-    this.chartExtraLegend.onClearHighlight();
+    if (!this.isTooltipPinned) {
+      this.chartExtraHighlight.clearChartItemsHighlight();
+      this.chartExtraLegend.onClearHighlight();
+    }
   };
 
   // Callbacks used for hover and keyboard navigation, and also exposed to the public API to give the ability
@@ -207,13 +210,19 @@ export class ChartAPI {
     this.chartExtraLegend.onItemVisibilityChange(visibleItemsIds);
   };
   public highlightChartPoint = (point: Highcharts.Point) => {
-    this.highlightActions(point);
+    if (!this.isTooltipPinned) {
+      this.highlightActions(point);
+    }
   };
   public highlightChartGroup = (group: readonly Highcharts.Point[]) => {
-    this.highlightActions(group as Writeable<Highcharts.Point[]>);
+    if (!this.isTooltipPinned) {
+      this.highlightActions(group as Writeable<Highcharts.Point[]>);
+    }
   };
   public clearChartHighlight = () => {
-    this.clearHighlightActions();
+    if (!this.isTooltipPinned) {
+      this.clearHighlightActions();
+    }
   };
 
   // A set of callbacks required for keyboard navigation.
@@ -221,7 +230,7 @@ export class ChartAPI {
     return {
       onFocusChart: () => {
         this.clearChartHighlight();
-        this.chartExtraNavigation.announceChart(getChartAccessibleDescription());
+        this.chartExtraNavigation.announceChart(getChartAccessibleDescription(this.context.chart()));
       },
       onFocusGroup: (group: Highcharts.Point[]) => {
         this.highlightActions(group, true);
@@ -279,11 +288,11 @@ export class ChartAPI {
     let shouldRedraw = false;
     for (const s of this.context.chart().series) {
       for (let i = 0; i < s.data.length; i++) {
+        const isEligibleSeries = !isXThreshold(s) && s.type !== "scatter" && !s.data[i].options.marker?.enabled;
         if (
-          !isXThreshold(s) &&
+          isEligibleSeries &&
           (s.data[i - 1]?.y === undefined || s.data[i - 1]?.y === null) &&
-          (s.data[i + 1]?.y === undefined || s.data[i + 1]?.y === null) &&
-          !s.data[i].options.marker?.enabled
+          (s.data[i + 1]?.y === undefined || s.data[i + 1]?.y === null)
         ) {
           s.data[i].update({ marker: { enabled: true } }, false);
           shouldRedraw = true;
@@ -301,6 +310,7 @@ export class ChartAPI {
   // To prevent these issues, on each render we check for destroyed points in the tooltip state, and proactively
   // hide the tooltip if found. The behavior is only observed during the initial chart loading, and is not expected
   // to cause UX issues with the tooltip being closed unexpectedly.
+  // See: https://github.com/highcharts/highcharts/issues/23175.
   private handleDestroyedPoints() {
     const tooltipState = this.chartExtraTooltip.get();
     if (tooltipState.group.some((p) => !p.series)) {
@@ -360,7 +370,11 @@ export class ChartAPI {
 
     if (!this.isTooltipPinned) {
       // Update Highcharts elements state.
-      this.chartExtraHighlight.highlightChartPoints(group);
+      if (point) {
+        this.chartExtraHighlight.highlightChartPoint(point);
+      } else {
+        this.chartExtraHighlight.highlightChartGroup(group);
+      }
 
       // Update tooltip and legend state.
       if (point) {
@@ -395,6 +409,6 @@ export class ChartAPI {
   }
 }
 
-export function isPointsPositionsEqual(current?: Highcharts.Point, next?: Highcharts.Point) {
+function isPointsPositionsEqual(current?: Highcharts.Point, next?: Highcharts.Point) {
   return current?.x === next?.x && current?.y === next?.y;
 }

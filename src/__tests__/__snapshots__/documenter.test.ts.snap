@@ -88,7 +88,7 @@ width value, the horizontal scrollbar is automatically added.",
     {
       "description": "Use filter to render default series filter, custom series filter, and/or additional filters.",
       "inlineType": {
-        "name": "ChartFilterOptions",
+        "name": "BaseFilterOptions",
         "properties": [
           {
             "name": "additionalFilters",
@@ -105,7 +105,7 @@ width value, the horizontal scrollbar is automatically added.",
       },
       "name": "filter",
       "optional": true,
-      "type": "ChartFilterOptions",
+      "type": "BaseFilterOptions",
     },
     {
       "defaultValue": "false",
@@ -123,6 +123,54 @@ Supported Highcharts versions:
       "type": "object | null",
     },
     {
+      "description": "An object that contains all of the localized strings required by the component.",
+      "i18nTag": true,
+      "inlineType": {
+        "name": "BaseI18nStrings",
+        "properties": [
+          {
+            "name": "detailPopoverDismissAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "errorText",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "legendAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "loadingText",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "recoveryText",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "seriesFilterLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "seriesFilterPlaceholder",
+            "optional": true,
+            "type": "string",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "i18nStrings",
+      "optional": true,
+      "type": "BaseI18nStrings",
+    },
+    {
       "defaultValue": "false",
       "description": "Inverts X and Y axes. Use it to show horizontal columns (bars).
 This property corresponds to [chart.inverted](https://api.highcharts.com/highcharts/chart.inverted).",
@@ -133,7 +181,7 @@ This property corresponds to [chart.inverted](https://api.highcharts.com/highcha
     {
       "description": "Chart legend options.",
       "inlineType": {
-        "name": "ChartLegendOptions",
+        "name": "BaseLegendOptions",
         "properties": [
           {
             "name": "actions",
@@ -155,13 +203,12 @@ This property corresponds to [chart.inverted](https://api.highcharts.com/highcha
       },
       "name": "legend",
       "optional": true,
-      "type": "ChartLegendOptions",
+      "type": "BaseLegendOptions",
     },
     {
-      "description": "The empty, no-match, loading, or error state of the chart.
-It requires the \`no-data-to-display\` module.",
+      "description": "The empty, no-match, loading, or error state of the chart.",
       "inlineType": {
-        "name": "ChartNoDataOptions",
+        "name": "BaseNoDataOptions",
         "properties": [
           {
             "name": "empty",
@@ -198,7 +245,7 @@ It requires the \`no-data-to-display\` module.",
       },
       "name": "noData",
       "optional": true,
-      "type": "ChartNoDataOptions",
+      "type": "BaseNoDataOptions",
     },
     {
       "description": "Chart series options.
@@ -530,7 +577,7 @@ width value, the horizontal scrollbar is automatically added.",
     {
       "description": "Use filter to render default series filter, custom series filter, and/or additional filters.",
       "inlineType": {
-        "name": "ChartFilterOptions",
+        "name": "BaseFilterOptions",
         "properties": [
           {
             "name": "additionalFilters",
@@ -547,7 +594,7 @@ width value, the horizontal scrollbar is automatically added.",
       },
       "name": "filter",
       "optional": true,
-      "type": "ChartFilterOptions",
+      "type": "BaseFilterOptions",
     },
     {
       "defaultValue": "false",
@@ -565,6 +612,54 @@ Supported Highcharts versions:
       "type": "object | null",
     },
     {
+      "description": "An object that contains all of the localized strings required by the component.",
+      "i18nTag": true,
+      "inlineType": {
+        "name": "BaseI18nStrings",
+        "properties": [
+          {
+            "name": "detailPopoverDismissAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "errorText",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "legendAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "loadingText",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "recoveryText",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "seriesFilterLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "seriesFilterPlaceholder",
+            "optional": true,
+            "type": "string",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "i18nStrings",
+      "optional": true,
+      "type": "BaseI18nStrings",
+    },
+    {
       "description": "Description of the inner chart area. Only supported for donut series.",
       "name": "innerAreaDescription",
       "optional": true,
@@ -579,7 +674,7 @@ Supported Highcharts versions:
     {
       "description": "Chart legend options.",
       "inlineType": {
-        "name": "ChartLegendOptions",
+        "name": "BaseLegendOptions",
         "properties": [
           {
             "name": "actions",
@@ -601,13 +696,12 @@ Supported Highcharts versions:
       },
       "name": "legend",
       "optional": true,
-      "type": "ChartLegendOptions",
+      "type": "BaseLegendOptions",
     },
     {
-      "description": "The empty, no-match, loading, or error state of the chart.
-It requires the \`no-data-to-display\` module.",
+      "description": "The empty, no-match, loading, or error state of the chart.",
       "inlineType": {
-        "name": "ChartNoDataOptions",
+        "name": "BaseNoDataOptions",
         "properties": [
           {
             "name": "empty",
@@ -644,7 +738,7 @@ It requires the \`no-data-to-display\` module.",
       },
       "name": "noData",
       "optional": true,
-      "type": "ChartNoDataOptions",
+      "type": "BaseNoDataOptions",
     },
     {
       "description": "Segment description renderer.",

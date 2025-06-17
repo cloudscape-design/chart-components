@@ -115,9 +115,9 @@ export namespace PieChartProps {
     totalValue: number;
   }
 
-  export type LegendOptions = CoreTypes.ChartLegendOptions;
+  export type LegendOptions = CoreTypes.BaseLegendOptions;
 
-  export type FilterOptions = CoreTypes.ChartFilterOptions;
+  export type FilterOptions = CoreTypes.BaseFilterOptions;
 
-  export type NoDataOptions = CoreTypes.ChartNoDataOptions;
+  export type NoDataOptions = CoreTypes.BaseNoDataOptions;
 }

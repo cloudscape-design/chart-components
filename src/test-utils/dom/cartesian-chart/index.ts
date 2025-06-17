@@ -3,12 +3,12 @@
 
 import { ElementWrapper } from "@cloudscape-design/test-utils-core/dom";
 
-import CoreChartWrapper from "../core";
+import BaseChartWrapper from "../internal/base";
 import { CartesianChartTooltipWrapper } from "./tooltip";
 
 import testClasses from "../../../cartesian-chart/test-classes/styles.selectors.js";
 
-export default class CartesianChartWrapper extends CoreChartWrapper {
+export default class CartesianChartWrapper extends BaseChartWrapper {
   static rootSelector: string = testClasses.root;
 
   public findTooltip(): null | CartesianChartTooltipWrapper {

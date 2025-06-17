@@ -27,6 +27,9 @@ import {
 
 import styles from "./styles.css.js";
 
+// Here we define chart styles and colors, used across multiple components, including core chart, cartesian- and pie charts,
+// series markers.
+
 export const colors = [
   colorChartsPaletteCategorical1,
   colorChartsPaletteCategorical2,
@@ -134,6 +137,13 @@ export const seriesDataLabelsCss: Highcharts.CSSObject = {
 export const seriesOpacityInactive = 0.2;
 
 export const noDataPosition: Highcharts.NoDataPositionOptions = { align: "left", verticalAlign: "top" };
+
+export const noDataCss: React.CSSProperties = {
+  position: "absolute",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
 
 export const verticalAxisTitleBlockSize = 24;
 export const verticalAxisTitleMargin = 4;

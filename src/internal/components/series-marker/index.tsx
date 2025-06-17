@@ -1,16 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import type Highcharts from "highcharts";
-
 import { BaseComponentProps } from "@cloudscape-design/components/internal/base-component";
-import {
-  colorBackgroundLayoutMain,
-  colorTextBodyDefault,
-  colorTextInteractiveDisabled,
-} from "@cloudscape-design/design-tokens";
-
-import { SVGRendererPool } from "../../utils/renderer-utils";
+import { colorTextInteractiveDisabled } from "@cloudscape-design/design-tokens";
 
 export type ChartSeriesMarkerType =
   | "line"
@@ -29,13 +21,12 @@ export interface ChartSeriesMarkerProps extends BaseComponentProps {
   visible?: boolean;
 }
 
+function scale(size: number, value: number) {
+  return `translate(${size * ((1 - value) / 2)}, ${size * ((1 - value) / 2)}) scale(${value})`;
+}
+
 export function ChartSeriesMarker({ type = "line", color, visible = true }: ChartSeriesMarkerProps) {
   color = visible ? color : colorTextInteractiveDisabled;
-  const size = 14;
-  const halfSize = size / 2;
-  const lineWidth = 12;
-  const scale = (value: number) =>
-    `translate(${size * ((1 - value) / 2)}, ${size * ((1 - value) / 2)}) scale(${value})`;
   return (
     <svg
       focusable={false}
@@ -46,155 +37,72 @@ export function ChartSeriesMarker({ type = "line", color, visible = true }: Char
       xmlns="http://www.w3.org/2000/svg"
     >
       <g transform="translate(4, 4)">
-        {type === "line" && (
-          <line
-            x1={0}
-            y1={halfSize}
-            x2={lineWidth}
-            y2={halfSize}
-            stroke={color}
-            strokeWidth={4}
-            strokeLinecap="round"
-          />
-        )}
+        {type === "line" && <SVGLine color={color} />}
 
-        {type === "dashed" && (
-          <line
-            x1={0}
-            y1={halfSize}
-            x2={lineWidth}
-            y2={halfSize}
-            stroke={color}
-            strokeWidth={4}
-            strokeDasharray="3,6"
-            strokeLinecap="round"
-          />
-        )}
+        {type === "dashed" && <SVGLineDashed color={color} />}
 
-        {type === "large-square" && (
-          <rect x={0} y={0} width={size} height={size} fill={color} transform={scale(0.9)} rx={2} />
-        )}
+        {type === "large-square" && <SVGLargeSquare color={color} />}
 
-        {type === "hollow-square" && (
-          <rect
-            x={0}
-            y={0}
-            width={size}
-            height={size}
-            stroke={color}
-            strokeWidth={2}
-            fill={color}
-            fillOpacity="0.40"
-            transform={scale(0.8)}
-            rx={2}
-          />
-        )}
+        {type === "hollow-square" && <SVGHollowSquare color={color} />}
 
-        {/* Scatter markers */}
+        {type === "square" && <SVGSquare color={color} />}
 
-        {type === "square" && <rect x={0} y={0} width={size} height={size} fill={color} transform={scale(0.65)} />}
+        {type === "diamond" && <SVGDiamond color={color} />}
 
-        {type === "diamond" && (
-          <polygon
-            points={`${halfSize},${0} ${size},${halfSize} ${halfSize},${size} ${0},${halfSize}`}
-            fill={color}
-            transform={scale(0.75)}
-          />
-        )}
+        {type === "triangle" && <SVGTriangle color={color} />}
 
-        {type === "triangle" && (
-          <polygon points={`${halfSize},${0} ${size},${size} ${0},${size}`} fill={color} transform={scale(0.65)} />
-        )}
+        {type === "triangle-down" && <SVGTriangleDown color={color} />}
 
-        {type === "triangle-down" && (
-          <polygon points={`${halfSize},${size} ${0},${0} ${size},${0}`} fill={color} transform={scale(0.65)} />
-        )}
-
-        {type === "circle" && <circle cx={halfSize} cy={halfSize} r={halfSize} fill={color} transform={scale(0.65)} />}
+        {type === "circle" && <SVGCircle color={color} />}
       </g>
     </svg>
   );
 }
 
-export function renderMarker(
-  chart: Highcharts.Chart,
-  pool: SVGRendererPool,
-  point: Highcharts.Point,
-  selected: boolean,
-) {
-  if (point.plotX === undefined || point.plotY === undefined) {
-    return;
-  }
-
-  const rr = chart.renderer;
-  const inverted = !!chart.inverted;
-  const size = selected ? 4 : 3;
-  const pointStyle = {
-    zIndex: selected ? 6 : 5,
-    "stroke-width": selected ? 1 : 2,
-    stroke: selected ? colorTextBodyDefault : point.color,
-    fill: selected ? point.color : colorBackgroundLayoutMain,
-    opacity: 1,
-    style: "pointer-events: none",
-  };
-  const haloStyle = {
-    zIndex: 6,
-    "stroke-width": 0,
-    stroke: point.color,
-    fill: point.color,
-    opacity: 0.4,
-    style: "pointer-events: none",
-  };
-
-  const x = inverted ? chart.plotLeft + chart.plotWidth - point.plotY : chart.plotLeft + (point.plotX ?? 0);
-  const y = inverted ? chart.plotTop + chart.plotHeight - point.plotX : chart.plotTop + (point.plotY ?? 0);
-
-  if (selected) {
-    pool.circle(rr, { ...haloStyle, x, y, r: 10 });
-  }
-
-  const type = getSeriesMarkerType(point.series);
-  switch (type) {
-    case "square":
-      return pool.rect(rr, { ...pointStyle, x: x - size, y: y - size, width: size * 2, height: size * 2 });
-
-    case "diamond": {
-      const path = ["M", x, y - size, "L", x + size, y, "L", x, y + size, "L", x - size, y, "Z"] as any;
-      return pool.path(rr, { ...pointStyle, d: path });
-    }
-
-    case "triangle": {
-      const path = ["M", x, y - size, "L", x + size, y + size, "L", x - size, y + size, "Z"] as any;
-      return pool.path(rr, { ...pointStyle, d: path });
-    }
-
-    case "triangle-down": {
-      const path = ["M", x, y + size, "L", x - size, y - size, "L", x + size, y - size, "Z"] as any;
-      return pool.path(rr, { ...pointStyle, d: path });
-    }
-
-    case "circle":
-    default:
-      return pool.circle(rr, { ...pointStyle, x, y, r: size });
-  }
+function SVGLine({ color }: { color: string }) {
+  return <rect x={0} y={5} height={4} width={14} strokeWidth={0} rx={2} fill={color} />;
 }
 
-function getSeriesMarkerType(series: Highcharts.Series): ChartSeriesMarkerType {
-  const seriesSymbol = "symbol" in series && typeof series.symbol === "string" ? series.symbol : "circle";
-  if (series.type === "scatter") {
-    switch (seriesSymbol) {
-      case "square":
-        return "square";
-      case "diamond":
-        return "diamond";
-      case "triangle":
-        return "triangle";
-      case "triangle-down":
-        return "triangle-down";
-      case "circle":
-      default:
-        return "circle";
-    }
-  }
-  return "circle";
+function SVGLineDashed({ color }: { color: string }) {
+  return (
+    <>
+      <rect x={0} y={5} height={4} width={7} strokeWidth={0} rx={2} fill={color} />
+      <rect x={8} y={5} height={4} width={7} strokeWidth={0} rx={2} fill={color} />
+    </>
+  );
+}
+
+function SVGLargeSquare({ color }: { color: string }) {
+  const shape = { x: 0, y: 0, width: 14, height: 14, transform: scale(14, 0.8), rx: 2 };
+  return <rect {...shape} strokeWidth={2} stroke={color} fill={color} />;
+}
+
+function SVGHollowSquare({ color }: { color: string }) {
+  const size = { x: 0, y: 0, width: 14, height: 14, transform: scale(14, 0.8), rx: 2 };
+  return <rect {...size} strokeWidth={2} stroke={color} fill={color} fillOpacity="0.40" />;
+}
+
+function SVGSquare({ color }: { color: string }) {
+  const size = { x: 0, y: 0, width: 14, height: 14, transform: scale(14, 0.65), rx: 2 };
+  return <rect {...size} strokeWidth={0} fill={color} />;
+}
+
+function SVGDiamond({ color }: { color: string }) {
+  const shape = { points: "7,0 14,7 7,14 0,7", transform: scale(14, 0.75) };
+  return <polygon {...shape} strokeWidth={0} fill={color} />;
+}
+
+function SVGTriangle({ color }: { color: string }) {
+  const shape = { points: "7,0 14,14 0,14", transform: scale(14, 0.65) };
+  return <polygon {...shape} strokeWidth={0} fill={color} />;
+}
+
+function SVGTriangleDown({ color }: { color: string }) {
+  const shape = { points: "7,14 0,0 14,0", transform: scale(14, 0.65) };
+  return <polygon {...shape} strokeWidth={0} fill={color} />;
+}
+
+function SVGCircle({ color }: { color: string }) {
+  const shape = { cx: 7, cy: 7, r: 7, transform: scale(14, 0.65) };
+  return <circle {...shape} strokeWidth={0} fill={color} />;
 }

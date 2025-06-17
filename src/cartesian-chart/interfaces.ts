@@ -185,11 +185,11 @@ export namespace CartesianChartProps {
     subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
   }
 
-  export type LegendOptions = CoreTypes.ChartLegendOptions;
+  export type LegendOptions = CoreTypes.BaseLegendOptions;
 
-  export type FilterOptions = CoreTypes.ChartFilterOptions;
+  export type FilterOptions = CoreTypes.BaseFilterOptions;
 
-  export type NoDataOptions = CoreTypes.ChartNoDataOptions;
+  export type NoDataOptions = CoreTypes.BaseNoDataOptions;
 }
 
 // Internal types

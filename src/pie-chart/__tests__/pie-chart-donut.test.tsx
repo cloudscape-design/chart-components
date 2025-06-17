@@ -106,7 +106,7 @@ describe("PieChart: donut", () => {
 });
 
 function findChart() {
-  return createWrapper().findChart("pie")!;
+  return createWrapper().findPieHighcharts()!;
 }
 
 function findInnerValue() {

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
-import type Highcharts from "highcharts";
 
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
@@ -11,7 +10,7 @@ import {
   CoreChartAPI,
   CoreChartProps,
   ErrorBarSeriesOptions,
-  TooltipItem,
+  TooltipContentItem,
   TooltipPointProps,
   TooltipSlotProps,
 } from "../core/interfaces";
@@ -20,17 +19,17 @@ import { InternalBaseComponentProps } from "../internal/base-component/use-base-
 import { fireNonCancelableEvent } from "../internal/events";
 import { castArray, SomeRequired } from "../internal/utils/utils";
 import { transformCartesianSeries } from "./chart-series-cartesian";
-import { CartesianChartProps as C, NonErrorBarSeriesOptions } from "./interfaces";
+import { CartesianChartProps, NonErrorBarSeriesOptions } from "./interfaces";
 
 import testClasses from "./test-classes/styles.css.js";
 
-interface InternalCartesianChartProps extends InternalBaseComponentProps, C {
-  tooltip: SomeRequired<C.TooltipOptions, "enabled" | "placement" | "size">;
-  legend: SomeRequired<C.LegendOptions, "enabled">;
+interface InternalCartesianChartProps extends InternalBaseComponentProps, CartesianChartProps {
+  tooltip: SomeRequired<CartesianChartProps.TooltipOptions, "enabled" | "placement" | "size">;
+  legend: SomeRequired<CartesianChartProps.LegendOptions, "enabled">;
 }
 
 export const InternalCartesianChart = forwardRef(
-  ({ tooltip, ...props }: InternalCartesianChartProps, ref: React.Ref<C.Ref>) => {
+  ({ tooltip, ...props }: InternalCartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
     const apiRef = useRef<null | CoreChartAPI>(null);
 
     // When visibleSeries and onChangeVisibleSeries are provided - the series visibility can be controlled from the outside.
@@ -43,10 +42,14 @@ export const InternalCartesianChart = forwardRef(
     const allSeriesIds = props.series.map((s) => getOptionsId(s));
     // We keep local visible series state to compute threshold series data, that depends on series visibility.
     const [visibleSeriesLocal, setVisibleSeriesLocal] = useState(props.visibleSeries ?? allSeriesIds);
+    const visibleSeriesState = props.visibleSeries ?? visibleSeriesLocal;
     const onVisibleSeriesChange: CoreChartProps["onVisibleItemsChange"] = (items) => {
       const visibleSeries = items.filter((i) => i.visible).map((i) => i.id);
-      fireNonCancelableEvent(props.onChangeVisibleSeries, { visibleSeries });
-      setVisibleSeriesLocal(visibleSeries);
+      if (props.visibleSeries) {
+        fireNonCancelableEvent(props.onChangeVisibleSeries, { visibleSeries });
+      } else {
+        setVisibleSeriesLocal(visibleSeries);
+      }
     };
 
     // We convert cartesian tooltip options to the core chart's getTooltipContent callback,
@@ -56,29 +59,23 @@ export const InternalCartesianChart = forwardRef(
       // assuming Highcharts makes no modifications for those. These options are not referentially equal
       // to the ones we get from the consumer due to the internal validation/transformation we run on them.
       // See: https://api.highcharts.com/class-reference/Highcharts.Chart#userOptions.
-      const transformItem = (item: TooltipItem): C.TooltipPointItem => {
-        return {
-          x: item.point.x,
-          y: isXThreshold(item.point.series) ? null : (item.point.y ?? null),
-          series: item.point.series.userOptions as NonErrorBarSeriesOptions,
-          errorRanges: item.linkedErrorbars.map((point) => ({
-            low: point.options.low ?? 0,
-            high: point.options.high ?? 0,
-            series: point.series.userOptions as ErrorBarSeriesOptions,
-          })),
-        };
-      };
-      const transformSeriesProps = (props: TooltipPointProps): C.TooltipPointRenderProps => {
-        return {
-          item: transformItem(props.item),
-        };
-      };
-      const transformSlotProps = (props: TooltipSlotProps): C.TooltipSlotRenderProps => {
-        return {
-          x: props.x,
-          items: props.items.map(transformItem),
-        };
-      };
+      const transformItem = (item: TooltipContentItem): CartesianChartProps.TooltipPointItem => ({
+        x: item.point.x,
+        y: isXThreshold(item.point.series) ? null : (item.point.y ?? null),
+        series: item.point.series.userOptions as NonErrorBarSeriesOptions,
+        errorRanges: item.linkedErrorbars.map((point) => ({
+          low: point.options.low ?? 0,
+          high: point.options.high ?? 0,
+          series: point.series.userOptions as ErrorBarSeriesOptions,
+        })),
+      });
+      const transformSeriesProps = (props: TooltipPointProps): CartesianChartProps.TooltipPointRenderProps => ({
+        item: transformItem(props.item),
+      });
+      const transformSlotProps = (props: TooltipSlotProps): CartesianChartProps.TooltipSlotRenderProps => ({
+        x: props.x,
+        items: props.items.map(transformItem),
+      });
       return {
         point: tooltip.point ? (props) => tooltip.point!(transformSeriesProps(props)) : undefined,
         header: tooltip.header ? (props) => tooltip.header!(transformSlotProps(props)) : undefined,
@@ -88,7 +85,7 @@ export const InternalCartesianChart = forwardRef(
     };
 
     // Converting x-, and y-threshold series to Highcharts series and plot lines.
-    const { series, xPlotLines, yPlotLines } = transformCartesianSeries(props.series, visibleSeriesLocal);
+    const { series, xPlotLines, yPlotLines } = transformCartesianSeries(props.series, visibleSeriesState);
 
     // Cartesian chart imperative API.
     useImperativeHandle(ref, () => ({
@@ -96,33 +93,31 @@ export const InternalCartesianChart = forwardRef(
       showAllSeries: () => apiRef.current?.setItemsVisible(allSeriesIds),
     }));
 
-    const highchartsOptions: Highcharts.Options = {
-      chart: {
-        inverted: props.inverted,
-      },
-      plotOptions: {
-        series: {
-          stacking: props.stacking ? "normal" : undefined,
-        },
-      },
-      series,
-      xAxis: castArray(props.xAxis)?.map((xAxisProps) => ({
-        ...xAxisProps,
-        title: { text: xAxisProps.title },
-        plotLines: xPlotLines,
-      })),
-      yAxis: castArray(props.yAxis)?.map((yAxisProps) => ({
-        ...yAxisProps,
-        title: { text: yAxisProps.title },
-        plotLines: yPlotLines,
-      })),
-    };
-
     return (
       <InternalCoreChart
         {...props}
         callback={(api) => (apiRef.current = api)}
-        options={highchartsOptions}
+        options={{
+          chart: {
+            inverted: props.inverted,
+          },
+          plotOptions: {
+            series: {
+              stacking: props.stacking ? "normal" : undefined,
+            },
+          },
+          series,
+          xAxis: castArray(props.xAxis)?.map((xAxisProps) => ({
+            ...xAxisProps,
+            title: { text: xAxisProps.title },
+            plotLines: xPlotLines,
+          })),
+          yAxis: castArray(props.yAxis)?.map((yAxisProps) => ({
+            ...yAxisProps,
+            title: { text: yAxisProps.title },
+            plotLines: yPlotLines,
+          })),
+        }}
         tooltip={tooltip}
         getTooltipContent={getTooltipContent}
         visibleItems={props.visibleSeries}

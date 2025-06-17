@@ -10,6 +10,8 @@ import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 import { createChartWrapper, renderChart } from "./common";
 import { HighchartsTestHelper } from "./highcharts-utils";
 
+import legendTestClasses from "../../../lib/components/internal/components/chart-legend/test-classes/styles.selectors.js";
+
 const hc = new HighchartsTestHelper(highcharts);
 
 const series: Highcharts.SeriesOptionsType[] = [
@@ -41,13 +43,29 @@ const series: Highcharts.SeriesOptionsType[] = [
   },
 ];
 
-const getItems = (options?: { hidden?: boolean; dimmed?: boolean }) =>
-  createChartWrapper().findLegend()!.findItems(options);
-const getItem = (index: number, options?: { hidden?: boolean; dimmed?: boolean }) =>
-  createChartWrapper().findLegend()!.findItems(options)[index];
+const getItemSelector = (options?: { active?: boolean; dimmed?: boolean }) => {
+  let selector = `.${legendTestClasses.item}`;
+  if (options?.active === true) {
+    selector += `:not(.${legendTestClasses["hidden-item"]})`;
+  }
+  if (options?.active === false) {
+    selector += `.${legendTestClasses["hidden-item"]}`;
+  }
+  if (options?.dimmed === true) {
+    selector += `.${legendTestClasses["dimmed-item"]}`;
+  }
+  if (options?.dimmed === false) {
+    selector += `:not(.${legendTestClasses["dimmed-item"]})`;
+  }
+  return selector;
+};
+const getItems = (options?: { active?: boolean; dimmed?: boolean }) =>
+  createChartWrapper().findLegend()!.findAll(getItemSelector(options));
+const getItem = (index: number, options?: { active?: boolean; dimmed?: boolean }) =>
+  createChartWrapper().findLegend()!.findAll(getItemSelector(options))[index];
 const mouseOver = (element: HTMLElement) => element.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
 const mouseOut = (element: HTMLElement) => element.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
-const clearHighlightPause = () => new Promise((resolve) => setTimeout(resolve, 50));
+const clearHighlightPause = () => new Promise((resolve) => setTimeout(resolve, 100));
 const mouseLeavePause = () => new Promise((resolve) => setTimeout(resolve, 300));
 
 describe("CoreChart: legend", () => {
@@ -65,8 +83,8 @@ describe("CoreChart: legend", () => {
     renderChart({ highcharts, options: { series }, visibleItems: ["L1", "P1"] });
 
     expect(getItems().map((w) => w.getElement().textContent)).toEqual(["L1", "L2", "Line 3", "P1", "P2", "Pie 3"]);
-    expect(getItems({ hidden: false }).map((w) => w.getElement().textContent)).toEqual(["L1", "P1"]);
-    expect(getItems({ hidden: true }).map((w) => w.getElement().textContent)).toEqual(["L2", "Line 3", "P2", "Pie 3"]);
+    expect(getItems({ active: true }).map((w) => w.getElement().textContent)).toEqual(["L1", "P1"]);
+    expect(getItems({ active: false }).map((w) => w.getElement().textContent)).toEqual(["L2", "Line 3", "P2", "Pie 3"]);
   });
 
   test("does not render title by default", () => {
@@ -114,27 +132,27 @@ describe("CoreChart: legend", () => {
     });
 
     expect(createChartWrapper().findLegend()).not.toBe(null);
-    expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["L1", "Line 3"]);
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["L1", "Line 3"]);
     expect(hc.getChartSeries(0).state).toBe("");
     expect(hc.getChartSeries(2).state).toBe("");
     expect(hc.getPlotLinesById("L3").map((l) => l.svgElem.opacity)).toEqual([1, 1]);
 
     act(() => mouseOver(getItem(0).getElement()));
-    expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["L1"]);
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["L1"]);
     expect(hc.getChartSeries(0).state).toBe("normal");
     expect(hc.getChartSeries(2).state).toBe("inactive");
     expect(hc.getPlotLinesById("L3").map((l) => l.svgElem.opacity)).toEqual([0.4, 0.4]);
 
     act(() => mouseOut(getItem(0).getElement()));
     act(() => mouseOver(getItem(2).getElement()));
-    expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["Line 3"]);
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["Line 3"]);
     expect(hc.getChartSeries(0).state).toBe("inactive");
     expect(hc.getChartSeries(2).state).toBe("normal");
     expect(hc.getPlotLinesById("L3").map((l) => l.svgElem.opacity)).toEqual([1, 1]);
 
     act(() => mouseOut(getItem(0).getElement()));
     await clearHighlightPause();
-    expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["L1", "Line 3"]);
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["L1", "Line 3"]);
     expect(hc.getChartSeries(0).state).toBe("normal");
     expect(hc.getChartSeries(2).state).toBe("normal");
     expect(hc.getPlotLinesById("L3").map((l) => l.svgElem.opacity)).toEqual([1, 1]);
@@ -195,8 +213,7 @@ describe("CoreChart: legend", () => {
     expect(wrapper.findTooltip()!.getElement().textContent).toBe("L2");
   });
 
-  // TODO: restore
-  test.skip("legend items are highlighted on hover in pie chart", async () => {
+  test("legend items are highlighted on hover in pie chart", async () => {
     renderChart({
       highcharts,
       options: { series: series.filter((s) => s.type === "pie") },
@@ -204,25 +221,31 @@ describe("CoreChart: legend", () => {
     });
 
     expect(createChartWrapper().findLegend()).not.toBe(null);
-    expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
     expect(hc.getChartPoint(0, 0).state).toBe(undefined);
     expect(hc.getChartPoint(0, 2).state).toBe(undefined);
 
     act(() => mouseOver(getItem(0).getElement()));
-    expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["P1"]);
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["P1"]);
+    expect(getItems({ dimmed: true, active: true }).map((w) => w.getElement().textContent)).toEqual(["Pie 3"]);
     expect(hc.getChartPoint(0, 0).state).toBe("hover");
     expect(hc.getChartPoint(0, 2).state).toBe(undefined);
 
     act(() => mouseOut(getItem(0).getElement()));
     await clearHighlightPause();
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
+    expect(hc.getChartPoint(0, 0).state).toBe("normal");
+    expect(hc.getChartPoint(0, 2).state).toBe("normal");
+
     act(() => mouseOver(getItem(2).getElement()));
-    expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["Pie 3"]);
+    expect(getItems({ dimmed: true, active: true }).map((w) => w.getElement().textContent)).toEqual(["P1"]);
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["Pie 3"]);
     expect(hc.getChartPoint(0, 0).state).toBe("normal");
     expect(hc.getChartPoint(0, 2).state).toBe("hover");
 
-    act(() => mouseOut(getItem(0).getElement()));
+    act(() => mouseOut(getItem(2).getElement()));
     await clearHighlightPause();
-    expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
     expect(hc.getChartPoint(0, 0).state).toBe("normal");
     expect(hc.getChartPoint(0, 2).state).toBe("normal");
   });
@@ -274,8 +297,7 @@ describe("CoreChart: legend", () => {
     expect(wrapper.findTooltip()!.getElement().textContent).toBe("P2");
   });
 
-  // TODO: restore
-  test.skip("legend items are highlighted when cartesian chart series point is highlighted", async () => {
+  test("legend items are highlighted when cartesian chart series point is highlighted", async () => {
     renderChart({
       highcharts,
       options: { series: series.filter((s) => s.type === "line") },
@@ -283,22 +305,21 @@ describe("CoreChart: legend", () => {
     });
 
     expect(createChartWrapper().findLegend()).not.toBe(null);
-    expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["L1", "Line 3"]);
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["L1", "Line 3"]);
 
     act(() => hc.highlightChartPoint(0, 0));
-    expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["L1"]);
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["L1"]);
 
     act(() => hc.highlightChartPoint(2, 0));
-    expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["Line 3"]);
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["Line 3"]);
 
     act(() => hc.leaveChartPoint(2, 0));
     await mouseLeavePause();
     await clearHighlightPause();
-    expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["L1", "Line 3"]);
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["L1", "Line 3"]);
   });
 
-  // TODO: restore
-  test.skip("legend items are highlighted when pie chart segment is highlighted", async () => {
+  test("legend items are highlighted when pie chart segment is highlighted", async () => {
     renderChart({
       highcharts,
       options: { series: series.filter((s) => s.type === "pie") },
@@ -306,18 +327,18 @@ describe("CoreChart: legend", () => {
     });
 
     expect(createChartWrapper().findLegend()).not.toBe(null);
-    expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
 
     act(() => hc.highlightChartPoint(0, 0));
-    expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["P1"]);
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["P1"]);
 
     act(() => hc.highlightChartPoint(0, 2));
-    expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["Pie 3"]);
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["Pie 3"]);
 
     act(() => hc.leaveChartPoint(0, 2));
     await mouseLeavePause();
     await clearHighlightPause();
-    expect(getItems({ dimmed: false, hidden: false }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
   });
 
   test("legend items are navigable with keyboard", () => {
@@ -329,57 +350,57 @@ describe("CoreChart: legend", () => {
       visibleItems: ["L1", "L2", "L3"],
     });
 
-    act(() => getItem(0).focus());
+    getItem(0).focus();
     expect(getItem(0).getElement()).toHaveFocus();
     expect(getItems({ dimmed: false })).toHaveLength(1);
     expect(getItems({ dimmed: false })[0].getElement()).toBe(getItem(0).getElement());
 
-    fireEvent.keyDown(getItem(0).getElement(), { keyCode: KeyCode.right });
+    getItem(0).keydown({ keyCode: KeyCode.right });
     expect(getItem(1).getElement()).toHaveFocus();
     expect(getItems({ dimmed: false })).toHaveLength(1);
     expect(getItems({ dimmed: false })[0].getElement()).toBe(getItem(1).getElement());
 
-    fireEvent.keyDown(getItem(1).getElement(), { keyCode: KeyCode.down });
+    getItem(1).keydown({ keyCode: KeyCode.down });
     expect(getItem(2).getElement()).toHaveFocus();
     expect(getItems({ dimmed: false })).toHaveLength(1);
     expect(getItems({ dimmed: false })[0].getElement()).toBe(getItem(2).getElement());
 
-    fireEvent.keyDown(getItem(2).getElement(), { keyCode: KeyCode.left });
+    getItem(2).keydown({ keyCode: KeyCode.left });
     expect(getItem(1).getElement()).toHaveFocus();
     expect(getItems({ dimmed: false })).toHaveLength(1);
     expect(getItems({ dimmed: false })[0].getElement()).toBe(getItem(1).getElement());
 
-    fireEvent.keyDown(getItem(1).getElement(), { keyCode: KeyCode.up });
+    getItem(1).keydown({ keyCode: KeyCode.up });
     expect(getItem(0).getElement()).toHaveFocus();
     expect(getItems({ dimmed: false })).toHaveLength(1);
     expect(getItems({ dimmed: false })[0].getElement()).toBe(getItem(0).getElement());
 
-    fireEvent.keyDown(getItem(0).getElement(), { keyCode: KeyCode.end });
+    getItem(0).keydown({ keyCode: KeyCode.end });
     expect(getItem(2).getElement()).toHaveFocus();
     expect(getItems({ dimmed: false })).toHaveLength(1);
     expect(getItems({ dimmed: false })[0].getElement()).toBe(getItem(2).getElement());
 
-    fireEvent.keyDown(getItem(2).getElement(), { keyCode: KeyCode.home });
+    getItem(2).keydown({ keyCode: KeyCode.home });
     expect(getItem(0).getElement()).toHaveFocus();
     expect(getItems({ dimmed: false })).toHaveLength(1);
     expect(getItems({ dimmed: false })[0].getElement()).toBe(getItem(0).getElement());
 
-    fireEvent.keyDown(getItem(0).getElement(), { keyCode: KeyCode.left });
+    getItem(0).keydown({ keyCode: KeyCode.left });
     expect(getItem(2).getElement()).toHaveFocus();
 
-    fireEvent.keyDown(getItem(2).getElement(), { keyCode: KeyCode.right });
+    getItem(2).keydown({ keyCode: KeyCode.right });
     expect(getItem(0).getElement()).toHaveFocus();
     expect(hc.getChartSeries(0).state).toBe("normal");
     expect(hc.getChartSeries(1).state).toBe("inactive");
     expect(hc.getChartSeries(2).state).toBe("inactive");
 
-    fireEvent.keyDown(getItem(0).getElement(), { keyCode: KeyCode.escape });
+    getItem(0).keydown({ keyCode: KeyCode.escape });
     expect(getItem(0).getElement()).toHaveFocus();
     expect(hc.getChartSeries(0).state).toBe("normal");
     expect(hc.getChartSeries(1).state).toBe("normal");
     expect(hc.getChartSeries(2).state).toBe("normal");
 
-    fireEvent.keyDown(getItem(0).getElement(), { keyCode: KeyCode.right });
+    getItem(0).keydown({ keyCode: KeyCode.right });
     expect(getItem(1).getElement()).toHaveFocus();
     expect(hc.getChartSeries(0).state).toBe("inactive");
     expect(hc.getChartSeries(1).state).toBe("normal");

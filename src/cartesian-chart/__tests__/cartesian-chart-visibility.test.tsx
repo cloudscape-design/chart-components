@@ -8,10 +8,10 @@ import { vi } from "vitest";
 import "@cloudscape-design/components/test-utils/dom";
 import { CartesianChartProps } from "../../../lib/components/cartesian-chart";
 import createWrapper from "../../../lib/components/test-utils/dom";
+import { toggleLegendItem } from "../../core/__tests__/common";
 import { ref, renderCartesianChart, renderStatefulCartesianChart } from "./common";
 
-const getChart = () => createWrapper().findChart("cartesian")!;
-const getLegend = () => getChart().findLegend()!;
+const getChart = () => createWrapper().findCartesianHighcharts()!;
 
 function getVisibilityState() {
   const legend = getChart().findLegend();
@@ -20,7 +20,7 @@ function getVisibilityState() {
   const hiddenSeries = series.filter((s) => !s.visible);
   return {
     allLegendItems: legend?.findItems().map((w) => w.getElement().textContent) ?? [],
-    hiddenLegendItems: legend?.findItems({ hidden: true }).map((w) => w.getElement().textContent) ?? [],
+    hiddenLegendItems: legend?.findItems({ active: false }).map((w) => w.getElement().textContent) ?? [],
     allSeries: series.map((s) => s.options.id ?? s.name),
     hiddenSeries: hiddenSeries.map((s) => s.options.id ?? s.name),
   };
@@ -68,7 +68,7 @@ describe("CartesianChart: visibility", () => {
       hiddenSeries: [],
     });
 
-    act(() => getLegend().findItems()[0].click());
+    toggleLegendItem(0);
 
     expect(getVisibilityState()).toEqual({
       allLegendItems: ["L1", "L2"],

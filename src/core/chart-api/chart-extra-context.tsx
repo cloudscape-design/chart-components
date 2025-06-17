@@ -1,9 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import Highcharts from "highcharts";
+import type Highcharts from "highcharts";
 
-import { ChartHighlightProps, ChartLegendItem, Rect } from "../interfaces";
+import { ChartHighlightProps, CoreLegendItem, Rect } from "../interfaces";
 import { getGroupRect, isSeriesStacked } from "../utils";
 
 // Chart API context is used for dependency injection for chart utilities.
@@ -32,7 +32,7 @@ export namespace ChartExtraContext {
   export interface Handlers {
     onHighlight?(props: ChartHighlightProps): void;
     onClearHighlight?(): void;
-    onVisibleItemsChange?: (legendItems: readonly ChartLegendItem[]) => void;
+    onVisibleItemsChange?: (legendItems: readonly CoreLegendItem[]) => void;
   }
 
   export interface State {

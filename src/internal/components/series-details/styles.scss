@@ -5,7 +5,6 @@
 
 @use "../../styles" as styles;
 @use "../../../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
-@use "./motion";
 
 @use "../series-marker/styles" as marker;
 
@@ -39,6 +38,7 @@ $font-weight-bold: cs.$font-weight-heading-s;
   inline-size: 100%;
 
   > .key {
+    @include styles.text-wrapping;
     display: inline-flex;
     color: cs.$color-text-group-label;
   }
@@ -99,6 +99,19 @@ $font-weight-bold: cs.$font-weight-heading-s;
   inline-size: 100%;
 }
 
-.announced {
-  /* Used by getSeriesDetailText to select text to be announced by screen readers */
+.highlight-indicator {
+  position: absolute;
+  top: 5px;
+  left: -2px;
+  width: 3px;
+  height: 12px;
+  border-radius: 4px;
+  background: cs.$color-text-body-secondary;
+}
+
+.marker {
+  block-size: 20px;
+  inline-size: 20px;
+  margin-inline-end: 2px;
+  z-index: 1;
 }

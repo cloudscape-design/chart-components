@@ -35,8 +35,6 @@ const commonPropsNew: CartesianChartProps = {
   yAxis: { title: "Y axis title" },
 };
 
-// TODO: default numeric formatter factor
-
 export default function () {
   return (
     <Page title="Migration: Axes and scales">

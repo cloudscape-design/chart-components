@@ -3,11 +3,11 @@
 
 import { InternalChartFilter } from "@cloudscape-design/components/internal/do-not-use/chart-filter";
 
-import { ChartLegendItem } from "../../../core/interfaces";
+import { CoreLegendItem } from "../../../core/interfaces";
 import { fireNonCancelableEvent, NonCancelableEventHandler } from "../../../internal/events";
 
 interface ChartSeriesFilterProps {
-  items: readonly ChartLegendItem[];
+  items: readonly CoreLegendItem[];
   selectedItems: readonly string[];
   onChange: NonCancelableEventHandler<{ selectedItems: readonly string[] }>;
   i18nStrings?: {

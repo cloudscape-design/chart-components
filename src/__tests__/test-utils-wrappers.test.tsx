@@ -35,12 +35,12 @@ test("finds charts by type", () => {
   render(<CartesianChart highcharts={highchartsOrNoHighcharts} series={[]} data-testid="c2" />);
   render(<PieChart highcharts={highchartsOrNoHighcharts} series={null} data-testid="p1" />);
 
-  expect(createWrapper().findChart("cartesian")).not.toBe(null);
-  expect(createWrapper().findChart("cartesian", '[data-testid="c1"]')).not.toBe(null);
-  expect(createWrapper().findChart("cartesian", '[data-testid="c2"]')).not.toBe(null);
-  expect(createWrapper().findAllCharts("cartesian")).toHaveLength(2);
+  expect(createWrapper().findCartesianHighcharts()).not.toBe(null);
+  expect(createWrapper().findCartesianHighcharts('[data-testid="c1"]')).not.toBe(null);
+  expect(createWrapper().findCartesianHighcharts('[data-testid="c2"]')).not.toBe(null);
+  expect(createWrapper().findAllCartesianHighcharts()).toHaveLength(2);
 
-  expect(createWrapper().findChart("pie")).not.toBe(null);
-  expect(createWrapper().findChart("pie", '[data-testid="p1"]')).not.toBe(null);
-  expect(createWrapper().findAllCharts("pie")).toHaveLength(1);
+  expect(createWrapper().findPieHighcharts()).not.toBe(null);
+  expect(createWrapper().findPieHighcharts('[data-testid="p1"]')).not.toBe(null);
+  expect(createWrapper().findAllPieHighcharts()).toHaveLength(1);
 });

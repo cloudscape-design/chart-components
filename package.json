@@ -53,7 +53,7 @@
     "@cloudscape-design/components": "^3",
     "@cloudscape-design/design-tokens": "^3",
     "highcharts": "^12.2.0",
-    "react": ">=18.2.0"
+    "react": ">=16.0.0"
   },
   "devDependencies": {
     "@cloudscape-design/browser-test-tools": "^3.0.4",

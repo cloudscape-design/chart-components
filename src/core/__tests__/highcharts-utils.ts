@@ -43,24 +43,6 @@ export class HighchartsTestHelper {
   }
 }
 
-export function createProxyRenderer(originalRenderer: Highcharts.SVGRenderer) {
-  const calls = {
-    rect: new Array<{ x?: number; y?: number; width?: number; height?: number }>(),
-  };
-  const proxy = new Proxy(originalRenderer, {
-    get: (target, prop) => {
-      if (prop === "rect") {
-        return (x?: number, y?: number, width?: number, height?: number) => {
-          calls.rect.push({ x, y, width, height });
-          return target.rect(x, y, width, height);
-        };
-      }
-      return target[prop];
-    },
-  });
-  return [proxy, calls];
-}
-
 export class ChartRendererStub {
   rect() {
     return this;

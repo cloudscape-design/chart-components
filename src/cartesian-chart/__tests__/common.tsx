@@ -44,7 +44,7 @@ export function renderCartesianChart({ i18nProvider, ...props }: TestProps, Comp
   };
   const { rerender } = render(<ComponentWrapper {...props} />);
   return {
-    wrapper: createWrapper().findChart("cartesian")!,
+    wrapper: createWrapper().findCartesianHighcharts()!,
     rerender: (props: TestProps) => rerender(<ComponentWrapper {...props} />),
   };
 }

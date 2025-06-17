@@ -4,7 +4,6 @@
 import highcharts from "highcharts";
 import { vi } from "vitest";
 
-import "highcharts/modules/no-data-to-display";
 import { createChartWrapper, renderChart } from "./common";
 
 const series: Highcharts.SeriesOptionsType[] = [

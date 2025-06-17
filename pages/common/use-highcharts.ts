@@ -11,20 +11,10 @@ export function useHighcharts({ more = false, xrange = false }: { more?: boolean
 
   useEffect(() => {
     const load = async () => {
-      // await new Promise(resolve => setTimeout(resolve, 1000));
-
       const Highcharts = await import("highcharts");
-
-      // See https://github.com/highcharts/highcharts/issues/20954#issuecomment-2618142529
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      Highcharts.seriesTypes.pie.prototype.hasData = function () {
-        return this.points.some((point: any) => point.y !== null && point.visible === true);
-      };
 
       await import("highcharts/modules/accessibility");
       await import("highcharts/modules/heatmap"); // Required for point visibility API!
-      await import("highcharts/modules/no-data-to-display");
 
       // Required for arearange, areasplinerange, columnrange, gauge, boxplot, errorbar, waterfall, polygon, bubble
       if (more) {

@@ -14,17 +14,16 @@ import {
   useSingleTabStopNavigation,
 } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
-import { colorBorderDividerDefault } from "@cloudscape-design/design-tokens";
 
-import { ChartLegendItem, GetLegendTooltipContent } from "../../../core/interfaces";
+import { CoreLegendItem, GetLegendTooltipContent } from "../../../core/interfaces";
 import { DebouncedCall } from "../../utils/utils";
 import { ChartLegendTooltip } from "../chart-legend-tooltip";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
 
-export interface ChartLegendOptions {
-  items: readonly ChartLegendItem[];
+export interface ChartLegendProps {
+  items: readonly CoreLegendItem[];
   legendTitle?: string;
   ariaLabel?: string;
   actions?: React.ReactNode;
@@ -43,10 +42,9 @@ export const ChartLegend = ({
   onItemHighlightEnter,
   onItemHighlightExit,
   getLegendTooltipContent,
-}: ChartLegendOptions) => {
+}: ChartLegendProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const segmentsRef = useRef<Record<number, HTMLElement>>([]);
-  const focusedRef = useRef(false);
   const highlightControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [tooltipItemId, setTooltipItemId] = useState<string | null>(null);
@@ -64,7 +62,6 @@ export const ChartLegend = ({
   const navigationAPI = useRef<SingleTabStopNavigationAPI>(null);
 
   function onFocus(index: number, itemId: string) {
-    focusedRef.current = true;
     setSelectedIndex(index);
     navigationAPI.current!.updateFocusTarget();
     showHighlight(itemId);
@@ -75,7 +72,6 @@ export const ChartLegend = ({
   }
 
   function onBlur() {
-    focusedRef.current = false;
     navigationAPI.current!.updateFocusTarget();
     setTooltipItemId(null);
   }
@@ -177,10 +173,9 @@ export const ChartLegend = ({
 
         <div className={styles.list}>
           {actions && (
-            <div style={{ display: "flex", gap: 4, alignItems: "center" }} className={testClasses.actions}>
+            <div className={clsx(testClasses.actions, styles.actions)}>
               {actions}
-
-              <div style={{ background: colorBorderDividerDefault, width: 1, height: "80%" }} />
+              <div className={styles["actions-divider"]} />
             </div>
           )}
 
@@ -218,9 +213,9 @@ export const ChartLegend = ({
                 ref={thisTriggerRef}
                 onClick={(event) => {
                   if (event.metaKey || event.ctrlKey) {
-                    selectItem(item.id);
-                  } else {
                     toggleItem(item.id);
+                  } else {
+                    selectItem(item.id);
                   }
                 }}
                 isHighlighted={item.highlighted}
@@ -288,6 +283,7 @@ const LegendItemTrigger = forwardRef(
       <button
         data-itemid={itemId}
         aria-pressed={visible}
+        aria-current={isHighlighted}
         className={clsx(testClasses.item, styles.marker, {
           [styles["marker--inactive"]]: !visible,
           [testClasses["hidden-item"]]: !visible,

@@ -1,12 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { act } from "react";
 import highcharts from "highcharts";
 import { vi } from "vitest";
 
 import "@cloudscape-design/components/test-utils/dom";
-import { createChartWrapper, renderChart, renderStatefulChart } from "./common";
+import { createChartWrapper, renderChart, renderStatefulChart, selectLegendItem, toggleLegendItem } from "./common";
 
 const onVisibleItemsChange = vi.fn();
 
@@ -65,7 +64,7 @@ function getVisibilityState() {
   const hiddenPoints = points.filter((p) => !p.visible);
   return {
     allLegendItems: legend?.findItems().map((w) => w.getElement().textContent) ?? [],
-    hiddenLegendItems: legend?.findItems({ hidden: true }).map((w) => w.getElement().textContent) ?? [],
+    hiddenLegendItems: legend?.findItems({ active: false }).map((w) => w.getElement().textContent) ?? [],
     allSeries: series.map((s) => s.options.id ?? s.name),
     hiddenSeries: hiddenSeries.map((s) => s.options.id ?? s.name),
     allPoints: points.map((p) => p.options.id ?? p.name),
@@ -99,20 +98,6 @@ function expectedPieItems(visible: string[]) {
   };
 }
 
-const getItem = (index: number, options?: { hidden?: boolean; dimmed?: boolean }) =>
-  createChartWrapper().findLegend()!.findItems(options)[index];
-
-const clickItem = (index: number) => act(() => getItem(index).click());
-
-const selectClickItem = (index: number) => {
-  const modifier = Math.random() > 0.5 ? { metaKey: true } : { ctrlKey: true };
-  act(() =>
-    getItem(index)
-      .getElement()
-      .dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, ...modifier })),
-  );
-};
-
 describe("CoreChart: visibility", () => {
   test.each([false, true])("hides series on the first render, legend=%s", (legend) => {
     renderStatefulChart({
@@ -141,7 +126,7 @@ describe("CoreChart: visibility", () => {
 
     expect(getVisibilityState()).toEqual(expectedLineItems(["L1", "L2", "L3"]));
 
-    clickItem(0);
+    toggleLegendItem(0);
 
     expect(getVisibilityState()).toEqual(expectedLineItems(["L2", "L3"]));
 
@@ -151,7 +136,7 @@ describe("CoreChart: visibility", () => {
       { id: "L3", name: "L3", marker: expect.anything(), visible: true, highlighted: false },
     ]);
 
-    selectClickItem(1);
+    selectLegendItem(1);
 
     expect(getVisibilityState()).toEqual(expectedLineItems(["L2"]));
 
@@ -161,7 +146,7 @@ describe("CoreChart: visibility", () => {
       { id: "L3", name: "L3", marker: expect.anything(), visible: false, highlighted: false },
     ]);
 
-    selectClickItem(1);
+    selectLegendItem(1);
 
     expect(getVisibilityState()).toEqual(expectedLineItems(["L1", "L2", "L3"]));
 
@@ -221,14 +206,14 @@ describe("CoreChart: visibility", () => {
       }),
     );
 
-    clickItem(0);
+    toggleLegendItem(0);
 
     expect(onVisibleItemsChange).toHaveBeenCalledWith([
       { id: "1", name: "Line", marker: expect.anything(), visible: true, highlighted: false },
       { id: "2", name: "Line", marker: expect.anything(), visible: true, highlighted: false },
     ]);
 
-    clickItem(1);
+    toggleLegendItem(1);
 
     expect(onVisibleItemsChange).toHaveBeenCalledWith([
       { id: "1", name: "Line", marker: expect.anything(), visible: false, highlighted: false },
@@ -263,7 +248,7 @@ describe("CoreChart: visibility", () => {
 
     expect(getVisibilityState()).toEqual(expectedPieItems(["A", "B", "C"]));
 
-    clickItem(1);
+    toggleLegendItem(1);
 
     expect(getVisibilityState()).toEqual(expectedPieItems(["A", "C"]));
 
@@ -273,7 +258,7 @@ describe("CoreChart: visibility", () => {
       { id: "C", name: "C", marker: expect.anything(), visible: true, highlighted: false },
     ]);
 
-    selectClickItem(0);
+    selectLegendItem(0);
 
     expect(getVisibilityState()).toEqual(expectedPieItems(["A"]));
 
@@ -283,7 +268,7 @@ describe("CoreChart: visibility", () => {
       { id: "C", name: "C", marker: expect.anything(), visible: false, highlighted: false },
     ]);
 
-    selectClickItem(0);
+    selectLegendItem(0);
 
     expect(getVisibilityState()).toEqual(expectedPieItems(["A", "B", "C"]));
 
@@ -350,14 +335,14 @@ describe("CoreChart: visibility", () => {
       hiddenPoints: ["1"],
     });
 
-    clickItem(0);
+    toggleLegendItem(0);
 
     expect(onVisibleItemsChange).toHaveBeenCalledWith([
       { id: "1", name: "Segment", marker: expect.anything(), visible: true, highlighted: false },
       { id: "2", name: "Segment", marker: expect.anything(), visible: true, highlighted: false },
     ]);
 
-    clickItem(1);
+    toggleLegendItem(1);
 
     expect(onVisibleItemsChange).toHaveBeenCalledWith([
       { id: "1", name: "Segment", marker: expect.anything(), visible: false, highlighted: false },

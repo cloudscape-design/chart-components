@@ -11,6 +11,7 @@ export interface ReactiveAxisTitlesState {
 }
 
 // Chart helper to fetch chart vertical axis labels for them to be rendered in a slot above the chart.
+// See: https://github.com/highcharts/highcharts/issues/23174.
 export class ChartExtraAxisTitles extends AsyncStore<ReactiveAxisTitlesState> {
   private context: ChartExtraContext;
   constructor(context: ChartExtraContext) {

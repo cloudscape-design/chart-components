@@ -97,3 +97,13 @@ $font-weight-normal: 400;
   white-space: normal;
   word-spacing: normal;
 }
+
+@mixin text-wrapping {
+  // When using with Flexbox, a flex item has min-width set to "auto" by default, which
+  // prevents the text wrapping. We need to override the min-width by setting it to "0"
+  min-inline-size: 0;
+
+  // `word-break: break-word` is deprecated.
+  // But its replacement, `overflow-wrap: anywhere`, is not supported in Safari 14.0 and 15.0.
+  word-break: break-word;
+}

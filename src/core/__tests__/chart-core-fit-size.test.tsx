@@ -10,7 +10,7 @@ import { vi } from "vitest";
 import { circleIndex } from "@cloudscape-design/component-toolkit/internal";
 
 import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
-import { renderChart } from "./common";
+import { objectContainingDeep, renderChart } from "./common";
 
 vi.mock("highcharts-react-official", () => ({ __esModule: true, default: vi.fn(() => null) }));
 
@@ -34,12 +34,7 @@ vi.mock("@cloudscape-design/component-toolkit/internal", async () => {
   };
 });
 
-const chartOptionsWithHeight = (height?: number | string) =>
-  expect.objectContaining({
-    options: expect.objectContaining({
-      chart: expect.objectContaining({ height }),
-    }),
-  });
+const chartOptionsWithHeight = (height?: number | string) => objectContainingDeep({ options: { chart: { height } } });
 
 describe("CoreChart: fit-size", () => {
   afterEach(() => {

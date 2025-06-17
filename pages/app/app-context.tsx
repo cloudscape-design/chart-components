@@ -83,12 +83,10 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
   }, [urlParams.density]);
 
   useEffect(() => {
-    document.documentElement.setAttribute("dir", urlParams.direction);
-  }, [urlParams.direction]);
-
-  useEffect(() => {
     disableMotion(urlParams.motionDisabled);
   }, [urlParams.motionDisabled]);
+
+  document.documentElement.setAttribute("dir", urlParams.direction);
 
   return <AppContext.Provider value={{ urlParams, setUrlParams: setUrlParams }}>{children}</AppContext.Provider>;
 }

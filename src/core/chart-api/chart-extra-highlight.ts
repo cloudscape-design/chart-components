@@ -48,36 +48,52 @@ export class ChartExtraHighlight {
     setPlotLinesState(this.context.chart(), (lineId) => itemIds.includes(lineId));
   };
 
-  // This method is similar to the above, but it takes a collection of points. The cartesian chart points
+  // This method is similar to the above, but it takes a group of points. The cartesian chart points
   // do not have IDs, so we match points and series by their references instead. This is used to control
   // highlight state when chart elements are hovered or focused.
-  public highlightChartPoints = (points: readonly Highcharts.Point[]) => {
+  public highlightChartGroup = (points: readonly Highcharts.Point[]) => {
     const includedPoints = new Set<Highcharts.Point>();
     const includedSeries = new Set<Highcharts.Series>();
+    const includedSeriesIds = new Set<string>();
     points.forEach((point) => {
       includedPoints.add(point);
       includedSeries.add(point.series);
+      includedSeriesIds.add(getSeriesId(point.series));
     });
     for (const s of this.context.chart().series) {
       this.setSeriesState(s, includedSeries.has(s) ? "normal" : "inactive");
-      // We use special handling for column- and pie series. In pie series, the state is meant to be set on points.
-      // In column series, we prefer the stacks of groups of column that have a shared X coordinate to be highlighted.
+      // We use special handling for column- series to make stacks or groups of columns that have a shared X highlighted.
       // See: https://github.com/highcharts/highcharts/issues/23076.
       if (s.type === "column") {
         for (const d of s.data) {
           this.setPointState(d, includedPoints.has(d) ? "normal" : "inactive");
         }
       }
-      // In pie series, the state needs to be touched on a single segment only. Otherwise, the highlighting "halo"
-      // around the segment is not displayed.
+    }
+    setPlotLinesState(this.context.chart(), (lineId) => includedSeriesIds.has(lineId));
+  };
+
+  // This method is similar to the above, but it takes a single point. This is used for point highlighting
+  // in cartesian charts, and for pie chart segments.
+  public highlightChartPoint = (point: Highcharts.Point) => {
+    for (const s of this.context.chart().series) {
+      this.setSeriesState(s, point.series === s ? "hover" : "inactive");
+      // For pie charts it is important that the hover actions comes last, as otherwise the segment's highlight "halo"
+      // is removed whenever any segment is made inactive.
       if (s.type === "pie") {
         for (const d of s.data) {
-          if (includedPoints.has(d)) {
-            this.setPointState(d, "hover");
-          }
+          this.setPointState(d, "inactive");
+        }
+        this.setPointState(point, "hover");
+      }
+      // We override point state that could have been set for columns using this.highlightChartGroup().
+      else if (s.type === "column") {
+        for (const d of s.data) {
+          this.setPointState(d, "normal");
         }
       }
     }
+    setPlotLinesState(this.context.chart(), (lineId) => lineId === getSeriesId(point.series));
   };
 
   // Removes dimmed state from all series and points.

@@ -7,7 +7,7 @@ import { PieChartProps } from "../../../lib/components/pie-chart";
 import createWrapper from "../../../lib/components/test-utils/dom";
 import { renderPieChart } from "./common";
 
-const getChart = () => createWrapper().findChart("pie")!;
+const getChart = () => createWrapper().findPieHighcharts()!;
 
 describe("PieChart: segments", () => {
   const commonSeries: PieChartProps.SeriesOptions = {

@@ -4,6 +4,8 @@
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
 
+import testClasses from "../test-classes/styles.css.js";
+
 // An invisible component rendered before chart plot to capture focus for custom keyboard navigation.
 export function ChartApplication({
   api,
@@ -14,12 +16,18 @@ export function ChartApplication({
   keyboardNavigation: boolean;
   ariaLabel?: string;
 }) {
-  const isNoData = !!useSelector(api.nodataStore, (s) => s.container);
-  return keyboardNavigation && !isNoData ? (
+  const hasData = useSelector(api.nodataStore, (s) => !s.container);
+  return keyboardNavigation && hasData ? (
     // Do not remove the empty outer div. It is used to contain the application element to perform
     // focus juggling, necessary to trigger a screen-reader announcement.
     <div>
-      <div ref={api.setApplication} tabIndex={0} role="application" aria-label={ariaLabel} />
+      <div
+        ref={api.setApplication}
+        tabIndex={0}
+        role="application"
+        aria-label={ariaLabel}
+        className={testClasses.application}
+      />
     </div>
   ) : null;
 }
