@@ -192,12 +192,16 @@ export class ChartAPI {
 
   // Callbacks used by the legend component when items highlight state changes.
   public onHighlightChartItems = (itemIds: readonly string[]) => {
-    this.chartExtraHighlight.highlightChartItems(itemIds);
-    this.chartExtraLegend.onHighlightItems(itemIds);
+    if (!this.isTooltipPinned) {
+      this.chartExtraHighlight.highlightChartItems(itemIds);
+      this.chartExtraLegend.onHighlightItems(itemIds);
+    }
   };
   public onClearChartItemsHighlight = () => {
-    this.chartExtraHighlight.clearChartItemsHighlight();
-    this.chartExtraLegend.onClearHighlight();
+    if (!this.isTooltipPinned) {
+      this.chartExtraHighlight.clearChartItemsHighlight();
+      this.chartExtraLegend.onClearHighlight();
+    }
   };
 
   // Callbacks used for hover and keyboard navigation, and also exposed to the public API to give the ability
@@ -206,13 +210,19 @@ export class ChartAPI {
     this.chartExtraLegend.onItemVisibilityChange(visibleItemsIds);
   };
   public highlightChartPoint = (point: Highcharts.Point) => {
-    this.highlightActions(point);
+    if (!this.isTooltipPinned) {
+      this.highlightActions(point);
+    }
   };
   public highlightChartGroup = (group: readonly Highcharts.Point[]) => {
-    this.highlightActions(group as Writeable<Highcharts.Point[]>);
+    if (!this.isTooltipPinned) {
+      this.highlightActions(group as Writeable<Highcharts.Point[]>);
+    }
   };
   public clearChartHighlight = () => {
-    this.clearHighlightActions();
+    if (!this.isTooltipPinned) {
+      this.clearHighlightActions();
+    }
   };
 
   // A set of callbacks required for keyboard navigation.
