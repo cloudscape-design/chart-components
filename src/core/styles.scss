@@ -6,8 +6,8 @@
 @use "../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
 @use "@cloudscape-design/component-toolkit/internal/focus-visible" as focus-visible;
 
-$side-legend-max-width: 30%;
-$side-legend-min-width: max(20%, 150px);
+$side-legend-max-inline-size: 30%;
+$side-legend-min-inline-size: max(20%, 150px);
 
 .root {
   position: relative;
@@ -111,6 +111,6 @@ $side-legend-min-width: max(20%, 150px);
 .side-legend-container {
   flex: 0;
   overflow-y: auto;
-  max-width: $side-legend-max-width;
-  min-width: $side-legend-min-width;
+  max-inline-size: $side-legend-max-inline-size;
+  min-inline-size: $side-legend-min-inline-size;
 }

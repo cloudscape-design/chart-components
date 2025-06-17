@@ -103,8 +103,8 @@ $font-weight-bold: cs.$font-weight-heading-s;
   position: absolute;
   top: 5px;
   left: -2px;
-  width: 3px;
-  height: 12px;
+  inline-size: 3px;
+  block-size: 12px;
   border-radius: 4px;
   background: cs.$color-text-body-secondary;
 }

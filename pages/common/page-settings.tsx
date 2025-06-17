@@ -15,7 +15,6 @@ import Select from "@cloudscape-design/components/select";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
 import { CartesianChartProps, PieChartProps } from "../../lib/components";
-import { BaseLegendOptions } from "../../lib/components/core/interfaces";
 import AppContext, { AppContextType } from "../app/app-context";
 import { useHighcharts } from "./use-highcharts";
 
@@ -142,10 +141,11 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
     // Adding an empty recovery click handler to make the default recovery button appear.
     onRecoveryClick: () => {},
   };
-  const legend: BaseLegendOptions = {
+  const legend = {
     enabled: settings.showLegend,
     title: settings.showLegendTitle ? "Legend title" : undefined,
     actions: settings.showLegendActions ? <Button variant="icon" iconName="search" /> : undefined,
+    position: settings.legendPosition,
   };
   return {
     settings,

@@ -3,7 +3,6 @@
 
 import { omit } from "lodash";
 
-import { InternalChartOptions } from "../../lib/components/core/interfaces";
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
 import { dateFormatter } from "../common/formatters";
 import { PageSettingsForm, useChartSettings } from "../common/page-settings";
@@ -80,28 +79,8 @@ const series: Highcharts.SeriesOptionsType[] = [
   },
 ];
 
-const options: InternalChartOptions = {
-  chart: {
-    height: 400,
-  },
-  lang: {
-    accessibility: {
-      chartContainerLabel: "Line chart",
-    },
-  },
-  series: series,
-  xAxis: [
-    {
-      type: "datetime",
-      title: { text: "Time (UTC)" },
-      valueFormatter: dateFormatter,
-    },
-  ],
-  yAxis: [{ title: { text: "Events" } }],
-};
-
 export default function () {
-  const { settings, chartProps } = useChartSettings();
+  const { chartProps } = useChartSettings();
   return (
     <Page
       title="Core chart demo"
@@ -114,11 +93,23 @@ export default function () {
     >
       <CoreChart
         {...omit(chartProps.cartesian, "ref")}
-        options={options}
-        chartHeight={settings.height}
-        chartMinWidth={settings.minWidth}
-        chartMinHeight={settings.minHeight}
-        legendPosition={settings.legendPosition}
+        options={{
+          lang: {
+            accessibility: {
+              chartContainerLabel: "Line chart",
+            },
+          },
+          series: series,
+          xAxis: [
+            {
+              type: "datetime",
+              title: { text: "Time (UTC)" },
+              valueFormatter: dateFormatter,
+            },
+          ],
+          yAxis: [{ title: { text: "Events" } }],
+        }}
+        chartHeight={400}
         tooltip={{ placement: "outside" }}
       />
     </Page>

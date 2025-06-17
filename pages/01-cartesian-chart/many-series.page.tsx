@@ -21,6 +21,7 @@ export default function () {
             "verticalAxisTitlePlacement",
             "showLegend",
             "showLegendTitle",
+            "legendPosition",
             "tooltipSize",
             "tooltipPlacement",
           ]}

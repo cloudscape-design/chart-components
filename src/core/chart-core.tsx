@@ -48,7 +48,6 @@ export function InternalCoreChart({
   fallback = <Spinner />,
   callback,
   emphasizeBaseline = true,
-  legendPosition = "bottom",
   verticalAxisTitlePlacement = "side",
   i18nStrings,
   className,
@@ -80,6 +79,7 @@ export function InternalCoreChart({
   const rootRef = useRef<HTMLDivElement>(null);
   const mergedRootRef = useMergeRefs(rootRef, __internalRootRef);
   const rootProps = { ref: mergedRootRef, className: rootClassName, ...getDataAttributes(rest) };
+  const legendPosition = legendOptions?.position ?? "bottom";
   const containerProps = {
     fitHeight,
     chartHeight,

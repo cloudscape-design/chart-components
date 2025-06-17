@@ -70,19 +70,19 @@ export function ChartContainer({
       {legend && legendPosition === "side" ? (
         <div className={styles["chart-plot-and-legend-wrapper"]}>
           <div
-            style={{ minWidth: chartMinWidth ?? 0 }}
+            style={{ minInlineSize: chartMinWidth ?? 0 }}
             className={clsx(styles["chart-plot-wrapper"], testClasses["chart-plot-wrapper"])}
           >
             {verticalAxisTitle}
             {chart(effectiveChartHeight)}
           </div>
-          <div style={{ maxHeight: effectiveChartHeight }} className={styles["side-legend-container"]}>
+          <div className={styles["side-legend-container"]} style={{ maxBlockSize: effectiveChartHeight }}>
             {legend}
           </div>
         </div>
       ) : (
         <div
-          style={chartMinWidth !== undefined ? { minWidth: chartMinWidth } : {}}
+          style={chartMinWidth !== undefined ? { minInlineSize: chartMinWidth } : {}}
           className={testClasses["chart-plot-wrapper"]}
         >
           {verticalAxisTitle}

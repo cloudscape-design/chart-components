@@ -215,7 +215,6 @@ export interface CoreChartProps
       | "chartMinWidth"
       | "ariaLabel"
       | "ariaDescription"
-      | "legend"
       | "filter"
       | "noData"
       | "i18nStrings"
@@ -242,11 +241,9 @@ export interface CoreChartProps
    */
   footer?: CoreFooterOptions;
   /**
-   * Defines the position of the chart legend.
-   * - "bottom": Legend is displayed below the chart
-   * - "side": Legend is displayed on the side of the chart
+   * Chart legend options.
    */
-  legendPosition?: "bottom" | "side";
+  legend?: CoreLegendOptions;
   /**
    * The callback to init the chart's API when it is ready. The API includes the Highcharts chart object, and
    * additional Cloudscape methods.
@@ -280,6 +277,10 @@ export interface CoreChartProps
    * Use Cloudscape keyboard navigation, `true` by default.
    */
   keyboardNavigation?: boolean;
+}
+
+export interface CoreLegendOptions extends BaseLegendOptions {
+  position?: "bottom" | "side";
 }
 
 export interface CoreLegendItem {

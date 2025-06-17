@@ -50,6 +50,7 @@ export default function () {
             "containerWidth",
             "showLegend",
             "showLegendTitle",
+            "legendPosition",
             "useFallback",
           ]}
         />

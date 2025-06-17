@@ -99,7 +99,6 @@
 
 .actions {
   display: flex;
-  gap: 4px;
   align-items: center;
 }
 
@@ -113,14 +112,15 @@
 }
 
 .actions-divider-bottom {
-  width: 1px;
-  height: 80%;
+  inline-size: 1px;
+  block-size: 80%;
+  margin-inline: cs.$space-scaled-xs;
   background: cs.$color-border-divider-default;
 }
 
 .actions-divider-side {
-  width: 80%;
-  height: 1px;
-  margin-block: cs.$space-scaled-xs;
+  inline-size: 80%;
+  block-size: 1px;
+  margin-block-end: cs.$space-scaled-xs;
   background: cs.$color-border-divider-default;
 }
