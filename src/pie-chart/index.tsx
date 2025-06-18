@@ -13,12 +13,12 @@ import { PieChartProps as P, PieChartProps } from "./interfaces";
 export type { PieChartProps };
 
 const PieChart = forwardRef(({ fitHeight = false, ...props }: PieChartProps, ref: React.Ref<PieChartProps.Ref>) => {
-  // We validate options before propagating them to the internal chart to ensure only those
+  // We transform options before propagating them to the internal chart to ensure only those
   // defined in the component's contract can be propagated down to the underlying Highcharts.
   // Additionally, we assign all default options, including the nested ones.
-  const series = validateSeries(props.series);
-  const tooltip = validateTooltip(props.tooltip);
-  const legend = validateLegend(props.legend);
+  const series = transformSeries(props.series);
+  const tooltip = transformTooltip(props.tooltip);
+  const legend = transformLegend(props.legend);
 
   const baseComponentProps = useBaseComponent("PieChart", { props: { fitHeight } });
 
@@ -40,22 +40,22 @@ applyDisplayName(PieChart, "PieChart");
 
 export default PieChart;
 
-function validateSeries(s: null | P.SeriesOptions): readonly P.SeriesOptions[] {
+function transformSeries(s: null | P.SeriesOptions): readonly P.SeriesOptions[] {
   if (!s) {
     return [];
   }
   switch (s.type) {
     case "pie":
     case "donut":
-      return [{ type: s.type, id: s.id, name: s.name, color: s.color, data: validateData(s.data) }];
+      return [{ type: s.type, id: s.id, name: s.name, color: s.color, data: transformData(s.data) }];
   }
 }
 
-function validateData(data: readonly P.PieSegmentOptions[]): readonly P.PieSegmentOptions[] {
+function transformData(data: readonly P.PieSegmentOptions[]): readonly P.PieSegmentOptions[] {
   return data.map((d) => ({ id: d.id, name: d.name, color: d.color, y: d.y }));
 }
 
-function validateTooltip(tooltip?: P.TooltipOptions): SomeRequired<P.TooltipOptions, "enabled" | "size"> {
+function transformTooltip(tooltip?: P.TooltipOptions): SomeRequired<P.TooltipOptions, "enabled" | "size"> {
   return {
     ...tooltip,
     enabled: tooltip?.enabled ?? true,
@@ -63,6 +63,6 @@ function validateTooltip(tooltip?: P.TooltipOptions): SomeRequired<P.TooltipOpti
   };
 }
 
-function validateLegend(legend?: P.LegendOptions): SomeRequired<P.LegendOptions, "enabled"> {
+function transformLegend(legend?: P.LegendOptions): SomeRequired<P.LegendOptions, "enabled"> {
   return { ...legend, enabled: legend?.enabled ?? true };
 }

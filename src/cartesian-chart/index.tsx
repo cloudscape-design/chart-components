@@ -27,14 +27,14 @@ const CartesianChart = forwardRef(
     }: CartesianChartProps,
     ref: React.Ref<CartesianChartProps.Ref>,
   ) => {
-    // We validate options before propagating them to the internal chart to ensure only those
+    // We transform options before propagating them to the internal chart to ensure only those
     // defined in the component's contract can be propagated down to the underlying Highcharts.
     // Additionally, we assign all default options, including the nested ones.
-    const series = validateSeries(props.series, stacking);
-    const xAxis = validateXAxisOptions(props.xAxis);
-    const yAxis = validateYAxisOptions(props.yAxis);
-    const tooltip = validateTooltip(props.tooltip);
-    const legend = validateLegend(props.legend);
+    const series = transformSeries(props.series, stacking);
+    const xAxis = transformXAxisOptions(props.xAxis);
+    const yAxis = transformYAxisOptions(props.yAxis);
+    const tooltip = transformTooltip(props.tooltip);
+    const legend = transformLegend(props.legend);
 
     const baseComponentProps = useBaseComponent("CartesianChart", {
       props: { fitHeight, inverted, stacking, emphasizeBaseline, verticalAxisTitlePlacement },
@@ -66,69 +66,69 @@ applyDisplayName(CartesianChart, "CartesianChart");
 
 export default CartesianChart;
 
-function validateSeries(
-  unvalidatedSeries: readonly CartesianChartProps.SeriesOptions[],
+function transformSeries(
+  untransformedSeries: readonly CartesianChartProps.SeriesOptions[],
   stacking: boolean,
 ): CartesianChartProps.SeriesOptions[] {
-  const validatedSeries: CartesianChartProps.SeriesOptions[] = [];
-  function validateSingleSeries(s: CartesianChartProps.SeriesOptions): null | CartesianChartProps.SeriesOptions {
+  const transformedSeries: CartesianChartProps.SeriesOptions[] = [];
+  function transformSingleSeries(s: CartesianChartProps.SeriesOptions): null | CartesianChartProps.SeriesOptions {
     switch (s.type) {
       case "area":
       case "areaspline":
       case "line":
       case "spline":
-        return validateLineLikeSeries(s);
+        return transformLineLikeSeries(s);
       case "column":
-        return validateColumnSeries(s);
+        return transformColumnSeries(s);
       case "scatter":
-        return validateScatterSeries(s);
+        return transformScatterSeries(s);
       case "errorbar":
-        return validateErrorBarSeries(s, unvalidatedSeries, stacking);
+        return transformErrorBarSeries(s, untransformedSeries, stacking);
       case "x-threshold":
       case "y-threshold":
-        return validateThresholdSeries(s);
+        return transformThresholdSeries(s);
       default:
         return null;
     }
   }
-  for (const series of unvalidatedSeries) {
-    const validated = validateSingleSeries(series);
-    if (validated) {
-      validatedSeries.push(validated);
+  for (const series of untransformedSeries) {
+    const transformed = transformSingleSeries(series);
+    if (transformed) {
+      transformedSeries.push(transformed);
     }
   }
-  return validatedSeries;
+  return transformedSeries;
 }
 
-function validateLineLikeSeries<
+function transformLineLikeSeries<
   S extends
     | CartesianChartProps.AreaSeriesOptions
     | CartesianChartProps.AreaSplineSeriesOptions
     | CartesianChartProps.LineSeriesOptions
     | CartesianChartProps.SplineSeriesOptions,
 >(s: S): null | S {
-  const data = validatePointData(s.data);
+  const data = transformPointData(s.data);
   return { type: s.type, id: s.id, name: s.name, color: s.color, data } as S;
 }
 
-function validateColumnSeries<S extends CartesianChartProps.ColumnSeriesOptions>(s: S): null | S {
-  const data = validatePointData(s.data);
+function transformColumnSeries<S extends CartesianChartProps.ColumnSeriesOptions>(s: S): null | S {
+  const data = transformPointData(s.data);
   return { type: s.type, id: s.id, name: s.name, color: s.color, data } as S;
 }
 
-function validateScatterSeries<S extends CartesianChartProps.ScatterSeriesOptions>(s: S): null | S {
-  const data = validatePointData(s.data);
+function transformScatterSeries<S extends CartesianChartProps.ScatterSeriesOptions>(s: S): null | S {
+  const data = transformPointData(s.data);
   const marker = s.marker ?? {};
   return { type: s.type, id: s.id, name: s.name, color: s.color, data, marker } as S;
 }
 
-function validateThresholdSeries<
+function transformThresholdSeries<
   S extends CartesianChartProps.XThresholdSeriesOptions | CartesianChartProps.YThresholdSeriesOptions,
 >(s: S): null | S {
   return { type: s.type, id: s.id, name: s.name, color: s.color, value: s.value } as S;
 }
 
-function validateErrorBarSeries(
+function transformErrorBarSeries(
   series: CartesianChartProps.ErrorBarSeriesOptions,
   allSeries: readonly CartesianChartProps.SeriesOptions[],
   stacking: boolean,
@@ -156,27 +156,27 @@ function validateErrorBarSeries(
     );
     return null;
   }
-  const data = validateRangeData(series.data);
+  const data = transformRangeData(series.data);
   return { type: series.type, id: series.id, name: series.name, color: series.color, linkedTo: series.linkedTo, data };
 }
 
-function validatePointData(data: readonly PointDataItemType[]): readonly PointDataItemType[] {
+function transformPointData(data: readonly PointDataItemType[]): readonly PointDataItemType[] {
   return data.map((d) => (d && typeof d === "object" ? { x: d.x, y: d.y } : d));
 }
 
-function validateRangeData(data: readonly RangeDataItemOptions[]): readonly RangeDataItemOptions[] {
+function transformRangeData(data: readonly RangeDataItemOptions[]): readonly RangeDataItemOptions[] {
   return data.map((d) => ({ x: d.x, low: d.low, high: d.high }));
 }
 
-function validateXAxisOptions(axis?: CartesianChartProps.XAxisOptions): CartesianChartProps.XAxisOptions {
-  return validateAxisOptions(axis);
+function transformXAxisOptions(axis?: CartesianChartProps.XAxisOptions): CartesianChartProps.XAxisOptions {
+  return transformAxisOptions(axis);
 }
 
-function validateYAxisOptions(axis?: CartesianChartProps.YAxisOptions): CartesianChartProps.YAxisOptions {
-  return { ...validateAxisOptions(axis), reversedStacks: axis?.reversedStacks };
+function transformYAxisOptions(axis?: CartesianChartProps.YAxisOptions): CartesianChartProps.YAxisOptions {
+  return { ...transformAxisOptions(axis), reversedStacks: axis?.reversedStacks };
 }
 
-function validateAxisOptions<O extends CartesianChartProps.XAxisOptions | CartesianChartProps.YAxisOptions>(
+function transformAxisOptions<O extends CartesianChartProps.XAxisOptions | CartesianChartProps.YAxisOptions>(
   axis?: O,
 ): O {
   return {
@@ -190,7 +190,7 @@ function validateAxisOptions<O extends CartesianChartProps.XAxisOptions | Cartes
   } as O;
 }
 
-function validateTooltip(
+function transformTooltip(
   tooltip?: CartesianChartProps.TooltipOptions,
 ): SomeRequired<CartesianChartProps.TooltipOptions, "enabled" | "placement" | "size"> {
   return {
@@ -201,7 +201,7 @@ function validateTooltip(
   };
 }
 
-function validateLegend(
+function transformLegend(
   legend?: CartesianChartProps.LegendOptions,
 ): SomeRequired<CartesianChartProps.LegendOptions, "enabled"> {
   return { ...legend, enabled: legend?.enabled ?? true };
