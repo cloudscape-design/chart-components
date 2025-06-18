@@ -18,7 +18,6 @@ import {
   CoreTooltipOptions,
   GetTooltipContent,
   GetTooltipContentProps,
-  TooltipPointFormatted,
   TooltipSlotProps,
 } from "../interfaces";
 import { getPointColor, getSeriesColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../utils";
@@ -150,16 +149,18 @@ function getTooltipContentCartesian(
   const matchedItems = findTooltipSeriesItems(chart.series, group);
   const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
     const valueFormatter = getFormatter(item.point.series.yAxis);
-    const formatted: TooltipPointFormatted = (() => {
-      // Using consumer-defined details.
-      if (renderers.point) {
-        return renderers.point({ item });
-      }
-      const itemY = isXThreshold(item.point.series) ? null : (item.point.y ?? null);
-      return {
-        key: item.point.series.name,
-        value: valueFormatter(itemY),
-        description: item.errorRanges.length ? (
+    const itemY = isXThreshold(item.point.series) ? null : (item.point.y ?? null);
+    const customContent = renderers.point ? renderers.point({ item }) : null;
+    return {
+      key: customContent?.key ?? item.point.series.name,
+      value: customContent?.value ?? valueFormatter(itemY),
+      marker: getSeriesMarker(item.point.series),
+      subItems: customContent?.subItems,
+      expandableId: customContent?.expandable ? item.point.series.name : undefined,
+      highlighted: item.point.x === point?.x && item.point.y === point?.y,
+      description:
+        customContent?.description ??
+        (item.errorRanges.length ? (
           <div>
             {item.errorRanges.map((errorBarPoint, index) => (
               <div key={index} className={styles["error-range"]}>
@@ -170,17 +171,7 @@ function getTooltipContentCartesian(
               </div>
             ))}
           </div>
-        ) : null,
-      };
-    })();
-    return {
-      key: formatted.key,
-      value: formatted.value,
-      marker: getSeriesMarker(item.point.series),
-      subItems: formatted.subItems,
-      expandableId: formatted.expandable ? item.point.series.name : undefined,
-      description: formatted.description,
-      highlighted: item.point.x === point?.x && item.point.y === point?.y,
+        ) : null),
     };
   });
   if (chart.options.plotOptions?.series?.stacking) {

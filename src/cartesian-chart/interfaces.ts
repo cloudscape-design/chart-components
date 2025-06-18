@@ -178,8 +178,8 @@ export namespace CartesianChartProps {
     series: NonErrorBarSeriesOptions;
   }
   export interface TooltipPointFormatted {
-    key: React.ReactNode;
-    value: React.ReactNode;
+    key?: React.ReactNode;
+    value?: React.ReactNode;
     description?: React.ReactNode;
     expandable?: boolean;
     subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;

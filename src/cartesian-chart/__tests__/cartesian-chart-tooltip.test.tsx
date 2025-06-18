@@ -112,115 +112,168 @@ describe("CartesianChart: tooltip", () => {
     });
   });
 
-  test("customizes series rendering", async () => {
+  describe("Custom tooltip content", () => {
+    const series: CartesianChartProps.SeriesOptions[] = [
+      { type: "line", id: "l", name: "Line", data: [{ x: 1, y: 2 }] },
+      { type: "errorbar", linkedTo: "l", name: "Error", data: [{ x: 1, low: 1, high: 4 }] },
+      { type: "x-threshold", name: "Threshold", value: 1 },
+    ];
+
     const onClickValue = vi.fn();
-    renderCartesianChart({
-      highcharts,
-      series: [
-        { type: "line", id: "l", name: "Line", data: [{ x: 1, y: 2 }] },
-        { type: "errorbar", linkedTo: "l", name: "Error", data: [{ x: 1, low: 1, high: 4 }] },
-        { type: "x-threshold", name: "Threshold", value: 1 },
-      ],
-      tooltip: {
-        point({ item }) {
-          return {
-            key: <span>{item.series.name}</span>,
-            value: <button onClick={() => onClickValue("root")}>{item.y ?? "T"}</button>,
-            expandable: item.series.name === "Line",
-            subItems:
-              item.series.name === "Line"
-                ? [
-                    {
-                      key: <span>sub-1 key</span>,
-                      value: <button onClick={() => onClickValue("sub-1")}>sub-1 value</button>,
-                    },
-                    {
-                      key: <span>sub-2 key</span>,
-                      value: <button onClick={() => onClickValue("sub-2")}>sub-2 value</button>,
-                    },
-                  ]
-                : [],
-            description: item.errorRanges?.length ? `${item.errorRanges[0].low} - ${item.errorRanges[0].high}` : null,
-          };
-        },
-      },
+    const customKey = (item: CartesianChartProps.TooltipPointItem) => (
+      <span>{`Custom name for ${item.series.name}`}</span>
+    );
+    const customValue = (item: CartesianChartProps.TooltipPointItem) => (
+      <button onClick={() => onClickValue("root")}>{item.y ?? "T"}</button>
+    );
+    const customSubItems = (item: CartesianChartProps.TooltipPointItem) =>
+      item.series.name === "Line"
+        ? [
+            {
+              key: <span>sub-1 key</span>,
+              value: <button onClick={() => onClickValue("sub-1")}>sub-1 value</button>,
+            },
+            {
+              key: <span>sub-2 key</span>,
+              value: <button onClick={() => onClickValue("sub-2")}>sub-2 value</button>,
+            },
+          ]
+        : [];
+    const customDescription = (item: CartesianChartProps.TooltipPointItem) =>
+      item.errorRanges?.length ? `${item.errorRanges[0].low} - ${item.errorRanges[0].high}` : null;
+
+    const openTooltip = async () => {
+      act(() => hc.highlightChartPoint(0, 0));
+
+      await waitFor(() => {
+        expect(getTooltip()).not.toBe(null);
+      });
+
+      expect(getTooltipHeader().getElement().textContent).toBe("1");
+      expect(getAllTooltipSeries()).toHaveLength(2);
+    };
+
+    const expectCustomSubItems = () => {
+      expect(getTooltipSeries(0).find('[aria-expanded="false"]')).not.toBe(null);
+      getTooltipSeries(0).find('[aria-expanded="false"]')!.click({ bubbles: false });
+      expect(getTooltipSeries(0).findSubItems()).toHaveLength(2);
+      expect(getTooltipSeries(0).findSubItems()[1].findKey().getElement().textContent).toBe("sub-2 key");
+      expect(getTooltipSeries(0).findSubItems()[1].findValue().getElement().textContent).toBe("sub-2 value");
+      getTooltipSeries(0).findSubItems()[1].findValue().find("button")!.click();
+      expect(onClickValue).toHaveBeenCalledWith("sub-2");
+      expect(getTooltipSeries(1).find('[aria-expanded="false"]')).toBe(null);
+    };
+
+    afterEach(() => {
+      onClickValue.mockReset();
     });
 
-    act(() => hc.highlightChartPoint(0, 0));
+    test("customizes key, value, sub-items and description", async () => {
+      renderCartesianChart({
+        highcharts,
+        series,
+        tooltip: {
+          point({ item }) {
+            return {
+              key: customKey(item),
+              value: customValue(item),
+              expandable: item.series.name === "Line",
+              subItems: customSubItems(item),
+              description: customDescription(item),
+            };
+          },
+        },
+      });
 
-    await waitFor(() => {
-      expect(getTooltip()).not.toBe(null);
+      await openTooltip();
+
+      expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Custom name for Line");
+      expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("2");
+
+      expectCustomSubItems();
+
+      getTooltipSeries(0).findValue().find("button")!.click();
+      expect(onClickValue).toHaveBeenCalledWith("root");
+
+      expect(getTooltipSeries(0).findDescription().getElement().textContent).toBe("1 - 4");
+
+      expect(getTooltipSeries(1).findKey().getElement().textContent).toBe("Custom name for Threshold");
+      expect(getTooltipSeries(1).findValue().getElement().textContent).toBe("T");
     });
 
-    expect(getTooltipHeader().getElement().textContent).toBe("1");
-    expect(getAllTooltipSeries()).toHaveLength(2);
-
-    expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Line");
-    expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("2");
-    expect(getTooltipSeries(0).find('[aria-expanded="false"]')).not.toBe(null);
-
-    getTooltipSeries(0).find('[aria-expanded="false"]')!.click({ bubbles: false });
-    expect(getTooltipSeries(0).findSubItems()).toHaveLength(2);
-    expect(getTooltipSeries(0).findSubItems()[1].findKey().getElement().textContent).toBe("sub-2 key");
-    expect(getTooltipSeries(0).findSubItems()[1].findValue().getElement().textContent).toBe("sub-2 value");
-
-    getTooltipSeries(0).findValue().find("button")!.click();
-    expect(onClickValue).toHaveBeenCalledWith("root");
-
-    getTooltipSeries(0).findSubItems()[1].findValue().find("button")!.click();
-    expect(onClickValue).toHaveBeenCalledWith("sub-2");
-
-    expect(getTooltipSeries(0).findDescription().getElement().textContent).toBe("1 - 4");
-
-    expect(getTooltipSeries(1).findKey().getElement().textContent).toBe("Threshold");
-    expect(getTooltipSeries(1).findValue().getElement().textContent).toBe("T");
-    expect(getTooltipSeries(1).find('[aria-expanded="false"]')).toBe(null);
-  });
-
-  test("customizes tooltip slots", async () => {
-    renderCartesianChart({
-      highcharts,
-      series: [
-        { type: "line", id: "l", name: "Line", data: [{ x: 1, y: 2 }] },
-        { type: "x-threshold", name: "Threshold", value: 1 },
-        { type: "errorbar", name: "Error", data: [{ x: 1, low: 3, high: 4 }], linkedTo: "l" },
-      ],
-      tooltip: {
-        header({ x, items }) {
-          return (
-            <span>
-              header {x} {items.length} {items[0].series.name} {items[0].errorRanges![0].low}{" "}
-              {items[0].errorRanges![0].high} {items[1].series.name}
-            </span>
-          );
+    test("renders default key and value if not defined", async () => {
+      renderCartesianChart({
+        highcharts,
+        series,
+        tooltip: {
+          point({ item }) {
+            return {
+              expandable: item.series.name === "Line",
+              subItems: customSubItems(item),
+              description: customDescription(item),
+            };
+          },
         },
-        body({ x, items }) {
-          return (
-            <span>
-              body {x} {items.length} {items[0].series.name} {items[0].errorRanges![0].low}{" "}
-              {items[0].errorRanges![0].high} {items[1].series.name}
-            </span>
-          );
-        },
-        footer({ x, items }) {
-          return (
-            <span>
-              footer {x} {items.length} {items[0].series.name} {items[0].errorRanges![0].low}{" "}
-              {items[0].errorRanges![0].high} {items[1].series.name}
-            </span>
-          );
-        },
-      },
+      });
+
+      await openTooltip();
+
+      expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Line");
+      expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("2");
+
+      expectCustomSubItems();
+
+      expect(getTooltipSeries(0).findDescription().getElement().textContent).toBe("1 - 4");
+
+      expect(getTooltipSeries(1).findKey().getElement().textContent).toBe("Threshold");
+      expect(getTooltipSeries(1).findValue().getElement().textContent).toBe(""); // X threshold has no y value
     });
 
-    act(() => hc.highlightChartPoint(0, 0));
+    test("customizes tooltip slots", async () => {
+      renderCartesianChart({
+        highcharts,
+        series: [
+          { type: "line", id: "l", name: "Line", data: [{ x: 1, y: 2 }] },
+          { type: "x-threshold", name: "Threshold", value: 1 },
+          { type: "errorbar", name: "Error", data: [{ x: 1, low: 3, high: 4 }], linkedTo: "l" },
+        ],
+        tooltip: {
+          header({ x, items }) {
+            return (
+              <span>
+                header {x} {items.length} {items[0].series.name} {items[0].errorRanges![0].low}{" "}
+                {items[0].errorRanges![0].high} {items[1].series.name}
+              </span>
+            );
+          },
+          body({ x, items }) {
+            return (
+              <span>
+                body {x} {items.length} {items[0].series.name} {items[0].errorRanges![0].low}{" "}
+                {items[0].errorRanges![0].high} {items[1].series.name}
+              </span>
+            );
+          },
+          footer({ x, items }) {
+            return (
+              <span>
+                footer {x} {items.length} {items[0].series.name} {items[0].errorRanges![0].low}{" "}
+                {items[0].errorRanges![0].high} {items[1].series.name}
+              </span>
+            );
+          },
+        },
+      });
 
-    await waitFor(() => {
-      expect(getTooltip()).not.toBe(null);
+      act(() => hc.highlightChartPoint(0, 0));
+
+      await waitFor(() => {
+        expect(getTooltip()).not.toBe(null);
+      });
+
+      expect(getTooltipHeader().getElement().textContent).toBe("header 1 2 Line 3 4 Threshold");
+      expect(getTooltipBody().getElement().textContent).toBe("body 1 2 Line 3 4 Threshold");
+      expect(getTooltipFooter().getElement().textContent).toBe("footer 1 2 Line 3 4 Threshold");
     });
-
-    expect(getTooltipHeader().getElement().textContent).toBe("header 1 2 Line 3 4 Threshold");
-    expect(getTooltipBody().getElement().textContent).toBe("body 1 2 Line 3 4 Threshold");
-    expect(getTooltipFooter().getElement().textContent).toBe("footer 1 2 Line 3 4 Threshold");
   });
 });
