@@ -267,24 +267,24 @@ Supported types:
       "type": "ReadonlyArray<CartesianChartProps.SeriesOptions>",
     },
     {
-      "defaultValue": "false",
-      "description": "Specifies series stacking behavior. Use it for column- or area- series.
+      "defaultValue": "undefined",
+      "description": "Enables series stacking behavior. Use it for column- or area- series.
 This property corresponds to "normal" stacking type in Highcharts ([plotOptions.series.stacking](https://api.highcharts.com/highcharts/plotOptions.series.stacking)).",
       "name": "stacking",
       "optional": true,
-      "type": "boolean",
+      "type": ""normal"",
     },
     {
       "description": "Chart tooltip options.
 
 Supported options:
-* \`enabled\` - (optional, boolean) - Use it to hide the tooltip.
-* \`size\` - (optional, "small" | "medium" | "large") - Use it to specify max tooltip size.
-* \`placement\` - (optional, "middle" | "outside") - Use it to specify preferred tooltip placement.
-* \`point\` - (optional, function) - Use it to customize tooltip series point rendering.
-* \`header\` - (optional, function) - Use it to provide a custom tooltip header.
-* \`body\` - (optional, function) - Use it to provide a custom tooltip content.
-* \`footer\` - (optional, function) - Use it to add a tooltip footer.",
+* \`enabled\` - (optional, boolean) - Hides the tooltip.
+* \`size\` - (optional, "small" | "medium" | "large") - Specifies max tooltip size.
+* \`placement\` - (optional, "middle" | "outside") - Specifies preferred tooltip placement.
+* \`point\` - (optional, function) - Customizes tooltip series point rendering.
+* \`header\` - (optional, function) - Provides a custom tooltip header.
+* \`body\` - (optional, function) - Provides a custom tooltip content.
+* \`footer\` - (optional, function) - Adds a tooltip footer.",
       "inlineType": {
         "name": "CartesianChartProps.TooltipOptions",
         "properties": [
@@ -366,7 +366,8 @@ Supported options:
 * * datetime - Similar to linear, but takes epoch time as values.
 * * category - Uses discrete scale, requires \`categories\` to be set.
 * * logarithmic - Uses continuous logarithmic values scale.
-* \`min\`, \`max\` (optional, number) - Axis value boundaries.
+* \`min\` (optional, number) - Axis min value boundary.
+* \`max\` (optional, number) - Axis max value boundary.
 * \`tickInterval\` (optional, number) - Distance between axis ticks.
 * \`categories\` (optional, Array<string>) - Predefined list of values, used for categorical axis type.
 * \`valueFormatter\` (optional, function) - Takes axis tick as input and returns a formatted string. This formatter also
@@ -428,7 +429,8 @@ Supported options:
 * * datetime - Similar to linear, but takes epoch time as values.
 * * category - Uses discrete scale, requires \`categories\` to be set.
 * * logarithmic - Uses continuous logarithmic values scale.
-* \`min\`, \`max\` (optional, number) - Axis value boundaries.
+* \`min\` (optional, number) - Axis min value boundary.
+* \`max\` (optional, number) - Axis max value boundary.
 * \`tickInterval\` (optional, number) - Distance between axis ticks.
 * \`categories\` (optional, Array<string>) - Predefined list of values, used for categorical axis type.
 * \`reversedStacks\` (optional, boolean) - Reverts series order in stacked series.
@@ -798,12 +800,12 @@ Supported series types:
       "description": "Chart tooltip options.
 
 Supported options:
-* \`enabled\` - (optional, boolean) - Use it to hide the tooltip.
-* \`size\` - (optional, "small" | "medium" | "large") - Use it to specify max tooltip size.
-* \`details\` - (optional, function) - Use it to provide a list of key-value pairs as tooltip's body.
-* \`header\` - (optional, function) - Use it to provide a custom tooltip header.
-* \`body\` - (optional, function) - Use it to provide a custom tooltip content.
-* \`footer\` - (optional, function) - Use it to add a tooltip footer.",
+* \`enabled\` - (optional, boolean) - Hides the tooltip.
+* \`size\` - (optional, "small" | "medium" | "large") - Specifies max tooltip size.
+* \`details\` - (optional, function) - Provides a list of key-value pairs as tooltip's body.
+* \`header\` - (optional, function) - Provides a custom tooltip header.
+* \`body\` - (optional, function) - Provides a custom tooltip content.
+* \`footer\` - (optional, function) - Adds a tooltip footer.",
       "inlineType": {
         "name": "PieChartProps.TooltipOptions",
         "properties": [
