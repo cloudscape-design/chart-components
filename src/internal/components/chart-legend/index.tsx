@@ -45,7 +45,21 @@ export const ChartLegend = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const segmentsRef = useRef<Record<number, HTMLElement>>([]);
   const highlightControl = useMemo(() => new DebouncedCall(), []);
+  const scrollIntoViewControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
+
+  useEffect(() => {
+    const highlightedIndex = items.findIndex((item) => item.highlighted);
+    if (highlightedIndex === -1) {
+      return;
+    }
+    scrollIntoViewControl.cancelPrevious();
+    scrollIntoViewControl.call(
+      () => segmentsRef.current?.[highlightedIndex]?.scrollIntoView({ behavior: "smooth", block: "center" }),
+      100,
+    );
+  }, [items, scrollIntoViewControl]);
+
   const showHighlight = (itemId: string) => {
     const item = items.find((item) => item.id === itemId);
     if (item?.visible) {
