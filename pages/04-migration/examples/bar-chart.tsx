@@ -63,7 +63,7 @@ export function ComponentNew({
       chartMinHeight={100}
       ariaLabel="Bar chart"
       inverted={inverted}
-      stacking={stacking}
+      stacking={stacking ? "normal" : undefined}
       series={single ? seriesNew.slice(1, 2) : seriesNew}
       xAxis={{
         type: "category",

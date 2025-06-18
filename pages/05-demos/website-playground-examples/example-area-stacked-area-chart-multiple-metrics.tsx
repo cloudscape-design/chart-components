@@ -830,7 +830,7 @@ export function ExampleAreaChartStackedAreaChartMultipleMetrics() {
         {...chartProps.cartesian}
         chartHeight={379}
         ariaLabel="Stacked area chart, multiple metrics"
-        stacking={true}
+        stacking="normal"
         series={isEmpty ? [] : series}
         tooltip={{
           ...chartProps.cartesian.tooltip,

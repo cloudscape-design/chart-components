@@ -52,7 +52,7 @@ export function ComponentNew({ statusType, series, hideSeries }: ComponentProps)
       fitHeight={true}
       chartMinHeight={150}
       ariaLabel="Line chart"
-      stacking={true}
+      stacking="normal"
       series={{ none: [], empty: seriesNewNoData, threshold: seriesNewThreshold, data: seriesNew }[series]}
       visibleSeries={hideSeries ? [] : undefined}
       xAxis={{

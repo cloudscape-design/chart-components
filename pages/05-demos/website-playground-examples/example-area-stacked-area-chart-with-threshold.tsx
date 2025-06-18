@@ -145,7 +145,7 @@ export function ExampleAreaChartStackedAreaChartWithThreshold() {
         {...chartProps.cartesian}
         chartHeight={379}
         ariaLabel="Stacked area chart, with threshold"
-        stacking={true}
+        stacking="normal"
         series={isEmpty ? [] : series}
         tooltip={{
           ...chartProps.cartesian.tooltip,

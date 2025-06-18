@@ -105,7 +105,7 @@ function Component() {
   return (
     <CartesianChart
       {...chartProps.cartesian}
-      stacking={true}
+      stacking="normal"
       chartHeight={400}
       ariaLabel="Area chart"
       series={series}
