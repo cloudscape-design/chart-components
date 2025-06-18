@@ -198,7 +198,7 @@ function tooltipContent(settings: ThisPageSettings): CartesianChartProps.Tooltip
               ]
             : undefined,
           expandable: settings.tooltipSeriesSubItemsExpandable,
-          details:
+          description:
             item.errorRanges.length && !settings.errorsGroupedInFooter ? (
               <div>
                 {item.errorRanges.map((errorRange, index) => (

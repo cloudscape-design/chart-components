@@ -10,6 +10,7 @@ import Checkbox from "@cloudscape-design/components/checkbox";
 import FormField from "@cloudscape-design/components/form-field";
 import Input from "@cloudscape-design/components/input";
 import Multiselect from "@cloudscape-design/components/multiselect";
+import SegmentedControl from "@cloudscape-design/components/segmented-control";
 import Select from "@cloudscape-design/components/select";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
@@ -33,6 +34,7 @@ export interface PageSettings {
   showLegend: boolean;
   showLegendTitle: boolean;
   showLegendActions: boolean;
+  legendPosition: "bottom" | "side";
   showCustomHeader: boolean;
   showHeaderFilter: boolean;
   showCustomFooter: boolean;
@@ -56,6 +58,7 @@ const DEFAULT_SETTINGS: PageSettings = {
   tooltipSize: "medium",
   showLegend: true,
   showLegendTitle: false,
+  legendPosition: "bottom",
   showLegendActions: false,
   showCustomHeader: false,
   showHeaderFilter: false,
@@ -142,6 +145,7 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
     enabled: settings.showLegend,
     title: settings.showLegendTitle ? "Legend title" : undefined,
     actions: settings.showLegendActions ? <Button variant="icon" iconName="search" /> : undefined,
+    position: settings.legendPosition,
   };
   return {
     settings,
@@ -353,6 +357,20 @@ export function PageSettingsForm({
                 >
                   Show legend actions
                 </Checkbox>
+              );
+            case "legendPosition":
+              return (
+                <SegmentedControl
+                  label="Legend Position"
+                  selectedId={settings.showLegend ? settings.legendPosition : null}
+                  options={[
+                    { text: "Bottom", id: "bottom", disabled: !settings.showLegend },
+                    { text: "Side", id: "side", disabled: !settings.showLegend },
+                  ]}
+                  onChange={({ detail }) =>
+                    setSettings({ legendPosition: detail.selectedId as string as "bottom" | "side" })
+                  }
+                />
               );
             case "showCustomHeader":
               return (

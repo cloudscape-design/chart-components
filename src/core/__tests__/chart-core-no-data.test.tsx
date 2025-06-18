@@ -1,11 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { act } from "react";
 import highcharts from "highcharts";
 import { vi } from "vitest";
 
 import createWrapper from "../../../lib/components/test-utils/dom";
-import { createChartWrapper, renderChart } from "./common";
+import { createChartWrapper, renderChart, toggleLegendItem } from "./common";
 
 const series: Highcharts.SeriesOptionsType[] = [{ type: "line", name: "Line series", data: [1, 2, 3] }];
 
@@ -204,5 +205,19 @@ describe("CoreChart: no-data", () => {
       visibleItems: [],
     });
     expect(createChartWrapper().findNoData()).toBe(null);
+  });
+
+  test('renders no-data no-match when statusType="finished" and all became hidden', () => {
+    renderChart({
+      highcharts,
+      options: { series },
+      noData: { statusType: "finished", ...slots },
+    });
+    expect(createChartWrapper().findNoData()).toBe(null);
+
+    act(() => toggleLegendItem(0));
+
+    expect(getNoDataText("no-match")).toBe("slot: no-match");
+    expect(getNoDataLiveRegionText()).toBe("slot: no-match");
   });
 });

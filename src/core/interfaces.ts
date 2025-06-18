@@ -215,7 +215,6 @@ export interface CoreChartProps
       | "chartMinWidth"
       | "ariaLabel"
       | "ariaDescription"
-      | "legend"
       | "filter"
       | "noData"
       | "i18nStrings"
@@ -241,6 +240,10 @@ export interface CoreChartProps
    * A custom slot below the chart plot and legend.
    */
   footer?: CoreFooterOptions;
+  /**
+   * Chart legend options.
+   */
+  legend?: CoreLegendOptions;
   /**
    * The callback to init the chart's API when it is ready. The API includes the Highcharts chart object, and
    * additional Cloudscape methods.
@@ -279,6 +282,10 @@ export interface CoreChartProps
    * Use Cloudscape keyboard navigation, `true` by default.
    */
   keyboardNavigation?: boolean;
+}
+
+export interface CoreLegendOptions extends BaseLegendOptions {
+  position?: "bottom" | "side";
 }
 
 export interface CoreLegendItem {
@@ -333,7 +340,7 @@ export interface GetTooltipContentProps {
 export type GetLegendTooltipContent = (props: GetLegendTooltipContentProps) => React.ReactNode;
 
 export interface GetLegendTooltipContentProps {
-  legendItem: ChartLegendItem;
+  legendItem: CoreLegendItem;
 }
 
 export interface CoreTooltipContent {
@@ -345,7 +352,7 @@ export interface CoreTooltipContent {
 
 export interface TooltipContentItem {
   point: Highcharts.Point;
-  linkedErrorbars: Highcharts.Point[];
+  errorRanges: Highcharts.Point[];
 }
 
 export interface TooltipPointProps {
@@ -358,9 +365,9 @@ export interface TooltipSlotProps {
 }
 
 export interface TooltipPointFormatted {
-  key: React.ReactNode;
-  value: React.ReactNode;
-  details?: React.ReactNode;
+  key?: React.ReactNode;
+  value?: React.ReactNode;
+  description?: React.ReactNode;
   expandable?: boolean;
   subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
 }

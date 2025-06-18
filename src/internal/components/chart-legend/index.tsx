@@ -27,6 +27,7 @@ export interface ChartLegendProps {
   legendTitle?: string;
   ariaLabel?: string;
   actions?: React.ReactNode;
+  position: "bottom" | "side";
   onItemHighlightEnter: (itemId: string) => void;
   onItemHighlightExit: () => void;
   onItemVisibilityChange: (hiddenItems: string[]) => void;
@@ -38,6 +39,7 @@ export const ChartLegend = ({
   legendTitle,
   ariaLabel,
   actions,
+  position,
   onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
@@ -109,7 +111,7 @@ export const ChartLegend = ({
 
   function getNextFocusTarget(): null | HTMLElement {
     if (containerRef.current) {
-      const buttons: HTMLButtonElement[] = Array.from(containerRef.current.querySelectorAll(`.${styles.marker}`));
+      const buttons: HTMLButtonElement[] = Array.from(containerRef.current.querySelectorAll(`.${styles.item}`));
       return buttons[selectedIndex] ?? null;
     }
     return null;
@@ -163,7 +165,9 @@ export const ChartLegend = ({
         ref={containerRef}
         role="toolbar"
         aria-label={legendTitle || ariaLabel}
-        className={clsx(testClasses.root, styles.root)}
+        className={clsx(testClasses.root, styles.root, {
+          [styles["root-side"]]: position === "side",
+        })}
       >
         {legendTitle && (
           <Box fontWeight="bold" className={testClasses.title}>
@@ -171,66 +175,88 @@ export const ChartLegend = ({
           </Box>
         )}
 
-        <div className={styles.list}>
-          {actions && (
-            <div className={clsx(testClasses.actions, styles.actions)}>
-              {actions}
-              <div className={styles["actions-divider"]} />
-            </div>
-          )}
-
-          {items.map((item, index) => {
-            const handlers = {
-              onMouseEnter: () => {
-                showHighlight(item.id);
-                setTooltipItemId(item.id);
-              },
-              onMouseLeave: () => {
-                clearHighlight();
-                setTooltipItemId(null);
-              },
-              onFocus: () => {
-                onFocus(index, item.id);
-              },
-              onBlur: () => {
-                onBlur();
-                clearHighlight();
-              },
-              onKeyDown,
-            };
-            const thisTriggerRef = (elem: null | HTMLElement) => {
-              if (elem) {
-                segmentsRef.current[index] = elem;
-              } else {
-                delete segmentsRef.current[index];
-              }
-            };
-
-            return (
-              <LegendItemTrigger
-                key={index}
-                {...handlers}
-                ref={thisTriggerRef}
-                onClick={(event) => {
-                  if (event.metaKey || event.ctrlKey) {
-                    toggleItem(item.id);
-                  } else {
-                    selectItem(item.id);
-                  }
-                }}
-                isHighlighted={item.highlighted}
-                someHighlighted={items.some((item) => item.highlighted)}
-                itemId={item.id}
-                label={item.name}
-                visible={item.visible}
-                marker={item.marker}
-              />
-            );
+        <div
+          className={clsx(styles.list, {
+            [styles["list-bottom"]]: position === "bottom",
+            [styles["list-side"]]: position === "side",
           })}
+        >
+          {actions && (
+            <>
+              <div
+                className={clsx(testClasses.actions, styles.actions, {
+                  [styles["actions-bottom"]]: position === "bottom",
+                  [styles["actions-side"]]: position === "side",
+                })}
+              >
+                {actions}
+                <div
+                  className={clsx(styles["actions-divider"], {
+                    [styles["actions-divider-bottom"]]: position === "bottom",
+                    [styles["actions-divider-side"]]: position === "side",
+                  })}
+                />
+              </div>
+            </>
+          )}
+          <div
+            className={clsx({
+              [styles["legend-bottom"]]: position === "bottom",
+              [styles["legend-side"]]: position === "side",
+            })}
+          >
+            {items.map((item, index) => {
+              const handlers = {
+                onMouseEnter: () => {
+                  showHighlight(item.id);
+                  setTooltipItemId(item.id);
+                },
+                onMouseLeave: () => {
+                  clearHighlight();
+                  setTooltipItemId(null);
+                },
+                onFocus: () => {
+                  onFocus(index, item.id);
+                },
+                onBlur: () => {
+                  onBlur();
+                  clearHighlight();
+                },
+                onKeyDown,
+              };
+              const thisTriggerRef = (elem: null | HTMLElement) => {
+                if (elem) {
+                  segmentsRef.current[index] = elem;
+                } else {
+                  delete segmentsRef.current[index];
+                }
+              };
+
+              return (
+                <LegendItemTrigger
+                  key={index}
+                  {...handlers}
+                  ref={thisTriggerRef}
+                  onClick={(event) => {
+                    if (event.metaKey || event.ctrlKey) {
+                      toggleItem(item.id);
+                    } else {
+                      selectItem(item.id);
+                    }
+                  }}
+                  isHighlighted={item.highlighted}
+                  someHighlighted={items.some((item) => item.highlighted)}
+                  itemId={item.id}
+                  label={item.name}
+                  visible={item.visible}
+                  marker={item.marker}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Render the popover when visible */}
       {tooltipItemId && (
         <ChartLegendTooltip
           legendItem={items.find((item) => item.id === tooltipItemId)!}
@@ -284,10 +310,10 @@ const LegendItemTrigger = forwardRef(
         data-itemid={itemId}
         aria-pressed={visible}
         aria-current={isHighlighted}
-        className={clsx(testClasses.item, styles.marker, {
-          [styles["marker--inactive"]]: !visible,
+        className={clsx(testClasses.item, styles.item, {
+          [styles["item--inactive"]]: !visible,
           [testClasses["hidden-item"]]: !visible,
-          [styles["marker--dimmed"]]: someHighlighted && !isHighlighted,
+          [styles["item--dimmed"]]: someHighlighted && !isHighlighted,
           [testClasses["dimmed-item"]]: someHighlighted && !isHighlighted,
         })}
         ref={mergedRef}

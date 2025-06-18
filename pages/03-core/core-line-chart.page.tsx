@@ -1,18 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import Highcharts from "highcharts";
 import { omit } from "lodash";
 
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
 import { dateFormatter } from "../common/formatters";
-import { PageSettings, useChartSettings } from "../common/page-settings";
+import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
-
-interface ThisPageSettings extends PageSettings {
-  keepZoomingFrame: boolean;
-}
 
 function randomInt(min: number, max: number) {
   return min + Math.floor(pseudoRandom() * (max - min));
@@ -85,39 +80,39 @@ const series: Highcharts.SeriesOptionsType[] = [
 ];
 
 export default function () {
+  const { chartProps } = useChartSettings();
   return (
-    <Page title="Line chart implemented with core chart API">
-      <LineChart />
+    <Page
+      title="Core chart demo"
+      subtitle="The page demonstrates the use of the core chart, including additional legend settings."
+      settings={
+        <PageSettingsForm
+          selectedSettings={["showLegend", "legendPosition", "showLegendTitle", "showLegendActions", "useFallback"]}
+        />
+      }
+    >
+      <CoreChart
+        {...omit(chartProps.cartesian, "ref")}
+        options={{
+          lang: {
+            accessibility: {
+              chartContainerLabel: "Line chart",
+            },
+          },
+          series: series,
+          xAxis: [
+            {
+              type: "datetime",
+              title: { text: "Time (UTC)" },
+              valueFormatter: dateFormatter,
+            },
+          ],
+          yAxis: [{ title: { text: "Events" } }],
+        }}
+        chartHeight={400}
+        tooltip={{ placement: "outside" }}
+        getLegendTooltipContent={({ legendItem }) => <div>{legendItem.name}</div>}
+      />
     </Page>
-  );
-}
-
-function LineChart() {
-  const { chartProps } = useChartSettings<ThisPageSettings>({ more: true });
-  return (
-    <CoreChart
-      {...omit(chartProps.cartesian, "ref")}
-      options={{
-        chart: {
-          height: 400,
-        },
-        lang: {
-          accessibility: {
-            chartContainerLabel: "Line chart",
-          },
-        },
-        series: series,
-        xAxis: [
-          {
-            type: "datetime",
-            title: { text: "Time (UTC)" },
-            valueFormatter: dateFormatter,
-          },
-        ],
-        yAxis: [{ title: { text: "Events" } }],
-      }}
-      tooltip={{ placement: "outside" }}
-      getLegendTooltipContent={({ legendItem }) => <div>{legendItem.name}</div>}
-    />
   );
 }

@@ -3,10 +3,10 @@
 
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
 
-import { ChartLegendItem, GetLegendTooltipContent } from "../../../core/interfaces";
+import { CoreLegendItem, GetLegendTooltipContent } from "../../../core/interfaces";
 
 interface ChartLegendTooltipProps {
-  legendItem: ChartLegendItem;
+  legendItem: CoreLegendItem;
   getLegendTooltipContent?: GetLegendTooltipContent;
   trackRef: React.RefObject<HTMLElement>;
 }

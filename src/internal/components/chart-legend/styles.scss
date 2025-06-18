@@ -17,25 +17,52 @@
   }
 }
 
+.root-side {
+  display: flex;
+  flex-direction: column;
+}
+
 .list {
   display: flex;
-  flex-wrap: wrap;
   list-style: none;
   margin-block: 0;
   margin-inline: 0;
-  padding-block: 0;
-  padding-inline: 0;
-  gap: cs.$space-scaled-xxs cs.$space-static-m;
-  padding-block-start: cs.$space-scaled-s;
+  padding-block: cs.$space-static-xxxs;
+  padding-inline: cs.$space-static-xxxs;
+  padding-block-start: cs.$space-scaled-xs;
 }
 
-.marker {
+.list-bottom {
+  flex-wrap: wrap;
+  overflow-y: auto;
+  justify-content: space-between;
+}
+
+.list-side {
+  flex-wrap: nowrap;
+  flex-direction: column;
+}
+
+.legend-bottom {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  gap: cs.$space-scaled-xxs cs.$space-static-m;
+}
+
+.legend-side {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  gap: cs.$space-scaled-xxs cs.$space-static-m;
+}
+
+.item {
   @include styles.styles-reset;
   @include styles.default-text-style;
 
   display: inline-flex;
-  align-items: center;
-  gap: cs.$space-static-xxs;
   padding-block: 0;
   padding-inline: 0;
   border-block: 0;
@@ -52,30 +79,42 @@
     @include styles.focus-highlight(2px);
   }
 
-  &.marker--inactive {
+  &.item--inactive {
     color: cs.$color-text-interactive-default;
     text-decoration: line-through;
     text-decoration-thickness: 2px;
     text-decoration-color: cs.$color-text-interactive-default;
   }
 
-  &.marker--dimmed {
+  &.item--dimmed {
     opacity: 0.35;
-  }
-
-  &.marker--highlighted {
-    /* used in test utils */
   }
 }
 
 .actions {
   display: flex;
-  gap: 4px;
   align-items: center;
 }
 
-.actions-divider {
+.actions-bottom {
+  flex-direction: row;
+}
+
+.actions-side {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.actions-divider-bottom {
+  inline-size: 1px;
+  block-size: 80%;
+  margin-inline: cs.$space-scaled-xs;
   background: cs.$color-border-divider-default;
-  width: 1px;
-  height: 80%;
+}
+
+.actions-divider-side {
+  inline-size: 80%;
+  block-size: 1px;
+  margin-block-end: cs.$space-scaled-xs;
+  background: cs.$color-border-divider-default;
 }

@@ -18,7 +18,6 @@ import {
   CoreTooltipOptions,
   GetTooltipContent,
   GetTooltipContentProps,
-  TooltipPointFormatted,
   TooltipSlotProps,
 } from "../interfaces";
 import { getPointColor, getSeriesColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../utils";
@@ -42,7 +41,7 @@ interface RenderedTooltipContent {
 
 interface MatchedItem {
   point: Highcharts.Point;
-  linkedErrorbars: Highcharts.Point[];
+  errorRanges: Highcharts.Point[];
 }
 
 export function ChartTooltip({
@@ -150,18 +149,20 @@ function getTooltipContentCartesian(
   const matchedItems = findTooltipSeriesItems(chart.series, group);
   const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
     const valueFormatter = getFormatter(item.point.series.yAxis);
-    const formatted: TooltipPointFormatted = (() => {
-      // Using consumer-defined details.
-      if (renderers.point) {
-        return renderers.point({ item });
-      }
-      const itemY = isXThreshold(item.point.series) ? null : (item.point.y ?? null);
-      return {
-        key: item.point.series.name,
-        value: valueFormatter(itemY),
-        details: item.linkedErrorbars.length ? (
+    const itemY = isXThreshold(item.point.series) ? null : (item.point.y ?? null);
+    const customContent = renderers.point ? renderers.point({ item }) : null;
+    return {
+      key: customContent?.key ?? item.point.series.name,
+      value: customContent?.value ?? valueFormatter(itemY),
+      marker: getSeriesMarker(item.point.series),
+      subItems: customContent?.subItems,
+      expandableId: customContent?.expandable ? item.point.series.name : undefined,
+      highlighted: item.point.x === point?.x && item.point.y === point?.y,
+      description:
+        customContent?.description ??
+        (item.errorRanges.length ? (
           <div>
-            {item.linkedErrorbars.map((errorBarPoint, index) => (
+            {item.errorRanges.map((errorBarPoint, index) => (
               <div key={index} className={styles["error-range"]}>
                 <span>{errorBarPoint.series.userOptions.name ? errorBarPoint.series.userOptions.name : ""}</span>
                 <span>
@@ -170,17 +171,7 @@ function getTooltipContentCartesian(
               </div>
             ))}
           </div>
-        ) : null,
-      };
-    })();
-    return {
-      key: formatted.key,
-      value: formatted.value,
-      marker: getSeriesMarker(item.point.series),
-      subItems: formatted.subItems,
-      expandableId: formatted.expandable ? item.point.series.name : undefined,
-      details: formatted.details,
-      highlighted: item.point.x === point?.x && item.point.y === point?.y,
+        ) : null),
     };
   });
   if (chart.options.plotOptions?.series?.stacking) {
@@ -215,7 +206,7 @@ function getTooltipContentPie(
   api: ChartAPI,
   { point, renderers = {} }: { point: Highcharts.Point } & { renderers?: CoreTooltipContent },
 ): RenderedTooltipContent {
-  const tooltipDetails: TooltipSlotProps = { x: point.x, items: [{ point, linkedErrorbars: [] }] };
+  const tooltipDetails: TooltipSlotProps = { x: point.x, items: [{ point, errorRanges: [] }] };
   return {
     header: renderers.header?.(tooltipDetails) ?? (
       <div className={styles["tooltip-default-header"]}>
@@ -268,12 +259,12 @@ function findTooltipSeriesItems(
     if (!matchedSeries.has(point.series)) {
       matchedSeries.add(point.series);
       if (isXThreshold(point.series)) {
-        matchedItems.push({ point, linkedErrorbars: [] });
+        matchedItems.push({ point, errorRanges: [] });
       } else {
         point.series.data
           .filter((d) => d.x === point.x)
           .sort((a, b) => (a.y ?? 0) - (b.y ?? 0))
-          .forEach((point) => matchedItems.push({ point, linkedErrorbars: [] }));
+          .forEach((point) => matchedItems.push({ point, errorRanges: [] }));
       }
     }
   }
@@ -288,7 +279,7 @@ function findTooltipSeriesItems(
       .map((item) => {
         const errorRanges = seriesErrors.get(getSeriesId(item.point.series)) ?? [];
         const sortedErrorRanges = errorRanges.sort((i1, i2) => getSeriesIndex(i1.series) - getSeriesIndex(i2.series));
-        return { ...item, linkedErrorbars: sortedErrorRanges };
+        return { ...item, errorRanges: sortedErrorRanges };
       })
   );
 }

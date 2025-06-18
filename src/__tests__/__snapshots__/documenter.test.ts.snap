@@ -316,7 +316,7 @@ Supported options:
           {
             "name": "point",
             "optional": true,
-            "type": "((props: CartesianChartProps.TooltipPointRenderProps) => CartesianChartProps.TooltipPointFormatted)",
+            "type": "((props: CartesianChartProps.TooltipPointRenderProps) => TooltipPointFormatted)",
           },
           {
             "name": "size",
@@ -335,11 +335,11 @@ Supported options:
       "description": "When set to "top", the title of the vertical axis (can be x or y)
 is shown right above the chart plot.",
       "inlineType": {
-        "name": ""top" | "side"",
+        "name": ""side" | "top"",
         "type": "union",
         "values": [
-          "top",
           "side",
+          "top",
         ],
       },
       "name": "verticalAxisTitlePlacement",

@@ -23,8 +23,8 @@ export class SeriesDetailsSubItemWrapper extends ComponentWrapper {
     return this.findByClassName(seriesDetailsTestClasses.value)!;
   }
 
-  findDetails(): ElementWrapper {
-    return this.findByClassName(seriesDetailsTestClasses.details)!;
+  findDescription(): ElementWrapper {
+    return this.findByClassName(seriesDetailsTestClasses.description)!;
   }
 }
 

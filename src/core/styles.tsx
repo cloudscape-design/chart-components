@@ -42,6 +42,7 @@ export const colors = [
 
 export const chart: Highcharts.ChartOptions = {
   spacing: [10, 10, 0, 0],
+  backgroundColor: "transparent",
 };
 
 export const axisTitleCss: Highcharts.CSSObject = {
@@ -76,8 +77,6 @@ export const chartPlotCss: Highcharts.CSSObject = {
   color: colorTextBodyDefault,
   fontSize: fontSizeBodyM,
 };
-
-export const chartPlotBackgroundColor = "transparent";
 
 export const seriesBorderColor = colorBackgroundContainerContent;
 

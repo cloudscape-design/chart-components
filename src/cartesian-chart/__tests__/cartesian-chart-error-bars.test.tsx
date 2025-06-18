@@ -30,7 +30,7 @@ describe("CartesianChart: Error bars", () => {
       await highlightFirstPoint();
       expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Column 1");
       expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("2");
-      expect(getTooltipSeries(0).findDetails().getElement().textContent).toBe("Error range1 - 3");
+      expect(getTooltipSeries(0).findDescription().getElement().textContent).toBe("Error range1 - 3");
     });
 
     test("attaches error series to the previous series by using `:previous` as value for `linkedTo`", async () => {
@@ -45,7 +45,7 @@ describe("CartesianChart: Error bars", () => {
       await highlightFirstPoint();
       expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Column 1");
       expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("2");
-      expect(getTooltipSeries(0).findDetails().getElement().textContent).toBe("Error range1 - 3");
+      expect(getTooltipSeries(0).findDescription().getElement().textContent).toBe("Error range1 - 3");
     });
 
     test("renders only the error range if error bar series name is not provided", async () => {
@@ -58,7 +58,7 @@ describe("CartesianChart: Error bars", () => {
       });
 
       await highlightFirstPoint();
-      expect(getTooltipSeries(0).findDetails().getElement().textContent).toBe("1 - 3");
+      expect(getTooltipSeries(0).findDescription().getElement().textContent).toBe("1 - 3");
     });
 
     test("renders multiple error bars per series", async () => {
@@ -74,7 +74,7 @@ describe("CartesianChart: Error bars", () => {
       await highlightFirstPoint();
       expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Column 1");
       expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("2");
-      expect(getTooltipSeries(0).findDetails().getElement().textContent).toBe(
+      expect(getTooltipSeries(0).findDescription().getElement().textContent).toBe(
         "Error range 1" + "1 - 3" + "Error range 2" + "0 - 4",
       );
     });
@@ -90,7 +90,7 @@ describe("CartesianChart: Error bars", () => {
           point: ({ item }) => ({
             key: `Custom key ${item.series.name}`,
             value: `Custom value ${item.y}`,
-            details: `Custom details ${item.errorRanges![0].low} - ${item.errorRanges![0].high}`,
+            description: `Custom description ${item.errorRanges![0].low} - ${item.errorRanges![0].high}`,
           }),
         },
       });
@@ -98,12 +98,16 @@ describe("CartesianChart: Error bars", () => {
       await highlightFirstPoint();
       expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Custom key Column 1");
       expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("Custom value 2");
-      expect(getTooltipSeries(0).findDetails().getElement().textContent).toBe("Custom details 1 - 3");
+      expect(getTooltipSeries(0).findDescription().getElement().textContent).toBe("Custom description 1 - 3");
     });
   });
 
   describe("validation", () => {
     const warnOnce = vi.spyOn(ComponentToolkitInternal, "warnOnce");
+
+    beforeEach(() => {
+      warnOnce.mockImplementation(() => null);
+    });
 
     afterEach(() => {
       warnOnce.mockReset();
