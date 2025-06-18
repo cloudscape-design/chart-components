@@ -5,7 +5,7 @@
 
 @use "../../styles" as styles;
 
-.marker {
+.item {
   @include styles.with-motion {
     transition: opacity 90ms linear;
   }

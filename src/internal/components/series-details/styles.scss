@@ -46,7 +46,7 @@ $font-weight-bold: cs.$font-weight-heading-s;
 
 .sub-items {
   &:not(.expandable) {
-    padding-inline-start: calc(marker.$marker-width + marker.$marker-margin-right);
+    padding-inline-start: calc(marker.$marker-size + marker.$marker-margin-right);
   }
 
   &.expandable {
@@ -101,17 +101,10 @@ $font-weight-bold: cs.$font-weight-heading-s;
 
 .highlight-indicator {
   position: absolute;
-  top: 5px;
-  left: -2px;
+  top: 3px;
+  left: -6px;
   inline-size: 3px;
-  block-size: 12px;
+  block-size: calc(marker.$marker-size - 2px);
   border-radius: 4px;
   background: cs.$color-text-body-secondary;
-}
-
-.marker {
-  block-size: 20px;
-  inline-size: 20px;
-  margin-inline-end: 2px;
-  z-index: 1;
 }

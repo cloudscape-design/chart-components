@@ -102,7 +102,7 @@ export const ChartLegend = ({
 
   function getNextFocusTarget(): null | HTMLElement {
     if (containerRef.current) {
-      const buttons: HTMLButtonElement[] = Array.from(containerRef.current.querySelectorAll(`.${styles.marker}`));
+      const buttons: HTMLButtonElement[] = Array.from(containerRef.current.querySelectorAll(`.${styles.item}`));
       return buttons[selectedIndex] ?? null;
     }
     return null;
@@ -291,10 +291,10 @@ const LegendItemTrigger = forwardRef(
         data-itemid={itemId}
         aria-pressed={visible}
         aria-current={isHighlighted}
-        className={clsx(testClasses.item, styles.marker, {
-          [styles["marker--inactive"]]: !visible,
+        className={clsx(testClasses.item, styles.item, {
+          [styles["item--inactive"]]: !visible,
           [testClasses["hidden-item"]]: !visible,
-          [styles["marker--dimmed"]]: someHighlighted && !isHighlighted,
+          [styles["item--dimmed"]]: someHighlighted && !isHighlighted,
           [testClasses["dimmed-item"]]: someHighlighted && !isHighlighted,
         })}
         ref={mergedRef}

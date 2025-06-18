@@ -151,7 +151,7 @@ function ExpandableSeries({
   }) {
   return (
     <div className={styles["expandable-section"]}>
-      {marker && <div className={styles.marker}>{marker}</div>}
+      {marker}
       <div className={styles["full-width"]}>
         <InternalExpandableSection
           headerText={<span className={clsx(testClasses.key, styles.key)}>{itemKey}</span>}
@@ -173,7 +173,7 @@ function NonExpandableSeries({ itemKey, value, subItems, marker, description }: 
     <>
       <div className={clsx(styles["key-value-pair"], styles.announced)}>
         <div className={clsx(testClasses.key, styles.key)}>
-          {marker && <div className={styles.marker}>{marker}</div>}
+          {marker}
           <span>{itemKey}</span>
         </div>
         <span className={clsx(testClasses.value, styles.value)}>{value}</span>

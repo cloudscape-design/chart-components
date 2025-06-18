@@ -27,8 +27,8 @@
   list-style: none;
   margin-block: 0;
   margin-inline: 0;
-  padding-block: 0;
-  padding-inline: 0;
+  padding-block: cs.$space-static-xxxs;
+  padding-inline: cs.$space-static-xxxs;
   padding-block-start: cs.$space-scaled-xs;
 }
 
@@ -58,13 +58,11 @@
   gap: cs.$space-scaled-xxs cs.$space-static-m;
 }
 
-.marker {
+.item {
   @include styles.styles-reset;
   @include styles.default-text-style;
 
   display: inline-flex;
-  align-items: center;
-  gap: cs.$space-static-xxs;
   padding-block: 0;
   padding-inline: 0;
   border-block: 0;
@@ -81,19 +79,15 @@
     @include styles.focus-highlight(2px);
   }
 
-  &.marker--inactive {
+  &.item--inactive {
     color: cs.$color-text-interactive-default;
     text-decoration: line-through;
     text-decoration-thickness: 2px;
     text-decoration-color: cs.$color-text-interactive-default;
   }
 
-  &.marker--dimmed {
+  &.item--dimmed {
     opacity: 0.35;
-  }
-
-  &.marker--highlighted {
-    /* used in test utils */
   }
 }
 
