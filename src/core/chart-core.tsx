@@ -44,6 +44,7 @@ export function InternalCoreChart({
   chartMinWidth,
   tooltip: tooltipOptions,
   noData: noDataOptions,
+  navigator,
   legend: legendOptions,
   fallback = <Spinner />,
   callback,
@@ -278,6 +279,7 @@ export function InternalCoreChart({
             </>
           );
         }}
+        navigator={navigator}
         legend={
           settings.legendEnabled ? (
             <ChartLegend {...legendOptions} position={legendPosition} api={api} i18nStrings={i18nStrings} />

@@ -24,6 +24,7 @@ interface ChartContainerProps {
   verticalAxisTitlePlacement: "top" | "side";
   header?: React.ReactNode;
   filter?: React.ReactNode;
+  navigator?: React.ReactNode;
   legend?: React.ReactNode;
   legendPosition: "bottom" | "side";
   footer?: React.ReactNode;
@@ -42,6 +43,7 @@ export function ChartContainer({
   footer,
   legend,
   legendPosition,
+  navigator,
   fitHeight,
   chartHeight,
   chartMinHeight,
@@ -91,6 +93,7 @@ export function ChartContainer({
       )}
 
       <div ref={refs.footer}>
+        {navigator && <div className={testClasses["chart-navigator"]}>{navigator}</div>}
         {legendPosition === "bottom" && legend}
         {footer}
       </div>

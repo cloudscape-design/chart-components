@@ -237,6 +237,11 @@ export interface CoreChartProps
    */
   header?: CoreHeaderOptions;
   /**
+   * Prop for passing a custom navigation control component to be rendered with the chart.
+   * Use this property to add timeline navigation, range selectors, or other custom navigation elements.
+   */
+  navigator?: React.ReactNode;
+  /**
    * A custom slot below the chart plot and legend.
    */
   footer?: CoreFooterOptions;
