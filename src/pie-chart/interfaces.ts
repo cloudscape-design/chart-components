@@ -23,12 +23,12 @@ export interface PieChartProps extends CoreTypes.BaseChartOptions {
    * Chart tooltip options.
    *
    * Supported options:
-   * * `enabled` - (optional, boolean) - Use it to hide the tooltip.
-   * * `size` - (optional, "small" | "medium" | "large") - Use it to specify max tooltip size.
-   * * `details` - (optional, function) - Use it to provide a list of key-value pairs as tooltip's body.
-   * * `header` - (optional, function) - Use it to provide a custom tooltip header.
-   * * `body` - (optional, function) - Use it to provide a custom tooltip content.
-   * * `footer` - (optional, function) - Use it to add a tooltip footer.
+   * * `enabled` - (optional, boolean) - Hides the tooltip.
+   * * `size` - (optional, "small" | "medium" | "large") - Specifies max tooltip size.
+   * * `details` - (optional, function) - Provides a list of key-value pairs as tooltip's body.
+   * * `header` - (optional, function) - Provides a custom tooltip header.
+   * * `body` - (optional, function) - Provides a custom tooltip content.
+   * * `footer` - (optional, function) - Adds a tooltip footer.
    */
   tooltip?: PieChartProps.TooltipOptions;
 
@@ -69,7 +69,7 @@ export namespace PieChartProps {
   export interface Ref {
     // Controls segments visibility that works with both controlled and uncontrolled visibility mode.
     setVisibleSegments(visibleSegments: readonly string[]): void;
-    // Same as above, but applies to all segments and requires no segments IDs on input. This is useful when
+    // Same as `setVisibleSegments`, but applies to all segments and requires no segments IDs on input. This is useful when
     // implementing clear-filter action in no-match state.
     showAllSegments(): void;
   }

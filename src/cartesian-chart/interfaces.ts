@@ -15,10 +15,10 @@ export interface CartesianChartProps extends CoreTypes.BaseChartOptions, CoreTyp
   inverted?: boolean;
 
   /**
-   * Specifies series stacking behavior. Use it for column- or area- series.
+   * Enables series stacking behavior. Use it for column- or area- series.
    * This property corresponds to "normal" stacking type in Highcharts ([plotOptions.series.stacking](https://api.highcharts.com/highcharts/plotOptions.series.stacking)).
    */
-  stacking?: boolean;
+  stacking?: "normal";
 
   /**
    * Chart series options.
@@ -42,13 +42,13 @@ export interface CartesianChartProps extends CoreTypes.BaseChartOptions, CoreTyp
    * Chart tooltip options.
    *
    * Supported options:
-   * * `enabled` - (optional, boolean) - Use it to hide the tooltip.
-   * * `size` - (optional, "small" | "medium" | "large") - Use it to specify max tooltip size.
-   * * `placement` - (optional, "middle" | "outside") - Use it to specify preferred tooltip placement.
-   * * `point` - (optional, function) - Use it to customize tooltip series point rendering.
-   * * `header` - (optional, function) - Use it to provide a custom tooltip header.
-   * * `body` - (optional, function) - Use it to provide a custom tooltip content.
-   * * `footer` - (optional, function) - Use it to add a tooltip footer.
+   * * `enabled` - (optional, boolean) - Hides the tooltip.
+   * * `size` - (optional, "small" | "medium" | "large") - Specifies max tooltip size.
+   * * `placement` - (optional, "middle" | "outside") - Specifies preferred tooltip placement.
+   * * `point` - (optional, function) - Customizes tooltip series point rendering.
+   * * `header` - (optional, function) - Provides a custom tooltip header.
+   * * `body` - (optional, function) - Provides a custom tooltip content.
+   * * `footer` - (optional, function) - Adds a tooltip footer.
    */
   tooltip?: CartesianChartProps.TooltipOptions;
 
@@ -64,7 +64,8 @@ export interface CartesianChartProps extends CoreTypes.BaseChartOptions, CoreTyp
    * * * datetime - Similar to linear, but takes epoch time as values.
    * * * category - Uses discrete scale, requires `categories` to be set.
    * * * logarithmic - Uses continuous logarithmic values scale.
-   * * `min`, `max` (optional, number) - Axis value boundaries.
+   * * `min` (optional, number) - Axis min value boundary.
+   * * `max` (optional, number) - Axis max value boundary.
    * * `tickInterval` (optional, number) - Distance between axis ticks.
    * * `categories` (optional, Array<string>) - Predefined list of values, used for categorical axis type.
    * * `valueFormatter` (optional, function) - Takes axis tick as input and returns a formatted string. This formatter also
@@ -84,7 +85,8 @@ export interface CartesianChartProps extends CoreTypes.BaseChartOptions, CoreTyp
    * * * datetime - Similar to linear, but takes epoch time as values.
    * * * category - Uses discrete scale, requires `categories` to be set.
    * * * logarithmic - Uses continuous logarithmic values scale.
-   * * `min`, `max` (optional, number) - Axis value boundaries.
+   * * `min` (optional, number) - Axis min value boundary.
+   * * `max` (optional, number) - Axis max value boundary.
    * * `tickInterval` (optional, number) - Distance between axis ticks.
    * * `categories` (optional, Array<string>) - Predefined list of values, used for categorical axis type.
    * * `reversedStacks` (optional, boolean) - Reverts series order in stacked series.
@@ -110,7 +112,7 @@ export namespace CartesianChartProps {
   export interface Ref {
     // Controls series visibility that works with both controlled and uncontrolled visibility mode.
     setVisibleSeries(visibleSeries: readonly string[]): void;
-    // Same as above, but applies to all series and requires no series IDs on input. This is useful when
+    // Same as `setVisibleSeries`, but applies to all series and requires no series IDs on input. This is useful when
     // implementing clear-filter action in no-match state.
     showAllSeries(): void;
   }

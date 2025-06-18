@@ -20,7 +20,7 @@ const CartesianChart = forwardRef(
     {
       fitHeight = false,
       inverted = false,
-      stacking = false,
+      stacking = undefined,
       emphasizeBaseline = true,
       verticalAxisTitlePlacement = "top",
       ...props
@@ -68,7 +68,7 @@ export default CartesianChart;
 
 function transformSeries(
   untransformedSeries: readonly CartesianChartProps.SeriesOptions[],
-  stacking: boolean,
+  stacking?: "normal",
 ): CartesianChartProps.SeriesOptions[] {
   const transformedSeries: CartesianChartProps.SeriesOptions[] = [];
   function transformSingleSeries(s: CartesianChartProps.SeriesOptions): null | CartesianChartProps.SeriesOptions {
@@ -131,7 +131,7 @@ function transformThresholdSeries<
 function transformErrorBarSeries(
   series: CartesianChartProps.ErrorBarSeriesOptions,
   allSeries: readonly CartesianChartProps.SeriesOptions[],
-  stacking: boolean,
+  stacking?: "normal",
 ): null | CartesianChartProps.ErrorBarSeriesOptions {
   // Highcharts only supports error bars for non-stacked series.
   // See: https://github.com/highcharts/highcharts/issues/23080.

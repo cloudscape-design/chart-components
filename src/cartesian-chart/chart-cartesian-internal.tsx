@@ -102,9 +102,7 @@ export const InternalCartesianChart = forwardRef(
             inverted: props.inverted,
           },
           plotOptions: {
-            series: {
-              stacking: props.stacking ? "normal" : undefined,
-            },
+            series: { stacking: props.stacking },
           },
           series,
           xAxis: castArray(props.xAxis)?.map((xAxisProps) => ({
