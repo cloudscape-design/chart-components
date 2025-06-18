@@ -140,7 +140,7 @@ describe("CartesianChart: tooltip", () => {
                     },
                   ]
                 : [],
-            details: item.errorRanges?.length ? `${item.errorRanges[0].low} - ${item.errorRanges[0].high}` : null,
+            description: item.errorRanges?.length ? `${item.errorRanges[0].low} - ${item.errorRanges[0].high}` : null,
           };
         },
       },
@@ -170,7 +170,7 @@ describe("CartesianChart: tooltip", () => {
     getTooltipSeries(0).findSubItems()[1].findValue().find("button")!.click();
     expect(onClickValue).toHaveBeenCalledWith("sub-2");
 
-    expect(getTooltipSeries(0).findDetails().getElement().textContent).toBe("1 - 4");
+    expect(getTooltipSeries(0).findDescription().getElement().textContent).toBe("1 - 4");
 
     expect(getTooltipSeries(1).findKey().getElement().textContent).toBe("Threshold");
     expect(getTooltipSeries(1).findValue().getElement().textContent).toBe("T");

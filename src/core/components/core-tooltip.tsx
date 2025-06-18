@@ -159,7 +159,7 @@ function getTooltipContentCartesian(
       return {
         key: item.point.series.name,
         value: valueFormatter(itemY),
-        details: item.linkedErrorbars.length ? (
+        description: item.linkedErrorbars.length ? (
           <div>
             {item.linkedErrorbars.map((errorBarPoint, index) => (
               <div key={index} className={styles["error-range"]}>
@@ -179,7 +179,7 @@ function getTooltipContentCartesian(
       marker: getSeriesMarker(item.point.series),
       subItems: formatted.subItems,
       expandableId: formatted.expandable ? item.point.series.name : undefined,
-      details: formatted.details,
+      description: formatted.description,
       highlighted: item.point.x === point?.x && item.point.y === point?.y,
     };
   });
