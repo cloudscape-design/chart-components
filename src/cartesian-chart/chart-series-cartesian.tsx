@@ -32,15 +32,14 @@ export const transformCartesianSeries = (
     }
   }
   // The threshold series require data points to enable keyboard navigation and hover effects.
-  // For y-threshold we find all defined x values from other series and use it those to create an array of
-  // data points. As result, the y-threshold series becomes properly navigable.
-  const xs = getAllX(originalSeries, visibleSeries);
-  // For x-threshold the point-based navigation is disabled as irrelevant. However, we still need at least
-  // one data point for core chart to work correctly, so we find the first visible y value from other series.
-  const ys = getFirstY(originalSeries, visibleSeries);
+  const thresholdX = getThresholdX(originalSeries, visibleSeries);
+  const thresholdY = getThresholdY(originalSeries, visibleSeries);
   function transformSeriesToHighcharts(s: CartesianChartProps.SeriesOptions): Highcharts.SeriesOptionsType {
     if (s.type === "x-threshold" || s.type === "y-threshold") {
-      const data = s.type === "x-threshold" ? ys.map((y) => ({ x: s.value, y })) : xs.map((x) => ({ x, y: s.value }));
+      const data =
+        s.type === "x-threshold"
+          ? thresholdY.map((y) => ({ x: s.value, y }))
+          : thresholdX.map((x) => ({ x, y: s.value }));
       const { custom } = createThresholdMetadata(s.type, s.value);
       const enableMouseTracking = s.type === "y-threshold";
       const style = { ...Styles.thresholdSeries, color: s.color ?? Styles.thresholdSeries.color };
@@ -62,7 +61,9 @@ export const transformCartesianSeries = (
   return { series, xPlotLines, yPlotLines };
 };
 
-function getFirstY(series: readonly CartesianChartProps.SeriesOptions[], visibleSeries: readonly string[]) {
+// For x-threshold the point-based navigation is disabled as irrelevant. However, we still need at least
+// one data point for core chart to work correctly, so we find the first visible y value from other series.
+function getThresholdY(series: readonly CartesianChartProps.SeriesOptions[], visibleSeries: readonly string[]) {
   for (const s of getVisibleDataSeries(series, visibleSeries)) {
     for (const d of s.data) {
       const y = d === null ? null : typeof d === "number" ? d : d.y;
@@ -74,7 +75,9 @@ function getFirstY(series: readonly CartesianChartProps.SeriesOptions[], visible
   return [];
 }
 
-function getAllX(series: readonly CartesianChartProps.SeriesOptions[], visibleSeries: readonly string[]) {
+// For y-threshold we find all defined x values from other series and use it those to create an array of
+// data points. As result, the y-threshold series becomes properly navigable.
+function getThresholdX(series: readonly CartesianChartProps.SeriesOptions[], visibleSeries: readonly string[]) {
   const allX = new Set<number>();
   for (const s of getVisibleDataSeries(series, visibleSeries)) {
     for (let i = 0; i < s.data.length; i++) {
