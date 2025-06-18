@@ -40,7 +40,9 @@
   "exports": {
     ".": "./index.js",
     "./test-utils/dom": "./test-utils/dom/index.js",
+    "./test-utils/dom/internal/core": "./test-utils/dom/internal/core.js",
     "./test-utils/selectors": "./test-utils/selectors/index.js",
+    "./test-utils/selectors/internal/core": "./test-utils/selectors/internal/core.js",
     "./internal/api-docs/*.js": "./internal/api-docs/*.js",
     "./internal-do-not-use/core-chart": "./internal-do-not-use/core-chart.js"
   },

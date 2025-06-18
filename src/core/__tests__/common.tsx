@@ -10,8 +10,8 @@ import testClasses from "../../../lib/components/core/test-classes/styles.select
 import { TestI18nProvider } from "../../../lib/components/internal/utils/test-i18n-provider";
 import CoreChart from "../../../lib/components/internal-do-not-use/core-chart";
 import createWrapper from "../../../lib/components/test-utils/dom";
-import BaseChartWrapper from "../../../lib/components/test-utils/dom/base";
-import CoreChartWrapper from "../../../lib/components/test-utils/dom/core";
+import BaseChartWrapper from "../../../lib/components/test-utils/dom/internal/base";
+import CoreChartWrapper from "../../../lib/components/test-utils/dom/internal/core";
 
 export class ExtendedTestWrapper extends CoreChartWrapper {
   findHighchartsTooltip = () => this.findByClassName("highcharts-tooltip");
