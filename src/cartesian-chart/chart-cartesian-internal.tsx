@@ -63,7 +63,7 @@ export const InternalCartesianChart = forwardRef(
         x: item.point.x,
         y: isXThreshold(item.point.series) ? null : (item.point.y ?? null),
         series: item.point.series.userOptions as NonErrorBarSeriesOptions,
-        errorRanges: item.linkedErrorbars.map((point) => ({
+        errorRanges: item.errorRanges.map((point) => ({
           low: point.options.low ?? 0,
           high: point.options.high ?? 0,
           series: point.series.userOptions as ErrorBarSeriesOptions,

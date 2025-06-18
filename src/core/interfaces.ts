@@ -341,7 +341,7 @@ export interface CoreTooltipContent {
 
 export interface TooltipContentItem {
   point: Highcharts.Point;
-  linkedErrorbars: Highcharts.Point[];
+  errorRanges: Highcharts.Point[];
 }
 
 export interface TooltipPointProps {
