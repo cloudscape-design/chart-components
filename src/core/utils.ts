@@ -9,7 +9,7 @@ import { CoreLegendItemSpec, Rect } from "./interfaces";
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
 // We expect that items requiring referencing (e.g. in order to control their visibility) have the unique identifier defined.
-// Otherwise,  we return a randomized id that is to ensure no accidental matches.
+// Otherwise, we return a randomized id that is to ensure no accidental matches.
 export function getSeriesId(series: Highcharts.Series): string {
   return getOptionsId(series.options);
 }
