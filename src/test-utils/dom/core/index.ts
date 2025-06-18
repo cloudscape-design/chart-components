@@ -16,6 +16,10 @@ export default class CoreChartWrapper extends BaseChartWrapper {
     return this.findByClassName(testClasses["chart-footer"]);
   }
 
+  public findNavigator(): null | ElementWrapper {
+    return this.findByClassName(testClasses["chart-navigator"]);
+  }
+
   public findVerticalAxisTitle(): null | ElementWrapper {
     return (
       this.findByClassName(testClasses["axis-vertical-title"]) ??

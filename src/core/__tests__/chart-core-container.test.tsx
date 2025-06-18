@@ -6,7 +6,7 @@ import highcharts from "highcharts";
 import { renderChart } from "./common";
 
 describe("CoreChart: container", () => {
-  test("renders chart header, filter, vertical axis title, chart plot, legend, and footer", () => {
+  test("renders chart header, filter, vertical axis title, chart plot, navigator, legend, and footer", () => {
     const { wrapper } = renderChart({
       highcharts,
       options: {
@@ -20,6 +20,7 @@ describe("CoreChart: container", () => {
         seriesFilter: true,
         additionalFilters: "Additional filter",
       },
+      navigator: <div>Navigator content</div>,
       legend: { title: "Legend title" },
       footer: { content: "Custom footer" },
       i18nStrings: { seriesFilterLabel: "Series filter" },
@@ -43,6 +44,10 @@ describe("CoreChart: container", () => {
     const chartPlot = wrapper.findChartPlot()!.getElement();
     expect(chartPlot).toHaveTextContent("X-axis title");
     expect(chartPlot.compareDocumentPosition(verticalAxisTitle)).toBe(Node.DOCUMENT_POSITION_PRECEDING);
+
+    const navigator = wrapper.findNavigator()!.getElement();
+    expect(navigator.textContent).toBe("Navigator content");
+    expect(navigator.compareDocumentPosition(chartPlot)).toBe(Node.DOCUMENT_POSITION_PRECEDING);
 
     const legend = wrapper.findLegend()!.getElement();
     expect(legend.textContent).toBe("Legend titleSeries 1");
