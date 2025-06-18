@@ -6,7 +6,7 @@ import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-u
 import { ChartLegend as ChartLegendComponent } from "../../internal/components/chart-legend";
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
-import { BaseI18nStrings } from "../interfaces";
+import { BaseI18nStrings, GetLegendTooltipContent } from "../interfaces";
 
 export function ChartLegend({
   api,
@@ -14,10 +14,12 @@ export function ChartLegend({
   actions,
   position,
   i18nStrings,
+  getLegendTooltipContent,
 }: {
   api: ChartAPI;
   title?: string;
   actions?: React.ReactNode;
+  getLegendTooltipContent?: GetLegendTooltipContent;
   position: "bottom" | "side";
   i18nStrings?: BaseI18nStrings;
 }) {
@@ -37,6 +39,7 @@ export function ChartLegend({
       onItemVisibilityChange={api.onItemVisibilityChange}
       onItemHighlightEnter={(itemId) => api.onHighlightChartItems([itemId])}
       onItemHighlightExit={api.onClearChartItemsHighlight}
+      getLegendTooltipContent={getLegendTooltipContent}
     />
   );
 }

@@ -15,8 +15,9 @@ import {
 } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
 
-import { CoreLegendItem } from "../../../core/interfaces";
+import { CoreLegendItem, GetLegendTooltipContent } from "../../../core/interfaces";
 import { DebouncedCall } from "../../utils/utils";
+import { ChartLegendTooltip } from "../chart-legend-tooltip";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -30,6 +31,7 @@ export interface ChartLegendProps {
   onItemHighlightEnter: (itemId: string) => void;
   onItemHighlightExit: () => void;
   onItemVisibilityChange: (hiddenItems: string[]) => void;
+  getLegendTooltipContent?: GetLegendTooltipContent;
 }
 
 export const ChartLegend = ({
@@ -41,11 +43,13 @@ export const ChartLegend = ({
   onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
+  getLegendTooltipContent,
 }: ChartLegendProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const segmentsRef = useRef<Record<number, HTMLElement>>([]);
   const highlightControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [tooltipItemId, setTooltipItemId] = useState<string | null>(null);
   const showHighlight = (itemId: string) => {
     const item = items.find((item) => item.id === itemId);
     if (item?.visible) {
@@ -63,10 +67,15 @@ export const ChartLegend = ({
     setSelectedIndex(index);
     navigationAPI.current!.updateFocusTarget();
     showHighlight(itemId);
+
+    setTooltipItemId(null);
+    // Force separate render cycle to dismiss the existing popover first
+    setTimeout(() => setTooltipItemId(itemId), 0);
   }
 
   function onBlur() {
     navigationAPI.current!.updateFocusTarget();
+    setTooltipItemId(null);
   }
 
   function focusElement(index: number) {
@@ -200,9 +209,11 @@ export const ChartLegend = ({
               const handlers = {
                 onMouseEnter: () => {
                   showHighlight(item.id);
+                  setTooltipItemId(item.id);
                 },
                 onMouseLeave: () => {
                   clearHighlight();
+                  setTooltipItemId(null);
                 },
                 onFocus: () => {
                   onFocus(index, item.id);
@@ -245,6 +256,14 @@ export const ChartLegend = ({
           </div>
         </div>
       </div>
+
+      {tooltipItemId && (
+        <ChartLegendTooltip
+          legendItem={items.find((item) => item.id === tooltipItemId)!}
+          getLegendTooltipContent={getLegendTooltipContent}
+          trackRef={{ current: segmentsRef.current[items.findIndex((item) => item.id === tooltipItemId)] }}
+        />
+      )}
     </SingleTabStopNavigationProvider>
   );
 };

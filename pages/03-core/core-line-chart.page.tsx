@@ -111,6 +111,7 @@ export default function () {
         }}
         chartHeight={400}
         tooltip={{ placement: "outside" }}
+        getLegendTooltipContent={({ legendItem }) => <div>{legendItem.name}</div>}
       />
     </Page>
   );
