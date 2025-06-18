@@ -67,7 +67,7 @@ function findAllSeriesWithData(chart: Highcharts.Chart) {
   // That is why we assert the data from series.options instead.
   return chart.series.filter((s) => {
     const data = "data" in s.options && s.options.data && Array.isArray(s.options.data) ? s.options.data : [];
-    return data.filter((i) => i !== null && (typeof i === "object" && "y" in i ? i.y !== null : true)).length > 0;
+    return data.some((i) => i !== null && (typeof i === "object" && "y" in i ? i.y !== null : true));
   });
 }
 
