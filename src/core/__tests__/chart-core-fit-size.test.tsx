@@ -131,10 +131,10 @@ describe("CoreChart: fit-size", () => {
   test.each([{ fitHeight: false }, { fitHeight: true }])("applies minWidth, fitHeight=$fitHeight", ({ fitHeight }) => {
     const { rerender, wrapper } = renderChart({ highcharts, fitHeight });
 
-    expect(wrapper.findByClassName(testClasses["chart-plot-wrapper"])!.getElement().style.minWidth).toBe("");
+    expect(wrapper.findByClassName(testClasses["chart-plot-wrapper"])!.getElement().style.minInlineSize).toBe("");
 
     rerender({ highcharts, fitHeight, chartMinWidth: 333 });
 
-    expect(wrapper.findByClassName(testClasses["chart-plot-wrapper"])!.getElement().style.minWidth).toBe("333px");
+    expect(wrapper.findByClassName(testClasses["chart-plot-wrapper"])!.getElement().style.minInlineSize).toBe("333px");
   });
 });

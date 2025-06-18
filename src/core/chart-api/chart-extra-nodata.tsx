@@ -63,13 +63,11 @@ export class ChartExtraNodata extends AsyncStore<ReactiveNodataState> {
 }
 
 function findAllSeriesWithData(chart: Highcharts.Chart) {
+  // When a series becomes hidden, Highcharts no longer computes the data array, so the series.data is empty.
+  // That is why we assert the data from series.options instead.
   return chart.series.filter((s) => {
-    switch (s.type) {
-      case "pie":
-        return s.data && s.data.filter((d) => d.y !== null).length > 0;
-      default:
-        return s.data && s.data.length > 0;
-    }
+    const data = "data" in s.options && s.options.data && Array.isArray(s.options.data) ? s.options.data : [];
+    return data.filter((i) => i !== null && (typeof i === "object" && "y" in i ? i.y !== null : true)).length > 0;
   });
 }
 

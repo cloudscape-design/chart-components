@@ -335,11 +335,11 @@ Supported options:
       "description": "When set to "top", the title of the vertical axis (can be x or y)
 is shown right above the chart plot.",
       "inlineType": {
-        "name": ""top" | "side"",
+        "name": ""side" | "top"",
         "type": "union",
         "values": [
-          "top",
           "side",
+          "top",
         ],
       },
       "name": "verticalAxisTitlePlacement",
