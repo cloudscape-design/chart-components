@@ -120,9 +120,9 @@ export function InternalCoreChart({
           const highchartsOptions: Highcharts.Options = {
             ...options,
             // Hide credits by default.
-            credits: { enabled: false, ...options.credits },
+            credits: options.credits ?? { enabled: false },
             // Hide chart title by default.
-            title: { text: "", ...options.title },
+            title: options.title ?? { text: "" },
             // Use Cloudscape color palette by default.
             // This cannot be reset to Highcharts' default from the outside, but it is possible to provide custom palette.
             colors: options.colors ?? Styles.colors,
@@ -143,7 +143,6 @@ export function InternalCoreChart({
               // if the Highcharts debugger module is loaded.
               displayErrors: options.chart?.displayErrors ?? isDevelopment,
               style: { ...Styles.chartPlotCss, ...options.chart?.style },
-              backgroundColor: options.chart?.backgroundColor ?? Styles.chartPlotBackgroundColor,
               // We override certain chart events to inject additional behaviors, but it is still possible to define
               // custom callbacks. The Cloudscape behaviors can be disabled or altered via components API. For instance,
               // if no-data props are not provided - the related on-render computations will be skipped.
@@ -165,7 +164,7 @@ export function InternalCoreChart({
             },
             series: options.series,
             // Highcharts legend is disabled by default in favour of the custom Cloudscape legend.
-            legend: { enabled: false, ...options.legend },
+            legend: options.legend ?? { enabled: false },
             lang: {
               ...options.lang,
               // The default chart title is disabled by default to prevent the default "Chart" in the screen-reader detail.
@@ -175,7 +174,7 @@ export function InternalCoreChart({
               description: ariaDescription,
               ...options.accessibility,
               // Highcharts keyboard navigation is disabled by default in favour of the custom Cloudscape navigation.
-              keyboardNavigation: { enabled: !keyboardNavigation, ...options.accessibility?.keyboardNavigation },
+              keyboardNavigation: options.accessibility?.keyboardNavigation ?? { enabled: !keyboardNavigation },
               point: {
                 // Point description formatter is overridden to respect custom axes value formatters.
                 descriptionFormatter: getFormattedPointDescription,
