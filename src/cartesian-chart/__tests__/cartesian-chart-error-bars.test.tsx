@@ -105,6 +105,10 @@ describe("CartesianChart: Error bars", () => {
   describe("validation", () => {
     const warnOnce = vi.spyOn(ComponentToolkitInternal, "warnOnce");
 
+    beforeEach(() => {
+      warnOnce.mockImplementation(() => null);
+    });
+
     afterEach(() => {
       warnOnce.mockReset();
     });
