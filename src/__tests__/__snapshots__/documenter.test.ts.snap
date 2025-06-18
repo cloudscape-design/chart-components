@@ -316,7 +316,7 @@ Supported options:
           {
             "name": "point",
             "optional": true,
-            "type": "((props: CartesianChartProps.TooltipPointRenderProps) => CartesianChartProps.TooltipPointFormatted)",
+            "type": "((props: CartesianChartProps.TooltipPointRenderProps) => TooltipPointFormatted)",
           },
           {
             "name": "size",

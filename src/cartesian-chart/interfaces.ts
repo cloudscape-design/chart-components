@@ -177,13 +177,7 @@ export namespace CartesianChartProps {
     errorRanges: { low: number; high: number; series: CartesianChartProps.ErrorBarSeriesOptions }[];
     series: NonErrorBarSeriesOptions;
   }
-  export interface TooltipPointFormatted {
-    key?: React.ReactNode;
-    value?: React.ReactNode;
-    description?: React.ReactNode;
-    expandable?: boolean;
-    subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
-  }
+  export type TooltipPointFormatted = CoreTypes.TooltipPointFormatted;
 
   export type LegendOptions = CoreTypes.BaseLegendOptions;
 
