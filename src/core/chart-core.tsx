@@ -280,13 +280,7 @@ export function InternalCoreChart({
         }}
         legend={
           settings.legendEnabled ? (
-            <ChartLegend
-              {...legendOptions}
-              position={legendPosition}
-              api={api}
-              i18nStrings={i18nStrings}
-              getLegendTooltipContent={rest.getLegendTooltipContent}
-            />
+            <ChartLegend {...legendOptions} position={legendPosition} api={api} i18nStrings={i18nStrings} />
           ) : null
         }
         verticalAxisTitle={
