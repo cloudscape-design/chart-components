@@ -53,11 +53,26 @@ export const ChartLegend = ({
     if (highlightedIndex === -1) {
       return;
     }
+
     scrollIntoViewControl.cancelPrevious();
-    scrollIntoViewControl.call(
-      () => segmentsRef.current?.[highlightedIndex]?.scrollIntoView({ behavior: "smooth", block: "center" }),
-      100,
-    );
+    scrollIntoViewControl.call(() => {
+      const container = containerRef.current;
+      const element = segmentsRef.current?.[highlightedIndex];
+      if (!container || !element) {
+        return;
+      }
+
+      const elementRect = element.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      const isVisible = elementRect.top >= containerRect.top && elementRect.bottom <= containerRect.bottom;
+
+      if (!isVisible) {
+        const elementCenter = elementRect.top + elementRect.height / 2;
+        const containerCenter = containerRect.top + containerRect.height / 2;
+        const top = container.scrollTop + (elementCenter - containerCenter);
+        container.scrollTo({ top, behavior: "smooth" });
+      }
+    }, 100);
   }, [items, scrollIntoViewControl]);
 
   const showHighlight = (itemId: string) => {
