@@ -23,8 +23,8 @@ export class ChartExtraHighlight {
   // We keep track of the previously highlighted series and points to recover highlight state if needed.
   // The recover is necessary if the chart was re-rendered while the highlighting is set. For example,
   // when triggered a state update from the consumer-provided tooltip footer action.
-  private seriesState = new Map<string, Highcharts.SeriesStateValue>();
-  private pointState = new Map<string, Map<string, Highcharts.SeriesStateValue>>();
+  private seriesState = new Map<string, "" | Highcharts.SeriesStateValue>();
+  private pointState = new Map<string, Map<string, "" | Highcharts.PointStateValue>>();
 
   public onChartRender() {
     this.overrideStateSetters();
@@ -42,7 +42,7 @@ export class ChartExtraHighlight {
           }
         }
       } else {
-        this.setSeriesState(s, itemIds.includes(getSeriesId(s)) ? "normal" : "inactive");
+        this.setSeriesState(s, itemIds.includes(getSeriesId(s)) ? "" : "inactive");
       }
     }
     setPlotLinesState(this.context.chart(), (lineId) => itemIds.includes(lineId));
@@ -61,12 +61,12 @@ export class ChartExtraHighlight {
       includedSeriesIds.add(getSeriesId(point.series));
     });
     for (const s of this.context.chart().series) {
-      this.setSeriesState(s, includedSeries.has(s) ? "normal" : "inactive");
+      this.setSeriesState(s, includedSeries.has(s) ? "" : "inactive");
       // We use special handling for column- series to make stacks or groups of columns that have a shared X highlighted.
       // See: https://github.com/highcharts/highcharts/issues/23076.
       if (s.type === "column") {
         for (const d of s.data) {
-          this.setPointState(d, includedPoints.has(d) ? "normal" : "inactive");
+          this.setPointState(d, includedPoints.has(d) ? "" : "inactive");
         }
       }
     }
@@ -89,7 +89,7 @@ export class ChartExtraHighlight {
       // We override point state that could have been set for columns using this.highlightChartGroup().
       else if (s.type === "column") {
         for (const d of s.data) {
-          this.setPointState(d, "normal");
+          this.setPointState(d, "");
         }
       }
     }
@@ -99,16 +99,16 @@ export class ChartExtraHighlight {
   // Removes dimmed state from all series and points.
   public clearChartItemsHighlight = () => {
     for (const s of this.context.chart().series ?? []) {
-      this.setSeriesState(s, "normal");
+      this.setSeriesState(s, "");
       for (const p of s.data) {
-        this.setPointState(p, "normal");
+        this.setPointState(p, "");
       }
     }
     setPlotLinesState(this.context.chart(), () => true);
   };
 
   // Makes the specified series active or dimmed.
-  private setSeriesState(series: Highcharts.Series, state: Highcharts.SeriesStateValue) {
+  private setSeriesState(series: Highcharts.Series, state: "" | Highcharts.SeriesStateValue) {
     (series.setState as SeriesSetStateWithLock)[SET_STATE_LOCK] = false;
     series.setState(state, false);
     this.updateStoredSeriesState(series, state);
@@ -116,7 +116,7 @@ export class ChartExtraHighlight {
   }
 
   // Makes the specified point active or dimmed.
-  private setPointState(point: Highcharts.Point, state: Highcharts.PointStateValue) {
+  private setPointState(point: Highcharts.Point, state: "" | Highcharts.PointStateValue) {
     (point.setState as PointSetStateWithLock)[SET_STATE_LOCK] = false;
     point.setState(state, true);
     this.updateStoredPointState(point, state);
@@ -144,11 +144,11 @@ export class ChartExtraHighlight {
     setPlotLinesState(this.context.chart(), (lineId) => !inactiveSeriesIds.has(lineId));
   }
 
-  private updateStoredSeriesState(series: Highcharts.Series, state: Highcharts.SeriesStateValue) {
+  private updateStoredSeriesState(series: Highcharts.Series, state: "" | Highcharts.SeriesStateValue) {
     this.seriesState.set(getSeriesId(series), state);
   }
 
-  private updateStoredPointState(point: Highcharts.Point, state: Highcharts.PointStateValue) {
+  private updateStoredPointState(point: Highcharts.Point, state: "" | Highcharts.PointStateValue) {
     const pointStateInSeries = this.pointState.get(getSeriesId(point.series)) ?? new Map();
     pointStateInSeries.set(this.getPointKey(point), state);
     this.pointState.set(getSeriesId(point.series), pointStateInSeries);

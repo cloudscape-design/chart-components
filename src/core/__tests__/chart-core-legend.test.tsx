@@ -144,7 +144,7 @@ describe("CoreChart: legend", () => {
 
       act(() => mouseOver(getItem(0).getElement()));
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["L1"]);
-      expect(hc.getChartSeries(0).state).toBe("normal");
+      expect(hc.getChartSeries(0).state).toBe("");
       expect(hc.getChartSeries(2).state).toBe("inactive");
       expect(hc.getPlotLinesById("L3").map((l) => l.svgElem.opacity)).toEqual([0.4, 0.4]);
 
@@ -152,7 +152,7 @@ describe("CoreChart: legend", () => {
       act(() => mouseOver(getItem(2).getElement()));
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["Line 3"]);
       expect(hc.getChartSeries(0).state).toBe("inactive");
-      expect(hc.getChartSeries(2).state).toBe("normal");
+      expect(hc.getChartSeries(2).state).toBe("");
       expect(hc.getPlotLinesById("L3").map((l) => l.svgElem.opacity)).toEqual([1, 1]);
 
       act(() => mouseOut(getItem(0).getElement()));
@@ -161,8 +161,8 @@ describe("CoreChart: legend", () => {
         "L1",
         "Line 3",
       ]);
-      expect(hc.getChartSeries(0).state).toBe("normal");
-      expect(hc.getChartSeries(2).state).toBe("normal");
+      expect(hc.getChartSeries(0).state).toBe("");
+      expect(hc.getChartSeries(2).state).toBe("");
       expect(hc.getPlotLinesById("L3").map((l) => l.svgElem.opacity)).toEqual([1, 1]);
     },
   );
@@ -191,20 +191,20 @@ describe("CoreChart: legend", () => {
       act(() => mouseOut(getItem(0).getElement()));
       await clearHighlightPause();
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
-      expect(hc.getChartPoint(0, 0).state).toBe("normal");
-      expect(hc.getChartPoint(0, 2).state).toBe("normal");
+      expect(hc.getChartPoint(0, 0).state).toBe("");
+      expect(hc.getChartPoint(0, 2).state).toBe("");
 
       act(() => mouseOver(getItem(2).getElement()));
       expect(getItems({ dimmed: true, active: true }).map((w) => w.getElement().textContent)).toEqual(["P1"]);
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["Pie 3"]);
-      expect(hc.getChartPoint(0, 0).state).toBe("normal");
+      expect(hc.getChartPoint(0, 0).state).toBe("");
       expect(hc.getChartPoint(0, 2).state).toBe("hover");
 
       act(() => mouseOut(getItem(2).getElement()));
       await clearHighlightPause();
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
-      expect(hc.getChartPoint(0, 0).state).toBe("normal");
-      expect(hc.getChartPoint(0, 2).state).toBe("normal");
+      expect(hc.getChartPoint(0, 0).state).toBe("");
+      expect(hc.getChartPoint(0, 2).state).toBe("");
     },
   );
 
@@ -315,20 +315,20 @@ describe("CoreChart: legend", () => {
 
       getItem(2).keydown({ keyCode: KeyCode.right });
       expect(getItem(0).getElement()).toHaveFocus();
-      expect(hc.getChartSeries(0).state).toBe("normal");
+      expect(hc.getChartSeries(0).state).toBe("");
       expect(hc.getChartSeries(1).state).toBe("inactive");
       expect(hc.getChartSeries(2).state).toBe("inactive");
 
       getItem(0).keydown({ keyCode: KeyCode.escape });
       expect(getItem(0).getElement()).toHaveFocus();
-      expect(hc.getChartSeries(0).state).toBe("normal");
-      expect(hc.getChartSeries(1).state).toBe("normal");
-      expect(hc.getChartSeries(2).state).toBe("normal");
+      expect(hc.getChartSeries(0).state).toBe("");
+      expect(hc.getChartSeries(1).state).toBe("");
+      expect(hc.getChartSeries(2).state).toBe("");
 
       getItem(0).keydown({ keyCode: KeyCode.right });
       expect(getItem(1).getElement()).toHaveFocus();
       expect(hc.getChartSeries(0).state).toBe("inactive");
-      expect(hc.getChartSeries(1).state).toBe("normal");
+      expect(hc.getChartSeries(1).state).toBe("");
       expect(hc.getChartSeries(2).state).toBe("inactive");
     },
   );
