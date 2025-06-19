@@ -253,6 +253,9 @@ export function InternalCoreChart({
               title: axisTitle(yAxisOptions.title ?? {}, inverted || verticalAxisTitlePlacement === "side"),
               labels: axisLabels(yAxisOptions.labels ?? {}),
               plotLines: yAxisPlotLines(yAxisOptions.plotLines, emphasizeBaseline),
+              // We use reversed stack by default so that the order of points in the tooltip and series in the legend
+              // correspond the order of stacks.
+              reversedStacks: yAxisOptions.reversedStacks ?? true,
             })),
             // We don't use Highcharts tooltip, but certain tooltip options such as tooltip.snap or tooltip.shared
             // affect the hovering behavior of Highcharts. That is only the case when the tooltip is not disabled,

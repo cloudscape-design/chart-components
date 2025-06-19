@@ -106,6 +106,7 @@ export interface BaseI18nStrings {
   recoveryText?: string;
   seriesFilterLabel?: string;
   seriesFilterPlaceholder?: string;
+  seriesFilterSelectedAriaLabel?: string;
   legendAriaLabel?: string;
   detailPopoverDismissAriaLabel?: string;
 }

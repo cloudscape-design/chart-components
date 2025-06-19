@@ -47,6 +47,7 @@ function ChartSeriesFilter({ api, i18nStrings }: { api: ChartAPI; i18nStrings?: 
       i18nStrings={{
         filterLabel: i18n("i18nStrings.filterLabel", i18nStrings?.seriesFilterLabel),
         filterPlaceholder: i18n("i18nStrings.filterPlaceholder", i18nStrings?.seriesFilterPlaceholder),
+        filterSelectedAriaLabel: i18nStrings?.seriesFilterSelectedAriaLabel,
       }}
     />
   );

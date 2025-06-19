@@ -174,9 +174,6 @@ function getTooltipContentCartesian(
         ) : null),
     };
   });
-  if (chart.options.plotOptions?.series?.stacking) {
-    detailItems.reverse();
-  }
   const titleFormatter = getFormatter(chart.xAxis[0]);
   const slotRenderProps: TooltipSlotProps = { x, items: matchedItems };
   return {
