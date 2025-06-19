@@ -22,6 +22,7 @@ import { ChartNoData } from "./components/core-no-data";
 import { ChartFooter, ChartHeader } from "./components/core-slots";
 import { ChartTooltip } from "./components/core-tooltip";
 import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
+import { customizeErrorBars } from "./error-bars";
 import { getFormatter } from "./formatters";
 import { CoreChartProps } from "./interfaces";
 import * as Styles from "./styles";
@@ -106,6 +107,8 @@ export function InternalCoreChart({
       </div>
     );
   }
+
+  customizeErrorBars(highcharts);
 
   const apiOptions = api.getOptions();
   const inverted = !!options.chart?.inverted;
