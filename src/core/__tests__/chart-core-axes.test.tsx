@@ -250,20 +250,17 @@ describe("CoreChart: axes", () => {
     });
   });
 
-  test("uses custom category axes formatters", () => {
-    const valueFormatter = (value: null | number) => ["a", "b"][value!].toUpperCase();
+  test("does not call custom formatter on categorical values", () => {
+    const valueFormatter = vi.fn();
     renderChart({
       highcharts,
       options: {
         series,
-        xAxis: { type: "category", title: { text: "X" } },
-        yAxis: { type: "category", title: { text: "Y" } },
+        xAxis: { type: "category", categories: ["A", "B", "C"], title: { text: "X" }, valueFormatter },
+        yAxis: { type: "category", categories: ["A", "B", "C"], title: { text: "Y" }, valueFormatter },
       },
     });
-    getAxisOptionsFormatters().forEach((formatter) => {
-      expect(formatter.call(mockAxisContext({ type: "category", valueFormatter, value: 0 }))).toBe("A");
-      expect(formatter.call(mockAxisContext({ type: "category", valueFormatter, value: 1 }))).toBe("B");
-    });
+    expect(valueFormatter).not.toHaveBeenCalled();
   });
 
   test("uses custom datetime axes formatters", () => {

@@ -18,12 +18,12 @@ export function getFormatter(axis?: Highcharts.Axis) {
     if (!axis) {
       return `${value}`;
     }
+    if (axis.options.type === "category") {
+      return axis.categories?.[value] ?? value.toString();
+    }
     const axisOptions = axis.userOptions as InternalXAxisOptions | InternalYAxisOptions;
     if (axisOptions.valueFormatter) {
       return axisOptions.valueFormatter(value);
-    }
-    if (axis.options.type === "category") {
-      return axis.categories?.[value] ?? value.toString();
     }
     if (axis.options.type === "datetime") {
       const extremes = axis.getExtremes();
