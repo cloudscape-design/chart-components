@@ -129,6 +129,11 @@ Supported Highcharts versions:
         "name": "BaseI18nStrings",
         "properties": [
           {
+            "name": "chartAccessibleDescription",
+            "optional": true,
+            "type": "string",
+          },
+          {
             "name": "detailPopoverDismissAriaLabel",
             "optional": true,
             "type": "string",
@@ -160,6 +165,21 @@ Supported Highcharts versions:
           },
           {
             "name": "seriesFilterPlaceholder",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "seriesFilterSelectedAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "xAxisAccessibleDescription",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "yAxisAccessibleDescription",
             "optional": true,
             "type": "string",
           },
@@ -620,6 +640,11 @@ Supported Highcharts versions:
         "name": "BaseI18nStrings",
         "properties": [
           {
+            "name": "chartAccessibleDescription",
+            "optional": true,
+            "type": "string",
+          },
+          {
             "name": "detailPopoverDismissAriaLabel",
             "optional": true,
             "type": "string",
@@ -651,6 +676,21 @@ Supported Highcharts versions:
           },
           {
             "name": "seriesFilterPlaceholder",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "seriesFilterSelectedAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "xAxisAccessibleDescription",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "yAxisAccessibleDescription",
             "optional": true,
             "type": "string",
           },

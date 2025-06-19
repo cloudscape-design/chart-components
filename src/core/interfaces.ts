@@ -101,14 +101,28 @@ export interface BaseNoDataOptions {
 }
 
 export interface BaseI18nStrings {
+  /** Text that is displayed when the chart is loading, i.e. when `noData.statusType` is set to `"loading". */
   loadingText?: string;
+  /** Text that is displayed when the chart is in error state, i.e. when `noData.statusType` is set to `"error". */
   errorText?: string;
+  /** Text for the recovery button that is displayed next to the error text. */
   recoveryText?: string;
+  /** Visible label of the default series filter */
   seriesFilterLabel?: string;
+  /** Placeholder text of the default series filter */
   seriesFilterPlaceholder?: string;
+  /** ARIA label of the default series filter which is appended to any option that is selected */
   seriesFilterSelectedAriaLabel?: string;
+  /** ARIA label that is associated with the legend in case there is no visible `legendTitle` defined */
   legendAriaLabel?: string;
+  /** ARIA label for details popover dismiss button */
   detailPopoverDismissAriaLabel?: string;
+  /** Generalized accessible description of the chart, e.g. "line chart" */
+  chartAccessibleDescription?: string;
+  /** Generalized accessible description of the x axis, e.g. "x axis" */
+  xAxisAccessibleDescription?: string;
+  /** Generalized accessible description of the y axis, e.g. "y axis" */
+  yAxisAccessibleDescription?: string;
 }
 
 export interface BaseFilterOptions {

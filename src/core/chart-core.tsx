@@ -8,6 +8,7 @@ import HighchartsReact from "highcharts-react-official";
 
 import { getIsRtl, useMergeRefs, useUniqueId } from "@cloudscape-design/component-toolkit/internal";
 import { isDevelopment } from "@cloudscape-design/component-toolkit/internal";
+import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-use/i18n";
 import Spinner from "@cloudscape-design/components/spinner";
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
@@ -64,6 +65,7 @@ export function InternalCoreChart({
   ...rest
 }: CoreChartProps & InternalBaseComponentProps) {
   const highcharts = rest.highcharts as null | typeof Highcharts;
+  const i18n = useInternalI18n("[charts]");
 
   const settings = {
     chartId: useUniqueId(),
@@ -107,6 +109,15 @@ export function InternalCoreChart({
     );
   }
 
+  const aria = {
+    chartLabel: ariaLabel,
+    chartDescription: ariaDescription,
+    // We reuse existing translations as passing for now, but it is possible to introduce new i18n strings that
+    // are parametrized with axes names, and more.
+    chartContainerLabel: i18n("i18nStrings.chartAriaRoleDescription", i18nStrings?.chartAccessibleDescription),
+    chartXAxisLabel: i18n("i18nStrings.xAxisAriaRoleDescription", i18nStrings?.xAxisAccessibleDescription),
+    chartYAxisLabel: i18n("i18nStrings.yAxisAriaRoleDescription", i18nStrings?.yAxisAccessibleDescription),
+  };
   const apiOptions = api.getOptions();
   const inverted = !!options.chart?.inverted;
   const isRtl = () => getIsRtl(rootRef?.current);
@@ -168,11 +179,28 @@ export function InternalCoreChart({
             legend: options.legend ?? { enabled: false },
             lang: {
               ...options.lang,
-              // The default chart title is disabled by default to prevent the default "Chart" in the screen-reader detail.
-              accessibility: { defaultChartTitle: "", chartContainerLabel: ariaLabel, ...options.lang?.accessibility },
+              accessibility: {
+                // The default chart title is disabled by default to prevent the default "Chart" in the screen-reader detail.
+                defaultChartTitle: "",
+                chartContainerLabel: aria.chartLabel,
+                svgContainerLabel: aria.chartContainerLabel,
+                // We used {names[0]} to inject the axis title, see: https://api.highcharts.com/highcharts/lang.accessibility.axis.xAxisDescriptionSingular.
+                axis: {
+                  xAxisDescriptionSingular: aria.chartXAxisLabel ? `${aria.chartXAxisLabel}, {names[0]}` : undefined,
+                  yAxisDescriptionSingular: aria.chartYAxisLabel ? `${aria.chartYAxisLabel}, {names[0]}` : undefined,
+                },
+                ...options.lang?.accessibility,
+              },
             },
             accessibility: {
-              description: ariaDescription,
+              description: aria.chartDescription,
+              screenReaderSection: {
+                // We use custom before-message to remove detail that are currently not supported with our i18n.
+                // See: https://api.highcharts.com/highcharts/accessibility.screenReaderSection.beforeChartFormat.
+                beforeChartFormat: "<div>{xAxisDescription}</div><div>{yAxisDescription}</div>",
+                // We hide after message as it is currently not supported with our i18n.
+                afterChartFormat: "",
+              },
               ...options.accessibility,
               // Highcharts keyboard navigation is disabled by default in favour of the custom Cloudscape navigation.
               keyboardNavigation: options.accessibility?.keyboardNavigation ?? { enabled: !keyboardNavigation },
