@@ -21,6 +21,9 @@ import { DebouncedCall } from "../../utils/utils";
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
 
+const HIGHLIGHT_LOST_DELAY = 50;
+const SCROLL_DELAY = 100;
+
 export interface ChartLegendProps {
   items: readonly CoreLegendItem[];
   legendTitle?: string;
@@ -43,36 +46,34 @@ export const ChartLegend = ({
   onItemHighlightExit,
 }: ChartLegendProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const segmentsRef = useRef<Record<number, HTMLElement>>([]);
+  const elementsRef = useRef<Record<number, HTMLElement>>([]);
   const highlightControl = useMemo(() => new DebouncedCall(), []);
   const scrollIntoViewControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
 
+  // Scrolling to the highlighted legend item.
   useEffect(() => {
     const highlightedIndex = items.findIndex((item) => item.highlighted);
     if (highlightedIndex === -1) {
       return;
     }
-
     scrollIntoViewControl.cancelPrevious();
     scrollIntoViewControl.call(() => {
       const container = containerRef.current;
-      const element = segmentsRef.current?.[highlightedIndex];
+      const element = elementsRef.current?.[highlightedIndex];
       if (!container || !element) {
         return;
       }
-
       const elementRect = element.getBoundingClientRect();
       const containerRect = container.getBoundingClientRect();
       const isVisible = elementRect.top >= containerRect.top && elementRect.bottom <= containerRect.bottom;
-
       if (!isVisible) {
         const elementCenter = elementRect.top + elementRect.height / 2;
         const containerCenter = containerRect.top + containerRect.height / 2;
         const top = container.scrollTop + (elementCenter - containerCenter);
         container.scrollTo({ top, behavior: "smooth" });
       }
-    }, 100);
+    }, SCROLL_DELAY);
   }, [items, scrollIntoViewControl]);
 
   const showHighlight = (itemId: string) => {
@@ -83,7 +84,7 @@ export const ChartLegend = ({
     }
   };
   const clearHighlight = () => {
-    highlightControl.call(onItemHighlightExit, 50);
+    highlightControl.call(onItemHighlightExit, HIGHLIGHT_LOST_DELAY);
   };
 
   const navigationAPI = useRef<SingleTabStopNavigationAPI>(null);
@@ -99,7 +100,7 @@ export const ChartLegend = ({
   }
 
   function focusElement(index: number) {
-    segmentsRef.current[index]?.focus();
+    elementsRef.current[index]?.focus();
   }
 
   function onKeyDown(event: React.KeyboardEvent<HTMLElement>) {
@@ -244,9 +245,9 @@ export const ChartLegend = ({
               };
               const thisTriggerRef = (elem: null | HTMLElement) => {
                 if (elem) {
-                  segmentsRef.current[index] = elem;
+                  elementsRef.current[index] = elem;
                 } else {
-                  delete segmentsRef.current[index];
+                  delete elementsRef.current[index];
                 }
               };
 
