@@ -362,7 +362,7 @@ export function PageSettingsForm({
               );
             case "legendBottomMaxHeight":
               return (
-                <FormField label="Legend Bottom Max Height">
+                <FormField label="Legend bottom max height">
                   <Input
                     type="number"
                     disabled={settings.legendPosition !== "bottom"}
