@@ -365,7 +365,6 @@ export function PageSettingsForm({
                 <FormField label="Legend bottom max height">
                   <Input
                     type="number"
-                    disabled={settings.legendPosition !== "bottom"}
                     value={settings.legendBottomMaxHeight?.toString() ?? ""}
                     onChange={({ detail }) =>
                       setSettings({ legendBottomMaxHeight: detail.value ? parseInt(detail.value) : undefined })
