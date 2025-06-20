@@ -3,8 +3,10 @@
 
 import { omit } from "lodash";
 
+import Button from "@cloudscape-design/components/button";
+
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
-import { dateFormatter } from "../common/formatters";
+import { dateFormatter, numberFormatter } from "../common/formatters";
 import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
@@ -111,6 +113,21 @@ export default function () {
         }}
         chartHeight={400}
         tooltip={{ placement: "outside" }}
+        getTooltipContent={() => ({
+          point({ item }) {
+            const value = item ? (item.point.y ?? null) : null;
+            return {
+              value: (
+                <div>
+                  {numberFormatter(value)} <Button variant="inline-icon" iconName="settings" />
+                </div>
+              ),
+            };
+          },
+          footer() {
+            return <Button>Footer action</Button>;
+          },
+        })}
       />
     </Page>
   );
