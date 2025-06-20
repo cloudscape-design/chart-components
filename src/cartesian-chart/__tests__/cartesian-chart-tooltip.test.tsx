@@ -9,7 +9,6 @@ import { vi } from "vitest";
 import "highcharts/highcharts-more";
 import { CartesianChartProps } from "../../../lib/components/cartesian-chart";
 import { HighchartsTestHelper } from "../../core/__tests__/highcharts-utils";
-import { renderCartesianChart } from "./common";
 import {
   getAllTooltipSeries,
   getTooltip,
@@ -17,7 +16,8 @@ import {
   getTooltipFooter,
   getTooltipHeader,
   getTooltipSeries,
-} from "./tooltip-utils";
+  renderCartesianChart,
+} from "./common";
 
 const hc = new HighchartsTestHelper(highcharts);
 
@@ -51,9 +51,7 @@ describe("CartesianChart: tooltip", () => {
 
     act(() => hc.leaveChartPoint(1, 1));
 
-    await waitFor(() => {
-      expect(getTooltip()).toBe(null);
-    });
+    await waitFor(() => expect(getTooltip()).toBe(null));
   });
 
   test.each([{ x: 0.01 }, { x: 1 }, { x: 999 }])(
@@ -76,9 +74,7 @@ describe("CartesianChart: tooltip", () => {
 
       act(() => hc.highlightChartPoint(0, 0));
 
-      await waitFor(() => {
-        expect(getTooltip()).not.toBe(null);
-      });
+      await waitFor(() => expect(getTooltip()).not.toBe(null));
 
       expect(getTooltipHeader().getElement().textContent).toBe(x === 0.01 ? "0.01" : x.toString());
       expect(getAllTooltipSeries()).toHaveLength(8); // Error bar is not counted as a series
@@ -145,9 +141,7 @@ describe("CartesianChart: tooltip", () => {
     const openTooltip = async () => {
       act(() => hc.highlightChartPoint(0, 0));
 
-      await waitFor(() => {
-        expect(getTooltip()).not.toBe(null);
-      });
+      await waitFor(() => expect(getTooltip()).not.toBe(null));
 
       expect(getTooltipHeader().getElement().textContent).toBe("1");
       expect(getAllTooltipSeries()).toHaveLength(2);
@@ -267,9 +261,7 @@ describe("CartesianChart: tooltip", () => {
 
       act(() => hc.highlightChartPoint(0, 0));
 
-      await waitFor(() => {
-        expect(getTooltip()).not.toBe(null);
-      });
+      await waitFor(() => expect(getTooltip()).not.toBe(null));
 
       expect(getTooltipHeader().getElement().textContent).toBe("header 1 2 Line 3 4 Threshold");
       expect(getTooltipBody().getElement().textContent).toBe("body 1 2 Line 3 4 Threshold");

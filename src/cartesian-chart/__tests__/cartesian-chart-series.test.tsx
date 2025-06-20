@@ -5,13 +5,10 @@ import highcharts from "highcharts";
 
 import "highcharts/highcharts-more";
 import { CartesianChartProps } from "../../../lib/components/cartesian-chart";
-import createWrapper from "../../../lib/components/test-utils/dom";
 import { HighchartsTestHelper } from "../../core/__tests__/highcharts-utils";
-import { renderCartesianChart } from "./common";
+import { getChart, renderCartesianChart } from "./common";
 
 const hc = new HighchartsTestHelper(highcharts);
-
-const getChart = () => createWrapper().findCartesianHighcharts()!;
 
 const allSeries: CartesianChartProps.SeriesOptions[] = [
   { type: "area", name: "Area", data: [{ x: 1, y: 1 }], color: "1" },

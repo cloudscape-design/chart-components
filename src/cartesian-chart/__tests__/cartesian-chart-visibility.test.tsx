@@ -7,11 +7,8 @@ import { vi } from "vitest";
 
 import "@cloudscape-design/components/test-utils/dom";
 import { CartesianChartProps } from "../../../lib/components/cartesian-chart";
-import createWrapper from "../../../lib/components/test-utils/dom";
 import { toggleLegendItem } from "../../core/__tests__/common";
-import { ref, renderCartesianChart, renderStatefulCartesianChart } from "./common";
-
-const getChart = () => createWrapper().findCartesianHighcharts()!;
+import { getChart, ref, renderCartesianChart, renderStatefulCartesianChart } from "./common";
 
 function getVisibilityState() {
   const legend = getChart().findLegend();

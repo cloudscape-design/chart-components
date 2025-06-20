@@ -52,3 +52,11 @@ export function renderCartesianChart({ i18nProvider, ...props }: TestProps, Comp
 export function renderStatefulCartesianChart(props: TestProps) {
   return renderCartesianChart(props, StatefulChart);
 }
+
+export const getChart = () => createWrapper().findCartesianHighcharts()!;
+export const getTooltip = () => getChart().findTooltip()!;
+export const getTooltipHeader = () => getChart().findTooltip()!.findHeader()!;
+export const getTooltipBody = () => getChart().findTooltip()!.findBody()!;
+export const getTooltipFooter = () => getChart().findTooltip()!.findFooter()!;
+export const getAllTooltipSeries = () => getChart().findTooltip()!.findSeries();
+export const getTooltipSeries = (index: number) => getAllTooltipSeries()[index];

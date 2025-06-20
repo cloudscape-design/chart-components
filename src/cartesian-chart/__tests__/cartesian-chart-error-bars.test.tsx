@@ -11,12 +11,11 @@ import * as ComponentToolkitInternal from "@cloudscape-design/component-toolkit/
 import "highcharts/highcharts-more";
 import "highcharts/modules/accessibility";
 import { HighchartsTestHelper } from "../../core/__tests__/highcharts-utils";
-import { renderCartesianChart } from "./common";
-import { getAllTooltipSeries, getTooltip, getTooltipSeries } from "./tooltip-utils";
+import { getAllTooltipSeries, getTooltip, getTooltipSeries, renderCartesianChart } from "./common";
 
 const hc = new HighchartsTestHelper(highcharts);
 
-describe("CartesianChart: Error bars", () => {
+describe("CartesianChart: errorbar series", () => {
   describe("tooltip", () => {
     test("renders error bar information in the tooltip", async () => {
       renderCartesianChart({
@@ -27,7 +26,9 @@ describe("CartesianChart: Error bars", () => {
         ],
       });
 
-      await highlightFirstPoint();
+      await highlightFirstPointAndWaitForTooltip();
+
+      expect(getAllTooltipSeries()).toHaveLength(1);
       expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Column 1");
       expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("2");
       expect(getTooltipSeries(0).findDescription().getElement().textContent).toBe("Error range1 - 3");
@@ -42,7 +43,9 @@ describe("CartesianChart: Error bars", () => {
         ],
       });
 
-      await highlightFirstPoint();
+      await highlightFirstPointAndWaitForTooltip();
+
+      expect(getAllTooltipSeries()).toHaveLength(1);
       expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Column 1");
       expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("2");
       expect(getTooltipSeries(0).findDescription().getElement().textContent).toBe("Error range1 - 3");
@@ -57,7 +60,9 @@ describe("CartesianChart: Error bars", () => {
         ],
       });
 
-      await highlightFirstPoint();
+      await highlightFirstPointAndWaitForTooltip();
+
+      expect(getAllTooltipSeries()).toHaveLength(1);
       expect(getTooltipSeries(0).findDescription().getElement().textContent).toBe("1 - 3");
     });
 
@@ -71,7 +76,9 @@ describe("CartesianChart: Error bars", () => {
         ],
       });
 
-      await highlightFirstPoint();
+      await highlightFirstPointAndWaitForTooltip();
+
+      expect(getAllTooltipSeries()).toHaveLength(1);
       expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Column 1");
       expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("2");
       expect(getTooltipSeries(0).findDescription().getElement().textContent).toBe(
@@ -95,7 +102,9 @@ describe("CartesianChart: Error bars", () => {
         },
       });
 
-      await highlightFirstPoint();
+      await highlightFirstPointAndWaitForTooltip();
+
+      expect(getAllTooltipSeries()).toHaveLength(1);
       expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Custom key Column 1");
       expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("Custom value 2");
       expect(getTooltipSeries(0).findDescription().getElement().textContent).toBe("Custom description 1 - 3");
@@ -156,7 +165,7 @@ describe("CartesianChart: Error bars", () => {
           { type: "line", id: "id", name: "line", data: [] },
           { type: "errorbar", data: [], linkedTo: "id" },
         ],
-        stacking: true,
+        stacking: "normal",
       });
       expect(warnOnce).toHaveBeenCalledWith("CartesianChart", "Error bars are not supported for stacked series.");
       expect(hc.getChart().series).toHaveLength(1);
@@ -164,11 +173,7 @@ describe("CartesianChart: Error bars", () => {
   });
 });
 
-async function highlightFirstPoint() {
+async function highlightFirstPointAndWaitForTooltip() {
   act(() => hc.highlightChartPoint(0, 0));
-
-  await waitFor(() => {
-    expect(getTooltip()).not.toBe(null);
-  });
-  expect(getAllTooltipSeries()).toHaveLength(1);
+  await waitFor(() => expect(getTooltip()).not.toBe(null));
 }
