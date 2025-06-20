@@ -13,10 +13,12 @@ export function ChartLegend({
   title,
   actions,
   position,
+  bottomMaxHeight,
   i18nStrings,
 }: {
   api: ChartAPI;
   title?: string;
+  bottomMaxHeight?: number;
   actions?: React.ReactNode;
   position: "bottom" | "side";
   i18nStrings?: BaseI18nStrings;
@@ -34,6 +36,7 @@ export function ChartLegend({
       items={legendItems}
       actions={actions}
       position={position}
+      bottomMaxHeight={bottomMaxHeight}
       onItemVisibilityChange={api.onItemVisibilityChange}
       onItemHighlightEnter={(itemId) => api.onHighlightChartItems([itemId])}
       onItemHighlightExit={api.onClearChartItemsHighlight}

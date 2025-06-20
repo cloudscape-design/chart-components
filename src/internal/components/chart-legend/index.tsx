@@ -28,6 +28,7 @@ export interface ChartLegendProps {
   items: readonly CoreLegendItem[];
   legendTitle?: string;
   ariaLabel?: string;
+  bottomMaxHeight?: number;
   actions?: React.ReactNode;
   position: "bottom" | "side";
   onItemHighlightEnter: (itemId: string) => void;
@@ -41,6 +42,7 @@ export const ChartLegend = ({
   ariaLabel,
   actions,
   position,
+  bottomMaxHeight,
   onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
@@ -186,6 +188,9 @@ export const ChartLegend = ({
         ref={containerRef}
         role="toolbar"
         aria-label={legendTitle || ariaLabel}
+        style={
+          position === "bottom" && bottomMaxHeight ? { maxHeight: `${bottomMaxHeight}px` } : { maxHeight: "inherit" }
+        }
         className={clsx(testClasses.root, styles.root, {
           [styles["root-side"]]: position === "side",
         })}

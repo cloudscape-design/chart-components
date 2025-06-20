@@ -13,7 +13,6 @@
   @include styles.default-text-style;
 
   overflow: auto;
-  max-height: inherit;
 
   &:focus {
     outline: none;

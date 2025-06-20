@@ -22,6 +22,7 @@ export default function () {
             "showLegend",
             "showLegendTitle",
             "legendPosition",
+            "legendBottomMaxHeight",
             "tooltipSize",
             "tooltipPlacement",
           ]}

@@ -88,7 +88,7 @@ export function ChartContainer({
           className={testClasses["chart-plot-wrapper"]}
         >
           {verticalAxisTitle}
-          {chart(fitHeight ? measuredChartHeight : withMinHeight(chartHeight))}
+          {chart(effectiveChartHeight)}
         </div>
       )}
 
