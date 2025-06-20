@@ -45,7 +45,36 @@ export const ChartLegend = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const segmentsRef = useRef<Record<number, HTMLElement>>([]);
   const highlightControl = useMemo(() => new DebouncedCall(), []);
+  const scrollIntoViewControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
+
+  useEffect(() => {
+    const highlightedIndex = items.findIndex((item) => item.highlighted);
+    if (highlightedIndex === -1) {
+      return;
+    }
+
+    scrollIntoViewControl.cancelPrevious();
+    scrollIntoViewControl.call(() => {
+      const container = containerRef.current;
+      const element = segmentsRef.current?.[highlightedIndex];
+      if (!container || !element) {
+        return;
+      }
+
+      const elementRect = element.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      const isVisible = elementRect.top >= containerRect.top && elementRect.bottom <= containerRect.bottom;
+
+      if (!isVisible) {
+        const elementCenter = elementRect.top + elementRect.height / 2;
+        const containerCenter = containerRect.top + containerRect.height / 2;
+        const top = container.scrollTop + (elementCenter - containerCenter);
+        container.scrollTo({ top, behavior: "smooth" });
+      }
+    }, 100);
+  }, [items, scrollIntoViewControl]);
+
   const showHighlight = (itemId: string) => {
     const item = items.find((item) => item.id === itemId);
     if (item?.visible) {
