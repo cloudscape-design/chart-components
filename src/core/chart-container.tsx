@@ -6,8 +6,8 @@ import clsx from "clsx";
 
 import { useResizeObserver } from "@cloudscape-design/component-toolkit/internal";
 
-import { DebouncedCall } from "../internal/utils/utils.js";
-import * as Styles from "./styles";
+import * as Styles from "../internal/chart-styles";
+import { DebouncedCall } from "../internal/utils/utils";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";

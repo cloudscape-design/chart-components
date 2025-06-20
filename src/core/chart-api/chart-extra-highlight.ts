@@ -3,7 +3,7 @@
 
 import type Highcharts from "highcharts";
 
-import * as Styles from "../styles";
+import * as Styles from "../../internal/chart-styles";
 import { getPointId, getSeriesId } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 

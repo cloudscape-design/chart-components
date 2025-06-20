@@ -4,8 +4,8 @@
 import type Highcharts from "highcharts";
 
 import { PointDataItemType, RangeDataItemOptions } from "../core/interfaces";
-import * as Styles from "../core/styles";
 import { createThresholdMetadata, getOptionsId } from "../core/utils";
+import * as Styles from "../internal/chart-styles";
 import { Writeable } from "../internal/utils/utils";
 import { CartesianChartProps } from "./interfaces";
 

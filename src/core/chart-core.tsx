@@ -13,6 +13,7 @@ import Spinner from "@cloudscape-design/components/spinner";
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
+import * as Styles from "../internal/chart-styles";
 import { castArray } from "../internal/utils/utils";
 import { useChartAPI } from "./chart-api";
 import { ChartContainer } from "./chart-container";
@@ -25,7 +26,6 @@ import { ChartTooltip } from "./components/core-tooltip";
 import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
 import { getFormatter } from "./formatters";
 import { CoreChartProps } from "./interfaces";
-import * as Styles from "./styles";
 import { getFormattedPointDescription } from "./utils";
 
 import styles from "./styles.css.js";

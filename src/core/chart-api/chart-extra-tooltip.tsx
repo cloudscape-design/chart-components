@@ -6,12 +6,12 @@ import type Highcharts from "highcharts";
 
 import { getIsRtl } from "@cloudscape-design/component-toolkit/internal";
 
+import * as Styles from "../../internal/chart-styles";
 import { renderMarker } from "../../internal/components/series-marker/render-marker";
 import AsyncStore from "../../internal/utils/async-store";
 import { SVGRendererPool, SVGRendererSingle } from "../../internal/utils/renderer-utils";
 import { DebouncedCall } from "../../internal/utils/utils";
 import { ChartHighlightProps, Rect } from "../interfaces";
-import * as Styles from "../styles";
 import { getGroupRect, getPointRect, isXThreshold } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 

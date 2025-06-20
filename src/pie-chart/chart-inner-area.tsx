@@ -4,7 +4,7 @@
 import { useRef } from "react";
 import type Highcharts from "highcharts";
 
-import * as Styles from "../core/styles";
+import * as Styles from "../internal/chart-styles";
 import { PieChartProps as P } from "./interfaces";
 
 import testClasses from "./test-classes/styles.css.js";

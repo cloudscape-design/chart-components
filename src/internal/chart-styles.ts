@@ -45,6 +45,7 @@ export const colors = [
 
 export const chart: Highcharts.ChartOptions = {
   spacing: [10, 10, 0, 0],
+  backgroundColor: "transparent",
 };
 
 export const axisTitleCss: Highcharts.CSSObject = {
@@ -79,8 +80,6 @@ export const chartPlotCss: Highcharts.CSSObject = {
   color: colorTextBodyDefault,
   fontSize: fontSizeBodyM,
 };
-
-export const chartPlotBackgroundColor = "transparent";
 
 export const seriesBorderColor = colorBackgroundContainerContent;
 
@@ -137,13 +136,6 @@ export const seriesDataLabelsCss: Highcharts.CSSObject = {
 export const seriesOpacityInactive = 0.2;
 
 export const noDataPosition: Highcharts.NoDataPositionOptions = { align: "left", verticalAlign: "top" };
-
-export const noDataCss: React.CSSProperties = {
-  position: "absolute",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-};
 
 export const verticalAxisTitleBlockSize = 24;
 export const verticalAxisTitleMargin = 4;

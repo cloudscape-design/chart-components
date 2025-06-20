@@ -10,9 +10,9 @@ import {
   KeyCode,
 } from "@cloudscape-design/component-toolkit/internal";
 
+import * as Styles from "../../internal/chart-styles";
 import { SVGRendererPool } from "../../internal/utils/renderer-utils";
 import { Rect } from "../interfaces";
-import * as Styles from "../styles";
 import { getGroupRect, getPointRect, isPointVisible, isXThreshold } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 

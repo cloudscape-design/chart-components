@@ -9,9 +9,9 @@ import { useControllableState } from "@cloudscape-design/component-toolkit";
 
 import { InternalCoreChart } from "../core/chart-core";
 import { CoreChartAPI, CoreChartProps, TooltipSlotProps } from "../core/interfaces";
-import * as Styles from "../core/styles";
 import { getOptionsId } from "../core/utils";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
+import * as Styles from "../internal/chart-styles";
 import ChartSeriesDetails from "../internal/components/series-details";
 import { fireNonCancelableEvent } from "../internal/events";
 import { SomeRequired, Writeable } from "../internal/utils/utils";
