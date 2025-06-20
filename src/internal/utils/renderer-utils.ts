@@ -5,7 +5,11 @@ export class SVGRendererSingle {
   public element: null | Highcharts.SVGElement = null;
 
   public hide() {
-    this.element?.attr({ class: undefined }).hide();
+    if (this.element && document.contains(this.element.element)) {
+      this.element.attr({ class: undefined }).hide();
+    } else {
+      this.destroy();
+    }
   }
 
   public destroy() {
@@ -36,55 +40,60 @@ export class SVGRendererSingle {
 }
 
 export class SVGRendererPool {
-  private circles: Highcharts.SVGElement[] = [];
-  private circleIndex = 0;
-  private rects: Highcharts.SVGElement[] = [];
-  private rectIndex = 0;
-  private paths: Highcharts.SVGElement[] = [];
-  private pathIndex = 0;
+  private elements = {
+    circle: [] as Highcharts.SVGElement[],
+    rect: [] as Highcharts.SVGElement[],
+    path: [] as Highcharts.SVGElement[],
+  };
+  private indices = { circle: 0, rect: 0, path: 0 };
 
   public hideAll() {
-    this.circles.forEach((c) => c.attr({ class: undefined }).hide());
-    this.circleIndex = 0;
-    this.rects.forEach((c) => c.attr({ class: undefined }).hide());
-    this.rectIndex = 0;
-    this.paths.forEach((c) => c.attr({ class: undefined }).hide());
-    this.pathIndex = 0;
+    for (const key of ["circle", "rect", "path"] as const) {
+      this.elements[key] = this.elements[key].filter((element) => {
+        if (!document.contains(element.element)) {
+          element.destroy();
+          return false;
+        } else {
+          element.attr({ class: undefined }).hide();
+          return true;
+        }
+      });
+      this.indices[key] = 0;
+    }
   }
 
   public destroyAll() {
-    this.circles.forEach((c) => c.destroy());
-    this.circles = [];
-    this.rects.forEach((c) => c.destroy());
-    this.rects = [];
-    this.paths.forEach((c) => c.destroy());
-    this.paths = [];
+    for (const key of ["circle", "rect", "path"] as const) {
+      this.elements[key].forEach((element) => element.destroy());
+      this.elements[key] = [];
+      this.indices[key] = 0;
+    }
   }
 
   public circle(rr: Highcharts.SVGRenderer, attr: Highcharts.SVGAttributes): Highcharts.SVGElement {
-    if (this.circles[this.circleIndex]) {
-      return this.circles[this.circleIndex++].attr(attr).show();
+    if (this.elements.circle[this.indices.circle]) {
+      return this.elements.circle[this.indices.circle++].attr(attr).show();
     }
     const newCircle = rr.circle().add();
-    this.circles.push(newCircle);
+    this.elements.circle.push(newCircle);
     return this.circle(rr, attr);
   }
 
   public rect(rr: Highcharts.SVGRenderer, attr: Highcharts.SVGAttributes): Highcharts.SVGElement {
-    if (this.rects[this.rectIndex]) {
-      return this.rects[this.rectIndex++].attr(attr).show();
+    if (this.elements.rect[this.indices.rect]) {
+      return this.elements.rect[this.indices.rect++].attr(attr).show();
     }
     const newRect = rr.rect().add();
-    this.rects.push(newRect);
+    this.elements.rect.push(newRect);
     return this.rect(rr, attr);
   }
 
   public path(rr: Highcharts.SVGRenderer, attr: Highcharts.SVGAttributes): Highcharts.SVGElement {
-    if (this.paths[this.pathIndex]) {
-      return this.paths[this.pathIndex++].attr(attr).show();
+    if (this.elements.path[this.indices.path]) {
+      return this.elements.path[this.indices.path++].attr(attr).show();
     }
     const newPath = rr.path().add();
-    this.paths.push(newPath);
+    this.elements.path.push(newPath);
     return this.path(rr, attr);
   }
 }
