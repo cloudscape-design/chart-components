@@ -35,8 +35,9 @@ export default function () {
             },
             {
               title: "Screen readers",
-              before: `The new charts have ARIA label and description, same as the old ones. Highcharts also adds extra annotations
-        describing axes, and more. The points are announced when navigated with the keyboard.`,
+              before: `The new charts have ARIA label and description, similar to the old ones. However, due to the API constraints, we had
+              to replace certain ARIA role-descriptions with ARIA labels. The points and segments are announced when navigated with the keyboard,
+              using the same technique as in the legacy charts.`,
             },
           ],
         }}

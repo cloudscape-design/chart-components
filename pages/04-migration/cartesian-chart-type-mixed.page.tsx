@@ -7,7 +7,7 @@ import * as MixedChartExample from "./examples/mixed-chart";
 export default function () {
   return (
     <Page title="Migration: Mixed charts">
-      <PageSection title="Simple pie chart">
+      <PageSection>
         <MigrationDemo
           examples={[
             {
