@@ -16,7 +16,11 @@ export default class BaseChartWrapper extends ComponentWrapper {
   }
 
   public findLegend(): null | BaseChartLegendWrapper {
-    return this.findComponent(`.${BaseChartLegendWrapper.rootSelector}`, BaseChartLegendWrapper);
+    const legend = this.findComponent(`.${BaseChartLegendWrapper.rootSelector}`, BaseChartLegendWrapper);
+    if (legend) {
+      legend.setParentChart(this);
+    }
+    return legend;
   }
 
   public findTooltip(): null | ChartTooltipWrapper {
@@ -51,6 +55,10 @@ export default class BaseChartWrapper extends ComponentWrapper {
       this.findByClassName(testClasses["axis-y-title"]) ??
       this.find(`.highcharts-axis.${testClasses["axis-y"]} > .highcharts-axis-title`)
     );
+  }
+
+  public findLegendItemTooltip(): null | ChartTooltipWrapper {
+    return this.findComponent(`.${ChartTooltipWrapper.rootSelector}`, ChartTooltipWrapper);
   }
 }
 
@@ -94,6 +102,7 @@ interface LegendItemOptions {
 
 export class BaseChartLegendWrapper extends ComponentWrapper {
   static rootSelector: string = legendTestClasses.root;
+  private parentChart: BaseChartWrapper | null = null;
 
   findTitle(): ElementWrapper | null {
     return this.findByClassName(legendTestClasses.title);
@@ -112,5 +121,13 @@ export class BaseChartLegendWrapper extends ComponentWrapper {
       selector += `.${legendTestClasses["hidden-item"]}`;
     }
     return this.findAll(selector);
+  }
+
+  setParentChart(chart: BaseChartWrapper): void {
+    this.parentChart = chart;
+  }
+
+  findItemTooltip(): ChartTooltipWrapper | null {
+    return this.parentChart ? this.parentChart.findLegendItemTooltip() : null;
   }
 }

@@ -6,7 +6,7 @@ import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-u
 import { ChartLegend as ChartLegendComponent } from "../../internal/components/chart-legend";
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
-import { BaseI18nStrings } from "../interfaces";
+import { BaseI18nStrings, GetLegendTooltipContent } from "../interfaces";
 
 export function ChartLegend({
   api,
@@ -14,19 +14,24 @@ export function ChartLegend({
   actions,
   position,
   i18nStrings,
+  getLegendTooltipContent,
 }: {
   api: ChartAPI;
   title?: string;
   actions?: React.ReactNode;
   position: "bottom" | "side";
   i18nStrings?: BaseI18nStrings;
+  getLegendTooltipContent?: GetLegendTooltipContent;
 }) {
   const i18n = useInternalI18n("[charts]");
   const ariaLabel = i18n("i18nStrings.legendAriaLabel", i18nStrings?.legendAriaLabel);
   const legendItems = useSelector(api.legendStore, (s) => s.items);
+  const tooltip = useSelector(api.tooltipStore, (s) => s);
+
   if (legendItems.length === 0) {
     return null;
   }
+
   return (
     <ChartLegendComponent
       ariaLabel={ariaLabel}
@@ -37,6 +42,8 @@ export function ChartLegend({
       onItemVisibilityChange={api.onItemVisibilityChange}
       onItemHighlightEnter={(itemId) => api.onHighlightChartItems([itemId])}
       onItemHighlightExit={api.onClearChartItemsHighlight}
+      getLegendTooltipContent={getLegendTooltipContent}
+      isChartTooltipPinned={tooltip.pinned}
     />
   );
 }

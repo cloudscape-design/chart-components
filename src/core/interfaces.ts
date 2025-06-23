@@ -296,6 +296,11 @@ export interface CoreChartProps
    */
   getTooltipContent?: GetTooltipContent;
   /**
+   * Called whenever a legend item is hovered to provide content for the legend popover.
+   * If not provided, no popover will be displayed. The function receives the legend item and should return React node to display.
+   */
+  getLegendTooltipContent?: GetLegendTooltipContent;
+  /**
    * Called whenever chart point or group is highlighted.
    */
   onHighlight?(props: ChartHighlightProps): void;
@@ -360,6 +365,12 @@ export type GetTooltipContent = (props: GetTooltipContentProps) => CoreTooltipCo
 export interface GetTooltipContentProps {
   point: null | Highcharts.Point;
   group: readonly Highcharts.Point[];
+}
+
+export type GetLegendTooltipContent = (props: GetLegendTooltipContentProps) => TooltipContent;
+
+export interface GetLegendTooltipContentProps {
+  legendItem: CoreLegendItem;
 }
 
 export interface CoreTooltipContent {

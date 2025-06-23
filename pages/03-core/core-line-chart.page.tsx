@@ -4,6 +4,7 @@
 import { omit } from "lodash";
 
 import Button from "@cloudscape-design/components/button";
+import Link from "@cloudscape-design/components/link";
 
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
 import { dateFormatter, numberFormatter } from "../common/formatters";
@@ -127,6 +128,41 @@ export default function () {
           footer() {
             return <Button>Footer action</Button>;
           },
+        })}
+        getLegendTooltipContent={({ legendItem }) => ({
+          header: (
+            <div>
+              <div style={{ display: "flex" }}>
+                {legendItem.marker}
+                {legendItem.name}
+              </div>
+            </div>
+          ),
+          body: (
+            <>
+              <table>
+                <tbody style={{ textAlign: "left" }}>
+                  <tr>
+                    <th scope="row">Period</th>
+                    <td>15 min</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Statistic</th>
+                    <td>Average</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Unit</th>
+                    <td>Count</td>
+                  </tr>
+                </tbody>
+              </table>
+            </>
+          ),
+          footer: (
+            <Link external={true} href="https://example.com/" variant="primary">
+              Learn more
+            </Link>
+          ),
         })}
       />
     </Page>

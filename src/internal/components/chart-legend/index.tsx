@@ -15,8 +15,9 @@ import {
 } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
 
-import { CoreLegendItem } from "../../../core/interfaces";
+import { CoreLegendItem, GetLegendTooltipContent } from "../../../core/interfaces";
 import { DebouncedCall } from "../../utils/utils";
+import { ChartLegendTooltip } from "../chart-legend-tooltip";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -33,6 +34,8 @@ export interface ChartLegendProps {
   onItemHighlightEnter: (itemId: string) => void;
   onItemHighlightExit: () => void;
   onItemVisibilityChange: (hiddenItems: string[]) => void;
+  getLegendTooltipContent?: GetLegendTooltipContent;
+  isChartTooltipPinned: boolean; // Hide legend tooltip if chart tooltip is pinned, to avoid multiple possible overlapping tooltips
 }
 
 export const ChartLegend = ({
@@ -44,12 +47,16 @@ export const ChartLegend = ({
   onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
+  getLegendTooltipContent,
+  isChartTooltipPinned,
 }: ChartLegendProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const elementsRef = useRef<Record<number, HTMLElement>>([]);
+  const tooltipRef = useRef<HTMLElement>(null);
   const highlightControl = useMemo(() => new DebouncedCall(), []);
   const scrollIntoViewControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [tooltipItemId, setTooltipItemId] = useState<string | null>(null);
 
   // Scrolling to the highlighted legend item.
   useEffect(() => {
@@ -93,10 +100,26 @@ export const ChartLegend = ({
     setSelectedIndex(index);
     navigationAPI.current!.updateFocusTarget();
     showHighlight(itemId);
+
+    setTooltipItemId(null);
+    // Force separate render cycle to dismiss the existing tooltip first
+    setTimeout(() => setTooltipItemId(itemId), 0);
   }
 
-  function onBlur() {
+  function onBlur(event: React.FocusEvent) {
     navigationAPI.current!.updateFocusTarget();
+
+    // Get the relatedTarget (element receiving focus)
+    const relatedTarget = event.relatedTarget;
+
+    // If tooltip exists and contains the related target, focus is moving into the tooltip
+    // so don't dismiss it
+    if (tooltipRef.current && relatedTarget && tooltipRef.current.contains(relatedTarget)) {
+      return;
+    }
+
+    // Otherwise, focus is moving elsewhere, so hide the tooltip
+    setTooltipItemId(null);
   }
 
   function focusElement(index: number) {
@@ -175,6 +198,9 @@ export const ChartLegend = ({
     onItemHighlightExit();
   };
 
+  const shouldShowTooltip = tooltipItemId && !isChartTooltipPinned;
+  const tooltipPosition = position === "bottom" ? "bottom" : "left";
+
   return (
     <SingleTabStopNavigationProvider
       ref={navigationAPI}
@@ -230,15 +256,18 @@ export const ChartLegend = ({
               const handlers = {
                 onMouseEnter: () => {
                   showHighlight(item.id);
+                  // Force separate render cycle to dismiss the existing tooltip first
+                  setTimeout(() => setTooltipItemId(item.id), 0);
                 },
                 onMouseLeave: () => {
                   clearHighlight();
+                  setTooltipItemId(null);
                 },
                 onFocus: () => {
                   onFocus(index, item.id);
                 },
-                onBlur: () => {
-                  onBlur();
+                onBlur: (event: React.FocusEvent) => {
+                  onBlur(event);
                   clearHighlight();
                 },
                 onKeyDown,
@@ -275,6 +304,17 @@ export const ChartLegend = ({
           </div>
         </div>
       </div>
+
+      {shouldShowTooltip && (
+        <ChartLegendTooltip
+          ref={tooltipRef}
+          setTooltipItemId={setTooltipItemId}
+          legendItem={items.find((item) => item.id === tooltipItemId)!}
+          getLegendTooltipContent={getLegendTooltipContent}
+          trackRef={{ current: elementsRef.current[items.findIndex((item) => item.id === tooltipItemId)] }}
+          position={tooltipPosition}
+        />
+      )}
     </SingleTabStopNavigationProvider>
   );
 };
@@ -308,7 +348,7 @@ const LegendItemTrigger = forwardRef(
       onMouseEnter?: () => void;
       onMouseLeave?: () => void;
       onFocus?: () => void;
-      onBlur?: () => void;
+      onBlur?: (event: React.FocusEvent) => void;
       onKeyDown?: (event: React.KeyboardEvent<HTMLElement>) => void;
     },
     ref: Ref<HTMLButtonElement>,
