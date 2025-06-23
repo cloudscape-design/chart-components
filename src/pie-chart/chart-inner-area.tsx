@@ -5,7 +5,7 @@ import { useRef } from "react";
 import type Highcharts from "highcharts";
 
 import * as Styles from "../internal/chart-styles";
-import { PieChartProps as P } from "./interfaces";
+import { PieChartProps } from "./interfaces";
 
 import testClasses from "./test-classes/styles.css.js";
 
@@ -14,7 +14,7 @@ interface InnerAreaProps {
   innerAreaDescription?: string;
 }
 
-export function useInnerArea(series: readonly P.SeriesOptions[], innerAreaProps: InnerAreaProps) {
+export function useInnerArea(series: readonly PieChartProps.SeriesOptions[], innerAreaProps: InnerAreaProps) {
   const hasDonutSeries = series.some((s) => s.type === "donut");
   const innerAreaRef = useRef(new ChartInnerDescriptions());
   const onChartRender: Highcharts.ChartRenderCallbackFunction = function () {

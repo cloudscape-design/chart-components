@@ -8,7 +8,7 @@ import useBaseComponent from "../internal/base-component/use-base-component";
 import { applyDisplayName } from "../internal/utils/apply-display-name";
 import { SomeRequired } from "../internal/utils/utils";
 import { InternalPieChart } from "./chart-pie-internal";
-import { PieChartProps as P, PieChartProps } from "./interfaces";
+import { PieChartProps } from "./interfaces";
 
 export type { PieChartProps };
 
@@ -40,7 +40,7 @@ applyDisplayName(PieChart, "PieChart");
 
 export default PieChart;
 
-function transformSeries(s: null | P.SeriesOptions): readonly P.SeriesOptions[] {
+function transformSeries(s: null | PieChartProps.SeriesOptions): readonly PieChartProps.SeriesOptions[] {
   if (!s) {
     return [];
   }
@@ -51,11 +51,13 @@ function transformSeries(s: null | P.SeriesOptions): readonly P.SeriesOptions[] 
   }
 }
 
-function transformData(data: readonly P.PieSegmentOptions[]): readonly P.PieSegmentOptions[] {
+function transformData(data: readonly PieChartProps.PieSegmentOptions[]): readonly PieChartProps.PieSegmentOptions[] {
   return data.map((d) => ({ id: d.id, name: d.name, color: d.color, y: d.y }));
 }
 
-function transformTooltip(tooltip?: P.TooltipOptions): SomeRequired<P.TooltipOptions, "enabled" | "size"> {
+function transformTooltip(
+  tooltip?: PieChartProps.TooltipOptions,
+): SomeRequired<PieChartProps.TooltipOptions, "enabled" | "size"> {
   return {
     ...tooltip,
     enabled: tooltip?.enabled ?? true,
@@ -63,6 +65,6 @@ function transformTooltip(tooltip?: P.TooltipOptions): SomeRequired<P.TooltipOpt
   };
 }
 
-function transformLegend(legend?: P.LegendOptions): SomeRequired<P.LegendOptions, "enabled"> {
+function transformLegend(legend?: PieChartProps.LegendOptions): SomeRequired<PieChartProps.LegendOptions, "enabled"> {
   return { ...legend, enabled: legend?.enabled ?? true };
 }
