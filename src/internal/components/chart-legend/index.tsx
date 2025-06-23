@@ -308,11 +308,22 @@ export const ChartLegend = ({
       {shouldShowTooltip && (
         <ChartLegendTooltip
           ref={tooltipRef}
-          setTooltipItemId={setTooltipItemId}
           legendItem={items.find((item) => item.id === tooltipItemId)!}
           getLegendTooltipContent={getLegendTooltipContent}
           trackRef={{ current: elementsRef.current[items.findIndex((item) => item.id === tooltipItemId)] }}
           position={tooltipPosition}
+          onDismiss={() => {
+            setTooltipItemId(null);
+          }}
+          onMouseEnter={() => {
+            setTooltipItemId(tooltipItemId);
+          }}
+          onMouseLeave={() => {
+            setTooltipItemId(null);
+          }}
+          onBlur={() => {
+            setTooltipItemId(null);
+          }}
         />
       )}
     </SingleTabStopNavigationProvider>

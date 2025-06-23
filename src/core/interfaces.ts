@@ -296,8 +296,8 @@ export interface CoreChartProps
    */
   getTooltipContent?: GetTooltipContent;
   /**
-   * Called whenever a legend item is hovered to provide content for the legend popover.
-   * If not provided, no popover will be displayed. The function receives the legend item and should return React node to display.
+   * Called whenever a legend item is hovered to provide content for legend tooltip's header, body, and (optional) footer.
+   * If not provided, no tooltip will be displayed.
    */
   getLegendTooltipContent?: GetLegendTooltipContent;
   /**

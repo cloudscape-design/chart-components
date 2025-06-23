@@ -11,12 +11,15 @@ interface ChartLegendTooltipProps {
   legendItem: CoreLegendItem;
   getLegendTooltipContent?: GetLegendTooltipContent;
   trackRef: React.RefObject<HTMLElement>;
-  setTooltipItemId: (itemId: string | null) => void;
   position: "bottom" | "left";
+  onDismiss: () => void;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+  onBlur: () => void;
 }
 
 export const ChartLegendTooltip = forwardRef<HTMLElement, ChartLegendTooltipProps>(
-  ({ legendItem, getLegendTooltipContent, trackRef, setTooltipItemId, position }, ref) => {
+  ({ legendItem, getLegendTooltipContent, trackRef, position, onDismiss, onMouseEnter, onMouseLeave, onBlur }, ref) => {
     if (!getLegendTooltipContent) {
       return null;
     }
@@ -32,18 +35,10 @@ export const ChartLegendTooltip = forwardRef<HTMLElement, ChartLegendTooltipProp
         dismissButton={false}
         position={position}
         title={content.header}
-        onDismiss={() => {
-          setTooltipItemId(null);
-        }}
-        onMouseEnter={() => {
-          setTooltipItemId(legendItem.id);
-        }}
-        onMouseLeave={() => {
-          setTooltipItemId(null);
-        }}
-        onBlur={() => {
-          setTooltipItemId(null);
-        }}
+        onDismiss={onDismiss}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        onBlur={onBlur}
         footer={
           content.footer && (
             <>
