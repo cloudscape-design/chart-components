@@ -100,6 +100,15 @@ $side-legend-min-inline-size: max(20%, 150px);
   gap: cs.$space-static-xxs;
 }
 
+.chart-container-fit-height {
+  position: absolute;
+  inset: 0;
+}
+
+.chart-container-min-width {
+  overflow-x: auto;
+}
+
 .chart-plot-and-legend-wrapper {
   display: flex;
 }

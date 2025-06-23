@@ -59,11 +59,15 @@ export function ChartContainer({
 
   const { refs, measures } = useContainerQueries();
   const measuredChartHeight = withMinHeight(measures.chart - measures.header - measures.footer);
-  const overflowX = chartMinWidth !== undefined ? "auto" : undefined;
   const effectiveChartHeight = fitHeight ? measuredChartHeight : withMinHeight(chartHeight);
-
   return (
-    <div ref={refs.chart} style={fitHeight ? { position: "absolute", inset: 0, overflowX } : { overflowX }}>
+    <div
+      ref={refs.chart}
+      className={clsx({
+        [styles["chart-container-fit-height"]]: fitHeight,
+        [styles["chart-container-min-width"]]: chartMinWidth !== undefined,
+      })}
+    >
       <div ref={refs.header}>
         {header}
         {filter}
