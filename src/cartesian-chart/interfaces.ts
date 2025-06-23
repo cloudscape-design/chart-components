@@ -29,7 +29,7 @@ export interface CartesianChartProps extends CoreTypes.BaseChartOptions, CoreTyp
    * * [area](https://api.highcharts.com/highcharts/series.area).
    * * [areaspline](https://api.highcharts.com/highcharts/series.areaspline).
    * * [column](https://api.highcharts.com/highcharts/series.column).
-   * * [errorbar](https://api.highcharts.com/highcharts/series.errorbar).
+   * * [errorbar](https://api.highcharts.com/highcharts/series.errorbar) - requires "highcharts/highcharts-more" module.
    * * [line](https://api.highcharts.com/highcharts/series.line).
    * * [scatter](https://api.highcharts.com/highcharts/series.scatter).
    * * [spline](https://api.highcharts.com/highcharts/series.spline).
@@ -106,6 +106,12 @@ export interface CartesianChartProps extends CoreTypes.BaseChartOptions, CoreTyp
    * A callback, triggered when series visibility changes as result of user interacting with the legend or filter.
    */
   onChangeVisibleSeries?: NonCancelableEventHandler<{ visibleSeries: string[] }>;
+
+  /**
+   * An object that contains all of the localized strings required by the component.
+   * @i18n
+   */
+  i18nStrings?: CoreTypes.CartesianI18nStrings;
 }
 
 export namespace CartesianChartProps {

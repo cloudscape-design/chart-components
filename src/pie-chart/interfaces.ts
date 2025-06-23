@@ -63,6 +63,12 @@ export interface PieChartProps extends CoreTypes.BaseChartOptions {
    * Description of the inner chart area. Only supported for donut series.
    */
   innerAreaDescription?: string;
+
+  /**
+   * An object that contains all of the localized strings required by the component.
+   * @i18n
+   */
+  i18nStrings?: CoreTypes.PieI18nStrings;
 }
 
 export namespace PieChartProps {

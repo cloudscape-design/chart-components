@@ -237,8 +237,9 @@ export class ChartAPI {
         this.chartExtraNavigation.announceElement(getGroupAccessibleDescription(group), false);
       },
       onFocusPoint: (point: Highcharts.Point) => {
+        const labels = this.context.settings.labels;
         this.highlightActions(point, true);
-        this.chartExtraNavigation.announceElement(getPointAccessibleDescription(point), false);
+        this.chartExtraNavigation.announceElement(getPointAccessibleDescription(point, labels), false);
       },
       onBlur: () => this.clearChartHighlight(),
       onActivateGroup: () => {
@@ -251,8 +252,9 @@ export class ChartAPI {
       onActivatePoint: () => {
         const current = this.chartExtraTooltip.get();
         if (current.point) {
+          const labels = this.context.settings.labels;
           this.chartExtraTooltip.pinTooltip();
-          this.chartExtraNavigation.announceElement(getPointAccessibleDescription(current.point), true);
+          this.chartExtraNavigation.announceElement(getPointAccessibleDescription(current.point, labels), true);
         }
       },
     };

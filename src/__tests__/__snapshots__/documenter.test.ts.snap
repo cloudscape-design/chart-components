@@ -126,7 +126,7 @@ Supported Highcharts versions:
       "description": "An object that contains all of the localized strings required by the component.",
       "i18nTag": true,
       "inlineType": {
-        "name": "BaseI18nStrings",
+        "name": "CartesianI18nStrings",
         "properties": [
           {
             "name": "chartAccessibleDescription",
@@ -188,7 +188,7 @@ Supported Highcharts versions:
       },
       "name": "i18nStrings",
       "optional": true,
-      "type": "BaseI18nStrings",
+      "type": "CartesianI18nStrings",
     },
     {
       "defaultValue": "false",
@@ -276,7 +276,7 @@ Supported types:
 * [area](https://api.highcharts.com/highcharts/series.area).
 * [areaspline](https://api.highcharts.com/highcharts/series.areaspline).
 * [column](https://api.highcharts.com/highcharts/series.column).
-* [errorbar](https://api.highcharts.com/highcharts/series.errorbar).
+* [errorbar](https://api.highcharts.com/highcharts/series.errorbar) - requires "highcharts/highcharts-more" module.
 * [line](https://api.highcharts.com/highcharts/series.line).
 * [scatter](https://api.highcharts.com/highcharts/series.scatter).
 * [spline](https://api.highcharts.com/highcharts/series.spline).
@@ -637,7 +637,7 @@ Supported Highcharts versions:
       "description": "An object that contains all of the localized strings required by the component.",
       "i18nTag": true,
       "inlineType": {
-        "name": "BaseI18nStrings",
+        "name": "PieI18nStrings",
         "properties": [
           {
             "name": "chartAccessibleDescription",
@@ -670,6 +670,11 @@ Supported Highcharts versions:
             "type": "string",
           },
           {
+            "name": "segmentAccessibleDescription",
+            "optional": true,
+            "type": "string",
+          },
+          {
             "name": "seriesFilterLabel",
             "optional": true,
             "type": "string",
@@ -684,22 +689,12 @@ Supported Highcharts versions:
             "optional": true,
             "type": "string",
           },
-          {
-            "name": "xAxisAccessibleDescription",
-            "optional": true,
-            "type": "string",
-          },
-          {
-            "name": "yAxisAccessibleDescription",
-            "optional": true,
-            "type": "string",
-          },
         ],
         "type": "object",
       },
       "name": "i18nStrings",
       "optional": true,
-      "type": "BaseI18nStrings",
+      "type": "PieI18nStrings",
     },
     {
       "description": "Description of the inner chart area. Only supported for donut series.",

@@ -8,7 +8,6 @@ import HighchartsReact from "highcharts-react-official";
 
 import { getIsRtl, useMergeRefs, useUniqueId } from "@cloudscape-design/component-toolkit/internal";
 import { isDevelopment } from "@cloudscape-design/component-toolkit/internal";
-import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-use/i18n";
 import Spinner from "@cloudscape-design/components/spinner";
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
@@ -25,8 +24,9 @@ import { ChartFooter, ChartHeader } from "./components/core-slots";
 import { ChartTooltip } from "./components/core-tooltip";
 import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
 import { getFormatter } from "./formatters";
+import { useChartI18n } from "./i18n-utils";
 import { CoreChartProps } from "./interfaces";
-import { getFormattedPointDescription } from "./utils";
+import { getPointAccessibleDescription } from "./utils";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -65,18 +65,18 @@ export function InternalCoreChart({
   ...rest
 }: CoreChartProps & InternalBaseComponentProps) {
   const highcharts = rest.highcharts as null | typeof Highcharts;
-  const i18n = useInternalI18n("[charts]");
-
-  const settings = {
+  const labels = useChartI18n({ ariaLabel, ariaDescription, i18nStrings });
+  const context = {
     chartId: useUniqueId(),
     noDataEnabled: !!noDataOptions,
     legendEnabled: legendOptions?.enabled !== false,
     tooltipEnabled: tooltipOptions?.enabled !== false,
     keyboardNavigationEnabled: keyboardNavigation,
+    labels,
   };
   const handlers = { onHighlight, onClearHighlight, onVisibleItemsChange };
   const state = { visibleItems };
-  const api = useChartAPI(settings, handlers, state);
+  const api = useChartAPI(context, handlers, state);
 
   const rootClassName = clsx(testClasses.root, styles.root, fitHeight && styles["root-fit-height"], className);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -109,15 +109,6 @@ export function InternalCoreChart({
     );
   }
 
-  const aria = {
-    chartLabel: ariaLabel,
-    chartDescription: ariaDescription,
-    // We reuse existing translations as passing for now, but it is possible to introduce new i18n strings that
-    // are parametrized with axes names, and more.
-    chartContainerLabel: i18n("i18nStrings.chartAriaRoleDescription", i18nStrings?.chartAccessibleDescription),
-    chartXAxisLabel: i18n("i18nStrings.xAxisAriaRoleDescription", i18nStrings?.xAxisAccessibleDescription),
-    chartYAxisLabel: i18n("i18nStrings.yAxisAriaRoleDescription", i18nStrings?.yAxisAccessibleDescription),
-  };
   const apiOptions = api.getOptions();
   const inverted = !!options.chart?.inverted;
   const isRtl = () => getIsRtl(rootRef?.current);
@@ -182,18 +173,22 @@ export function InternalCoreChart({
               accessibility: {
                 // The default chart title is disabled by default to prevent the default "Chart" in the screen-reader detail.
                 defaultChartTitle: "",
-                chartContainerLabel: aria.chartLabel,
-                svgContainerLabel: aria.chartContainerLabel,
+                chartContainerLabel: labels.chartLabel,
+                svgContainerLabel: labels.chartContainerLabel,
                 // We used {names[0]} to inject the axis title, see: https://api.highcharts.com/highcharts/lang.accessibility.axis.xAxisDescriptionSingular.
                 axis: {
-                  xAxisDescriptionSingular: aria.chartXAxisLabel ? `${aria.chartXAxisLabel}, {names[0]}` : undefined,
-                  yAxisDescriptionSingular: aria.chartYAxisLabel ? `${aria.chartYAxisLabel}, {names[0]}` : undefined,
+                  xAxisDescriptionSingular: labels.chartXAxisLabel
+                    ? `${labels.chartXAxisLabel}, {names[0]}`
+                    : undefined,
+                  yAxisDescriptionSingular: labels.chartYAxisLabel
+                    ? `${labels.chartYAxisLabel}, {names[0]}`
+                    : undefined,
                 },
                 ...options.lang?.accessibility,
               },
             },
             accessibility: {
-              description: aria.chartDescription,
+              description: labels.chartDescription,
               screenReaderSection: {
                 // We use custom before-message to remove detail that are currently not supported with our i18n.
                 // See: https://api.highcharts.com/highcharts/accessibility.screenReaderSection.beforeChartFormat.
@@ -206,7 +201,7 @@ export function InternalCoreChart({
               keyboardNavigation: options.accessibility?.keyboardNavigation ?? { enabled: !keyboardNavigation },
               point: {
                 // Point description formatter is overridden to respect custom axes value formatters.
-                descriptionFormatter: getFormattedPointDescription,
+                descriptionFormatter: (point) => getPointAccessibleDescription(point, labels),
                 ...options.accessibility?.point,
               },
             },
@@ -312,7 +307,7 @@ export function InternalCoreChart({
         }}
         navigator={navigator}
         legend={
-          settings.legendEnabled ? (
+          context.legendEnabled ? (
             <ChartLegend {...legendOptions} position={legendPosition} api={api} i18nStrings={i18nStrings} />
           ) : null
         }
@@ -333,7 +328,7 @@ export function InternalCoreChart({
         }
       />
 
-      {settings.tooltipEnabled && (
+      {context.tooltipEnabled && (
         <ChartTooltip
           {...tooltipOptions}
           i18nStrings={i18nStrings}
@@ -342,7 +337,7 @@ export function InternalCoreChart({
         />
       )}
 
-      {settings.noDataEnabled && <ChartNoData {...noDataOptions} i18nStrings={i18nStrings} api={api} />}
+      {context.noDataEnabled && <ChartNoData {...noDataOptions} i18nStrings={i18nStrings} api={api} />}
     </div>
   );
 }

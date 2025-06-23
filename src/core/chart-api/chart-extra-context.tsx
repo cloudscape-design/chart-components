@@ -3,6 +3,7 @@
 
 import type Highcharts from "highcharts";
 
+import { ChartLabels } from "../i18n-utils";
 import { ChartHighlightProps, CoreLegendItem, Rect } from "../interfaces";
 import { getGroupRect, isSeriesStacked } from "../utils";
 
@@ -27,6 +28,7 @@ export namespace ChartExtraContext {
     legendEnabled: boolean;
     tooltipEnabled: boolean;
     keyboardNavigationEnabled: boolean;
+    labels: ChartLabels;
   }
 
   export interface Handlers {
@@ -57,6 +59,7 @@ export function createChartContext(): ChartExtraContext {
       legendEnabled: false,
       tooltipEnabled: false,
       keyboardNavigationEnabled: false,
+      labels: {},
     },
     handlers: {},
     state: {},

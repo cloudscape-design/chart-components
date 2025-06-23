@@ -82,7 +82,7 @@ export interface BaseChartOptions {
    * An object that contains all of the localized strings required by the component.
    * @i18n
    */
-  i18nStrings?: BaseI18nStrings;
+  i18nStrings?: CoreI18nStrings;
 }
 
 export interface BaseLegendOptions {
@@ -119,11 +119,21 @@ export interface BaseI18nStrings {
   detailPopoverDismissAriaLabel?: string;
   /** Generalized accessible description of the chart, e.g. "line chart" */
   chartAccessibleDescription?: string;
+}
+
+export interface CartesianI18nStrings extends BaseI18nStrings {
   /** Generalized accessible description of the x axis, e.g. "x axis" */
   xAxisAccessibleDescription?: string;
   /** Generalized accessible description of the y axis, e.g. "y axis" */
   yAxisAccessibleDescription?: string;
 }
+
+export interface PieI18nStrings extends BaseI18nStrings {
+  /** Generalized accessible description of the pie chart segment */
+  segmentAccessibleDescription?: string;
+}
+
+export type CoreI18nStrings = CartesianI18nStrings & PieI18nStrings;
 
 export interface BaseFilterOptions {
   seriesFilter?: boolean;

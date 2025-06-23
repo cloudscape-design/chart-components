@@ -62,11 +62,7 @@ function optionsContaining({
 }) {
   return objectContainingDeep({
     options: {
-      xAxis: [
-        {
-          title: { text: xTitle },
-        },
-      ],
+      xAxis: [{ title: { text: xTitle } }],
       yAxis: [
         {
           title: { text: yTitle },

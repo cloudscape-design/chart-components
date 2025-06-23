@@ -87,7 +87,7 @@ describe("CoreChart: navigation, pie charts", () => {
     focusApplication();
     keyDown(keyCode);
 
-    expect(describeFocusedElement()).toBe("button:P1, 10. Pie series.[true,false]");
+    expect(describeFocusedElement()).toBe("button:P1, 10. Pie series[true,false]");
     expect(wrapper.findTooltip()!.getElement().textContent).toBe("P1Pie series10");
   });
 
@@ -103,7 +103,7 @@ describe("CoreChart: navigation, pie charts", () => {
     focusApplication();
     keyDown(keyCode);
 
-    expect(describeFocusedElement()).toBe("button:P3, 60. Pie series.[true,false]");
+    expect(describeFocusedElement()).toBe("button:P3, 60. Pie series[true,false]");
     expect(wrapper.findTooltip()!.getElement().textContent).toBe("P3Pie series60");
   });
 
@@ -117,22 +117,22 @@ describe("CoreChart: navigation, pie charts", () => {
     focusApplication();
     keyDown(KeyCode.home);
 
-    expect(describeFocusedElement()).toBe("button:P1, 10. Pie series.[true,false]");
+    expect(describeFocusedElement()).toBe("button:P1, 10. Pie series[true,false]");
     expect(wrapper.findTooltip()!.getElement().textContent).toBe("P1Pie series10");
 
     keyDown(keyCode);
 
-    expect(describeFocusedElement()).toBe("button:P2, 30. Pie series.[true,false]");
+    expect(describeFocusedElement()).toBe("button:P2, 30. Pie series[true,false]");
     expect(wrapper.findTooltip()!.getElement().textContent).toBe("P2Pie series30");
 
     keyDown(keyCode);
 
-    expect(describeFocusedElement()).toBe("button:P3, 60. Pie series.[true,false]");
+    expect(describeFocusedElement()).toBe("button:P3, 60. Pie series[true,false]");
     expect(wrapper.findTooltip()!.getElement().textContent).toBe("P3Pie series60");
 
     keyDown(keyCode);
 
-    expect(describeFocusedElement()).toBe("button:P1, 10. Pie series.[true,false]");
+    expect(describeFocusedElement()).toBe("button:P1, 10. Pie series[true,false]");
     expect(wrapper.findTooltip()!.getElement().textContent).toBe("P1Pie series10");
   });
 
@@ -146,22 +146,22 @@ describe("CoreChart: navigation, pie charts", () => {
     focusApplication();
     keyDown(KeyCode.end);
 
-    expect(describeFocusedElement()).toBe("button:P3, 60. Pie series.[true,false]");
+    expect(describeFocusedElement()).toBe("button:P3, 60. Pie series[true,false]");
     expect(wrapper.findTooltip()!.getElement().textContent).toBe("P3Pie series60");
 
     keyDown(keyCode);
 
-    expect(describeFocusedElement()).toBe("button:P2, 30. Pie series.[true,false]");
+    expect(describeFocusedElement()).toBe("button:P2, 30. Pie series[true,false]");
     expect(wrapper.findTooltip()!.getElement().textContent).toBe("P2Pie series30");
 
     keyDown(keyCode);
 
-    expect(describeFocusedElement()).toBe("button:P1, 10. Pie series.[true,false]");
+    expect(describeFocusedElement()).toBe("button:P1, 10. Pie series[true,false]");
     expect(wrapper.findTooltip()!.getElement().textContent).toBe("P1Pie series10");
 
     keyDown(keyCode);
 
-    expect(describeFocusedElement()).toBe("button:P3, 60. Pie series.[true,false]");
+    expect(describeFocusedElement()).toBe("button:P3, 60. Pie series[true,false]");
     expect(wrapper.findTooltip()!.getElement().textContent).toBe("P3Pie series60");
   });
 
@@ -171,7 +171,7 @@ describe("CoreChart: navigation, pie charts", () => {
     focusApplication();
     keyDown(KeyCode.enter);
 
-    expect(describeFocusedElement()).toBe("button:P1, 10. Pie series.[true,false]");
+    expect(describeFocusedElement()).toBe("button:P1, 10. Pie series[true,false]");
     expect(wrapper.findTooltip()!.getElement().textContent).toBe("P1Pie series10");
 
     keyDown(KeyCode.escape);
@@ -186,7 +186,7 @@ describe("CoreChart: navigation, pie charts", () => {
     focusApplication();
     keyDown(KeyCode.enter);
 
-    expect(describeFocusedElement()).toBe("button:P1, 10. Pie series.[true,false]");
+    expect(describeFocusedElement()).toBe("button:P1, 10. Pie series[true,false]");
     expect(wrapper.findTooltip()!.getElement().textContent).toBe("P1Pie series10");
     expect(wrapper.findTooltip()!.findDismissButton()).toBe(null);
 
