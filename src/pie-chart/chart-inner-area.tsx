@@ -31,30 +31,34 @@ class ChartInnerDescriptions {
   private descriptionElement: null | Highcharts.SVGElement = null;
 
   public create({ innerAreaTitle, innerAreaDescription }: InnerAreaProps, chart: Highcharts.Chart) {
-    const textX = chart.plotLeft + chart.series[0].center[0];
-    const textY = chart.plotTop + chart.series[0].center[1];
+    const centerX = chart.plotLeft + chart.series[0].center[0];
+    const centerY = chart.plotTop + chart.series[0].center[1];
 
     if (innerAreaTitle) {
       this.titleElement = chart.renderer
-        .text(innerAreaTitle, textX, textY)
+        .text(innerAreaTitle, -9999, -9999)
         .attr({ zIndex: 5, class: testClasses["inner-value"] })
         .css(Styles.innerAreaTitleCss)
         .add();
-      this.titleElement.attr({
-        x: textX - this.titleElement.getBBox().width / 2,
-        y: innerAreaDescription ? textY : textY + 10,
-      });
     }
     if (innerAreaDescription) {
       this.descriptionElement = chart.renderer
-        .text(innerAreaDescription, textX, textY)
+        .text(innerAreaDescription, -9999, -9999)
         .attr({ zIndex: 5, class: testClasses["inner-description"] })
         .css(Styles.innerAreaDescriptionCss)
         .add();
-      this.descriptionElement.attr({
-        x: textX - this.descriptionElement.getBBox().width / 2,
-        y: textY + 20,
-      });
+    }
+
+    const titleBox = this.titleElement?.getBBox();
+    const descriptionBox = this.descriptionElement?.getBBox();
+
+    if (titleBox && descriptionBox) {
+      this.titleElement!.attr({ x: centerX - titleBox.width / 2, y: centerY - titleBox.height / 4 });
+      this.descriptionElement!.attr({ x: centerX - descriptionBox.width / 2, y: centerY + descriptionBox.height / 2 });
+    } else if (titleBox) {
+      this.titleElement!.attr({ x: centerX - titleBox.width / 2, y: centerY + titleBox.height / 4 });
+    } else if (descriptionBox) {
+      this.descriptionElement!.attr({ x: centerX - descriptionBox.width / 2, y: centerY + descriptionBox.height / 4 });
     }
   }
 
