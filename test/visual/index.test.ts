@@ -11,13 +11,14 @@ import { setupTest } from "../utils";
 const pagesMap = import.meta.glob("../../pages/**/*.page.tsx", { as: "raw" });
 const pages = Object.keys(pagesMap)
   .map((page) => page.replace(/\.page\.tsx$/, ""))
-  .map((page) => "/#/" + path.relative("../../pages/", page));
+  .map((page) => "/#/" + path.relative("../../pages/", page) + "?screenshotMode=true");
 
 test.each(pages)("matches snapshot for %s", (route) =>
   setupTest(route, ScreenshotPageObject, async (page) => {
     const hasScreenshotArea = await page.isExisting(".screenshot-area");
 
     if (hasScreenshotArea) {
+      await page.waitForJsTimers(100);
       const pngString = await page.fullPageScreenshot();
       expect(pngString).toMatchImageSnapshot();
     }
