@@ -28,7 +28,6 @@ export default function () {
       settings={
         <PageSettingsForm
           selectedSettings={[
-            "containerHeight",
             "emptySeries",
             "seriesLoading",
             "seriesError",
