@@ -176,7 +176,7 @@ export const thresholdPlotLine: Partial<Highcharts.XAxisPlotLinesOptions | Highc
 export const chatPlotBaseline: Partial<Highcharts.XAxisPlotLinesOptions> = {
   color: colorChartsLineTick,
   width: 2,
-  zIndex: 3,
+  zIndex: 2,
 };
 
 export const innerAreaTitleCss: Highcharts.CSSObject = {
