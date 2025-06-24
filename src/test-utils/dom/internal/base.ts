@@ -56,10 +56,6 @@ export default class BaseChartWrapper extends ComponentWrapper {
       this.find(`.highcharts-axis.${testClasses["axis-y"]} > .highcharts-axis-title`)
     );
   }
-
-  public findLegendItemTooltip(): null | ChartTooltipWrapper {
-    return this.findComponent(`.${ChartTooltipWrapper.rootSelector}`, ChartTooltipWrapper);
-  }
 }
 
 export class BaseChartFilterWrapper extends ComponentWrapper {
@@ -127,7 +123,7 @@ export class BaseChartLegendWrapper extends ComponentWrapper {
     this.parentChart = chart;
   }
 
-  findItemTooltip(): ChartTooltipWrapper | null {
-    return this.parentChart ? this.parentChart.findLegendItemTooltip() : null;
+  public findItemTooltip(): null | ChartTooltipWrapper {
+    return this.findComponent(`.${ChartTooltipWrapper.rootSelector}`, ChartTooltipWrapper);
   }
 }

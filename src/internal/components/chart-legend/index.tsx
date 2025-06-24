@@ -224,6 +224,7 @@ export const ChartLegend = ({
   tooltipTrack.current = tooltipItemId ? elementsByIdRef.current[tooltipItemId] : null;
   const tooltipContent = tooltipTarget && getTooltipContent({ legendItem: tooltipTarget });
   const tooltipPosition = position === "bottom" ? "bottom" : "left";
+
   return (
     <SingleTabStopNavigationProvider
       ref={navigationAPI}
@@ -325,32 +326,31 @@ export const ChartLegend = ({
             })}
           </div>
         </div>
+        {tooltipContent && (
+          <InternalChartTooltip
+            trackRef={tooltipTrack}
+            trackKey={tooltipTarget.id}
+            container={null}
+            dismissButton={false}
+            onDismiss={() => {}}
+            position={tooltipPosition}
+            title={tooltipContent.header}
+            onMouseEnter={() => showTooltip(tooltipTarget.id)}
+            onMouseLeave={() => hideTooltip()}
+            onBlur={() => hideTooltip()}
+            footer={
+              tooltipContent.footer && (
+                <>
+                  <hr aria-hidden={true} />
+                  {tooltipContent.footer}
+                </>
+              )
+            }
+          >
+            {tooltipContent.body}
+          </InternalChartTooltip>
+        )}
       </div>
-
-      {tooltipContent && (
-        <InternalChartTooltip
-          trackRef={tooltipTrack}
-          trackKey={tooltipTarget.id}
-          container={null}
-          dismissButton={false}
-          onDismiss={() => {}}
-          position={tooltipPosition}
-          title={tooltipContent.header}
-          onMouseEnter={() => showTooltip(tooltipTarget.id)}
-          onMouseLeave={() => hideTooltip()}
-          onBlur={() => hideTooltip()}
-          footer={
-            tooltipContent.footer && (
-              <>
-                <hr aria-hidden={true} />
-                {tooltipContent.footer}
-              </>
-            )
-          }
-        >
-          {tooltipContent.body}
-        </InternalChartTooltip>
-      )}
     </SingleTabStopNavigationProvider>
   );
 };

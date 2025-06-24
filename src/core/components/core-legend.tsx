@@ -26,7 +26,8 @@ export function ChartLegend({
   const i18n = useInternalI18n("[charts]");
   const ariaLabel = i18n("i18nStrings.legendAriaLabel", i18nStrings?.legendAriaLabel);
   const legendItems = useSelector(api.legendStore, (s) => s.items);
-  const tooltip = useSelector(api.tooltipStore, (s) => s);
+  const isChartTooltipPinned = useSelector(api.tooltipStore, (s) => s.pinned);
+
   if (legendItems.length === 0) {
     return null;
   }
@@ -41,7 +42,7 @@ export function ChartLegend({
       onItemHighlightEnter={(itemId) => api.onHighlightChartItems([itemId])}
       onItemHighlightExit={api.onClearChartItemsHighlight}
       getTooltipContent={(props) => {
-        if (tooltip.pinned) {
+        if (isChartTooltipPinned) {
           return null;
         }
         return getLegendTooltipContent?.(props) ?? null;
