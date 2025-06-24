@@ -37,8 +37,10 @@ export class ChartExtraNodata extends AsyncStore<ReactiveNodataState> {
     }
   };
 
-  private getContainerStyle() {
-    return { left: `${this.chart.plotLeft}px`, bottom: `${this.chart.chartHeight - this.chart.plotHeight}px` };
+  private getContainerStyle(): React.CSSProperties {
+    const inlineOffset = this.chart.chartWidth - this.chart.plotWidth;
+    const blockOffset = this.chart.chartHeight - this.chart.plotHeight;
+    return { insetInlineStart: `${inlineOffset}px`, insetBlockEnd: `${blockOffset}px` };
   }
 
   private get chart() {
