@@ -50,12 +50,11 @@ export const ChartLegend = ({
   const highlightControl = useMemo(() => new DebouncedCall(), []);
   const scrollIntoViewControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
-  const [isMouseInContainer, setIsMouseInContainer] = useState<boolean>(false);
+  const isMouseInContainer = useRef<boolean>(false);
 
   // Scrolling to the highlighted legend item.
   useEffect(() => {
-    scrollIntoViewControl.cancelPrevious();
-    if (isMouseInContainer) {
+    if (isMouseInContainer.current) {
       return;
     }
     const highlightedIndex = items.findIndex((item) => item.highlighted);
@@ -78,7 +77,7 @@ export const ChartLegend = ({
         container.scrollTo({ top, behavior: "smooth" });
       }
     }, SCROLL_DELAY);
-  }, [items, scrollIntoViewControl, isMouseInContainer]);
+  }, [items, scrollIntoViewControl]);
 
   const showHighlight = (itemId: string) => {
     const item = items.find((item) => item.id === itemId);
@@ -193,8 +192,8 @@ export const ChartLegend = ({
         className={clsx(testClasses.root, styles.root, {
           [styles["root-side"]]: position === "side",
         })}
-        onMouseEnter={() => setIsMouseInContainer(true)}
-        onMouseLeave={() => setIsMouseInContainer(false)}
+        onMouseEnter={() => (isMouseInContainer.current = true)}
+        onMouseLeave={() => (isMouseInContainer.current = false)}
       >
         {legendTitle && (
           <Box fontWeight="bold" className={testClasses.title}>
