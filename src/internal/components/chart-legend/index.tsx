@@ -54,14 +54,14 @@ export const ChartLegend = ({
 
   // Scrolling to the highlighted legend item.
   useEffect(() => {
-    if (isMouseInContainer.current) {
-      return;
-    }
     const highlightedIndex = items.findIndex((item) => item.highlighted);
     if (highlightedIndex === -1) {
       return;
     }
     scrollIntoViewControl.call(() => {
+      if (isMouseInContainer.current) {
+        return;
+      }
       const container = containerRef.current;
       const element = elementsRef.current?.[highlightedIndex];
       if (!container || !element) {
