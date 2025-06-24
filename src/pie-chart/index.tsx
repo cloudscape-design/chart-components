@@ -40,14 +40,16 @@ applyDisplayName(PieChart, "PieChart");
 
 export default PieChart;
 
-function transformSeries(s: null | PieChartProps.SeriesOptions): readonly PieChartProps.SeriesOptions[] {
-  if (!s) {
+function transformSeries(series: null | PieChartProps.SeriesOptions): readonly PieChartProps.SeriesOptions[] {
+  if (!series) {
     return [];
   }
-  switch (s.type) {
+  switch (series.type) {
     case "pie":
     case "donut":
-      return [{ type: s.type, id: s.id, name: s.name, color: s.color, data: transformData(s.data) }];
+      return [
+        { type: series.type, id: series.id, name: series.name, color: series.color, data: transformData(series.data) },
+      ];
   }
 }
 

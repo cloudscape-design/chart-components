@@ -97,6 +97,8 @@ export const InternalPieChart = forwardRef(
       formatter() {
         const { segmentTitle, segmentDescription } = props;
         const segmentProps = {
+          // For pie series, we expect y, total, and name to be always present, and y to be non-null for any visible segment.
+          // However, these are optional in Highcharts types, so we need to do a fallback.
           totalValue: this.total ?? 0,
           segmentValue: this.y ?? 0,
           segmentId: this.options.id,

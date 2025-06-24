@@ -142,6 +142,8 @@ function getTooltipContentCartesian(
     setExpandedSeries,
   }: GetTooltipContentProps & { renderers?: CoreTooltipContent } & ExpandedSeriesStateProps,
 ): RenderedTooltipContent {
+  // The cartesian tooltip might or might not have a selected point, but it always has a non-empty group.
+  // By design, every point of the group has the same x value.
   const x = group[0].x;
   const chart = group[0].series.chart;
   const getSeriesMarker = (series: Highcharts.Series) =>
@@ -161,7 +163,7 @@ function getTooltipContentCartesian(
       description:
         customContent?.description ??
         (item.errorRanges.length ? (
-          <div>
+          <>
             {item.errorRanges.map((errorBarPoint, index) => (
               <div key={index} className={styles["error-range"]}>
                 <span>{errorBarPoint.series.userOptions.name ? errorBarPoint.series.userOptions.name : ""}</span>
@@ -170,10 +172,11 @@ function getTooltipContentCartesian(
                 </span>
               </div>
             ))}
-          </div>
+          </>
         ) : null),
     };
   });
+  // We only support cartesian charts with a single x axis.
   const titleFormatter = getFormatter(chart.xAxis[0]);
   const slotRenderProps: TooltipSlotProps = { x, items: matchedItems };
   return {
@@ -214,6 +217,8 @@ function getTooltipContentPie(
       </div>
     ),
     body: renderers.body?.(tooltipDetails) ?? (
+      // We expect all pie chart segments to have defined y values. We use y=0 as fallback
+      // because the property is optional in Highcharts types.
       <ChartSeriesDetails details={[{ key: point.series.name, value: point.y ?? 0 }]} />
     ),
     footer: renderers.footer?.(tooltipDetails),

@@ -144,6 +144,8 @@ class HighlightCursorCartesian {
       return;
     }
     if (showLine) {
+      // The cursor line is rendered orthogonally to the x axis (when the chart is inverted, the line is rendered horizontally).
+      // The line is 1px thick, and is rendered through the center of the target's rect.
       const lineAttrs = chart.inverted
         ? {
             x: chart.plotLeft,
