@@ -113,4 +113,8 @@ export class BaseChartLegendWrapper extends ComponentWrapper {
     }
     return this.findAll(selector);
   }
+
+  public findItemTooltip(): null | ChartTooltipWrapper {
+    return this.findComponent(`.${ChartTooltipWrapper.rootSelector}`, ChartTooltipWrapper);
+  }
 }

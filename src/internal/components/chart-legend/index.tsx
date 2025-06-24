@@ -14,13 +14,15 @@ import {
   useSingleTabStopNavigation,
 } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
+import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
 
-import { CoreLegendItem } from "../../../core/interfaces";
+import { CoreLegendItem, GetLegendTooltipContentProps, TooltipContent } from "../../../core/interfaces";
 import { DebouncedCall } from "../../utils/utils";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
 
+const TOOLTIP_BLUR_DELAY = 50;
 const HIGHLIGHT_LOST_DELAY = 50;
 const SCROLL_DELAY = 100;
 
@@ -33,6 +35,7 @@ export interface ChartLegendProps {
   onItemHighlightEnter: (itemId: string) => void;
   onItemHighlightExit: () => void;
   onItemVisibilityChange: (hiddenItems: string[]) => void;
+  getTooltipContent: (props: GetLegendTooltipContentProps) => null | TooltipContent;
 }
 
 export const ChartLegend = ({
@@ -44,12 +47,46 @@ export const ChartLegend = ({
   onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
+  getTooltipContent,
 }: ChartLegendProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const elementsRef = useRef<Record<number, HTMLElement>>([]);
+  const elementsByIndexRef = useRef<Record<number, HTMLElement>>([]);
+  const elementsByIdRef = useRef<Record<string, HTMLElement>>({});
+  const tooltipRef = useRef<HTMLElement>(null);
   const highlightControl = useMemo(() => new DebouncedCall(), []);
   const scrollIntoViewControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [tooltipItemId, setTooltipItemId] = useState<string | null>(null);
+  const { showTooltip, hideTooltip } = useMemo(() => {
+    const control = new DebouncedCall();
+    return {
+      showTooltip(itemId: string) {
+        control.call(() => setTooltipItemId(itemId));
+      },
+      hideTooltip(lock = false) {
+        control.call(() => setTooltipItemId(null), TOOLTIP_BLUR_DELAY);
+        if (lock) {
+          control.lock(TOOLTIP_BLUR_DELAY);
+        }
+      },
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!tooltipItemId) {
+      return;
+    }
+    const onDocumentKeyDown = (event: KeyboardEvent) => {
+      if (event.keyCode === KeyCode.escape) {
+        hideTooltip(true);
+        elementsByIdRef.current[tooltipItemId]?.focus();
+      }
+    };
+    document.addEventListener("keydown", onDocumentKeyDown, true);
+    return () => {
+      document.removeEventListener("keydown", onDocumentKeyDown, true);
+    };
+  }, [items, tooltipItemId, hideTooltip]);
   const isMouseInContainer = useRef<boolean>(false);
 
   // Scrolling to the highlighted legend item.
@@ -63,7 +100,7 @@ export const ChartLegend = ({
         return;
       }
       const container = containerRef.current;
-      const element = elementsRef.current?.[highlightedIndex];
+      const element = elementsByIndexRef.current?.[highlightedIndex];
       if (!container || !element) {
         return;
       }
@@ -96,14 +133,21 @@ export const ChartLegend = ({
     setSelectedIndex(index);
     navigationAPI.current!.updateFocusTarget();
     showHighlight(itemId);
+    showTooltip(itemId);
   }
 
-  function onBlur() {
+  function onBlur(event: React.FocusEvent) {
     navigationAPI.current!.updateFocusTarget();
+
+    // Hide tooltip and clear highlight unless focus moves inside tooltip;
+    if (tooltipRef.current && event.relatedTarget && !tooltipRef.current.contains(event.relatedTarget)) {
+      clearHighlight();
+      hideTooltip();
+    }
   }
 
   function focusElement(index: number) {
-    elementsRef.current[index]?.focus();
+    elementsByIndexRef.current[index]?.focus();
   }
 
   function onKeyDown(event: React.KeyboardEvent<HTMLElement>) {
@@ -178,6 +222,12 @@ export const ChartLegend = ({
     onItemHighlightExit();
   };
 
+  const tooltipTrack = useRef<null | HTMLElement>(null);
+  const tooltipTarget = items.find((item) => item.id === tooltipItemId) ?? null;
+  tooltipTrack.current = tooltipItemId ? elementsByIdRef.current[tooltipItemId] : null;
+  const tooltipContent = tooltipTarget && getTooltipContent({ legendItem: tooltipTarget });
+  const tooltipPosition = position === "bottom" ? "bottom" : "left";
+
   return (
     <SingleTabStopNavigationProvider
       ref={navigationAPI}
@@ -235,27 +285,29 @@ export const ChartLegend = ({
               const handlers = {
                 onMouseEnter: () => {
                   showHighlight(item.id);
+                  showTooltip(item.id);
                 },
                 onMouseLeave: () => {
                   clearHighlight();
+                  hideTooltip();
                 },
                 onFocus: () => {
                   onFocus(index, item.id);
                 },
-                onBlur: () => {
-                  onBlur();
-                  clearHighlight();
+                onBlur: (event: React.FocusEvent) => {
+                  onBlur(event);
                 },
                 onKeyDown,
               };
               const thisTriggerRef = (elem: null | HTMLElement) => {
                 if (elem) {
-                  elementsRef.current[index] = elem;
+                  elementsByIndexRef.current[index] = elem;
+                  elementsByIdRef.current[item.id] = elem;
                 } else {
-                  delete elementsRef.current[index];
+                  delete elementsByIndexRef.current[index];
+                  delete elementsByIdRef.current[index];
                 }
               };
-
               return (
                 <LegendItemTrigger
                   key={index}
@@ -279,6 +331,30 @@ export const ChartLegend = ({
             })}
           </div>
         </div>
+        {tooltipContent && (
+          <InternalChartTooltip
+            trackRef={tooltipTrack}
+            trackKey={tooltipTarget.id}
+            container={null}
+            dismissButton={false}
+            onDismiss={() => {}}
+            position={tooltipPosition}
+            title={tooltipContent.header}
+            onMouseEnter={() => showTooltip(tooltipTarget.id)}
+            onMouseLeave={() => hideTooltip()}
+            onBlur={() => hideTooltip()}
+            footer={
+              tooltipContent.footer && (
+                <>
+                  <hr aria-hidden={true} />
+                  {tooltipContent.footer}
+                </>
+              )
+            }
+          >
+            {tooltipContent.body}
+          </InternalChartTooltip>
+        )}
       </div>
     </SingleTabStopNavigationProvider>
   );
@@ -313,7 +389,7 @@ const LegendItemTrigger = forwardRef(
       onMouseEnter?: () => void;
       onMouseLeave?: () => void;
       onFocus?: () => void;
-      onBlur?: () => void;
+      onBlur?: (event: React.FocusEvent) => void;
       onKeyDown?: (event: React.KeyboardEvent<HTMLElement>) => void;
     },
     ref: Ref<HTMLButtonElement>,

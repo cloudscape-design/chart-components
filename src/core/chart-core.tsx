@@ -309,7 +309,13 @@ export function InternalCoreChart({
         navigator={navigator}
         legend={
           context.legendEnabled ? (
-            <ChartLegend {...legendOptions} position={legendPosition} api={api} i18nStrings={i18nStrings} />
+            <ChartLegend
+              {...legendOptions}
+              position={legendPosition}
+              api={api}
+              i18nStrings={i18nStrings}
+              getLegendTooltipContent={rest.getLegendTooltipContent}
+            />
           ) : null
         }
         verticalAxisTitle={

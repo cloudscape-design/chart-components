@@ -296,6 +296,11 @@ export interface CoreChartProps
    */
   getTooltipContent?: GetTooltipContent;
   /**
+   * Called whenever a legend item is hovered to provide content for legend tooltip's header, body, and (optional) footer.
+   * If not provided, no tooltip will be displayed.
+   */
+  getLegendTooltipContent?: GetLegendTooltipContent;
+  /**
    * Called whenever chart point or group is highlighted.
    */
   onHighlight?(props: ChartHighlightProps): void;
@@ -361,6 +366,12 @@ export type GetTooltipContent = (props: GetTooltipContentProps) => CoreTooltipCo
 export interface GetTooltipContentProps {
   point: null | Highcharts.Point;
   group: readonly Highcharts.Point[];
+}
+
+export type GetLegendTooltipContent = (props: GetLegendTooltipContentProps) => TooltipContent;
+
+export interface GetLegendTooltipContentProps {
+  legendItem: CoreLegendItem;
 }
 
 export interface CoreTooltipContent {
