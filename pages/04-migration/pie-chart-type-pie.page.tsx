@@ -7,7 +7,7 @@ import * as PieChartExample from "./examples/pie-chart";
 export default function () {
   return (
     <Page title="Migration: Pie charts">
-      <PageSection title="Simple pie chart">
+      <PageSection>
         <MigrationDemo
           examples={[
             {

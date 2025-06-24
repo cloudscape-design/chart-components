@@ -3,6 +3,7 @@
  SPDX-License-Identifier: Apache-2.0
 */
 @use "../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
+@use "@cloudscape-design/component-toolkit/internal/focus-visible" as focus-visible;
 
 $base-size: 10px;
 $font-family-base: cs.$font-family-base;
@@ -106,4 +107,10 @@ $font-weight-normal: 400;
   // `word-break: break-word` is deprecated.
   // But its replacement, `overflow-wrap: anywhere`, is not supported in Safari 14.0 and 15.0.
   word-break: break-word;
+}
+
+.focus-outline {
+  @include focus-visible.when-visible-unfocused {
+    stroke: cs.$color-border-item-focused;
+  }
 }

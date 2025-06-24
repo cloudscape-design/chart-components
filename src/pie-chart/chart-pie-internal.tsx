@@ -16,18 +16,18 @@ import ChartSeriesDetails from "../internal/components/series-details";
 import { fireNonCancelableEvent } from "../internal/events";
 import { SomeRequired, Writeable } from "../internal/utils/utils";
 import { useInnerArea } from "./chart-inner-area";
-import { PieChartProps as P } from "./interfaces";
+import { PieChartProps } from "./interfaces";
 
 import testClasses from "./test-classes/styles.css.js";
 
-interface InternalPieChartProps extends InternalBaseComponentProps, Omit<P, "series"> {
-  series: readonly P.SeriesOptions[];
-  tooltip: SomeRequired<P.TooltipOptions, "enabled" | "size">;
-  legend: SomeRequired<P.LegendOptions, "enabled">;
+interface InternalPieChartProps extends InternalBaseComponentProps, Omit<PieChartProps, "series"> {
+  series: readonly PieChartProps.SeriesOptions[];
+  tooltip: SomeRequired<PieChartProps.TooltipOptions, "enabled" | "size">;
+  legend: SomeRequired<PieChartProps.LegendOptions, "enabled">;
 }
 
 export const InternalPieChart = forwardRef(
-  ({ series: originalSeries, tooltip, ...props }: InternalPieChartProps, ref: React.Ref<P.Ref>) => {
+  ({ series: originalSeries, tooltip, ...props }: InternalPieChartProps, ref: React.Ref<PieChartProps.Ref>) => {
     const apiRef = useRef<null | CoreChartAPI>(null);
 
     // When visibleSegments and onChangeVisibleSegments are provided - the segments visibility can be controlled from the outside.
@@ -45,7 +45,7 @@ export const InternalPieChart = forwardRef(
 
     // Converting donut series to Highcharts pie series.
     const series: Highcharts.SeriesOptionsType[] = originalSeries.map((s) => {
-      const data = s.data as Writeable<P.PieSegmentOptions[]>;
+      const data = s.data as Writeable<PieChartProps.PieSegmentOptions[]>;
       const style = s.type === "pie" ? Styles.pieSeries : Styles.donutSeries;
       return { ...s, type: "pie", data, ...style };
     });
@@ -62,7 +62,7 @@ export const InternalPieChart = forwardRef(
     // We convert pie tooltip options to the core chart's getTooltipContent callback,
     // ensuring no internal types are exposed to the consumer-defined render functions.
     const getTooltipContent: CoreChartProps["getTooltipContent"] = () => {
-      const transformSlotProps = (props: TooltipSlotProps): P.TooltipDetailsRenderProps => {
+      const transformSlotProps = (props: TooltipSlotProps): PieChartProps.TooltipDetailsRenderProps => {
         const point = props.items[0].point;
         return {
           totalValue: point.total ?? 0,
@@ -97,6 +97,8 @@ export const InternalPieChart = forwardRef(
       formatter() {
         const { segmentTitle, segmentDescription } = props;
         const segmentProps = {
+          // For pie series, we expect y, total, and name to be always present, and y to be non-null for any visible segment.
+          // However, these are optional in Highcharts types, so we need to do a fallback.
           totalValue: this.total ?? 0,
           segmentValue: this.y ?? 0,
           segmentId: this.options.id,

@@ -141,6 +141,7 @@ export default function () {
           ]}
         />
       }
+      screenshotArea={false}
     >
       <Charts />
     </Page>

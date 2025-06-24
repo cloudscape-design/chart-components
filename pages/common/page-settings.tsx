@@ -34,6 +34,7 @@ export interface PageSettings {
   showLegend: boolean;
   showLegendTitle: boolean;
   showLegendActions: boolean;
+  legendBottomMaxHeight?: number;
   legendPosition: "bottom" | "side";
   showCustomHeader: boolean;
   showHeaderFilter: boolean;
@@ -146,6 +147,7 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
     title: settings.showLegendTitle ? "Legend title" : undefined,
     actions: settings.showLegendActions ? <Button variant="icon" iconName="search" /> : undefined,
     position: settings.legendPosition,
+    bottomMaxHeight: settings.legendBottomMaxHeight,
   };
   return {
     settings,
@@ -357,6 +359,18 @@ export function PageSettingsForm({
                 >
                   Show legend actions
                 </Checkbox>
+              );
+            case "legendBottomMaxHeight":
+              return (
+                <FormField label="Legend bottom max height">
+                  <Input
+                    type="number"
+                    value={settings.legendBottomMaxHeight?.toString() ?? ""}
+                    onChange={({ detail }) =>
+                      setSettings({ legendBottomMaxHeight: detail.value ? parseInt(detail.value) : undefined })
+                    }
+                  />
+                </FormField>
               );
             case "legendPosition":
               return (

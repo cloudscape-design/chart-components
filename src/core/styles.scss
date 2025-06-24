@@ -4,7 +4,6 @@
 */
 
 @use "../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
-@use "@cloudscape-design/component-toolkit/internal/focus-visible" as focus-visible;
 
 $side-legend-max-inline-size: 30%;
 $side-legend-min-inline-size: max(20%, 150px);
@@ -80,12 +79,6 @@ $side-legend-min-inline-size: max(20%, 150px);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-}
-
-.focus-outline {
-  @include focus-visible.when-visible-unfocused {
-    stroke: cs.$color-border-item-focused;
-  }
 }
 
 .error-range {

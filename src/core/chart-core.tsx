@@ -90,6 +90,7 @@ export function InternalCoreChart({
     chartMinWidth,
     legendPosition,
     verticalAxisTitlePlacement,
+    legendBottomMaxHeight: legendOptions?.bottomMaxHeight,
   };
 
   // Render fallback using the same root and container props as for the chart to ensure consistent

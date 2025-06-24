@@ -13,7 +13,7 @@ export default function () {
         docs={{
           functional: {
             bullets: [
-              `The legacy charts feature an optional series filter at the top-left. The new charts allow series filtering by clicking on the legend items instead.
+              `The legacy charts feature an optional series filter at the top-left. The new charts alow allow series filtering by clicking on the legend items.
               The new charts additionally support in-legend actions slot, that can be used for in-context filter.`,
             ],
           },

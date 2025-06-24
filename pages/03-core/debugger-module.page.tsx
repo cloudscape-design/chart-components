@@ -24,6 +24,7 @@ export default function () {
     <Page
       title="Debugger module demo"
       subtitle="The page demonstrates how debugger module (active in development mode only) helps finding issues."
+      screenshotArea={false}
     >
       <ExampleMixedChart />
     </Page>
