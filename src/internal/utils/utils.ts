@@ -33,14 +33,28 @@ export function isEqualArrays<T>(a: readonly T[], b: readonly T[], eq: (a: T, b:
 }
 
 export class DebouncedCall {
+  private locked = false;
+  private lockTimeoutRef = setTimeout(() => {}, 0);
   private timeoutRef = setTimeout(() => {}, 0);
 
-  public call(callback: () => void, delay: number) {
-    this.cancelPrevious();
-    this.timeoutRef = setTimeout(callback, delay);
+  public call(callback: () => void, delay = -1) {
+    if (!this.locked) {
+      this.cancelPrevious();
+      if (delay === -1) {
+        callback();
+      } else {
+        this.timeoutRef = setTimeout(callback, delay);
+      }
+    }
   }
 
   public cancelPrevious() {
     clearTimeout(this.timeoutRef);
+  }
+
+  public lock(timeout: number) {
+    clearTimeout(this.lockTimeoutRef);
+    this.locked = true;
+    this.lockTimeoutRef = setTimeout(() => (this.locked = false), timeout);
   }
 }

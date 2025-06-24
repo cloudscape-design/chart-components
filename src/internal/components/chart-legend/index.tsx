@@ -14,14 +14,15 @@ import {
   useSingleTabStopNavigation,
 } from "@cloudscape-design/component-toolkit/internal";
 import Box from "@cloudscape-design/components/box";
+import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
 
-import { CoreLegendItem, GetLegendTooltipContent } from "../../../core/interfaces";
+import { CoreLegendItem, GetLegendTooltipContentProps, TooltipContent } from "../../../core/interfaces";
 import { DebouncedCall } from "../../utils/utils";
-import { ChartLegendTooltip } from "../chart-legend-tooltip";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
 
+const TOOLTIP_BLUR_DELAY = 50;
 const HIGHLIGHT_LOST_DELAY = 50;
 const SCROLL_DELAY = 100;
 
@@ -34,8 +35,7 @@ export interface ChartLegendProps {
   onItemHighlightEnter: (itemId: string) => void;
   onItemHighlightExit: () => void;
   onItemVisibilityChange: (hiddenItems: string[]) => void;
-  getLegendTooltipContent?: GetLegendTooltipContent;
-  isChartTooltipPinned: boolean; // Hide legend tooltip if chart tooltip is pinned, to avoid multiple possible overlapping tooltips
+  getTooltipContent: (props: GetLegendTooltipContentProps) => null | TooltipContent;
 }
 
 export const ChartLegend = ({
@@ -47,16 +47,46 @@ export const ChartLegend = ({
   onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
-  getLegendTooltipContent,
-  isChartTooltipPinned,
+  getTooltipContent,
 }: ChartLegendProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const elementsRef = useRef<Record<number, HTMLElement>>([]);
+  const elementsByIndexRef = useRef<Record<number, HTMLElement>>([]);
+  const elementsByIdRef = useRef<Record<string, HTMLElement>>({});
   const tooltipRef = useRef<HTMLElement>(null);
   const highlightControl = useMemo(() => new DebouncedCall(), []);
   const scrollIntoViewControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [tooltipItemId, setTooltipItemId] = useState<string | null>(null);
+  const { showTooltip, hideTooltip } = useMemo(() => {
+    const control = new DebouncedCall();
+    return {
+      showTooltip(itemId: string) {
+        control.call(() => setTooltipItemId(itemId));
+      },
+      hideTooltip(lock = false) {
+        control.call(() => setTooltipItemId(null), TOOLTIP_BLUR_DELAY);
+        if (lock) {
+          control.lock(TOOLTIP_BLUR_DELAY);
+        }
+      },
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!tooltipItemId) {
+      return;
+    }
+    const onDocumentKeyDown = (event: KeyboardEvent) => {
+      if (event.keyCode === KeyCode.escape) {
+        hideTooltip(true);
+        elementsByIdRef.current[tooltipItemId]?.focus();
+      }
+    };
+    document.addEventListener("keydown", onDocumentKeyDown, true);
+    return () => {
+      document.removeEventListener("keydown", onDocumentKeyDown, true);
+    };
+  }, [items, tooltipItemId, hideTooltip]);
 
   // Scrolling to the highlighted legend item.
   useEffect(() => {
@@ -67,7 +97,7 @@ export const ChartLegend = ({
     scrollIntoViewControl.cancelPrevious();
     scrollIntoViewControl.call(() => {
       const container = containerRef.current;
-      const element = elementsRef.current?.[highlightedIndex];
+      const element = elementsByIndexRef.current?.[highlightedIndex];
       if (!container || !element) {
         return;
       }
@@ -100,30 +130,21 @@ export const ChartLegend = ({
     setSelectedIndex(index);
     navigationAPI.current!.updateFocusTarget();
     showHighlight(itemId);
-
-    setTooltipItemId(null);
-    // Force separate render cycle to dismiss the existing tooltip first
-    setTimeout(() => setTooltipItemId(itemId), 0);
+    showTooltip(itemId);
   }
 
   function onBlur(event: React.FocusEvent) {
     navigationAPI.current!.updateFocusTarget();
 
-    // Get the relatedTarget (element receiving focus)
-    const relatedTarget = event.relatedTarget;
-
-    // If tooltip exists and contains the related target, focus is moving into the tooltip
-    // so don't dismiss it
-    if (tooltipRef.current && relatedTarget && tooltipRef.current.contains(relatedTarget)) {
-      return;
+    // Hide tooltip and clear highlight unless focus moves inside tooltip;
+    if (tooltipRef.current && event.relatedTarget && !tooltipRef.current.contains(event.relatedTarget)) {
+      clearHighlight();
+      hideTooltip();
     }
-
-    // Otherwise, focus is moving elsewhere, so hide the tooltip
-    setTooltipItemId(null);
   }
 
   function focusElement(index: number) {
-    elementsRef.current[index]?.focus();
+    elementsByIndexRef.current[index]?.focus();
   }
 
   function onKeyDown(event: React.KeyboardEvent<HTMLElement>) {
@@ -198,9 +219,11 @@ export const ChartLegend = ({
     onItemHighlightExit();
   };
 
-  const shouldShowTooltip = tooltipItemId && !isChartTooltipPinned;
+  const tooltipTrack = useRef<null | HTMLElement>(null);
+  const tooltipTarget = items.find((item) => item.id === tooltipItemId) ?? null;
+  tooltipTrack.current = tooltipItemId ? elementsByIdRef.current[tooltipItemId] : null;
+  const tooltipContent = tooltipTarget && getTooltipContent({ legendItem: tooltipTarget });
   const tooltipPosition = position === "bottom" ? "bottom" : "left";
-
   return (
     <SingleTabStopNavigationProvider
       ref={navigationAPI}
@@ -256,30 +279,29 @@ export const ChartLegend = ({
               const handlers = {
                 onMouseEnter: () => {
                   showHighlight(item.id);
-                  // Force separate render cycle to dismiss the existing tooltip first
-                  setTimeout(() => setTooltipItemId(item.id), 0);
+                  showTooltip(item.id);
                 },
                 onMouseLeave: () => {
                   clearHighlight();
-                  setTooltipItemId(null);
+                  hideTooltip();
                 },
                 onFocus: () => {
                   onFocus(index, item.id);
                 },
                 onBlur: (event: React.FocusEvent) => {
                   onBlur(event);
-                  clearHighlight();
                 },
                 onKeyDown,
               };
               const thisTriggerRef = (elem: null | HTMLElement) => {
                 if (elem) {
-                  elementsRef.current[index] = elem;
+                  elementsByIndexRef.current[index] = elem;
+                  elementsByIdRef.current[item.id] = elem;
                 } else {
-                  delete elementsRef.current[index];
+                  delete elementsByIndexRef.current[index];
+                  delete elementsByIdRef.current[index];
                 }
               };
-
               return (
                 <LegendItemTrigger
                   key={index}
@@ -305,26 +327,29 @@ export const ChartLegend = ({
         </div>
       </div>
 
-      {shouldShowTooltip && (
-        <ChartLegendTooltip
-          ref={tooltipRef}
-          legendItem={items.find((item) => item.id === tooltipItemId)!}
-          getLegendTooltipContent={getLegendTooltipContent}
-          trackRef={{ current: elementsRef.current[items.findIndex((item) => item.id === tooltipItemId)] }}
+      {tooltipContent && (
+        <InternalChartTooltip
+          trackRef={tooltipTrack}
+          trackKey={tooltipTarget.id}
+          container={null}
+          dismissButton={false}
+          onDismiss={() => {}}
           position={tooltipPosition}
-          onDismiss={() => {
-            setTooltipItemId(null);
-          }}
-          onMouseEnter={() => {
-            setTooltipItemId(tooltipItemId);
-          }}
-          onMouseLeave={() => {
-            setTooltipItemId(null);
-          }}
-          onBlur={() => {
-            setTooltipItemId(null);
-          }}
-        />
+          title={tooltipContent.header}
+          onMouseEnter={() => showTooltip(tooltipTarget.id)}
+          onMouseLeave={() => hideTooltip()}
+          onBlur={() => hideTooltip()}
+          footer={
+            tooltipContent.footer && (
+              <>
+                <hr aria-hidden={true} />
+                {tooltipContent.footer}
+              </>
+            )
+          }
+        >
+          {tooltipContent.body}
+        </InternalChartTooltip>
       )}
     </SingleTabStopNavigationProvider>
   );
