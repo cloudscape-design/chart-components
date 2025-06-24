@@ -98,7 +98,6 @@ interface LegendItemOptions {
 
 export class BaseChartLegendWrapper extends ComponentWrapper {
   static rootSelector: string = legendTestClasses.root;
-  private parentChart: BaseChartWrapper | null = null;
 
   findTitle(): ElementWrapper | null {
     return this.findByClassName(legendTestClasses.title);
@@ -117,10 +116,6 @@ export class BaseChartLegendWrapper extends ComponentWrapper {
       selector += `.${legendTestClasses["hidden-item"]}`;
     }
     return this.findAll(selector);
-  }
-
-  setParentChart(chart: BaseChartWrapper): void {
-    this.parentChart = chart;
   }
 
   public findItemTooltip(): null | ChartTooltipWrapper {
