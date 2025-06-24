@@ -27,11 +27,9 @@ export function ChartLegend({
   const ariaLabel = i18n("i18nStrings.legendAriaLabel", i18nStrings?.legendAriaLabel);
   const legendItems = useSelector(api.legendStore, (s) => s.items);
   const tooltip = useSelector(api.tooltipStore, (s) => s);
-
   if (legendItems.length === 0) {
     return null;
   }
-
   return (
     <ChartLegendComponent
       ariaLabel={ariaLabel}
@@ -42,8 +40,12 @@ export function ChartLegend({
       onItemVisibilityChange={api.onItemVisibilityChange}
       onItemHighlightEnter={(itemId) => api.onHighlightChartItems([itemId])}
       onItemHighlightExit={api.onClearChartItemsHighlight}
-      getLegendTooltipContent={getLegendTooltipContent}
-      isChartTooltipPinned={tooltip.pinned}
+      getTooltipContent={(props) => {
+        if (tooltip.pinned) {
+          return null;
+        }
+        return getLegendTooltipContent?.(props) ?? null;
+      }}
     />
   );
 }
