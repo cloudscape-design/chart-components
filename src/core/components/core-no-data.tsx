@@ -3,7 +3,6 @@
 
 import clsx from "clsx";
 
-import { Portal } from "@cloudscape-design/component-toolkit/internal";
 import Button from "@cloudscape-design/components/button";
 import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-use/i18n";
 import LiveRegion from "@cloudscape-design/components/live-region";
@@ -32,7 +31,7 @@ export function ChartNoData({
   i18nStrings?: BaseI18nStrings;
 }) {
   const state = useSelector(api.nodataStore, (s) => s);
-  if (!state.container) {
+  if (!state.visible) {
     return null;
   }
   let content = null;
@@ -55,15 +54,13 @@ export function ChartNoData({
   }
   return (
     content && (
-      <Portal container={state.container}>
+      <div className={styles["no-data-container"]} style={state.style}>
         <div className={styles["no-data-wrapper"]}>
           <div className={clsx(testClasses["no-data"], styles["no-data"])}>
-            <div className={styles["no-data-content"]}>
-              <LiveRegion>{content}</LiveRegion>
-            </div>
+            <LiveRegion>{content}</LiveRegion>
           </div>
         </div>
-      </Portal>
+      </div>
     )
   );
 }

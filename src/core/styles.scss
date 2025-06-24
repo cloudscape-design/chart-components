@@ -29,7 +29,10 @@ $side-legend-min-inline-size: max(20%, 150px);
 }
 
 .no-data {
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-block: cs.$space-static-xs;
+  padding-inline: cs.$space-static-m;
   background-color: cs.$color-background-container-content;
   border-radius: 8px;
   border: 1px solid cs.$color-border-divider-default;
@@ -45,13 +48,6 @@ $side-legend-min-inline-size: max(20%, 150px);
 
 .no-data-empty {
   color: cs.$color-text-empty;
-}
-
-.no-data-content {
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding-block: cs.$space-static-xs;
-  padding-inline: cs.$space-static-m;
 }
 
 .chart-filters {

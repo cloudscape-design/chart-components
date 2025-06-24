@@ -16,7 +16,7 @@ export function ChartApplication({
   keyboardNavigation: boolean;
   ariaLabel?: string;
 }) {
-  const hasData = useSelector(api.nodataStore, (s) => !s.container);
+  const hasData = useSelector(api.nodataStore, (s) => !s.visible);
   return keyboardNavigation && hasData ? (
     // Do not remove the empty outer div. It is used to contain the application element to perform
     // focus juggling, necessary to trigger a screen-reader announcement.
