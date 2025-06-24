@@ -16,11 +16,7 @@ export default class BaseChartWrapper extends ComponentWrapper {
   }
 
   public findLegend(): null | BaseChartLegendWrapper {
-    const legend = this.findComponent(`.${BaseChartLegendWrapper.rootSelector}`, BaseChartLegendWrapper);
-    if (legend) {
-      legend.setParentChart(this);
-    }
-    return legend;
+    return this.findComponent(`.${BaseChartLegendWrapper.rootSelector}`, BaseChartLegendWrapper);
   }
 
   public findTooltip(): null | ChartTooltipWrapper {
