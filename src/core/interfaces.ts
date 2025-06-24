@@ -310,6 +310,7 @@ export interface CoreChartProps
 }
 
 export interface CoreLegendOptions extends BaseLegendOptions {
+  bottomMaxHeight?: number;
   position?: "bottom" | "side";
 }
 
