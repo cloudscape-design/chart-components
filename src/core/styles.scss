@@ -112,3 +112,8 @@ $side-legend-min-inline-size: max(20%, 150px);
   max-inline-size: $side-legend-max-inline-size;
   min-inline-size: $side-legend-min-inline-size;
 }
+
+.application {
+  // We hide the native focus outline to render a custom one around the chart plot instead.
+  outline: none;
+}

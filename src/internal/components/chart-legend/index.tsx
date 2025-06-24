@@ -252,6 +252,9 @@ export const ChartLegend = ({
         )}
 
         <div
+          // The list element is not focusable. However, the focus lands on it regardless, when testing in Firefox.
+          // Setting the tab index to -1 does fix the problem.
+          tabIndex={-1}
           className={clsx(styles.list, {
             [styles["list-bottom"]]: position === "bottom",
             [styles["list-side"]]: position === "side",
