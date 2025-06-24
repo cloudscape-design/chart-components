@@ -135,8 +135,6 @@ export const seriesDataLabelsCss: Highcharts.CSSObject = {
 
 export const seriesOpacityInactive = 0.2;
 
-export const noDataPosition: Highcharts.NoDataPositionOptions = { align: "left", verticalAlign: "top" };
-
 export const verticalAxisTitleBlockSize = 24;
 export const verticalAxisTitleMargin = 4;
 
