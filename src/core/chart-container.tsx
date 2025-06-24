@@ -64,16 +64,6 @@ export function ChartContainer({
   const overflowX = chartMinWidth !== undefined ? "auto" : undefined;
   const effectiveChartHeight = fitHeight ? measuredChartHeight : withMinHeight(chartHeight);
 
-  const renderBottomLegend = () => {
-    if (!legend) {
-      return null;
-    }
-    if (legendBottomMaxHeight) {
-      return <div style={{ maxHeight: `${legendBottomMaxHeight}px` }}>{legend}</div>;
-    }
-    return legend;
-  };
-
   return (
     <div ref={refs.chart} style={fitHeight ? { position: "absolute", inset: 0, overflowX } : { overflowX }}>
       <div ref={refs.header}>
@@ -104,9 +94,11 @@ export function ChartContainer({
         </div>
       )}
 
-      <div ref={refs.footer}>
+      <div ref={refs.footer} style={chartMinWidth !== undefined ? { minInlineSize: chartMinWidth } : {}}>
         {navigator && <div className={testClasses["chart-navigator"]}>{navigator}</div>}
-        {legendPosition === "bottom" && renderBottomLegend()}
+        {legend &&
+          legendPosition === "bottom" &&
+          (legendBottomMaxHeight ? <div style={{ maxHeight: `${legendBottomMaxHeight}px` }}>{legend}</div> : legend)}
         {footer}
       </div>
     </div>

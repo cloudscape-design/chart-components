@@ -64,6 +64,7 @@ export default function () {
             "containerWidth",
             "showLegend",
             "showLegendTitle",
+            "legendBottomMaxHeight",
             "legendPosition",
             "useFallback",
           ]}
