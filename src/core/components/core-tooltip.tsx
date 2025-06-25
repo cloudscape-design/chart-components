@@ -60,14 +60,14 @@ export function ChartTooltip({
   if (!tooltip.visible || tooltip.group.length === 0) {
     return null;
   }
+  const chart = tooltip.group[0]?.series.chart;
   const renderers = getTooltipContentOverrides?.({ point: tooltip.point, group: tooltip.group });
   const getTrack = placement === "target" ? api.getTargetTrack : api.getGroupTrack;
-  const orientation = tooltip.point?.series.chart.inverted ? "horizontal" : "vertical";
   const position = (() => {
     if (placement === "target" || placement === "middle") {
-      return orientation === "vertical" ? "right" : "bottom";
+      return !chart.inverted ? "right" : "bottom";
     } else {
-      return orientation === "vertical" ? "bottom" : "right";
+      return !chart.inverted ? "bottom" : "right";
     }
   })();
   const content = getTooltipContent(api, {
