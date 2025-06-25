@@ -93,6 +93,12 @@ export class ChartExtraHighlight {
         }
       }
     }
+    // Highlight linked series when target series is highlighted.
+    this.context
+      .chart()
+      .series.filter((series) => series === point.series)
+      .forEach((series) => series.linkedSeries.forEach((linked) => this.setSeriesState(linked, "hover")));
+    // Highlight threshold series plot lines.
     setPlotLinesState(this.context.chart(), (lineId) => lineId === getSeriesId(point.series));
   };
 
