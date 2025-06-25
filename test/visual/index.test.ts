@@ -9,14 +9,17 @@ import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page
 import { setupTest } from "../utils";
 
 const pagesMap = import.meta.glob("../../pages/**/*.page.tsx", { as: "raw" });
-const pages = Object.keys(pagesMap)
+const allPages = Object.keys(pagesMap)
   .map((page) => page.replace(/\.page\.tsx$/, ""))
   .map((page) => "/#/" + path.relative("../../pages/", page) + "?screenshotMode=true");
 
-test.each(pages)("matches snapshot for %s", (route) =>
+const rtlPages = allPages
+  .filter((page) => page.includes("no-data-states") || page.includes("website-playground-examples"))
+  .map((page) => page + "&direction=rtl");
+
+test.each([...allPages, ...rtlPages])("matches snapshot for %s", (route) =>
   setupTest(route, ScreenshotPageObject, async (page) => {
     const hasScreenshotArea = await page.isExisting(".screenshot-area");
-
     if (hasScreenshotArea) {
       await page.waitForJsTimers(100);
       const pngString = await page.fullPageScreenshot();
