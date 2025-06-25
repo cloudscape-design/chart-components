@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Highcharts from "highcharts";
 import { omit } from "lodash";
 
@@ -11,12 +11,10 @@ import Checkbox from "@cloudscape-design/components/checkbox";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import { colorChartsBlue1400, colorChartsLineTick } from "@cloudscape-design/design-tokens";
 
-import { CoreChartAPI } from "../../lib/components/core/interfaces";
-import { getSeriesColor, getSeriesMarkerType } from "../../lib/components/core/utils";
-import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../lib/components/internal/components/series-details";
-import { ChartSeriesMarker } from "../../lib/components/internal/components/series-marker";
+import { CoreChartAPI, CoreChartProps } from "../../lib/components/core/interfaces";
+import { DebouncedCall } from "../../lib/components/internal/utils/utils";
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
-import { dateFormatter, numberFormatter } from "../common/formatters";
+import { dateFormatter } from "../common/formatters";
 import { PageSettings, PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
@@ -66,41 +64,21 @@ const baseline = [
   { x: 1601013600000, y: 293910 },
 ];
 
-const dataA = baseline.map(({ x, y }) => ({ name: "A", x, y }));
-const dataB = baseline.map(({ x, y }) => ({ name: "B", x, y: y + randomInt(-100000, 100000) }));
-const dataC = baseline.map(({ x, y }) => ({ name: "C", x, y: y + randomInt(-150000, 50000) }));
-const dataD = baseline.map(({ x, y }) => ({ name: "C", x, y: y + randomInt(-200000, -100000) }));
-const dataE = baseline.map(({ x, y }) => ({ name: "C", x, y: y + randomInt(50000, 75000) }));
+const dataA = baseline.map(({ x, y }) => ({ x, y }));
+const dataB = baseline.map(({ x, y }) => ({ x, y: y + randomInt(-100000, 100000) }));
+const dataC = baseline.map(({ x, y }) => ({ x, y: y + randomInt(-150000, 50000) }));
+const dataD = baseline.map(({ x, y }) => ({ x, y: y + randomInt(-200000, -100000) }));
+const dataE = baseline.map(({ x, y }) => ({ x, y: y + randomInt(50000, 75000) }));
 
 const scatterSeries: Highcharts.SeriesOptionsType[] = [
-  {
-    name: "A",
-    type: "scatter",
-    data: dataA,
-  },
-  {
-    name: "B",
-    type: "scatter",
-    data: dataB,
-  },
-  {
-    name: "C",
-    type: "scatter",
-    data: dataC,
-  },
-  {
-    name: "D",
-    type: "scatter",
-    data: dataD,
-  },
-  {
-    name: "E",
-    type: "scatter",
-    data: dataE,
-  },
+  { name: "A", type: "scatter", data: dataA },
+  { name: "B", type: "scatter", data: dataB },
+  { name: "C", type: "scatter", data: dataC },
+  { name: "D", type: "scatter", data: dataD },
+  { name: "E", type: "scatter", data: dataE },
 ];
 
-const rangeSeries: Highcharts.SeriesOptionsType[] = [
+const navigatorSeries: Highcharts.SeriesOptionsType[] = [
   {
     name: "Range",
     type: "areasplinerange",
@@ -115,7 +93,7 @@ const rangeSeries: Highcharts.SeriesOptionsType[] = [
 
 export default function () {
   const {
-    settings: { keepZoomingFrame = false },
+    settings: { keepZoomingFrame = true },
     setSettings,
   } = useChartSettings<ThisPageSettings>();
   return (
@@ -153,23 +131,28 @@ const Style = {
 };
 
 function Charts() {
-  const [zoomRange, setZoomRange] = useState<null | [number, number]>(null);
   const {
-    settings: { keepZoomingFrame = false },
+    settings: { keepZoomingFrame = true },
     chartProps,
   } = useChartSettings<ThisPageSettings>({ more: true });
+  const commonProps = omit(chartProps.cartesian, ["ref"]);
   const scatterChartRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
   const getScatterChart = () => scatterChartRef.current!;
   const navigatorChartRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
   const getNavigatorChart = () => navigatorChartRef.current!;
-  const setZoom = (range: null | [number, number]) => {
-    getScatterChart().chart.xAxis[0].setExtremes(range?.[0], range?.[1]);
-    if (!keepZoomingFrame) {
-      getNavigatorChart().chart.xAxis[0].setExtremes(range?.[0], range?.[1]);
-    }
-    setZoomRange(range);
-  };
+
+  const [zoomRange, setZoomRange] = useState<null | [number, number]>(null);
   const zoomStateRef = useRef<null | number>(null);
+  const setZoom = useCallback(
+    (range: null | [number, number]) => {
+      getScatterChart().chart.xAxis[0].setExtremes(range?.[0], range?.[1]);
+      if (!keepZoomingFrame) {
+        getNavigatorChart().chart.xAxis[0].setExtremes(range?.[0], range?.[1]);
+      }
+      setZoomRange(range);
+    },
+    [keepZoomingFrame],
+  );
   useEffect(() => {
     const onEscape = (event: KeyboardEvent) => {
       if (event.keyCode === KeyCode.escape) {
@@ -183,6 +166,70 @@ function Charts() {
       document.removeEventListener("keydown", onEscape);
     };
   }, []);
+
+  const highlightedPoint = useRef<null | Highcharts.Point>(null);
+  const onNavigationClick = useCallback(() => {
+    const point = highlightedPoint.current;
+    if (!point) {
+      return;
+    }
+    if (zoomStateRef.current === null) {
+      getNavigatorChart().chart.xAxis[0].addPlotLine({ id: "zoom-start", value: point.x, ...Style.zoomPlotLine });
+      zoomStateRef.current = point.x;
+    } else {
+      getNavigatorChart().chart.xAxis[0].removePlotLine("zoom-start");
+      getNavigatorChart().chart.xAxis[0].removePlotLine("zoom-end");
+      setZoom([Math.min(zoomStateRef.current, point.x), Math.max(zoomStateRef.current, point.x)]);
+      zoomStateRef.current = null;
+    }
+  }, [setZoom]);
+  const onNavigationKeydown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.keyCode === KeyCode.enter) {
+        onNavigationClick();
+      }
+    },
+    [onNavigationClick],
+  );
+  useEffect(() => {
+    document.addEventListener("click", onNavigationClick);
+    document.addEventListener("keydown", onNavigationKeydown);
+    return () => {
+      document.removeEventListener("click", onNavigationClick);
+      document.removeEventListener("keydown", onNavigationKeydown);
+    };
+  }, [onNavigationClick, onNavigationKeydown]);
+
+  const highlightLock = useRef(false);
+  const highlightLockControl = useMemo(() => new DebouncedCall(), []);
+  const withLock = (callback: () => void) => {
+    if (!highlightLock.current) {
+      highlightLock.current = true;
+      highlightLockControl.call(() => (highlightLock.current = false), 0);
+      callback();
+    }
+  };
+  const onScatterHighlight: CoreChartProps["onHighlight"] = ({ group }) =>
+    withLock(() => {
+      highlightChartGroup(group[0], getNavigatorChart());
+      highlightedPoint.current = group[0];
+    });
+  const onScatterClearHighlight = () =>
+    withLock(() => {
+      getScatterChart().clearChartHighlight();
+      highlightedPoint.current = null;
+    });
+  const onNavigatorHighlight: CoreChartProps["onHighlight"] = ({ group }) =>
+    withLock(() => {
+      highlightChartGroup(group[0], getScatterChart());
+      highlightedPoint.current = group[0];
+    });
+  const onNavigatorClearHighlight = () =>
+    withLock(() => {
+      getScatterChart().clearChartHighlight();
+      highlightedPoint.current = null;
+    });
+
   return (
     <SpaceBetween size="s">
       <BreadcrumbGroup
@@ -204,185 +251,79 @@ function Charts() {
         callback={(chart) => {
           scatterChartRef.current = chart;
         }}
-        {...omit(chartProps.cartesian, "ref")}
+        {...commonProps}
+        chartHeight={350}
+        ariaLabel="Scatter chart"
+        onHighlight={onScatterHighlight}
+        onClearHighlight={onScatterClearHighlight}
         options={{
-          chart: {
-            height: 379,
-          },
-          legend: {
-            align: "left",
-          },
-          lang: {
-            accessibility: {
-              chartContainerLabel: "Scatter chart",
-            },
-          },
           series: scatterSeries,
-          xAxis: [
-            {
-              type: "datetime",
-              title: { text: "Time (UTC)" },
-            },
-          ],
+          xAxis: [{ type: "datetime", title: { text: "" }, valueFormatter: dateFormatter }],
           yAxis: [{ title: { text: "Events" } }],
-          plotOptions: {
-            series: {
-              point: {
-                events: {
-                  mouseOver(event) {
-                    if (event.target instanceof Highcharts.Point) {
-                      const minPoint = findMinPoint(event.target, getNavigatorChart().chart);
-                      if (minPoint) {
-                        getNavigatorChart().highlightChartPoint(minPoint);
-                      }
-                    }
-                  },
-                  mouseOut() {
-                    getNavigatorChart().clearChartHighlight();
-                  },
-                },
-              },
-            },
-          },
         }}
-        getTooltipContent={({ group }) => {
-          const x = group[0].x;
-          const header = dateFormatter(x);
-          const details: ChartSeriesDetailItem[] = [];
-          for (const s of getScatterChart().chart.series) {
-            for (const p of s.data) {
-              if (p.x === x) {
-                details.push({
-                  key: p.name,
-                  marker: <ChartSeriesMarker color={getSeriesColor(s)} type={getSeriesMarkerType(s)} />,
-                  value: numberFormatter(p.y!),
-                });
-              }
-            }
-          }
-          return {
-            header: () => header,
-            body: () => <ChartSeriesDetails details={details} />,
-          };
-        }}
-      />
-
-      <CoreChart
-        callback={(chart) => {
-          navigatorChartRef.current = chart;
-        }}
-        {...omit(chartProps.cartesian, "ref")}
-        tooltip={{ enabled: false }}
-        options={{
-          chart: {
-            height: 150,
-            zooming: {
-              type: "x",
-            },
-            events: {
-              selection(event) {
-                setZoom([event.xAxis[0].min, event.xAxis[0].max]);
-                return false;
-              },
-            },
-          },
-          legend: {
-            enabled: false,
-          },
-          lang: {
-            accessibility: {
-              chartContainerLabel: "Zoom navigator",
-            },
-          },
-          series: rangeSeries,
-          xAxis: [
-            {
-              type: "datetime",
-              title: { text: "Time (UTC)" },
-              plotBands: zoomRange
-                ? [
-                    {
-                      from: zoomRange[0],
-                      to: zoomRange[1],
-                      color: colorChartsLineTick,
-                      borderColor: colorChartsBlue1400,
-                      borderWidth: 1,
+        navigator={
+          <div style={{ marginTop: 24 }}>
+            <CoreChart
+              callback={(chart) => {
+                navigatorChartRef.current = chart;
+              }}
+              {...commonProps}
+              tooltip={{ enabled: false }}
+              legend={{ enabled: false }}
+              emphasizeBaseline={false}
+              chartHeight={120}
+              ariaLabel="Zoom navigator"
+              verticalAxisTitlePlacement="side"
+              onHighlight={onNavigatorHighlight}
+              onClearHighlight={onNavigatorClearHighlight}
+              options={{
+                chart: {
+                  zooming: { type: "x" },
+                  events: {
+                    selection(event) {
+                      setZoom([event.xAxis[0].min, event.xAxis[0].max]);
+                      return false;
                     },
-                  ]
-                : undefined,
-            },
-          ],
-          yAxis: [
-            {
-              title: { text: "" },
-            },
-          ],
-          tooltip: { enabled: false },
-          plotOptions: {
-            series: {
-              point: {
-                events: {
-                  mouseOver(event) {
-                    if (event.target instanceof Highcharts.Point) {
-                      if (event.target instanceof Highcharts.Point) {
-                        const minPoint = findMinPoint(event.target, getScatterChart().chart);
-                        if (minPoint) {
-                          getScatterChart().highlightChartPoint(minPoint);
-                        }
-                      }
-
-                      if (zoomStateRef.current !== null) {
-                        getNavigatorChart().chart.xAxis[0].removePlotLine("zoom-end");
-                        getNavigatorChart().chart.xAxis[0].addPlotLine({
-                          id: "zoom-end",
-                          value: event.target.x,
-                          ...Style.zoomPlotLine,
-                        });
-                      }
-                    }
-                  },
-                  mouseOut() {
-                    getScatterChart().clearChartHighlight();
-                  },
-                  click(event) {
-                    if (zoomStateRef.current === null) {
-                      getNavigatorChart().chart.xAxis[0].addPlotLine({
-                        id: "zoom-start",
-                        value: event.point.x,
-                        ...Style.zoomPlotLine,
-                      });
-                      zoomStateRef.current = event.point.x;
-                    } else {
-                      getNavigatorChart().chart.xAxis[0].removePlotLine("zoom-start");
-                      getNavigatorChart().chart.xAxis[0].removePlotLine("zoom-end");
-                      setZoom([
-                        Math.min(zoomStateRef.current, event.point.x),
-                        Math.max(zoomStateRef.current, event.point.x),
-                      ]);
-                      zoomStateRef.current = null;
-                    }
                   },
                 },
-              },
-            },
-          },
-        }}
+                series: navigatorSeries,
+                xAxis: [
+                  {
+                    type: "datetime",
+                    title: { text: "Time (UTC)" },
+                    tickInterval: 1000 * 60 * 60 * 2,
+                    plotBands: zoomRange
+                      ? [
+                          {
+                            from: zoomRange[0],
+                            to: zoomRange[1],
+                            color: colorChartsLineTick,
+                            borderColor: colorChartsBlue1400,
+                            borderWidth: 1,
+                          },
+                        ]
+                      : undefined,
+                    valueFormatter: dateFormatter,
+                  },
+                ],
+                yAxis: [{ title: { text: "" } }],
+              }}
+            />
+          </div>
+        }
       />
     </SpaceBetween>
   );
 }
 
-function findMinPoint(targetPoint: Highcharts.Point, chart: Highcharts.Chart) {
-  let minPoint: null | Highcharts.Point = null;
-  for (const s of chart.series) {
+function highlightChartGroup(targetPoint: Highcharts.Point, api: CoreChartAPI) {
+  const group: Highcharts.Point[] = [];
+  for (const s of api.chart.series) {
     for (const p of s.data) {
-      if (p.x !== targetPoint.x) {
-        continue;
-      }
-      if (minPoint === null || p.y! > minPoint.y!) {
-        minPoint = p;
+      if (p.x === targetPoint.x) {
+        group.push(p);
       }
     }
   }
-  return minPoint;
+  api.highlightChartGroup(group);
 }

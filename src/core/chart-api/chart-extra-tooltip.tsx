@@ -92,7 +92,9 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
   }
 
   public pinTooltip() {
-    this.set((prev) => ({ ...prev, visible: true, pinned: true }));
+    if (this.context.settings.tooltipEnabled) {
+      this.set((prev) => ({ ...prev, visible: true, pinned: true }));
+    }
   }
 
   private onRenderTooltip = (props: ChartHighlightProps) => {

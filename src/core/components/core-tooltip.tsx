@@ -111,7 +111,7 @@ export function ChartTooltip({
 function getTrackKey(point: null | Highcharts.Point, group: readonly Highcharts.Point[]) {
   const pointId = point && (point.options.id || point.options.name);
   if (point && pointId) {
-    return `p-${pointId}`;
+    return `p-${pointId}-${point.x}-${point.y}`;
   }
   if (point) {
     return `p-${point.x}-${point.y}`;
