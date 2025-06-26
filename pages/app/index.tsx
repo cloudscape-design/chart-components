@@ -1,61 +1,86 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { Suspense, useContext } from "react";
 import { HashRouter, Route, Routes, useHref, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
+import Alert from "@cloudscape-design/components/alert";
+import AppLayout from "@cloudscape-design/components/app-layout";
 import Box from "@cloudscape-design/components/box";
+import { I18nProvider } from "@cloudscape-design/components/i18n";
+import enMessages from "@cloudscape-design/components/i18n/messages/all.en";
 import Link, { LinkProps } from "@cloudscape-design/components/link";
+import Spinner from "@cloudscape-design/components/spinner";
 import TopNavigation from "@cloudscape-design/components/top-navigation";
-import { applyDensity, applyMode, Density, Mode } from "@cloudscape-design/global-styles";
+import { Density, Mode } from "@cloudscape-design/global-styles";
 
-import { pages } from "../pages";
-import Page, { PageComponent } from "./page";
+import AppContext, { AppContextProvider } from "./app-context";
+import { pages, pagesMap } from "./pages";
+
+import "@cloudscape-design/global-styles/index.css";
 
 export default function App() {
   return (
     <HashRouter>
+      <AppContextProvider>
+        <AppBody />
+      </AppContextProvider>
+    </HashRouter>
+  );
+}
+
+function AppBody() {
+  const { urlParams } = useContext(AppContext);
+  const routes = (
+    <>
       <Navigation />
       <Routes>
         <Route path="/" element={<IndexPage />} />
         <Route path="/*" element={<PageWithFallback />} />
       </Routes>
-    </HashRouter>
+    </>
+  );
+  return urlParams.i18n ? (
+    <I18nProvider locale="en" messages={[enMessages]}>
+      {routes}
+    </I18nProvider>
+  ) : (
+    routes
+  );
+}
+
+function Page({ pageId }: { pageId: string }) {
+  const Component = pagesMap[pageId];
+  return (
+    <Suspense fallback={<Spinner />}>
+      {Component ? (
+        <Component />
+      ) : (
+        <AppLayout
+          headerSelector="#h"
+          navigationHide={true}
+          toolsHide={true}
+          content={<Alert type="error">Page not found</Alert>}
+        />
+      )}
+    </Suspense>
   );
 }
 
 function Navigation() {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const darkMode = searchParams.get("darkMode") === "true";
-  const compactMode = searchParams.get("compactMode") === "true";
-  const rtl = searchParams.get("direction") === "rtl";
-
-  const setDarkMode = (darkMode: boolean) => {
-    setSearchParams({ darkMode: String(darkMode) });
-    applyMode(darkMode ? Mode.Dark : Mode.Light, document.documentElement);
-  };
-
-  const setCompactMode = (compactMode: boolean) => {
-    setSearchParams({ compactMode: String(compactMode) });
-    applyDensity(compactMode ? Density.Compact : Density.Comfortable, document.documentElement);
-  };
-
-  const setRtl = (rtl: boolean) => {
-    setSearchParams({ direction: rtl ? "rtl" : "ltr" });
-    document.documentElement.setAttribute("dir", rtl ? "rtl" : "ltr");
-  };
-
+  const [searchParams] = useSearchParams();
+  const { urlParams, setUrlParams } = useContext(AppContext);
+  const isDarkMode = urlParams.mode === Mode.Dark;
+  const isCompactMode = urlParams.density === Density.Compact;
+  const isRtl = urlParams.direction === "rtl";
   return (
-    <header
-      id="h"
-      style={{ position: "sticky", insetBlockStart: 0, insetInlineStart: 0, insetInlineEnd: 0, zIndex: 1002 }}
-    >
+    <header id="h" style={{ position: "sticky", insetBlockStart: 0, zIndex: 1002 }}>
       <TopNavigation
         identity={{
           title: "Chart components - dev pages",
           href: "#",
           onFollow: () => navigate(`/?${searchParams.toString()}`),
-          logo: { src: "../favicon.ico" },
         }}
         utilities={[
           {
@@ -63,18 +88,27 @@ function Navigation() {
             text: "Settings",
             iconName: "settings",
             items: [
-              { id: "dark-mode", text: darkMode ? "Set light mode" : "Set dark mode" },
-              { id: "compact-mode", text: compactMode ? "Set comfortable mode" : "Set compact mode" },
-              { id: "rtl", text: rtl ? "Set left to right text" : "Set right to left text" },
+              { id: "dark-mode", text: isDarkMode ? "Set light mode" : "Set dark mode" },
+              { id: "compact-mode", text: isCompactMode ? "Set comfortable mode" : "Set compact mode" },
+              { id: "rtl", text: isRtl ? "Set left to right text" : "Set right to left text" },
+              { id: "motion", text: urlParams.motionDisabled ? "Enable motion" : "Disable motion" },
+              { id: "screenshot", text: urlParams.screenshotMode ? "Disable screenshot mode" : "Screenshot mode" },
+              { id: "i18n", text: urlParams.i18n ? "Disable built-in i18n" : "Enable built-in i18n" },
             ],
             onItemClick({ detail }) {
               switch (detail.id) {
                 case "dark-mode":
-                  return setDarkMode(!darkMode);
+                  return setUrlParams({ mode: isDarkMode ? Mode.Light : Mode.Dark });
                 case "compact-mode":
-                  return setCompactMode(!compactMode);
+                  return setUrlParams({ density: isCompactMode ? Density.Comfortable : Density.Compact });
                 case "rtl":
-                  return setRtl(!rtl);
+                  return setUrlParams({ direction: isRtl ? "ltr" : "rtl" });
+                case "motion":
+                  return setUrlParams({ motionDisabled: !urlParams.motionDisabled });
+                case "screenshot":
+                  return setUrlParams({ screenshotMode: !urlParams.screenshotMode });
+                case "i18n":
+                  return setUrlParams({ i18n: !urlParams.i18n });
               }
             },
           },
@@ -94,15 +128,22 @@ interface TreeItem {
 function IndexPage() {
   const tree = createPagesTree(pages);
   return (
-    <PageComponent>
-      <h1>Welcome!</h1>
-      <p>Select a page:</p>
-      <ul>
-        {tree.items.map((item) => (
-          <TreeItemView key={item.name} item={item} />
-        ))}
-      </ul>
-    </PageComponent>
+    <AppLayout
+      headerSelector="#h"
+      navigationHide={true}
+      toolsHide={true}
+      content={
+        <Box>
+          <h1>Welcome!</h1>
+          <p>Select a page:</p>
+          <ul>
+            {tree.items.map((item) => (
+              <TreeItemView key={item.name} item={item} />
+            ))}
+          </ul>
+        </Box>
+      }
+    />
   );
 }
 

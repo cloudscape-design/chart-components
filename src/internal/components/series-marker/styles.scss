@@ -1,0 +1,25 @@
+/*
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+*/
+
+@use "../../styles" as styles;
+@use "../../../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
+
+$marker-size: 16px;
+$marker-margin-top: cs.$space-static-xxxs;
+$marker-margin-right: cs.$space-static-xxs;
+
+.marker {
+  @include styles.styles-reset;
+  margin-block-start: $marker-margin-top;
+  margin-inline-end: $marker-margin-right;
+  border-start-start-radius: 2px;
+  border-start-end-radius: 2px;
+  border-end-start-radius: 2px;
+  border-end-end-radius: 2px;
+  inline-size: $marker-size;
+  block-size: $marker-size;
+  flex-shrink: 0;
+  cursor: inherit;
+}

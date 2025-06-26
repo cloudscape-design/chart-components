@@ -7,14 +7,14 @@
     "plugin:react/jsx-runtime",
     "plugin:prettier/recommended",
     "plugin:no-unsanitized/DOM",
-    "plugin:@vitest/legacy-recommended"
+    "plugin:@vitest/legacy-recommended",
   ],
   "parserOptions": {
     "ecmaVersion": "latest",
     "sourceType": "module",
     "ecmaFeatures": {
-      "jsx": true
-    }
+      "jsx": true,
+    },
   },
   "plugins": ["unicorn", "react-hooks", "no-unsanitized", "header", "import", "simple-import-sort", "@vitest"],
   "rules": {
@@ -29,22 +29,22 @@
     "react/no-unstable-nested-components": [
       "error",
       {
-        "allowAsProps": true
-      }
+        "allowAsProps": true,
+      },
     ],
     "react/forbid-component-props": [
       "warn",
       {
-        "forbid": ["className", "id"]
-      }
+        "forbid": ["className", "id"],
+      },
     ],
     "react/jsx-boolean-value": ["error", "always"],
     "@typescript-eslint/naming-convention": [
       "error",
       {
         "selector": "typeLike",
-        "format": ["PascalCase"]
-      }
+        "format": ["PascalCase"],
+      },
     ],
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": ["error"],
@@ -57,7 +57,8 @@
     "header/header": [
       "error",
       "line",
-      [" Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.", " SPDX-License-Identifier: Apache-2.0"]
+      [" Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.", " SPDX-License-Identifier: Apache-2.0"],
+      2,
     ],
     "no-restricted-imports": [
       "error",
@@ -66,32 +67,32 @@
           {
             "name": "react",
             "importNames": ["default"],
-            "message": "Prefer named imports."
+            "message": "Prefer named imports.",
           },
           {
             "name": "@cloudscape-design/components",
-            "message": "Prefer subpath imports."
-          }
-        ]
-      }
+            "message": "Prefer subpath imports.",
+          },
+        ],
+      },
     ],
     "import/no-useless-path-segments": [
       "warn",
       {
-        "noUselessIndex": true
-      }
+        "noUselessIndex": true,
+      },
     ],
     "simple-import-sort/imports": "warn",
-    "@vitest/no-focused-tests": "error"
+    "@vitest/no-focused-tests": "error",
   },
   "settings": {
     "react": {
-      "version": "detect"
-    }
+      "version": "detect",
+    },
   },
   "env": {
     "browser": true,
-    "es6": true
+    "es6": true,
   },
   "overrides": [
     {
@@ -99,11 +100,11 @@
       "rules": {
         // useBrowser is not a React hook
         "react-hooks/rules-of-hooks": "off",
-        "react-hooks/exhaustive-deps": "off"
+        "react-hooks/exhaustive-deps": "off",
       },
       "env": {
-        "jest": true
-      }
+        "jest": true,
+      },
     },
     {
       "files": ["src/**", "pages/**", "test/**", "scripts/**"],
@@ -121,13 +122,11 @@
               // Anything not matched in another group.
               ["^"],
               // Styles come last.
-              [
-                "^.+\\.?(css)$","^.+\\.?(css.js)$", "^.+\\.?(scss)$", "^.+\\.?(selectors.js)$"
-              ]
-            ]
-          }
-        ]
-      }
-    }
-  ]
+              ["^.+\\.?(css)$", "^.+\\.?(css.js)$", "^.+\\.?(scss)$", "^.+\\.?(selectors.js)$"],
+            ],
+          },
+        ],
+      },
+    },
+  ],
 }

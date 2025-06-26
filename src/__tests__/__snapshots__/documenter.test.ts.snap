@@ -1,24 +1,902 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`definition for sample matches the snapshot > sample 1`] = `
+exports[`definition for cartesian-chart matches the snapshot > cartesian-chart 1`] = `
 {
-  "dashCaseName": "sample",
+  "dashCaseName": "cartesian-chart",
   "events": [
     {
       "cancelable": false,
-      "name": "onClick",
+      "description": "A callback, triggered when series visibility changes as result of user interacting with the legend or filter.",
+      "detailInlineType": {
+        "name": "{ visibleSeries: Array<string>; }",
+        "properties": [
+          {
+            "name": "visibleSeries",
+            "optional": false,
+            "type": "Array<string>",
+          },
+        ],
+        "type": "object",
+      },
+      "detailType": "{ visibleSeries: Array<string>; }",
+      "name": "onChangeVisibleSeries",
     },
   ],
-  "functions": [],
-  "name": "Sample",
+  "functions": [
+    {
+      "name": "setVisibleSeries",
+      "parameters": [
+        {
+          "name": "visibleSeries",
+          "type": "ReadonlyArray<string>",
+        },
+      ],
+      "returnType": "void",
+    },
+    {
+      "name": "showAllSeries",
+      "parameters": [],
+      "returnType": "void",
+    },
+  ],
+  "name": "CartesianChart",
   "properties": [
     {
-      "name": "text",
-      "optional": false,
+      "description": "ARIA description of the chart.
+This property corresponds to [accessibility.description](https://api.highcharts.com/highcharts/accessibility.description),
+and requires the [accessibility module](https://www.highcharts.com/docs/accessibility/accessibility-module).",
+      "name": "ariaDescription",
+      "optional": true,
       "type": "string",
     },
+    {
+      "description": "ARIA label of the chart container.
+This property corresponds to [lang.chartContainerLabel](https://api.highcharts.com/highcharts/lang.accessibility.chartContainerLabel),
+and requires the [accessibility module](https://www.highcharts.com/docs/accessibility/accessibility-module).",
+      "name": "ariaLabel",
+      "optional": true,
+      "type": "string",
+    },
+    {
+      "description": "The height of the chart plot in pixels. It does not include legend, filter, header, and footer.",
+      "name": "chartHeight",
+      "optional": true,
+      "type": "number",
+    },
+    {
+      "description": "Defines the minimal allowed height of the chart plot. Use it when \`fitHeight=true\`
+to prevent the chart plot become too small to digest the content of it. If the parent container is
+too small to satisfy the min width value, the horizontal scrollbar is automatically added.",
+      "name": "chartMinHeight",
+      "optional": true,
+      "type": "number",
+    },
+    {
+      "description": "Defines the minimal allowed width of the chart plot. If the parent container is too small to satisfy the min
+width value, the horizontal scrollbar is automatically added.",
+      "name": "chartMinWidth",
+      "optional": true,
+      "type": "number",
+    },
+    {
+      "defaultValue": "true",
+      "description": "When set to \`true\`, adds a visual emphasis on the zero baseline axis.",
+      "name": "emphasizeBaseline",
+      "optional": true,
+      "type": "boolean",
+    },
+    {
+      "description": "Use filter to render default series filter, custom series filter, and/or additional filters.",
+      "inlineType": {
+        "name": "BaseFilterOptions",
+        "properties": [
+          {
+            "name": "additionalFilters",
+            "optional": true,
+            "type": "React.ReactNode",
+          },
+          {
+            "name": "seriesFilter",
+            "optional": true,
+            "type": "boolean",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "filter",
+      "optional": true,
+      "type": "BaseFilterOptions",
+    },
+    {
+      "defaultValue": "false",
+      "description": "When set, the chart grows automatically to fill the parent container.",
+      "name": "fitHeight",
+      "optional": true,
+      "type": "boolean",
+    },
+    {
+      "description": "The Highcharts instance, that can be obtained as \`import Highcharts from 'highcharts'\`.
+Supported Highcharts versions:
+* \`v12\`",
+      "name": "highcharts",
+      "optional": false,
+      "type": "object | null",
+    },
+    {
+      "description": "An object that contains all of the localized strings required by the component.",
+      "i18nTag": true,
+      "inlineType": {
+        "name": "CartesianI18nStrings",
+        "properties": [
+          {
+            "name": "chartAccessibleDescription",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "detailPopoverDismissAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "errorText",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "legendAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "loadingText",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "recoveryText",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "seriesFilterLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "seriesFilterPlaceholder",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "seriesFilterSelectedAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "xAxisAccessibleDescription",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "yAxisAccessibleDescription",
+            "optional": true,
+            "type": "string",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "i18nStrings",
+      "optional": true,
+      "type": "CartesianI18nStrings",
+    },
+    {
+      "defaultValue": "false",
+      "description": "Inverts X and Y axes. Use it to show horizontal columns (bars).
+This property corresponds to [chart.inverted](https://api.highcharts.com/highcharts/chart.inverted).",
+      "name": "inverted",
+      "optional": true,
+      "type": "boolean",
+    },
+    {
+      "description": "Chart legend options.",
+      "inlineType": {
+        "name": "BaseLegendOptions",
+        "properties": [
+          {
+            "name": "actions",
+            "optional": true,
+            "type": "React.ReactNode",
+          },
+          {
+            "name": "enabled",
+            "optional": true,
+            "type": "boolean",
+          },
+          {
+            "name": "title",
+            "optional": true,
+            "type": "string",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "legend",
+      "optional": true,
+      "type": "BaseLegendOptions",
+    },
+    {
+      "description": "The empty, no-match, loading, or error state of the chart.",
+      "inlineType": {
+        "name": "BaseNoDataOptions",
+        "properties": [
+          {
+            "name": "empty",
+            "optional": true,
+            "type": "React.ReactNode",
+          },
+          {
+            "name": "error",
+            "optional": true,
+            "type": "React.ReactNode",
+          },
+          {
+            "name": "loading",
+            "optional": true,
+            "type": "React.ReactNode",
+          },
+          {
+            "name": "noMatch",
+            "optional": true,
+            "type": "React.ReactNode",
+          },
+          {
+            "name": "onRecoveryClick",
+            "optional": true,
+            "type": "NonCancelableEventHandler<{}>",
+          },
+          {
+            "name": "statusType",
+            "optional": true,
+            "type": ""finished" | "loading" | "error"",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "noData",
+      "optional": true,
+      "type": "BaseNoDataOptions",
+    },
+    {
+      "description": "Chart series options.
+This property corresponds to [series](https://api.highcharts.com/highcharts/series), and extends it
+with two additional series types: "x-threshold", and "y-threshold".
+
+Supported types:
+* [area](https://api.highcharts.com/highcharts/series.area).
+* [areaspline](https://api.highcharts.com/highcharts/series.areaspline).
+* [column](https://api.highcharts.com/highcharts/series.column).
+* [errorbar](https://api.highcharts.com/highcharts/series.errorbar) - requires "highcharts/highcharts-more" module.
+* [line](https://api.highcharts.com/highcharts/series.line).
+* [scatter](https://api.highcharts.com/highcharts/series.scatter).
+* [spline](https://api.highcharts.com/highcharts/series.spline).
+* x-threshold - The line-like series to represent x-axis threshold (vertical, when \`inverted=false\`).
+* y-threshold - The line-like series to represent y-axis threshold (horizontal, when \`inverted=false\`).",
+      "name": "series",
+      "optional": false,
+      "type": "ReadonlyArray<CartesianChartProps.SeriesOptions>",
+    },
+    {
+      "defaultValue": "undefined",
+      "description": "Enables series stacking behavior. Use it for column- or area- series.
+This property corresponds to "normal" stacking type in Highcharts ([plotOptions.series.stacking](https://api.highcharts.com/highcharts/plotOptions.series.stacking)).",
+      "name": "stacking",
+      "optional": true,
+      "type": ""normal"",
+    },
+    {
+      "description": "Chart tooltip options.
+
+Supported options:
+* \`enabled\` - (optional, boolean) - Hides the tooltip.
+* \`size\` - (optional, "small" | "medium" | "large") - Specifies max tooltip size.
+* \`placement\` - (optional, "middle" | "outside") - Specifies preferred tooltip placement.
+* \`point\` - (optional, function) - Customizes tooltip series point rendering.
+* \`header\` - (optional, function) - Provides a custom tooltip header.
+* \`body\` - (optional, function) - Provides a custom tooltip content.
+* \`footer\` - (optional, function) - Adds a tooltip footer.",
+      "inlineType": {
+        "name": "CartesianChartProps.TooltipOptions",
+        "properties": [
+          {
+            "name": "body",
+            "optional": true,
+            "type": "((props: CartesianChartProps.TooltipSlotRenderProps) => React.ReactNode)",
+          },
+          {
+            "name": "enabled",
+            "optional": true,
+            "type": "boolean",
+          },
+          {
+            "name": "footer",
+            "optional": true,
+            "type": "((props: CartesianChartProps.TooltipSlotRenderProps) => React.ReactNode)",
+          },
+          {
+            "name": "header",
+            "optional": true,
+            "type": "((props: CartesianChartProps.TooltipSlotRenderProps) => React.ReactNode)",
+          },
+          {
+            "name": "placement",
+            "optional": true,
+            "type": ""middle" | "outside"",
+          },
+          {
+            "name": "point",
+            "optional": true,
+            "type": "((props: CartesianChartProps.TooltipPointRenderProps) => TooltipPointFormatted)",
+          },
+          {
+            "name": "size",
+            "optional": true,
+            "type": ""small" | "medium" | "large"",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "tooltip",
+      "optional": true,
+      "type": "CartesianChartProps.TooltipOptions",
+    },
+    {
+      "defaultValue": ""top"",
+      "description": "When set to "top", the title of the vertical axis (can be x or y)
+is shown right above the chart plot.",
+      "inlineType": {
+        "name": ""side" | "top"",
+        "type": "union",
+        "values": [
+          "side",
+          "top",
+        ],
+      },
+      "name": "verticalAxisTitlePlacement",
+      "optional": true,
+      "type": "string",
+    },
+    {
+      "description": "Specifies visible series by their IDs. When unset, all series are visible by default, and the visibility state
+is managed internally by the component. When a series does not have an ID, its name is used instead.
+When the property is provided, use \`onChangeVisibleSeries\` to manage state updates.",
+      "name": "visibleSeries",
+      "optional": true,
+      "type": "ReadonlyArray<string>",
+    },
+    {
+      "description": "X-axis options.
+This property corresponds to [xAxis](https://api.highcharts.com/highcharts/xAxis), and extends it
+with a custom value formatter.
+
+Supported options:
+* \`title\` (optional, string) - Axis title.
+* \`type\` (optional, 'linear' | 'datetime' | 'category' | 'logarithmic') - Axis type.
+* * linear - Uses continuous proportional values scale.
+* * datetime - Similar to linear, but takes epoch time as values.
+* * category - Uses discrete scale, requires \`categories\` to be set.
+* * logarithmic - Uses continuous logarithmic values scale.
+* \`min\` (optional, number) - Axis min value boundary.
+* \`max\` (optional, number) - Axis max value boundary.
+* \`tickInterval\` (optional, number) - Distance between axis ticks.
+* \`categories\` (optional, Array<string>) - Predefined list of values, used for categorical axis type.
+* \`valueFormatter\` (optional, function) - Takes axis tick as input and returns a formatted string. This formatter also
+applies to the tooltip header.",
+      "inlineType": {
+        "name": "AxisOptions",
+        "properties": [
+          {
+            "name": "categories",
+            "optional": true,
+            "type": "Array<string>",
+          },
+          {
+            "name": "max",
+            "optional": true,
+            "type": "number",
+          },
+          {
+            "name": "min",
+            "optional": true,
+            "type": "number",
+          },
+          {
+            "name": "tickInterval",
+            "optional": true,
+            "type": "number",
+          },
+          {
+            "name": "title",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "type",
+            "optional": true,
+            "type": ""category" | "datetime" | "linear" | "logarithmic"",
+          },
+          {
+            "name": "valueFormatter",
+            "optional": true,
+            "type": "((value: number | null) => string)",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "xAxis",
+      "optional": true,
+      "type": "AxisOptions",
+    },
+    {
+      "description": "Y-axis options.
+This property corresponds to [xAxis](https://api.highcharts.com/highcharts/yAxis), and extends it
+with a custom value formatter.
+
+Supported options:
+* \`title\` (optional, string) - Axis title.
+* \`type\` (optional, 'linear' | 'datetime' | 'category' | 'logarithmic') - Axis type.
+* * linear - Uses continuous proportional values scale.
+* * datetime - Similar to linear, but takes epoch time as values.
+* * category - Uses discrete scale, requires \`categories\` to be set.
+* * logarithmic - Uses continuous logarithmic values scale.
+* \`min\` (optional, number) - Axis min value boundary.
+* \`max\` (optional, number) - Axis max value boundary.
+* \`tickInterval\` (optional, number) - Distance between axis ticks.
+* \`categories\` (optional, Array<string>) - Predefined list of values, used for categorical axis type.
+* \`reversedStacks\` (optional, boolean) - Reverts series order in stacked series.
+* \`valueFormatter\` (optional, function) - Takes axis tick as input and returns a formatted string. This formatter also
+applies to the tooltip series value.",
+      "inlineType": {
+        "name": "CartesianChartProps.YAxisOptions",
+        "properties": [
+          {
+            "name": "categories",
+            "optional": true,
+            "type": "Array<string>",
+          },
+          {
+            "name": "max",
+            "optional": true,
+            "type": "number",
+          },
+          {
+            "name": "min",
+            "optional": true,
+            "type": "number",
+          },
+          {
+            "name": "reversedStacks",
+            "optional": true,
+            "type": "boolean",
+          },
+          {
+            "name": "tickInterval",
+            "optional": true,
+            "type": "number",
+          },
+          {
+            "name": "title",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "type",
+            "optional": true,
+            "type": ""category" | "datetime" | "linear" | "logarithmic"",
+          },
+          {
+            "name": "valueFormatter",
+            "optional": true,
+            "type": "((value: number | null) => string)",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "yAxis",
+      "optional": true,
+      "type": "CartesianChartProps.YAxisOptions",
+    },
   ],
-  "regions": [],
+  "regions": [
+    {
+      "description": "Custom content to be rendered when \`highcharts=null\`. It defaults to a spinner.",
+      "isDefault": false,
+      "name": "fallback",
+    },
+  ],
+  "releaseStatus": "stable",
+}
+`;
+
+exports[`definition for pie-chart matches the snapshot > pie-chart 1`] = `
+{
+  "dashCaseName": "pie-chart",
+  "events": [
+    {
+      "cancelable": false,
+      "description": "A callback, triggered when segments visibility changes as result of user interacting with the legend or filter.",
+      "detailInlineType": {
+        "name": "{ visibleSegments: Array<string>; }",
+        "properties": [
+          {
+            "name": "visibleSegments",
+            "optional": false,
+            "type": "Array<string>",
+          },
+        ],
+        "type": "object",
+      },
+      "detailType": "{ visibleSegments: Array<string>; }",
+      "name": "onChangeVisibleSegments",
+    },
+  ],
+  "functions": [
+    {
+      "name": "setVisibleSegments",
+      "parameters": [
+        {
+          "name": "visibleSegments",
+          "type": "ReadonlyArray<string>",
+        },
+      ],
+      "returnType": "void",
+    },
+    {
+      "name": "showAllSegments",
+      "parameters": [],
+      "returnType": "void",
+    },
+  ],
+  "name": "PieChart",
+  "properties": [
+    {
+      "description": "ARIA description of the chart.
+This property corresponds to [accessibility.description](https://api.highcharts.com/highcharts/accessibility.description),
+and requires the [accessibility module](https://www.highcharts.com/docs/accessibility/accessibility-module).",
+      "name": "ariaDescription",
+      "optional": true,
+      "type": "string",
+    },
+    {
+      "description": "ARIA label of the chart container.
+This property corresponds to [lang.chartContainerLabel](https://api.highcharts.com/highcharts/lang.accessibility.chartContainerLabel),
+and requires the [accessibility module](https://www.highcharts.com/docs/accessibility/accessibility-module).",
+      "name": "ariaLabel",
+      "optional": true,
+      "type": "string",
+    },
+    {
+      "description": "The height of the chart plot in pixels. It does not include legend, filter, header, and footer.",
+      "name": "chartHeight",
+      "optional": true,
+      "type": "number",
+    },
+    {
+      "description": "Defines the minimal allowed height of the chart plot. Use it when \`fitHeight=true\`
+to prevent the chart plot become too small to digest the content of it. If the parent container is
+too small to satisfy the min width value, the horizontal scrollbar is automatically added.",
+      "name": "chartMinHeight",
+      "optional": true,
+      "type": "number",
+    },
+    {
+      "description": "Defines the minimal allowed width of the chart plot. If the parent container is too small to satisfy the min
+width value, the horizontal scrollbar is automatically added.",
+      "name": "chartMinWidth",
+      "optional": true,
+      "type": "number",
+    },
+    {
+      "description": "Use filter to render default series filter, custom series filter, and/or additional filters.",
+      "inlineType": {
+        "name": "BaseFilterOptions",
+        "properties": [
+          {
+            "name": "additionalFilters",
+            "optional": true,
+            "type": "React.ReactNode",
+          },
+          {
+            "name": "seriesFilter",
+            "optional": true,
+            "type": "boolean",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "filter",
+      "optional": true,
+      "type": "BaseFilterOptions",
+    },
+    {
+      "defaultValue": "false",
+      "description": "When set, the chart grows automatically to fill the parent container.",
+      "name": "fitHeight",
+      "optional": true,
+      "type": "boolean",
+    },
+    {
+      "description": "The Highcharts instance, that can be obtained as \`import Highcharts from 'highcharts'\`.
+Supported Highcharts versions:
+* \`v12\`",
+      "name": "highcharts",
+      "optional": false,
+      "type": "object | null",
+    },
+    {
+      "description": "An object that contains all of the localized strings required by the component.",
+      "i18nTag": true,
+      "inlineType": {
+        "name": "PieI18nStrings",
+        "properties": [
+          {
+            "name": "chartAccessibleDescription",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "detailPopoverDismissAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "errorText",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "legendAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "loadingText",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "recoveryText",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "segmentAccessibleDescription",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "seriesFilterLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "seriesFilterPlaceholder",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "seriesFilterSelectedAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "i18nStrings",
+      "optional": true,
+      "type": "PieI18nStrings",
+    },
+    {
+      "description": "Description of the inner chart area. Only supported for donut series.",
+      "name": "innerAreaDescription",
+      "optional": true,
+      "type": "string",
+    },
+    {
+      "description": "Title of the inner chart area. Only supported for donut series.",
+      "name": "innerAreaTitle",
+      "optional": true,
+      "type": "string",
+    },
+    {
+      "description": "Chart legend options.",
+      "inlineType": {
+        "name": "BaseLegendOptions",
+        "properties": [
+          {
+            "name": "actions",
+            "optional": true,
+            "type": "React.ReactNode",
+          },
+          {
+            "name": "enabled",
+            "optional": true,
+            "type": "boolean",
+          },
+          {
+            "name": "title",
+            "optional": true,
+            "type": "string",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "legend",
+      "optional": true,
+      "type": "BaseLegendOptions",
+    },
+    {
+      "description": "The empty, no-match, loading, or error state of the chart.",
+      "inlineType": {
+        "name": "BaseNoDataOptions",
+        "properties": [
+          {
+            "name": "empty",
+            "optional": true,
+            "type": "React.ReactNode",
+          },
+          {
+            "name": "error",
+            "optional": true,
+            "type": "React.ReactNode",
+          },
+          {
+            "name": "loading",
+            "optional": true,
+            "type": "React.ReactNode",
+          },
+          {
+            "name": "noMatch",
+            "optional": true,
+            "type": "React.ReactNode",
+          },
+          {
+            "name": "onRecoveryClick",
+            "optional": true,
+            "type": "NonCancelableEventHandler<{}>",
+          },
+          {
+            "name": "statusType",
+            "optional": true,
+            "type": ""finished" | "loading" | "error"",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "noData",
+      "optional": true,
+      "type": "BaseNoDataOptions",
+    },
+    {
+      "description": "Segment description renderer.",
+      "inlineType": {
+        "name": "(props: PieChartProps.SegmentDescriptionRenderProps) => string",
+        "parameters": [
+          {
+            "name": "props",
+            "type": "PieChartProps.SegmentDescriptionRenderProps",
+          },
+        ],
+        "returnType": "string",
+        "type": "function",
+      },
+      "name": "segmentDescription",
+      "optional": true,
+      "type": "((props: PieChartProps.SegmentDescriptionRenderProps) => string)",
+    },
+    {
+      "description": "Segment title renderer.",
+      "inlineType": {
+        "name": "(props: PieChartProps.SegmentDescriptionRenderProps) => string",
+        "parameters": [
+          {
+            "name": "props",
+            "type": "PieChartProps.SegmentDescriptionRenderProps",
+          },
+        ],
+        "returnType": "string",
+        "type": "function",
+      },
+      "name": "segmentTitle",
+      "optional": true,
+      "type": "((props: PieChartProps.SegmentDescriptionRenderProps) => string)",
+    },
+    {
+      "description": "Chart series options.
+This property corresponds to [series](https://api.highcharts.com/highcharts/series), and extends it
+with an additional "donut" series type.
+
+Supported series types:
+* [pie](https://api.highcharts.com/highcharts/series.pie).
+* donut - the pie series with predefined inner radius.",
+      "inlineType": {
+        "name": "PieChartProps.SeriesOptions",
+        "type": "union",
+        "values": [
+          "PieSeriesOptions",
+          "DonutSeriesOptions",
+        ],
+      },
+      "name": "series",
+      "optional": false,
+      "type": "PieChartProps.SeriesOptions",
+    },
+    {
+      "description": "Chart tooltip options.
+
+Supported options:
+* \`enabled\` - (optional, boolean) - Hides the tooltip.
+* \`size\` - (optional, "small" | "medium" | "large") - Specifies max tooltip size.
+* \`details\` - (optional, function) - Provides a list of key-value pairs as tooltip's body.
+* \`header\` - (optional, function) - Provides a custom tooltip header.
+* \`body\` - (optional, function) - Provides a custom tooltip content.
+* \`footer\` - (optional, function) - Adds a tooltip footer.",
+      "inlineType": {
+        "name": "PieChartProps.TooltipOptions",
+        "properties": [
+          {
+            "name": "body",
+            "optional": true,
+            "type": "((props: TooltipSlotRenderProps) => React.ReactNode)",
+          },
+          {
+            "name": "details",
+            "optional": true,
+            "type": "((props: TooltipSlotRenderProps) => ReadonlyArray<PieChartProps.TooltipDetail>)",
+          },
+          {
+            "name": "enabled",
+            "optional": true,
+            "type": "boolean",
+          },
+          {
+            "name": "footer",
+            "optional": true,
+            "type": "((props: TooltipSlotRenderProps) => React.ReactNode)",
+          },
+          {
+            "name": "header",
+            "optional": true,
+            "type": "((props: TooltipSlotRenderProps) => React.ReactNode)",
+          },
+          {
+            "name": "size",
+            "optional": true,
+            "type": ""small" | "medium" | "large"",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "tooltip",
+      "optional": true,
+      "type": "PieChartProps.TooltipOptions",
+    },
+    {
+      "description": "Specifies visible segments by their IDs. When unset, all segments are visible by default, and the visibility state
+is managed internally by the component. When a segment does not have an ID, its name is used instead.
+When the property is provided, use \`onChangeVisibleSegments\` to manage state updates.",
+      "name": "visibleSegments",
+      "optional": true,
+      "type": "ReadonlyArray<string>",
+    },
+  ],
+  "regions": [
+    {
+      "description": "Custom content to be rendered when \`highcharts=null\`. It defaults to a spinner.",
+      "isDefault": false,
+      "name": "fallback",
+    },
+  ],
   "releaseStatus": "stable",
 }
 `;

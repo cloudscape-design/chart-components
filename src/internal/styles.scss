@@ -1,0 +1,116 @@
+/*
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+*/
+@use "../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
+@use "@cloudscape-design/component-toolkit/internal/focus-visible" as focus-visible;
+
+$base-size: 10px;
+$font-family-base: cs.$font-family-base;
+$font-weight-normal: 400;
+
+@mixin default-text-style {
+  @include font-body-m;
+  color: cs.$color-text-body-default;
+  font-weight: $font-weight-normal;
+  font-family: $font-family-base;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+}
+
+@mixin font-body-m {
+  font-size: cs.$font-size-body-m;
+  line-height: cs.$line-height-body-m;
+}
+
+@mixin focus-highlight($gutter: 4px, $border-radius: cs.$border-radius-control-default-focus-ring) {
+  position: relative;
+  box-sizing: border-box;
+  outline: 2px dotted transparent;
+  outline-offset: calc($gutter - 1px);
+
+  &::before {
+    content: " ";
+    display: block;
+    position: absolute;
+    box-sizing: border-box;
+    inset-inline-start: calc(-1 * #{$gutter});
+    inset-block-start: calc(-1 * #{$gutter});
+    inline-size: calc(100% + 2 * #{$gutter});
+    block-size: calc(100% + 2 * #{$gutter});
+    border-radius: $border-radius;
+    border: 2px solid cs.$color-border-item-focused;
+  }
+}
+
+// the motion mixin definition is an exception from these scoping rules
+/* stylelint-disable @cloudscape-design/no-motion-outside-of-mixin, selector-combinator-disallowed-list, selector-pseudo-class-no-unknown, selector-class-pattern */
+@mixin with-motion {
+  @content;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    transition: none;
+  }
+
+  :global(.awsui-motion-disabled) &,
+  :global(.awsui-mode-entering) & {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* stylelint-enable @cloudscape-design/no-motion-outside-of-mixin, selector-combinator-disallowed-list, selector-pseudo-class-no-unknown, selector-class-pattern */
+
+// mixin to apply styles only when keyboard focus is needed
+// requires JavaScript part from useFocusVisible hook to be applied
+@mixin when-visible {
+  // stylelint-disable-next-line selector-combinator-disallowed-list
+  body[data-awsui-focus-visible="true"] &:focus {
+    @content;
+  }
+}
+
+@mixin styles-reset {
+  border-collapse: separate;
+  border-spacing: 0;
+  box-sizing: border-box;
+  caption-side: top;
+  cursor: auto;
+  direction: inherit;
+  empty-cells: show;
+  font-family: serif;
+  font-size: medium;
+  font-style: normal;
+  font-variant: normal;
+  font-weight: 400;
+  font-stretch: normal;
+  line-height: normal;
+  hyphens: none;
+  letter-spacing: normal;
+  list-style: disc outside none;
+  tab-size: 8;
+  text-align: start;
+  text-indent: 0;
+  text-shadow: none;
+  text-transform: none;
+  visibility: visible;
+  white-space: normal;
+  word-spacing: normal;
+}
+
+@mixin text-wrapping {
+  // When using with Flexbox, a flex item has min-width set to "auto" by default, which
+  // prevents the text wrapping. We need to override the min-width by setting it to "0"
+  min-inline-size: 0;
+
+  // `word-break: break-word` is deprecated.
+  // But its replacement, `overflow-wrap: anywhere`, is not supported in Safari 14.0 and 15.0.
+  word-break: break-word;
+}
+
+.focus-outline {
+  @include focus-visible.when-visible-unfocused {
+    stroke: cs.$color-border-item-focused;
+  }
+}

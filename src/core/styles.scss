@@ -1,0 +1,119 @@
+/*
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+*/
+
+@use "../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
+
+$side-legend-max-inline-size: 30%;
+$side-legend-min-inline-size: max(20%, 150px);
+
+.root {
+  position: relative;
+
+  .highcharts-grid-line {
+    pointer-events: none;
+  }
+}
+
+.root-fit-height {
+  block-size: 100%;
+}
+
+.no-data-container {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.no-data {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-block: cs.$space-static-xs;
+  padding-inline: cs.$space-static-m;
+  background-color: cs.$color-background-container-content;
+  border-radius: 8px;
+  border: 1px solid cs.$color-border-divider-default;
+}
+
+.no-data-wrapper {
+  overflow: hidden;
+  padding-block: cs.$space-static-xxs;
+  padding-inline: cs.$space-static-xxs;
+  border-radius: 8px;
+  background-color: cs.$color-background-container-content;
+}
+
+.no-data-empty {
+  color: cs.$color-text-empty;
+}
+
+.chart-filters {
+  padding-block-end: cs.$space-scaled-l;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: cs.$space-scaled-l;
+
+  &-series {
+    flex: 280px 0 1;
+  }
+}
+
+.axis-vertical-title {
+  display: flex;
+  gap: cs.$space-static-xs;
+  justify-content: space-between;
+  block-size: 24px;
+  margin-bottom: 4px;
+}
+
+.axis-vertical-title-item {
+  font-weight: bold;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.error-range {
+  display: flex;
+  justify-content: space-between;
+  gap: cs.$space-scaled-s;
+}
+
+.tooltip-default-header {
+  display: inline-flex;
+  align-items: center;
+  gap: cs.$space-static-xxs;
+}
+
+.chart-container-fit-height {
+  position: absolute;
+  inset: 0;
+}
+
+.chart-container-min-width {
+  overflow-x: auto;
+}
+
+.chart-plot-and-legend-wrapper {
+  display: flex;
+}
+
+.chart-plot-wrapper {
+  flex: 1;
+}
+
+.side-legend-container {
+  flex: 0;
+  overflow-y: auto;
+  max-inline-size: $side-legend-max-inline-size;
+  min-inline-size: $side-legend-min-inline-size;
+}
+
+.application {
+  // We hide the native focus outline to render a custom one around the chart plot instead.
+  outline: none;
+}

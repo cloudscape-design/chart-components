@@ -1,0 +1,123 @@
+/*
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+*/
+
+@use "../../styles" as styles;
+@use "../../../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
+@use "@cloudscape-design/component-toolkit/internal/focus-visible" as focus-visible;
+@use "./motion";
+
+.root {
+  @include styles.styles-reset;
+  @include styles.default-text-style;
+
+  overflow: auto;
+  max-height: inherit;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.root-side {
+  display: flex;
+  flex-direction: column;
+}
+
+.list {
+  display: flex;
+  list-style: none;
+  margin-block: 0;
+  margin-inline: 0;
+  padding-block: cs.$space-static-xxxs;
+  padding-inline: cs.$space-static-xxxs;
+  padding-block-start: cs.$space-scaled-xs;
+}
+
+.list-bottom {
+  flex-wrap: wrap;
+  overflow-y: auto;
+  justify-content: space-between;
+}
+
+.list-side {
+  flex-wrap: nowrap;
+  flex-direction: column;
+}
+
+.legend-bottom {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  gap: cs.$space-scaled-xxs cs.$space-static-m;
+}
+
+.legend-side {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  gap: cs.$space-scaled-xxs cs.$space-static-m;
+}
+
+.item {
+  @include styles.styles-reset;
+  @include styles.default-text-style;
+
+  display: inline-flex;
+  padding-block: 0;
+  padding-inline: 0;
+  border-block: 0;
+  border-inline: 0;
+  background-color: transparent;
+  cursor: pointer;
+  opacity: 1;
+
+  &:focus {
+    outline: none;
+  }
+
+  @include focus-visible.when-visible {
+    @include styles.focus-highlight(2px);
+  }
+
+  &.item--inactive {
+    color: cs.$color-text-interactive-default;
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+    text-decoration-color: cs.$color-text-interactive-default;
+  }
+
+  &.item--dimmed {
+    opacity: 0.35;
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+}
+
+.actions-bottom {
+  flex-direction: row;
+}
+
+.actions-side {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.actions-divider-bottom {
+  inline-size: 1px;
+  block-size: 80%;
+  margin-inline: cs.$space-scaled-xs;
+  background: cs.$color-border-divider-default;
+}
+
+.actions-divider-side {
+  inline-size: 80%;
+  block-size: 1px;
+  margin-block-end: cs.$space-scaled-xs;
+  background: cs.$color-border-divider-default;
+}

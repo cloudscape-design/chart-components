@@ -1,0 +1,110 @@
+/*
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+*/
+
+@use "../../styles" as styles;
+@use "../../../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
+
+@use "../series-marker/styles" as marker;
+
+$font-weight-bold: cs.$font-weight-heading-s;
+
+.root {
+  // used for tests
+}
+
+.value {
+  text-align: end;
+  margin-inline-start: cs.$space-static-xxl;
+
+  &.expandable {
+    font-weight: $font-weight-bold;
+  }
+}
+
+.list-item,
+.inner-list-item {
+  list-style: none;
+  position: relative;
+}
+
+.inner-list-item,
+.list-item > .key-value-pair,
+.list-item > .expandable-section {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  inline-size: 100%;
+
+  > .key {
+    @include styles.text-wrapping;
+    display: inline-flex;
+    color: cs.$color-text-group-label;
+  }
+}
+
+.sub-items {
+  &:not(.expandable) {
+    padding-inline-start: calc(marker.$marker-size + marker.$marker-margin-right);
+  }
+
+  &.expandable {
+    padding-inline-start: 0;
+
+    > .inner-list-item > .value {
+      white-space: nowrap;
+    }
+  }
+}
+
+.list {
+  display: flex;
+  margin-block: 0;
+  margin-inline: 0;
+  padding-block: 0;
+  padding-inline: 0;
+  list-style: none;
+  flex-direction: column;
+
+  > .list-item {
+    &.dimmed {
+      opacity: 0.35;
+    }
+  }
+}
+
+.list:not(.compact) > .list-item:not(:first-child),
+.inner-list-item {
+  margin-block-start: cs.$space-scaled-xxs;
+}
+
+.list-item.with-sub-items:not(.expandable) > .key-value-pair {
+  > .key,
+  > .value {
+    font-weight: $font-weight-bold;
+  }
+}
+
+.list-item .description {
+  color: cs.$color-text-body-secondary;
+  font-size: cs.$font-size-body-s;
+}
+
+.list-item.with-sub-items .description {
+  margin-top: cs.$space-scaled-xxs;
+}
+
+.full-width {
+  inline-size: 100%;
+}
+
+.highlight-indicator {
+  position: absolute;
+  top: 3px;
+  left: -6px;
+  inline-size: 3px;
+  block-size: calc(marker.$marker-size - 2px);
+  border-radius: 4px;
+  background: cs.$color-text-body-secondary;
+}

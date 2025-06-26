@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+
 import lodash from "lodash";
 import fs from "node:fs";
 import path from "node:path";
@@ -24,7 +25,9 @@ export function listPublicDirs(baseDir) {
         !elem.startsWith("__") &&
         !elem.startsWith(".") &&
         elem !== "api-docs" &&
+        elem !== "core" &&
         elem !== "internal" &&
+        elem !== "internal-do-not-use" &&
         elem !== "index.tsx" &&
         elem !== "index.ts" &&
         elem !== "test-utils",

@@ -1,117 +1,151 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Generate test utils ElementWrapper > 'dom' ElementWrapper matches the snapshot 1`] = `
-"
-// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+"// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { ElementWrapper } from '@cloudscape-design/test-utils-core/dom';
-import { appendSelector } from '@cloudscape-design/test-utils-core/utils';
+
+import { ElementWrapper } from "@cloudscape-design/test-utils-core/dom";
+import { appendSelector } from "@cloudscape-design/test-utils-core/utils";
 
 export { ElementWrapper };
 
-import SampleWrapper from './sample';
+import CartesianChartWrapper from "./cartesian-chart";
+import PieChartWrapper from "./pie-chart";
 
+export { CartesianChartWrapper, PieChartWrapper };
 
-export { SampleWrapper };
-
-declare module '@cloudscape-design/test-utils-core/dist/dom' {
-   interface ElementWrapper {
-    
-/**
- * Returns the wrapper of the first Sample that matches the specified CSS selector.
- * If no CSS selector is specified, returns the wrapper of the first Sample.
- * If no matching Sample is found, returns \`null\`.
- *
- * @param {string} [selector] CSS Selector
- * @returns {SampleWrapper | null}
- */
-findSample(selector?: string): SampleWrapper | null;
-
-/**
- * Returns an array of Sample wrapper that matches the specified CSS selector.
- * If no CSS selector is specified, returns all of the Samples inside the current wrapper.
- * If no matching Sample is found, returns an empty array.
- *
- * @param {string} [selector] CSS Selector
- * @returns {Array<SampleWrapper>}
- */
-findAllSamples(selector?: string): Array<SampleWrapper>;
-   }
+declare module "@cloudscape-design/test-utils-core/dist/dom" {
+  interface ElementWrapper {
+    /**
+     * Returns the wrapper of the first cartesian chart that matches the specified CSS selector.
+     * If no CSS selector is specified, returns the wrapper of the first cartesian chart.
+     * If no matching chart is found, returns \`null\`.
+     *
+     * @param {string} [selector] CSS Selector
+     * @returns {CartesianChartWrapper | null}
+     */
+    findCartesianHighcharts(selector?: string): CartesianChartWrapper | null;
+    /**
+     * Returns the wrapper of the first pie chart that matches the specified CSS selector.
+     * If no CSS selector is specified, returns the wrapper of the first pie chart.
+     * If no matching chart is found, returns \`null\`.
+     *
+     * @param {string} [selector] CSS Selector
+     * @returns {PieChartWrapper | null}
+     */
+    findPieHighcharts(selector?: string): PieChartWrapper | null;
+    /**
+     * Returns an array of cartesian chart wrappers that matches the specified CSS selector.
+     * If no CSS selector is specified, returns all cartesian charts inside the current wrapper.
+     * If no matching chart is found, returns an empty array.
+     *
+     * @param {string} [selector] CSS Selector
+     * @returns {CartesianChartWrapper[]}
+     */
+    findAllCartesianHighcharts(selector?: string): Array<CartesianChartWrapper>;
+    /**
+     * Returns an array of pie chart wrappers that matches the specified CSS selector.
+     * If no CSS selector is specified, returns all pie charts inside the current wrapper.
+     * If no matching chart is found, returns an empty array.
+     *
+     * @param {string} [selector] CSS Selector
+     * @returns {PieChartWrapper[]}
+     */
+    findAllPieHighcharts(selector?: string): Array<PieChartWrapper>;
+  }
 }
 
-
-ElementWrapper.prototype.findSample = function(selector) {
-  const rootSelector = \`.\${SampleWrapper.rootSelector}\`;
-  // casting to 'any' is needed to avoid this issue with generics
-  // https://github.com/microsoft/TypeScript/issues/29132
-  return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, SampleWrapper);
+ElementWrapper.prototype.findCartesianHighcharts = function (selector) {
+  return (this as any).findComponent(getComponentSelector(CartesianChartWrapper, selector), CartesianChartWrapper);
+};
+ElementWrapper.prototype.findPieHighcharts = function (selector) {
+  return (this as any).findComponent(getComponentSelector(PieChartWrapper, selector), PieChartWrapper);
+};
+ElementWrapper.prototype.findAllCartesianHighcharts = function (selector) {
+  return (this as any).findAllComponents(CartesianChartWrapper, selector);
+};
+ElementWrapper.prototype.findAllPieHighcharts = function (selector) {
+  return (this as any).findAllComponents(PieChartWrapper, selector);
 };
 
-ElementWrapper.prototype.findAllSamples = function(selector) {
-  return this.findAllComponents(SampleWrapper, selector);
-};
-
+function getComponentSelector(wrapper: { rootSelector: string }, selector?: string) {
+  return selector ? appendSelector(selector, \`.\${wrapper.rootSelector}\`) : \`.\${wrapper.rootSelector}\`;
+}
 
 export default function wrapper(root: Element = document.body) {
   if (document && document.body && !document.body.contains(root)) {
-    console.warn('[AwsUi] [test-utils] provided element is not part of the document body, interactions may work incorrectly')
-  };
+    console.warn(
+      "[AwsUi] [test-utils] provided element is not part of the document body, interactions may work incorrectly",
+    );
+  }
   return new ElementWrapper(root);
 }
 "
 `;
 
 exports[`Generate test utils ElementWrapper > 'selectors' ElementWrapper matches the snapshot 1`] = `
-"
-// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+"// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { ElementWrapper } from '@cloudscape-design/test-utils-core/selectors';
-import { appendSelector } from '@cloudscape-design/test-utils-core/utils';
+
+import { ElementWrapper } from "@cloudscape-design/test-utils-core/selectors";
+import { appendSelector } from "@cloudscape-design/test-utils-core/utils";
 
 export { ElementWrapper };
 
-import SampleWrapper from './sample';
+import CartesianChartWrapper from "./cartesian-chart";
+import PieChartWrapper from "./pie-chart";
 
+export { CartesianChartWrapper, PieChartWrapper };
 
-export { SampleWrapper };
+declare module "@cloudscape-design/test-utils-core/dist/selectors" {
+  interface ElementWrapper {
+    /**
+     * Returns a wrapper that matches charts of the given type with the specified CSS selector.
+     * If no CSS selector is specified, returns a wrapper that matches charts.
+     *
+     * @param {"cartesian" | "pie"} [type] Chart type
+     * @param {string} [selector] CSS Selector
+     * @returns {CartesianChartWrapper | PieChartWrapper}
+     */
+    findChart(type: "cartesian", selector?: string): CartesianChartWrapper | null;
+    findChart(type: "pie", selector?: string): PieChartWrapper | null;
 
-declare module '@cloudscape-design/test-utils-core/dist/selectors' {
-   interface ElementWrapper {
-    
-/**
- * Returns a wrapper that matches the Samples with the specified CSS selector.
- * If no CSS selector is specified, returns a wrapper that matches Samples.
- *
- * @param {string} [selector] CSS Selector
- * @returns {SampleWrapper}
- */
-findSample(selector?: string): SampleWrapper;
-
-/**
- * Returns a multi-element wrapper that matches Samples with the specified CSS selector.
- * If no CSS selector is specified, returns a multi-element wrapper that matches Samples.
- *
- * @param {string} [selector] CSS Selector
- * @returns {MultiElementWrapper<SampleWrapper>}
- */
-findAllSamples(selector?: string): MultiElementWrapper<SampleWrapper>;
-   }
+    /**
+     * Returns a multi-element wrapper that matches charts of the given type with the specified CSS selector.
+     * If no CSS selector is specified, returns a multi-element wrapper that matches charts.
+     *
+     * @param {"cartesian" | "pie"} [type] Chart type
+     * @param {string} [selector] CSS Selector
+     * @returns {MultiElementWrapper<CartesianChartWrapper> | MultiElementWrapper<PieChartWrapper>}
+     */
+    findAllCharts(type: "cartesian", selector?: string): Array<CartesianChartWrapper>;
+    findAllCharts(type: "pie", selector?: string): Array<PieChartWrapper>;
+  }
 }
 
-
-ElementWrapper.prototype.findSample = function(selector) {
-  const rootSelector = \`.\${SampleWrapper.rootSelector}\`;
-  // casting to 'any' is needed to avoid this issue with generics
-  // https://github.com/microsoft/TypeScript/issues/29132
-  return (this as any).findComponent(selector ? appendSelector(selector, rootSelector) : rootSelector, SampleWrapper);
+ElementWrapper.prototype.findChart = function (type, selector) {
+  switch (type) {
+    case "cartesian":
+      return (this as any).findComponent(getComponentSelector(CartesianChartWrapper, selector), CartesianChartWrapper);
+    case "pie":
+      return (this as any).findComponent(getComponentSelector(PieChartWrapper, selector), PieChartWrapper);
+  }
 };
 
-ElementWrapper.prototype.findAllSamples = function(selector) {
-  return this.findAllComponents(SampleWrapper, selector);
+ElementWrapper.prototype.findAllCharts = function (type, selector) {
+  switch (type) {
+    case "cartesian":
+      return (this as any).findAllComponents(CartesianChartWrapper, selector);
+    case "pie":
+      return (this as any).findAllComponents(PieChartWrapper, selector);
+  }
 };
 
+function getComponentSelector(wrapper: { rootSelector: string }, selector?: string) {
+  return selector ? appendSelector(selector, \`.\${wrapper.rootSelector}\`) : \`.\${wrapper.rootSelector}\`;
+}
 
-export default function wrapper(root: string = 'body') {
+export default function wrapper(root: string = "body") {
   return new ElementWrapper(root);
 }
 "

@@ -2,6 +2,7 @@
 /* eslint-disable header/header */
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+
 import * as fs from "node:fs";
 import * as path from "node:path";
 
@@ -12,7 +13,9 @@ export function getAllComponents(): string[] {
     .readdirSync(componentsDir)
     .filter(
       (name) =>
+        name !== "core" &&
         name !== "internal" &&
+        name !== "internal-do-not-use" &&
         name !== "test-utils" &&
         !name.includes(".") &&
         !name.includes("LICENSE") &&
