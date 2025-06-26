@@ -29,12 +29,12 @@ jobs:
           echo "Reference snapshots created in run ${RUN_ID}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/download-artifact@v4
-        with:
-          name: visual-regression-snapshots
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ env.RUN_ID }}
-          path: ${{ env.VISUAL_REGRESSION_SNAPSHOT_DIRECTORY }}
+      # - uses: actions/download-artifact@v4
+      #   with:
+      #     name: visual-regression-snapshots
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      #     run-id: ${{ env.RUN_ID }}
+      #     path: ${{ env.VISUAL_REGRESSION_SNAPSHOT_DIRECTORY }}
       - run: npm install
       - run: npm run build
       - run: npm run test:visual
