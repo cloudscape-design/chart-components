@@ -69,7 +69,7 @@ function ChartSeriesDetails(
       <ul className={clsx(styles.list, compactList && styles.compact)}>
         {details.map(({ key, value, marker, isDimmed, subItems, expandableId, description, highlighted }, index) => (
           <li
-            key={index}
+            key={[index, highlighted].join(",")}
             className={clsx({
               [styles.dimmed]: isDimmed,
               [styles["list-item"]]: true,
