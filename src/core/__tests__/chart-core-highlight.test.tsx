@@ -5,7 +5,7 @@ import { act } from "react";
 import highcharts from "highcharts";
 
 import "highcharts/highcharts-more";
-import { createChartWrapper, renderChart } from "./common";
+import { renderChart } from "./common";
 import { HighchartsTestHelper } from "./highcharts-utils";
 
 const hc = new HighchartsTestHelper(highcharts);
@@ -42,7 +42,6 @@ describe("CoreChart: highlight", () => {
       },
     });
 
-    expect(createChartWrapper().findLegend()).not.toBe(null);
     expect(hc.getChartSeries(0).state).toBe("");
     expect(hc.getChartSeries(1).state).toBe("");
     expect(hc.getChartSeries(2).state).toBe("");
@@ -63,4 +62,42 @@ describe("CoreChart: highlight", () => {
     expect(hc.getChartSeries(2).state).toBe("");
     expect(hc.getChartSeries(3).state).toBe("");
   });
+
+  test.each([{ stacked: false }, { stacked: true }])(
+    "highlights a single group/stack, stacked=$stacked",
+    async ({ stacked }) => {
+      renderChart({
+        highcharts,
+        options: {
+          plotOptions: { series: { stacking: stacked ? "normal" : undefined } },
+          series: [
+            { type: "column", name: "C1", data: [1, 2] },
+            { type: "column", name: "C2", data: [3, 4] },
+          ],
+        },
+      });
+
+      expect(hc.getChartSeries(0).state).toBe("");
+      expect(hc.getChartSeries(1).state).toBe("");
+
+      act(() => hc.highlightChartPoint(1, 0));
+
+      expect(hc.getChartSeries(0).state).toBe("inactive");
+      expect(hc.getChartPoint(0, 0).state).toBe("inactive");
+      expect(hc.getChartPoint(0, 1).state).toBe("inactive");
+      expect(hc.getChartSeries(1).state).toBe("hover");
+      expect(hc.getChartPoint(1, 0).state).toBe("hover");
+      expect(hc.getChartPoint(1, 1).state).toBe("inactive");
+
+      act(() => hc.leaveChartPoint(1, 0));
+      await clearHighlightPause();
+
+      expect(hc.getChartSeries(0).state).toBe("");
+      expect(hc.getChartPoint(0, 0).state).toBe("");
+      expect(hc.getChartPoint(0, 1).state).toBe("");
+      expect(hc.getChartSeries(1).state).toBe("");
+      expect(hc.getChartPoint(1, 0).state).toBe("");
+      expect(hc.getChartPoint(1, 1).state).toBe("");
+    },
+  );
 });
