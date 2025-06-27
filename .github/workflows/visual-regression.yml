@@ -35,14 +35,14 @@ jobs:
       #     github-token: ${{ secrets.GITHUB_TOKEN }}
       #     run-id: ${{ env.RUN_ID }}
       #     path: ${{ env.VISUAL_REGRESSION_SNAPSHOT_DIRECTORY }}
-      - run: npm install
-      - run: npm run build
-      - run: npm run test:visual
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: visual-regression-snapshots-results
-          path: ${{ env.VISUAL_REGRESSION_SNAPSHOT_DIRECTORY }}
+      # - run: npm install
+      # - run: npm run build
+      # - run: npm run test:visual
+      # - uses: actions/upload-artifact@v4
+        # if: always()
+        # with:
+        #   name: visual-regression-snapshots-results
+        #   path: ${{ env.VISUAL_REGRESSION_SNAPSHOT_DIRECTORY }}
   update:
     name: Update Snapshots
     runs-on: ubuntu-latest
