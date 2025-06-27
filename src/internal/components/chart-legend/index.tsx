@@ -228,6 +228,60 @@ export const ChartLegend = ({
   const tooltipContent = tooltipTarget && getTooltipContent({ legendItem: tooltipTarget });
   const tooltipPosition = position === "bottom" ? "bottom" : "left";
 
+  const defaultAxisItems = useMemo(() => items.filter((item) => !item.oppositeAxis), [items]);
+  const oppositeAxisItems = useMemo(() => items.filter((item) => item.oppositeAxis), [items]);
+  const renderLegendItems = (itemsPartition: readonly CoreLegendItem[], fromIndex: number) => {
+    return itemsPartition.map((item, index) => {
+      const realIndex = index + fromIndex;
+      const handlers = {
+        onMouseEnter: () => {
+          showHighlight(item.id);
+          showTooltip(item.id);
+        },
+        onMouseLeave: () => {
+          clearHighlight();
+          hideTooltip();
+        },
+        onFocus: () => {
+          onFocus(realIndex, item.id);
+        },
+        onBlur: (event: React.FocusEvent) => {
+          onBlur(event);
+        },
+        onKeyDown,
+      };
+      const thisTriggerRef = (elem: null | HTMLElement) => {
+        if (elem) {
+          elementsByIndexRef.current[realIndex] = elem;
+          elementsByIdRef.current[item.id] = elem;
+        } else {
+          delete elementsByIndexRef.current[realIndex];
+          delete elementsByIdRef.current[realIndex];
+        }
+      };
+      return (
+        <LegendItemTrigger
+          key={realIndex}
+          {...handlers}
+          ref={thisTriggerRef}
+          onClick={(event) => {
+            if (event.metaKey || event.ctrlKey) {
+              toggleItem(item.id);
+            } else {
+              selectItem(item.id);
+            }
+          }}
+          isHighlighted={item.highlighted}
+          someHighlighted={items.some((item) => item.highlighted)}
+          itemId={item.id}
+          label={item.name}
+          visible={item.visible}
+          marker={item.marker}
+        />
+      );
+    });
+  };
+
   return (
     <SingleTabStopNavigationProvider
       ref={navigationAPI}
@@ -270,69 +324,36 @@ export const ChartLegend = ({
               >
                 {actions}
                 <div
-                  className={clsx(styles["actions-divider"], {
-                    [styles["actions-divider-bottom"]]: position === "bottom",
-                    [styles["actions-divider-side"]]: position === "side",
+                  className={clsx({
+                    [styles["legend-divider-bottom"]]: position === "bottom",
+                    [styles["legend-divider-side"]]: position === "side",
                   })}
                 />
               </div>
             </>
           )}
-          <div
-            className={clsx({
-              [styles["legend-bottom"]]: position === "bottom",
-              [styles["legend-side"]]: position === "side",
-            })}
-          >
-            {items.map((item, index) => {
-              const handlers = {
-                onMouseEnter: () => {
-                  showHighlight(item.id);
-                  showTooltip(item.id);
-                },
-                onMouseLeave: () => {
-                  clearHighlight();
-                  hideTooltip();
-                },
-                onFocus: () => {
-                  onFocus(index, item.id);
-                },
-                onBlur: (event: React.FocusEvent) => {
-                  onBlur(event);
-                },
-                onKeyDown,
-              };
-              const thisTriggerRef = (elem: null | HTMLElement) => {
-                if (elem) {
-                  elementsByIndexRef.current[index] = elem;
-                  elementsByIdRef.current[item.id] = elem;
-                } else {
-                  delete elementsByIndexRef.current[index];
-                  delete elementsByIdRef.current[index];
-                }
-              };
-              return (
-                <LegendItemTrigger
-                  key={index}
-                  {...handlers}
-                  ref={thisTriggerRef}
-                  onClick={(event) => {
-                    if (event.metaKey || event.ctrlKey) {
-                      toggleItem(item.id);
-                    } else {
-                      selectItem(item.id);
-                    }
-                  }}
-                  isHighlighted={item.highlighted}
-                  someHighlighted={items.some((item) => item.highlighted)}
-                  itemId={item.id}
-                  label={item.name}
-                  visible={item.visible}
-                  marker={item.marker}
-                />
-              );
-            })}
-          </div>
+          {position === "bottom" ? (
+            oppositeAxisItems.length === 0 ? (
+              <div className={clsx(styles["legend-bottom"])}>{renderLegendItems(items, 0)}</div>
+            ) : (
+              <div className={clsx(styles["legend-bottom-dual-axis"])}>
+                <div className={clsx(styles["legend-bottom-primary"])}>{renderLegendItems(defaultAxisItems, 0)}</div>
+                <div className={clsx(styles["legend-bottom-secondary"])}>
+                  {renderLegendItems(oppositeAxisItems, defaultAxisItems.length)}
+                </div>
+              </div>
+            )
+          ) : (
+            <div className={clsx(styles["legend-side"])}>
+              {renderLegendItems(defaultAxisItems, 0)}
+              {oppositeAxisItems.length > 0 && (
+                <>
+                  <div className={clsx(styles["legend-divider-side"])} />
+                  {renderLegendItems(oppositeAxisItems, defaultAxisItems.length)}
+                </>
+              )}
+            </div>
+          )}
         </div>
         {tooltipContent && (
           <InternalChartTooltip
