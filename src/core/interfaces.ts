@@ -3,8 +3,8 @@
 
 import type Highcharts from "highcharts";
 
-import { ChartSeriesMarkerType } from "../internal/components/series-marker";
-import { NonCancelableEventHandler } from "../internal/events";
+import { type ChartSeriesMarkerType } from "../internal/components/series-marker";
+import { type NonCancelableEventHandler } from "../internal/events";
 
 // All charts take `highcharts` instance, that can be served statically or dynamically.
 // Although it has to be of type Highcharts, the TS type we use is `null | object`, so
