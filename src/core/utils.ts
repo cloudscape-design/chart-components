@@ -140,6 +140,7 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly CoreLegen
         markerType: getSeriesMarkerType(series),
         color: getSeriesColor(series),
         visible: series.visible,
+        oppositeAxis: series.yAxis.options.opposite ?? false,
       });
     }
   };
@@ -151,6 +152,7 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly CoreLegen
         markerType: getSeriesMarkerType(point.series),
         color: getPointColor(point),
         visible: point.visible,
+        oppositeAxis: false,
       });
     }
   };
