@@ -62,7 +62,7 @@ export class ChartExtraHighlight {
     });
     for (const s of this.context.chart().series) {
       this.setSeriesState(s, includedSeries.has(s) ? "" : "inactive");
-      // We use special handling for column- series to make stacks or groups of columns that have a shared X highlighted.
+      // For column series we ensure only one group/stack that matches selected X is highlighted.
       // See: https://github.com/highcharts/highcharts/issues/23076.
       if (s.type === "column") {
         for (const d of s.data) {
@@ -86,10 +86,10 @@ export class ChartExtraHighlight {
         }
         this.setPointState(point, "hover");
       }
-      // We override point state that could have been set for columns using this.highlightChartGroup().
+      // For column series we ensure only one group/stack that matches selected X is highlighted.
       else if (s.type === "column") {
         for (const d of s.data) {
-          this.setPointState(d, "");
+          this.setPointState(d, d === point ? "hover" : "inactive");
         }
       }
     }
