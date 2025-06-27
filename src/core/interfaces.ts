@@ -325,6 +325,7 @@ export interface CoreLegendItem {
   marker: React.ReactNode;
   visible: boolean;
   highlighted: boolean;
+  oppositeAxis: boolean;
 }
 
 export interface CoreLegendItemSpec {
@@ -333,6 +334,7 @@ export interface CoreLegendItemSpec {
   markerType: ChartSeriesMarkerType;
   color: string;
   visible: boolean;
+  oppositeAxis: boolean;
 }
 
 export interface CoreTooltipOptions {
