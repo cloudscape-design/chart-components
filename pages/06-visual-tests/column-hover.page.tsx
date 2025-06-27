@@ -19,19 +19,22 @@ const domain = [
 export default function () {
   return (
     <Page title="Column series hover visual regression page">
-      <ColumnLayout columns={2}>
+      <ColumnLayout columns={3}>
         <PageSection>
-          <Chart stacked={false} />
+          <Chart type="stacked" />
         </PageSection>
         <PageSection>
-          <Chart stacked={true} />
+          <Chart type="grouped" />
+        </PageSection>
+        <PageSection>
+          <Chart type="single" />
         </PageSection>
       </ColumnLayout>
     </Page>
   );
 }
 
-function Chart({ stacked }: { stacked: boolean }) {
+function Chart({ type }: { type: "single" | "stacked" | "grouped" }) {
   const { chartProps } = useChartSettings();
   return (
     <CoreChart
@@ -40,29 +43,29 @@ function Chart({ stacked }: { stacked: boolean }) {
       legend={{ enabled: false }}
       tooltip={{ placement: "outside" }}
       options={{
-        plotOptions: { series: { stacking: stacked ? "normal" : undefined } },
+        plotOptions: { series: { stacking: type === "stacked" ? "normal" : undefined } },
         series: [
           {
             name: "Severe",
-            type: "column",
+            type: "column" as const,
             data: [22, 28, 25, 13, 28],
           },
           {
             name: "Moderate",
-            type: "column",
+            type: "column" as const,
             data: [18, 21, 22, 0, 1],
           },
           {
             name: "Low",
-            type: "column",
+            type: "column" as const,
             data: [17, 19, 18, 17, 15],
           },
           {
             name: "Unclassified",
-            type: "column",
+            type: "column" as const,
             data: [24, 18, 16, 14, 16],
           },
-        ],
+        ].slice(0, type === "single" ? 1 : 4),
         xAxis: [
           {
             type: "category",
@@ -75,7 +78,8 @@ function Chart({ stacked }: { stacked: boolean }) {
       callback={(api) => {
         setTimeout(() => {
           if (api.chart.series) {
-            const point = api.chart.series[1].data.find((p) => p.x === 2)!;
+            const seriesIndex = Math.min(api.chart.series.length - 1, 1);
+            const point = api.chart.series[seriesIndex].data.find((p) => p.x === 2)!;
             api.highlightChartPoint(point);
           }
         }, 0);
