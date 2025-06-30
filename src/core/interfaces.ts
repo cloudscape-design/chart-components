@@ -15,74 +15,82 @@ import { NonCancelableEventHandler } from "../internal/events";
  */
 export interface BaseChartOptions {
   /**
-   * The Highcharts instance, that can be obtained as `import Highcharts from 'highcharts'`.
-   * Supported Highcharts versions:
-   * * `v12`
+   * The Highcharts instance, that can be obtained using `import Highcharts from "highcharts"`.
+   * Supported Highcharts versions: 12.
    */
   highcharts: null | object;
 
   /**
-   * Custom content to be rendered when `highcharts=null`. It defaults to a spinner.
+   * Custom content that renders when `highcharts` is null. It renders a spinner if not defined.
    */
   fallback?: React.ReactNode;
 
   /**
-   * The height of the chart plot in pixels. It does not include legend, filter, header, and footer.
+   * The height of the chart plot in pixels. It does not include legend and filter.
    */
   chartHeight?: number;
 
   /**
-   * When set, the chart grows automatically to fill the parent container.
+   * The chart automatically adjusts its height to fill the parent container when this property is set.
    */
   fitHeight?: boolean;
 
   /**
-   * Defines the minimal allowed height of the chart plot. Use it when `fitHeight=true`
-   * to prevent the chart plot become too small to digest the content of it. If the parent container is
-   * too small to satisfy the min width value, the horizontal scrollbar is automatically added.
+   * Defines the minimum allowed height of the chart plot. Use this when `fitHeight=true` to
+   * prevent the chart plot from becoming too small to display its content. When the parent
+   * container is smaller than the minimum height, a vertical scrollbar appears automatically.
    */
   chartMinHeight?: number;
 
   /**
-   * Defines the minimal allowed width of the chart plot. If the parent container is too small to satisfy the min
-   * width value, the horizontal scrollbar is automatically added.
+   * Defines the minimum allowed width of the chart plot. When the parent container is smaller the
+   * minimum width, the horizontal scrollbar is automatically added.
    */
   chartMinWidth?: number;
 
   /**
-   * ARIA label of the chart container.
+   * Defines the ARIA label for the chart container.
    * This property corresponds to [lang.chartContainerLabel](https://api.highcharts.com/highcharts/lang.accessibility.chartContainerLabel),
    * and requires the [accessibility module](https://www.highcharts.com/docs/accessibility/accessibility-module).
    */
   ariaLabel?: string;
 
   /**
-   * ARIA description of the chart.
+   * Defines the ARIA description of the chart container.
    * This property corresponds to [accessibility.description](https://api.highcharts.com/highcharts/accessibility.description),
    * and requires the [accessibility module](https://www.highcharts.com/docs/accessibility/accessibility-module).
    */
   ariaDescription?: string;
 
   /**
-   * Chart legend options.
+   * Defines chart legend options, including:
+   * * `enabled` (optional, boolean) - Hides legend when set to `false`.
+   * * `title` (optional, string) - Visible label, shown above the legend.
+   * * `actions` (optional, slot) - A slot before the legend that can be used to render custom actions.
    */
   legend?: BaseLegendOptions;
 
   /**
-   * The empty, no-match, loading, or error state of the chart.
+   * Defines options to represent empty, no-match, loading, and error state of the chart, including:
+   * * `statusType` (optional, "finished" | "loading" | "error") - Specifies the current status of loading data.
+   * * `empty` (slot) - Content, displayed when the chart data is empty.
+   * * `no-match` (slot) - Content, displayed when there is no data to display due to the built-in filtering.
+   * * `loading` (optional, slot) - Content, displayed when `statusType="loading"`. If omitted, the default loading state
+   * is shown, using `i18n.loadingText` or built-in i18n.
+   * * `error` (optional, slot) - Content, displayed when `statusType="error"`. If omitted, the default error state
+   * is shown, using `i18n.errorText` and `i18n.recoveryText` (when `onRecoveryClick` is provided), or built-in i18n.
+   * * `onRecoveryClick` (optional, function) - Called when the user clicks the recovery button that appears when using default error
+   * state, and only if `onRecoveryClick` is provided. Use this to enable the user to retry a failed request or provide another option
+   * for the user to recover from the error.
    */
   noData?: BaseNoDataOptions;
 
   /**
-   * Use filter to render default series filter, custom series filter, and/or additional filters.
+   * Defines options for filtering in the chart, including:
+   * * `seriesFilter` (otpional, boolean) - Displays default series filter at the top of the chart.
+   * * `additionalFilters` (otpional, slot) - A slot for custom chart filters at the top of the chart.
    */
   filter?: BaseFilterOptions;
-
-  /**
-   * An object that contains all of the localized strings required by the component.
-   * @i18n
-   */
-  i18nStrings?: CoreI18nStrings;
 }
 
 export interface BaseLegendOptions {
@@ -101,35 +109,64 @@ export interface BaseNoDataOptions {
 }
 
 export interface BaseI18nStrings {
-  /** Text that is displayed when the chart is loading, i.e. when `noData.statusType` is set to `"loading". */
   loadingText?: string;
-  /** Text that is displayed when the chart is in error state, i.e. when `noData.statusType` is set to `"error". */
   errorText?: string;
-  /** Text for the recovery button that is displayed next to the error text. */
   recoveryText?: string;
-  /** Visible label of the default series filter */
   seriesFilterLabel?: string;
-  /** Placeholder text of the default series filter */
   seriesFilterPlaceholder?: string;
-  /** ARIA label of the default series filter which is appended to any option that is selected */
   seriesFilterSelectedAriaLabel?: string;
-  /** ARIA label that is associated with the legend in case there is no visible `legendTitle` defined */
   legendAriaLabel?: string;
-  /** ARIA label for details popover dismiss button */
   detailPopoverDismissAriaLabel?: string;
-  /** Generalized accessible description of the chart, e.g. "line chart" */
   chartAccessibleDescription?: string;
 }
 
+export interface WithCartesianI18nStrings {
+  /**
+   * An object that contains all of the localized strings required by the component.
+   * @i18n
+   *
+   * Available properties:
+   * * `loadingText` (optional, string) - Text, displayed when the chart is loading, i.e. when `noData.statusType` is set to `"loading".
+   * * `errorText` (optional, string) - Text, displayed when the chart is in error state, i.e. when `noData.statusType` is set to `"error".
+   * * `recoveryText` (optional, string) - Text for the recovery button, displayed next to the error text.
+   * * `seriesFilterLabel` (optional, string) - Text for the visible label of the default series filter.
+   * * `seriesFilterPlaceholder` (optional, string) - Text for the default series filter placeholder.
+   * * `seriesFilterSelectedAriaLabel` (optional, string) - ARIA label of the default series filter which is appended to any option that is selected.
+   * * `legendAriaLabel` (optional, string) - ARIA label that is associated with the legend in case there is no visible `legend.title` defined.
+   * * `detailPopoverDismissAriaLabel` (optional, string) - ARIA label for details popover dismiss button.
+   * * `chartAccessibleDescription` (optional, string) - Accessible description of the chart plot area, e.g. "interactive chart".
+   * * `xAxisAccessibleDescription` (optional, string) - Accessible description of the x axis, e.g. "x axis".
+   * * `yAxisAccessibleDescription` (optional, string) - Accessible description of the y axis, e.g. "y axis".
+   */
+  i18nStrings?: CartesianI18nStrings;
+}
+
+export interface WithPieI18nStrings {
+  /**
+   * An object that contains all of the localized strings required by the component.
+   * @i18n
+   *
+   * Available properties:
+   * * `loadingText` (optional, string) - Text, displayed when the chart is loading, i.e. when `noData.statusType` is set to `"loading".
+   * * `errorText` (optional, string) - Text, displayed when the chart is in error state, i.e. when `noData.statusType` is set to `"error".
+   * * `recoveryText` (optional, string) - Text for the recovery button, displayed next to the error text.
+   * * `seriesFilterLabel` (optional, string) - Text for the visible label of the default series filter.
+   * * `seriesFilterPlaceholder` (optional, string) - Text for the default series filter placeholder.
+   * * `seriesFilterSelectedAriaLabel` (optional, string) - ARIA label of the default series filter which is appended to any option that is selected.
+   * * `legendAriaLabel` (optional, string) - ARIA label that is associated with the legend in case there is no visible `legend.title` defined.
+   * * `detailPopoverDismissAriaLabel` (optional, string) - ARIA label for details popover dismiss button.
+   * * `chartAccessibleDescription` (optional, string) - Accessible description of the chart plot area, e.g. "interactive chart".
+   * * `segmentAccessibleDescription` (optional, string) - Accessible description of the segment.
+   */
+  i18nStrings?: PieI18nStrings;
+}
+
 export interface CartesianI18nStrings extends BaseI18nStrings {
-  /** Generalized accessible description of the x axis, e.g. "x axis" */
   xAxisAccessibleDescription?: string;
-  /** Generalized accessible description of the y axis, e.g. "y axis" */
   yAxisAccessibleDescription?: string;
 }
 
 export interface PieI18nStrings extends BaseI18nStrings {
-  /** Generalized accessible description of the pie chart segment */
   segmentAccessibleDescription?: string;
 }
 
@@ -242,7 +279,6 @@ export interface CoreChartProps
       | "ariaDescription"
       | "filter"
       | "noData"
-      | "i18nStrings"
     >,
     CoreCartesianOptions {
   /**
@@ -312,6 +348,11 @@ export interface CoreChartProps
    * Use Cloudscape keyboard navigation, `true` by default.
    */
   keyboardNavigation?: boolean;
+  /**
+   * An object that contains all of the localized strings required by the component.
+   * @i18n
+   */
+  i18nStrings?: CartesianI18nStrings & PieI18nStrings;
 }
 
 export interface CoreLegendOptions extends BaseLegendOptions {
@@ -355,8 +396,8 @@ export interface CoreCartesianOptions {
    */
   emphasizeBaseline?: boolean;
   /**
-   * When set to "top", the title of the vertical axis (can be x or y)
-   * is shown right above the chart plot.
+   * Controls the placement of the vertical axis title.
+   * When set to "side", displays the title along the axis line.
    */
   verticalAxisTitlePlacement?: "top" | "side";
 }

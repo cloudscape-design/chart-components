@@ -3,6 +3,7 @@
 
 import highcharts from "highcharts";
 
+import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
 import { renderChart } from "./common";
 
 describe("CoreChart: container", () => {
@@ -41,7 +42,7 @@ describe("CoreChart: container", () => {
     expect(verticalAxisTitle.textContent).toBe("Y-axis title");
     expect(verticalAxisTitle.compareDocumentPosition(additionalFilters)).toBe(Node.DOCUMENT_POSITION_PRECEDING);
 
-    const chartPlot = wrapper.findChartPlot()!.getElement();
+    const chartPlot = wrapper.findByClassName(testClasses["chart-plot"])!.getElement();
     expect(chartPlot).toHaveTextContent("X-axis title");
     expect(chartPlot.compareDocumentPosition(verticalAxisTitle)).toBe(Node.DOCUMENT_POSITION_PRECEDING);
 

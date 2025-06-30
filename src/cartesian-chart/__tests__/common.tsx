@@ -58,5 +58,5 @@ export const getTooltip = () => getChart().findTooltip()!;
 export const getTooltipHeader = () => getChart().findTooltip()!.findHeader()!;
 export const getTooltipBody = () => getChart().findTooltip()!.findBody()!;
 export const getTooltipFooter = () => getChart().findTooltip()!.findFooter()!;
-export const getAllTooltipSeries = () => getChart().findTooltip()!.findSeries();
+export const getAllTooltipSeries = () => getChart().findTooltip()!.findPoints();
 export const getTooltipSeries = (index: number) => getAllTooltipSeries()[index];

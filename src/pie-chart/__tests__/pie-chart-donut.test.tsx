@@ -21,8 +21,8 @@ describe("PieChart: donut", () => {
     "does not render inner value and description when not provided, series type=%s",
     (type) => {
       render(<PieChart highcharts={Highcharts} series={{ ...commonSeries, type }} />);
-      expect(findInnerValue()).toBe(null);
-      expect(findInnerDescription()).toBe(null);
+      expect(findInnerAreaTitle()).toBe(null);
+      expect(findInnerAreaDescription()).toBe(null);
     },
   );
 
@@ -35,24 +35,24 @@ describe("PieChart: donut", () => {
         innerAreaDescription="Description"
       />,
     );
-    expect(findInnerValue()).toBe(null);
-    expect(findInnerDescription()).toBe(null);
+    expect(findInnerAreaTitle()).toBe(null);
+    expect(findInnerAreaDescription()).toBe(null);
   });
 
   test("renders inner value", () => {
     render(<PieChart highcharts={Highcharts} series={commonSeries} innerAreaTitle="Value" />);
-    expect(findInnerValue()!.getElement().textContent).toBe("Value");
+    expect(findInnerAreaTitle()!.getElement().textContent).toBe("Value");
   });
 
   test("updates inner value", () => {
     const { rerender } = render(<PieChart highcharts={Highcharts} series={commonSeries} innerAreaTitle="Value" />);
     rerender(<PieChart highcharts={Highcharts} series={commonSeries} innerAreaTitle="New value" />);
-    expect(findInnerValue()!.getElement().textContent).toBe("New value");
+    expect(findInnerAreaTitle()!.getElement().textContent).toBe("New value");
   });
 
   test("renders inner description", () => {
     render(<PieChart highcharts={Highcharts} series={commonSeries} innerAreaDescription="Description" />);
-    expect(findInnerDescription()!.getElement().textContent).toBe("Description");
+    expect(findInnerAreaDescription()!.getElement().textContent).toBe("Description");
   });
 
   test("updates inner description", () => {
@@ -67,7 +67,7 @@ describe("PieChart: donut", () => {
         innerAreaDescription="New description"
       />,
     );
-    expect(findInnerDescription()!.getElement().textContent).toBe("New description");
+    expect(findInnerAreaDescription()!.getElement().textContent).toBe("New description");
   });
 
   test("renders inner value and inner description", () => {
@@ -79,8 +79,8 @@ describe("PieChart: donut", () => {
         innerAreaDescription="Description"
       />,
     );
-    expect(findInnerValue()!.getElement().textContent).toBe("Value");
-    expect(findInnerDescription()!.getElement().textContent).toBe("Description");
+    expect(findInnerAreaTitle()!.getElement().textContent).toBe("Value");
+    expect(findInnerAreaDescription()!.getElement().textContent).toBe("Description");
   });
 
   test("updates inner value and inner description", () => {
@@ -100,8 +100,8 @@ describe("PieChart: donut", () => {
         innerAreaDescription="New description"
       />,
     );
-    expect(findInnerValue()!.getElement().textContent).toBe("New value");
-    expect(findInnerDescription()!.getElement().textContent).toBe("New description");
+    expect(findInnerAreaTitle()!.getElement().textContent).toBe("New value");
+    expect(findInnerAreaDescription()!.getElement().textContent).toBe("New description");
   });
 });
 
@@ -109,10 +109,10 @@ function findChart() {
   return createWrapper().findPieHighcharts()!;
 }
 
-function findInnerValue() {
-  return findChart()!.findInnerValue();
+function findInnerAreaTitle() {
+  return findChart()!.findInnerAreaTitle();
 }
 
-function findInnerDescription() {
-  return findChart()!.findInnerDescription();
+function findInnerAreaDescription() {
+  return findChart()!.findInnerAreaDescription();
 }

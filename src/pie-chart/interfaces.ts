@@ -7,9 +7,9 @@ import { NonCancelableEventHandler } from "../internal/events";
 // PieChartProps is the type for PieChart React component properties. Unlike in Highcharts API,
 // we pass options directly to the component, instead of grouping them all into a single "options" property.
 // We do still organize related options in groups, e.g.: "SeriesOptions", "TooltipOptions".
-export interface PieChartProps extends CoreTypes.BaseChartOptions {
+export interface PieChartProps extends CoreTypes.BaseChartOptions, CoreTypes.WithPieI18nStrings {
   /**
-   * Chart series options.
+   * Defines series options of the chart.
    * This property corresponds to [series](https://api.highcharts.com/highcharts/series), and extends it
    * with an additional "donut" series type.
    *
@@ -20,63 +20,60 @@ export interface PieChartProps extends CoreTypes.BaseChartOptions {
   series: null | PieChartProps.SeriesOptions;
 
   /**
-   * Chart tooltip options.
-   *
-   * Supported options:
+   * Defines tooltip options of the chart, including:
    * * `enabled` - (optional, boolean) - Hides the tooltip.
    * * `size` - (optional, "small" | "medium" | "large") - Specifies max tooltip size.
    * * `details` - (optional, function) - Provides a list of key-value pairs as tooltip's body.
-   * * `header` - (optional, function) - Provides a custom tooltip header.
-   * * `body` - (optional, function) - Provides a custom tooltip content.
-   * * `footer` - (optional, function) - Adds a tooltip footer.
+   * * `header` - (optional, function) - Renders a custom tooltip header.
+   * * `body` - (optional, function) - Renders a custom tooltip body.
+   * * `footer` - (optional, function) - Renders a custom tooltip footer.
    */
   tooltip?: PieChartProps.TooltipOptions;
 
   /**
-   * Specifies visible segments by their IDs. When unset, all segments are visible by default, and the visibility state
-   * is managed internally by the component. When a segment does not have an ID, its name is used instead.
-   * When the property is provided, use `onChangeVisibleSegments` to manage state updates.
+   * Specifies which segments to show using their IDs. By default, all segments are visible and managed by the component.
+   * If a segment doesn't have an ID, its name is used. When using this property, manage state updates with `onChangeVisibleSegments`.
    */
   visibleSegments?: readonly string[];
 
   /**
-   * A callback, triggered when segments visibility changes as result of user interacting with the legend or filter.
+   * A callback function, triggered when segments visibility changes as a result of user interaction with the legend or filter.
    */
   onChangeVisibleSegments?: NonCancelableEventHandler<{ visibleSegments: string[] }>;
 
   /**
-   * Segment title renderer.
+   * A function that determines the title of a segment displayed on the chart. The title appears above the segment
+   * description defined by `segmentDescription`. By default, it displays the segment name. You can hide the title
+   * by returning an empty string from the function.
    */
   segmentTitle?: (props: PieChartProps.SegmentTitleRenderProps) => string;
 
   /**
-   * Segment description renderer.
+   * A function determining the segment description displayed on the chart below the segment title.
    */
   segmentDescription?: (props: PieChartProps.SegmentDescriptionRenderProps) => string;
 
   /**
-   * Title of the inner chart area. Only supported for donut series.
+   * Title displayed in the donut chart's inner area.
    */
   innerAreaTitle?: string;
 
   /**
-   * Description of the inner chart area. Only supported for donut series.
+   * Description text displayed in the donut chart's inner area.
    */
   innerAreaDescription?: string;
-
-  /**
-   * An object that contains all of the localized strings required by the component.
-   * @i18n
-   */
-  i18nStrings?: CoreTypes.PieI18nStrings;
 }
 
 export namespace PieChartProps {
   export interface Ref {
-    // Controls segments visibility that works with both controlled and uncontrolled visibility mode.
+    /**
+     * Controls segments visibility and works with both controlled and uncontrolled visibility modes.
+     */
     setVisibleSegments(visibleSegments: readonly string[]): void;
-    // Same as `setVisibleSegments`, but applies to all segments and requires no segments IDs on input. This is useful when
-    // implementing clear-filter action in no-match state.
+    /**
+     * Functions similarly to `setVisibleSeries`, but applies to all series and doesn't require series IDs as input.
+     * Use this when implementing clear-filter actions in no-match states.
+     */
     showAllSegments(): void;
   }
 
