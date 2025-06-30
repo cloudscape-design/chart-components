@@ -93,9 +93,16 @@ function computeDerivedState(chart: Highcharts.Chart): ChartExtraContext.Derived
     pointsByX.set(point.x, xPoints);
   };
   const compareX = (a: number, b: number) => a - b;
+
+  const hasIsInternal = (
+    options: Highcharts.SeriesOptionsType,
+  ): options is Highcharts.SeriesOptionsType & { isInternal: boolean } => {
+    return "isInternal" in options;
+  };
+
   for (const s of chart.series) {
     const seriesX = new Set<number>();
-    if (s.visible) {
+    if (s.visible && (!hasIsInternal(s.options) || !s.options.isInternal)) {
       for (const d of s.data) {
         // Points with y=null represent the absence of value, there is no need to include them and those
         // should have no impact on computed rects or navigation.
