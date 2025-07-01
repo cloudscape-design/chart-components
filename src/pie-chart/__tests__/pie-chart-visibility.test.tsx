@@ -26,13 +26,13 @@ function getVisibilityState() {
   };
 }
 
-const onChangeVisibleSegments = vi.fn();
+const onVisibleSegmentsChange = vi.fn();
 
 afterEach(() => {
-  onChangeVisibleSegments.mockReset();
+  onVisibleSegmentsChange.mockReset();
 });
 
-const defaultProps = { highcharts, onChangeVisibleSegments };
+const defaultProps = { highcharts, onVisibleSegmentsChange };
 
 const series: PieChartProps.SeriesOptions = {
   name: "Pie",
@@ -64,7 +64,7 @@ describe("PieChart: visibility", () => {
       hiddenPoints: ["P1"],
     });
 
-    expect(onChangeVisibleSegments).toHaveBeenCalledWith(
+    expect(onVisibleSegmentsChange).toHaveBeenCalledWith(
       expect.objectContaining({
         detail: {
           visibleSegments: ["P2", "P3"],

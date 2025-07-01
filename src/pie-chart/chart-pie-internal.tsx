@@ -30,17 +30,17 @@ export const InternalPieChart = forwardRef(
   ({ series: originalSeries, tooltip, ...props }: InternalPieChartProps, ref: React.Ref<PieChartProps.Ref>) => {
     const apiRef = useRef<null | CoreChartAPI>(null);
 
-    // When visibleSegments and onChangeVisibleSegments are provided - the segments visibility can be controlled from the outside.
+    // When visibleSegments and onVisibleSegmentsChange are provided - the segments visibility can be controlled from the outside.
     // Otherwise - the component handles segments visibility using its internal state.
-    useControllableState(props.visibleSegments, props.onChangeVisibleSegments, undefined, {
+    useControllableState(props.visibleSegments, props.onVisibleSegmentsChange, undefined, {
       componentName: "PieChart",
       propertyName: "visibleSegments",
-      changeHandlerName: "onChangeVisibleSegments",
+      changeHandlerName: "onVisibleSegmentsChange",
     });
     const allSegmentIds = originalSeries.flatMap((s) => s.data.map((d) => getOptionsId(d)));
     const onVisibleSegmentsChange: CoreChartProps["onVisibleItemsChange"] = (items) => {
       const visibleSegments = items.filter((i) => i.visible).map((i) => i.id);
-      fireNonCancelableEvent(props.onChangeVisibleSegments, { visibleSegments });
+      fireNonCancelableEvent(props.onVisibleSegmentsChange, { visibleSegments });
     };
 
     // Converting donut series to Highcharts pie series.

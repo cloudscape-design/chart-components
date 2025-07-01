@@ -19,7 +19,7 @@ exports[`definition for cartesian-chart matches the snapshot > cartesian-chart 1
         "type": "object",
       },
       "detailType": "{ visibleSeries: Array<string>; }",
-      "name": "onChangeVisibleSeries",
+      "name": "onVisibleSeriesChange",
     },
   ],
   "functions": [
@@ -383,7 +383,7 @@ When set to "side", displays the title along the axis line.",
     },
     {
       "description": "Specifies which series to show using their IDs. By default, all series are visible and managed by the component.
-If a series doesn't have an ID, its name is used. When using this property, manage state updates with \`onChangeVisibleSeries\`.",
+If a series doesn't have an ID, its name is used. When using this property, manage state updates with \`onVisibleSeriesChange\`.",
       "name": "visibleSeries",
       "optional": true,
       "type": "ReadonlyArray<string>",
@@ -551,7 +551,7 @@ exports[`definition for pie-chart matches the snapshot > pie-chart 1`] = `
         "type": "object",
       },
       "detailType": "{ visibleSegments: Array<string>; }",
-      "name": "onChangeVisibleSegments",
+      "name": "onVisibleSegmentsChange",
     },
   ],
   "functions": [
@@ -914,7 +914,7 @@ Supported series types:
     },
     {
       "description": "Specifies which segments to show using their IDs. By default, all segments are visible and managed by the component.
-If a segment doesn't have an ID, its name is used. When using this property, manage state updates with \`onChangeVisibleSegments\`.",
+If a segment doesn't have an ID, its name is used. When using this property, manage state updates with \`onVisibleSegmentsChange\`.",
       "name": "visibleSegments",
       "optional": true,
       "type": "ReadonlyArray<string>",

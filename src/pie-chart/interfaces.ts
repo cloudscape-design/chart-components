@@ -32,14 +32,14 @@ export interface PieChartProps extends CoreTypes.BaseChartOptions, CoreTypes.Wit
 
   /**
    * Specifies which segments to show using their IDs. By default, all segments are visible and managed by the component.
-   * If a segment doesn't have an ID, its name is used. When using this property, manage state updates with `onChangeVisibleSegments`.
+   * If a segment doesn't have an ID, its name is used. When using this property, manage state updates with `onVisibleSegmentsChange`.
    */
   visibleSegments?: readonly string[];
 
   /**
    * A callback function, triggered when segments visibility changes as a result of user interaction with the legend or filter.
    */
-  onChangeVisibleSegments?: NonCancelableEventHandler<{ visibleSegments: string[] }>;
+  onVisibleSegmentsChange?: NonCancelableEventHandler<{ visibleSegments: string[] }>;
 
   /**
    * A function that determines the title of a segment displayed on the chart. The title appears above the segment

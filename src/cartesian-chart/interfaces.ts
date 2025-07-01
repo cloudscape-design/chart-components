@@ -98,14 +98,14 @@ export interface CartesianChartProps
 
   /**
    * Specifies which series to show using their IDs. By default, all series are visible and managed by the component.
-   * If a series doesn't have an ID, its name is used. When using this property, manage state updates with `onChangeVisibleSeries`.
+   * If a series doesn't have an ID, its name is used. When using this property, manage state updates with `onVisibleSeriesChange`.
    */
   visibleSeries?: readonly string[];
 
   /**
    * A callback function, triggered when series visibility changes as a result of user interaction with the legend or filter.
    */
-  onChangeVisibleSeries?: NonCancelableEventHandler<{ visibleSeries: string[] }>;
+  onVisibleSeriesChange?: NonCancelableEventHandler<{ visibleSeries: string[] }>;
 }
 
 export namespace CartesianChartProps {

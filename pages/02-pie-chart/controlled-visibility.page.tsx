@@ -76,7 +76,7 @@ function ExamplePieChart() {
         `${segmentValue} units, ${((segmentValue / totalValue) * 100).toFixed(0)}%`
       }
       visibleSegments={visibleSegments}
-      onChangeVisibleSegments={({ detail: { visibleSegments } }) =>
+      onVisibleSegmentsChange={({ detail: { visibleSegments } }) =>
         setSettings({ visibleItems: visibleSegments.join(",") })
       }
     />

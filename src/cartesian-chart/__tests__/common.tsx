@@ -19,9 +19,9 @@ export const StatefulChart = forwardRef((props: CartesianChartProps, ref: React.
       ref={ref}
       {...props}
       visibleSeries={visibleSeries}
-      onChangeVisibleSeries={(event) => {
+      onVisibleSeriesChange={(event) => {
         setVisibleSeries(event.detail.visibleSeries);
-        props.onChangeVisibleSeries?.(event);
+        props.onVisibleSeriesChange?.(event);
       }}
     />
   );

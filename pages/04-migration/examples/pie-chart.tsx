@@ -93,7 +93,7 @@ export function ComponentNew({
         ) : undefined,
       }}
       visibleSegments={visibleSegments}
-      onChangeVisibleSegments={({ detail }) => setVisibleSegments(detail.visibleSegments)}
+      onVisibleSegmentsChange={({ detail }) => setVisibleSegments(detail.visibleSegments)}
       innerAreaTitle="60"
       innerAreaDescription="total instances"
     />

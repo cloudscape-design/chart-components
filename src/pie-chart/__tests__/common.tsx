@@ -19,9 +19,9 @@ export const StatefulChart = forwardRef((props: PieChartProps, ref: React.Ref<Pi
       ref={ref}
       {...props}
       visibleSegments={visibleSegments}
-      onChangeVisibleSegments={(event) => {
+      onVisibleSegmentsChange={(event) => {
         setVisibleSegments(event.detail.visibleSegments);
-        props.onChangeVisibleSegments?.(event);
+        props.onVisibleSegmentsChange?.(event);
       }}
     />
   );

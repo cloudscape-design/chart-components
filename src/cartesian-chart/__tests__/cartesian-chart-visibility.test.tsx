@@ -23,13 +23,13 @@ function getVisibilityState() {
   };
 }
 
-const onChangeVisibleSeries = vi.fn();
+const onVisibleSeriesChange = vi.fn();
 
 afterEach(() => {
-  onChangeVisibleSeries.mockReset();
+  onVisibleSeriesChange.mockReset();
 });
 
-const defaultProps = { highcharts, onChangeVisibleSeries };
+const defaultProps = { highcharts, onVisibleSeriesChange };
 
 const lineSeries: CartesianChartProps.SeriesOptions[] = [
   {
@@ -74,7 +74,7 @@ describe("CartesianChart: visibility", () => {
       hiddenSeries: ["L1"],
     });
 
-    expect(onChangeVisibleSeries).toHaveBeenCalledWith(
+    expect(onVisibleSeriesChange).toHaveBeenCalledWith(
       expect.objectContaining({
         detail: {
           visibleSeries: ["L2"],

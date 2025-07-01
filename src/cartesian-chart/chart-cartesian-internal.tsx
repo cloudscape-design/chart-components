@@ -32,12 +32,12 @@ export const InternalCartesianChart = forwardRef(
   ({ tooltip, ...props }: InternalCartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
     const apiRef = useRef<null | CoreChartAPI>(null);
 
-    // When visibleSeries and onChangeVisibleSeries are provided - the series visibility can be controlled from the outside.
+    // When visibleSeries and onVisibleSeriesChange are provided - the series visibility can be controlled from the outside.
     // Otherwise - the component handles series visibility using its internal state.
-    useControllableState(props.visibleSeries, props.onChangeVisibleSeries, undefined, {
+    useControllableState(props.visibleSeries, props.onVisibleSeriesChange, undefined, {
       componentName: "CartesianChart",
       propertyName: "visibleSeries",
-      changeHandlerName: "onChangeVisibleSeries",
+      changeHandlerName: "onVisibleSeriesChange",
     });
     const allSeriesIds = props.series.map((s) => getOptionsId(s));
     // We keep local visible series state to compute threshold series data, that depends on series visibility.
@@ -46,7 +46,7 @@ export const InternalCartesianChart = forwardRef(
     const onVisibleSeriesChange: CoreChartProps["onVisibleItemsChange"] = (items) => {
       const visibleSeries = items.filter((i) => i.visible).map((i) => i.id);
       if (props.visibleSeries) {
-        fireNonCancelableEvent(props.onChangeVisibleSeries, { visibleSeries });
+        fireNonCancelableEvent(props.onVisibleSeriesChange, { visibleSeries });
       } else {
         setVisibleSeriesLocal(visibleSeries);
       }
