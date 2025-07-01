@@ -89,7 +89,12 @@ $side-legend-min-inline-size: max(20%, 150px);
   gap: cs.$space-static-xxs;
 }
 
+.chart-container-root {
+  block-size: 100%;
+}
+
 .chart-container-fit-height {
+  overflow-x: auto;
   position: absolute;
   inset: 0;
 }

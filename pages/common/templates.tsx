@@ -264,7 +264,7 @@ const ChartFrame = forwardRef(
     ref: React.Ref<HTMLDivElement>,
   ) => {
     return (
-      <div ref={ref} className={styles["chart-frame"]} style={{ height, width, overflow: "hidden" }}>
+      <div ref={ref} className={styles["chart-frame"]} style={{ height, width }}>
         {children}
         <div className={styles["chart-frame-annotation"]}>{annotation}</div>
       </div>
