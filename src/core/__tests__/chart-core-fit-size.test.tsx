@@ -111,7 +111,7 @@ describe("CoreChart: fit-size", () => {
       const offset = verticalAxisTitlePlacement === "top" ? 28 : 0;
       const { rerender } = renderChart({ highcharts, fitHeight: true, verticalAxisTitlePlacement });
 
-      // Uses default min height = 200px.
+      // Uses default min height of 200px.
       await waitFor(() => {
         expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(200 - offset), expect.anything());
       });
