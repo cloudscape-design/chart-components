@@ -13,7 +13,7 @@ import { setupTest } from "../utils";
 const w = createWrapper();
 
 test(
-  "sample",
+  "root selectors",
   setupTest("#/05-demos/website-playground-examples", BasePageObject, async (page) => {
     await expect(page.getElementsCount(w.findCartesianHighcharts().toSelector())).resolves.toBe(11);
     await expect(page.getElementsCount(w.findAllCartesianHighcharts().toSelector())).resolves.toBe(11);

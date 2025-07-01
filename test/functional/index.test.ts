@@ -12,7 +12,7 @@ import { setupTest } from "../utils";
 const wrapper = createWrapper();
 
 test(
-  "sample",
+  "index page",
   setupTest("#", BasePageObject, async (page) => {
     await expect(page.getText("h1")).resolves.toBe("Welcome!");
     await expect(page.getElementsCount(wrapper.findLink().toSelector())).resolves.toBeGreaterThan(5);
