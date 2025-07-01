@@ -45,8 +45,7 @@ describe("CoreChart: fit-size", () => {
   test("uses explicit chart height", () => {
     const { rerender } = renderChart({ highcharts });
 
-    // Using default min height of 200px.
-    expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(200), expect.anything());
+    expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(undefined), expect.anything());
 
     rerender({ highcharts, options: { chart: { height: "20rem" } } });
 

@@ -53,63 +53,59 @@ export function ChartContainer({
   chartMinHeight,
   chartMinWidth,
 }: ChartContainerProps) {
-  chartMinHeight = chartMinHeight ?? DEFAULT_CHART_MIN_HEIGHT;
-
   // The vertical axis title is rendered above the chart, and is technically not a part of the chart plot.
   // However, we want to include it to the chart's height computations as it does belong to the chart logically.
   // We do so by taking the title's constant height into account, when "top" axis placement is chosen.
   const verticalTitleOffset = Styles.verticalAxisTitleBlockSize + Styles.verticalAxisTitleMargin;
   const heightOffset = verticalAxisTitlePlacement === "top" ? verticalTitleOffset : 0;
   const withMinHeight = (height?: number) =>
-    height === undefined ? chartMinHeight : Math.max(chartMinHeight ?? 0, height) - heightOffset;
+    height === undefined ? chartMinHeight : Math.max(chartMinHeight ?? DEFAULT_CHART_MIN_HEIGHT, height) - heightOffset;
 
   const { refs, measures } = useContainerQueries();
   const measuredChartHeight = withMinHeight(measures.chart - measures.header - measures.footer);
   const effectiveChartHeight = fitHeight ? measuredChartHeight : withMinHeight(chartHeight);
   return (
-    <div className={styles["chart-container-root"]} style={{ minBlockSize: chartMinHeight }}>
-      <div
-        ref={refs.chart}
-        className={clsx({
-          [styles["chart-container-fit-height"]]: fitHeight,
-          [styles["chart-container-min-width"]]: chartMinWidth !== undefined,
-        })}
-      >
-        <div ref={refs.header}>
-          {header}
-          {filter}
-        </div>
+    <div
+      ref={refs.chart}
+      className={clsx({
+        [styles["chart-container-fit-height"]]: fitHeight,
+        [styles["chart-container-min-width"]]: chartMinWidth !== undefined,
+      })}
+    >
+      <div ref={refs.header}>
+        {header}
+        {filter}
+      </div>
 
-        {legend && legendPosition === "side" ? (
-          <div className={styles["chart-plot-and-legend-wrapper"]}>
-            <div
-              style={{ minInlineSize: chartMinWidth ?? 0 }}
-              className={clsx(styles["chart-plot-wrapper"], testClasses["chart-plot-wrapper"])}
-            >
-              {verticalAxisTitle}
-              {chart(effectiveChartHeight)}
-            </div>
-            <div className={styles["side-legend-container"]} style={{ maxBlockSize: effectiveChartHeight }}>
-              {legend}
-            </div>
-          </div>
-        ) : (
+      {legend && legendPosition === "side" ? (
+        <div className={styles["chart-plot-and-legend-wrapper"]}>
           <div
-            style={chartMinWidth !== undefined ? { minInlineSize: chartMinWidth } : {}}
-            className={testClasses["chart-plot-wrapper"]}
+            style={{ minInlineSize: chartMinWidth ?? 0 }}
+            className={clsx(styles["chart-plot-wrapper"], testClasses["chart-plot-wrapper"])}
           >
             {verticalAxisTitle}
             {chart(effectiveChartHeight)}
           </div>
-        )}
-
-        <div ref={refs.footer} style={chartMinWidth !== undefined ? { minInlineSize: chartMinWidth } : {}}>
-          {navigator && <div className={testClasses["chart-navigator"]}>{navigator}</div>}
-          {legend &&
-            legendPosition === "bottom" &&
-            (legendBottomMaxHeight ? <div style={{ maxHeight: `${legendBottomMaxHeight}px` }}>{legend}</div> : legend)}
-          {footer}
+          <div className={styles["side-legend-container"]} style={{ maxBlockSize: effectiveChartHeight }}>
+            {legend}
+          </div>
         </div>
+      ) : (
+        <div
+          style={chartMinWidth !== undefined ? { minInlineSize: chartMinWidth } : {}}
+          className={testClasses["chart-plot-wrapper"]}
+        >
+          {verticalAxisTitle}
+          {chart(effectiveChartHeight)}
+        </div>
+      )}
+
+      <div ref={refs.footer} style={chartMinWidth !== undefined ? { minInlineSize: chartMinWidth } : {}}>
+        {navigator && <div className={testClasses["chart-navigator"]}>{navigator}</div>}
+        {legend &&
+          legendPosition === "bottom" &&
+          (legendBottomMaxHeight ? <div style={{ maxHeight: `${legendBottomMaxHeight}px` }}>{legend}</div> : legend)}
+        {footer}
       </div>
     </div>
   );
