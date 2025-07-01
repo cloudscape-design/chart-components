@@ -53,16 +53,16 @@ declare module "@cloudscape-design/test-utils-core/dist/dom" {
 }
 
 ElementWrapper.prototype.findCartesianHighcharts = function (selector) {
-  return (this as any).findComponent(getComponentSelector(CartesianChartWrapper, selector), CartesianChartWrapper);
+  return this.findComponent(getComponentSelector(CartesianChartWrapper, selector), CartesianChartWrapper);
 };
 ElementWrapper.prototype.findPieHighcharts = function (selector) {
-  return (this as any).findComponent(getComponentSelector(PieChartWrapper, selector), PieChartWrapper);
+  return this.findComponent(getComponentSelector(PieChartWrapper, selector), PieChartWrapper);
 };
 ElementWrapper.prototype.findAllCartesianHighcharts = function (selector) {
-  return (this as any).findAllComponents(CartesianChartWrapper, selector);
+  return this.findAllComponents(CartesianChartWrapper, selector);
 };
 ElementWrapper.prototype.findAllPieHighcharts = function (selector) {
-  return (this as any).findAllComponents(PieChartWrapper, selector);
+  return this.findAllComponents(PieChartWrapper, selector);
 };
 
 function getComponentSelector(wrapper: { rootSelector: string }, selector?: string) {
