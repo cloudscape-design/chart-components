@@ -8,12 +8,13 @@ import { vi } from "vitest";
 import "@cloudscape-design/components/test-utils/dom";
 import { CartesianChartProps } from "../../../lib/components/cartesian-chart";
 import { toggleLegendItem } from "../../core/__tests__/common";
+import { getChartSeries } from "../../internal/utils/chart-series";
 import { getChart, ref, renderCartesianChart, renderStatefulCartesianChart } from "./common";
 
 function getVisibilityState() {
   const legend = getChart().findLegend();
   const chart = highcharts.charts.find((c) => c)!;
-  const series = chart.series;
+  const series = getChartSeries(chart.series);
   const hiddenSeries = series.filter((s) => !s.visible);
   return {
     allLegendItems: legend?.findItems().map((w) => w.getElement().textContent) ?? [],

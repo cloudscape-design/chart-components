@@ -3,6 +3,7 @@
 
 import type Highcharts from "highcharts";
 
+import { getChartSeries } from "../../internal/utils/chart-series";
 import { ChartLabels } from "../i18n-utils";
 import { ChartHighlightProps, CoreLegendItem, Rect } from "../interfaces";
 import { getGroupRect, isSeriesStacked } from "../utils";
@@ -94,15 +95,9 @@ function computeDerivedState(chart: Highcharts.Chart): ChartExtraContext.Derived
   };
   const compareX = (a: number, b: number) => a - b;
 
-  const hasIsInternal = (
-    options: Highcharts.SeriesOptionsType,
-  ): options is Highcharts.SeriesOptionsType & { isInternal: boolean } => {
-    return "isInternal" in options;
-  };
-
-  for (const s of chart.series) {
+  for (const s of getChartSeries(chart.series)) {
     const seriesX = new Set<number>();
-    if (s.visible && (!hasIsInternal(s.options) || !s.options.isInternal)) {
+    if (s.visible) {
       for (const d of s.data) {
         // Points with y=null represent the absence of value, there is no need to include them and those
         // should have no impact on computed rects or navigation.

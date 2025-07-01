@@ -4,6 +4,7 @@
 import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
+import { getChartSeries } from "../internal/utils/chart-series";
 import { getFormatter } from "./formatters";
 import { ChartLabels } from "./i18n-utils";
 import { CoreLegendItemSpec, Rect } from "./interfaces";
@@ -154,7 +155,7 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly CoreLegen
       });
     }
   };
-  for (const s of chart.series) {
+  for (const s of getChartSeries(chart.series)) {
     addSeriesItem(s);
     s.data.forEach(addPointItem);
   }

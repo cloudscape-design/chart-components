@@ -10,6 +10,7 @@ import LiveRegion from "@cloudscape-design/components/live-region";
 
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../internal/components/series-details";
 import { useSelector } from "../../internal/utils/async-store";
+import { getChartSeries } from "../../internal/utils/chart-series";
 import { ChartAPI } from "../chart-api";
 import { getFormatter } from "../formatters";
 import {
@@ -148,7 +149,7 @@ function getTooltipContentCartesian(
   const chart = group[0].series.chart;
   const getSeriesMarker = (series: Highcharts.Series) =>
     api.renderMarker(getSeriesMarkerType(series), getSeriesColor(series), true);
-  const matchedItems = findTooltipSeriesItems(chart.series, group);
+  const matchedItems = findTooltipSeriesItems(getChartSeries(chart.series), group);
   const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
     const valueFormatter = getFormatter(item.point.series.yAxis);
     const itemY = isXThreshold(item.point.series) ? null : (item.point.y ?? null);

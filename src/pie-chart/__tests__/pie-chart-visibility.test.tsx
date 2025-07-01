@@ -9,6 +9,7 @@ import "@cloudscape-design/components/test-utils/dom";
 import { PieChartProps } from "../../../lib/components/pie-chart";
 import createWrapper from "../../../lib/components/test-utils/dom";
 import { toggleLegendItem } from "../../core/__tests__/common";
+import { getChartSeries } from "../../internal/utils/chart-series";
 import { ref, renderPieChart, renderStatefulPieChart } from "./common";
 
 const getChart = () => createWrapper().findPieHighcharts()!;
@@ -16,7 +17,7 @@ const getChart = () => createWrapper().findPieHighcharts()!;
 function getVisibilityState() {
   const legend = getChart().findLegend();
   const chart = highcharts.charts.find((c) => c)!;
-  const points = chart.series.flatMap((s) => s.data);
+  const points = getChartSeries(chart.series).flatMap((s) => s.data);
   const hiddenPoints = points.filter((p) => !p.visible);
   return {
     allLegendItems: legend?.findItems().map((w) => w.getElement().textContent) ?? [],

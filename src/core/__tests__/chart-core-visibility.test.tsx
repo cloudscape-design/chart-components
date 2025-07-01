@@ -5,6 +5,7 @@ import highcharts from "highcharts";
 import { vi } from "vitest";
 
 import "@cloudscape-design/components/test-utils/dom";
+import { getChartSeries } from "../../internal/utils/chart-series";
 import { createChartWrapper, renderChart, renderStatefulChart, selectLegendItem, toggleLegendItem } from "./common";
 
 const onVisibleItemsChange = vi.fn();
@@ -58,9 +59,9 @@ const pieSeries: Highcharts.SeriesOptionsType[] = [
 function getVisibilityState() {
   const legend = createChartWrapper().findLegend();
   const chart = highcharts.charts.find((c) => c)!;
-  const series = chart.series;
+  const series = getChartSeries(chart.series);
   const hiddenSeries = series.filter((s) => !s.visible);
-  const points = chart.series.flatMap((s) => s.data);
+  const points = getChartSeries(chart.series).flatMap((s) => s.data);
   const hiddenPoints = points.filter((p) => !p.visible);
   return {
     allLegendItems: legend?.findItems().map((w) => w.getElement().textContent) ?? [],

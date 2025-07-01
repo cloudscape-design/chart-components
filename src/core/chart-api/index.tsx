@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import type Highcharts from "highcharts";
 
 import { ReadonlyAsyncStore } from "../../internal/utils/async-store";
+import { getChartSeries } from "../../internal/utils/chart-series";
 import { Writeable } from "../../internal/utils/utils";
 import {
   getChartAccessibleDescription,
@@ -326,7 +327,7 @@ export class ChartAPI {
   private resetColorCounter() {
     const chart = this.context.chart();
     if ("colorCounter" in chart && typeof chart.colorCounter === "number") {
-      chart.colorCounter = chart.series.length;
+      chart.colorCounter = getChartSeries(chart.series).length;
     }
   }
 

@@ -5,6 +5,7 @@ import type Highcharts from "highcharts";
 
 import { ChartSeriesMarker, ChartSeriesMarkerType } from "../../internal/components/series-marker";
 import AsyncStore from "../../internal/utils/async-store";
+import { getChartSeries } from "../../internal/utils/chart-series";
 import { isEqualArrays } from "../../internal/utils/utils";
 import { CoreLegendItem } from "../interfaces";
 import { getChartLegendItems, getPointId, getSeriesId } from "../utils";
@@ -128,7 +129,7 @@ function updateItemsVisibility(
     return nextVisible;
   };
 
-  for (const series of chart.series) {
+  for (const series of getChartSeries(chart.series)) {
     if (availableItemsSet.has(getSeriesId(series))) {
       series.setVisible(getVisibleAndCount(getSeriesId(series), series.visible), false);
     }
