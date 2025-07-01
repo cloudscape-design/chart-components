@@ -120,7 +120,7 @@ minimum width, the horizontal scrollbar is automatically added.",
       "type": "boolean",
     },
     {
-      "description": "The Highcharts instance, that can be obtained using \`import Highcharts from "highcharts"\`.
+      "description": "The Highcharts instance, which can be obtained using \`import Highcharts from "highcharts"\`.
 Supported Highcharts versions: 12.",
       "name": "highcharts",
       "optional": false,
@@ -235,11 +235,11 @@ This property corresponds to [chart.inverted](https://api.highcharts.com/highcha
     {
       "description": "Defines options to represent empty, no-match, loading, and error state of the chart, including:
 * \`statusType\` (optional, "finished" | "loading" | "error") - Specifies the current status of loading data.
-* \`empty\` (slot) - Content, displayed when the chart data is empty.
-* \`no-match\` (slot) - Content, displayed when there is no data to display due to the built-in filtering.
-* \`loading\` (optional, slot) - Content, displayed when \`statusType="loading"\`. If omitted, the default loading state
+* \`empty\` (slot) - Content displayed when the chart data is empty.
+* \`no-match\` (slot) - Content displayed when there is no data to display due to the built-in filtering.
+* \`loading\` (optional, slot) - Content displayed when \`statusType="loading"\`. If omitted, the default loading state
 is shown, using \`i18n.loadingText\` or built-in i18n.
-* \`error\` (optional, slot) - Content, displayed when \`statusType="error"\`. If omitted, the default error state
+* \`error\` (optional, slot) - Content displayed when \`statusType="error"\`. If omitted, the default error state
 is shown, using \`i18n.errorText\` and \`i18n.recoveryText\` (when \`onRecoveryClick\` is provided), or built-in i18n.
 * \`onRecoveryClick\` (optional, function) - Called when the user clicks the recovery button that appears when using default error
 state, and only if \`onRecoveryClick\` is provided. Use this to enable the user to retry a failed request or provide another option
@@ -523,7 +523,7 @@ applies to the tooltip points values.",
   ],
   "regions": [
     {
-      "description": "Custom content that renders when \`highcharts\` is null. It renders a spinner if not defined.",
+      "description": "Custom content that renders when \`highcharts=null\`. It renders a spinner if not defined.",
       "isDefault": false,
       "name": "fallback",
     },
@@ -645,7 +645,7 @@ minimum width, the horizontal scrollbar is automatically added.",
       "type": "boolean",
     },
     {
-      "description": "The Highcharts instance, that can be obtained using \`import Highcharts from "highcharts"\`.
+      "description": "The Highcharts instance, which can be obtained using \`import Highcharts from "highcharts"\`.
 Supported Highcharts versions: 12.",
       "name": "highcharts",
       "optional": false,
@@ -759,11 +759,11 @@ Supported Highcharts versions: 12.",
     {
       "description": "Defines options to represent empty, no-match, loading, and error state of the chart, including:
 * \`statusType\` (optional, "finished" | "loading" | "error") - Specifies the current status of loading data.
-* \`empty\` (slot) - Content, displayed when the chart data is empty.
-* \`no-match\` (slot) - Content, displayed when there is no data to display due to the built-in filtering.
-* \`loading\` (optional, slot) - Content, displayed when \`statusType="loading"\`. If omitted, the default loading state
+* \`empty\` (slot) - Content displayed when the chart data is empty.
+* \`no-match\` (slot) - Content displayed when there is no data to display due to the built-in filtering.
+* \`loading\` (optional, slot) - Content displayed when \`statusType="loading"\`. If omitted, the default loading state
 is shown, using \`i18n.loadingText\` or built-in i18n.
-* \`error\` (optional, slot) - Content, displayed when \`statusType="error"\`. If omitted, the default error state
+* \`error\` (optional, slot) - Content displayed when \`statusType="error"\`. If omitted, the default error state
 is shown, using \`i18n.errorText\` and \`i18n.recoveryText\` (when \`onRecoveryClick\` is provided), or built-in i18n.
 * \`onRecoveryClick\` (optional, function) - Called when the user clicks the recovery button that appears when using default error
 state, and only if \`onRecoveryClick\` is provided. Use this to enable the user to retry a failed request or provide another option
@@ -922,7 +922,7 @@ If a segment doesn't have an ID, its name is used. When using this property, man
   ],
   "regions": [
     {
-      "description": "Custom content that renders when \`highcharts\` is null. It renders a spinner if not defined.",
+      "description": "Custom content that renders when \`highcharts=null\`. It renders a spinner if not defined.",
       "isDefault": false,
       "name": "fallback",
     },

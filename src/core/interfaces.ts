@@ -15,13 +15,13 @@ import { NonCancelableEventHandler } from "../internal/events";
  */
 export interface BaseChartOptions {
   /**
-   * The Highcharts instance, that can be obtained using `import Highcharts from "highcharts"`.
+   * The Highcharts instance, which can be obtained using `import Highcharts from "highcharts"`.
    * Supported Highcharts versions: 12.
    */
   highcharts: null | object;
 
   /**
-   * Custom content that renders when `highcharts` is null. It renders a spinner if not defined.
+   * Custom content that renders when `highcharts=null`. It renders a spinner if not defined.
    */
   fallback?: React.ReactNode;
 
@@ -73,11 +73,11 @@ export interface BaseChartOptions {
   /**
    * Defines options to represent empty, no-match, loading, and error state of the chart, including:
    * * `statusType` (optional, "finished" | "loading" | "error") - Specifies the current status of loading data.
-   * * `empty` (slot) - Content, displayed when the chart data is empty.
-   * * `no-match` (slot) - Content, displayed when there is no data to display due to the built-in filtering.
-   * * `loading` (optional, slot) - Content, displayed when `statusType="loading"`. If omitted, the default loading state
+   * * `empty` (slot) - Content displayed when the chart data is empty.
+   * * `no-match` (slot) - Content displayed when there is no data to display due to the built-in filtering.
+   * * `loading` (optional, slot) - Content displayed when `statusType="loading"`. If omitted, the default loading state
    * is shown, using `i18n.loadingText` or built-in i18n.
-   * * `error` (optional, slot) - Content, displayed when `statusType="error"`. If omitted, the default error state
+   * * `error` (optional, slot) - Content displayed when `statusType="error"`. If omitted, the default error state
    * is shown, using `i18n.errorText` and `i18n.recoveryText` (when `onRecoveryClick` is provided), or built-in i18n.
    * * `onRecoveryClick` (optional, function) - Called when the user clicks the recovery button that appears when using default error
    * state, and only if `onRecoveryClick` is provided. Use this to enable the user to retry a failed request or provide another option
@@ -126,14 +126,14 @@ export interface WithCartesianI18nStrings {
    * @i18n
    *
    * Available properties:
-   * * `loadingText` (optional, string) - Text, displayed when the chart is loading, i.e. when `noData.statusType` is set to `"loading".
-   * * `errorText` (optional, string) - Text, displayed when the chart is in error state, i.e. when `noData.statusType` is set to `"error".
+   * * `loadingText` (optional, string) - Text, displayed when the chart is loading, i.e. when `noData.statusType` is set to "loading".
+   * * `errorText` (optional, string) - Text, displayed when the chart is in error state, i.e. when `noData.statusType` is set to "error".
    * * `recoveryText` (optional, string) - Text for the recovery button, displayed next to the error text.
    * * `seriesFilterLabel` (optional, string) - Text for the visible label of the default series filter.
    * * `seriesFilterPlaceholder` (optional, string) - Text for the default series filter placeholder.
    * * `seriesFilterSelectedAriaLabel` (optional, string) - ARIA label of the default series filter which is appended to any option that is selected.
    * * `legendAriaLabel` (optional, string) - ARIA label that is associated with the legend in case there is no visible `legend.title` defined.
-   * * `detailPopoverDismissAriaLabel` (optional, string) - ARIA label for details popover dismiss button.
+   * * `detailPopoverDismissAriaLabel` (optional, string) - ARIA label for the details popover dismiss button.
    * * `chartAccessibleDescription` (optional, string) - Accessible description of the chart plot area, e.g. "interactive chart".
    * * `xAxisAccessibleDescription` (optional, string) - Accessible description of the x axis, e.g. "x axis".
    * * `yAxisAccessibleDescription` (optional, string) - Accessible description of the y axis, e.g. "y axis".
@@ -147,14 +147,14 @@ export interface WithPieI18nStrings {
    * @i18n
    *
    * Available properties:
-   * * `loadingText` (optional, string) - Text, displayed when the chart is loading, i.e. when `noData.statusType` is set to `"loading".
-   * * `errorText` (optional, string) - Text, displayed when the chart is in error state, i.e. when `noData.statusType` is set to `"error".
+   * * `loadingText` (optional, string) - Text, displayed when the chart is loading, i.e. when `noData.statusType` is set to "loading".
+   * * `errorText` (optional, string) - Text, displayed when the chart is in error state, i.e. when `noData.statusType` is set to "error".
    * * `recoveryText` (optional, string) - Text for the recovery button, displayed next to the error text.
    * * `seriesFilterLabel` (optional, string) - Text for the visible label of the default series filter.
    * * `seriesFilterPlaceholder` (optional, string) - Text for the default series filter placeholder.
    * * `seriesFilterSelectedAriaLabel` (optional, string) - ARIA label of the default series filter which is appended to any option that is selected.
    * * `legendAriaLabel` (optional, string) - ARIA label that is associated with the legend in case there is no visible `legend.title` defined.
-   * * `detailPopoverDismissAriaLabel` (optional, string) - ARIA label for details popover dismiss button.
+   * * `detailPopoverDismissAriaLabel` (optional, string) - ARIA label for the details popover dismiss button.
    * * `chartAccessibleDescription` (optional, string) - Accessible description of the chart plot area, e.g. "interactive chart".
    * * `segmentAccessibleDescription` (optional, string) - Accessible description of the segment.
    */
