@@ -130,31 +130,40 @@ describe("CoreChart: visibility", () => {
 
     expect(getVisibilityState()).toEqual(expectedLineItems(["L2", "L3"]));
 
-    expect(onVisibleItemsChange).toHaveBeenCalledWith([
-      { id: "L1", name: "L1", marker: expect.anything(), visible: false, highlighted: false },
-      { id: "L2", name: "L2", marker: expect.anything(), visible: true, highlighted: false },
-      { id: "L3", name: "L3", marker: expect.anything(), visible: true, highlighted: false },
-    ]);
+    expect(onVisibleItemsChange).toHaveBeenCalledWith({
+      items: [
+        { id: "L1", name: "L1", marker: expect.anything(), visible: false, highlighted: false },
+        { id: "L2", name: "L2", marker: expect.anything(), visible: true, highlighted: false },
+        { id: "L3", name: "L3", marker: expect.anything(), visible: true, highlighted: false },
+      ],
+      isApiCall: false,
+    });
 
     selectLegendItem(1);
 
     expect(getVisibilityState()).toEqual(expectedLineItems(["L2"]));
 
-    expect(onVisibleItemsChange).toHaveBeenCalledWith([
-      { id: "L1", name: "L1", marker: expect.anything(), visible: false, highlighted: false },
-      { id: "L2", name: "L2", marker: expect.anything(), visible: true, highlighted: false },
-      { id: "L3", name: "L3", marker: expect.anything(), visible: false, highlighted: false },
-    ]);
+    expect(onVisibleItemsChange).toHaveBeenCalledWith({
+      items: [
+        { id: "L1", name: "L1", marker: expect.anything(), visible: false, highlighted: false },
+        { id: "L2", name: "L2", marker: expect.anything(), visible: true, highlighted: false },
+        { id: "L3", name: "L3", marker: expect.anything(), visible: false, highlighted: false },
+      ],
+      isApiCall: false,
+    });
 
     selectLegendItem(1);
 
     expect(getVisibilityState()).toEqual(expectedLineItems(["L1", "L2", "L3"]));
 
-    expect(onVisibleItemsChange).toHaveBeenCalledWith([
-      { id: "L1", name: "L1", marker: expect.anything(), visible: true, highlighted: false },
-      { id: "L2", name: "L2", marker: expect.anything(), visible: true, highlighted: false },
-      { id: "L3", name: "L3", marker: expect.anything(), visible: true, highlighted: false },
-    ]);
+    expect(onVisibleItemsChange).toHaveBeenCalledWith({
+      items: [
+        { id: "L1", name: "L1", marker: expect.anything(), visible: true, highlighted: false },
+        { id: "L2", name: "L2", marker: expect.anything(), visible: true, highlighted: false },
+        { id: "L3", name: "L3", marker: expect.anything(), visible: true, highlighted: false },
+      ],
+      isApiCall: false,
+    });
   });
 
   test("changes series visibility from the outside", () => {
@@ -208,17 +217,23 @@ describe("CoreChart: visibility", () => {
 
     toggleLegendItem(0);
 
-    expect(onVisibleItemsChange).toHaveBeenCalledWith([
-      { id: "1", name: "Line", marker: expect.anything(), visible: true, highlighted: false },
-      { id: "2", name: "Line", marker: expect.anything(), visible: true, highlighted: false },
-    ]);
+    expect(onVisibleItemsChange).toHaveBeenCalledWith({
+      items: [
+        { id: "1", name: "Line", marker: expect.anything(), visible: true, highlighted: false },
+        { id: "2", name: "Line", marker: expect.anything(), visible: true, highlighted: false },
+      ],
+      isApiCall: false,
+    });
 
     toggleLegendItem(1);
 
-    expect(onVisibleItemsChange).toHaveBeenCalledWith([
-      { id: "1", name: "Line", marker: expect.anything(), visible: false, highlighted: false },
-      { id: "2", name: "Line", marker: expect.anything(), visible: false, highlighted: false },
-    ]);
+    expect(onVisibleItemsChange).toHaveBeenCalledWith({
+      items: [
+        { id: "1", name: "Line", marker: expect.anything(), visible: false, highlighted: false },
+        { id: "2", name: "Line", marker: expect.anything(), visible: false, highlighted: false },
+      ],
+      isApiCall: false,
+    });
   });
 
   test.each([false, true])("hides items on the first render, legend=%s", (legend) => {
@@ -252,31 +267,40 @@ describe("CoreChart: visibility", () => {
 
     expect(getVisibilityState()).toEqual(expectedPieItems(["A", "C"]));
 
-    expect(onVisibleItemsChange).toHaveBeenCalledWith([
-      { id: "A", name: "A", marker: expect.anything(), visible: true, highlighted: false },
-      { id: "B", name: "B", marker: expect.anything(), visible: false, highlighted: false },
-      { id: "C", name: "C", marker: expect.anything(), visible: true, highlighted: false },
-    ]);
+    expect(onVisibleItemsChange).toHaveBeenCalledWith({
+      items: [
+        { id: "A", name: "A", marker: expect.anything(), visible: true, highlighted: false },
+        { id: "B", name: "B", marker: expect.anything(), visible: false, highlighted: false },
+        { id: "C", name: "C", marker: expect.anything(), visible: true, highlighted: false },
+      ],
+      isApiCall: false,
+    });
 
     selectLegendItem(0);
 
     expect(getVisibilityState()).toEqual(expectedPieItems(["A"]));
 
-    expect(onVisibleItemsChange).toHaveBeenCalledWith([
-      { id: "A", name: "A", marker: expect.anything(), visible: true, highlighted: false },
-      { id: "B", name: "B", marker: expect.anything(), visible: false, highlighted: false },
-      { id: "C", name: "C", marker: expect.anything(), visible: false, highlighted: false },
-    ]);
+    expect(onVisibleItemsChange).toHaveBeenCalledWith({
+      items: [
+        { id: "A", name: "A", marker: expect.anything(), visible: true, highlighted: false },
+        { id: "B", name: "B", marker: expect.anything(), visible: false, highlighted: false },
+        { id: "C", name: "C", marker: expect.anything(), visible: false, highlighted: false },
+      ],
+      isApiCall: false,
+    });
 
     selectLegendItem(0);
 
     expect(getVisibilityState()).toEqual(expectedPieItems(["A", "B", "C"]));
 
-    expect(onVisibleItemsChange).toHaveBeenCalledWith([
-      { id: "A", name: "A", marker: expect.anything(), visible: true, highlighted: false },
-      { id: "B", name: "B", marker: expect.anything(), visible: true, highlighted: false },
-      { id: "C", name: "C", marker: expect.anything(), visible: true, highlighted: false },
-    ]);
+    expect(onVisibleItemsChange).toHaveBeenCalledWith({
+      items: [
+        { id: "A", name: "A", marker: expect.anything(), visible: true, highlighted: false },
+        { id: "B", name: "B", marker: expect.anything(), visible: true, highlighted: false },
+        { id: "C", name: "C", marker: expect.anything(), visible: true, highlighted: false },
+      ],
+      isApiCall: false,
+    });
   });
 
   test("changes items visibility from the outside", () => {
@@ -337,16 +361,22 @@ describe("CoreChart: visibility", () => {
 
     toggleLegendItem(0);
 
-    expect(onVisibleItemsChange).toHaveBeenCalledWith([
-      { id: "1", name: "Segment", marker: expect.anything(), visible: true, highlighted: false },
-      { id: "2", name: "Segment", marker: expect.anything(), visible: true, highlighted: false },
-    ]);
+    expect(onVisibleItemsChange).toHaveBeenCalledWith({
+      items: [
+        { id: "1", name: "Segment", marker: expect.anything(), visible: true, highlighted: false },
+        { id: "2", name: "Segment", marker: expect.anything(), visible: true, highlighted: false },
+      ],
+      isApiCall: false,
+    });
 
     toggleLegendItem(1);
 
-    expect(onVisibleItemsChange).toHaveBeenCalledWith([
-      { id: "1", name: "Segment", marker: expect.anything(), visible: false, highlighted: false },
-      { id: "2", name: "Segment", marker: expect.anything(), visible: false, highlighted: false },
-    ]);
+    expect(onVisibleItemsChange).toHaveBeenCalledWith({
+      items: [
+        { id: "1", name: "Segment", marker: expect.anything(), visible: false, highlighted: false },
+        { id: "2", name: "Segment", marker: expect.anything(), visible: false, highlighted: false },
+      ],
+      isApiCall: false,
+    });
   });
 });

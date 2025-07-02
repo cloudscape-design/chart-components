@@ -292,16 +292,9 @@ export function InternalCoreChart({
               <HighchartsReact
                 highcharts={highcharts}
                 options={highchartsOptions}
-                callback={(chart: Highcharts.Chart) => {
-                  callback?.({
-                    chart,
-                    highcharts: highcharts as typeof Highcharts,
-                    setItemsVisible: (visibleItemIds) => api.setItemsVisible(visibleItemIds, false),
-                    highlightChartPoint: (point) => api.highlightChartPoint(point, false),
-                    highlightChartGroup: (group) => api.highlightChartGroup(group, false),
-                    clearChartHighlight: () => api.clearChartHighlight(false),
-                  });
-                }}
+                callback={(chart: Highcharts.Chart) =>
+                  callback?.({ chart, highcharts: highcharts as typeof Highcharts, ...api.publicApi })
+                }
               />
             </>
           );
