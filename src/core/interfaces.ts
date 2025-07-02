@@ -326,7 +326,7 @@ export interface CoreChartProps
   /**
    * Called when series/points visibility changes due to user interaction with legend or filter.
    */
-  onVisibleItemsChange?: (legendItems: readonly CoreLegendItem[]) => void;
+  onVisibleItemsChange?: (legendItems: readonly CoreLegendItem[], isUserAction: boolean) => void;
   /**
    * Called whenever chart tooltip is rendered to provide content for tooltip's header, body, and (optional) footer.
    */
@@ -339,11 +339,11 @@ export interface CoreChartProps
   /**
    * Called whenever chart point or group is highlighted.
    */
-  onHighlight?(props: ChartHighlightProps): void;
+  onHighlight?(props: ChartHighlightProps, isUserAction: boolean): void;
   /**
    * Called whenever chart point or group loses highlight.
    */
-  onClearHighlight?(): void;
+  onClearHighlight?(isUserAction: boolean): void;
   /**
    * Use Cloudscape keyboard navigation, `true` by default.
    */
@@ -463,10 +463,10 @@ export interface ChartHighlightProps {
 export interface CoreChartAPI {
   chart: Highcharts.Chart;
   highcharts: typeof Highcharts;
-  setItemsVisible(itemIds: readonly string[]): void;
-  highlightChartPoint(point: Highcharts.Point): void;
-  highlightChartGroup(group: readonly Highcharts.Point[]): void;
-  clearChartHighlight(): void;
+  setItemsVisible(itemIds: readonly string[], isUserAction?: boolean): void;
+  highlightChartPoint(point: Highcharts.Point, isUserAction?: boolean): void;
+  highlightChartGroup(group: readonly Highcharts.Point[], isUserAction?: boolean): void;
+  clearChartHighlight(isUserAction?: boolean): void;
 }
 
 export interface Rect {

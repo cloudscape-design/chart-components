@@ -32,9 +32,9 @@ export namespace ChartExtraContext {
   }
 
   export interface Handlers {
-    onHighlight?(props: ChartHighlightProps): void;
-    onClearHighlight?(): void;
-    onVisibleItemsChange?: (legendItems: readonly CoreLegendItem[]) => void;
+    onHighlight?(props: ChartHighlightProps, isUserAction: boolean): void;
+    onClearHighlight?(isUserAction: boolean): void;
+    onVisibleItemsChange?: (legendItems: readonly CoreLegendItem[], isUserAction: boolean) => void;
   }
 
   export interface State {

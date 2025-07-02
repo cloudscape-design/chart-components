@@ -296,10 +296,11 @@ export function InternalCoreChart({
                   callback?.({
                     chart,
                     highcharts: highcharts as typeof Highcharts,
-                    setItemsVisible: (visibleItemIds) => api.setItemsVisible(visibleItemIds),
-                    highlightChartPoint: (point) => api.highlightChartPoint(point),
-                    highlightChartGroup: (group) => api.highlightChartGroup(group),
-                    clearChartHighlight: () => api.clearChartHighlight(),
+                    setItemsVisible: (visibleItemIds, isUserAction) =>
+                      api.setItemsVisible(visibleItemIds, isUserAction),
+                    highlightChartPoint: (point, isUserAction) => api.highlightChartPoint(point, isUserAction),
+                    highlightChartGroup: (group, isUserAction) => api.highlightChartGroup(group, isUserAction),
+                    clearChartHighlight: (isUserAction) => api.clearChartHighlight(isUserAction),
                   });
                 }}
               />

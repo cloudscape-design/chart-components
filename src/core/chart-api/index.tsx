@@ -206,22 +206,22 @@ export class ChartAPI {
 
   // Callbacks used for hover and keyboard navigation, and also exposed to the public API to give the ability
   // to highlight and show tooltip for the given point or group manually.
-  public setItemsVisible = (visibleItemsIds: readonly string[]) => {
-    this.chartExtraLegend.onItemVisibilityChange(visibleItemsIds);
+  public setItemsVisible = (visibleItemsIds: readonly string[], isUserAction: boolean = true) => {
+    this.chartExtraLegend.onItemVisibilityChange(visibleItemsIds, isUserAction);
   };
-  public highlightChartPoint = (point: Highcharts.Point) => {
+  public highlightChartPoint = (point: Highcharts.Point, isUserAction: boolean = true) => {
     if (!this.isTooltipPinned) {
-      this.highlightActions(point);
+      this.highlightActions(point, { isUserAction });
     }
   };
-  public highlightChartGroup = (group: readonly Highcharts.Point[]) => {
+  public highlightChartGroup = (group: readonly Highcharts.Point[], isUserAction: boolean = true) => {
     if (!this.isTooltipPinned) {
-      this.highlightActions(group as Writeable<Highcharts.Point[]>);
+      this.highlightActions(group as Writeable<Highcharts.Point[]>, { isUserAction });
     }
   };
-  public clearChartHighlight = () => {
+  public clearChartHighlight = (isUserAction: boolean = true) => {
     if (!this.isTooltipPinned) {
-      this.clearHighlightActions();
+      this.clearHighlightActions(isUserAction);
     }
   };
 
@@ -233,12 +233,12 @@ export class ChartAPI {
         this.chartExtraNavigation.announceChart(getChartAccessibleDescription(this.context.chart()));
       },
       onFocusGroup: (group: Highcharts.Point[]) => {
-        this.highlightActions(group, true);
+        this.highlightActions(group, { overrideTooltipLock: true });
         this.chartExtraNavigation.announceElement(getGroupAccessibleDescription(group), false);
       },
       onFocusPoint: (point: Highcharts.Point) => {
         const labels = this.context.settings.labels;
-        this.highlightActions(point, true);
+        this.highlightActions(point, { overrideTooltipLock: true });
         this.chartExtraNavigation.announceElement(getPointAccessibleDescription(point, labels), false);
       },
       onBlur: () => this.clearChartHighlight(),
@@ -344,7 +344,7 @@ export class ChartAPI {
     // If the tooltip was just dismissed, it means this happened by clicking somewhere in the plot area.
     // If the clicked position differs from the one that was pinned - we show tooltip in the new position.
     else if (!positionsMatch && this.chartExtraTooltip.tooltipLock) {
-      this.highlightActions(point, true);
+      this.highlightActions(point, { overrideTooltipLock: true });
     }
   };
 
@@ -362,11 +362,14 @@ export class ChartAPI {
     // If the tooltip was just dismissed, it means this happened by clicking somewhere in the plot area.
     // If the clicked position differs from the one that was pinned - we show tooltip in the new position.
     else if (!positionsMatch && this.chartExtraTooltip.tooltipLock) {
-      this.highlightActions(group, true);
+      this.highlightActions(group, { overrideTooltipLock: true });
     }
   };
 
-  private highlightActions(target: Highcharts.Point | Highcharts.Point[], overrideTooltipLock = false) {
+  private highlightActions(
+    target: Highcharts.Point | Highcharts.Point[],
+    options?: { isUserAction?: boolean; overrideTooltipLock?: boolean },
+  ) {
     const point = Array.isArray(target) ? null : target;
     const group = Array.isArray(target) ? target : this.context.derived.getPointsByX(target.x);
 
@@ -381,18 +384,18 @@ export class ChartAPI {
       // Update tooltip and legend state.
       if (point) {
         this.chartExtraLegend.onHighlightPoint(point);
-        this.chartExtraTooltip.showTooltipOnPoint(point, group, overrideTooltipLock);
+        this.chartExtraTooltip.showTooltipOnPoint(point, group, options?.overrideTooltipLock);
       } else {
         this.chartExtraLegend.onHighlightGroup(group);
-        this.chartExtraTooltip.showTooltipOnGroup(group, overrideTooltipLock);
+        this.chartExtraTooltip.showTooltipOnGroup(group, options?.overrideTooltipLock);
       }
 
       // Notify the consumer that a highlight action was made.
-      this.context.handlers.onHighlight?.({ point, group });
+      this.context.handlers.onHighlight?.({ point, group }, options?.isUserAction ?? true);
     }
   }
 
-  private clearHighlightActions = () => {
+  private clearHighlightActions = (isUserAction: boolean) => {
     if (!this.isTooltipPinned) {
       // Update Highcharts elements state.
       this.chartExtraHighlight.clearChartItemsHighlight();
@@ -402,7 +405,7 @@ export class ChartAPI {
       this.chartExtraLegend.onClearHighlight();
 
       // Notify the consumer that a clear-highlight action was made.
-      this.context.handlers.onClearHighlight?.();
+      this.context.handlers.onClearHighlight?.(isUserAction);
     }
   };
 

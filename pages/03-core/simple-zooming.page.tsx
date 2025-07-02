@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Highcharts from "highcharts";
 import { omit } from "lodash";
 
@@ -12,7 +12,6 @@ import SpaceBetween from "@cloudscape-design/components/space-between";
 import { colorChartsBlue1400, colorChartsLineTick } from "@cloudscape-design/design-tokens";
 
 import { CoreChartAPI, CoreChartProps } from "../../lib/components/core/interfaces";
-import { DebouncedCall } from "../../lib/components/internal/utils/utils";
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
 import { dateFormatter } from "../common/formatters";
 import { PageSettings, PageSettingsForm, useChartSettings } from "../common/page-settings";
@@ -200,35 +199,34 @@ function Charts() {
     };
   }, [onNavigationClick, onNavigationKeydown]);
 
-  const highlightLock = useRef(false);
-  const highlightLockControl = useMemo(() => new DebouncedCall(), []);
-  const withLock = (callback: () => void) => {
-    if (!highlightLock.current) {
-      highlightLock.current = true;
-      highlightLockControl.call(() => (highlightLock.current = false), 0);
-      callback();
+  const onScatterHighlight: CoreChartProps["onHighlight"] = ({ group }, isUserAction) => {
+    if (!isUserAction) {
+      return;
     }
+    highlightChartGroup(group[0], getNavigatorChart());
+    highlightedPoint.current = group[0];
   };
-  const onScatterHighlight: CoreChartProps["onHighlight"] = ({ group }) =>
-    withLock(() => {
-      highlightChartGroup(group[0], getNavigatorChart());
-      highlightedPoint.current = group[0];
-    });
-  const onScatterClearHighlight = () =>
-    withLock(() => {
-      getScatterChart().clearChartHighlight();
-      highlightedPoint.current = null;
-    });
-  const onNavigatorHighlight: CoreChartProps["onHighlight"] = ({ group }) =>
-    withLock(() => {
-      highlightChartGroup(group[0], getScatterChart());
-      highlightedPoint.current = group[0];
-    });
-  const onNavigatorClearHighlight = () =>
-    withLock(() => {
-      getScatterChart().clearChartHighlight();
-      highlightedPoint.current = null;
-    });
+  const onScatterClearHighlight = (isUserAction: boolean) => {
+    if (!isUserAction) {
+      return;
+    }
+    getScatterChart().clearChartHighlight(false);
+    highlightedPoint.current = null;
+  };
+  const onNavigatorHighlight: CoreChartProps["onHighlight"] = ({ group }, isUserAction) => {
+    if (!isUserAction) {
+      return;
+    }
+    highlightChartGroup(group[0], getScatterChart());
+    highlightedPoint.current = group[0];
+  };
+  const onNavigatorClearHighlight = (isUserAction: boolean) => {
+    if (!isUserAction) {
+      return;
+    }
+    getScatterChart().clearChartHighlight(false);
+    highlightedPoint.current = null;
+  };
 
   return (
     <SpaceBetween size="s">
@@ -325,5 +323,5 @@ function highlightChartGroup(targetPoint: Highcharts.Point, api: CoreChartAPI) {
       }
     }
   }
-  api.highlightChartGroup(group);
+  api.highlightChartGroup(group, false);
 }
