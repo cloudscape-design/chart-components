@@ -463,10 +463,10 @@ export interface ChartHighlightProps {
 export interface CoreChartAPI {
   chart: Highcharts.Chart;
   highcharts: typeof Highcharts;
-  setItemsVisible(itemIds: readonly string[], isUserAction?: boolean): void;
-  highlightChartPoint(point: Highcharts.Point, isUserAction?: boolean): void;
-  highlightChartGroup(group: readonly Highcharts.Point[], isUserAction?: boolean): void;
-  clearChartHighlight(isUserAction?: boolean): void;
+  setItemsVisible(itemIds: readonly string[]): void;
+  highlightChartPoint(point: Highcharts.Point): void;
+  highlightChartGroup(group: readonly Highcharts.Point[]): void;
+  clearChartHighlight(): void;
 }
 
 export interface Rect {

@@ -210,7 +210,7 @@ function Charts() {
     if (!isUserAction) {
       return;
     }
-    getScatterChart().clearChartHighlight(false);
+    getScatterChart().clearChartHighlight();
     highlightedPoint.current = null;
   };
   const onNavigatorHighlight: CoreChartProps["onHighlight"] = ({ group }, isUserAction) => {
@@ -224,7 +224,7 @@ function Charts() {
     if (!isUserAction) {
       return;
     }
-    getScatterChart().clearChartHighlight(false);
+    getScatterChart().clearChartHighlight();
     highlightedPoint.current = null;
   };
 
@@ -323,5 +323,5 @@ function highlightChartGroup(targetPoint: Highcharts.Point, api: CoreChartAPI) {
       }
     }
   }
-  api.highlightChartGroup(group, false);
+  api.highlightChartGroup(group);
 }
