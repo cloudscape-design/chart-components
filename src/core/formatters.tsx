@@ -3,7 +3,7 @@
 
 import type Highcharts from "highcharts";
 
-import { InternalXAxisOptions, InternalYAxisOptions } from "./interfaces";
+import { CoreXAxisOptions, CoreYAxisOptions } from "./interfaces";
 
 // Takes value formatter from the axis options (InternalXAxisOptions.valueFormatter or InternalYAxisOptions.valueFormatter),
 // or provides a default formatter for numeric and datetime values.
@@ -21,7 +21,7 @@ export function getFormatter(axis?: Highcharts.Axis) {
     if (axis.options.type === "category") {
       return axis.categories?.[value] ?? value.toString();
     }
-    const axisOptions = axis.userOptions as InternalXAxisOptions | InternalYAxisOptions;
+    const axisOptions = axis.userOptions as CoreXAxisOptions | CoreYAxisOptions;
     if (axisOptions.valueFormatter) {
       return axisOptions.valueFormatter(value);
     }

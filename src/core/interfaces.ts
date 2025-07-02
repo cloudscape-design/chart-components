@@ -286,7 +286,7 @@ export interface CoreChartProps
    * overridden with explicitly provided options. An exception is event handlers - those are
    * not overridden, but merged with Cloudscape event handlers so that both are getting called.
    */
-  options: InternalChartOptions;
+  options: CoreChartOptions;
   /**
    * The Cloudscape tooltip, that comes with a vertical cursor when used on cartesian series.
    * The tooltip content is only shown when `getContent` property is defined, which is called
@@ -446,13 +446,13 @@ export interface TooltipPointFormatted {
 
 // The extended version of Highcharts.Options. The axes types are extended with Cloudscape value formatter.
 // We use a custom formatter because we cannot use the built-in Highcharts formatter for our tooltip.
-export type InternalChartOptions = Omit<Highcharts.Options, "xAxis" | "yAxis"> & {
-  xAxis?: InternalXAxisOptions | InternalXAxisOptions[];
-  yAxis?: InternalYAxisOptions | InternalYAxisOptions[];
+export type CoreChartOptions = Omit<Highcharts.Options, "xAxis" | "yAxis"> & {
+  xAxis?: CoreXAxisOptions | CoreXAxisOptions[];
+  yAxis?: CoreYAxisOptions | CoreYAxisOptions[];
 };
 
-export type InternalXAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: null | number) => string };
-export type InternalYAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: null | number) => string };
+export type CoreXAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: null | number) => string };
+export type CoreYAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: null | number) => string };
 
 export interface VisibleItemsChangeDetail {
   items: readonly CoreLegendItem[];
