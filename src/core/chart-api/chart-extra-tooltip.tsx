@@ -11,7 +11,7 @@ import { renderMarker } from "../../internal/components/series-marker/render-mar
 import AsyncStore from "../../internal/utils/async-store";
 import { SVGRendererPool, SVGRendererSingle } from "../../internal/utils/renderer-utils";
 import { DebouncedCall } from "../../internal/utils/utils";
-import { ChartHighlightProps, Rect } from "../interfaces";
+import { Rect } from "../interfaces";
 import { getGroupRect, getPointRect, isXThreshold } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
@@ -97,15 +97,21 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     }
   }
 
-  private onRenderTooltip = (props: ChartHighlightProps) => {
+  private onRenderTooltip = (props: { point: null | Highcharts.Point; group: readonly Highcharts.Point[] }) => {
     if (this.context.chart().series.some((s) => s.type === "pie")) {
-      return this.onRenderTooltipPie(props);
+      return this.onRenderTooltipPie(props.group[0]);
     } else {
       return this.onRenderTooltipCartesian(props);
     }
   };
 
-  private onRenderTooltipCartesian = ({ point, group }: ChartHighlightProps) => {
+  private onRenderTooltipCartesian = ({
+    point,
+    group,
+  }: {
+    point: null | Highcharts.Point;
+    group: readonly Highcharts.Point[];
+  }) => {
     const pointRect = point ? getPointRect(point) : getGroupRect(group.slice(0, 1));
     const groupRect = getGroupRect(group);
     // The cursor is not shown when column series are present (a UX decision).
@@ -115,10 +121,10 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     this.groupTrack.rect(this.context.chart().renderer, { ...groupRect, ...this.commonTrackAttrs });
   };
 
-  private onRenderTooltipPie = ({ group }: ChartHighlightProps) => {
+  private onRenderTooltipPie = (point: Highcharts.Point) => {
     // We only create target track for pie chart as pie chart does not support groups.
     // It is also expected that only "target" tooltip position is used for pie charts.
-    const pointRect = getPieChartTargetPlacement(group[0]);
+    const pointRect = getPieChartTargetPlacement(point);
     this.targetTrack.rect(this.context.chart().renderer, { ...pointRect, ...this.commonTrackAttrs });
   };
 

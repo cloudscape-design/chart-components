@@ -298,7 +298,7 @@ describe("CoreChart: tooltip", () => {
 
       const point = hc.getChartPoint(0, i);
       await waitFor(() => {
-        expect(onHighlight).toHaveBeenCalledWith({ point, group: expect.arrayContaining([point]) });
+        expect(onHighlight).toHaveBeenCalledWith({ point, group: expect.arrayContaining([point]), isApiCall: false });
         expect(getTooltipContent).toHaveBeenCalledWith({ point, group: expect.arrayContaining([point]) });
       });
     }

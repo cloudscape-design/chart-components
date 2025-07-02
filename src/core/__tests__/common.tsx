@@ -23,10 +23,10 @@ export function StatefulChart(props: CoreChartProps) {
     <CoreChart
       {...props}
       visibleItems={visibleItems}
-      onVisibleItemsChange={(legendItems) => {
+      onVisibleItemsChange={({ items: legendItems, isApiCall }) => {
         const visibleItems = legendItems.filter((i) => i.visible).map((i) => i.id);
         setVisibleItems(visibleItems);
-        props.onVisibleItemsChange?.(legendItems);
+        props.onVisibleItemsChange?.({ items: legendItems, isApiCall });
       }}
     />
   );
