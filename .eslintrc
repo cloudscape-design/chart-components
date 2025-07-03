@@ -103,7 +103,7 @@
           "error",
           {
             "selector": "ImportDeclaration[source.value='highcharts'][importKind='value']",
-            "message": "Use `import type` from 'highcharts' instead of regular import.",
+            "message": "Use `import type Highcharts from 'highcharts'` instead of regular import.",
           },
         ],
       },
