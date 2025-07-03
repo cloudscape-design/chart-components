@@ -235,11 +235,11 @@ This property corresponds to [chart.inverted](https://api.highcharts.com/highcha
     {
       "description": "Defines options to represent empty, no-match, loading, and error state of the chart, including:
 * \`statusType\` (optional, "finished" | "loading" | "error") - Specifies the current status of loading data.
-* \`empty\` (slot) - Content displayed when the chart data is empty.
-* \`no-match\` (slot) - Content displayed when there is no data to display due to the built-in filtering.
-* \`loading\` (optional, slot) - Content displayed when \`statusType="loading"\`. If omitted, the default loading state
+* \`empty\` (optional, ReactNode) - Content displayed when the chart data is empty.
+* \`noMatch\` (optional, ReactNode) - Content displayed when there is no data to display due to the built-in filtering.
+* \`loading\` (optional, ReactNode) - Content displayed when \`statusType="loading"\`. If omitted, the default loading state
 is shown, using \`i18n.loadingText\` or built-in i18n.
-* \`error\` (optional, slot) - Content displayed when \`statusType="error"\`. If omitted, the default error state
+* \`error\` (optional, ReactNode) - Content displayed when \`statusType="error"\`. If omitted, the default error state
 is shown, using \`i18n.errorText\` and \`i18n.recoveryText\` (when \`onRecoveryClick\` is provided), or built-in i18n.
 * \`onRecoveryClick\` (optional, function) - Called when the user clicks the recovery button that appears when using default error
 state, and only if \`onRecoveryClick\` is provided. Use this to enable the user to retry a failed request or provide another option
@@ -759,11 +759,11 @@ Supported Highcharts versions: 12.",
     {
       "description": "Defines options to represent empty, no-match, loading, and error state of the chart, including:
 * \`statusType\` (optional, "finished" | "loading" | "error") - Specifies the current status of loading data.
-* \`empty\` (slot) - Content displayed when the chart data is empty.
-* \`no-match\` (slot) - Content displayed when there is no data to display due to the built-in filtering.
-* \`loading\` (optional, slot) - Content displayed when \`statusType="loading"\`. If omitted, the default loading state
+* \`empty\` (optional, ReactNode) - Content displayed when the chart data is empty.
+* \`noMatch\` (optional, ReactNode) - Content displayed when there is no data to display due to the built-in filtering.
+* \`loading\` (optional, ReactNode) - Content displayed when \`statusType="loading"\`. If omitted, the default loading state
 is shown, using \`i18n.loadingText\` or built-in i18n.
-* \`error\` (optional, slot) - Content displayed when \`statusType="error"\`. If omitted, the default error state
+* \`error\` (optional, ReactNode) - Content displayed when \`statusType="error"\`. If omitted, the default error state
 is shown, using \`i18n.errorText\` and \`i18n.recoveryText\` (when \`onRecoveryClick\` is provided), or built-in i18n.
 * \`onRecoveryClick\` (optional, function) - Called when the user clicks the recovery button that appears when using default error
 state, and only if \`onRecoveryClick\` is provided. Use this to enable the user to retry a failed request or provide another option
