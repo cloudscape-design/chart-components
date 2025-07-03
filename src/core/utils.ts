@@ -7,7 +7,15 @@ import { ChartSeriesMarkerType } from "../internal/components/series-marker";
 import { getChartSeries } from "../internal/utils/chart-series";
 import { getFormatter } from "./formatters";
 import { ChartLabels } from "./i18n-utils";
-import { CoreLegendItemSpec, Rect } from "./interfaces";
+import { Rect } from "./interfaces";
+
+export interface LegendItemSpec {
+  id: string;
+  name: string;
+  markerType: ChartSeriesMarkerType;
+  color: string;
+  visible: boolean;
+}
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
 // We expect that items requiring referencing (e.g. in order to control their visibility) have the unique identifier defined.
@@ -120,8 +128,8 @@ export function getPointColor(point?: Highcharts.Point): string {
 
 // There exists a Highcharts APIs to access legend items, but it is unfortunately not available, when
 // Highcharts legend is disabled. Instead, we use this custom method to collect legend items from the chart.
-export function getChartLegendItems(chart: Highcharts.Chart): readonly CoreLegendItemSpec[] {
-  const legendItems: CoreLegendItemSpec[] = [];
+export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendItemSpec[] {
+  const legendItems: LegendItemSpec[] = [];
   const addSeriesItem = (series: Highcharts.Series) => {
     // The pie series is not shown in the legend. Instead, we show pie segments.
     if (series.type === "pie") {

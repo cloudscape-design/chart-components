@@ -183,7 +183,7 @@ export namespace CartesianChartProps {
     errorRanges: { low: number; high: number; series: CartesianChartProps.ErrorBarSeriesOptions }[];
     series: NonErrorBarSeriesOptions;
   }
-  export type TooltipPointFormatted = CoreTypes.TooltipPointFormatted;
+  export type TooltipPointFormatted = CoreTypes.BaseTooltipPointFormatted;
 
   export type LegendOptions = CoreTypes.BaseLegendOptions;
 

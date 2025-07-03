@@ -11,7 +11,7 @@ import Checkbox from "@cloudscape-design/components/checkbox";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import { colorChartsBlue1400, colorChartsLineTick } from "@cloudscape-design/design-tokens";
 
-import { CoreChartAPI, CoreChartProps } from "../../lib/components/core/interfaces";
+import { CoreChartProps } from "../../lib/components/core/interfaces";
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
 import { dateFormatter } from "../common/formatters";
 import { PageSettings, PageSettingsForm, useChartSettings } from "../common/page-settings";
@@ -135,9 +135,9 @@ function Charts() {
     chartProps,
   } = useChartSettings<ThisPageSettings>({ more: true });
   const commonProps = omit(chartProps.cartesian, ["ref"]);
-  const scatterChartRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
+  const scatterChartRef = useRef<CoreChartProps.ChartAPI>(null) as React.MutableRefObject<CoreChartProps.ChartAPI>;
   const getScatterChart = () => scatterChartRef.current!;
-  const navigatorChartRef = useRef<CoreChartAPI>(null) as React.MutableRefObject<CoreChartAPI>;
+  const navigatorChartRef = useRef<CoreChartProps.ChartAPI>(null) as React.MutableRefObject<CoreChartProps.ChartAPI>;
   const getNavigatorChart = () => navigatorChartRef.current!;
 
   const [zoomRange, setZoomRange] = useState<null | [number, number]>(null);
@@ -314,7 +314,7 @@ function Charts() {
   );
 }
 
-function highlightChartGroup(targetPoint: Highcharts.Point, api: CoreChartAPI) {
+function highlightChartGroup(targetPoint: Highcharts.Point, api: CoreChartProps.ChartAPI) {
   const group: Highcharts.Point[] = [];
   for (const s of api.chart.series) {
     for (const p of s.data) {

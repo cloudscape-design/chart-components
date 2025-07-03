@@ -6,14 +6,7 @@ import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
 import { InternalCoreChart } from "../core/chart-core";
-import {
-  CoreChartAPI,
-  CoreChartProps,
-  ErrorBarSeriesOptions,
-  TooltipContentItem,
-  TooltipPointProps,
-  TooltipSlotProps,
-} from "../core/interfaces";
+import { CoreChartProps, ErrorBarSeriesOptions } from "../core/interfaces";
 import { getOptionsId, isXThreshold } from "../core/utils";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import { fireNonCancelableEvent } from "../internal/events";
@@ -30,7 +23,7 @@ interface InternalCartesianChartProps extends InternalBaseComponentProps, Cartes
 
 export const InternalCartesianChart = forwardRef(
   ({ tooltip, ...props }: InternalCartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
-    const apiRef = useRef<null | CoreChartAPI>(null);
+    const apiRef = useRef<null | CoreChartProps.ChartAPI>(null);
 
     // When visibleSeries and onVisibleSeriesChange are provided - the series visibility can be controlled from the outside.
     // Otherwise - the component handles series visibility using its internal state.
@@ -59,7 +52,7 @@ export const InternalCartesianChart = forwardRef(
       // assuming Highcharts makes no modifications for those. These options are not referentially equal
       // to the ones we get from the consumer due to the internal validation/transformation we run on them.
       // See: https://api.highcharts.com/class-reference/Highcharts.Chart#userOptions.
-      const transformItem = (item: TooltipContentItem): CartesianChartProps.TooltipPointItem => ({
+      const transformItem = (item: CoreChartProps.TooltipContentItem): CartesianChartProps.TooltipPointItem => ({
         x: item.point.x,
         y: isXThreshold(item.point.series) ? null : (item.point.y ?? null),
         series: item.point.series.userOptions as NonErrorBarSeriesOptions,
@@ -69,10 +62,14 @@ export const InternalCartesianChart = forwardRef(
           series: point.series.userOptions as ErrorBarSeriesOptions,
         })),
       });
-      const transformSeriesProps = (props: TooltipPointProps): CartesianChartProps.TooltipPointRenderProps => ({
+      const transformSeriesProps = (
+        props: CoreChartProps.TooltipPointProps,
+      ): CartesianChartProps.TooltipPointRenderProps => ({
         item: transformItem(props.item),
       });
-      const transformSlotProps = (props: TooltipSlotProps): CartesianChartProps.TooltipSlotRenderProps => ({
+      const transformSlotProps = (
+        props: CoreChartProps.TooltipSlotProps,
+      ): CartesianChartProps.TooltipSlotRenderProps => ({
         x: props.x,
         items: props.items.map(transformItem),
       });

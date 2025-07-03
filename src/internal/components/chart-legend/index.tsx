@@ -16,8 +16,8 @@ import {
 import Box from "@cloudscape-design/components/box";
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
 
-import { CoreLegendItem, GetLegendTooltipContentProps, TooltipContent } from "../../../core/interfaces";
 import { DebouncedCall } from "../../utils/utils";
+import { GetLegendTooltipContentProps, LegendItem, LegendTooltipContent } from "../interfaces";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -27,7 +27,7 @@ const HIGHLIGHT_LOST_DELAY = 50;
 const SCROLL_DELAY = 100;
 
 export interface ChartLegendProps {
-  items: readonly CoreLegendItem[];
+  items: readonly LegendItem[];
   legendTitle?: string;
   ariaLabel?: string;
   actions?: React.ReactNode;
@@ -35,7 +35,7 @@ export interface ChartLegendProps {
   onItemHighlightEnter: (itemId: string) => void;
   onItemHighlightExit: () => void;
   onItemVisibilityChange: (hiddenItems: string[]) => void;
-  getTooltipContent: (props: GetLegendTooltipContentProps) => null | TooltipContent;
+  getTooltipContent: (props: GetLegendTooltipContentProps) => null | LegendTooltipContent;
 }
 
 export const ChartLegend = ({

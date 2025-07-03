@@ -6,7 +6,7 @@ import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-u
 import { ChartLegend as ChartLegendComponent } from "../../internal/components/chart-legend";
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
-import { BaseI18nStrings, GetLegendTooltipContent } from "../interfaces";
+import { BaseI18nStrings, CoreChartProps } from "../interfaces";
 
 export function ChartLegend({
   api,
@@ -21,7 +21,7 @@ export function ChartLegend({
   actions?: React.ReactNode;
   position: "bottom" | "side";
   i18nStrings?: BaseI18nStrings;
-  getLegendTooltipContent?: GetLegendTooltipContent;
+  getLegendTooltipContent?: CoreChartProps.GetLegendTooltipContent;
 }) {
   const i18n = useInternalI18n("[charts]");
   const ariaLabel = i18n("i18nStrings.legendAriaLabel", i18nStrings?.legendAriaLabel);

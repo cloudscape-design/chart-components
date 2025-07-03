@@ -3,7 +3,7 @@
 
 import type Highcharts from "highcharts";
 
-import { type ChartSeriesMarkerType } from "../internal/components/series-marker";
+import type * as InternalComponentTypes from "../internal/components/interfaces";
 import { type NonCancelableEventHandler } from "../internal/events";
 
 // All charts take `highcharts` instance, that can be served statically or dynamically.
@@ -87,8 +87,8 @@ export interface BaseChartOptions {
 
   /**
    * Defines options for filtering in the chart, including:
-   * * `seriesFilter` (otpional, boolean) - Displays default series filter at the top of the chart.
-   * * `additionalFilters` (otpional, slot) - A slot for custom chart filters at the top of the chart.
+   * * `seriesFilter` (optional, boolean) - Displays default series filter at the top of the chart.
+   * * `additionalFilters` (optional, slot) - A slot for custom chart filters at the top of the chart.
    */
   filter?: BaseFilterOptions;
 }
@@ -170,11 +170,17 @@ export interface PieI18nStrings extends BaseI18nStrings {
   segmentAccessibleDescription?: string;
 }
 
-export type CoreI18nStrings = CartesianI18nStrings & PieI18nStrings;
-
 export interface BaseFilterOptions {
   seriesFilter?: boolean;
   additionalFilters?: React.ReactNode;
+}
+
+export interface BaseTooltipPointFormatted {
+  key?: React.ReactNode;
+  value?: React.ReactNode;
+  description?: React.ReactNode;
+  expandable?: boolean;
+  subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
 }
 
 export interface AreaSeriesOptions extends BaseCartesianSeriesOptions {
@@ -266,6 +272,18 @@ interface PointMarkerOptions {
   symbol?: "circle" | "diamond" | "square" | "triangle" | "triangle-down";
 }
 
+export interface CoreCartesianOptions {
+  /**
+   * When set to `true`, adds a visual emphasis on the zero baseline axis.
+   */
+  emphasizeBaseline?: boolean;
+  /**
+   * Controls the placement of the vertical axis title.
+   * When set to "side", displays the title along the axis line.
+   */
+  verticalAxisTitlePlacement?: "top" | "side";
+}
+
 export interface CoreChartProps
   extends Pick<
       BaseChartOptions,
@@ -286,17 +304,17 @@ export interface CoreChartProps
    * overridden with explicitly provided options. An exception is event handlers - those are
    * not overridden, but merged with Cloudscape event handlers so that both are getting called.
    */
-  options: CoreChartOptions;
+  options: CoreChartProps.ChartOptions;
   /**
    * The Cloudscape tooltip, that comes with a vertical cursor when used on cartesian series.
    * The tooltip content is only shown when `getContent` property is defined, which is called
    * for each visited { x, y } point.
    */
-  tooltip?: CoreTooltipOptions;
+  tooltip?: CoreChartProps.TooltipOptions;
   /**
    * A custom slot above the chart plot, chart's axis title, and filter.
    */
-  header?: CoreHeaderOptions;
+  header?: CoreChartProps.HeaderOptions;
   /**
    * Prop for passing a custom navigation control component to be rendered with the chart.
    * Use this property to add timeline navigation, range selectors, or other custom navigation elements.
@@ -305,16 +323,16 @@ export interface CoreChartProps
   /**
    * A custom slot below the chart plot and legend.
    */
-  footer?: CoreFooterOptions;
+  footer?: CoreChartProps.FooterOptions;
   /**
    * Chart legend options.
    */
-  legend?: CoreLegendOptions;
+  legend?: CoreChartProps.LegendOptions;
   /**
    * The callback to init the chart's API when it is ready. The API includes the Highcharts chart object, and
    * additional Cloudscape methods.
    */
-  callback?: (chart: CoreChartAPI) => void;
+  callback?: (chart: CoreChartProps.ChartAPI) => void;
   /**
    * This is used to provide a test-utils selector. Do not use this property to provide custom styles.
    */
@@ -326,24 +344,24 @@ export interface CoreChartProps
   /**
    * Called when series/points visibility changes due to user interaction with legend or filter.
    */
-  onVisibleItemsChange?: (detail: VisibleItemsChangeDetail) => void;
+  onVisibleItemsChange?: (detail: CoreChartProps.VisibleItemsChangeDetail) => void;
   /**
    * Called whenever chart tooltip is rendered to provide content for tooltip's header, body, and (optional) footer.
    */
-  getTooltipContent?: GetTooltipContent;
+  getTooltipContent?: CoreChartProps.GetTooltipContent;
   /**
    * Called whenever a legend item is hovered to provide content for legend tooltip's header, body, and (optional) footer.
    * If not provided, no tooltip will be displayed.
    */
-  getLegendTooltipContent?: GetLegendTooltipContent;
+  getLegendTooltipContent?: CoreChartProps.GetLegendTooltipContent;
   /**
    * Called whenever chart point or group is highlighted.
    */
-  onHighlight?(detail: HighlightChangeDetail): void;
+  onHighlight?(detail: CoreChartProps.HighlightChangeDetail): void;
   /**
    * Called whenever chart point or group loses highlight.
    */
-  onClearHighlight?(detail: HighlightClearDetail): void;
+  onClearHighlight?(detail: CoreChartProps.HighlightClearDetail): void;
   /**
    * Use Cloudscape keyboard navigation, `true` by default.
    */
@@ -355,140 +373,94 @@ export interface CoreChartProps
   i18nStrings?: CartesianI18nStrings & PieI18nStrings;
 }
 
-export interface CoreLegendOptions extends BaseLegendOptions {
-  bottomMaxHeight?: number;
-  position?: "bottom" | "side";
+export namespace CoreChartProps {
+  // The API methods allow programmatic triggering of chart's behaviors, some of which are not accessible via React state.
+  // This enables advanced integration scenarios, such as building a custom legend, or making multiple charts synchronized.
+  export interface ChartAPI {
+    chart: Highcharts.Chart;
+    highcharts: typeof Highcharts;
+    setItemsVisible(itemIds: readonly string[]): void;
+    highlightChartPoint(point: Highcharts.Point): void;
+    highlightChartGroup(group: readonly Highcharts.Point[]): void;
+    clearChartHighlight(): void;
+  }
+
+  // The extended version of Highcharts.Options. The axes types are extended with Cloudscape value formatter.
+  // We use a custom formatter because we cannot use the built-in Highcharts formatter for our tooltip.
+  export type ChartOptions = Omit<Highcharts.Options, "xAxis" | "yAxis"> & {
+    xAxis?: XAxisOptions | XAxisOptions[];
+    yAxis?: YAxisOptions | YAxisOptions[];
+  };
+  export type XAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: null | number) => string };
+  export type YAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: null | number) => string };
+
+  export interface HeaderOptions {
+    content: React.ReactNode;
+  }
+  export interface FooterOptions {
+    content: React.ReactNode;
+  }
+
+  export interface LegendOptions extends BaseLegendOptions {
+    bottomMaxHeight?: number;
+    position?: "bottom" | "side";
+  }
+  export type LegendItem = InternalComponentTypes.LegendItem;
+  export type LegendTooltipContent = InternalComponentTypes.LegendTooltipContent;
+  export type GetLegendTooltipContent = InternalComponentTypes.GetLegendTooltipContent;
+  export type GetLegendTooltipContentProps = InternalComponentTypes.GetLegendTooltipContentProps;
+
+  export interface TooltipOptions {
+    enabled?: boolean;
+    placement?: "middle" | "outside" | "target";
+    size?: "small" | "medium" | "large";
+  }
+
+  export type GetTooltipContent = (props: GetTooltipContentProps) => TooltipContentRenderer;
+  export interface GetTooltipContentProps {
+    point: null | Highcharts.Point;
+    group: readonly Highcharts.Point[];
+  }
+  export interface TooltipContentRenderer {
+    point?: (props: TooltipPointProps) => TooltipPointFormatted;
+    header?: (props: TooltipSlotProps) => React.ReactNode;
+    body?: (props: TooltipSlotProps) => React.ReactNode;
+    footer?: (props: TooltipSlotProps) => React.ReactNode;
+  }
+  export type TooltipPointFormatted = BaseTooltipPointFormatted;
+  export interface TooltipContentItem {
+    point: Highcharts.Point;
+    errorRanges: Highcharts.Point[];
+  }
+  export interface TooltipPointProps {
+    item: TooltipContentItem;
+  }
+  export interface TooltipSlotProps {
+    x: number;
+    items: TooltipContentItem[];
+  }
+
+  export interface VisibleItemsChangeDetail {
+    items: readonly LegendItem[];
+    isApiCall: boolean;
+  }
+  export interface HighlightChangeDetail {
+    point: null | Highcharts.Point;
+    group: readonly Highcharts.Point[];
+    isApiCall: boolean;
+  }
+  export interface HighlightClearDetail {
+    isApiCall: boolean;
+  }
+
+  export type I18nStrings = CartesianI18nStrings & PieI18nStrings;
 }
 
-export interface CoreLegendItem {
-  id: string;
-  name: string;
-  marker: React.ReactNode;
-  visible: boolean;
-  highlighted: boolean;
-}
-
-export interface CoreLegendItemSpec {
-  id: string;
-  name: string;
-  markerType: ChartSeriesMarkerType;
-  color: string;
-  visible: boolean;
-}
-
-export interface CoreTooltipOptions {
-  enabled?: boolean;
-  placement?: "middle" | "outside" | "target";
-  size?: "small" | "medium" | "large";
-}
-
-export interface CoreHeaderOptions {
-  content: React.ReactNode;
-}
-
-export interface CoreFooterOptions {
-  content: React.ReactNode;
-}
-
-export interface CoreCartesianOptions {
-  /**
-   * When set to `true`, adds a visual emphasis on the zero baseline axis.
-   */
-  emphasizeBaseline?: boolean;
-  /**
-   * Controls the placement of the vertical axis title.
-   * When set to "side", displays the title along the axis line.
-   */
-  verticalAxisTitlePlacement?: "top" | "side";
-}
-
-export type GetTooltipContent = (props: GetTooltipContentProps) => CoreTooltipContent;
-
-export interface GetTooltipContentProps {
-  point: null | Highcharts.Point;
-  group: readonly Highcharts.Point[];
-}
-
-export type GetLegendTooltipContent = (props: GetLegendTooltipContentProps) => TooltipContent;
-
-export interface GetLegendTooltipContentProps {
-  legendItem: CoreLegendItem;
-}
-
-export interface CoreTooltipContent {
-  point?: (props: TooltipPointProps) => TooltipPointFormatted;
-  header?: (props: TooltipSlotProps) => React.ReactNode;
-  body?: (props: TooltipSlotProps) => React.ReactNode;
-  footer?: (props: TooltipSlotProps) => React.ReactNode;
-}
-
-export interface TooltipContentItem {
-  point: Highcharts.Point;
-  errorRanges: Highcharts.Point[];
-}
-
-export interface TooltipPointProps {
-  item: TooltipContentItem;
-}
-
-export interface TooltipSlotProps {
-  x: number;
-  items: TooltipContentItem[];
-}
-
-export interface TooltipPointFormatted {
-  key?: React.ReactNode;
-  value?: React.ReactNode;
-  description?: React.ReactNode;
-  expandable?: boolean;
-  subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
-}
-
-// The extended version of Highcharts.Options. The axes types are extended with Cloudscape value formatter.
-// We use a custom formatter because we cannot use the built-in Highcharts formatter for our tooltip.
-export type CoreChartOptions = Omit<Highcharts.Options, "xAxis" | "yAxis"> & {
-  xAxis?: CoreXAxisOptions | CoreXAxisOptions[];
-  yAxis?: CoreYAxisOptions | CoreYAxisOptions[];
-};
-
-export type CoreXAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: null | number) => string };
-export type CoreYAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: null | number) => string };
-
-export interface VisibleItemsChangeDetail {
-  items: readonly CoreLegendItem[];
-  isApiCall: boolean;
-}
-
-export interface HighlightChangeDetail {
-  point: null | Highcharts.Point;
-  group: readonly Highcharts.Point[];
-  isApiCall: boolean;
-}
-
-export interface HighlightClearDetail {
-  isApiCall: boolean;
-}
-
-// The API methods allow programmatic triggering of chart's behaviors, some of which are not accessible via React state.
-// This enables advanced integration scenarios, such as building a custom legend, or making multiple charts synchronized.
-export interface CoreChartAPI {
-  chart: Highcharts.Chart;
-  highcharts: typeof Highcharts;
-  setItemsVisible(itemIds: readonly string[]): void;
-  highlightChartPoint(point: Highcharts.Point): void;
-  highlightChartGroup(group: readonly Highcharts.Point[]): void;
-  clearChartHighlight(): void;
-}
+// Utility types
 
 export interface Rect {
   x: number;
   y: number;
   height: number;
   width: number;
-}
-
-export interface TooltipContent {
-  header: React.ReactNode;
-  body: React.ReactNode;
-  footer?: React.ReactNode;
 }
