@@ -3,7 +3,7 @@
 
 import type Highcharts from "highcharts";
 
-import { type ChartSeriesMarkerType } from "../internal/components/series-marker";
+import type * as InternalComponentTypes from "../internal/components/interfaces";
 import { type NonCancelableEventHandler } from "../internal/events";
 
 // All charts take `highcharts` instance, that can be served statically or dynamically.
@@ -175,6 +175,14 @@ export interface BaseFilterOptions {
   additionalFilters?: React.ReactNode;
 }
 
+export interface BaseTooltipPointFormatted {
+  key?: React.ReactNode;
+  value?: React.ReactNode;
+  description?: React.ReactNode;
+  expandable?: boolean;
+  subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
+}
+
 export interface AreaSeriesOptions extends BaseCartesianSeriesOptions {
   type: "area";
   data: readonly PointDataItemType[];
@@ -262,6 +270,18 @@ interface BaseCartesianSeriesOptions {
 // The symbols union matches that of Highcharts.PointMarkerOptionsObject
 interface PointMarkerOptions {
   symbol?: "circle" | "diamond" | "square" | "triangle" | "triangle-down";
+}
+
+export interface CoreCartesianOptions {
+  /**
+   * When set to `true`, adds a visual emphasis on the zero baseline axis.
+   */
+  emphasizeBaseline?: boolean;
+  /**
+   * Controls the placement of the vertical axis title.
+   * When set to "side", displays the title along the axis line.
+   */
+  verticalAxisTitlePlacement?: "top" | "side";
 }
 
 export interface CoreChartProps
@@ -385,13 +405,10 @@ export namespace CoreChartProps {
     bottomMaxHeight?: number;
     position?: "bottom" | "side";
   }
-  export interface LegendItem {
-    id: string;
-    name: string;
-    marker: React.ReactNode;
-    visible: boolean;
-    highlighted: boolean;
-  }
+  export type LegendItem = InternalComponentTypes.LegendItem;
+  export type LegendTooltipContent = InternalComponentTypes.LegendTooltipContent;
+  export type GetLegendTooltipContent = InternalComponentTypes.GetLegendTooltipContent;
+  export type GetLegendTooltipContentProps = InternalComponentTypes.GetLegendTooltipContentProps;
 
   export interface TooltipOptions {
     enabled?: boolean;
@@ -399,59 +416,39 @@ export namespace CoreChartProps {
     size?: "small" | "medium" | "large";
   }
 
-  export type GetTooltipContent = (props: GetTooltipContentProps) => TooltipContent;
-
+  export type GetTooltipContent = (props: GetTooltipContentProps) => TooltipContentRenderer;
   export interface GetTooltipContentProps {
     point: null | Highcharts.Point;
     group: readonly Highcharts.Point[];
   }
-
-  export type GetLegendTooltipContent = (props: GetLegendTooltipContentProps) => TooltipContent;
-
-  export interface GetLegendTooltipContentProps {
-    legendItem: LegendItem;
-  }
-
-  export interface TooltipContent {
+  export interface TooltipContentRenderer {
     point?: (props: TooltipPointProps) => TooltipPointFormatted;
     header?: (props: TooltipSlotProps) => React.ReactNode;
     body?: (props: TooltipSlotProps) => React.ReactNode;
     footer?: (props: TooltipSlotProps) => React.ReactNode;
   }
-
+  export type TooltipPointFormatted = BaseTooltipPointFormatted;
   export interface TooltipContentItem {
     point: Highcharts.Point;
     errorRanges: Highcharts.Point[];
   }
-
   export interface TooltipPointProps {
     item: TooltipContentItem;
   }
-
   export interface TooltipSlotProps {
     x: number;
     items: TooltipContentItem[];
-  }
-
-  export interface TooltipPointFormatted {
-    key?: React.ReactNode;
-    value?: React.ReactNode;
-    description?: React.ReactNode;
-    expandable?: boolean;
-    subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
   }
 
   export interface VisibleItemsChangeDetail {
     items: readonly LegendItem[];
     isApiCall: boolean;
   }
-
   export interface HighlightChangeDetail {
     point: null | Highcharts.Point;
     group: readonly Highcharts.Point[];
     isApiCall: boolean;
   }
-
   export interface HighlightClearDetail {
     isApiCall: boolean;
   }
@@ -459,35 +456,11 @@ export namespace CoreChartProps {
   export type I18nStrings = CartesianI18nStrings & PieI18nStrings;
 }
 
-export interface CoreLegendItemSpec {
-  id: string;
-  name: string;
-  markerType: ChartSeriesMarkerType;
-  color: string;
-  visible: boolean;
-}
-
-export interface CoreCartesianOptions {
-  /**
-   * When set to `true`, adds a visual emphasis on the zero baseline axis.
-   */
-  emphasizeBaseline?: boolean;
-  /**
-   * Controls the placement of the vertical axis title.
-   * When set to "side", displays the title along the axis line.
-   */
-  verticalAxisTitlePlacement?: "top" | "side";
-}
+// Utility types
 
 export interface Rect {
   x: number;
   y: number;
   height: number;
   width: number;
-}
-
-export interface TooltipContent {
-  header: React.ReactNode;
-  body: React.ReactNode;
-  footer?: React.ReactNode;
 }

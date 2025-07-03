@@ -8,7 +8,7 @@ import type Highcharts from "highcharts";
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
 import { InternalCoreChart } from "../core/chart-core";
-import { CoreChartAPI, CoreChartProps, TooltipSlotProps } from "../core/interfaces";
+import { CoreChartProps } from "../core/interfaces";
 import { getOptionsId } from "../core/utils";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import * as Styles from "../internal/chart-styles";
@@ -28,7 +28,7 @@ interface InternalPieChartProps extends InternalBaseComponentProps, Omit<PieChar
 
 export const InternalPieChart = forwardRef(
   ({ series: originalSeries, tooltip, ...props }: InternalPieChartProps, ref: React.Ref<PieChartProps.Ref>) => {
-    const apiRef = useRef<null | CoreChartAPI>(null);
+    const apiRef = useRef<null | CoreChartProps.ChartAPI>(null);
 
     // When visibleSegments and onVisibleSegmentsChange are provided - the segments visibility can be controlled from the outside.
     // Otherwise - the component handles segments visibility using its internal state.
@@ -62,7 +62,7 @@ export const InternalPieChart = forwardRef(
     // We convert pie tooltip options to the core chart's getTooltipContent callback,
     // ensuring no internal types are exposed to the consumer-defined render functions.
     const getTooltipContent: CoreChartProps["getTooltipContent"] = () => {
-      const transformSlotProps = (props: TooltipSlotProps): PieChartProps.TooltipDetailsRenderProps => {
+      const transformSlotProps = (props: CoreChartProps.TooltipSlotProps): PieChartProps.TooltipDetailsRenderProps => {
         const point = props.items[0].point;
         return {
           totalValue: point.total ?? 0,
