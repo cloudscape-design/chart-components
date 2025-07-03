@@ -90,8 +90,8 @@ minimum width, the horizontal scrollbar is automatically added.",
     },
     {
       "description": "Defines options for filtering in the chart, including:
-* \`seriesFilter\` (otpional, boolean) - Displays default series filter at the top of the chart.
-* \`additionalFilters\` (otpional, slot) - A slot for custom chart filters at the top of the chart.",
+* \`seriesFilter\` (optional, boolean) - Displays default series filter at the top of the chart.
+* \`additionalFilters\` (optional, slot) - A slot for custom chart filters at the top of the chart.",
       "inlineType": {
         "name": "BaseFilterOptions",
         "properties": [
@@ -351,7 +351,7 @@ This property corresponds to "normal" stacking type in Highcharts ([plotOptions.
           {
             "name": "point",
             "optional": true,
-            "type": "((props: CartesianChartProps.TooltipPointRenderProps) => TooltipPointFormatted)",
+            "type": "((props: CartesianChartProps.TooltipPointRenderProps) => BaseTooltipPointFormatted)",
           },
           {
             "name": "size",
@@ -370,11 +370,11 @@ This property corresponds to "normal" stacking type in Highcharts ([plotOptions.
       "description": "Controls the placement of the vertical axis title.
 When set to "side", displays the title along the axis line.",
       "inlineType": {
-        "name": ""side" | "top"",
+        "name": ""top" | "side"",
         "type": "union",
         "values": [
-          "side",
           "top",
+          "side",
         ],
       },
       "name": "verticalAxisTitlePlacement",
@@ -615,8 +615,8 @@ minimum width, the horizontal scrollbar is automatically added.",
     },
     {
       "description": "Defines options for filtering in the chart, including:
-* \`seriesFilter\` (otpional, boolean) - Displays default series filter at the top of the chart.
-* \`additionalFilters\` (otpional, slot) - A slot for custom chart filters at the top of the chart.",
+* \`seriesFilter\` (optional, boolean) - Displays default series filter at the top of the chart.
+* \`additionalFilters\` (optional, slot) - A slot for custom chart filters at the top of the chart.",
       "inlineType": {
         "name": "BaseFilterOptions",
         "properties": [

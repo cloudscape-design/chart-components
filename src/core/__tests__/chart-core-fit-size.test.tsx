@@ -45,7 +45,8 @@ describe("CoreChart: fit-size", () => {
   test("uses explicit chart height", () => {
     const { rerender } = renderChart({ highcharts });
 
-    expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(undefined), expect.anything());
+    // Default height is used when explicit height is not set.
+    expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(400), expect.anything());
 
     rerender({ highcharts, options: { chart: { height: "20rem" } } });
 

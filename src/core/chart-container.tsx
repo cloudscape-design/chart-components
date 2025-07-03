@@ -15,6 +15,7 @@ import testClasses from "./test-classes/styles.css.js";
 // Chart container implements the layout for top-level components, including chart plot, legend, and more.
 // It also implements the height- and width overflow behaviors.
 
+const DEFAULT_CHART_HEIGHT = 400;
 const DEFAULT_CHART_MIN_HEIGHT = 200;
 
 interface ChartContainerProps {
@@ -53,17 +54,16 @@ export function ChartContainer({
   chartMinHeight,
   chartMinWidth,
 }: ChartContainerProps) {
+  const { refs, measures } = useContainerQueries();
+
   // The vertical axis title is rendered above the chart, and is technically not a part of the chart plot.
   // However, we want to include it to the chart's height computations as it does belong to the chart logically.
   // We do so by taking the title's constant height into account, when "top" axis placement is chosen.
   const verticalTitleOffset = Styles.verticalAxisTitleBlockSize + Styles.verticalAxisTitleMargin;
   const heightOffset = verticalAxisTitlePlacement === "top" ? verticalTitleOffset : 0;
-  const withMinHeight = (height?: number) =>
-    height === undefined ? chartMinHeight : Math.max(chartMinHeight ?? DEFAULT_CHART_MIN_HEIGHT, height) - heightOffset;
-
-  const { refs, measures } = useContainerQueries();
+  const withMinHeight = (height: number) => Math.max(chartMinHeight ?? DEFAULT_CHART_MIN_HEIGHT, height) - heightOffset;
   const measuredChartHeight = withMinHeight(measures.chart - measures.header - measures.footer);
-  const effectiveChartHeight = fitHeight ? measuredChartHeight : withMinHeight(chartHeight);
+  const effectiveChartHeight = fitHeight ? measuredChartHeight : withMinHeight(chartHeight ?? DEFAULT_CHART_HEIGHT);
   return (
     <div
       ref={refs.chart}
