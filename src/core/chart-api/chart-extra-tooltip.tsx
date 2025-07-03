@@ -157,7 +157,7 @@ class HighlightCursorCartesian {
       const lineAttrs = chart.inverted
         ? {
             x: chart.plotLeft,
-            y: chart.plotTop + (target.y - 2 * target.height),
+            y: chart.plotTop + target.y - target.height - 1,
             width: chart.plotWidth,
             height: 1,
           }

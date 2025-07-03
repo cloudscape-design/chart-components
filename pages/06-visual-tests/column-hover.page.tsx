@@ -8,14 +8,6 @@ import { dateFormatter } from "../common/formatters";
 import { useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
 
-const domain = [
-  new Date(1601071200000),
-  new Date(1601078400000),
-  new Date(1601085600000),
-  new Date(1601092800000),
-  new Date(1601100000000),
-];
-
 export default function () {
   return (
     <Page title="Column series hover visual regression page">
@@ -33,6 +25,14 @@ export default function () {
     </Page>
   );
 }
+
+const domain = [
+  new Date(1601071200000),
+  new Date(1601078400000),
+  new Date(1601085600000),
+  new Date(1601092800000),
+  new Date(1601100000000),
+];
 
 function Chart({ type }: { type: "single" | "stacked" | "grouped" }) {
   const { chartProps } = useChartSettings();
