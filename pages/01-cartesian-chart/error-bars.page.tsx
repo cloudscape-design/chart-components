@@ -213,7 +213,7 @@ function tooltipContent(settings: ThisPageSettings): CartesianChartProps.Tooltip
           items.some((item) => item.errorRanges.length > 0) ? (
             <Box fontSize="body-s">
               {settings.errorsGroupedInFooter
-                ? `Error range: ±${moneyFormatter(items[0].errorRanges[0].high - items[0].errorRanges[0].low)}`
+                ? `Error range: ±${moneyFormatter((items[0].errorRanges[0].high - items[0].errorRanges[0].low) / 2)}`
                 : "*Error range"}
             </Box>
           ) : null,
