@@ -189,7 +189,7 @@ describe("CartesianChart: tooltip", () => {
       getTooltipSeries(0).findValue().find("button")!.click();
       expect(onClickValue).toHaveBeenCalledWith("root");
 
-      expect(getTooltipSeries(0).findDescription().getElement().textContent).toBe("1 - 4");
+      expect(getTooltipSeries(0).findDescription()!.getElement().textContent).toBe("1 - 4");
 
       expect(getTooltipSeries(1).findKey().getElement().textContent).toBe("Custom name for Threshold");
       expect(getTooltipSeries(1).findValue().getElement().textContent).toBe("T");
@@ -217,7 +217,7 @@ describe("CartesianChart: tooltip", () => {
 
       expectCustomSubItems();
 
-      expect(getTooltipSeries(0).findDescription().getElement().textContent).toBe("1 - 4");
+      expect(getTooltipSeries(0).findDescription()!.getElement().textContent).toBe("1 - 4");
 
       expect(getTooltipSeries(1).findKey().getElement().textContent).toBe("Threshold");
       expect(getTooltipSeries(1).findValue().getElement().textContent).toBe(""); // X threshold has no y value

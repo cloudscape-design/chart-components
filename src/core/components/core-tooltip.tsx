@@ -150,7 +150,7 @@ function getTooltipContentCartesian(
   const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
     const valueFormatter = getFormatter(item.point.series.yAxis);
     const itemY = isXThreshold(item.point.series) ? null : (item.point.y ?? null);
-    const customContent = renderers.point ? renderers.point({ item }) : null;
+    const customContent = renderers.point ? renderers.point({ item }) : undefined;
     return {
       key: customContent?.key ?? item.point.series.name,
       value: customContent?.value ?? valueFormatter(itemY),
@@ -159,8 +159,7 @@ function getTooltipContentCartesian(
       expandableId: customContent?.expandable ? item.point.series.name : undefined,
       highlighted: item.point.x === point?.x && item.point.y === point?.y,
       description:
-        customContent?.description ??
-        (item.errorRanges.length ? (
+        customContent?.description === undefined && item.errorRanges.length ? (
           <>
             {item.errorRanges.map((errorBarPoint, index) => (
               <div key={index} className={styles["error-range"]}>
@@ -171,7 +170,9 @@ function getTooltipContentCartesian(
               </div>
             ))}
           </>
-        ) : null),
+        ) : (
+          customContent?.description
+        ),
     };
   });
   // We only support cartesian charts with a single x axis.

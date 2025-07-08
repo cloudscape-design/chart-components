@@ -31,7 +31,7 @@ describe("CartesianChart: errorbar series", () => {
       expect(getAllTooltipSeries()).toHaveLength(1);
       expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Column 1");
       expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("2");
-      expect(getTooltipSeries(0).findDescription().getElement().textContent).toBe("Error range1 - 3");
+      expect(getTooltipSeries(0).findDescription()!.getElement().textContent).toBe("Error range1 - 3");
     });
 
     test("attaches error series to the previous series by using `:previous` as value for `linkedTo`", async () => {
@@ -48,7 +48,7 @@ describe("CartesianChart: errorbar series", () => {
       expect(getAllTooltipSeries()).toHaveLength(1);
       expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Column 1");
       expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("2");
-      expect(getTooltipSeries(0).findDescription().getElement().textContent).toBe("Error range1 - 3");
+      expect(getTooltipSeries(0).findDescription()!.getElement().textContent).toBe("Error range1 - 3");
     });
 
     test("renders only the error range if error bar series name is not provided", async () => {
@@ -63,7 +63,7 @@ describe("CartesianChart: errorbar series", () => {
       await highlightFirstPointAndWaitForTooltip();
 
       expect(getAllTooltipSeries()).toHaveLength(1);
-      expect(getTooltipSeries(0).findDescription().getElement().textContent).toBe("1 - 3");
+      expect(getTooltipSeries(0).findDescription()!.getElement().textContent).toBe("1 - 3");
     });
 
     test("renders multiple error bars per series", async () => {
@@ -81,7 +81,7 @@ describe("CartesianChart: errorbar series", () => {
       expect(getAllTooltipSeries()).toHaveLength(1);
       expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Column 1");
       expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("2");
-      expect(getTooltipSeries(0).findDescription().getElement().textContent).toBe(
+      expect(getTooltipSeries(0).findDescription()!.getElement().textContent).toBe(
         "Error range 1" + "1 - 3" + "Error range 2" + "0 - 4",
       );
     });
@@ -107,7 +107,29 @@ describe("CartesianChart: errorbar series", () => {
       expect(getAllTooltipSeries()).toHaveLength(1);
       expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Custom key Column 1");
       expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("Custom value 2");
-      expect(getTooltipSeries(0).findDescription().getElement().textContent).toBe("Custom description 1 - 3");
+      expect(getTooltipSeries(0).findDescription()!.getElement().textContent).toBe("Custom description 1 - 3");
+    });
+
+    test("does not render description if set to null", async () => {
+      renderCartesianChart({
+        highcharts,
+        series: [
+          { type: "column", name: "Column 1", data: [2], id: "column-1" },
+          { type: "errorbar", name: "Column 2", data: [{ low: 1, high: 3 }], linkedTo: "column-1" },
+        ],
+        tooltip: {
+          point: () => ({
+            description: null,
+          }),
+        },
+      });
+
+      await highlightFirstPointAndWaitForTooltip();
+
+      expect(getAllTooltipSeries()).toHaveLength(1);
+      expect(getTooltipSeries(0).findKey().getElement().textContent).toBe("Column 1");
+      expect(getTooltipSeries(0).findValue().getElement().textContent).toBe("2");
+      expect(getTooltipSeries(0).findDescription()).toBe(null);
     });
   });
 
