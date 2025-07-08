@@ -117,7 +117,7 @@ export interface BaseI18nStrings {
   seriesFilterSelectedAriaLabel?: string;
   legendAriaLabel?: string;
   detailPopoverDismissAriaLabel?: string;
-  chartAccessibleDescription?: string;
+  chartRoleDescription?: string;
 }
 
 export interface WithCartesianI18nStrings {
@@ -134,9 +134,9 @@ export interface WithCartesianI18nStrings {
    * * `seriesFilterSelectedAriaLabel` (optional, string) - ARIA label of the default series filter which is appended to any option that is selected.
    * * `legendAriaLabel` (optional, string) - ARIA label that is associated with the legend in case there is no visible `legend.title` defined.
    * * `detailPopoverDismissAriaLabel` (optional, string) - ARIA label for the details popover dismiss button.
-   * * `chartAccessibleDescription` (optional, string) - Accessible description of the chart plot area, e.g. "interactive chart".
-   * * `xAxisAccessibleDescription` (optional, string) - Accessible description of the x axis, e.g. "x axis".
-   * * `yAxisAccessibleDescription` (optional, string) - Accessible description of the y axis, e.g. "y axis".
+   * * `chartRoleDescription` (optional, string) - Accessible role description of the chart plot area, e.g. "interactive chart".
+   * * `xAxisRoleDescription` (optional, string) - Accessible role description of the x axis, e.g. "x axis".
+   * * `yAxisRoleDescription` (optional, string) - Accessible role description of the y axis, e.g. "y axis".
    */
   i18nStrings?: CartesianI18nStrings;
 }
@@ -155,19 +155,19 @@ export interface WithPieI18nStrings {
    * * `seriesFilterSelectedAriaLabel` (optional, string) - ARIA label of the default series filter which is appended to any option that is selected.
    * * `legendAriaLabel` (optional, string) - ARIA label that is associated with the legend in case there is no visible `legend.title` defined.
    * * `detailPopoverDismissAriaLabel` (optional, string) - ARIA label for the details popover dismiss button.
-   * * `chartAccessibleDescription` (optional, string) - Accessible description of the chart plot area, e.g. "interactive chart".
-   * * `segmentAccessibleDescription` (optional, string) - Accessible description of the segment.
+   * * `chartRoleDescription` (optional, string) - Accessible role description of the chart plot area, e.g. "interactive chart".
+   * * `segmentRoleDescription` (optional, string) - Accessible role description of the segment.
    */
   i18nStrings?: PieI18nStrings;
 }
 
 export interface CartesianI18nStrings extends BaseI18nStrings {
-  xAxisAccessibleDescription?: string;
-  yAxisAccessibleDescription?: string;
+  xAxisRoleDescription?: string;
+  yAxisRoleDescription?: string;
 }
 
 export interface PieI18nStrings extends BaseI18nStrings {
-  segmentAccessibleDescription?: string;
+  segmentRoleDescription?: string;
 }
 
 export interface BaseFilterOptions {
