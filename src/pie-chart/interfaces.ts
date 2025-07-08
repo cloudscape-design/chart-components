@@ -21,7 +21,7 @@ export interface PieChartProps extends CoreTypes.BaseChartOptions, CoreTypes.Wit
 
   /**
    * Defines tooltip options of the chart, including:
-   * * `enabled` - (optional, boolean) - Hides the tooltip.
+   * * `enabled` - (optional, boolean) - Hides the tooltip when set to false.
    * * `size` - (optional, "small" | "medium" | "large") - Specifies max tooltip size.
    * * `details` - (optional, function) - Provides a list of key-value pairs as tooltip's body.
    * * `header` - (optional, function) - Renders a custom tooltip header.

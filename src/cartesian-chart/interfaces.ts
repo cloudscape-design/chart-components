@@ -43,7 +43,7 @@ export interface CartesianChartProps
 
   /**
    * Defines tooltip options of the chart, including:
-   * * `enabled` - (optional, boolean) - Hides the tooltip.
+   * * `enabled` - (optional, boolean) - Hides the tooltip when set to false.
    * * `size` - (optional, "small" | "medium" | "large") - Specifies max tooltip size.
    * * `placement` - (optional, "middle" | "outside") - Specifies preferred tooltip placement.
    * * `point` - (optional, function) - Customizes tooltip series point rendering.
