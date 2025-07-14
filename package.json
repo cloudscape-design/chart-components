@@ -39,6 +39,8 @@
   },
   "exports": {
     ".": "./index.js",
+    "./cartesian-chart": "./cartesian-chart/index.js",
+    "./pie-chart": "./pie-chart/index.js",
     "./test-utils/dom": "./test-utils/dom/index.js",
     "./test-utils/dom/internal/core": "./test-utils/dom/internal/core.js",
     "./test-utils/selectors": "./test-utils/selectors/index.js",
