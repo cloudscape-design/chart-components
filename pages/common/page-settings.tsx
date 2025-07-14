@@ -34,6 +34,7 @@ export interface PageSettings {
   showLegend: boolean;
   showLegendTitle: boolean;
   showLegendActions: boolean;
+  legendType: "single" | "dual";
   legendBottomMaxHeight?: number;
   legendPosition: "bottom" | "side";
   showCustomHeader: boolean;
@@ -59,6 +60,7 @@ const DEFAULT_SETTINGS: PageSettings = {
   tooltipSize: "medium",
   showLegend: true,
   showLegendTitle: false,
+  legendType: "single",
   legendPosition: "bottom",
   showLegendActions: false,
   showCustomHeader: false,
@@ -140,12 +142,13 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
     ),
     // Not including loading and empty states to let those be served from i18n.
     // Adding an empty recovery click handler to make the default recovery button appear.
-    onRecoveryClick: () => {},
+    onRecoveryClick: () => { },
   };
   const legend = {
     enabled: settings.showLegend,
     title: settings.showLegendTitle ? "Legend title" : undefined,
     actions: settings.showLegendActions ? <Button variant="icon" iconName="search" /> : undefined,
+    type: settings.legendType,
     position: settings.legendPosition,
     bottomMaxHeight: settings.legendBottomMaxHeight,
   };
@@ -371,6 +374,20 @@ export function PageSettingsForm({
                     }
                   />
                 </FormField>
+              );
+            case "legendType":
+              return (
+                <SegmentedControl
+                  label="Legend Type"
+                  selectedId={settings.legendType}
+                  options={[
+                    { text: "Single", id: "single", disabled: !settings.showLegend },
+                    { text: "Dual", id: "dual", disabled: !settings.showLegend },
+                  ]}
+                  onChange={({ detail }) =>
+                    setSettings({ legendType: detail.selectedId as string as "single" | "dual" })
+                  }
+                />
               );
             case "legendPosition":
               return (
