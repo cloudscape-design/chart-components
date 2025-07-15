@@ -41,8 +41,8 @@ export default function () {
     <Page title="Cartesian chart tooltip visual regression page">
       <CoreChart
         {...omit(chartProps.cartesian, "ref")}
+        ariaLabel="Line chart"
         options={{
-          lang: { accessibility: { chartContainerLabel: "Line chart" } },
           series: series,
           xAxis: [{ type: "datetime", title: { text: "Time (UTC)" }, valueFormatter: dateFormatter }],
           yAxis: [{ title: { text: "Events" } }],
