@@ -7,20 +7,15 @@ import { createRoot } from "react-dom/client";
 import styles from "./iframe-wrapper.module.scss";
 
 export function IframeWrapper({ id = "iframe", AppComponent }: { id?: string; AppComponent: React.ComponentType }) {
-  const ref = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    const container = ref.current;
-    if (!container) {
+    const iframe = iframeRef.current;
+    if (!iframe) {
       return;
     }
-    const iframeEl = container.ownerDocument.createElement("iframe");
-    iframeEl.className = styles["full-screen"];
-    iframeEl.id = id;
-    iframeEl.title = id;
-    container.appendChild(iframeEl);
 
-    const iframeDocument = iframeEl.contentDocument!;
+    const iframeDocument = iframe.contentDocument!;
     // Prevent iframe document instance from reload
     // https://bugzilla.mozilla.org/show_bug.cgi?id=543435
     iframeDocument.open();
@@ -38,11 +33,10 @@ export function IframeWrapper({ id = "iframe", AppComponent }: { id?: string; Ap
     return () => {
       syncClassesCleanup();
       root.unmount();
-      container.removeChild(iframeEl);
     };
   }, [id, AppComponent]);
 
-  return <div ref={ref}></div>;
+  return <iframe ref={iframeRef} id={id} title={id} className={styles["full-screen"]}></iframe>;
 }
 
 function copyStyles(srcDoc: Document, targetDoc: Document) {
