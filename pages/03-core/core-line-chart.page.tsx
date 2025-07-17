@@ -1,13 +1,15 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { useRef } from "react";
 import Highcharts from "highcharts";
 import { omit } from "lodash";
 
 import Button from "@cloudscape-design/components/button";
 import Link from "@cloudscape-design/components/link";
+import SpaceBetween from "@cloudscape-design/components/space-between";
 
-import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
+import CoreChart, { CoreChartProps } from "../../lib/components/internal-do-not-use/core-chart";
 import { dateFormatter, numberFormatter } from "../common/formatters";
 import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
@@ -85,6 +87,20 @@ const series: Highcharts.SeriesOptionsType[] = [
 
 export default function () {
   const { chartProps } = useChartSettings();
+  const chartAPI = useRef<CoreChartProps.ChartAPI | null>(null);
+
+  const handleHighlightPoint = () => {
+    if (chartAPI.current) {
+      const chart = chartAPI.current.chart;
+      if (chart && chart.series && chart.series[0] && chart.series[0].points) {
+        const point = chart.series[0].points[2];
+        if (point) {
+          chartAPI.current.highlightChartPoint(point);
+        }
+      }
+    }
+  };
+
   return (
     <Page
       title="Core chart demo"
@@ -95,83 +111,89 @@ export default function () {
         />
       }
     >
-      <CoreChart
-        {...omit(chartProps.cartesian, "ref")}
-        highcharts={Highcharts}
-        options={{
-          lang: {
-            accessibility: {
-              chartContainerLabel: "Line chart",
+      <SpaceBetween size="m">
+        <Button onClick={handleHighlightPoint}>Highlight Point</Button>
+        <CoreChart
+          callback={(api) => {
+            chartAPI.current = api;
+          }}
+          {...omit(chartProps.cartesian, "ref")}
+          highcharts={Highcharts}
+          options={{
+            lang: {
+              accessibility: {
+                chartContainerLabel: "Line chart",
+              },
             },
-          },
-          series: series,
-          xAxis: [
-            {
-              type: "datetime",
-              title: { text: "Time (UTC)" },
-              valueFormatter: dateFormatter,
+            series: series,
+            xAxis: [
+              {
+                type: "datetime",
+                title: { text: "Time (UTC)" },
+                valueFormatter: dateFormatter,
+              },
+            ],
+            yAxis: [{ title: { text: "Events" } }],
+            chart: {
+              zooming: {
+                type: "x",
+              },
             },
-          ],
-          yAxis: [{ title: { text: "Events" } }],
-          chart: {
-            zooming: {
-              type: "x",
+          }}
+          chartHeight={400}
+          tooltip={{ placement: "outside" }}
+          getTooltipContent={() => ({
+            point({ item }) {
+              const value = item ? (item.point.y ?? null) : null;
+              return {
+                value: (
+                  <div>
+                    {numberFormatter(value)} <Button variant="inline-icon" iconName="settings" />
+                  </div>
+                ),
+              };
             },
-          },
-        }}
-        chartHeight={400}
-        tooltip={{ placement: "outside" }}
-        getTooltipContent={() => ({
-          point({ item }) {
-            const value = item ? (item.point.y ?? null) : null;
-            return {
-              value: (
-                <div>
-                  {numberFormatter(value)} <Button variant="inline-icon" iconName="settings" />
+            footer() {
+              return <Button>Footer action</Button>;
+            },
+          })}
+          getLegendTooltipContent={({ legendItem }) => ({
+            header: (
+              <div>
+                <div style={{ display: "flex" }}>
+                  {legendItem.marker}
+                  {legendItem.name}
                 </div>
-              ),
-            };
-          },
-          footer() {
-            return <Button>Footer action</Button>;
-          },
-        })}
-        getLegendTooltipContent={({ legendItem }) => ({
-          header: (
-            <div>
-              <div style={{ display: "flex" }}>
-                {legendItem.marker}
-                {legendItem.name}
               </div>
-            </div>
-          ),
-          body: (
-            <>
-              <table>
-                <tbody style={{ textAlign: "left" }}>
-                  <tr>
-                    <th scope="row">Period</th>
-                    <td>15 min</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Statistic</th>
-                    <td>Average</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Unit</th>
-                    <td>Count</td>
-                  </tr>
-                </tbody>
-              </table>
-            </>
-          ),
-          footer: (
-            <Link external={true} href="https://example.com/" variant="primary">
-              Learn more
-            </Link>
-          ),
-        })}
-      />
+            ),
+            body: (
+              <>
+                <table>
+                  <tbody style={{ textAlign: "left" }}>
+                    <tr>
+                      <th scope="row">Period</th>
+                      <td>15 min</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Statistic</th>
+                      <td>Average</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Unit</th>
+                      <td>Count</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </>
+            ),
+            footer: (
+              <Link external={true} href="https://example.com/" variant="primary">
+                Learn more
+              </Link>
+            ),
+          })}
+        />
+      </SpaceBetween>
     </Page>
   );
 }

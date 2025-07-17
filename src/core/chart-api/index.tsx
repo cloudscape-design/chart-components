@@ -394,10 +394,14 @@ export class ChartAPI {
       // Update tooltip and legend state.
       if (point) {
         this.chartExtraLegend.onHighlightPoint(point);
-        this.chartExtraTooltip.showTooltipOnPoint(point, group, overrideTooltipLock);
+        if (!isApiCall) {
+          this.chartExtraTooltip.showTooltipOnPoint(point, group, overrideTooltipLock);
+        }
       } else {
         this.chartExtraLegend.onHighlightGroup(group);
-        this.chartExtraTooltip.showTooltipOnGroup(group, overrideTooltipLock);
+        if (!isApiCall) {
+          this.chartExtraTooltip.showTooltipOnGroup(group, overrideTooltipLock);
+        }
       }
 
       // Notify the consumer that a highlight action was made.
