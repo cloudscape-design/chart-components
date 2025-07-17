@@ -41,7 +41,7 @@ export default function () {
           setTimeout(() => {
             if (api.chart.series) {
               const point = api.chart.series[0].data.find((p) => p.y === 30)!;
-              api.highlightChartPoint(point);
+              api.highlightChartPoint(point, { showTooltip: true });
             }
           }, 0);
         }}

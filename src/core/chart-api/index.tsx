@@ -211,14 +211,20 @@ export class ChartAPI {
   public setItemsVisible = (visibleItemsIds: readonly string[], { isApiCall }: { isApiCall: boolean }) => {
     this.chartExtraLegend.onItemVisibilityChange(visibleItemsIds, { isApiCall });
   };
-  public highlightChartPoint = (point: Highcharts.Point, { isApiCall }: { isApiCall: boolean }) => {
+  public highlightChartPoint = (
+    point: Highcharts.Point,
+    { isApiCall, showTooltip }: { isApiCall: boolean; showTooltip: boolean },
+  ) => {
     if (!this.isTooltipPinned) {
-      this.highlightActions(point, { isApiCall });
+      this.highlightActions(point, { isApiCall, showTooltip });
     }
   };
-  public highlightChartGroup = (group: readonly Highcharts.Point[], { isApiCall }: { isApiCall: boolean }) => {
+  public highlightChartGroup = (
+    group: readonly Highcharts.Point[],
+    { isApiCall, showTooltip }: { isApiCall: boolean; showTooltip: boolean },
+  ) => {
     if (!this.isTooltipPinned) {
-      this.highlightActions(group as Writeable<Highcharts.Point[]>, { isApiCall });
+      this.highlightActions(group as Writeable<Highcharts.Point[]>, { isApiCall, showTooltip });
     }
   };
   public clearChartHighlight = ({ isApiCall }: { isApiCall: boolean }) => {
@@ -229,8 +235,10 @@ export class ChartAPI {
   public get publicApi() {
     return {
       setItemsVisible: (visibleItemIds: readonly string[]) => this.setItemsVisible(visibleItemIds, { isApiCall: true }),
-      highlightChartPoint: (point: Highcharts.Point) => this.highlightChartPoint(point, { isApiCall: true }),
-      highlightChartGroup: (group: readonly Highcharts.Point[]) => this.highlightChartGroup(group, { isApiCall: true }),
+      highlightChartPoint: (point: Highcharts.Point, { showTooltip }: { showTooltip: true }) =>
+        this.highlightChartPoint(point, { isApiCall: true, showTooltip }),
+      highlightChartGroup: (group: readonly Highcharts.Point[], { showTooltip }: { showTooltip: boolean }) =>
+        this.highlightChartGroup(group, { isApiCall: true, showTooltip }),
       clearChartHighlight: () => this.clearChartHighlight({ isApiCall: true }),
     };
   }
@@ -243,12 +251,12 @@ export class ChartAPI {
         this.chartExtraNavigation.announceChart(getChartAccessibleDescription(this.context.chart()));
       },
       onFocusGroup: (group: Highcharts.Point[]) => {
-        this.highlightActions(group, { isApiCall: false, overrideTooltipLock: true });
+        this.highlightActions(group, { isApiCall: false, showTooltip: true, overrideTooltipLock: true });
         this.chartExtraNavigation.announceElement(getGroupAccessibleDescription(group), false);
       },
       onFocusPoint: (point: Highcharts.Point) => {
         const labels = this.context.settings.labels;
-        this.highlightActions(point, { isApiCall: false, overrideTooltipLock: true });
+        this.highlightActions(point, { isApiCall: false, showTooltip: true, overrideTooltipLock: true });
         this.chartExtraNavigation.announceElement(getPointAccessibleDescription(point, labels), false);
       },
       onBlur: () => this.clearChartHighlight({ isApiCall: false }),
@@ -274,10 +282,10 @@ export class ChartAPI {
   private get pointerHandlers(): ChartExtraPointerHandlers {
     return {
       onPointHover: (point) => {
-        this.highlightChartPoint(point, { isApiCall: false });
+        this.highlightChartPoint(point, { isApiCall: false, showTooltip: true });
       },
       onGroupHover: (group) => {
-        this.highlightChartGroup(group, { isApiCall: false });
+        this.highlightChartGroup(group, { isApiCall: false, showTooltip: true });
       },
       onHoverLost: () => {
         this.clearChartHighlight({ isApiCall: false });
@@ -348,13 +356,13 @@ export class ChartAPI {
     // If the previously hovered and now clicked positions match, and the the tooltip wasn't
     // dismissed just a moment ago, we make the tooltip pinned in this position.
     if (positionsMatch && !this.chartExtraTooltip.tooltipLock) {
-      this.highlightActions(point, { isApiCall: false });
+      this.highlightActions(point, { isApiCall: false, showTooltip: true });
       this.chartExtraTooltip.pinTooltip();
     }
     // If the tooltip was just dismissed, it means this happened by clicking somewhere in the plot area.
     // If the clicked position differs from the one that was pinned - we show tooltip in the new position.
     else if (!positionsMatch && this.chartExtraTooltip.tooltipLock) {
-      this.highlightActions(point, { isApiCall: false, overrideTooltipLock: true });
+      this.highlightActions(point, { isApiCall: false, showTooltip: true, overrideTooltipLock: true });
     }
   };
 
@@ -366,19 +374,23 @@ export class ChartAPI {
     // If the previously hovered and now clicked positions match, and the the tooltip wasn't
     // dismissed just a moment ago, we make the tooltip pinned in this position.
     if (positionsMatch && !this.chartExtraTooltip.tooltipLock) {
-      this.highlightActions(group, { isApiCall: false });
+      this.highlightActions(group, { isApiCall: false, showTooltip: true });
       this.chartExtraTooltip.pinTooltip();
     }
     // If the tooltip was just dismissed, it means this happened by clicking somewhere in the plot area.
     // If the clicked position differs from the one that was pinned - we show tooltip in the new position.
     else if (!positionsMatch && this.chartExtraTooltip.tooltipLock) {
-      this.highlightActions(group, { isApiCall: false, overrideTooltipLock: true });
+      this.highlightActions(group, { isApiCall: false, showTooltip: true, overrideTooltipLock: true });
     }
   };
 
   private highlightActions(
     target: Highcharts.Point | Highcharts.Point[],
-    { isApiCall, overrideTooltipLock }: { isApiCall: boolean; overrideTooltipLock?: boolean },
+    {
+      isApiCall,
+      showTooltip,
+      overrideTooltipLock,
+    }: { isApiCall: boolean; showTooltip: boolean; overrideTooltipLock?: boolean },
   ) {
     const point = Array.isArray(target) ? null : target;
     const group = Array.isArray(target) ? target : this.context.derived.getPointsByX(target.x);
@@ -394,10 +406,14 @@ export class ChartAPI {
       // Update tooltip and legend state.
       if (point) {
         this.chartExtraLegend.onHighlightPoint(point);
-        this.chartExtraTooltip.showTooltipOnPoint(point, group, overrideTooltipLock);
+        if (showTooltip) {
+          this.chartExtraTooltip.showTooltipOnPoint(point, group, overrideTooltipLock);
+        }
       } else {
         this.chartExtraLegend.onHighlightGroup(group);
-        this.chartExtraTooltip.showTooltipOnGroup(group, overrideTooltipLock);
+        if (showTooltip) {
+          this.chartExtraTooltip.showTooltipOnGroup(group, overrideTooltipLock);
+        }
       }
 
       // Notify the consumer that a highlight action was made.

@@ -380,8 +380,8 @@ export namespace CoreChartProps {
     chart: Highcharts.Chart;
     highcharts: typeof Highcharts;
     setItemsVisible(itemIds: readonly string[]): void;
-    highlightChartPoint(point: Highcharts.Point): void;
-    highlightChartGroup(group: readonly Highcharts.Point[]): void;
+    highlightChartPoint(point: Highcharts.Point, { showTooltip }: { showTooltip: boolean }): void;
+    highlightChartGroup(group: readonly Highcharts.Point[], { showTooltip }: { showTooltip: boolean }): void;
     clearChartHighlight(): void;
   }
 
