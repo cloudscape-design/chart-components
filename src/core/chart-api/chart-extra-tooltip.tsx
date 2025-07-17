@@ -125,7 +125,11 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     // We only create target track for pie chart as pie chart does not support groups.
     // It is also expected that only "target" tooltip position is used for pie charts.
     const pointRect = getPieChartTargetPlacement(point);
-    this.targetTrack.rect(this.context.chart().renderer, { ...pointRect, ...this.commonTrackAttrs });
+    this.targetTrack.rect(this.context.chart().renderer, {
+      ...pointRect,
+      ...this.commonTrackAttrs,
+      "data-testid": "XYZ",
+    });
   };
 
   private get commonTrackAttrs() {
@@ -198,7 +202,8 @@ function getPieChartTargetPlacement(point: Highcharts.Point): Rect {
   // Instead, there is a `tooltipPos` tuple, which is not covered by TS.
   // See: https://github.com/highcharts/highcharts/issues/23118.
   if ("tooltipPos" in point && Array.isArray(point.tooltipPos)) {
-    return { x: point.tooltipPos[0], y: point.tooltipPos[1], width: 0, height: 0 };
+    // We use very small but non-zero track size as otherwise it is placed incorrectly in Firefox.
+    return { x: point.tooltipPos[0], y: point.tooltipPos[1], width: 0.1, height: 0.1 };
   }
   // We use the alternative, middle, tooltip placement as a fallback, in case the undocumented "tooltipPos"
   // is no longer available in the point.
