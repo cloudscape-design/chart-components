@@ -403,6 +403,7 @@ export namespace CoreChartProps {
 
   export interface LegendOptions extends BaseLegendOptions {
     bottomMaxHeight?: number;
+    type?: "single" | "dual";
     position?: "bottom" | "side";
   }
   export type LegendItem = InternalComponentTypes.LegendItem;

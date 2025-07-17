@@ -12,13 +12,17 @@ export function ChartLegend({
   api,
   title,
   actions,
+  type,
   position,
   i18nStrings,
+  bottomMaxHeight,
   getLegendTooltipContent,
 }: {
   api: ChartAPI;
   title?: string;
+  bottomMaxHeight: number;
   actions?: React.ReactNode;
+  type: "single" | "dual";
   position: "bottom" | "side";
   i18nStrings?: BaseI18nStrings;
   getLegendTooltipContent?: CoreChartProps.GetLegendTooltipContent;
@@ -38,6 +42,8 @@ export function ChartLegend({
       items={legendItems}
       actions={actions}
       position={position}
+      type={type}
+      bottomMaxHeight={bottomMaxHeight}
       onItemVisibilityChange={api.onItemVisibilityChange}
       onItemHighlightEnter={(itemId) => api.onHighlightChartItems([itemId])}
       onItemHighlightExit={api.onClearChartItemsHighlight}

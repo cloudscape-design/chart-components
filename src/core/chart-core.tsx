@@ -82,6 +82,7 @@ export function InternalCoreChart({
   const rootRef = useRef<HTMLDivElement>(null);
   const mergedRootRef = useMergeRefs(rootRef, __internalRootRef);
   const rootProps = { ref: mergedRootRef, className: rootClassName, ...getDataAttributes(rest) };
+  const legendType = legendOptions?.type ?? "single";
   const legendPosition = legendOptions?.position ?? "bottom";
   const containerProps = {
     fitHeight,
@@ -90,7 +91,6 @@ export function InternalCoreChart({
     chartMinWidth,
     legendPosition,
     verticalAxisTitlePlacement,
-    legendBottomMaxHeight: legendOptions?.bottomMaxHeight,
   };
 
   // Render fallback using the same root and container props as for the chart to ensure consistent
@@ -304,6 +304,7 @@ export function InternalCoreChart({
           context.legendEnabled ? (
             <ChartLegend
               {...legendOptions}
+              type={legendType}
               position={legendPosition}
               api={api}
               i18nStrings={i18nStrings}
