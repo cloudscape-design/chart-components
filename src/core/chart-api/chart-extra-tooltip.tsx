@@ -125,11 +125,7 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     // We only create target track for pie chart as pie chart does not support groups.
     // It is also expected that only "target" tooltip position is used for pie charts.
     const pointRect = getPieChartTargetPlacement(point);
-    this.targetTrack.rect(this.context.chart().renderer, {
-      ...pointRect,
-      ...this.commonTrackAttrs,
-      "data-testid": "XYZ",
-    });
+    this.targetTrack.rect(this.context.chart().renderer, { ...pointRect, ...this.commonTrackAttrs });
   };
 
   private get commonTrackAttrs() {
