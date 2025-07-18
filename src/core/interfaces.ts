@@ -379,6 +379,7 @@ export namespace CoreChartProps {
   export interface ChartAPI {
     chart: Highcharts.Chart;
     highcharts: typeof Highcharts;
+    highlightItems(itemIds: readonly string[]): void;
     setItemsVisible(itemIds: readonly string[]): void;
     highlightChartPoint(point: Highcharts.Point): void;
     highlightChartGroup(group: readonly Highcharts.Point[]): void;
