@@ -208,6 +208,9 @@ export class ChartAPI {
 
   // Callbacks used for hover and keyboard navigation, and also exposed to the public API to give the ability
   // to highlight and show tooltip for the given point or group manually.
+  public highlightChartItems = (itemIds: readonly string[]) => {
+    this.chartExtraHighlight.highlightChartItems(itemIds);
+  };
   public setItemsVisible = (visibleItemsIds: readonly string[], { isApiCall }: { isApiCall: boolean }) => {
     this.chartExtraLegend.onItemVisibilityChange(visibleItemsIds, { isApiCall });
   };
@@ -228,6 +231,7 @@ export class ChartAPI {
   };
   public get publicApi() {
     return {
+      highlightItems: (itemIds: readonly string[]) => this.highlightChartItems(itemIds),
       setItemsVisible: (visibleItemIds: readonly string[]) => this.setItemsVisible(visibleItemIds, { isApiCall: true }),
       highlightChartPoint: (point: Highcharts.Point) => this.highlightChartPoint(point, { isApiCall: true }),
       highlightChartGroup: (group: readonly Highcharts.Point[]) => this.highlightChartGroup(group, { isApiCall: true }),
