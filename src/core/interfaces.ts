@@ -342,6 +342,10 @@ export interface CoreChartProps
    */
   visibleItems?: readonly string[];
   /**
+   * Called when the user hovers over a legend item.
+   */
+  onLegendHover?: (detail: CoreChartProps.LegendHoverDetail) => void;
+  /**
    * Called when series/points visibility changes due to user interaction with legend or filter.
    */
   onVisibleItemsChange?: (detail: CoreChartProps.VisibleItemsChangeDetail) => void;
@@ -440,6 +444,9 @@ export namespace CoreChartProps {
     items: TooltipContentItem[];
   }
 
+  export interface LegendHoverDetail {
+    item: LegendItem;
+  }
   export interface VisibleItemsChangeDetail {
     items: readonly LegendItem[];
     isApiCall: boolean;

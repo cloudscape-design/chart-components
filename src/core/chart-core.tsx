@@ -58,6 +58,7 @@ export function InternalCoreChart({
   filter,
   keyboardNavigation = true,
   onHighlight,
+  onLegendHover,
   onClearHighlight,
   onVisibleItemsChange,
   visibleItems,
@@ -307,6 +308,7 @@ export function InternalCoreChart({
               position={legendPosition}
               api={api}
               i18nStrings={i18nStrings}
+              onItemHover={onLegendHover}
               getLegendTooltipContent={rest.getLegendTooltipContent}
             />
           ) : null

@@ -32,7 +32,7 @@ export interface ChartLegendProps {
   ariaLabel?: string;
   actions?: React.ReactNode;
   position: "bottom" | "side";
-  onItemHighlightEnter: (itemId: string) => void;
+  onItemHighlightEnter: (item: LegendItem) => void;
   onItemHighlightExit: () => void;
   onItemVisibilityChange: (hiddenItems: string[]) => void;
   getTooltipContent: (props: GetLegendTooltipContentProps) => null | LegendTooltipContent;
@@ -120,7 +120,7 @@ export const ChartLegend = ({
     const item = items.find((item) => item.id === itemId);
     if (item?.visible) {
       highlightControl.cancelPrevious();
-      onItemHighlightEnter(itemId);
+      onItemHighlightEnter(item);
     }
   };
   const clearHighlight = () => {
