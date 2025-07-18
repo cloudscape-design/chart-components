@@ -3,10 +3,11 @@
 
 import { act } from "react";
 import highcharts from "highcharts";
+import { vi } from "vitest";
 
 import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 
-import { createChartWrapper, renderChart } from "./common";
+import { createChartWrapper, hoverLegendItem, renderChart } from "./common";
 import { HighchartsTestHelper } from "./highcharts-utils";
 
 import legendTestClasses from "../../../lib/components/internal/components/chart-legend/test-classes/styles.selectors.js";
@@ -450,5 +451,24 @@ describe("CoreChart: legend", () => {
       expect(wrapper.findLegend()!.findItemTooltip()).not.toBe(null);
       expect(wrapper.findLegend()!.findItemTooltip()!.findHeader()!.getElement().textContent).toBe("P2");
     });
+  });
+
+  test("calls onLegendHover when hovering over a legend item", () => {
+    const onLegendHover = vi.fn();
+    const { wrapper } = renderChart({ highcharts, options: { series }, onLegendHover });
+
+    hoverLegendItem(0, wrapper);
+
+    expect(onLegendHover).toHaveBeenCalledWith(
+      expect.objectContaining({
+        item: expect.objectContaining({
+          id: "Line 1",
+          name: "Line 1",
+          marker: expect.any(Object),
+          visible: expect.any(Boolean),
+          highlighted: expect.any(Boolean),
+        }),
+      }),
+    );
   });
 });
