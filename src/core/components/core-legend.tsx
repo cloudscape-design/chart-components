@@ -22,7 +22,7 @@ export function ChartLegend({
   actions?: React.ReactNode;
   position: "bottom" | "side";
   i18nStrings?: BaseI18nStrings;
-  onItemHighlight?: (detail: CoreChartProps.LegendHoverDetail) => void;
+  onItemHighlight?: (detail: CoreChartProps.LegendItemHighlightDetail) => void;
   getLegendTooltipContent?: CoreChartProps.GetLegendTooltipContent;
 }) {
   const i18n = useInternalI18n("[charts]");

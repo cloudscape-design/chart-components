@@ -344,7 +344,7 @@ export interface CoreChartProps
   /**
    * Called when a legend item is highlighted.
    */
-  onLegendItemHighlight?: (detail: CoreChartProps.LegendHoverDetail) => void;
+  onLegendItemHighlight?: (detail: CoreChartProps.LegendItemHighlightDetail) => void;
   /**
    * Called when series/points visibility changes due to user interaction with legend or filter.
    */
@@ -444,7 +444,7 @@ export namespace CoreChartProps {
     items: TooltipContentItem[];
   }
 
-  export interface LegendHoverDetail {
+  export interface LegendItemHighlightDetail {
     item: LegendItem;
   }
   export interface VisibleItemsChangeDetail {
