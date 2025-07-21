@@ -40,6 +40,8 @@ describe("CoreChart: API tests", () => {
   test("passes isApiCall=false to onHighlight when triggered by an user interaction", () => {
     const onHighlight = vi.fn();
 
+    renderChart({ highcharts, onHighlight, options: { series } });
+
     act(() => hc.highlightChartPoint(0, 0));
 
     expect(onHighlight).toHaveBeenCalledWith(
