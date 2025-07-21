@@ -39,7 +39,6 @@ const pieSeries: Highcharts.SeriesOptionsType[] = [
 describe("CoreChart: API tests", () => {
   test("passes isApiCall=false to onHighlight when triggered by an user interaction", () => {
     const onHighlight = vi.fn();
-
     renderChart({ highcharts, onHighlight, options: { series } });
 
     act(() => hc.highlightChartPoint(0, 0));
@@ -101,7 +100,7 @@ describe("CoreChart: API tests", () => {
     expect(onVisibleItemsChange).toHaveBeenCalledWith({ items: expect.any(Array), isApiCall: true });
   });
 
-  test("highlightSeries should only highlight the specified series in a line chart", () => {
+  test("highlightItems should only highlight the specified series in a line chart", () => {
     let chartApi: CoreChartProps.ChartAPI | null = null;
     renderChart({ highcharts, options: { series: threeSeries }, callback: (api) => (chartApi = api) });
 
@@ -119,7 +118,7 @@ describe("CoreChart: API tests", () => {
     expect(hc.getChartSeries(2).state).not.toBe("inactive");
   });
 
-  test("highlightChartPoint should only highlight the specified point in a pie chart", () => {
+  test("highlightItems should only highlight the specified point in a pie chart", () => {
     let chartApi: CoreChartProps.ChartAPI | null = null;
     renderChart({ highcharts, options: { series: pieSeries }, callback: (api) => (chartApi = api) });
 
