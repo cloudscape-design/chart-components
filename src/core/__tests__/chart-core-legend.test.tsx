@@ -462,8 +462,8 @@ describe("CoreChart: legend", () => {
     expect(onLegendHover).toHaveBeenCalledWith(
       expect.objectContaining({
         item: expect.objectContaining({
-          id: "Line 1",
-          name: "Line 1",
+          id: "L1",
+          name: "L1",
           marker: expect.any(Object),
           visible: expect.any(Boolean),
           highlighted: expect.any(Boolean),
