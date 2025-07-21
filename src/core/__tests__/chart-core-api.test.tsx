@@ -107,15 +107,15 @@ describe("CoreChart: API tests", () => {
     act(() => chartApi!.highlightItems([hc.getChartSeries(1).name]));
 
     expect(hc.getChartSeries(0).state).toBe("inactive");
-    expect(hc.getChartSeries(1).state).not.toBe("inactive");
+    expect(hc.getChartSeries(1).state).toBe("");
     expect(hc.getChartSeries(2).state).toBe("inactive");
 
     act(() => chartApi!.clearChartHighlight());
     act(() => chartApi!.highlightItems([hc.getChartSeries(0).name, hc.getChartSeries(2).name]));
 
-    expect(hc.getChartSeries(0).state).not.toBe("inactive");
+    expect(hc.getChartSeries(0).state).toBe("");
     expect(hc.getChartSeries(1).state).toBe("inactive");
-    expect(hc.getChartSeries(2).state).not.toBe("inactive");
+    expect(hc.getChartSeries(2).state).toBe("");
   });
 
   test("highlightItems should only highlight the specified point in a pie chart", () => {
@@ -126,15 +126,15 @@ describe("CoreChart: API tests", () => {
 
     act(() => chartApi!.highlightItems([series.points[1].name]));
 
-    expect(hc.getChartPoint(0, 0).state).not.toBe("inactive");
+    expect(hc.getChartPoint(0, 0).state).toBe(undefined);
     expect(hc.getChartPoint(0, 1).state).toBe("hover");
-    expect(hc.getChartPoint(0, 2).state).not.toBe("inactive");
+    expect(hc.getChartPoint(0, 2).state).toBe(undefined);
 
     act(() => chartApi!.clearChartHighlight());
     act(() => chartApi!.highlightItems([series.points[0].name, series.points[2].name]));
 
     expect(hc.getChartPoint(0, 0).state).toBe("hover");
-    expect(hc.getChartPoint(0, 1).state).not.toBe("hover");
+    expect(hc.getChartPoint(0, 1).state).toBe("");
     expect(hc.getChartPoint(0, 2).state).toBe("hover");
   });
 });
