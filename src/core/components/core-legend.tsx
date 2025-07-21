@@ -14,7 +14,7 @@ export function ChartLegend({
   actions,
   position,
   i18nStrings,
-  onItemHover,
+  onItemHighlight,
   getLegendTooltipContent,
 }: {
   api: ChartAPI;
@@ -22,7 +22,7 @@ export function ChartLegend({
   actions?: React.ReactNode;
   position: "bottom" | "side";
   i18nStrings?: BaseI18nStrings;
-  onItemHover?: (detail: CoreChartProps.LegendHoverDetail) => void;
+  onItemHighlight?: (detail: CoreChartProps.LegendHoverDetail) => void;
   getLegendTooltipContent?: CoreChartProps.GetLegendTooltipContent;
 }) {
   const i18n = useInternalI18n("[charts]");
@@ -44,7 +44,7 @@ export function ChartLegend({
       onItemHighlightExit={api.onClearChartItemsHighlight}
       onItemHighlightEnter={(item) => {
         api.onHighlightChartItems([item.id]);
-        onItemHover?.({ item });
+        onItemHighlight?.({ item });
       }}
       getTooltipContent={(props) => {
         if (isChartTooltipPinned) {

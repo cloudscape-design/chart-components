@@ -453,13 +453,13 @@ describe("CoreChart: legend", () => {
     });
   });
 
-  test("calls onLegendHover when hovering over a legend item", () => {
-    const onLegendHover = vi.fn();
-    const { wrapper } = renderChart({ highcharts, options: { series }, onLegendHover });
+  test("calls onLegendItemHighlight when hovering over a legend item", () => {
+    const onLegendItemHighlight = vi.fn();
+    const { wrapper } = renderChart({ highcharts, options: { series }, onLegendItemHighlight });
 
     hoverLegendItem(0, wrapper);
 
-    expect(onLegendHover).toHaveBeenCalledWith(
+    expect(onLegendItemHighlight).toHaveBeenCalledWith(
       expect.objectContaining({
         item: expect.objectContaining({
           id: "L1",

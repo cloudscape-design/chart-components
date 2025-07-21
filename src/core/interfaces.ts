@@ -342,9 +342,9 @@ export interface CoreChartProps
    */
   visibleItems?: readonly string[];
   /**
-   * Called when the user hovers over a legend item.
+   * Called when a legend item is highlighted.
    */
-  onLegendHover?: (detail: CoreChartProps.LegendHoverDetail) => void;
+  onLegendItemHighlight?: (detail: CoreChartProps.LegendHoverDetail) => void;
   /**
    * Called when series/points visibility changes due to user interaction with legend or filter.
    */

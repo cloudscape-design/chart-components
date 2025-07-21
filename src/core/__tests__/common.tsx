@@ -33,7 +33,7 @@ export function StatefulChart(props: CoreChartProps) {
 }
 
 type TestProps = Partial<CoreChartProps> & {
-  onLegendHover?: () => void;
+  onLegendItemHighlight?: () => void;
   i18nProvider?: Record<string, Record<string, string>>;
 };
 
