@@ -12,7 +12,6 @@ import { CoreChartProps } from "../core/interfaces";
 import { getOptionsId } from "../core/utils";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import * as Styles from "../internal/chart-styles";
-import ChartSeriesDetails from "../internal/components/series-details";
 import { fireNonCancelableEvent } from "../internal/events";
 import { SomeRequired, Writeable } from "../internal/utils/utils";
 import { useInnerArea } from "./chart-inner-area";
@@ -62,8 +61,9 @@ export const InternalPieChart = forwardRef(
     // We convert pie tooltip options to the core chart's getTooltipContent callback,
     // ensuring no internal types are exposed to the consumer-defined render functions.
     const getTooltipContent: CoreChartProps["getTooltipContent"] = () => {
-      const transformSlotProps = (props: CoreChartProps.TooltipSlotProps): PieChartProps.TooltipDetailsRenderProps => {
-        const point = props.items[0].point;
+      const transformDetailsProps = ({
+        point,
+      }: CoreChartProps.TooltipDetailsProps): PieChartProps.TooltipDetailsRenderProps => {
         return {
           totalValue: point.total ?? 0,
           segmentValue: point.y ?? 0,
@@ -71,20 +71,14 @@ export const InternalPieChart = forwardRef(
           segmentName: point.name ?? "",
         };
       };
+      const transformSlotProps = (props: CoreChartProps.TooltipSlotProps): PieChartProps.TooltipDetailsRenderProps => {
+        const point = props.items[0].point;
+        return transformDetailsProps({ point });
+      };
       return {
         header: tooltip?.header ? (props) => tooltip.header!(transformSlotProps(props)) : undefined,
-        body:
-          tooltip?.body || tooltip?.details
-            ? (props) =>
-                tooltip.body ? (
-                  tooltip.body(transformSlotProps(props))
-                ) : (
-                  <ChartSeriesDetails
-                    details={tooltip?.details?.(transformSlotProps(props)) ?? []}
-                    compactList={true}
-                  />
-                )
-            : undefined,
+        details: tooltip?.details ? (props) => tooltip.details!(transformDetailsProps(props)) : undefined,
+        body: tooltip?.body ? (props) => tooltip.body!(transformSlotProps(props)) : undefined,
         footer: tooltip?.footer ? (props) => tooltip.footer!(transformSlotProps(props)) : undefined,
       };
     };

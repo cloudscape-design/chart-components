@@ -215,11 +215,15 @@ function getTooltipContentPie(
         </Box>
       </div>
     ),
-    body: renderers.body?.(tooltipDetails) ?? (
-      // We expect all pie chart segments to have defined y values. We use y=0 as fallback
-      // because the property is optional in Highcharts types.
-      <ChartSeriesDetails details={[{ key: point.series.name, value: point.y ?? 0 }]} />
-    ),
+    body:
+      renderers.body?.(tooltipDetails) ??
+      (renderers.details ? (
+        <ChartSeriesDetails details={renderers.details({ point })} compactList={true} />
+      ) : (
+        // We expect all pie chart segments to have defined y values. We use y=0 as fallback
+        // because the property is optional in Highcharts types.
+        <ChartSeriesDetails details={[{ key: point.series.name, value: point.y ?? 0 }]} />
+      )),
     footer: renderers.footer?.(tooltipDetails),
   };
 }

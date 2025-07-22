@@ -428,6 +428,7 @@ export namespace CoreChartProps {
   }
   export interface TooltipContentRenderer {
     point?: (props: TooltipPointProps) => TooltipPointFormatted;
+    details?: (props: TooltipDetailsProps) => readonly TooltipDetail[];
     header?: (props: TooltipSlotProps) => React.ReactNode;
     body?: (props: TooltipSlotProps) => React.ReactNode;
     footer?: (props: TooltipSlotProps) => React.ReactNode;
@@ -443,6 +444,15 @@ export namespace CoreChartProps {
   export interface TooltipSlotProps {
     x: number;
     items: TooltipContentItem[];
+  }
+
+  export interface TooltipDetailsProps {
+    point: Highcharts.Point;
+  }
+
+  export interface TooltipDetail {
+    key: React.ReactNode;
+    value: React.ReactNode;
   }
 
   export interface LegendItemHighlightDetail {
