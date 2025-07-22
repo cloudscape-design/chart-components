@@ -342,6 +342,10 @@ export interface CoreChartProps
    */
   visibleItems?: readonly string[];
   /**
+   * Called when a legend item is highlighted.
+   */
+  onLegendItemHighlight?: (detail: CoreChartProps.LegendItemHighlightDetail) => void;
+  /**
    * Called when series/points visibility changes due to user interaction with legend or filter.
    */
   onVisibleItemsChange?: (detail: CoreChartProps.VisibleItemsChangeDetail) => void;
@@ -379,6 +383,7 @@ export namespace CoreChartProps {
   export interface ChartAPI {
     chart: Highcharts.Chart;
     highcharts: typeof Highcharts;
+    highlightItems(itemIds: readonly string[]): void;
     setItemsVisible(itemIds: readonly string[]): void;
     highlightChartPoint(point: Highcharts.Point): void;
     highlightChartGroup(group: readonly Highcharts.Point[]): void;
@@ -440,6 +445,9 @@ export namespace CoreChartProps {
     items: TooltipContentItem[];
   }
 
+  export interface LegendItemHighlightDetail {
+    item: LegendItem;
+  }
   export interface VisibleItemsChangeDetail {
     items: readonly LegendItem[];
     isApiCall: boolean;

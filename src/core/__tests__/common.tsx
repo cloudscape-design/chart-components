@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { act, useState } from "react";
-import { render } from "@testing-library/react";
+import { fireEvent, render } from "@testing-library/react";
 
 import "@cloudscape-design/components/test-utils/dom";
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
@@ -33,6 +33,7 @@ export function StatefulChart(props: CoreChartProps) {
 }
 
 type TestProps = Partial<CoreChartProps> & {
+  onLegendItemHighlight?: () => void;
   i18nProvider?: Record<string, Record<string, string>>;
 };
 
@@ -85,4 +86,9 @@ export function selectLegendItem(index: number, wrapper: BaseChartWrapper = crea
 export function toggleLegendItem(index: number, wrapper: BaseChartWrapper = createChartWrapper()) {
   const modifier = Math.random() > 0.5 ? { metaKey: true } : { ctrlKey: true };
   act(() => wrapper.findLegend()!.findItems()[index].click(modifier));
+}
+export function hoverLegendItem(index: number, wrapper: BaseChartWrapper = createChartWrapper()) {
+  act(() => {
+    fireEvent.mouseOver(wrapper.findLegend()!.findItems()[index].getElement());
+  });
 }
