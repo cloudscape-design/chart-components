@@ -4,6 +4,7 @@
 import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-use/i18n";
 
 import { ChartLegend as ChartLegendComponent } from "../../internal/components/chart-legend";
+import { fireNonCancelableEvent, NonCancelableEventHandler } from "../../internal/events";
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
 import { BaseI18nStrings, CoreChartProps } from "../interfaces";
@@ -22,7 +23,7 @@ export function ChartLegend({
   actions?: React.ReactNode;
   position: "bottom" | "side";
   i18nStrings?: BaseI18nStrings;
-  onItemHighlight?: (detail: CoreChartProps.LegendItemHighlightDetail) => void;
+  onItemHighlight?: NonCancelableEventHandler<CoreChartProps.LegendItemHighlightDetail>;
   getLegendTooltipContent?: CoreChartProps.GetLegendTooltipContent;
 }) {
   const i18n = useInternalI18n("[charts]");
@@ -44,7 +45,7 @@ export function ChartLegend({
       onItemHighlightExit={api.onClearChartItemsHighlight}
       onItemHighlightEnter={(item) => {
         api.onHighlightChartItems([item.id]);
-        onItemHighlight?.({ item });
+        fireNonCancelableEvent(onItemHighlight, { item });
       }}
       getTooltipContent={(props) => {
         if (isChartTooltipPinned) {

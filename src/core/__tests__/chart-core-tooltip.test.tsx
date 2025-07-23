@@ -6,7 +6,7 @@ import { waitFor } from "@testing-library/react";
 import highcharts from "highcharts";
 import { vi } from "vitest";
 
-import { CoreChartAPI } from "../../../lib/components/core/interfaces";
+import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
 import { createChartWrapper, renderChart } from "./common";
 import { HighchartsTestHelper } from "./highcharts-utils";
@@ -114,8 +114,11 @@ describe("CoreChart: tooltip", () => {
 
     expect(onHighlight).toHaveBeenCalledWith(
       expect.objectContaining({
-        point: hc.getChartPoint(0, 0),
-        group: expect.arrayContaining([hc.getChartPoint(0, 0), hc.getChartPoint(1, 0)]),
+        detail: {
+          point: hc.getChartPoint(0, 0),
+          group: expect.arrayContaining([hc.getChartPoint(0, 0), hc.getChartPoint(1, 0)]),
+          isApiCall: false,
+        },
       }),
     );
     await waitFor(() => {
@@ -164,8 +167,11 @@ describe("CoreChart: tooltip", () => {
 
     expect(onHighlight).toHaveBeenCalledWith(
       expect.objectContaining({
-        point: null,
-        group: expect.arrayContaining([hc.getChartPoint(0, 0), hc.getChartPoint(1, 0)]),
+        detail: {
+          point: null,
+          group: expect.arrayContaining([hc.getChartPoint(0, 0), hc.getChartPoint(1, 0)]),
+          isApiCall: false,
+        },
       }),
     );
     await waitFor(() => {
@@ -184,7 +190,7 @@ describe("CoreChart: tooltip", () => {
   });
 
   test("shows tooltip with api", async () => {
-    let api: null | CoreChartAPI = null;
+    let api: null | CoreChartProps.ChartAPI = null;
     const onHighlight = vi.fn();
     const onClearHighlight = vi.fn();
     const { wrapper } = renderChart({
@@ -202,7 +208,9 @@ describe("CoreChart: tooltip", () => {
 
     act(() => api!.highlightChartPoint(hc.getChartPoint(0, 0)));
 
-    expect(onHighlight).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 0) }));
+    expect(onHighlight).toHaveBeenCalledWith(
+      expect.objectContaining({ detail: expect.objectContaining({ point: hc.getChartPoint(0, 0), isApiCall: true }) }),
+    );
     await waitFor(() => {
       expect(wrapper.findTooltip()).not.toBe(null);
       expect(wrapper.findTooltip()!.findHeader()!.getElement().textContent).toBe("Tooltip title");
@@ -298,7 +306,11 @@ describe("CoreChart: tooltip", () => {
 
       const point = hc.getChartPoint(0, i);
       await waitFor(() => {
-        expect(onHighlight).toHaveBeenCalledWith({ point, group: expect.arrayContaining([point]), isApiCall: false });
+        expect(onHighlight).toHaveBeenCalledWith(
+          expect.objectContaining({
+            detail: { point, group: expect.arrayContaining([point]), isApiCall: false },
+          }),
+        );
         expect(getTooltipContent).toHaveBeenCalledWith({ point, group: expect.arrayContaining([point]) });
       });
     }
@@ -367,7 +379,11 @@ describe("CoreChart: tooltip", () => {
       });
 
       act(() => hc.highlightChartPoint(0, 1));
-      expect(onHighlight).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 1) }));
+      expect(onHighlight).toHaveBeenCalledWith(
+        expect.objectContaining({
+          detail: expect.objectContaining({ point: hc.getChartPoint(0, 1), isApiCall: false }),
+        }),
+      );
     },
   );
 });

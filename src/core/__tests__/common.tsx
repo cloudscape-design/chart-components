@@ -7,6 +7,7 @@ import { fireEvent, render } from "@testing-library/react";
 import "@cloudscape-design/components/test-utils/dom";
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
+import { fireNonCancelableEvent } from "../../../lib/components/internal/events";
 import { TestI18nProvider } from "../../../lib/components/internal/utils/test-i18n-provider";
 import CoreChart from "../../../lib/components/internal-do-not-use/core-chart";
 import createWrapper from "../../../lib/components/test-utils/dom";
@@ -23,10 +24,10 @@ export function StatefulChart(props: CoreChartProps) {
     <CoreChart
       {...props}
       visibleItems={visibleItems}
-      onVisibleItemsChange={({ items: legendItems, isApiCall }) => {
+      onVisibleItemsChange={({ detail: { items: legendItems, isApiCall } }) => {
         const visibleItems = legendItems.filter((i) => i.visible).map((i) => i.id);
         setVisibleItems(visibleItems);
-        props.onVisibleItemsChange?.({ items: legendItems, isApiCall });
+        fireNonCancelableEvent(props.onVisibleItemsChange, { items: legendItems, isApiCall });
       }}
     />
   );

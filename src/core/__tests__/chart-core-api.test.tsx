@@ -44,7 +44,7 @@ describe("CoreChart: API tests", () => {
     act(() => hc.highlightChartPoint(0, 0));
 
     expect(onHighlight).toHaveBeenCalledWith(
-      expect.objectContaining({ point: hc.getChartPoint(0, 0), isApiCall: false }),
+      expect.objectContaining({ detail: expect.objectContaining({ point: hc.getChartPoint(0, 0), isApiCall: false }) }),
     );
   });
 
@@ -57,7 +57,9 @@ describe("CoreChart: API tests", () => {
     const point = hc.getChartPoint(0, 0);
 
     act(() => chartApi!.highlightChartPoint(point));
-    expect(onHighlight).toHaveBeenCalledWith(expect.objectContaining({ point, isApiCall: true }));
+    expect(onHighlight).toHaveBeenCalledWith(
+      expect.objectContaining({ detail: expect.objectContaining({ point, isApiCall: true }) }),
+    );
   });
 
   test("passes isApiCall=false to onClearHighlight when triggered by user interaction", async () => {
@@ -68,7 +70,7 @@ describe("CoreChart: API tests", () => {
     act(() => hc.leaveChartPoint(0, 0));
     await clearHighlightPause();
 
-    expect(onClearHighlight).toHaveBeenCalledWith({ isApiCall: false });
+    expect(onClearHighlight).toHaveBeenCalledWith(expect.objectContaining({ detail: { isApiCall: false } }));
   });
 
   test("passes isApiCall=true to onClearHighlight when triggered programmatically through API", () => {
@@ -78,7 +80,7 @@ describe("CoreChart: API tests", () => {
     renderChart({ highcharts, onClearHighlight, options: { series }, callback: (api) => (chartApi = api) });
 
     act(() => chartApi!.clearChartHighlight());
-    expect(onClearHighlight).toHaveBeenCalledWith({ isApiCall: true });
+    expect(onClearHighlight).toHaveBeenCalledWith(expect.objectContaining({ detail: { isApiCall: true } }));
   });
 
   test("passes isApiCall=false to onVisibleItemsChange when triggered by user interaction", () => {
@@ -87,7 +89,9 @@ describe("CoreChart: API tests", () => {
 
     selectLegendItem(0, wrapper);
 
-    expect(onVisibleItemsChange).toHaveBeenCalledWith({ items: expect.any(Array), isApiCall: false });
+    expect(onVisibleItemsChange).toHaveBeenCalledWith(
+      expect.objectContaining({ detail: { items: expect.any(Array), isApiCall: false } }),
+    );
   });
 
   test("passes isApiCall=true to onVisibleItemsChange when triggered programmatically through API", () => {
@@ -97,7 +101,9 @@ describe("CoreChart: API tests", () => {
     renderChart({ highcharts, options: { series }, onVisibleItemsChange, callback: (api) => (chartApi = api) });
 
     act(() => chartApi!.setItemsVisible(["Line 1"]));
-    expect(onVisibleItemsChange).toHaveBeenCalledWith({ items: expect.any(Array), isApiCall: true });
+    expect(onVisibleItemsChange).toHaveBeenCalledWith(
+      expect.objectContaining({ detail: { items: expect.any(Array), isApiCall: true } }),
+    );
   });
 
   test("highlightItems should only highlight the specified series in a line chart", () => {

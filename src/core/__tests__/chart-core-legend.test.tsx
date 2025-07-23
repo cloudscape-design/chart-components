@@ -461,13 +461,15 @@ describe("CoreChart: legend", () => {
 
     expect(onLegendItemHighlight).toHaveBeenCalledWith(
       expect.objectContaining({
-        item: expect.objectContaining({
-          id: "L1",
-          name: "L1",
-          marker: expect.any(Object),
-          visible: expect.any(Boolean),
-          highlighted: expect.any(Boolean),
-        }),
+        detail: {
+          item: expect.objectContaining({
+            id: "L1",
+            name: "L1",
+            marker: expect.any(Object),
+            visible: expect.any(Boolean),
+            highlighted: expect.any(Boolean),
+          }),
+        },
       }),
     );
   });
