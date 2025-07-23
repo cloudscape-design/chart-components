@@ -105,10 +105,7 @@ export namespace PieChartProps {
     totalValue: number;
   }
 
-  export interface TooltipDetail {
-    key: React.ReactNode;
-    value: React.ReactNode;
-  }
+  export type TooltipDetail = CoreTypes.BaseTooltipDetail;
 
   export type SegmentTitleRenderProps = SegmentDescriptionRenderProps;
   export interface SegmentDescriptionRenderProps {

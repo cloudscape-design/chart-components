@@ -108,6 +108,11 @@ export interface BaseNoDataOptions {
   onRecoveryClick?: NonCancelableEventHandler;
 }
 
+export interface BaseTooltipDetail {
+  key: React.ReactNode;
+  value: React.ReactNode;
+}
+
 export interface BaseI18nStrings {
   loadingText?: string;
   errorText?: string;
@@ -450,10 +455,7 @@ export namespace CoreChartProps {
     point: Highcharts.Point;
   }
 
-  export interface TooltipDetail {
-    key: React.ReactNode;
-    value: React.ReactNode;
-  }
+  export type TooltipDetail = BaseTooltipDetail;
 
   export interface LegendItemHighlightDetail {
     item: LegendItem;

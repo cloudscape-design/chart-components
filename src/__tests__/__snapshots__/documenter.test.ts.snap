@@ -883,7 +883,7 @@ Supported series types:
           {
             "name": "details",
             "optional": true,
-            "type": "((props: TooltipSlotRenderProps) => ReadonlyArray<PieChartProps.TooltipDetail>)",
+            "type": "((props: TooltipSlotRenderProps) => ReadonlyArray<BaseTooltipDetail>)",
           },
           {
             "name": "enabled",
