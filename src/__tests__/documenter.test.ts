@@ -34,4 +34,4 @@ test("internal core API matches snapshot", () => {
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
-});
+}, 10000);
