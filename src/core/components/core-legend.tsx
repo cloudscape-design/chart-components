@@ -12,14 +12,20 @@ export function ChartLegend({
   api,
   title,
   actions,
+  type,
   position,
   i18nStrings,
+  bottomMaxHeight,
+  oppositeLegendTitle,
   onItemHighlight,
   getLegendTooltipContent,
 }: {
   api: ChartAPI;
   title?: string;
+  oppositeLegendTitle?: string;
+  bottomMaxHeight?: number;
   actions?: React.ReactNode;
+  type: "single" | "dual";
   position: "bottom" | "side";
   i18nStrings?: BaseI18nStrings;
   onItemHighlight?: (detail: CoreChartProps.LegendItemHighlightDetail) => void;
@@ -36,10 +42,13 @@ export function ChartLegend({
   return (
     <ChartLegendComponent
       ariaLabel={ariaLabel}
-      legendTitle={title}
+      type={type}
+      defaultTitle={title}
+      oppositeTitle={oppositeLegendTitle}
       items={legendItems}
       actions={actions}
       position={position}
+      bottomMaxHeight={bottomMaxHeight}
       onItemVisibilityChange={api.onItemVisibilityChange}
       onItemHighlightExit={api.onClearChartItemsHighlight}
       onItemHighlightEnter={(item) => {

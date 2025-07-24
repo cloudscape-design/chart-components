@@ -29,7 +29,6 @@ interface ChartContainerProps {
   filter?: React.ReactNode;
   navigator?: React.ReactNode;
   legend?: React.ReactNode;
-  legendBottomMaxHeight?: number;
   legendPosition: "bottom" | "side";
   footer?: React.ReactNode;
   fitHeight?: boolean;
@@ -47,7 +46,6 @@ export function ChartContainer({
   footer,
   legend,
   legendPosition,
-  legendBottomMaxHeight,
   navigator,
   fitHeight,
   chartHeight,
@@ -102,9 +100,7 @@ export function ChartContainer({
 
       <div ref={refs.footer} style={chartMinWidth !== undefined ? { minInlineSize: chartMinWidth } : {}}>
         {navigator && <div className={testClasses["chart-navigator"]}>{navigator}</div>}
-        {legend &&
-          legendPosition === "bottom" &&
-          (legendBottomMaxHeight ? <div style={{ maxHeight: `${legendBottomMaxHeight}px` }}>{legend}</div> : legend)}
+        {legendPosition === "bottom" && legend}
         {footer}
       </div>
     </div>
