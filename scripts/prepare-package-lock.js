@@ -17,19 +17,27 @@ if (packageLock.lockfileVersion !== 2) {
   throw new Error('package-lock.json must have "lockfileVersion": 2');
 }
 
+const disallowedHosts = [
+  {
+    host: "codeartifact.us-west-2.amazonaws.com",
+    errorMessage:
+      "package-lock.json file contains a reference to CodeArtifact. Use regular npm to update the packages.",
+  },
+];
+
 function unlock(packages) {
   Object.keys(packages).forEach((dependencyName) => {
     const dependency = packages[dependencyName];
 
     if (dependencyName.includes("@cloudscape-design/")) {
       delete packages[dependencyName];
-    } else if (
-      dependency.resolved &&
-      new URL(dependency.resolved).host.endsWith("codeartifact.us-west-2.amazonaws.com")
-    ) {
-      throw Error(
-        "package-lock.json file contains a reference to CodeArtifact. Use regular npm to update the packages.",
-      );
+    } else if (dependency.resolved) {
+      const host = new URL(dependency.resolved).host;
+      for (const disalloweHost of disallowedHosts) {
+        if (host === disalloweHost.host || host.endsWith(`.${disalloweHost.host}`)) {
+          throw Error(disalloweHost.errorMessage);
+        }
+      }
     }
   });
 
