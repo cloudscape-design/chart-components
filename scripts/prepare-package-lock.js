@@ -23,7 +23,10 @@ function unlock(packages) {
 
     if (dependencyName.includes("@cloudscape-design/")) {
       delete packages[dependencyName];
-    } else if (dependency.resolved && dependency.resolved.includes("codeartifact.us-west-2.amazonaws.com")) {
+    } else if (
+      dependency.resolved &&
+      new URL(dependency.resolved).host.endsWith("codeartifact.us-west-2.amazonaws.com")
+    ) {
       throw Error(
         "package-lock.json file contains a reference to CodeArtifact. Use regular npm to update the packages.",
       );
