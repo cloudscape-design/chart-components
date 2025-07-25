@@ -4,6 +4,7 @@
 import type Highcharts from "highcharts";
 
 import { ChartSeriesMarker, ChartSeriesMarkerType } from "../../internal/components/series-marker";
+import { fireNonCancelableEvent } from "../../internal/events";
 import AsyncStore from "../../internal/utils/async-store";
 import { getChartSeries } from "../../internal/utils/chart-series";
 import { isEqualArrays } from "../../internal/utils/utils";
@@ -50,7 +51,7 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
       this.updateLegendItems(updatedItems);
       updateItemsVisibility(this.context.chart(), this.get().items, visibleItems);
     }
-    this.context.handlers.onVisibleItemsChange?.({ items: updatedItems, isApiCall });
+    fireNonCancelableEvent(this.context.handlers.onVisibleItemsChange, { items: updatedItems, isApiCall });
   };
 
   // Updates legend highlight state when chart's point is highlighted.

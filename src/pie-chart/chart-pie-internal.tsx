@@ -37,7 +37,7 @@ export const InternalPieChart = forwardRef(
       changeHandlerName: "onVisibleSegmentsChange",
     });
     const allSegmentIds = originalSeries.flatMap((s) => s.data.map((d) => getOptionsId(d)));
-    const onVisibleSegmentsChange: CoreChartProps["onVisibleItemsChange"] = ({ items }) => {
+    const onVisibleSegmentsChange: CoreChartProps["onVisibleItemsChange"] = ({ detail: { items } }) => {
       const visibleSegments = items.filter((i) => i.visible).map((i) => i.id);
       fireNonCancelableEvent(props.onVisibleSegmentsChange, { visibleSegments });
     };

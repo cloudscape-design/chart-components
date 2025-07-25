@@ -4,6 +4,7 @@
 import { useEffect, useRef } from "react";
 import type Highcharts from "highcharts";
 
+import { fireNonCancelableEvent } from "../../internal/events";
 import { ReadonlyAsyncStore } from "../../internal/utils/async-store";
 import { getChartSeries } from "../../internal/utils/chart-series";
 import { Writeable } from "../../internal/utils/utils";
@@ -408,7 +409,7 @@ export class ChartAPI {
       }
 
       // Notify the consumer that a highlight action was made.
-      this.context.handlers.onHighlight?.({ point, group, isApiCall });
+      fireNonCancelableEvent(this.context.handlers.onHighlight, { point, group, isApiCall });
     }
   }
 
@@ -422,7 +423,7 @@ export class ChartAPI {
       this.chartExtraLegend.onClearHighlight();
 
       // Notify the consumer that a clear-highlight action was made.
-      this.context.handlers.onClearHighlight?.({ isApiCall });
+      fireNonCancelableEvent(this.context.handlers.onClearHighlight, { isApiCall });
     }
   };
 

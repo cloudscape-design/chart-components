@@ -36,7 +36,7 @@ export const InternalCartesianChart = forwardRef(
     // We keep local visible series state to compute threshold series data, that depends on series visibility.
     const [visibleSeriesLocal, setVisibleSeriesLocal] = useState(props.visibleSeries ?? allSeriesIds);
     const visibleSeriesState = props.visibleSeries ?? visibleSeriesLocal;
-    const onVisibleSeriesChange: CoreChartProps["onVisibleItemsChange"] = ({ items }) => {
+    const onVisibleSeriesChange: CoreChartProps["onVisibleItemsChange"] = ({ detail: { items } }) => {
       const visibleSeries = items.filter((i) => i.visible).map((i) => i.id);
       if (props.visibleSeries) {
         fireNonCancelableEvent(props.onVisibleSeriesChange, { visibleSeries });

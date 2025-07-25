@@ -349,11 +349,11 @@ export interface CoreChartProps
   /**
    * Called when a legend item is highlighted.
    */
-  onLegendItemHighlight?: (detail: CoreChartProps.LegendItemHighlightDetail) => void;
+  onLegendItemHighlight?: NonCancelableEventHandler<CoreChartProps.LegendItemHighlightDetail>;
   /**
    * Called when series/points visibility changes due to user interaction with legend or filter.
    */
-  onVisibleItemsChange?: (detail: CoreChartProps.VisibleItemsChangeDetail) => void;
+  onVisibleItemsChange?: NonCancelableEventHandler<CoreChartProps.VisibleItemsChangeDetail>;
   /**
    * Called whenever chart tooltip is rendered to provide content for tooltip's header, body, and (optional) footer.
    */
@@ -366,11 +366,11 @@ export interface CoreChartProps
   /**
    * Called whenever chart point or group is highlighted.
    */
-  onHighlight?(detail: CoreChartProps.HighlightChangeDetail): void;
+  onHighlight?: NonCancelableEventHandler<CoreChartProps.HighlightChangeDetail>;
   /**
    * Called whenever chart point or group loses highlight.
    */
-  onClearHighlight?(detail: CoreChartProps.HighlightClearDetail): void;
+  onClearHighlight?: NonCancelableEventHandler<CoreChartProps.HighlightClearDetail>;
   /**
    * Use Cloudscape keyboard navigation, `true` by default.
    */
