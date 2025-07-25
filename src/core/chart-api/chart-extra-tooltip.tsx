@@ -98,8 +98,22 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
   }
 
   private onRenderTooltip = (props: { point: null | Highcharts.Point; group: readonly Highcharts.Point[] }) => {
-    if (this.context.chart().series.some((s) => s.type === "pie")) {
+    let hasPieSeries = false;
+    let hasSolidGaugeSeries = false;
+    for (const s of this.context.chart().series) {
+      if (s.type === "pie") {
+        hasPieSeries = true;
+        break;
+      }
+      if (s.type === "solidgauge") {
+        hasSolidGaugeSeries = true;
+        break;
+      }
+    }
+    if (hasPieSeries) {
       return this.onRenderTooltipPie(props.group[0]);
+    } else if (hasSolidGaugeSeries) {
+      return this.onRenderTooltipSolidGauge(props.group[0]);
     } else {
       return this.onRenderTooltipCartesian(props);
     }
@@ -125,6 +139,13 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     // We only create target track for pie chart as pie chart does not support groups.
     // It is also expected that only "target" tooltip position is used for pie charts.
     const pointRect = getPieChartTargetPlacement(point);
+    this.targetTrack.rect(this.context.chart().renderer, { ...pointRect, ...this.commonTrackAttrs });
+  };
+
+  private onRenderTooltipSolidGauge = (point: Highcharts.Point) => {
+    // Solid gauge charts are similar to pie charts in that they have a circular shape
+    // and don't support grouping. We use a similar approach to pie charts.
+    const pointRect = getSolidGaugeTargetPlacement(point);
     this.targetTrack.rect(this.context.chart().renderer, { ...pointRect, ...this.commonTrackAttrs });
   };
 
@@ -216,4 +237,14 @@ function getPieMiddlePlacement(point: Highcharts.Point): Rect {
   const radius =
     (typeof relativeDiameter === "number" ? relativeDiameter : (relativeDiameter / 100) * chart.plotWidth) / 2;
   return { x: centerX, y: centerY - radius, width: 1, height: 2 * radius };
+}
+
+function getSolidGaugeTargetPlacement(point: Highcharts.Point): Rect {
+  const chart = point.series.chart;
+  return {
+    x: chart.plotLeft + chart.plotWidth / 2,
+    y: chart.plotTop + chart.plotHeight / 2,
+    width: 0.1,
+    height: 0.1,
+  };
 }
