@@ -98,21 +98,11 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
   }
 
   private onRenderTooltip = (props: { point: null | Highcharts.Point; group: readonly Highcharts.Point[] }) => {
-    let hasPieSeries = false;
-    let hasSolidGaugeSeries = false;
-    for (const s of this.context.chart().series) {
-      if (s.type === "pie") {
-        hasPieSeries = true;
-        break;
-      }
-      if (s.type === "solidgauge") {
-        hasSolidGaugeSeries = true;
-        break;
-      }
-    }
-    if (hasPieSeries) {
+    const chartType =
+      this.context.chart().series.find((s) => s.type === "pie" || s.type === "solidgauge")?.type ?? "cartesian";
+    if (chartType === "pie") {
       return this.onRenderTooltipPie(props.group[0]);
-    } else if (hasSolidGaugeSeries) {
+    } else if (chartType === "solidgauge") {
       return this.onRenderTooltipSolidGauge(props.group[0]);
     } else {
       return this.onRenderTooltipCartesian(props);
