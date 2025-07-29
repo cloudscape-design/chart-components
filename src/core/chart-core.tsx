@@ -13,6 +13,7 @@ import Spinner from "@cloudscape-design/components/spinner";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import * as Styles from "../internal/chart-styles";
+import { useSelector } from "../internal/utils/async-store";
 import { castArray } from "../internal/utils/utils";
 import { useChartAPI } from "./chart-api";
 import { ChartContainer } from "./chart-container";
@@ -84,6 +85,7 @@ export function InternalCoreChart({
   const mergedRootRef = useMergeRefs(rootRef, __internalRootRef);
   const rootProps = { ref: mergedRootRef, className: rootClassName, ...getDataAttributes(rest) };
   const legendPosition = legendOptions?.position ?? "bottom";
+  const emptyLegendItems = useSelector(api.legendStore, (s) => s.items.length === 0);
   const containerProps = {
     fitHeight,
     chartHeight,
@@ -302,7 +304,7 @@ export function InternalCoreChart({
         }}
         navigator={navigator}
         legend={
-          context.legendEnabled ? (
+          context.legendEnabled && !emptyLegendItems ? (
             <ChartLegend
               {...legendOptions}
               position={legendPosition}
