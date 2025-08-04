@@ -3,6 +3,7 @@
 
 import type Highcharts from "highcharts";
 
+import { NonCancelableEventHandler } from "../../internal/events";
 import { getChartSeries } from "../../internal/utils/chart-series";
 import { ChartLabels } from "../i18n-utils";
 import { CoreChartProps, Rect } from "../interfaces";
@@ -33,9 +34,9 @@ export namespace ChartExtraContext {
   }
 
   export interface Handlers {
-    onHighlight?(detail: CoreChartProps.HighlightChangeDetail): void;
-    onClearHighlight?(detail: CoreChartProps.HighlightClearDetail): void;
-    onVisibleItemsChange?: (detail: CoreChartProps.VisibleItemsChangeDetail) => void;
+    onHighlight?: NonCancelableEventHandler<CoreChartProps.HighlightChangeDetail>;
+    onClearHighlight?: NonCancelableEventHandler<CoreChartProps.HighlightClearDetail>;
+    onVisibleItemsChange?: NonCancelableEventHandler<CoreChartProps.VisibleItemsChangeDetail>;
   }
 
   export interface State {

@@ -199,29 +199,29 @@ function Charts() {
     };
   }, [onNavigationClick, onNavigationKeydown]);
 
-  const onScatterHighlight: CoreChartProps["onHighlight"] = ({ group, isApiCall }) => {
+  const onScatterHighlight: CoreChartProps["onHighlight"] = ({ detail: { group, isApiCall } }) => {
     if (isApiCall) {
       return;
     }
     highlightChartGroup(group[0], getNavigatorChart());
     highlightedPoint.current = group[0];
   };
-  const onScatterClearHighlight = ({ isApiCall }: { isApiCall: boolean }) => {
-    if (isApiCall) {
+  const onScatterClearHighlight = ({ detail }: { detail: { isApiCall: boolean } }) => {
+    if (detail.isApiCall) {
       return;
     }
     getScatterChart().clearChartHighlight();
     highlightedPoint.current = null;
   };
-  const onNavigatorHighlight: CoreChartProps["onHighlight"] = ({ group, isApiCall }) => {
+  const onNavigatorHighlight: CoreChartProps["onHighlight"] = ({ detail: { group, isApiCall } }) => {
     if (isApiCall) {
       return;
     }
     highlightChartGroup(group[0], getScatterChart());
     highlightedPoint.current = group[0];
   };
-  const onNavigatorClearHighlight = ({ isApiCall }: { isApiCall: boolean }) => {
-    if (isApiCall) {
+  const onNavigatorClearHighlight = ({ detail }: { detail: { isApiCall: boolean } }) => {
+    if (detail.isApiCall) {
       return;
     }
     getScatterChart().clearChartHighlight();

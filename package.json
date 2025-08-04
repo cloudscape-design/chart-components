@@ -46,7 +46,7 @@
     "./test-utils/selectors": "./test-utils/selectors/index.js",
     "./test-utils/selectors/internal/core": "./test-utils/selectors/internal/core.js",
     "./internal/api-docs/*.js": "./internal/api-docs/*.js",
-    "./internal-do-not-use/core-chart": "./internal-do-not-use/core-chart.js"
+    "./internal-do-not-use/core-chart": "./internal-do-not-use/core-chart/index.js"
   },
   "dependencies": {
     "@cloudscape-design/component-toolkit": "^1.0.0-beta",
