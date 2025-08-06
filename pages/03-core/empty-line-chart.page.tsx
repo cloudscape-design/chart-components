@@ -12,8 +12,7 @@ export default function () {
   const { chartProps } = useChartSettings();
   return (
     <Page
-      title="Core chart demo"
-      subtitle="The page demonstrates the use of the core chart, including additional legend settings."
+      title="Empty core chart demo"
       settings={
         <PageSettingsForm
           selectedSettings={["showLegend", "legendPosition", "showLegendTitle", "showLegendActions", "useFallback"]}
@@ -22,24 +21,11 @@ export default function () {
     >
       <CoreChart
         {...omit(chartProps.cartesian, "ref")}
-        chartHeight={400}
         highcharts={Highcharts}
         options={{
-          xAxis: {
-            min: 1,
-            max: 50,
-          },
-          yAxis: {
-            min: 0,
-            max: 1,
-          },
-          series: [
-            {
-              data: [],
-              type: "line",
-              showInLegend: false,
-            },
-          ],
+          xAxis: { min: 1, max: 50 },
+          yAxis: { min: 0, max: 1 },
+          series: [{ type: "line", data: [], showInLegend: false }],
         }}
       />
     </Page>

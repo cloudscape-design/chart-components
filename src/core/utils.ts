@@ -170,6 +170,21 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
   return legendItems;
 }
 
+export function hasVisibleLegendItems(options: Highcharts.Options) {
+  return !!options.series?.some((series) => {
+    // The pie series is not shown in the legend, but their segments are always shown.
+    if (series.type === "pie") {
+      return Array.isArray(series.data) && series.data.length > 0;
+    }
+    // We only support errorbar series that are linked to other series. Those are not represented separately
+    // in the legend, but can be controlled from the outside, using controllable items visibility API.
+    if (series.type === "errorbar") {
+      return false;
+    }
+    return series.showInLegend !== false;
+  });
+}
+
 // This function returns coordinates of a rectangle, including the target point.
 // There are differences in how the rectangle is computed, but in all cases it is supposed to
 // enclose the point's visual representation in the chart, with no extra offsets.
