@@ -328,6 +328,7 @@ export function InternalCoreChart({
             />
           ) : null
         }
+        noData={context.noDataEnabled && <ChartNoData {...noDataOptions} i18nStrings={i18nStrings} api={api} />}
       />
 
       {context.tooltipEnabled && (
@@ -338,8 +339,6 @@ export function InternalCoreChart({
           api={api}
         />
       )}
-
-      {context.noDataEnabled && <ChartNoData {...noDataOptions} i18nStrings={i18nStrings} api={api} />}
     </div>
   );
 }

@@ -4,18 +4,40 @@
 import Highcharts from "highcharts";
 import { omit } from "lodash";
 
+import Checkbox from "@cloudscape-design/components/checkbox";
+
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
-import { PageSettingsForm, useChartSettings } from "../common/page-settings";
+import { PageSettings, PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
 
+interface ThisPageSettings extends PageSettings {
+  showInLegend?: boolean;
+}
+
 export default function () {
-  const { chartProps } = useChartSettings();
+  const { chartProps, settings, setSettings } = useChartSettings<ThisPageSettings>();
   return (
     <Page
       title="Empty core chart demo"
       settings={
         <PageSettingsForm
-          selectedSettings={["showLegend", "legendPosition", "showLegendTitle", "showLegendActions", "useFallback"]}
+          selectedSettings={[
+            "showLegend",
+            "legendPosition",
+            "showLegendTitle",
+            "showLegendActions",
+            "useFallback",
+            {
+              content: (
+                <Checkbox
+                  checked={!!settings.showInLegend}
+                  onChange={({ detail }) => setSettings({ showInLegend: detail.checked })}
+                >
+                  Show in legend
+                </Checkbox>
+              ),
+            },
+          ]}
         />
       }
     >
@@ -25,7 +47,7 @@ export default function () {
         options={{
           xAxis: { min: 1, max: 50 },
           yAxis: { min: 0, max: 1 },
-          series: [{ type: "line", data: [], showInLegend: false }],
+          series: [{ type: "line", data: [], showInLegend: settings.showInLegend }],
         }}
       />
     </Page>
