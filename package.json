@@ -8,7 +8,7 @@
   "homepage": "https://cloudscape.design",
   "scripts": {
     "prebuild": "rm -rf lib dist .cache && rm -rf node_modules/.vite && rm -rf node_modules/.vite-temp",
-    "build": "npm-run-all build:pkg --parallel build:src:* --parallel build:pages:* build:themeable",
+    "build": "npm-run-all build:pkg --parallel build:src:* --parallel build:pages:* build:themeable build:declarations",
     "lint": "npm-run-all --parallel lint:*",
     "lint:eslint": "eslint --ignore-path .gitignore --ext ts,tsx,js .",
     "lint:stylelint": "stylelint --ignore-path .gitignore '{src,pages}/**/*.{css,scss}'",
@@ -35,7 +35,8 @@
     "build:src:environment": "node scripts/environment",
     "build:themeable": "node scripts/themeable-source",
     "build:pages:vite": "vite build",
-    "build:pages:tsc": "tsc -p pages/tsconfig.json"
+    "build:pages:tsc": "tsc -p pages/tsconfig.json",
+    "build:declarations": "rollup -c rollup.config.dts.mjs"
   },
   "exports": {
     ".": "./index.js",
@@ -109,6 +110,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.6.1",
+    "rollup-plugin-dts": "^6.2.1",
     "stylelint": "^16.9.0",
     "stylelint-config-recommended-scss": "^14.1.0",
     "stylelint-prettier": "^5.0.2",
