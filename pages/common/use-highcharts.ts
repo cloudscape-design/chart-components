@@ -6,7 +6,11 @@ import type Highcharts from "highcharts";
 
 import { isDevelopment } from "@cloudscape-design/component-toolkit/internal";
 
-export function useHighcharts({ more = false, xrange = false }: { more?: boolean; xrange?: boolean } = {}) {
+export function useHighcharts({
+  more = false,
+  xrange = false,
+  solidgauge = false,
+}: { more?: boolean; xrange?: boolean; solidgauge?: boolean } = {}) {
   const [highcharts, setHighcharts] = useState<null | typeof Highcharts>(null);
 
   useEffect(() => {
@@ -16,11 +20,14 @@ export function useHighcharts({ more = false, xrange = false }: { more?: boolean
       await import("highcharts/modules/accessibility");
 
       // Required for arearange, areasplinerange, columnrange, gauge, boxplot, errorbar, waterfall, polygon, bubble
-      if (more) {
+      if (more || solidgauge) {
         await import("highcharts/highcharts-more");
       }
       if (xrange) {
         await import("highcharts/modules/xrange");
+      }
+      if (solidgauge) {
+        await import("highcharts/modules/solid-gauge");
       }
 
       if (isDevelopment) {
@@ -31,7 +38,7 @@ export function useHighcharts({ more = false, xrange = false }: { more?: boolean
     };
 
     load();
-  }, [more, xrange]);
+  }, [more, xrange, solidgauge]);
 
   return highcharts;
 }

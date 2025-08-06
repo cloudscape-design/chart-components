@@ -1,11 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import Highcharts from "highcharts";
 import { omit } from "lodash";
 
-import "highcharts/highcharts-more";
-import "highcharts/modules/solid-gauge";
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
 import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
@@ -24,7 +21,7 @@ const series: Highcharts.SeriesOptionsType[] = [
 ];
 
 export default function () {
-  const { chartProps } = useChartSettings();
+  const { chartProps } = useChartSettings({ solidgauge: true });
   return (
     <Page
       title="Solid Gauge Chart Demo"
@@ -37,7 +34,6 @@ export default function () {
     >
       <CoreChart
         {...omit(chartProps.cartesian, "ref")}
-        highcharts={Highcharts}
         options={{
           series,
           chart: {
