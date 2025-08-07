@@ -316,6 +316,45 @@ describe("CoreChart: tooltip", () => {
     }
   });
 
+  test("only re-renders when group has changed", () => {
+    const getTooltipContentMock = vi.fn(() => ({
+      header: () => "Tooltip title",
+      body: () => "Tooltip body",
+      footer: () => "Tooltip footer",
+    }));
+    renderChart({
+      highcharts,
+      options: {
+        series: lineSeries,
+        chart: {
+          events: {
+            load() {
+              this.plotTop = 0;
+              this.plotLeft = 0;
+              this.plotWidth = 100;
+              this.plotHeight = 100;
+            },
+          },
+        },
+      },
+      getTooltipContent: getTooltipContentMock,
+    });
+
+    act(() => {
+      hc.getChart().container.dispatchEvent(createMouseMoveEvent({ pageX: 1, pageY: 0 }));
+    });
+
+    act(() => {
+      hc.getChart().container.dispatchEvent(createMouseMoveEvent({ pageX: 1, pageY: 2 }));
+    });
+
+    act(() => {
+      hc.getChart().container.dispatchEvent(createMouseMoveEvent({ pageX: 1, pageY: 4 }));
+    });
+
+    expect(getTooltipContentMock).toHaveBeenCalledTimes(2);
+  });
+
   test("renders highlight markers", async () => {
     const { wrapper } = renderChart({
       highcharts,

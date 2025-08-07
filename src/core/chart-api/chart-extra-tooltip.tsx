@@ -10,7 +10,7 @@ import * as Styles from "../../internal/chart-styles";
 import { renderMarker } from "../../internal/components/series-marker/render-marker";
 import AsyncStore from "../../internal/utils/async-store";
 import { SVGRendererPool, SVGRendererSingle } from "../../internal/utils/renderer-utils";
-import { DebouncedCall } from "../../internal/utils/utils";
+import { DebouncedCall, isEqualArrays } from "../../internal/utils/utils";
 import { Rect } from "../interfaces";
 import { getGroupRect, getPointRect, isXThreshold } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
@@ -78,7 +78,7 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
 
   public showTooltipOnGroup(group: readonly Highcharts.Point[], ignoreLock = false) {
     if (!this.tooltipLock || ignoreLock) {
-      this.set(() => ({ visible: true, pinned: false, point: null, group }));
+      this.setGroupIfDifferent(group);
       this.onRenderTooltip({ point: null, group });
     }
   }
@@ -95,6 +95,20 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     if (this.context.settings.tooltipEnabled) {
       this.set((prev) => ({ ...prev, visible: true, pinned: true }));
     }
+  }
+
+  // Avoid re-rendering the tooltip on every cursor position change when hovering over the graph.
+  // Just re-render when the groups are different.
+  private setGroupIfDifferent(group: readonly Highcharts.Point[]) {
+    function isGroupEqual(a: Highcharts.Point, b: Highcharts.Point) {
+      return a?.x === b?.x && a?.y === b?.y && a?.series?.type === b?.series?.type;
+    }
+
+    this.set((prev) => {
+      return isEqualArrays(prev.group, group, isGroupEqual)
+        ? prev
+        : { visible: true, pinned: false, point: null, group };
+    });
   }
 
   private onRenderTooltip = (props: { point: null | Highcharts.Point; group: readonly Highcharts.Point[] }) => {
