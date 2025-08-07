@@ -12,9 +12,6 @@
   @include styles.styles-reset;
   @include styles.default-text-style;
 
-  overflow: auto;
-  max-height: inherit;
-
   &:focus {
     outline: none;
   }
@@ -22,7 +19,20 @@
 
 .root-side {
   display: flex;
+  overflow-y: auto;
   flex-direction: column;
+  max-block-size: inherit;
+  margin-inline-start: cs.$space-scaled-s;
+}
+
+.legend-dual-group {
+  inline-size: calc(50% - 20px);
+}
+
+.legend-bottom-dual-axis-container {
+  display: flex;
+  inline-size: 100%;
+  justify-content: space-between;
 }
 
 .list {
@@ -37,26 +47,16 @@
 
 .list-bottom {
   flex-wrap: wrap;
-  overflow-y: auto;
-  justify-content: space-between;
-}
-
-.list-side {
-  flex-wrap: nowrap;
-  flex-direction: column;
-}
-
-.legend-bottom {
-  flex: 1;
-  display: flex;
-  flex-wrap: wrap;
-  flex-direction: row;
   gap: cs.$space-scaled-xxs cs.$space-static-m;
 }
 
-.legend-side {
-  display: flex;
-  flex-wrap: wrap;
+.list-bottom-opposite {
+  justify-content: flex-end; 
+}
+
+.list-side {
+  flex: 1;
+  flex-wrap: nowrap;
   flex-direction: column;
   gap: cs.$space-scaled-xxs cs.$space-static-m;
 }
@@ -108,16 +108,33 @@
   align-items: flex-start;
 }
 
-.actions-divider-bottom {
+.legend-divider-bottom {
   inline-size: 1px;
   block-size: 80%;
   margin-inline: cs.$space-scaled-xs;
   background: cs.$color-border-divider-default;
 }
 
-.actions-divider-side {
-  inline-size: 80%;
-  block-size: 1px;
-  margin-block-end: cs.$space-scaled-xs;
-  background: cs.$color-border-divider-default;
+.legend-divider-side {
+  // inline-size: 80%;
+  // border-width: 1px;
+  // margin-block-end: cs.$space-scaled-xs;
+  //border-color: cs.$color-border-divider-default;
+
+  //margin-left: auto;
+  //margin-right: auto;
+
+  //display: block;
+  //border-style: inset;
+  //margin-top: 0.5em;
+  //margin-bottom: 0.5em;
+  //border-width: 10px;
+
+    display: block;
+    border: 0;
+    padding: 0;
+    height: 1px;
+    inline-size: 80%;
+    margin-block-end: cs.$scape-scaled-xs;
+    border-top: 1px solid cs.$color-border-divider-default;
 }
