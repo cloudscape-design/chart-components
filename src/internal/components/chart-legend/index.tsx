@@ -421,7 +421,7 @@ const LegendItemTrigger = forwardRef(
         onKeyDown={onKeyDown}
       >
         {marker}
-        <span>{label}</span>
+        <span className={styles["item-label"]}>{label}</span>
       </button>
     );
   },

@@ -73,6 +73,7 @@
   background-color: transparent;
   cursor: pointer;
   opacity: 1;
+  max-width: 100%;
 
   &:focus {
     outline: none;
@@ -92,6 +93,11 @@
   &.item--dimmed {
     opacity: 0.35;
   }
+}
+
+.item-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .actions {
