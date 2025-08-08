@@ -12,7 +12,7 @@ import AsyncStore from "../../internal/utils/async-store";
 import { SVGRendererPool, SVGRendererSingle } from "../../internal/utils/renderer-utils";
 import { DebouncedCall, isEqualArrays } from "../../internal/utils/utils";
 import { Rect } from "../interfaces";
-import { getGroupRect, getPointRect, isXThreshold } from "../utils";
+import { getGroupRect, getPointRect, getSeriesId, isXThreshold } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
 import testClasses from "../test-classes/styles.css.js";
@@ -101,7 +101,7 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
   // Just re-render when the groups are different.
   private setGroupIfDifferent(group: readonly Highcharts.Point[]) {
     function isGroupEqual(a: Highcharts.Point, b: Highcharts.Point) {
-      return a?.x === b?.x && a?.y === b?.y && a?.series?.type === b?.series?.type;
+      return a?.x === b?.x && a?.y === b?.y && getSeriesId(a?.series) === getSeriesId(b?.series);
     }
 
     this.set((prev) => {
