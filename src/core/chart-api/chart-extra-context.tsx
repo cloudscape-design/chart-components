@@ -102,7 +102,7 @@ function computeDerivedState(chart: Highcharts.Chart): ChartExtraContext.Derived
       for (const d of s.data) {
         // Points with y=null represent the absence of value, there is no need to include them and those
         // should have no impact on computed rects or navigation.
-        if (d.visible && d.y !== null) {
+        if (d?.visible && d.y !== null) {
           seriesX.add(d.x);
           allXSet.add(d.x);
           addPoint(d);
