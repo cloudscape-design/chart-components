@@ -11,7 +11,7 @@ import pseudoRandom from "../utils/pseudo-random";
 const splineSeries: CartesianChartProps.SeriesOptions[] = [
   {
     type: "spline",
-    name: "Demo spline fifty",
+    name: "Demo spline fifty with a really really really long label name",
     data: range(0, 100).map((i) => ({ x: i * 10, y: Math.floor((pseudoRandom() + i / 25) * 50) })),
   },
   {
