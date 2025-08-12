@@ -9,7 +9,7 @@ import AsyncStore from "../../internal/utils/async-store";
 import { getChartSeries } from "../../internal/utils/chart-series";
 import { isEqualArrays } from "../../internal/utils/utils";
 import { CoreChartProps } from "../interfaces";
-import { getChartLegendItems, getPointId, getSeriesId } from "../utils";
+import { getChartLegendItems, getPointId, getSeriesId, isLegendItemsEqual } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
 // The reactive state is used to propagate changes in legend items to the core legend React component.
@@ -90,15 +90,6 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
   };
 
   private updateLegendItems = (nextItems: CoreChartProps.LegendItem[]) => {
-    function isLegendItemsEqual(a: CoreChartProps.LegendItem, b: CoreChartProps.LegendItem) {
-      return (
-        a.id === b.id &&
-        a.name === b.name &&
-        a.marker === b.marker &&
-        a.visible === b.visible &&
-        a.highlighted === b.highlighted
-      );
-    }
     if (!isEqualArrays(this.get().items, nextItems, isLegendItemsEqual)) {
       this.set(() => ({ items: nextItems }));
     }

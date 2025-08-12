@@ -3,11 +3,12 @@
 
 import type Highcharts from "highcharts";
 
+import { colors } from "../internal/chart-styles";
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
 import { getChartSeries } from "../internal/utils/chart-series";
 import { getFormatter } from "./formatters";
 import { ChartLabels } from "./i18n-utils";
-import { Rect } from "./interfaces";
+import { CoreChartProps, Rect } from "./interfaces";
 
 export interface LegendItemSpec {
   id: string;
@@ -15,6 +16,16 @@ export interface LegendItemSpec {
   markerType: ChartSeriesMarkerType;
   color: string;
   visible: boolean;
+}
+
+export function isLegendItemsEqual(a: CoreChartProps.LegendItem, b: CoreChartProps.LegendItem) {
+  return (
+    a.id === b.id &&
+    a.name === b.name &&
+    a.marker === b.marker &&
+    a.visible === b.visible &&
+    a.highlighted === b.highlighted
+  );
 }
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
@@ -83,7 +94,22 @@ export function getSeriesMarkerType(series?: Highcharts.Series): ChartSeriesMark
   if ("dashStyle" in series.options && series.options.dashStyle) {
     return "dashed";
   }
-  switch (series.type) {
+  return getMarkerType(series.type, seriesSymbol);
+}
+
+export function getSeriesOptionsMarkerType(series?: Highcharts.SeriesOptionsType): ChartSeriesMarkerType {
+  if (!series) {
+    return "large-square";
+  }
+  const seriesSymbol = "symbol" in series && typeof series.symbol === "string" ? series.symbol : "circle";
+  if ("dashStyle" in series && series.dashStyle) {
+    return "dashed";
+  }
+  return getMarkerType(series.type, seriesSymbol);
+}
+
+function getMarkerType(seriesType: string, seriesSymbol: string) {
+  switch (seriesType) {
     case "area":
     case "areaspline":
       return "hollow-square";
@@ -120,6 +146,15 @@ export function getSeriesColor(series?: Highcharts.Series): string {
 }
 export function getPointColor(point?: Highcharts.Point): string {
   return typeof point?.color === "string" ? point.color : "black";
+}
+export function getPointOptionsColor(point?: Highcharts.PointOptionsObject): string | null {
+  return typeof point?.color === "string" ? point.color : null;
+}
+export function getSeriesOptionsColor(series: Highcharts.SeriesOptionsType): string | null {
+  if ("color" in series) {
+    return typeof series?.color === "string" ? series.color : null;
+  }
+  return null;
 }
 
 // The custom legend implementation does not rely on the Highcharts legend. When Highcharts legend is disabled,
@@ -166,6 +201,60 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
   for (const s of getChartSeries(chart.series)) {
     addSeriesItem(s);
     s.data.forEach(addPointItem);
+  }
+  return legendItems;
+}
+
+export function getChartLegendItemsFromSeriesOptions(
+  series: Highcharts.SeriesOptionsType[],
+): readonly LegendItemSpec[] {
+  const legendItems: LegendItemSpec[] = [];
+  const addSeriesItem = (series: Highcharts.SeriesOptionsType, markerType: ChartSeriesMarkerType) => {
+    if (series.type === "pie") {
+      return;
+    }
+    if (series.type === "errorbar") {
+      return;
+    }
+    if (series.showInLegend !== false) {
+      legendItems.push({
+        id: getOptionsId(series),
+        name: series.name ?? "fallbackName",
+        markerType,
+        color: getSeriesOptionsColor(series) ?? colors[legendItems.length % colors.length],
+        visible: series.visible ?? true,
+      });
+    }
+  };
+  const addPointItem = (
+    point: NonNullable<Highcharts.SeriesPieOptions["data"]>[number],
+    markerType: ChartSeriesMarkerType,
+  ) => {
+    if (point === null) {
+      return;
+    }
+    if (typeof point === "number") {
+      console.log(point);
+      return;
+    }
+    if (point instanceof Array) {
+      console.log(point);
+      return;
+    }
+    legendItems.push({
+      id: getOptionsId(point),
+      name: point.name ?? "fallbackName",
+      markerType,
+      color: getPointOptionsColor(point) ?? colors[legendItems.length % colors.length],
+      visible: true,
+    });
+  };
+  for (const s of series) {
+    const markerType = getSeriesOptionsMarkerType(s);
+    addSeriesItem(s, markerType);
+    if (s.type === "pie") {
+      s.data?.forEach((p) => addPointItem(p, markerType));
+    }
   }
   return legendItems;
 }
