@@ -184,7 +184,7 @@ export class ChartExtraHighlight {
         s.setState = overridden;
       }
       for (const d of s.data) {
-        if ((d.setState as PointSetStateWithLock)[SET_STATE_LOCK] === undefined) {
+        if (d && (d.setState as PointSetStateWithLock)[SET_STATE_LOCK] === undefined) {
           const original = d.setState;
           // The overridden setState method does nothing unless setState[SET_STATE_LOCK] === false.
           const overridden: Highcharts.Point["setState"] = (...args) => {
