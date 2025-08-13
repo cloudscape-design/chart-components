@@ -7,6 +7,7 @@ import type Highcharts from "highcharts";
 import { fireNonCancelableEvent } from "../../internal/events";
 import { ReadonlyAsyncStore } from "../../internal/utils/async-store";
 import { getChartSeries } from "../../internal/utils/chart-series";
+import { getSeriesData } from "../../internal/utils/series-data";
 import { Writeable } from "../../internal/utils/utils";
 import {
   getChartAccessibleDescription,
@@ -307,14 +308,15 @@ export class ChartAPI {
   private showMarkersForIsolatedPoints() {
     let shouldRedraw = false;
     for (const s of this.context.chart().series) {
-      for (let i = 0; i < s.data.length; i++) {
-        const isEligibleSeries = !isXThreshold(s) && s.type !== "scatter" && !s.data[i].options.marker?.enabled;
+      const seriesData = getSeriesData(s.data);
+      for (let i = 0; i < seriesData.length; i++) {
+        const isEligibleSeries = !isXThreshold(s) && s.type !== "scatter" && !seriesData[i].options.marker?.enabled;
         if (
           isEligibleSeries &&
-          (s.data[i - 1]?.y === undefined || s.data[i - 1]?.y === null) &&
-          (s.data[i + 1]?.y === undefined || s.data[i + 1]?.y === null)
+          (seriesData[i - 1]?.y === undefined || seriesData[i - 1]?.y === null) &&
+          (seriesData[i + 1]?.y === undefined || seriesData[i + 1]?.y === null)
         ) {
-          s.data[i].update({ marker: { enabled: true } }, false);
+          seriesData[i].update({ marker: { enabled: true } }, false);
           shouldRedraw = true;
         }
       }
