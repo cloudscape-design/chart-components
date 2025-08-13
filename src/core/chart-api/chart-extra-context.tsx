@@ -5,6 +5,7 @@ import type Highcharts from "highcharts";
 
 import { NonCancelableEventHandler } from "../../internal/events";
 import { getChartSeries } from "../../internal/utils/chart-series";
+import { getSeriesData } from "../../internal/utils/series-data";
 import { ChartLabels } from "../i18n-utils";
 import { CoreChartProps, Rect } from "../interfaces";
 import { getGroupRect, isSeriesStacked } from "../utils";
@@ -99,13 +100,13 @@ function computeDerivedState(chart: Highcharts.Chart): ChartExtraContext.Derived
   for (const s of getChartSeries(chart.series)) {
     const seriesX = new Set<number>();
     if (s.visible) {
-      for (const d of s.data) {
+      for (const d of getSeriesData(s.data)) {
         // Points with y=null represent the absence of value, there is no need to include them and those
         // should have no impact on computed rects or navigation.
 
         // Although "d" can't be undefined according to Highcharts API, it does become undefined for chart containing more datapoints
         // than the cropThreshold for that series (specific cases of re-rendering the chart with updated options listening to setExteme updates)
-        if (d && d.visible && d.y !== null) {
+        if (d.visible && d.y !== null) {
           seriesX.add(d.x);
           allXSet.add(d.x);
           addPoint(d);
