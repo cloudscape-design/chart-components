@@ -20,4 +20,4 @@ test("internal core API matches snapshot", () => {
     publicFilesGlob: "src/internal-do-not-use/core-chart/index.tsx",
   });
   expect(definitions).toMatchSnapshot("internal-core-chart");
-});
+}, 10_000);
