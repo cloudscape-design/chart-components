@@ -60,17 +60,17 @@ const dataC = baseline.map(({ x, y }) => ({ x, y: y === null ? null : y + random
 
 const series: Highcharts.SeriesOptionsType[] = [
   {
-    name: "A",
+    name: "Very Long Series Name for Network Traffic Analysis Data Points",
     type: "line",
     data: dataA,
   },
   {
-    name: "B",
+    name: "Extremely Detailed Performance Metrics for Cloud Infrastructure",
     type: "line",
     data: dataB,
   },
   {
-    name: "C",
+    name: "Comprehensive System Resource Utilization Measurements Over Time",
     type: "line",
     data: dataC,
   },
