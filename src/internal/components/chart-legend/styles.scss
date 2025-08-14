@@ -73,6 +73,7 @@
   background-color: transparent;
   cursor: pointer;
   opacity: 1;
+  max-inline-size: 100%;
 
   &:focus {
     outline: none;
@@ -92,6 +93,14 @@
   &.item--dimmed {
     opacity: 0.35;
   }
+}
+
+.item-label {
+  overflow: hidden;
+  display: -webkit-box;
+  line-clamp: 1;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
 }
 
 .actions {
