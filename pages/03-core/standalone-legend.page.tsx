@@ -101,7 +101,7 @@ const lineSeries: Highcharts.SeriesOptionsType[] = [
   },
 ];
 
-const legendItems: readonly LegendItem[] = [
+const initialLegendItems: readonly LegendItem[] = [
   {
     id: "CPU Utilization",
     name: "CPU Utilization",
@@ -125,40 +125,62 @@ const legendItems: readonly LegendItem[] = [
   },
 ];
 
+type SourceType = "legend" | "pie-chart" | "line-chart";
+
 export default function () {
   const { chartProps } = useChartSettings();
 
-  const [items, setItems] = useState(legendItems);
-  const pieChartAPI = useRef<CoreChartProps.ChartAPI | null>(null);
-  const lineChartAPI = useRef<CoreChartProps.ChartAPI | null>(null);
+  const [items, setItems] = useState(initialLegendItems);
+  const sources = useRef<Map<SourceType, CoreChartProps.ChartAPI>>(new Map());
 
   const legendProps = {
     title: chartProps.cartesian.legend?.title,
     actions: chartProps.cartesian.legend?.actions,
   } as const;
 
-  const clearLegendHighlight = () => {
+  const clearLegendHighlight = (source: SourceType, isApiCall: boolean) => {
+    if (isApiCall) {
+      return;
+    }
+    for (const [name, chart] of sources.current.entries()) {
+      if (name !== source) {
+        chart.clearChartHighlight();
+      }
+    }
     setItems((prevItems) => {
       const hiddenSeries = prevItems.find((i) => !i.visible) !== undefined;
       return prevItems.map(({ ...i }) => ({ ...i, highlighted: hiddenSeries ? i.visible : false }));
     });
   };
 
-  const highlightLegendItem = (itemId: string) => {
+  const highlightLegendItem = (source: SourceType, itemId: string, isApiCall: boolean) => {
+    if (isApiCall) {
+      return;
+    }
+    for (const [name, chart] of sources.current.entries()) {
+      if (name !== source) {
+        chart.highlightItems([itemId]);
+      }
+    }
     setItems((prevItems) => {
       return prevItems.map((i) => ({ ...i, highlighted: i.id === itemId }));
     });
   };
 
-  const changeVisibleLegentItems = (itemIds: readonly string[]) => {
+  const changeVisibleLegendItems = (source: SourceType, itemIds: readonly string[]) => {
+    for (const [name, chart] of sources.current.entries()) {
+      if (name !== source) {
+        chart.setItemsVisible(itemIds);
+      }
+    }
     setItems((prevItems) => {
-      return prevItems.map((i, idx) => {
-        const visible = itemIds.includes(i.id);
+      return prevItems.map((item, index) => {
+        const visible = itemIds.includes(item.id);
         return {
-          ...i,
+          ...item,
           visible,
           highlighted: visible,
-          marker: <ChartSeriesMarker color={colors[idx % colors.length]} type={"square"} visible={visible} />,
+          marker: <ChartSeriesMarker color={colors[index % colors.length]} type={"square"} visible={visible} />,
         };
       });
     });
@@ -174,21 +196,10 @@ export default function () {
         <StandaloneLegend
           items={items}
           {...legendProps}
-          onClearHighlight={() => {
-            pieChartAPI.current?.clearChartHighlight();
-            lineChartAPI.current?.clearChartHighlight();
-            clearLegendHighlight();
-          }}
-          onItemHighlight={(e) => {
-            pieChartAPI.current?.highlightItems([e.detail.item.id]);
-            lineChartAPI.current?.highlightItems([e.detail.item.id]);
-            highlightLegendItem(e.detail.item.id);
-          }}
-          onVisibleItemsChange={(e) => {
-            pieChartAPI.current?.setItemsVisible(e.detail.items);
-            lineChartAPI.current?.setItemsVisible(e.detail.items);
-            changeVisibleLegentItems(e.detail.items);
-          }}
+          ariaLabel="Dashboard Legend"
+          onClearHighlight={() => clearLegendHighlight("legend", false)}
+          onItemHighlight={(e) => highlightLegendItem("legend", e.detail.item.id, false)}
+          onVisibleItemsChange={(e) => changeVisibleLegendItems("legend", e.detail.items)}
           getLegendTooltipContent={({ legendItem }) => ({
             header: (
               <div>
@@ -231,24 +242,14 @@ export default function () {
           chartHeight={400}
           legend={{ enabled: false }}
           callback={(chart) => {
-            pieChartAPI.current = chart;
+            sources.current.set("pie-chart", chart);
           }}
           onHighlight={(e) => {
-            if (e.detail.isApiCall) {
-              return;
-            }
             if (e.detail.point) {
-              lineChartAPI.current?.highlightItems([e.detail.point.name]);
-              highlightLegendItem(e.detail.point.name);
+              highlightLegendItem("pie-chart", e.detail.point.name, e.detail.isApiCall);
             }
           }}
-          onClearHighlight={(e) => {
-            if (e.detail.isApiCall) {
-              return;
-            }
-            lineChartAPI.current?.clearChartHighlight();
-            clearLegendHighlight();
-          }}
+          onClearHighlight={(e) => clearLegendHighlight("pie-chart", e.detail.isApiCall)}
           options={{
             lang: {
               accessibility: {
@@ -280,24 +281,14 @@ export default function () {
           chartHeight={300}
           legend={{ enabled: false }}
           callback={(chart) => {
-            lineChartAPI.current = chart;
+            sources.current.set("line-chart", chart);
           }}
           onHighlight={(e) => {
-            if (e.detail.isApiCall) {
-              return;
-            }
             if (e.detail.point) {
-              pieChartAPI.current?.highlightItems([e.detail.point.series.name]);
-              highlightLegendItem(e.detail.point.series.name);
+              highlightLegendItem("line-chart", e.detail.point.series.name, e.detail.isApiCall);
             }
           }}
-          onClearHighlight={(e) => {
-            if (e.detail.isApiCall) {
-              return;
-            }
-            pieChartAPI.current?.clearChartHighlight();
-            clearLegendHighlight();
-          }}
+          onClearHighlight={(e) => clearLegendHighlight("line-chart", e.detail.isApiCall)}
           options={{
             lang: {
               accessibility: {
