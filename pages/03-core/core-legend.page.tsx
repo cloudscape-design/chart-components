@@ -13,7 +13,7 @@ import { colors } from "../../lib/components/internal/chart-styles";
 import { LegendItem } from "../../lib/components/internal/components/interfaces";
 import { ChartSeriesMarker } from "../../lib/components/internal/components/series-marker";
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
-import { StandaloneLegend } from "../../lib/components/internal-do-not-use/standalone-legend";
+import { CoreLegend } from "../../lib/components/internal-do-not-use/core-legend";
 import { dateFormatter } from "../common/formatters";
 import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
@@ -188,12 +188,12 @@ export default function () {
 
   return (
     <Page
-      title="Standalone legend demo"
-      subtitle="The page demonstrates the use of the standalone legend."
+      title="Core Legend demo"
+      subtitle="The page demonstrates the use of the core legend."
       settings={<PageSettingsForm selectedSettings={["showLegendTitle", "showLegendActions"]} />}
     >
       <SpaceBetween direction="vertical" size="m">
-        <StandaloneLegend
+        <CoreLegend
           items={items}
           {...legendProps}
           ariaLabel="Dashboard Legend"

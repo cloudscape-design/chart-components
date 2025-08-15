@@ -1,11 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { StandaloneLegendProps } from "../../core/interfaces";
+import { CoreLegendProps } from "../../core/interfaces";
 import { ChartLegend as ChartLegendComponent } from "../../internal/components/chart-legend";
 import { fireNonCancelableEvent } from "../../internal/events";
 
-export const StandaloneLegend = ({
+export const CoreLegend = ({
   items,
   title,
   actions,
@@ -15,7 +15,7 @@ export const StandaloneLegend = ({
   onClearHighlight,
   onVisibleItemsChange,
   getLegendTooltipContent,
-}: StandaloneLegendProps) => {
+}: CoreLegendProps) => {
   const position = alignment === "horizontal" ? "bottom" : "side";
 
   if (items.length === 0) {
