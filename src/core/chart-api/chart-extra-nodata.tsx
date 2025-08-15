@@ -11,7 +11,7 @@ import { ChartExtraContext } from "./chart-extra-context";
 // It can be used by other components to assert if the chart is in no-data state (by checking if container is present).
 export interface ReactiveNodataState {
   visible: boolean;
-  style: React.CSSProperties;
+  style?: React.CSSProperties;
   noMatch: boolean;
 }
 
@@ -32,17 +32,11 @@ export class ChartExtraNodata extends AsyncStore<ReactiveNodataState> {
     const visibleSeries = findAllVisibleSeries(this.chart);
     // The no-data is not shown when there is at least one series or point (for pie series) non-empty and visible.
     if (visibleSeries.length > 0) {
-      this.set(() => ({ visible: false, style: {}, noMatch: false }));
+      this.set(() => ({ visible: false, noMatch: false }));
     } else {
-      this.set(() => ({ visible: true, style: this.getContainerStyle(), noMatch: allSeriesWithData.length > 0 }));
+      this.set(() => ({ visible: true, noMatch: allSeriesWithData.length > 0 }));
     }
   };
-
-  private getContainerStyle(): React.CSSProperties {
-    const inlineOffset = this.chart.chartWidth - this.chart.plotWidth;
-    const blockOffset = this.chart.chartHeight - this.chart.plotHeight;
-    return { insetInlineStart: `${inlineOffset}px`, insetBlockEnd: `${blockOffset}px` };
-  }
 
   private get chart() {
     return this.context.chart();
