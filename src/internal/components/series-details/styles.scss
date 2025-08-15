@@ -36,6 +36,7 @@ $font-weight-bold: cs.$font-weight-heading-s;
   flex-direction: row;
   justify-content: space-between;
   inline-size: 100%;
+  align-items: center;
 
   > .key {
     @include styles.text-wrapping;
@@ -101,7 +102,7 @@ $font-weight-bold: cs.$font-weight-heading-s;
 
 .highlight-indicator {
   position: absolute;
-  top: 3px;
+  margin-top: 3px;
   left: -6px;
   inline-size: 3px;
   block-size: calc(marker.$marker-size - 2px);

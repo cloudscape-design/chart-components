@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { forwardRef, memo, ReactNode, useEffect, useRef } from "react";
+import { ForwardedRef, forwardRef, memo, ReactNode, useEffect, useRef } from "react";
 import clsx from "clsx";
 
 import { useMergeRefs } from "@cloudscape-design/component-toolkit/internal";
@@ -24,6 +24,7 @@ interface ListItemProps {
   subItems?: ReadonlyArray<ChartDetailPair>;
   marker?: React.ReactNode;
   description?: ReactNode;
+  showHighlightIndicator: boolean;
 }
 
 export interface ChartSeriesDetailItem extends ChartDetailPair {
@@ -67,45 +68,50 @@ function ChartSeriesDetails(
   return (
     <div {...baseProps} className={className} ref={mergedRef}>
       <ul className={clsx(styles.list, compactList && styles.compact)}>
-        {details.map(({ key, value, marker, isDimmed, subItems, expandableId, description, highlighted }, index) => (
-          <li
-            // Include 'highlighted' in the key to force React re-render when highlight state changes.
-            // Without this, the highlight indicator div may not be removed when cursor moves away from data points
-            // due to React's reconciliation algorithm not detecting the state change in complex data scenarios.
-            // This ensures proper cleanup of visual highlight indicators.
-            key={[index, highlighted].join("-")}
-            className={clsx({
-              [styles.dimmed]: isDimmed,
-              [styles["list-item"]]: true,
-              [testClasses["list-item"]]: true,
-              [styles["with-sub-items"]]: subItems?.length,
-              [styles.expandable]: !!expandableId,
-            })}
-          >
-            {details.length > 1 && highlighted ? (
-              <div ref={selectedRef} className={styles["highlight-indicator"]}></div>
-            ) : null}
-            {subItems?.length && !!expandableId ? (
-              <ExpandableSeries
-                itemKey={key}
-                value={value}
-                marker={marker}
-                description={description}
-                subItems={subItems}
-                expanded={isExpanded(expandableId)}
-                setExpandedState={(state) => setExpandedState && setExpandedState(expandableId, state)}
-              />
-            ) : (
-              <NonExpandableSeries
-                itemKey={key}
-                value={value}
-                marker={marker}
-                description={description}
-                subItems={subItems}
-              />
-            )}
-          </li>
-        ))}
+        {details.map(({ key, value, marker, isDimmed, subItems, expandableId, description, highlighted }, index) => {
+          const showHighlightIndicator = !!(details.length > 1 && highlighted);
+
+          return (
+            <li
+              // Include 'highlighted' in the key to force React re-render when highlight state changes.
+              // Without this, the highlight indicator div may not be removed when cursor moves away from data points
+              // due to React's reconciliation algorithm not detecting the state change in complex data scenarios.
+              // This ensures proper cleanup of visual highlight indicators.
+              key={[index, highlighted].join("-")}
+              className={clsx({
+                [styles.dimmed]: isDimmed,
+                [styles["list-item"]]: true,
+                [testClasses["list-item"]]: true,
+                [styles["with-sub-items"]]: subItems?.length,
+                [styles.expandable]: !!expandableId,
+              })}
+            >
+              {subItems?.length && !!expandableId ? (
+                <ExpandableSeries
+                  itemKey={key}
+                  value={value}
+                  marker={marker}
+                  description={description}
+                  subItems={subItems}
+                  expanded={isExpanded(expandableId)}
+                  setExpandedState={(state) => setExpandedState && setExpandedState(expandableId, state)}
+                  showHighlightIndicator={showHighlightIndicator}
+                  ref={selectedRef}
+                />
+              ) : (
+                <NonExpandableSeries
+                  itemKey={key}
+                  value={value}
+                  marker={marker}
+                  description={description}
+                  subItems={subItems}
+                  showHighlightIndicator={showHighlightIndicator}
+                  ref={selectedRef}
+                />
+              )}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
@@ -140,21 +146,26 @@ function SubItems({
   );
 }
 
-function ExpandableSeries({
-  itemKey,
-  value,
-  subItems,
-  marker,
-  expanded,
-  setExpandedState,
-  description,
-}: ListItemProps &
-  Required<Pick<ListItemProps, "subItems">> & {
-    expanded: boolean;
-    setExpandedState: (state: boolean) => void;
-  }) {
+const ExpandableSeries = forwardRef(function ExpandableSeries(
+  {
+    itemKey,
+    value,
+    subItems,
+    marker,
+    expanded,
+    setExpandedState,
+    description,
+    showHighlightIndicator,
+  }: ListItemProps &
+    Required<Pick<ListItemProps, "subItems">> & {
+      expanded: boolean;
+      setExpandedState: (state: boolean) => void;
+    },
+  selectedRef: ForwardedRef<HTMLDivElement>,
+) {
   return (
     <div className={styles["expandable-section"]}>
+      {showHighlightIndicator && <div ref={selectedRef} className={styles["highlight-indicator"]}></div>}
       {marker}
       <div className={styles["full-width"]}>
         <InternalExpandableSection
@@ -170,13 +181,17 @@ function ExpandableSeries({
       </div>
     </div>
   );
-}
+});
 
-function NonExpandableSeries({ itemKey, value, subItems, marker, description }: ListItemProps) {
+const NonExpandableSeries = forwardRef(function NonExpandableSeries(
+  { itemKey, value, subItems, marker, description, showHighlightIndicator }: ListItemProps,
+  selectedRef: ForwardedRef<HTMLDivElement>,
+) {
   return (
     <>
       <div className={clsx(styles["key-value-pair"], styles.announced)}>
         <div className={clsx(testClasses.key, styles.key)}>
+          {showHighlightIndicator && <div ref={selectedRef} className={styles["highlight-indicator"]}></div>}
           {marker}
           <span>{itemKey}</span>
         </div>
@@ -186,7 +201,7 @@ function NonExpandableSeries({ itemKey, value, subItems, marker, description }: 
       <Details>{description}</Details>
     </>
   );
-}
+});
 
 function Details({ children }: { children: ReactNode }) {
   return children ? <div className={clsx(testClasses.description, styles.description)}>{children}</div> : null;
