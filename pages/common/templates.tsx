@@ -72,8 +72,6 @@ export function Page({
       navigationHide={true}
       activeDrawerId={toolsOpen ? "settings" : null}
       onDrawerChange={({ detail }) => setToolsOpen(!!detail.activeDrawerId)}
-      tools={settings && <Drawer header={<Header variant="h2">Page settings</Header>}>{settings}</Drawer>}
-      toolsHide={!settings}
       drawers={drawers}
       content={
         <Box>
