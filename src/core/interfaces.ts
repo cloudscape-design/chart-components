@@ -476,6 +476,32 @@ export namespace CoreChartProps {
   export type I18nStrings = CartesianI18nStrings & PieI18nStrings;
 }
 
+export interface StandaloneLegendProps {
+  items: readonly StandaloneLegendProps.Item[];
+  title?: string;
+  actions?: React.ReactNode;
+  alignment?: "horizontal" | "vertical";
+  i18nStrings?: StandaloneLegendProps.I18nStrings;
+  onClearHighlight?: NonCancelableEventHandler;
+  onItemHighlight?: NonCancelableEventHandler<StandaloneLegendProps.ItemHighlightDetail>;
+  onVisibleItemsChange?: NonCancelableEventHandler<StandaloneLegendProps.VisibleItemsChangeDetail>;
+  getLegendTooltipContent?: StandaloneLegendProps.GetTooltipContent;
+}
+
+export namespace StandaloneLegendProps {
+  export type Item = InternalComponentTypes.LegendItem;
+  export type GetTooltipContent = InternalComponentTypes.GetLegendTooltipContent;
+  export interface I18nStrings {
+    ariaLabel?: string;
+  }
+  export interface ItemHighlightDetail {
+    item: Item;
+  }
+  export interface VisibleItemsChangeDetail {
+    items: readonly string[];
+  }
+}
+
 // Utility types
 
 export interface Rect {
