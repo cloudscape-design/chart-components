@@ -479,7 +479,7 @@ export namespace CoreChartProps {
 export interface CoreLegendProps {
   items: readonly CoreLegendProps.Item[];
   title?: string;
-  ariaLabel: string;
+  ariaLabel?: string;
   actions?: React.ReactNode;
   alignment?: "horizontal" | "vertical";
   onClearHighlight?: NonCancelableEventHandler;
