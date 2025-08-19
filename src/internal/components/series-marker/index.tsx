@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import Icon from "@cloudscape-design/components/icon";
 import { BaseComponentProps } from "@cloudscape-design/components/internal/base-component";
 import { colorTextInteractiveDisabled } from "@cloudscape-design/design-tokens";
 
@@ -21,16 +22,17 @@ export interface ChartSeriesMarkerProps extends BaseComponentProps {
   type: ChartSeriesMarkerType;
   color: string;
   visible?: boolean;
+  status?: "warning";
 }
 
 function scale(size: number, value: number) {
   return `translate(${size * ((1 - value) / 2)}, ${size * ((1 - value) / 2)}) scale(${value})`;
 }
 
-export function ChartSeriesMarker({ type = "line", color, visible = true }: ChartSeriesMarkerProps) {
+export function ChartSeriesMarker({ type = "line", color, status, visible = true }: ChartSeriesMarkerProps) {
   color = visible ? color : colorTextInteractiveDisabled;
   return (
-    <div className={styles.marker}>
+    <div className={styles.marker} style={{ position: "relative" }}>
       <svg focusable={false} aria-hidden={true} viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
         {type === "line" && <SVGLine color={color} />}
 
@@ -50,6 +52,12 @@ export function ChartSeriesMarker({ type = "line", color, visible = true }: Char
 
         {type === "circle" && <SVGCircle color={color} />}
       </svg>
+
+      {status === "warning" && (
+        <div style={{ position: "absolute", right: "0px", bottom: "3px", height: "10px", width: "10px" }}>
+          <Icon name="status-warning" variant="warning" size="small" />
+        </div>
+      )}
     </div>
   );
 }
