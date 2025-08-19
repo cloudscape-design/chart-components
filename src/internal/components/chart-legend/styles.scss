@@ -51,6 +51,7 @@
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
+  max-inline-size: 100%;
   gap: cs.$space-scaled-xxs cs.$space-static-m;
 }
 
@@ -97,6 +98,8 @@
 
 .item-label {
   overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   display: -webkit-box;
   line-clamp: 1;
   -webkit-line-clamp: 1;
