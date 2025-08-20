@@ -63,6 +63,7 @@ const series: Highcharts.SeriesOptionsType[] = [
     name: "Very Long Series Name for Network Traffic Analysis Data Points",
     type: "line",
     data: dataA,
+    status: "warning",
   },
   {
     name: "Extremely Detailed Performance Metrics for Cloud Infrastructure",
