@@ -12,6 +12,7 @@ import {
 
 import * as Styles from "../../internal/chart-styles";
 import { SVGRendererPool } from "../../internal/utils/renderer-utils";
+import { getSeriesData } from "../../internal/utils/series-data";
 import { Rect } from "../interfaces";
 import { getGroupRect, getPointRect, isPointVisible, isXThreshold } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
@@ -447,40 +448,40 @@ export class ChartExtraNavigation {
 
   private findFirstPointInSeries = (point: Highcharts.Point): null | Highcharts.Point => {
     const seriesX = this.getAllXInSeries(point.series);
-    return point.series.data.find((d) => d.x === seriesX[0]) ?? null;
+    return getSeriesData(point.series.data).find((d) => d.x === seriesX[0]) ?? null;
   };
 
   private findLastPointInSeries = (point: Highcharts.Point): null | Highcharts.Point => {
     const seriesX = this.getAllXInSeries(point.series);
-    return point.series.data.find((d) => d.x === seriesX[seriesX.length - 1]) ?? null;
+    return getSeriesData(point.series.data).find((d) => d.x === seriesX[seriesX.length - 1]) ?? null;
   };
 
   private findNextPointInSeries = (point: Highcharts.Point): null | Highcharts.Point => {
     const seriesX = this.getAllXInSeries(point.series);
     const delta = !shouldInvertPointsDirection(point) ? 1 : -1;
     const nextIndex = getNextIndex(seriesX, seriesX.indexOf(point.x), delta);
-    return point.series.data.find((d) => d.x === seriesX[nextIndex]) ?? null;
+    return getSeriesData(point.series.data).find((d) => d.x === seriesX[nextIndex]) ?? null;
   };
 
   private findPrevPointInSeries = (point: Highcharts.Point): null | Highcharts.Point => {
     const seriesX = this.getAllXInSeries(point.series);
     const delta = !shouldInvertPointsDirection(point) ? -1 : 1;
     const nextIndex = getNextIndex(seriesX, seriesX.indexOf(point.x), delta);
-    return point.series.data.find((d) => d.x === seriesX[nextIndex]) ?? null;
+    return getSeriesData(point.series.data).find((d) => d.x === seriesX[nextIndex]) ?? null;
   };
 
   private findNextPagePointInSeries = (point: Highcharts.Point): null | Highcharts.Point => {
     const seriesX = this.getAllXInSeries(point.series);
     const delta = !shouldInvertPointsDirection(point) ? 1 : -1;
     const nextIndex = getNextPageIndex(seriesX, seriesX.indexOf(point.x), delta);
-    return point.series.data.find((d) => d.x === seriesX[nextIndex]) ?? null;
+    return getSeriesData(point.series.data).find((d) => d.x === seriesX[nextIndex]) ?? null;
   };
 
   private findPrevPagePointInSeries = (point: Highcharts.Point): null | Highcharts.Point => {
     const seriesX = this.getAllXInSeries(point.series);
     const delta = !shouldInvertPointsDirection(point) ? -1 : 1;
     const nextIndex = getNextPageIndex(seriesX, seriesX.indexOf(point.x), delta);
-    return point.series.data.find((d) => d.x === seriesX[nextIndex]) ?? null;
+    return getSeriesData(point.series.data).find((d) => d.x === seriesX[nextIndex]) ?? null;
   };
 }
 
