@@ -118,8 +118,70 @@ export function getSeriesMarkerType(series?: Highcharts.Series): ChartSeriesMark
 export function getSeriesColor(series?: Highcharts.Series): string {
   return typeof series?.color === "string" ? series.color : "black";
 }
+
+/**
+ * Extracts the color value from a solid gauge yAxis stops configuration.
+ * @param yAxis - The Highcharts yAxis object
+ * @returns The color string from the first stop, or "black" as fallback
+ */
+export function getSolidGaugeColor(yAxis?: Highcharts.Axis): string {
+  if (!yAxis) {
+    return "black";
+  }
+
+  try {
+    const stops = (yAxis as any).options?.stops || (yAxis as any).userOptions?.stops;
+
+    // Check if stops exists and is a proper array
+    if (!stops || !Array.isArray(stops) || stops.length === 0) {
+      return "black";
+    }
+
+    const firstStop = stops[0];
+
+    // Ensure firstStop is an array with at least 2 elements
+    if (!firstStop || !Array.isArray(firstStop) || firstStop.length < 2) {
+      return "black";
+    }
+
+    const colorValue = firstStop[1];
+    return typeof colorValue === "string" ? colorValue : "black";
+  } catch {
+    return "black";
+  }
+}
 export function getPointColor(point?: Highcharts.Point): string {
   return typeof point?.color === "string" ? point.color : "black";
+}
+
+/**
+ * Gets the appropriate color for a chart series based on its type.
+ * For solid gauge series, extracts color from yAxis stops.
+ * For other series types, uses the series color property.
+ * @param chart - The Highcharts chart object
+ * @param index - The index of the series in the chart
+ * @returns The color string for the series, or "black" as fallback
+ */
+export function getColor(chart: Highcharts.Chart, index: number): string {
+  // Check if chart and series array exist
+  if (!chart || !chart.series || !Array.isArray(chart.series)) {
+    return "black";
+  }
+
+  const series = chart.series[index];
+  if (!series || series === null || series === undefined) {
+    return "black";
+  }
+
+  if (series.type === "solidgauge") {
+    // Ensure yAxis array exists and has the required index
+    const seriesYAxis = series.yAxis || (chart.yAxis && chart.yAxis[0]);
+    if (seriesYAxis) {
+      return getSolidGaugeColor(seriesYAxis);
+    }
+  }
+
+  return getSeriesColor(series);
 }
 
 // The custom legend implementation does not rely on the Highcharts legend. When Highcharts legend is disabled,
@@ -130,7 +192,7 @@ export function getPointColor(point?: Highcharts.Point): string {
 // Highcharts legend is disabled. Instead, we use this custom method to collect legend items from the chart.
 export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendItemSpec[] {
   const legendItems: LegendItemSpec[] = [];
-  const addSeriesItem = (series: Highcharts.Series) => {
+  const addSeriesItem = (series: Highcharts.Series, index: number) => {
     // The pie series is not shown in the legend. Instead, we show pie segments.
     if (series.type === "pie") {
       return;
@@ -147,7 +209,7 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
         id: getSeriesId(series),
         name: series.name,
         markerType: getSeriesMarkerType(series),
-        color: getSeriesColor(series),
+        color: getColor(chart, index),
         visible: series.visible,
       });
     }
@@ -163,8 +225,8 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
       });
     }
   };
-  for (const s of getChartSeries(chart.series)) {
-    addSeriesItem(s);
+  for (const [i, s] of getChartSeries(chart.series).entries()) {
+    addSeriesItem(s, i);
     s.data.forEach(addPointItem);
   }
   return legendItems;
