@@ -8,6 +8,7 @@ import { useResizeObserver } from "@cloudscape-design/component-toolkit/internal
 
 import * as Styles from "../internal/chart-styles";
 import { DebouncedCall } from "../internal/utils/utils";
+import { ChartAPI } from "./chart-api";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -22,6 +23,7 @@ interface ChartContainerProps {
   // The header, footer, vertical axis title, and legend are rendered as is, and we measure the height of these components
   // to compute the available height for the chart plot when fitHeight=true. When there is not enough vertical space, the
   // container will ensure the overflow behavior.
+  api: ChartAPI;
   chart: (height: undefined | number) => React.ReactNode;
   verticalAxisTitle?: React.ReactNode;
   verticalAxisTitlePlacement: "top" | "side";
@@ -40,6 +42,7 @@ interface ChartContainerProps {
 }
 
 export function ChartContainer({
+  api,
   chart,
   verticalAxisTitle,
   verticalAxisTitlePlacement,
@@ -57,6 +60,8 @@ export function ChartContainer({
   chartMinWidth,
 }: ChartContainerProps) {
   const { refs, measures } = useContainerQueries();
+  const plotLeft = api.context.chartOrNull?.plotLeft;
+  const plotWidth = api.context.chartOrNull?.plotWidth;
 
   // The vertical axis title is rendered above the chart, and is technically not a part of the chart plot.
   // However, we want to include it to the chart's height computations as it does belong to the chart logically.
@@ -108,7 +113,13 @@ export function ChartContainer({
         {navigator && <div className={testClasses["chart-navigator"]}>{navigator}</div>}
         {legend &&
           legendPosition === "bottom" &&
-          (legendBottomMaxHeight ? <div style={{ maxHeight: `${legendBottomMaxHeight}px` }}>{legend}</div> : legend)}
+          (legendBottomMaxHeight ? (
+            <div style={{ marginLeft: plotLeft, maxInlineSize: plotWidth, maxHeight: `${legendBottomMaxHeight}px` }}>
+              {legend}
+            </div>
+          ) : (
+            <div style={{ marginLeft: plotLeft, maxInlineSize: plotWidth }}>{legend}</div>
+          ))}
         {footer}
       </div>
     </div>

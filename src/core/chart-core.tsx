@@ -85,6 +85,7 @@ export function InternalCoreChart({
   const rootProps = { ref: mergedRootRef, className: rootClassName, ...getDataAttributes(rest) };
   const legendPosition = legendOptions?.position ?? "bottom";
   const containerProps = {
+    api,
     fitHeight,
     chartHeight,
     chartMinHeight,
