@@ -7,6 +7,7 @@ import { ChartSeriesMarker, ChartSeriesMarkerType } from "../../internal/compone
 import { fireNonCancelableEvent } from "../../internal/events";
 import AsyncStore from "../../internal/utils/async-store";
 import { getChartSeries } from "../../internal/utils/chart-series";
+import { getSeriesData } from "../../internal/utils/series-data";
 import { isEqualArrays } from "../../internal/utils/utils";
 import { CoreChartProps } from "../interfaces";
 import { getChartLegendItems, getPointId, getSeriesId } from "../utils";
@@ -134,7 +135,7 @@ function updateItemsVisibility(
     if (availableItemsSet.has(getSeriesId(series))) {
       series.setVisible(getVisibleAndCount(getSeriesId(series), series.visible), false);
     }
-    for (const point of series.data) {
+    for (const point of getSeriesData(series.data)) {
       if (typeof point.setVisible === "function" && availableItemsSet.has(getPointId(point))) {
         point.setVisible(getVisibleAndCount(getPointId(point), point.visible), false);
       }
