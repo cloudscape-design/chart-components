@@ -5,6 +5,7 @@ import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
 import { getChartSeries } from "../internal/utils/chart-series";
+import { getColor } from "./color-strategy";
 import { getFormatter } from "./formatters";
 import { ChartLabels } from "./i18n-utils";
 import { Rect } from "./interfaces";
@@ -36,7 +37,7 @@ function noIdPlaceholder(): string {
 
 // There are more possible values that series.stacking can take, but we only explicitly support "normal".
 export function isSeriesStacked(series: Highcharts.Series) {
-  return (series.options as any).stacking === "normal";
+  return "stacking" in series.options && series.options.stacking === "normal";
 }
 
 // The threshold series are custom series, implemented as a combination of line series, and plot lines.
@@ -113,16 +114,10 @@ export function getSeriesMarkerType(series?: Highcharts.Series): ChartSeriesMark
   }
 }
 
-// Highcharts supports color objects to represent gradients and more, but we only support string
-// colors in our markers. In case a non-string color is defined, we use black color as as fallback.
-export function getSeriesColor(series?: Highcharts.Series): string {
-  return typeof series?.color === "string" ? series.color : "black";
-}
 export function getPointColor(point?: Highcharts.Point): string {
   return typeof point?.color === "string" ? point.color : "black";
 }
 
-// The custom legend implementation does not rely on the Highcharts legend. When Highcharts legend is disabled,
 // the chart object does not include information on legend items. Instead, we collect series and pie segments
 // using this custom function, respecting Highcharts' showInLegend flag (defined for series only).
 
@@ -147,7 +142,7 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
         id: getSeriesId(series),
         name: series.name,
         markerType: getSeriesMarkerType(series),
-        color: getSeriesColor(series),
+        color: getColor(series),
         visible: series.visible,
       });
     }
@@ -163,9 +158,9 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
       });
     }
   };
-  for (const s of getChartSeries(chart.series)) {
-    addSeriesItem(s);
-    s.data.forEach(addPointItem);
+  for (const series of getChartSeries(chart.series)) {
+    addSeriesItem(series);
+    series.data.forEach(addPointItem);
   }
   return legendItems;
 }

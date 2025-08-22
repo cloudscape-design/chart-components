@@ -12,9 +12,10 @@ import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../internal/compon
 import { useSelector } from "../../internal/utils/async-store";
 import { getChartSeries } from "../../internal/utils/chart-series";
 import { ChartAPI } from "../chart-api";
+import { getColor } from "../color-strategy";
 import { getFormatter } from "../formatters";
 import { BaseI18nStrings, CoreChartProps } from "../interfaces";
-import { getPointColor, getSeriesColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../utils";
+import { getPointColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../utils";
 
 import styles from "../styles.css.js";
 
@@ -145,7 +146,7 @@ function getTooltipContentCartesian(
   const x = group[0].x;
   const chart = group[0].series.chart;
   const getSeriesMarker = (series: Highcharts.Series) =>
-    api.renderMarker(getSeriesMarkerType(series), getSeriesColor(series), true);
+    api.renderMarker(getSeriesMarkerType(series), getColor(series), true);
   const matchedItems = findTooltipSeriesItems(getChartSeries(chart.series), group);
   const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
     const valueFormatter = getFormatter(item.point.series.yAxis);
