@@ -69,13 +69,13 @@ and requires the [accessibility module](https://www.highcharts.com/docs/accessib
     {
       "description": "Defines the minimum allowed height of the chart plot. Use this when \`fitHeight=true\` to
 prevent the chart plot from becoming too small to display its content. When the parent
-container is smaller than the minimum height, a vertical scrollbar appears automatically.",
+container is shorter than the minimum height, a vertical scrollbar appears automatically.",
       "name": "chartMinHeight",
       "optional": true,
       "type": "number",
     },
     {
-      "description": "Defines the minimum allowed width of the chart plot. When the parent container is smaller the
+      "description": "Defines the minimum allowed width of the chart plot. When the parent container is narrower than the
 minimum width, the horizontal scrollbar is automatically added.",
       "name": "chartMinWidth",
       "optional": true,
@@ -724,13 +724,13 @@ and requires the [accessibility module](https://www.highcharts.com/docs/accessib
     {
       "description": "Defines the minimum allowed height of the chart plot. Use this when \`fitHeight=true\` to
 prevent the chart plot from becoming too small to display its content. When the parent
-container is smaller than the minimum height, a vertical scrollbar appears automatically.",
+container is shorter than the minimum height, a vertical scrollbar appears automatically.",
       "name": "chartMinHeight",
       "optional": true,
       "type": "number",
     },
     {
-      "description": "Defines the minimum allowed width of the chart plot. When the parent container is smaller the
+      "description": "Defines the minimum allowed width of the chart plot. When the parent container is narrower than the
 minimum width, the horizontal scrollbar is automatically added.",
       "name": "chartMinWidth",
       "optional": true,
@@ -1332,7 +1332,7 @@ additional Cloudscape methods.",
         "deprecatedTag": undefined,
         "description": "Defines the minimum allowed height of the chart plot. Use this when \`fitHeight=true\` to
 prevent the chart plot from becoming too small to display its content. When the parent
-container is smaller than the minimum height, a vertical scrollbar appears automatically.",
+container is shorter than the minimum height, a vertical scrollbar appears automatically.",
         "i18nTag": undefined,
         "inlineType": undefined,
         "name": "chartMinHeight",
@@ -1345,7 +1345,7 @@ container is smaller than the minimum height, a vertical scrollbar appears autom
         "analyticsTag": undefined,
         "defaultValue": undefined,
         "deprecatedTag": undefined,
-        "description": "Defines the minimum allowed width of the chart plot. When the parent container is smaller the
+        "description": "Defines the minimum allowed width of the chart plot. When the parent container is narrower than the
 minimum width, the horizontal scrollbar is automatically added.",
         "i18nTag": undefined,
         "inlineType": undefined,
@@ -1554,9 +1554,9 @@ Supported Highcharts versions: 12.",
       },
       {
         "analyticsTag": undefined,
-        "defaultValue": undefined,
+        "defaultValue": "true",
         "deprecatedTag": undefined,
-        "description": "Use Cloudscape keyboard navigation, \`true\` by default.",
+        "description": "Use Cloudscape keyboard navigation.",
         "i18nTag": undefined,
         "inlineType": undefined,
         "name": "keyboardNavigation",
