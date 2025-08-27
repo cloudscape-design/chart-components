@@ -57,11 +57,46 @@ const permutationsForColors = [
   ]),
 );
 
+const permutationsWithStatus = [
+  colorChartsPaletteCategorical1,
+  colorChartsPaletteCategorical2,
+  colorChartsPaletteCategorical3,
+].map((color) =>
+  createPermutations<ChartSeriesMarkerProps>([
+    {
+      type: [
+        "line",
+        "dashed",
+        "large-square",
+        "hollow-square",
+        "circle",
+        "square",
+        "diamond",
+        "triangle",
+        "triangle-down",
+      ],
+      color: [color],
+      status: ["warning"],
+    },
+  ]),
+);
+
 export default function MarkerPermutations() {
   return (
     <Page title="Marker permutations" subtitle="This page lists all markers that we currently support.">
       <SpaceBetween size="m">
+        <h2>Standard markers</h2>
         {permutationsForColors.map((permutations, index) => (
+          <PermutationsView
+            key={index}
+            permutations={permutations}
+            render={(permutation) => <ChartSeriesMarker {...permutation} />}
+            direction="horizontal"
+          />
+        ))}
+
+        <h2>Markers with warning status</h2>
+        {permutationsWithStatus.map((permutations, index) => (
           <PermutationsView
             key={index}
             permutations={permutations}

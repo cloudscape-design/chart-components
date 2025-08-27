@@ -15,6 +15,7 @@ export interface LegendItemSpec {
   markerType: ChartSeriesMarkerType;
   color: string;
   visible: boolean;
+  status?: "warning";
 }
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
@@ -149,6 +150,7 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
         markerType: getSeriesMarkerType(series),
         color: getSeriesColor(series),
         visible: series.visible,
+        status: (series.userOptions as any).status,
       });
     }
   };
@@ -160,6 +162,7 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
         markerType: getSeriesMarkerType(point.series),
         color: getPointColor(point),
         visible: point.visible,
+        status: (point?.series?.userOptions as any)?.status,
       });
     }
   };
