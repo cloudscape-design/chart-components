@@ -14,7 +14,7 @@ import { getChartSeries } from "../../internal/utils/chart-series";
 import { ChartAPI } from "../chart-api";
 import { getFormatter } from "../formatters";
 import { BaseI18nStrings, CoreChartProps } from "../interfaces";
-import { getPointColor, getSeriesColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../utils";
+import { getColor, getPointColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../utils";
 
 import styles from "../styles.css.js";
 
@@ -144,17 +144,17 @@ function getTooltipContentCartesian(
   // By design, every point of the group has the same x value.
   const x = group[0].x;
   const chart = group[0].series.chart;
-  const getSeriesMarker = (series: Highcharts.Series) =>
-    api.renderMarker(getSeriesMarkerType(series), getSeriesColor(series), true);
+  const getSeriesMarker = (series: Highcharts.Series, idx: number) =>
+    api.renderMarker(getSeriesMarkerType(series), getColor(chart, idx), true);
   const matchedItems = findTooltipSeriesItems(getChartSeries(chart.series), group);
-  const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
+  const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item, idx) => {
     const valueFormatter = getFormatter(item.point.series.yAxis);
     const itemY = isXThreshold(item.point.series) ? null : (item.point.y ?? null);
     const customContent = renderers.point ? renderers.point({ item }) : undefined;
     return {
       key: customContent?.key ?? item.point.series.name,
       value: customContent?.value ?? valueFormatter(itemY),
-      marker: getSeriesMarker(item.point.series),
+      marker: getSeriesMarker(item.point.series, idx),
       subItems: customContent?.subItems,
       expandableId: customContent?.expandable ? item.point.series.name : undefined,
       highlighted: item.point.x === point?.x && item.point.y === point?.y,
