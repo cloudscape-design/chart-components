@@ -69,13 +69,13 @@ and requires the [accessibility module](https://www.highcharts.com/docs/accessib
     {
       "description": "Defines the minimum allowed height of the chart plot. Use this when \`fitHeight=true\` to
 prevent the chart plot from becoming too small to display its content. When the parent
-container is smaller than the minimum height, a vertical scrollbar appears automatically.",
+container is shorter than the minimum height, a vertical scrollbar appears automatically.",
       "name": "chartMinHeight",
       "optional": true,
       "type": "number",
     },
     {
-      "description": "Defines the minimum allowed width of the chart plot. When the parent container is smaller the
+      "description": "Defines the minimum allowed width of the chart plot. When the parent container is narrower than the
 minimum width, the horizontal scrollbar is automatically added.",
       "name": "chartMinWidth",
       "optional": true,
@@ -724,13 +724,13 @@ and requires the [accessibility module](https://www.highcharts.com/docs/accessib
     {
       "description": "Defines the minimum allowed height of the chart plot. Use this when \`fitHeight=true\` to
 prevent the chart plot from becoming too small to display its content. When the parent
-container is smaller than the minimum height, a vertical scrollbar appears automatically.",
+container is shorter than the minimum height, a vertical scrollbar appears automatically.",
       "name": "chartMinHeight",
       "optional": true,
       "type": "number",
     },
     {
-      "description": "Defines the minimum allowed width of the chart plot. When the parent container is smaller the
+      "description": "Defines the minimum allowed width of the chart plot. When the parent container is narrower than the
 minimum width, the horizontal scrollbar is automatically added.",
       "name": "chartMinWidth",
       "optional": true,
@@ -1125,4 +1125,716 @@ If a segment doesn't have an ID, its name is used. When using this property, man
   ],
   "releaseStatus": "stable",
 }
+`;
+
+exports[`internal core API matches snapshot > internal-core-chart 1`] = `
+[
+  {
+    "dashCaseName": "core-chart",
+    "description": undefined,
+    "events": [
+      {
+        "cancelable": false,
+        "deprecatedTag": undefined,
+        "description": "Called whenever chart point or group loses highlight.",
+        "detailInlineType": {
+          "name": "CoreChartProps.HighlightClearDetail",
+          "properties": [
+            {
+              "name": "isApiCall",
+              "optional": false,
+              "type": "boolean",
+            },
+          ],
+          "type": "object",
+        },
+        "detailType": "CoreChartProps.HighlightClearDetail",
+        "name": "onClearHighlight",
+        "systemTags": undefined,
+      },
+      {
+        "cancelable": false,
+        "deprecatedTag": undefined,
+        "description": "Called whenever chart point or group is highlighted.",
+        "detailInlineType": {
+          "name": "CoreChartProps.HighlightChangeDetail",
+          "properties": [
+            {
+              "name": "group",
+              "optional": false,
+              "type": "ReadonlyArray<Highcharts.Point>",
+            },
+            {
+              "name": "isApiCall",
+              "optional": false,
+              "type": "boolean",
+            },
+            {
+              "name": "point",
+              "optional": false,
+              "type": "Highcharts.Point | null",
+            },
+          ],
+          "type": "object",
+        },
+        "detailType": "CoreChartProps.HighlightChangeDetail",
+        "name": "onHighlight",
+        "systemTags": undefined,
+      },
+      {
+        "cancelable": false,
+        "deprecatedTag": undefined,
+        "description": "Called when a legend item is highlighted.",
+        "detailInlineType": {
+          "name": "CoreChartProps.LegendItemHighlightDetail",
+          "properties": [
+            {
+              "inlineType": {
+                "name": "LegendItem",
+                "properties": [
+                  {
+                    "name": "highlighted",
+                    "optional": false,
+                    "type": "boolean",
+                  },
+                  {
+                    "name": "id",
+                    "optional": false,
+                    "type": "string",
+                  },
+                  {
+                    "name": "marker",
+                    "optional": true,
+                    "type": "React.ReactNode",
+                  },
+                  {
+                    "name": "name",
+                    "optional": false,
+                    "type": "string",
+                  },
+                  {
+                    "name": "visible",
+                    "optional": false,
+                    "type": "boolean",
+                  },
+                ],
+                "type": "object",
+              },
+              "name": "item",
+              "optional": false,
+              "type": "LegendItem",
+            },
+          ],
+          "type": "object",
+        },
+        "detailType": "CoreChartProps.LegendItemHighlightDetail",
+        "name": "onLegendItemHighlight",
+        "systemTags": undefined,
+      },
+      {
+        "cancelable": false,
+        "deprecatedTag": undefined,
+        "description": "Called when series/points visibility changes due to user interaction with legend or filter.",
+        "detailInlineType": {
+          "name": "CoreChartProps.VisibleItemsChangeDetail",
+          "properties": [
+            {
+              "name": "isApiCall",
+              "optional": false,
+              "type": "boolean",
+            },
+            {
+              "name": "items",
+              "optional": false,
+              "type": "ReadonlyArray<LegendItem>",
+            },
+          ],
+          "type": "object",
+        },
+        "detailType": "CoreChartProps.VisibleItemsChangeDetail",
+        "name": "onVisibleItemsChange",
+        "systemTags": undefined,
+      },
+    ],
+    "functions": [],
+    "name": "CoreChart",
+    "properties": [
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "Defines the ARIA description of the chart container.
+This property corresponds to [accessibility.description](https://api.highcharts.com/highcharts/accessibility.description),
+and requires the [accessibility module](https://www.highcharts.com/docs/accessibility/accessibility-module).",
+        "i18nTag": undefined,
+        "inlineType": undefined,
+        "name": "ariaDescription",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "string",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "Defines the ARIA label for the chart container.
+This property corresponds to [lang.chartContainerLabel](https://api.highcharts.com/highcharts/lang.accessibility.chartContainerLabel),
+and requires the [accessibility module](https://www.highcharts.com/docs/accessibility/accessibility-module).",
+        "i18nTag": undefined,
+        "inlineType": undefined,
+        "name": "ariaLabel",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "string",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "The callback to init the chart's API when it is ready. The API includes the Highcharts chart object, and
+additional Cloudscape methods.",
+        "i18nTag": undefined,
+        "inlineType": {
+          "name": "(chart: CoreChartProps.ChartAPI) => void",
+          "parameters": [
+            {
+              "name": "chart",
+              "type": "CoreChartProps.ChartAPI",
+            },
+          ],
+          "returnType": "void",
+          "type": "function",
+        },
+        "name": "callback",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "((chart: CoreChartProps.ChartAPI) => void)",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "The height of the chart plot in pixels. It does not include legend and filter.",
+        "i18nTag": undefined,
+        "inlineType": undefined,
+        "name": "chartHeight",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "number",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "Defines the minimum allowed height of the chart plot. Use this when \`fitHeight=true\` to
+prevent the chart plot from becoming too small to display its content. When the parent
+container is shorter than the minimum height, a vertical scrollbar appears automatically.",
+        "i18nTag": undefined,
+        "inlineType": undefined,
+        "name": "chartMinHeight",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "number",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "Defines the minimum allowed width of the chart plot. When the parent container is narrower than the
+minimum width, the horizontal scrollbar is automatically added.",
+        "i18nTag": undefined,
+        "inlineType": undefined,
+        "name": "chartMinWidth",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "number",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "This is used to provide a test-utils selector. Do not use this property to provide custom styles.",
+        "i18nTag": undefined,
+        "inlineType": undefined,
+        "name": "className",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "string",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "When set to \`true\`, adds a visual emphasis on the zero baseline axis.",
+        "i18nTag": undefined,
+        "inlineType": undefined,
+        "name": "emphasizeBaseline",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "boolean",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "Defines options for filtering in the chart, including:
+* \`seriesFilter\` (optional, boolean) - Displays default series filter at the top of the chart.
+* \`additionalFilters\` (optional, slot) - A slot for custom chart filters at the top of the chart.",
+        "i18nTag": undefined,
+        "inlineType": {
+          "name": "BaseFilterOptions",
+          "properties": [
+            {
+              "name": "additionalFilters",
+              "optional": true,
+              "type": "React.ReactNode",
+            },
+            {
+              "name": "seriesFilter",
+              "optional": true,
+              "type": "boolean",
+            },
+          ],
+          "type": "object",
+        },
+        "name": "filter",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "BaseFilterOptions",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "The chart automatically adjusts its height to fill the parent container when this property is set.",
+        "i18nTag": undefined,
+        "inlineType": undefined,
+        "name": "fitHeight",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "boolean",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "A custom slot below the chart plot and legend.",
+        "i18nTag": undefined,
+        "inlineType": {
+          "name": "CoreChartProps.FooterOptions",
+          "properties": [
+            {
+              "name": "content",
+              "optional": true,
+              "type": "React.ReactNode",
+            },
+          ],
+          "type": "object",
+        },
+        "name": "footer",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "CoreChartProps.FooterOptions",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "Called whenever a legend item is hovered to provide content for legend tooltip's header, body, and (optional) footer.
+If not provided, no tooltip will be displayed.",
+        "i18nTag": undefined,
+        "inlineType": {
+          "name": "GetLegendTooltipContent",
+          "parameters": [
+            {
+              "name": "props",
+              "type": "GetLegendTooltipContentProps",
+            },
+          ],
+          "returnType": "LegendTooltipContent",
+          "type": "function",
+        },
+        "name": "getLegendTooltipContent",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "GetLegendTooltipContent",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "Called whenever chart tooltip is rendered to provide content for tooltip's header, body, and (optional) footer.",
+        "i18nTag": undefined,
+        "inlineType": {
+          "name": "CoreChartProps.GetTooltipContent",
+          "parameters": [
+            {
+              "name": "props",
+              "type": "CoreChartProps.GetTooltipContentProps",
+            },
+          ],
+          "returnType": "CoreChartProps.TooltipContentRenderer",
+          "type": "function",
+        },
+        "name": "getTooltipContent",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "CoreChartProps.GetTooltipContent",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "A custom slot above the chart plot, chart's axis title, and filter.",
+        "i18nTag": undefined,
+        "inlineType": {
+          "name": "CoreChartProps.HeaderOptions",
+          "properties": [
+            {
+              "name": "content",
+              "optional": true,
+              "type": "React.ReactNode",
+            },
+          ],
+          "type": "object",
+        },
+        "name": "header",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "CoreChartProps.HeaderOptions",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "The Highcharts instance, which can be obtained using \`import Highcharts from "highcharts"\`.
+Supported Highcharts versions: 12.",
+        "i18nTag": undefined,
+        "inlineType": undefined,
+        "name": "highcharts",
+        "optional": false,
+        "systemTags": undefined,
+        "type": "object | null",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "An object that contains all of the localized strings required by the component.",
+        "i18nTag": true,
+        "inlineType": {
+          "name": "CartesianI18nStrings & PieI18nStrings",
+          "type": "union",
+          "valueDescriptions": undefined,
+          "values": [
+            "CartesianI18nStrings",
+            "PieI18nStrings",
+          ],
+        },
+        "name": "i18nStrings",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "CartesianI18nStrings & PieI18nStrings",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": "true",
+        "deprecatedTag": undefined,
+        "description": "Use Cloudscape keyboard navigation.",
+        "i18nTag": undefined,
+        "inlineType": undefined,
+        "name": "keyboardNavigation",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "boolean",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "Chart legend options.",
+        "i18nTag": undefined,
+        "inlineType": {
+          "name": "CoreChartProps.LegendOptions",
+          "properties": [
+            {
+              "name": "actions",
+              "optional": true,
+              "type": "React.ReactNode",
+            },
+            {
+              "name": "bottomMaxHeight",
+              "optional": true,
+              "type": "number",
+            },
+            {
+              "name": "enabled",
+              "optional": true,
+              "type": "boolean",
+            },
+            {
+              "inlineType": {
+                "name": ""side" | "bottom"",
+                "type": "union",
+                "valueDescriptions": undefined,
+                "values": [
+                  "side",
+                  "bottom",
+                ],
+              },
+              "name": "position",
+              "optional": true,
+              "type": "string",
+            },
+            {
+              "name": "title",
+              "optional": true,
+              "type": "string",
+            },
+          ],
+          "type": "object",
+        },
+        "name": "legend",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "CoreChartProps.LegendOptions",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "Defines options to represent empty, no-match, loading, and error state of the chart, including:
+* \`statusType\` (optional, "finished" | "loading" | "error") - Specifies the current status of loading data.
+* \`empty\` (optional, ReactNode) - Content displayed when the chart data is empty.
+* \`noMatch\` (optional, ReactNode) - Content displayed when there is no data to display due to the built-in filtering.
+* \`loading\` (optional, ReactNode) - Content displayed when \`statusType="loading"\`. If omitted, the default loading state
+is shown, using \`i18n.loadingText\` or built-in i18n.
+* \`error\` (optional, ReactNode) - Content displayed when \`statusType="error"\`. If omitted, the default error state
+is shown, using \`i18n.errorText\` and \`i18n.recoveryText\` (when \`onRecoveryClick\` is provided), or built-in i18n.
+* \`onRecoveryClick\` (optional, function) - Called when the user clicks the recovery button that appears when using default error
+state, and only if \`onRecoveryClick\` is provided. Use this to enable the user to retry a failed request or provide another option
+for the user to recover from the error.",
+        "i18nTag": undefined,
+        "inlineType": {
+          "name": "BaseNoDataOptions",
+          "properties": [
+            {
+              "name": "empty",
+              "optional": true,
+              "type": "React.ReactNode",
+            },
+            {
+              "name": "error",
+              "optional": true,
+              "type": "React.ReactNode",
+            },
+            {
+              "name": "loading",
+              "optional": true,
+              "type": "React.ReactNode",
+            },
+            {
+              "name": "noMatch",
+              "optional": true,
+              "type": "React.ReactNode",
+            },
+            {
+              "inlineType": {
+                "name": "NonCancelableEventHandler<{}>",
+                "parameters": [
+                  {
+                    "name": "event",
+                    "type": "NonCancelableCustomEvent<Detail>",
+                  },
+                ],
+                "returnType": "void",
+                "type": "function",
+              },
+              "name": "onRecoveryClick",
+              "optional": true,
+              "type": "NonCancelableEventHandler<{}>",
+            },
+            {
+              "inlineType": {
+                "name": ""finished" | "loading" | "error"",
+                "type": "union",
+                "valueDescriptions": undefined,
+                "values": [
+                  "finished",
+                  "loading",
+                  "error",
+                ],
+              },
+              "name": "statusType",
+              "optional": true,
+              "type": "string",
+            },
+          ],
+          "type": "object",
+        },
+        "name": "noData",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "BaseNoDataOptions",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "The Highcharts options. Cloudscape injects custom styles and settings, but all can be
+overridden with explicitly provided options. An exception is event handlers - those are
+not overridden, but merged with Cloudscape event handlers so that both are getting called.",
+        "i18nTag": undefined,
+        "inlineType": {
+          "name": "CoreChartProps.ChartOptions",
+          "type": "union",
+          "valueDescriptions": undefined,
+          "values": [
+            "Omit<Highcharts.Options, "xAxis" | "yAxis">",
+            "{ xAxis?: CoreChartProps.XAxisOptions | Array<CoreChartProps.XAxisOptions> | undefined; yAxis?: CoreChartProps.YAxisOptions | Array<CoreChartProps.YAxisOptions> | undefined; }",
+          ],
+        },
+        "name": "options",
+        "optional": false,
+        "systemTags": undefined,
+        "type": "CoreChartProps.ChartOptions",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "The Cloudscape tooltip, that comes with a vertical cursor when used on cartesian series.
+The tooltip content is only shown when \`getContent\` property is defined, which is called
+for each visited { x, y } point.",
+        "i18nTag": undefined,
+        "inlineType": {
+          "name": "CoreChartProps.TooltipOptions",
+          "properties": [
+            {
+              "name": "enabled",
+              "optional": true,
+              "type": "boolean",
+            },
+            {
+              "inlineType": {
+                "name": ""target" | "middle" | "outside"",
+                "type": "union",
+                "valueDescriptions": undefined,
+                "values": [
+                  "target",
+                  "middle",
+                  "outside",
+                ],
+              },
+              "name": "placement",
+              "optional": true,
+              "type": "string",
+            },
+            {
+              "inlineType": {
+                "name": ""small" | "medium" | "large"",
+                "type": "union",
+                "valueDescriptions": undefined,
+                "values": [
+                  "small",
+                  "medium",
+                  "large",
+                ],
+              },
+              "name": "size",
+              "optional": true,
+              "type": "string",
+            },
+          ],
+          "type": "object",
+        },
+        "name": "tooltip",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "CoreChartProps.TooltipOptions",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "Controls the placement of the vertical axis title.
+When set to "side", displays the title along the axis line.",
+        "i18nTag": undefined,
+        "inlineType": {
+          "name": ""top" | "side"",
+          "type": "union",
+          "valueDescriptions": undefined,
+          "values": [
+            "top",
+            "side",
+          ],
+        },
+        "name": "verticalAxisTitlePlacement",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "string",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "IDs of visible series or points.",
+        "i18nTag": undefined,
+        "inlineType": undefined,
+        "name": "visibleItems",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "ReadonlyArray<string>",
+        "visualRefreshTag": undefined,
+      },
+    ],
+    "regions": [
+      {
+        "deprecatedTag": undefined,
+        "description": "Custom content that renders when \`highcharts=null\`. It renders a spinner if not defined.",
+        "displayName": undefined,
+        "i18nTag": undefined,
+        "isDefault": false,
+        "name": "fallback",
+        "systemTags": undefined,
+        "visualRefreshTag": undefined,
+      },
+      {
+        "deprecatedTag": undefined,
+        "description": "Prop for passing a custom navigation control component to be rendered with the chart.
+Use this property to add timeline navigation, range selectors, or other custom navigation elements.",
+        "displayName": undefined,
+        "i18nTag": undefined,
+        "isDefault": false,
+        "name": "navigator",
+        "systemTags": undefined,
+        "visualRefreshTag": undefined,
+      },
+    ],
+    "releaseStatus": "stable",
+    "systemTags": undefined,
+  },
+]
 `;

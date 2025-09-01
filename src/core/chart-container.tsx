@@ -96,10 +96,11 @@ export function ChartContainer({
       ) : (
         <div
           style={chartMinWidth !== undefined ? { minInlineSize: chartMinWidth } : {}}
-          className={testClasses["chart-plot-wrapper"]}
+          className={clsx(styles["chart-plot-wrapper"], testClasses["chart-plot-wrapper"])}
         >
           {verticalAxisTitle}
           {chart(effectiveChartHeight)}
+          {!legend || legendPosition === "bottom" ? noData : null}
         </div>
       )}
 
@@ -110,8 +111,6 @@ export function ChartContainer({
           (legendBottomMaxHeight ? <div style={{ maxHeight: `${legendBottomMaxHeight}px` }}>{legend}</div> : legend)}
         {footer}
       </div>
-
-      {!legend || legendPosition === "bottom" ? noData : null}
     </div>
   );
 }
