@@ -3,7 +3,7 @@
 
 import type Highcharts from "highcharts";
 
-import { ChartSeriesMarkerType } from "../internal/components/series-marker";
+import { ChartSeriesMarkerStatus, ChartSeriesMarkerType } from "../internal/components/series-marker";
 import { getChartSeries } from "../internal/utils/chart-series";
 import { getFormatter } from "./formatters";
 import { ChartLabels } from "./i18n-utils";
@@ -15,7 +15,7 @@ export interface LegendItemSpec {
   markerType: ChartSeriesMarkerType;
   color: string;
   visible: boolean;
-  status?: "warning";
+  status?: ChartSeriesMarkerStatus;
 }
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
@@ -119,6 +119,9 @@ export function getSeriesMarkerType(series?: Highcharts.Series): ChartSeriesMark
 export function getSeriesColor(series?: Highcharts.Series): string {
   return typeof series?.color === "string" ? series.color : "black";
 }
+export function getSeriesStatus(series?: Highcharts.Series): ChartSeriesMarkerStatus | undefined {
+  return (series?.userOptions as Highcharts.SeriesOptionsType & { status?: ChartSeriesMarkerStatus })?.status;
+}
 export function getPointColor(point?: Highcharts.Point): string {
   return typeof point?.color === "string" ? point.color : "black";
 }
@@ -150,7 +153,7 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
         markerType: getSeriesMarkerType(series),
         color: getSeriesColor(series),
         visible: series.visible,
-        status: (series.userOptions as any).status,
+        status: getSeriesStatus(series),
       });
     }
   };
@@ -162,7 +165,7 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
         markerType: getSeriesMarkerType(point.series),
         color: getPointColor(point),
         visible: point.visible,
-        status: (point?.series?.userOptions as any)?.status,
+        status: getSeriesStatus(point?.series),
       });
     }
   };
