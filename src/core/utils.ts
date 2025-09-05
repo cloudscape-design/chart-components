@@ -80,7 +80,6 @@ export function getSeriesMarkerType(series?: Highcharts.Series): ChartSeriesMark
     return "large-square";
   }
   const seriesSymbol = "symbol" in series && typeof series.symbol === "string" ? series.symbol : "circle";
-  
   // In Highcharts, dashStyle supports different types of dashes: https://jsfiddle.net/gh/get/library/pure/highcharts/highcharts/tree/master/samples/highcharts/plotoptions/series-dashstyle-all/
   // Return a dashed legend symbol for all of these dashes, excluding the default "Solid" option
   if ("dashStyle" in series.options && series.options.dashStyle && series.options.dashStyle !== "Solid") {
