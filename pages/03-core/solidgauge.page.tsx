@@ -8,22 +8,13 @@ import { Page } from "../common/templates";
 
 const series: Highcharts.SeriesOptionsType[] = [
   {
-    name: "Disk Usage",
+    name: "Resource usage",
     type: "solidgauge",
-    data: [85],
-    showInLegend: true,
-  },
-  {
-    name: "Memory Usage",
-    type: "solidgauge",
-    data: [60],
-    showInLegend: true,
-  },
-  {
-    name: "CPU Usage",
-    type: "solidgauge",
-    data: [15],
-    showInLegend: true,
+    data: [
+      { y: 85, name: "Disk Usage", color: colors[0] },
+      { y: 60, name: "Memory Usage", color: colors[1] },
+      { y: 15, name: "CPU Usage", color: colors[2] },
+    ],
   },
 ];
 
@@ -46,24 +37,7 @@ export default function () {
         {...cartesian}
         options={{
           series,
-          chart: {
-            type: "solidgauge",
-          },
-          title: {
-            text: "Resource Usage",
-          },
-          yAxis: {
-            min: 0,
-            max: 100,
-            title: {
-              text: "Usage",
-            },
-            stops: [
-              [0.1, colors[0]],
-              [0.5, colors[1]],
-              [0.8, colors[2]],
-            ],
-          },
+          yAxis: { min: 0, max: 100, title: { text: "Usage" } },
         }}
       />
     </Page>

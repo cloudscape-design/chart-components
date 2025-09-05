@@ -5,7 +5,6 @@ import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
 import { getChartSeries } from "../internal/utils/chart-series";
-import { getColor } from "./color-strategy";
 import { getFormatter } from "./formatters";
 import { ChartLabels } from "./i18n-utils";
 import { Rect } from "./interfaces";
@@ -118,6 +117,10 @@ export function getPointColor(point?: Highcharts.Point): string {
   return typeof point?.color === "string" ? point.color : "black";
 }
 
+export const getSeriesColor = (series: Highcharts.Series): string => {
+  return typeof series?.color === "string" ? series.color : "black";
+};
+
 // the chart object does not include information on legend items. Instead, we collect series and pie segments
 // using this custom function, respecting Highcharts' showInLegend flag (defined for series only).
 
@@ -126,8 +129,8 @@ export function getPointColor(point?: Highcharts.Point): string {
 export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendItemSpec[] {
   const legendItems: LegendItemSpec[] = [];
   const addSeriesItem = (series: Highcharts.Series) => {
-    // The pie series is not shown in the legend. Instead, we show pie segments.
-    if (series.type === "pie") {
+    // The pie and solidgauge series are not shown in the legend. Instead, their points are shown.
+    if (series.type === "pie" || series.type === "solidgauge") {
       return;
     }
     // We only support errorbar series that are linked to other series. Those are not represented separately
@@ -142,13 +145,13 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
         id: getSeriesId(series),
         name: series.name,
         markerType: getSeriesMarkerType(series),
-        color: getColor(series),
+        color: getSeriesColor(series),
         visible: series.visible,
       });
     }
   };
   const addPointItem = (point: Highcharts.Point) => {
-    if (point.series.type === "pie") {
+    if (point.series.type === "pie" || point.series.type === "solidgauge") {
       legendItems.push({
         id: getPointId(point),
         name: point.name,

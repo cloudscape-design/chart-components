@@ -31,7 +31,7 @@ export class ChartExtraAxisTitles extends AsyncStore<ReactiveAxisTitlesState> {
 
 function getVerticalAxesTitles(chart: Highcharts.Chart) {
   const isInverted = !!chart.options.chart?.inverted;
-  const hasSeries = getChartSeries(chart.series).filter((s) => s.type !== "pie").length > 0;
+  const hasSeries = getChartSeries(chart.series).filter((s) => s.type !== "pie" && s.type !== "solidgauge").length > 0;
 
   // We extract multiple titles as there can be multiple axes. This supports up to 2 axes by
   // using space-between placement of the labels in the corresponding component.

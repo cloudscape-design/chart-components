@@ -254,7 +254,7 @@ export class ChartExtraNavigation {
 
   private moveToParentGroup(point: Highcharts.Point) {
     const group = this.findMatchingGroup(point);
-    if (group.length > 0 && group[0].series.type !== "pie") {
+    if (group.length > 0 && !["pie", "solidgauge"].includes(group[0].series.type)) {
       this.focusGroup(group);
     } else {
       this.focusChart();
@@ -373,8 +373,8 @@ export class ChartExtraNavigation {
     if (visiblePoints.length === 0) {
       this.focusChart();
     }
-    // In pie charts we only focus points, so moving focus to points and groups is equivalent.
-    else if (visiblePoints[0].series.type === "pie") {
+    // In pie/gauge charts we only focus points, so moving focus to points and groups is equivalent.
+    else if (["pie", "solidgauge"].includes(visiblePoints[0].series.type)) {
       this.focusPoint(visiblePoints[0] ?? null, group);
     }
     // When focusing a group we draw the focus outline around the corresponding group rect, including
@@ -558,11 +558,11 @@ class FocusOutline {
   };
 }
 
-// We do not invert the direction of pie segments when RTL, but swap the left/right keys.
+// We do not invert the direction of pie/gauge segments when RTL, but swap the left/right keys.
 // To offset for that, the prev/next points direction is swapped, too.
 function shouldInvertPointsDirection(point: Highcharts.Point) {
   const isRTL = getIsRtl(point.series.chart.container.parentElement);
-  return point.series.type === "pie" && isRTL;
+  return ["pie", "solidgauge"].includes(point.series.type) && isRTL;
 }
 
 function getNextIndex(array: unknown[], pointIndex: number, delta: -1 | 1): number {

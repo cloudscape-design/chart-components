@@ -56,7 +56,9 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
 
   // Updates legend highlight state when chart's point is highlighted.
   public onHighlightPoint = (point: Highcharts.Point) => {
-    const visibleItems = point.series.type === "pie" ? [getPointId(point)] : [getSeriesId(point.series)];
+    const visibleItems = ["pie", "solidgauge"].includes(point.series.type)
+      ? [getPointId(point)]
+      : [getSeriesId(point.series)];
     this.onHighlightItems(visibleItems);
   };
 

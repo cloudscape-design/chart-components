@@ -12,10 +12,9 @@ import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../internal/compon
 import { useSelector } from "../../internal/utils/async-store";
 import { getChartSeries } from "../../internal/utils/chart-series";
 import { ChartAPI } from "../chart-api";
-import { getColor } from "../color-strategy";
 import { getFormatter } from "../formatters";
 import { BaseI18nStrings, CoreChartProps } from "../interfaces";
-import { getPointColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../utils";
+import { getPointColor, getSeriesColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../utils";
 
 import styles from "../styles.css.js";
 
@@ -120,8 +119,8 @@ function getTooltipContent(
     renderers?: CoreChartProps.TooltipContentRenderer;
   } & ExpandedSeriesStateProps,
 ): null | RenderedTooltipContent {
-  if (props.point && props.point.series.type === "pie") {
-    return getTooltipContentPie(api, { ...props, point: props.point });
+  if (props.point && ["pie", "solidgauge"].includes(props.point.series.type)) {
+    return getTooltipContentPieOrGauge(api, { ...props, point: props.point });
   } else if (props.group.length > 0 && props.group[0].series.type !== "pie") {
     return getTooltipContentCartesian(api, props);
   } else {
@@ -146,7 +145,7 @@ function getTooltipContentCartesian(
   const x = group[0].x;
   const chart = group[0].series.chart;
   const getSeriesMarker = (series: Highcharts.Series) =>
-    api.renderMarker(getSeriesMarkerType(series), getColor(series), true);
+    api.renderMarker(getSeriesMarkerType(series), getSeriesColor(series), true);
   const matchedItems = findTooltipSeriesItems(getChartSeries(chart.series), group);
   const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
     const valueFormatter = getFormatter(item.point.series.yAxis);
@@ -202,7 +201,7 @@ function getTooltipContentCartesian(
   };
 }
 
-function getTooltipContentPie(
+function getTooltipContentPieOrGauge(
   api: ChartAPI,
   { point, renderers = {} }: { point: Highcharts.Point } & { renderers?: CoreChartProps.TooltipContentRenderer },
 ): RenderedTooltipContent {
