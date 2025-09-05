@@ -36,7 +36,7 @@ function noIdPlaceholder(): string {
 
 // There are more possible values that series.stacking can take, but we only explicitly support "normal".
 export function isSeriesStacked(series: Highcharts.Series) {
-  return (series.options as any).stacking === "normal";
+  return "stacking" in series.options && series.options.stacking === "normal";
 }
 
 // The threshold series are custom series, implemented as a combination of line series, and plot lines.
@@ -115,16 +115,14 @@ export function getSeriesMarkerType(series?: Highcharts.Series): ChartSeriesMark
   }
 }
 
-// Highcharts supports color objects to represent gradients and more, but we only support string
-// colors in our markers. In case a non-string color is defined, we use black color as as fallback.
-export function getSeriesColor(series?: Highcharts.Series): string {
-  return typeof series?.color === "string" ? series.color : "black";
-}
 export function getPointColor(point?: Highcharts.Point): string {
   return typeof point?.color === "string" ? point.color : "black";
 }
 
-// The custom legend implementation does not rely on the Highcharts legend. When Highcharts legend is disabled,
+export const getSeriesColor = (series: Highcharts.Series): string => {
+  return typeof series?.color === "string" ? series.color : "black";
+};
+
 // the chart object does not include information on legend items. Instead, we collect series and pie segments
 // using this custom function, respecting Highcharts' showInLegend flag (defined for series only).
 
@@ -133,8 +131,8 @@ export function getPointColor(point?: Highcharts.Point): string {
 export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendItemSpec[] {
   const legendItems: LegendItemSpec[] = [];
   const addSeriesItem = (series: Highcharts.Series) => {
-    // The pie series is not shown in the legend. Instead, we show pie segments.
-    if (series.type === "pie") {
+    // The pie and solidgauge series are not shown in the legend. Instead, their points are shown.
+    if (series.type === "pie" || series.type === "solidgauge") {
       return;
     }
     // We only support errorbar series that are linked to other series. Those are not represented separately
@@ -155,7 +153,7 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
     }
   };
   const addPointItem = (point: Highcharts.Point) => {
-    if (point.series.type === "pie") {
+    if (point.series.type === "pie" || point.series.type === "solidgauge") {
       legendItems.push({
         id: getPointId(point),
         name: point.name,
@@ -165,9 +163,9 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
       });
     }
   };
-  for (const s of getChartSeries(chart.series)) {
-    addSeriesItem(s);
-    s.data.forEach(addPointItem);
+  for (const series of getChartSeries(chart.series)) {
+    addSeriesItem(series);
+    series.data.forEach(addPointItem);
   }
   return legendItems;
 }

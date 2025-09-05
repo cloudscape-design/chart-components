@@ -35,8 +35,8 @@ export class ChartExtraHighlight {
   // The method highlights specified series or points (by id). It is used when hovering over the legend items.
   public highlightChartItems = (itemIds: readonly string[]) => {
     for (const s of this.context.chart().series) {
-      // In pie charts it is the points, not series, that are shown in the legend, and can be highlighted.
-      if (s.type === "pie") {
+      // In pie/solid charts it is the points, not series, that are shown in the legend, and can be highlighted.
+      if (s.type === "pie" || s.type === "solidgauge") {
         for (const p of s.data) {
           if (itemIds.includes(getPointId(p))) {
             this.setPointState(p, "hover");
@@ -75,13 +75,13 @@ export class ChartExtraHighlight {
   };
 
   // This method is similar to the above, but it takes a single point. This is used for point highlighting
-  // in cartesian charts, and for pie chart segments.
+  // in cartesian charts, and for pie/gauge chart segments.
   public highlightChartPoint = (point: Highcharts.Point) => {
     for (const s of this.context.chart().series) {
       this.setSeriesState(s, point.series === s ? "hover" : "inactive");
-      // For pie charts it is important that the hover actions comes last, as otherwise the segment's highlight "halo"
+      // For pie/gauge charts it is important that the hover actions comes last, as otherwise the segment's highlight "halo"
       // is removed whenever any segment is made inactive.
-      if (s.type === "pie") {
+      if (s.type === "pie" || s.type === "solidgauge") {
         for (const d of s.data) {
           this.setPointState(d, "inactive");
         }

@@ -43,7 +43,7 @@ export class ChartExtraPointer {
   };
 
   // This event is triggered by Highcharts when the cursor is over a Highcharts point. We leave this to
-  // Highcharts because it includes computation of complex shape intersections, such as pie chart segments.
+  // Highcharts because it includes computation of complex shape intersections, such as pie/gauge chart segments.
   // When triggered, we set the given point as hovered, and it takes precedence over hovered groups.
   public onSeriesPointMouseOver = (point: Highcharts.Point) => {
     this.setHoveredPoint(point);
@@ -77,8 +77,8 @@ export class ChartExtraPointer {
   // Points hovering takes precedence over groups hovering.
   private onChartMousemove = (event: MouseEvent) => {
     const chart = this.context.chart();
-    // In pie charts there is no support for groups - only a single point can be hovered at a time.
-    if (getChartSeries(chart.series).some((s) => s.type === "pie")) {
+    // In pie/gauge charts there is no support for groups - only a single point can be hovered at a time.
+    if (getChartSeries(chart.series).some((s) => ["pie", "solidgauge"].includes(s.type))) {
       return;
     }
     // The plotX and plotY are pointer coordinates, normalized against the chart plot.

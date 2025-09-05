@@ -30,7 +30,7 @@ export class ChartExtraNodata extends AsyncStore<ReactiveNodataState> {
     }
     const allSeriesWithData = findAllSeriesWithData(this.chart);
     const visibleSeries = findAllVisibleSeries(this.chart);
-    // The no-data is not shown when there is at least one series or point (for pie series) non-empty and visible.
+    // The no-data is not shown when there is at least one series or point (for pie/gauge series) non-empty and visible.
     if (visibleSeries.length > 0) {
       this.set(() => ({ visible: false, style: {}, noMatch: false }));
     } else {
@@ -60,6 +60,6 @@ function findAllSeriesWithData(chart: Highcharts.Chart) {
 function findAllVisibleSeries(chart: Highcharts.Chart) {
   const allSeriesWithData = findAllSeriesWithData(chart);
   return allSeriesWithData.filter(
-    (s) => s.visible && (s.type !== "pie" || s.data.some((d) => d.y !== null && d.visible)),
+    (s) => s.visible && (!["pie", "solidgauge"].includes(s.type) || s.data.some((d) => d.y !== null && d.visible)),
   );
 }

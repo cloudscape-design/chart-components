@@ -119,8 +119,8 @@ function getTooltipContent(
     renderers?: CoreChartProps.TooltipContentRenderer;
   } & ExpandedSeriesStateProps,
 ): null | RenderedTooltipContent {
-  if (props.point && props.point.series.type === "pie") {
-    return getTooltipContentPie(api, { ...props, point: props.point });
+  if (props.point && ["pie", "solidgauge"].includes(props.point.series.type)) {
+    return getTooltipContentPieOrGauge(api, { ...props, point: props.point });
   } else if (props.group.length > 0 && props.group[0].series.type !== "pie") {
     return getTooltipContentCartesian(api, props);
   } else {
@@ -201,7 +201,7 @@ function getTooltipContentCartesian(
   };
 }
 
-function getTooltipContentPie(
+function getTooltipContentPieOrGauge(
   api: ChartAPI,
   { point, renderers = {} }: { point: Highcharts.Point } & { renderers?: CoreChartProps.TooltipContentRenderer },
 ): RenderedTooltipContent {
