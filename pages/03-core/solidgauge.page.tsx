@@ -1,27 +1,37 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { omit } from "lodash";
-
+import { colors } from "../../lib/components/internal/chart-styles";
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
 import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
-import pseudoRandom from "../utils/pseudo-random";
-
-function randomInt(min: number, max: number) {
-  return min + Math.floor(pseudoRandom() * (max - min));
-}
 
 const series: Highcharts.SeriesOptionsType[] = [
   {
+    name: "Disk Usage",
+    type: "solidgauge",
+    data: [85],
+    showInLegend: true,
+  },
+  {
+    name: "Memory Usage",
+    type: "solidgauge",
+    data: [60],
+    showInLegend: true,
+  },
+  {
     name: "CPU Usage",
     type: "solidgauge",
-    data: [randomInt(60, 90)],
+    data: [15],
+    showInLegend: true,
   },
 ];
 
 export default function () {
-  const { chartProps } = useChartSettings({ solidgauge: true });
+  const {
+    chartProps: { cartesian },
+  } = useChartSettings({ solidgauge: true });
+
   return (
     <Page
       title="Solid Gauge Chart Demo"
@@ -33,7 +43,7 @@ export default function () {
       }
     >
       <CoreChart
-        {...omit(chartProps.cartesian, "ref")}
+        {...cartesian}
         options={{
           series,
           chart: {
@@ -49,9 +59,9 @@ export default function () {
               text: "Usage",
             },
             stops: [
-              [0.1, "#55BF3B"],
-              [0.5, "#DDDF0D"],
-              [0.8, "#DF5353"],
+              [0.1, colors[0]],
+              [0.5, colors[1]],
+              [0.8, colors[2]],
             ],
           },
         }}
