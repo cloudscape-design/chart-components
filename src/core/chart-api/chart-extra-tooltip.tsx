@@ -103,9 +103,8 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     function isGroupEqual(a: Highcharts.Point, b: Highcharts.Point) {
       return a?.x === b?.x && a?.y === b?.y && getSeriesId(a?.series) === getSeriesId(b?.series);
     }
-
     this.set((prev) => {
-      return isEqualArrays(prev.group, group, isGroupEqual)
+      return prev.point === null && isEqualArrays(prev.group, group, isGroupEqual)
         ? prev
         : { visible: true, pinned: false, point: null, group };
     });
