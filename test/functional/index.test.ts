@@ -3,7 +3,6 @@
 
 import { expect, test } from "vitest";
 
-import { BasePageObject } from "@cloudscape-design/browser-test-tools/page-objects";
 import createWrapper from "@cloudscape-design/components/test-utils/selectors";
 
 import "../../lib/components/test-utils/selectors";
@@ -13,7 +12,7 @@ const wrapper = createWrapper();
 
 test(
   "index page",
-  setupTest("#", BasePageObject, async (page) => {
+  setupTest("#", async (page) => {
     await expect(page.getText("h1")).resolves.toBe("Welcome!");
     await expect(page.getElementsCount(wrapper.findLink().toSelector())).resolves.toBeGreaterThan(5);
   }),
