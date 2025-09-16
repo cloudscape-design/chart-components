@@ -33,7 +33,9 @@ export interface PageSettings {
   tooltipSize: "small" | "medium" | "large";
   showLegend: boolean;
   showLegendTitle: boolean;
+  showOppositeLegendTitle: boolean;
   showLegendActions: boolean;
+  legendType: "single" | "dual";
   legendBottomMaxHeight?: number;
   legendPosition: "bottom" | "side";
   showCustomHeader: boolean;
@@ -59,6 +61,8 @@ const DEFAULT_SETTINGS: PageSettings = {
   tooltipSize: "medium",
   showLegend: true,
   showLegendTitle: false,
+  showOppositeLegendTitle: false,
+  legendType: "single",
   legendPosition: "bottom",
   showLegendActions: false,
   showCustomHeader: false,
@@ -146,7 +150,9 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
   const legend = {
     enabled: settings.showLegend,
     title: settings.showLegendTitle ? "Legend title" : undefined,
+    oppositeLegendTitle: settings.showOppositeLegendTitle ? "Opposite Legend title" : undefined,
     actions: settings.showLegendActions ? <Button variant="icon" iconName="search" /> : undefined,
+    type: settings.legendType,
     position: settings.legendPosition,
     bottomMaxHeight: settings.legendBottomMaxHeight,
   };
@@ -343,6 +349,20 @@ export function PageSettingsForm({
                   Show legend
                 </Checkbox>
               );
+            case "legendType":
+              return (
+                <SegmentedControl
+                  label="Legend Type"
+                  selectedId={settings.legendType}
+                  options={[
+                    { text: "Single", id: "single", disabled: !settings.showLegend },
+                    { text: "Dual", id: "dual", disabled: !settings.showLegend },
+                  ]}
+                  onChange={({ detail }) =>
+                    setSettings({ legendType: detail.selectedId as string as "single" | "dual" })
+                  }
+                />
+              );
             case "showLegendTitle":
               return (
                 <Checkbox
@@ -350,6 +370,15 @@ export function PageSettingsForm({
                   onChange={({ detail }) => setSettings({ showLegendTitle: detail.checked })}
                 >
                   Show legend title
+                </Checkbox>
+              );
+            case "showOppositeLegendTitle":
+              return (
+                <Checkbox
+                  checked={settings.showOppositeLegendTitle}
+                  onChange={({ detail }) => setSettings({ showOppositeLegendTitle: detail.checked })}
+                >
+                  Show opposite legend title
                 </Checkbox>
               );
             case "showLegendActions":
