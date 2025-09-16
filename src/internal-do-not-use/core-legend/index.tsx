@@ -22,11 +22,13 @@ export const CoreLegend = ({
     return null;
   }
 
+  // TODO: surface the type and defaultTitle and oppositeTitle props
   return (
     <ChartLegendComponent
       items={items}
+      type="single"
       actions={actions}
-      legendTitle={title}
+      title={title}
       position={position}
       ariaLabel={ariaLabel}
       getTooltipContent={(props) => getLegendTooltipContent?.(props) ?? null}

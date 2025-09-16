@@ -114,7 +114,6 @@ $side-legend-min-inline-size: max(20%, 150px);
 
 .side-legend-container {
   flex: 0;
-  overflow-y: auto;
   max-inline-size: $side-legend-max-inline-size;
   min-inline-size: $side-legend-min-inline-size;
 }

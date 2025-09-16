@@ -82,9 +82,9 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
 
   private initLegend = () => {
     const itemSpecs = getChartLegendItems(this.context.chart());
-    const legendItems = itemSpecs.map(({ id, name, color, markerType, visible }) => {
+    const legendItems = itemSpecs.map(({ id, name, color, markerType, visible, oppositeAxis }) => {
       const marker = this.renderMarker(markerType, color, visible);
-      return { id, name, marker, visible, highlighted: false };
+      return { id, name, marker, visible, oppositeAxis, highlighted: false };
     });
     this.updateLegendItems(legendItems);
   };
