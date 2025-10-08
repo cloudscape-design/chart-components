@@ -33,12 +33,12 @@ export function StatefulChart(props: CoreChartProps) {
   );
 }
 
-type TestProps = Partial<CoreChartProps> & {
+export type CoreChartTestProps = Partial<CoreChartProps> & {
   onLegendItemHighlight?: () => void;
   i18nProvider?: Record<string, Record<string, string>>;
 };
 
-export function renderChart({ i18nProvider, ...props }: TestProps, Component = CoreChart) {
+export function renderChart({ i18nProvider, ...props }: CoreChartTestProps, Component = CoreChart) {
   const ComponentWrapper = (props: CoreChartProps) => {
     return i18nProvider ? (
       <TestI18nProvider messages={i18nProvider}>
@@ -51,11 +51,11 @@ export function renderChart({ i18nProvider, ...props }: TestProps, Component = C
   const { rerender } = render(<ComponentWrapper {...props} />);
   return {
     wrapper: createChartWrapper(),
-    rerender: (props: TestProps) => rerender(<ComponentWrapper {...props} />),
+    rerender: (props: CoreChartTestProps) => rerender(<ComponentWrapper {...props} />),
   };
 }
 
-export function renderStatefulChart(props: TestProps) {
+export function renderStatefulChart(props: CoreChartTestProps) {
   return renderChart(props, StatefulChart);
 }
 

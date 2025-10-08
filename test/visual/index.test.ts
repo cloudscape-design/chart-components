@@ -4,9 +4,7 @@
 import path from "path";
 import { expect, test } from "vitest";
 
-import { ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page-objects";
-
-import { setupTest } from "../utils";
+import { setupScreenshotTest } from "../utils";
 
 const pagesMap = import.meta.glob("../../pages/**/*.page.tsx", { as: "raw" });
 const allPages = Object.keys(pagesMap)
@@ -18,7 +16,7 @@ const rtlPages = allPages
   .map((page) => page + "&direction=rtl");
 
 test.each([...allPages, ...rtlPages])("matches snapshot for %s", (route) =>
-  setupTest(route, ScreenshotPageObject, async (page) => {
+  setupScreenshotTest(route, async (page) => {
     const hasScreenshotArea = await page.isExisting(".screenshot-area");
     if (hasScreenshotArea) {
       await page.waitForJsTimers(100);

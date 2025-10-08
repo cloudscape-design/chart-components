@@ -21,13 +21,32 @@ export function numberFormatter(value: null | number) {
   if (value === null) {
     return "";
   }
-  return Math.abs(value) >= 1e9
-    ? (value / 1e9).toFixed(1).replace(/\.0$/, "") + "G"
-    : Math.abs(value) >= 1e6
-      ? (value / 1e6).toFixed(1).replace(/\.0$/, "") + "M"
-      : Math.abs(value) >= 1e3
-        ? (value / 1e3).toFixed(1).replace(/\.0$/, "") + "K"
-        : value.toFixed(2);
+
+  const format = (num: number) => parseFloat(num.toFixed(2)).toString(); // trims unnecessary decimals
+
+  const absValue = Math.abs(value);
+
+  if (absValue === 0) {
+    return "0";
+  }
+
+  if (absValue < 0.01) {
+    return value.toExponential(0);
+  }
+
+  if (absValue >= 1e9) {
+    return format(value / 1e9) + "G";
+  }
+
+  if (absValue >= 1e6) {
+    return format(value / 1e6) + "M";
+  }
+
+  if (absValue >= 1e3) {
+    return format(value / 1e3) + "K";
+  }
+
+  return format(value);
 }
 
 export function moneyFormatter(value: null | number) {
