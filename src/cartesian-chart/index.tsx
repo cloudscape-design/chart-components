@@ -108,7 +108,7 @@ function transformLineLikeSeries<
     | CartesianChartProps.SplineSeriesOptions,
 >(s: S): null | S {
   const data = transformPointData(s.data);
-  return { type: s.type, id: s.id, name: s.name, color: s.color, data } as S;
+  return { type: s.type, id: s.id, name: s.name, color: s.color, dashStyle: s.dashStyle, data } as S;
 }
 
 function transformColumnSeries<S extends CartesianChartProps.ColumnSeriesOptions>(s: S): null | S {
@@ -125,7 +125,7 @@ function transformScatterSeries<S extends CartesianChartProps.ScatterSeriesOptio
 function transformThresholdSeries<
   S extends CartesianChartProps.XThresholdSeriesOptions | CartesianChartProps.YThresholdSeriesOptions,
 >(s: S): null | S {
-  return { type: s.type, id: s.id, name: s.name, color: s.color, value: s.value } as S;
+  return { type: s.type, id: s.id, name: s.name, color: s.color, value: s.value, dashStyle: s.dashStyle } as S;
 }
 
 function transformErrorBarSeries(
