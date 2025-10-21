@@ -50,6 +50,10 @@ export function Page({
   children,
   screenshotArea = true,
   iframe,
+  splitPanel,
+  splitPanelOpen,
+  splitPanelPreferences,
+  onSplitPanelToggle,
 }: {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
@@ -57,6 +61,10 @@ export function Page({
   children: React.ReactNode;
   screenshotArea?: boolean;
   iframe?: { id?: string };
+  splitPanel?: React.ReactNode;
+  splitPanelOpen?: boolean;
+  splitPanelPreferences?: AppLayoutProps.SplitPanelPreferences;
+  onSplitPanelToggle?: () => void;
 }) {
   const { urlParams } = useContext(AppContext);
   const [toolsOpen, setToolsOpen] = useState(!urlParams.screenshotMode);
@@ -93,6 +101,10 @@ export function Page({
       activeDrawerId={toolsOpen ? "settings" : null}
       onDrawerChange={({ detail }) => setToolsOpen(!!detail.activeDrawerId)}
       drawers={drawers}
+      splitPanelOpen={splitPanelOpen}
+      onSplitPanelToggle={onSplitPanelToggle}
+      splitPanelPreferences={splitPanelPreferences}
+      splitPanel={splitPanel}
       content={iframe ? <IframeWrapper {...iframe} AppComponent={() => content} /> : content}
     />
   );
