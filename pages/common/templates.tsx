@@ -48,12 +48,20 @@ export function Page({
   settings,
   children,
   screenshotArea = true,
+  splitPanel,
+  splitPanelOpen,
+  splitPanelPreferences,
+  onSplitPanelToggle,
 }: {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   settings?: React.ReactNode;
   children: React.ReactNode;
   screenshotArea?: boolean;
+  splitPanel?: React.ReactNode;
+  splitPanelOpen?: boolean;
+  splitPanelPreferences?: AppLayoutProps.SplitPanelPreferences;
+  onSplitPanelToggle?: () => void;
 }) {
   const { urlParams } = useContext(AppContext);
   const [toolsOpen, setToolsOpen] = useState(!urlParams.screenshotMode);
@@ -77,6 +85,10 @@ export function Page({
       activeDrawerId={toolsOpen ? "settings" : null}
       onDrawerChange={({ detail }) => setToolsOpen(!!detail.activeDrawerId)}
       drawers={drawers}
+      splitPanelOpen={splitPanelOpen}
+      onSplitPanelToggle={onSplitPanelToggle}
+      splitPanelPreferences={splitPanelPreferences}
+      splitPanel={splitPanel}
       content={
         <Box>
           <h1>{title}</h1>
