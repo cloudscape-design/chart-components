@@ -4,9 +4,18 @@
 import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
+import { getChartSeries } from "../internal/utils/chart-series";
 import { getFormatter } from "./formatters";
 import { ChartLabels } from "./i18n-utils";
-import { CoreLegendItemSpec, Rect } from "./interfaces";
+import { Rect } from "./interfaces";
+
+export interface LegendItemSpec {
+  id: string;
+  name: string;
+  markerType: ChartSeriesMarkerType;
+  color: string;
+  visible: boolean;
+}
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
 // We expect that items requiring referencing (e.g. in order to control their visibility) have the unique identifier defined.
@@ -71,7 +80,9 @@ export function getSeriesMarkerType(series?: Highcharts.Series): ChartSeriesMark
     return "large-square";
   }
   const seriesSymbol = "symbol" in series && typeof series.symbol === "string" ? series.symbol : "circle";
-  if ("dashStyle" in series.options && series.options.dashStyle) {
+  // In Highcharts, dashStyle supports different types of dashes: https://jsfiddle.net/gh/get/library/pure/highcharts/highcharts/tree/master/samples/highcharts/plotoptions/series-dashstyle-all/
+  // Return a dashed legend symbol for all of these dashes, excluding the default "Solid" option
+  if ("dashStyle" in series.options && series.options.dashStyle && series.options.dashStyle !== "Solid") {
     return "dashed";
   }
   switch (series.type) {
@@ -119,8 +130,8 @@ export function getPointColor(point?: Highcharts.Point): string {
 
 // There exists a Highcharts APIs to access legend items, but it is unfortunately not available, when
 // Highcharts legend is disabled. Instead, we use this custom method to collect legend items from the chart.
-export function getChartLegendItems(chart: Highcharts.Chart): readonly CoreLegendItemSpec[] {
-  const legendItems: CoreLegendItemSpec[] = [];
+export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendItemSpec[] {
+  const legendItems: LegendItemSpec[] = [];
   const addSeriesItem = (series: Highcharts.Series) => {
     // The pie series is not shown in the legend. Instead, we show pie segments.
     if (series.type === "pie") {
@@ -154,11 +165,26 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly CoreLegen
       });
     }
   };
-  for (const s of chart.series) {
+  for (const s of getChartSeries(chart.series)) {
     addSeriesItem(s);
     s.data.forEach(addPointItem);
   }
   return legendItems;
+}
+
+export function hasVisibleLegendItems(options: Highcharts.Options) {
+  return !!options.series?.some((series) => {
+    // The pie series is not shown in the legend, but their segments are always shown.
+    if (series.type === "pie") {
+      return Array.isArray(series.data) && series.data.length > 0;
+    }
+    // We only support errorbar series that are linked to other series. Those are not represented separately
+    // in the legend, but can be controlled from the outside, using controllable items visibility API.
+    if (series.type === "errorbar") {
+      return false;
+    }
+    return series.showInLegend !== false;
+  });
 }
 
 // This function returns coordinates of a rectangle, including the target point.

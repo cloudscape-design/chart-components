@@ -16,8 +16,8 @@ import {
 import Box from "@cloudscape-design/components/box";
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
 
-import { CoreLegendItem, GetLegendTooltipContentProps, TooltipContent } from "../../../core/interfaces";
 import { DebouncedCall } from "../../utils/utils";
+import { GetLegendTooltipContentProps, LegendItem, LegendTooltipContent } from "../interfaces";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -27,15 +27,15 @@ const HIGHLIGHT_LOST_DELAY = 50;
 const SCROLL_DELAY = 100;
 
 export interface ChartLegendProps {
-  items: readonly CoreLegendItem[];
+  items: readonly LegendItem[];
   legendTitle?: string;
   ariaLabel?: string;
   actions?: React.ReactNode;
   position: "bottom" | "side";
-  onItemHighlightEnter: (itemId: string) => void;
+  onItemHighlightEnter: (item: LegendItem) => void;
   onItemHighlightExit: () => void;
   onItemVisibilityChange: (hiddenItems: string[]) => void;
-  getTooltipContent: (props: GetLegendTooltipContentProps) => null | TooltipContent;
+  getTooltipContent: (props: GetLegendTooltipContentProps) => null | LegendTooltipContent;
 }
 
 export const ChartLegend = ({
@@ -120,7 +120,7 @@ export const ChartLegend = ({
     const item = items.find((item) => item.id === itemId);
     if (item?.visible) {
       highlightControl.cancelPrevious();
-      onItemHighlightEnter(itemId);
+      onItemHighlightEnter(item);
     }
   };
   const clearHighlight = () => {
@@ -421,7 +421,7 @@ const LegendItemTrigger = forwardRef(
         onKeyDown={onKeyDown}
       >
         {marker}
-        <span>{label}</span>
+        <span className={styles["item-label"]}>{label}</span>
       </button>
     );
   },

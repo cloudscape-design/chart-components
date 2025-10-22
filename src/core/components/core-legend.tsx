@@ -4,9 +4,10 @@
 import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-use/i18n";
 
 import { ChartLegend as ChartLegendComponent } from "../../internal/components/chart-legend";
+import { fireNonCancelableEvent, NonCancelableEventHandler } from "../../internal/events";
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
-import { BaseI18nStrings, GetLegendTooltipContent } from "../interfaces";
+import { BaseI18nStrings, CoreChartProps } from "../interfaces";
 
 export function ChartLegend({
   api,
@@ -14,6 +15,7 @@ export function ChartLegend({
   actions,
   position,
   i18nStrings,
+  onItemHighlight,
   getLegendTooltipContent,
 }: {
   api: ChartAPI;
@@ -21,7 +23,8 @@ export function ChartLegend({
   actions?: React.ReactNode;
   position: "bottom" | "side";
   i18nStrings?: BaseI18nStrings;
-  getLegendTooltipContent?: GetLegendTooltipContent;
+  onItemHighlight?: NonCancelableEventHandler<CoreChartProps.LegendItemHighlightDetail>;
+  getLegendTooltipContent?: CoreChartProps.GetLegendTooltipContent;
 }) {
   const i18n = useInternalI18n("[charts]");
   const ariaLabel = i18n("i18nStrings.legendAriaLabel", i18nStrings?.legendAriaLabel);
@@ -39,8 +42,11 @@ export function ChartLegend({
       actions={actions}
       position={position}
       onItemVisibilityChange={api.onItemVisibilityChange}
-      onItemHighlightEnter={(itemId) => api.onHighlightChartItems([itemId])}
       onItemHighlightExit={api.onClearChartItemsHighlight}
+      onItemHighlightEnter={(item) => {
+        api.onHighlightChartItems([item.id]);
+        fireNonCancelableEvent(onItemHighlight, { item });
+      }}
       getTooltipContent={(props) => {
         if (isChartTooltipPinned) {
           return null;

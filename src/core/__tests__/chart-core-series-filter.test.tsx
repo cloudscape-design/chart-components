@@ -59,9 +59,16 @@ describe("CoreChart: series filter", () => {
     });
     createChartWrapper().findFilter()!.findSeriesFilter()!.findMultiselect()!.openDropdown();
     createChartWrapper().findFilter()!.findSeriesFilter()!.findMultiselect()!.selectOption(1);
-    expect(onVisibleItemsChange).toHaveBeenCalledWith([
-      { id: "L1", name: "L1", marker: expect.anything(), visible: false, highlighted: false },
-      { id: "L2", name: "L2", marker: expect.anything(), visible: true, highlighted: false },
-    ]);
+    expect(onVisibleItemsChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        detail: {
+          items: [
+            { id: "L1", name: "L1", marker: expect.anything(), visible: false, highlighted: false },
+            { id: "L2", name: "L2", marker: expect.anything(), visible: true, highlighted: false },
+          ],
+          isApiCall: false,
+        },
+      }),
+    );
   });
 });

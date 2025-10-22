@@ -3,8 +3,8 @@
 
 import type Highcharts from "highcharts";
 
-import { ChartSeriesMarkerType } from "../internal/components/series-marker";
-import { NonCancelableEventHandler } from "../internal/events";
+import type * as InternalComponentTypes from "../internal/components/interfaces";
+import { type NonCancelableEventHandler } from "../internal/events";
 
 // All charts take `highcharts` instance, that can be served statically or dynamically.
 // Although it has to be of type Highcharts, the TS type we use is `null | object`, so
@@ -15,74 +15,82 @@ import { NonCancelableEventHandler } from "../internal/events";
  */
 export interface BaseChartOptions {
   /**
-   * The Highcharts instance, that can be obtained as `import Highcharts from 'highcharts'`.
-   * Supported Highcharts versions:
-   * * `v12`
+   * The Highcharts instance, which can be obtained using `import Highcharts from "highcharts"`.
+   * Supported Highcharts versions: 12.
    */
   highcharts: null | object;
 
   /**
-   * Custom content to be rendered when `highcharts=null`. It defaults to a spinner.
+   * Custom content that renders when `highcharts=null`. It renders a spinner if not defined.
    */
   fallback?: React.ReactNode;
 
   /**
-   * The height of the chart plot in pixels. It does not include legend, filter, header, and footer.
+   * The height of the chart plot in pixels. It does not include legend and filter.
    */
   chartHeight?: number;
 
   /**
-   * When set, the chart grows automatically to fill the parent container.
+   * The chart automatically adjusts its height to fill the parent container when this property is set.
    */
   fitHeight?: boolean;
 
   /**
-   * Defines the minimal allowed height of the chart plot. Use it when `fitHeight=true`
-   * to prevent the chart plot become too small to digest the content of it. If the parent container is
-   * too small to satisfy the min width value, the horizontal scrollbar is automatically added.
+   * Defines the minimum allowed height of the chart plot. Use this when `fitHeight=true` to
+   * prevent the chart plot from becoming too small to display its content. When the parent
+   * container is shorter than the minimum height, a vertical scrollbar appears automatically.
    */
   chartMinHeight?: number;
 
   /**
-   * Defines the minimal allowed width of the chart plot. If the parent container is too small to satisfy the min
-   * width value, the horizontal scrollbar is automatically added.
+   * Defines the minimum allowed width of the chart plot. When the parent container is narrower than the
+   * minimum width, the horizontal scrollbar is automatically added.
    */
   chartMinWidth?: number;
 
   /**
-   * ARIA label of the chart container.
+   * Defines the ARIA label for the chart container.
    * This property corresponds to [lang.chartContainerLabel](https://api.highcharts.com/highcharts/lang.accessibility.chartContainerLabel),
    * and requires the [accessibility module](https://www.highcharts.com/docs/accessibility/accessibility-module).
    */
   ariaLabel?: string;
 
   /**
-   * ARIA description of the chart.
+   * Defines the ARIA description of the chart container.
    * This property corresponds to [accessibility.description](https://api.highcharts.com/highcharts/accessibility.description),
    * and requires the [accessibility module](https://www.highcharts.com/docs/accessibility/accessibility-module).
    */
   ariaDescription?: string;
 
   /**
-   * Chart legend options.
+   * Defines chart legend options, including:
+   * * `enabled` (optional, boolean) - Hides legend when set to `false`.
+   * * `title` (optional, string) - Visible label, shown above the legend.
+   * * `actions` (optional, slot) - A slot before the legend that can be used to render custom actions.
    */
   legend?: BaseLegendOptions;
 
   /**
-   * The empty, no-match, loading, or error state of the chart.
+   * Defines options to represent empty, no-match, loading, and error state of the chart, including:
+   * * `statusType` (optional, "finished" | "loading" | "error") - Specifies the current status of loading data.
+   * * `empty` (optional, ReactNode) - Content displayed when the chart data is empty.
+   * * `noMatch` (optional, ReactNode) - Content displayed when there is no data to display due to the built-in filtering.
+   * * `loading` (optional, ReactNode) - Content displayed when `statusType="loading"`. If omitted, the default loading state
+   * is shown, using `i18n.loadingText` or built-in i18n.
+   * * `error` (optional, ReactNode) - Content displayed when `statusType="error"`. If omitted, the default error state
+   * is shown, using `i18n.errorText` and `i18n.recoveryText` (when `onRecoveryClick` is provided), or built-in i18n.
+   * * `onRecoveryClick` (optional, function) - Called when the user clicks the recovery button that appears when using default error
+   * state, and only if `onRecoveryClick` is provided. Use this to enable the user to retry a failed request or provide another option
+   * for the user to recover from the error.
    */
   noData?: BaseNoDataOptions;
 
   /**
-   * Use filter to render default series filter, custom series filter, and/or additional filters.
+   * Defines options for filtering in the chart, including:
+   * * `seriesFilter` (optional, boolean) - Displays default series filter at the top of the chart.
+   * * `additionalFilters` (optional, slot) - A slot for custom chart filters at the top of the chart.
    */
   filter?: BaseFilterOptions;
-
-  /**
-   * An object that contains all of the localized strings required by the component.
-   * @i18n
-   */
-  i18nStrings?: CoreI18nStrings;
 }
 
 export interface BaseLegendOptions {
@@ -100,44 +108,84 @@ export interface BaseNoDataOptions {
   onRecoveryClick?: NonCancelableEventHandler;
 }
 
+export interface BaseTooltipDetail {
+  key: React.ReactNode;
+  value: React.ReactNode;
+}
+
 export interface BaseI18nStrings {
-  /** Text that is displayed when the chart is loading, i.e. when `noData.statusType` is set to `"loading". */
   loadingText?: string;
-  /** Text that is displayed when the chart is in error state, i.e. when `noData.statusType` is set to `"error". */
   errorText?: string;
-  /** Text for the recovery button that is displayed next to the error text. */
   recoveryText?: string;
-  /** Visible label of the default series filter */
   seriesFilterLabel?: string;
-  /** Placeholder text of the default series filter */
   seriesFilterPlaceholder?: string;
-  /** ARIA label of the default series filter which is appended to any option that is selected */
   seriesFilterSelectedAriaLabel?: string;
-  /** ARIA label that is associated with the legend in case there is no visible `legendTitle` defined */
   legendAriaLabel?: string;
-  /** ARIA label for details popover dismiss button */
   detailPopoverDismissAriaLabel?: string;
-  /** Generalized accessible description of the chart, e.g. "line chart" */
-  chartAccessibleDescription?: string;
+  chartRoleDescription?: string;
+}
+
+export interface WithCartesianI18nStrings {
+  /**
+   * An object that contains all of the localized strings required by the component.
+   * @i18n
+   *
+   * Available properties:
+   * * `loadingText` (optional, string) - Text, displayed when the chart is loading, i.e. when `noData.statusType` is set to "loading".
+   * * `errorText` (optional, string) - Text, displayed when the chart is in error state, i.e. when `noData.statusType` is set to "error".
+   * * `recoveryText` (optional, string) - Text for the recovery button, displayed next to the error text.
+   * * `seriesFilterLabel` (optional, string) - Text for the visible label of the default series filter.
+   * * `seriesFilterPlaceholder` (optional, string) - Text for the default series filter placeholder.
+   * * `seriesFilterSelectedAriaLabel` (optional, string) - ARIA label of the default series filter which is appended to any option that is selected.
+   * * `legendAriaLabel` (optional, string) - ARIA label that is associated with the legend in case there is no visible `legend.title` defined.
+   * * `detailPopoverDismissAriaLabel` (optional, string) - ARIA label for the details popover dismiss button.
+   * * `chartRoleDescription` (optional, string) - Accessible role description of the chart plot area, e.g. "interactive chart".
+   * * `xAxisRoleDescription` (optional, string) - Accessible role description of the x axis, e.g. "x axis".
+   * * `yAxisRoleDescription` (optional, string) - Accessible role description of the y axis, e.g. "y axis".
+   */
+  i18nStrings?: CartesianI18nStrings;
+}
+
+export interface WithPieI18nStrings {
+  /**
+   * An object that contains all of the localized strings required by the component.
+   * @i18n
+   *
+   * Available properties:
+   * * `loadingText` (optional, string) - Text, displayed when the chart is loading, i.e. when `noData.statusType` is set to "loading".
+   * * `errorText` (optional, string) - Text, displayed when the chart is in error state, i.e. when `noData.statusType` is set to "error".
+   * * `recoveryText` (optional, string) - Text for the recovery button, displayed next to the error text.
+   * * `seriesFilterLabel` (optional, string) - Text for the visible label of the default series filter.
+   * * `seriesFilterPlaceholder` (optional, string) - Text for the default series filter placeholder.
+   * * `seriesFilterSelectedAriaLabel` (optional, string) - ARIA label of the default series filter which is appended to any option that is selected.
+   * * `legendAriaLabel` (optional, string) - ARIA label that is associated with the legend in case there is no visible `legend.title` defined.
+   * * `detailPopoverDismissAriaLabel` (optional, string) - ARIA label for the details popover dismiss button.
+   * * `chartRoleDescription` (optional, string) - Accessible role description of the chart plot area, e.g. "interactive chart".
+   * * `segmentRoleDescription` (optional, string) - Accessible role description of the segment.
+   */
+  i18nStrings?: PieI18nStrings;
 }
 
 export interface CartesianI18nStrings extends BaseI18nStrings {
-  /** Generalized accessible description of the x axis, e.g. "x axis" */
-  xAxisAccessibleDescription?: string;
-  /** Generalized accessible description of the y axis, e.g. "y axis" */
-  yAxisAccessibleDescription?: string;
+  xAxisRoleDescription?: string;
+  yAxisRoleDescription?: string;
 }
 
 export interface PieI18nStrings extends BaseI18nStrings {
-  /** Generalized accessible description of the pie chart segment */
-  segmentAccessibleDescription?: string;
+  segmentRoleDescription?: string;
 }
-
-export type CoreI18nStrings = CartesianI18nStrings & PieI18nStrings;
 
 export interface BaseFilterOptions {
   seriesFilter?: boolean;
   additionalFilters?: React.ReactNode;
+}
+
+export interface BaseTooltipPointFormatted {
+  key?: React.ReactNode;
+  value?: React.ReactNode;
+  description?: React.ReactNode;
+  expandable?: boolean;
+  subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
 }
 
 export interface AreaSeriesOptions extends BaseCartesianSeriesOptions {
@@ -229,6 +277,18 @@ interface PointMarkerOptions {
   symbol?: "circle" | "diamond" | "square" | "triangle" | "triangle-down";
 }
 
+export interface CoreCartesianOptions {
+  /**
+   * When set to `true`, adds a visual emphasis on the zero baseline axis.
+   */
+  emphasizeBaseline?: boolean;
+  /**
+   * Controls the placement of the vertical axis title.
+   * When set to "side", displays the title along the axis line.
+   */
+  verticalAxisTitlePlacement?: "top" | "side";
+}
+
 export interface CoreChartProps
   extends Pick<
       BaseChartOptions,
@@ -242,7 +302,6 @@ export interface CoreChartProps
       | "ariaDescription"
       | "filter"
       | "noData"
-      | "i18nStrings"
     >,
     CoreCartesianOptions {
   /**
@@ -250,17 +309,17 @@ export interface CoreChartProps
    * overridden with explicitly provided options. An exception is event handlers - those are
    * not overridden, but merged with Cloudscape event handlers so that both are getting called.
    */
-  options: InternalChartOptions;
+  options: CoreChartProps.ChartOptions;
   /**
    * The Cloudscape tooltip, that comes with a vertical cursor when used on cartesian series.
    * The tooltip content is only shown when `getContent` property is defined, which is called
    * for each visited { x, y } point.
    */
-  tooltip?: CoreTooltipOptions;
+  tooltip?: CoreChartProps.TooltipOptions;
   /**
    * A custom slot above the chart plot, chart's axis title, and filter.
    */
-  header?: CoreHeaderOptions;
+  header?: CoreChartProps.HeaderOptions;
   /**
    * Prop for passing a custom navigation control component to be rendered with the chart.
    * Use this property to add timeline navigation, range selectors, or other custom navigation elements.
@@ -269,16 +328,16 @@ export interface CoreChartProps
   /**
    * A custom slot below the chart plot and legend.
    */
-  footer?: CoreFooterOptions;
+  footer?: CoreChartProps.FooterOptions;
   /**
    * Chart legend options.
    */
-  legend?: CoreLegendOptions;
+  legend?: CoreChartProps.LegendOptions;
   /**
    * The callback to init the chart's API when it is ready. The API includes the Highcharts chart object, and
    * additional Cloudscape methods.
    */
-  callback?: (chart: CoreChartAPI) => void;
+  callback?: (chart: CoreChartProps.ChartAPI) => void;
   /**
    * This is used to provide a test-utils selector. Do not use this property to provide custom styles.
    */
@@ -288,155 +347,163 @@ export interface CoreChartProps
    */
   visibleItems?: readonly string[];
   /**
+   * Called when a legend item is highlighted.
+   */
+  onLegendItemHighlight?: NonCancelableEventHandler<CoreChartProps.LegendItemHighlightDetail>;
+  /**
    * Called when series/points visibility changes due to user interaction with legend or filter.
    */
-  onVisibleItemsChange?: (legendItems: readonly CoreLegendItem[]) => void;
+  onVisibleItemsChange?: NonCancelableEventHandler<CoreChartProps.VisibleItemsChangeDetail>;
   /**
    * Called whenever chart tooltip is rendered to provide content for tooltip's header, body, and (optional) footer.
    */
-  getTooltipContent?: GetTooltipContent;
+  getTooltipContent?: CoreChartProps.GetTooltipContent;
   /**
    * Called whenever a legend item is hovered to provide content for legend tooltip's header, body, and (optional) footer.
    * If not provided, no tooltip will be displayed.
    */
-  getLegendTooltipContent?: GetLegendTooltipContent;
+  getLegendTooltipContent?: CoreChartProps.GetLegendTooltipContent;
   /**
    * Called whenever chart point or group is highlighted.
    */
-  onHighlight?(props: ChartHighlightProps): void;
+  onHighlight?: NonCancelableEventHandler<CoreChartProps.HighlightChangeDetail>;
   /**
    * Called whenever chart point or group loses highlight.
    */
-  onClearHighlight?(): void;
+  onClearHighlight?: NonCancelableEventHandler<CoreChartProps.HighlightClearDetail>;
   /**
-   * Use Cloudscape keyboard navigation, `true` by default.
+   * Use Cloudscape keyboard navigation.
    */
   keyboardNavigation?: boolean;
-}
-
-export interface CoreLegendOptions extends BaseLegendOptions {
-  bottomMaxHeight?: number;
-  position?: "bottom" | "side";
-}
-
-export interface CoreLegendItem {
-  id: string;
-  name: string;
-  marker: React.ReactNode;
-  visible: boolean;
-  highlighted: boolean;
-}
-
-export interface CoreLegendItemSpec {
-  id: string;
-  name: string;
-  markerType: ChartSeriesMarkerType;
-  color: string;
-  visible: boolean;
-}
-
-export interface CoreTooltipOptions {
-  enabled?: boolean;
-  placement?: "middle" | "outside" | "target";
-  size?: "small" | "medium" | "large";
-}
-
-export interface CoreHeaderOptions {
-  content: React.ReactNode;
-}
-
-export interface CoreFooterOptions {
-  content: React.ReactNode;
-}
-
-export interface CoreCartesianOptions {
   /**
-   * When set to `true`, adds a visual emphasis on the zero baseline axis.
+   * An object that contains all of the localized strings required by the component.
+   * @i18n
    */
-  emphasizeBaseline?: boolean;
-  /**
-   * When set to "top", the title of the vertical axis (can be x or y)
-   * is shown right above the chart plot.
-   */
-  verticalAxisTitlePlacement?: "top" | "side";
+  i18nStrings?: CartesianI18nStrings & PieI18nStrings;
 }
 
-export type GetTooltipContent = (props: GetTooltipContentProps) => CoreTooltipContent;
+export namespace CoreChartProps {
+  // The API methods allow programmatic triggering of chart's behaviors, some of which are not accessible via React state.
+  // This enables advanced integration scenarios, such as building a custom legend, or making multiple charts synchronized.
+  export interface ChartAPI {
+    chart: Highcharts.Chart;
+    highcharts: typeof Highcharts;
+    highlightItems(itemIds: readonly string[]): void;
+    setItemsVisible(itemIds: readonly string[]): void;
+    highlightChartPoint(point: Highcharts.Point): void;
+    highlightChartGroup(group: readonly Highcharts.Point[]): void;
+    clearChartHighlight(): void;
+  }
 
-export interface GetTooltipContentProps {
-  point: null | Highcharts.Point;
-  group: readonly Highcharts.Point[];
+  // The extended version of Highcharts.Options. The axes types are extended with Cloudscape value formatter.
+  // We use a custom formatter because we cannot use the built-in Highcharts formatter for our tooltip.
+  export type ChartOptions = Omit<Highcharts.Options, "xAxis" | "yAxis"> & {
+    xAxis?: XAxisOptions | XAxisOptions[];
+    yAxis?: YAxisOptions | YAxisOptions[];
+  };
+  export type XAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: null | number) => string };
+  export type YAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: null | number) => string };
+
+  export interface HeaderOptions {
+    content: React.ReactNode;
+  }
+  export interface FooterOptions {
+    content: React.ReactNode;
+  }
+
+  export interface LegendOptions extends BaseLegendOptions {
+    bottomMaxHeight?: number;
+    position?: "bottom" | "side";
+  }
+  export type LegendItem = InternalComponentTypes.LegendItem;
+  export type LegendTooltipContent = InternalComponentTypes.LegendTooltipContent;
+  export type GetLegendTooltipContent = InternalComponentTypes.GetLegendTooltipContent;
+  export type GetLegendTooltipContentProps = InternalComponentTypes.GetLegendTooltipContentProps;
+
+  export interface TooltipOptions {
+    enabled?: boolean;
+    placement?: "middle" | "outside" | "target";
+    size?: "small" | "medium" | "large";
+  }
+
+  export type GetTooltipContent = (props: GetTooltipContentProps) => TooltipContentRenderer;
+  export interface GetTooltipContentProps {
+    point: null | Highcharts.Point;
+    group: readonly Highcharts.Point[];
+  }
+  export interface TooltipContentRenderer {
+    point?: (props: TooltipPointProps) => TooltipPointFormatted;
+    details?: (props: TooltipDetailsProps) => readonly TooltipDetail[];
+    header?: (props: TooltipSlotProps) => React.ReactNode;
+    body?: (props: TooltipSlotProps) => React.ReactNode;
+    footer?: (props: TooltipSlotProps) => React.ReactNode;
+  }
+  export type TooltipPointFormatted = BaseTooltipPointFormatted;
+  export interface TooltipContentItem {
+    point: Highcharts.Point;
+    errorRanges: Highcharts.Point[];
+  }
+  export interface TooltipPointProps {
+    item: TooltipContentItem;
+  }
+  export interface TooltipSlotProps {
+    x: number;
+    items: TooltipContentItem[];
+  }
+
+  export interface TooltipDetailsProps {
+    point: Highcharts.Point;
+  }
+
+  export type TooltipDetail = BaseTooltipDetail;
+
+  export interface LegendItemHighlightDetail {
+    item: LegendItem;
+  }
+  export interface VisibleItemsChangeDetail {
+    items: readonly LegendItem[];
+    isApiCall: boolean;
+  }
+  export interface HighlightChangeDetail {
+    point: null | Highcharts.Point;
+    group: readonly Highcharts.Point[];
+    isApiCall: boolean;
+  }
+  export interface HighlightClearDetail {
+    isApiCall: boolean;
+  }
+
+  export type I18nStrings = CartesianI18nStrings & PieI18nStrings;
 }
 
-export type GetLegendTooltipContent = (props: GetLegendTooltipContentProps) => TooltipContent;
-
-export interface GetLegendTooltipContentProps {
-  legendItem: CoreLegendItem;
+export interface CoreLegendProps {
+  items: readonly CoreLegendProps.Item[];
+  title?: string;
+  ariaLabel?: string;
+  actions?: React.ReactNode;
+  alignment?: "horizontal" | "vertical";
+  onClearHighlight?: NonCancelableEventHandler;
+  onItemHighlight?: NonCancelableEventHandler<CoreLegendProps.ItemHighlightDetail>;
+  onVisibleItemsChange?: NonCancelableEventHandler<CoreLegendProps.VisibleItemsChangeDetail>;
+  getLegendTooltipContent?: CoreLegendProps.GetTooltipContent;
 }
 
-export interface CoreTooltipContent {
-  point?: (props: TooltipPointProps) => TooltipPointFormatted;
-  header?: (props: TooltipSlotProps) => React.ReactNode;
-  body?: (props: TooltipSlotProps) => React.ReactNode;
-  footer?: (props: TooltipSlotProps) => React.ReactNode;
+export namespace CoreLegendProps {
+  export type Item = InternalComponentTypes.LegendItem;
+  export type GetTooltipContent = InternalComponentTypes.GetLegendTooltipContent;
+  export interface ItemHighlightDetail {
+    item: Item;
+  }
+  export interface VisibleItemsChangeDetail {
+    items: readonly string[];
+  }
 }
 
-export interface TooltipContentItem {
-  point: Highcharts.Point;
-  errorRanges: Highcharts.Point[];
-}
-
-export interface TooltipPointProps {
-  item: TooltipContentItem;
-}
-
-export interface TooltipSlotProps {
-  x: number;
-  items: TooltipContentItem[];
-}
-
-export interface TooltipPointFormatted {
-  key?: React.ReactNode;
-  value?: React.ReactNode;
-  description?: React.ReactNode;
-  expandable?: boolean;
-  subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
-}
-
-// The extended version of Highcharts.Options. The axes types are extended with Cloudscape value formatter.
-// We use a custom formatter because we cannot use the built-in Highcharts formatter for our tooltip.
-export type InternalChartOptions = Omit<Highcharts.Options, "xAxis" | "yAxis"> & {
-  xAxis?: InternalXAxisOptions | InternalXAxisOptions[];
-  yAxis?: InternalYAxisOptions | InternalYAxisOptions[];
-};
-
-export type InternalXAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: null | number) => string };
-export type InternalYAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: null | number) => string };
-export interface ChartHighlightProps {
-  point: null | Highcharts.Point;
-  group: readonly Highcharts.Point[];
-}
-
-// The API methods allow programmatic triggering of chart's behaviors, some of which are not accessible via React state.
-// This enables advanced integration scenarios, such as building a custom legend, or making multiple charts synchronized.
-export interface CoreChartAPI {
-  chart: Highcharts.Chart;
-  highcharts: typeof Highcharts;
-  setItemsVisible(itemIds: readonly string[]): void;
-  highlightChartPoint(point: Highcharts.Point): void;
-  highlightChartGroup(group: readonly Highcharts.Point[]): void;
-  clearChartHighlight(): void;
-}
+// Utility types
 
 export interface Rect {
   x: number;
   y: number;
   height: number;
   width: number;
-}
-
-export interface TooltipContent {
-  header: React.ReactNode;
-  body: React.ReactNode;
-  footer?: React.ReactNode;
 }

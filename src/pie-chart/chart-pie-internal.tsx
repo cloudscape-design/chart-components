@@ -8,11 +8,10 @@ import type Highcharts from "highcharts";
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
 import { InternalCoreChart } from "../core/chart-core";
-import { CoreChartAPI, CoreChartProps, TooltipSlotProps } from "../core/interfaces";
+import { CoreChartProps } from "../core/interfaces";
 import { getOptionsId } from "../core/utils";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import * as Styles from "../internal/chart-styles";
-import ChartSeriesDetails from "../internal/components/series-details";
 import { fireNonCancelableEvent } from "../internal/events";
 import { SomeRequired, Writeable } from "../internal/utils/utils";
 import { useInnerArea } from "./chart-inner-area";
@@ -28,19 +27,19 @@ interface InternalPieChartProps extends InternalBaseComponentProps, Omit<PieChar
 
 export const InternalPieChart = forwardRef(
   ({ series: originalSeries, tooltip, ...props }: InternalPieChartProps, ref: React.Ref<PieChartProps.Ref>) => {
-    const apiRef = useRef<null | CoreChartAPI>(null);
+    const apiRef = useRef<null | CoreChartProps.ChartAPI>(null);
 
-    // When visibleSegments and onChangeVisibleSegments are provided - the segments visibility can be controlled from the outside.
+    // When visibleSegments and onVisibleSegmentsChange are provided - the segments visibility can be controlled from the outside.
     // Otherwise - the component handles segments visibility using its internal state.
-    useControllableState(props.visibleSegments, props.onChangeVisibleSegments, undefined, {
+    useControllableState(props.visibleSegments, props.onVisibleSegmentsChange, undefined, {
       componentName: "PieChart",
       propertyName: "visibleSegments",
-      changeHandlerName: "onChangeVisibleSegments",
+      changeHandlerName: "onVisibleSegmentsChange",
     });
     const allSegmentIds = originalSeries.flatMap((s) => s.data.map((d) => getOptionsId(d)));
-    const onVisibleSegmentsChange: CoreChartProps["onVisibleItemsChange"] = (items) => {
+    const onVisibleSegmentsChange: CoreChartProps["onVisibleItemsChange"] = ({ detail: { items } }) => {
       const visibleSegments = items.filter((i) => i.visible).map((i) => i.id);
-      fireNonCancelableEvent(props.onChangeVisibleSegments, { visibleSegments });
+      fireNonCancelableEvent(props.onVisibleSegmentsChange, { visibleSegments });
     };
 
     // Converting donut series to Highcharts pie series.
@@ -62,8 +61,9 @@ export const InternalPieChart = forwardRef(
     // We convert pie tooltip options to the core chart's getTooltipContent callback,
     // ensuring no internal types are exposed to the consumer-defined render functions.
     const getTooltipContent: CoreChartProps["getTooltipContent"] = () => {
-      const transformSlotProps = (props: TooltipSlotProps): PieChartProps.TooltipDetailsRenderProps => {
-        const point = props.items[0].point;
+      const transformDetailsProps = ({
+        point,
+      }: CoreChartProps.TooltipDetailsProps): PieChartProps.TooltipDetailsRenderProps => {
         return {
           totalValue: point.total ?? 0,
           segmentValue: point.y ?? 0,
@@ -71,20 +71,14 @@ export const InternalPieChart = forwardRef(
           segmentName: point.name ?? "",
         };
       };
+      const transformSlotProps = (props: CoreChartProps.TooltipSlotProps): PieChartProps.TooltipDetailsRenderProps => {
+        const point = props.items[0].point;
+        return transformDetailsProps({ point });
+      };
       return {
         header: tooltip?.header ? (props) => tooltip.header!(transformSlotProps(props)) : undefined,
-        body:
-          tooltip?.body || tooltip?.details
-            ? (props) =>
-                tooltip.body ? (
-                  tooltip.body(transformSlotProps(props))
-                ) : (
-                  <ChartSeriesDetails
-                    details={tooltip?.details?.(transformSlotProps(props)) ?? []}
-                    compactList={true}
-                  />
-                )
-            : undefined,
+        details: tooltip?.details ? (props) => tooltip.details!(transformDetailsProps(props)) : undefined,
+        body: tooltip?.body ? (props) => tooltip.body!(transformSlotProps(props)) : undefined,
         footer: tooltip?.footer ? (props) => tooltip.footer!(transformSlotProps(props)) : undefined,
       };
     };

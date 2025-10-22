@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import Highcharts from "highcharts";
 import { omit } from "lodash";
 
 import Button from "@cloudscape-design/components/button";
@@ -59,17 +60,17 @@ const dataC = baseline.map(({ x, y }) => ({ x, y: y === null ? null : y + random
 
 const series: Highcharts.SeriesOptionsType[] = [
   {
-    name: "A",
+    name: "Very Long Series Name for Network Traffic Analysis Data Points",
     type: "line",
     data: dataA,
   },
   {
-    name: "B",
+    name: "Extremely Detailed Performance Metrics for Cloud Infrastructure",
     type: "line",
     data: dataB,
   },
   {
-    name: "C",
+    name: "Comprehensive System Resource Utilization Measurements Over Time",
     type: "line",
     data: dataC,
   },
@@ -96,6 +97,7 @@ export default function () {
     >
       <CoreChart
         {...omit(chartProps.cartesian, "ref")}
+        highcharts={Highcharts}
         options={{
           lang: {
             accessibility: {
@@ -111,6 +113,11 @@ export default function () {
             },
           ],
           yAxis: [{ title: { text: "Events" } }],
+          chart: {
+            zooming: {
+              type: "x",
+            },
+          },
         }}
         chartHeight={400}
         tooltip={{ placement: "outside" }}

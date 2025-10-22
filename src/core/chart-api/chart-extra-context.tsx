@@ -3,8 +3,11 @@
 
 import type Highcharts from "highcharts";
 
+import { NonCancelableEventHandler } from "../../internal/events";
+import { getChartSeries } from "../../internal/utils/chart-series";
+import { getSeriesData } from "../../internal/utils/series-data";
 import { ChartLabels } from "../i18n-utils";
-import { ChartHighlightProps, CoreLegendItem, Rect } from "../interfaces";
+import { CoreChartProps, Rect } from "../interfaces";
 import { getGroupRect, isSeriesStacked } from "../utils";
 
 // Chart API context is used for dependency injection for chart utilities.
@@ -32,9 +35,9 @@ export namespace ChartExtraContext {
   }
 
   export interface Handlers {
-    onHighlight?(props: ChartHighlightProps): void;
-    onClearHighlight?(): void;
-    onVisibleItemsChange?: (legendItems: readonly CoreLegendItem[]) => void;
+    onHighlight?: NonCancelableEventHandler<CoreChartProps.HighlightChangeDetail>;
+    onClearHighlight?: NonCancelableEventHandler<CoreChartProps.HighlightClearDetail>;
+    onVisibleItemsChange?: NonCancelableEventHandler<CoreChartProps.VisibleItemsChangeDetail>;
   }
 
   export interface State {
@@ -93,12 +96,16 @@ function computeDerivedState(chart: Highcharts.Chart): ChartExtraContext.Derived
     pointsByX.set(point.x, xPoints);
   };
   const compareX = (a: number, b: number) => a - b;
-  for (const s of chart.series) {
+
+  for (const s of getChartSeries(chart.series)) {
     const seriesX = new Set<number>();
     if (s.visible) {
-      for (const d of s.data) {
+      for (const d of getSeriesData(s.data)) {
         // Points with y=null represent the absence of value, there is no need to include them and those
         // should have no impact on computed rects or navigation.
+
+        // Although "d" can't be undefined according to Highcharts API, it does become undefined for chart containing more datapoints
+        // than the cropThreshold for that series (specific cases of re-rendering the chart with updated options listening to setExteme updates)
         if (d.visible && d.y !== null) {
           seriesX.add(d.x);
           allXSet.add(d.x);

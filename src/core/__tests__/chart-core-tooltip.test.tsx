@@ -6,7 +6,7 @@ import { waitFor } from "@testing-library/react";
 import highcharts from "highcharts";
 import { vi } from "vitest";
 
-import { CoreChartAPI } from "../../../lib/components/core/interfaces";
+import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
 import { createChartWrapper, renderChart } from "./common";
 import { HighchartsTestHelper } from "./highcharts-utils";
@@ -51,7 +51,7 @@ const data = [
   { name: "P3", y: 60 },
 ];
 
-const series: Highcharts.SeriesOptionsType[] = [
+const pieSeries: Highcharts.SeriesOptionsType[] = [
   {
     type: "pie",
     name: "Pie series",
@@ -84,7 +84,7 @@ describe("CoreChart: tooltip", () => {
   test("renders highcharts tooltip", () => {
     const { wrapper } = renderChart({
       highcharts,
-      options: { series, tooltip: { enabled: true, formatter: () => "Custom content" } },
+      options: { series: pieSeries, tooltip: { enabled: true, formatter: () => "Custom content" } },
       tooltip: { enabled: false },
     });
 
@@ -114,8 +114,11 @@ describe("CoreChart: tooltip", () => {
 
     expect(onHighlight).toHaveBeenCalledWith(
       expect.objectContaining({
-        point: hc.getChartPoint(0, 0),
-        group: expect.arrayContaining([hc.getChartPoint(0, 0), hc.getChartPoint(1, 0)]),
+        detail: {
+          point: hc.getChartPoint(0, 0),
+          group: expect.arrayContaining([hc.getChartPoint(0, 0), hc.getChartPoint(1, 0)]),
+          isApiCall: false,
+        },
       }),
     );
     await waitFor(() => {
@@ -164,8 +167,11 @@ describe("CoreChart: tooltip", () => {
 
     expect(onHighlight).toHaveBeenCalledWith(
       expect.objectContaining({
-        point: null,
-        group: expect.arrayContaining([hc.getChartPoint(0, 0), hc.getChartPoint(1, 0)]),
+        detail: {
+          point: null,
+          group: expect.arrayContaining([hc.getChartPoint(0, 0), hc.getChartPoint(1, 0)]),
+          isApiCall: false,
+        },
       }),
     );
     await waitFor(() => {
@@ -184,12 +190,12 @@ describe("CoreChart: tooltip", () => {
   });
 
   test("shows tooltip with api", async () => {
-    let api: null | CoreChartAPI = null;
+    let api: null | CoreChartProps.ChartAPI = null;
     const onHighlight = vi.fn();
     const onClearHighlight = vi.fn();
     const { wrapper } = renderChart({
       highcharts,
-      options: { series },
+      options: { series: pieSeries },
       onHighlight,
       onClearHighlight,
       getTooltipContent: () => ({
@@ -202,7 +208,9 @@ describe("CoreChart: tooltip", () => {
 
     act(() => api!.highlightChartPoint(hc.getChartPoint(0, 0)));
 
-    expect(onHighlight).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 0) }));
+    expect(onHighlight).toHaveBeenCalledWith(
+      expect.objectContaining({ detail: expect.objectContaining({ point: hc.getChartPoint(0, 0), isApiCall: true }) }),
+    );
     await waitFor(() => {
       expect(wrapper.findTooltip()).not.toBe(null);
       expect(wrapper.findTooltip()!.findHeader()!.getElement().textContent).toBe("Tooltip title");
@@ -221,7 +229,7 @@ describe("CoreChart: tooltip", () => {
   test("keeps showing tooltip when cursor is over the tooltip", async () => {
     const { wrapper } = renderChart({
       highcharts,
-      options: { series },
+      options: { series: pieSeries },
       getTooltipContent: () => ({ header: () => "", body: () => "" }),
     });
 
@@ -250,7 +258,7 @@ describe("CoreChart: tooltip", () => {
   test("pins and unpins tooltip", async () => {
     const { wrapper } = renderChart({
       highcharts,
-      options: { series },
+      options: { series: pieSeries },
       getTooltipContent: ({ point }) => ({ header: () => `y${point?.y}`, body: () => "" }),
     });
 
@@ -291,17 +299,60 @@ describe("CoreChart: tooltip", () => {
   test("provides point and group for onHighlight and getTooltipContent", async () => {
     const onHighlight = vi.fn();
     const getTooltipContent = vi.fn();
-    renderChart({ highcharts, options: { series }, onHighlight, getTooltipContent });
+    renderChart({ highcharts, options: { series: pieSeries }, onHighlight, getTooltipContent });
 
     for (let i = 0; i < data.length; i++) {
       act(() => hc.highlightChartPoint(0, i));
 
       const point = hc.getChartPoint(0, i);
       await waitFor(() => {
-        expect(onHighlight).toHaveBeenCalledWith({ point, group: expect.arrayContaining([point]) });
+        expect(onHighlight).toHaveBeenCalledWith(
+          expect.objectContaining({
+            detail: { point, group: expect.arrayContaining([point]), isApiCall: false },
+          }),
+        );
         expect(getTooltipContent).toHaveBeenCalledWith({ point, group: expect.arrayContaining([point]) });
       });
     }
+  });
+
+  test("only re-renders when group has changed", () => {
+    const getTooltipContentMock = vi.fn(() => ({
+      header: () => "Tooltip title",
+      body: () => "Tooltip body",
+      footer: () => "Tooltip footer",
+    }));
+    renderChart({
+      highcharts,
+      options: {
+        series: lineSeries,
+        chart: {
+          events: {
+            load() {
+              this.plotTop = 0;
+              this.plotLeft = 0;
+              this.plotWidth = 100;
+              this.plotHeight = 100;
+            },
+          },
+        },
+      },
+      getTooltipContent: getTooltipContentMock,
+    });
+
+    act(() => {
+      hc.getChart().container.dispatchEvent(createMouseMoveEvent({ pageX: 1, pageY: 0 }));
+    });
+
+    act(() => {
+      hc.getChart().container.dispatchEvent(createMouseMoveEvent({ pageX: 1, pageY: 2 }));
+    });
+
+    act(() => {
+      hc.getChart().container.dispatchEvent(createMouseMoveEvent({ pageX: 1, pageY: 4 }));
+    });
+
+    expect(getTooltipContentMock).toHaveBeenCalledTimes(2);
   });
 
   test("renders highlight markers", async () => {
@@ -367,7 +418,46 @@ describe("CoreChart: tooltip", () => {
       });
 
       act(() => hc.highlightChartPoint(0, 1));
-      expect(onHighlight).toHaveBeenCalledWith(expect.objectContaining({ point: hc.getChartPoint(0, 1) }));
+      expect(onHighlight).toHaveBeenCalledWith(
+        expect.objectContaining({
+          detail: expect.objectContaining({ point: hc.getChartPoint(0, 1), isApiCall: false }),
+        }),
+      );
     },
   );
+
+  test("renders customized cartesian points", () => {
+    const { wrapper } = renderChart({
+      highcharts,
+      options: { series: lineSeries },
+      getTooltipContent: () => ({
+        header: () => "Header",
+        point: ({ item }) => ({ key: ` [${item.point.series.name}]`, value: ` [${item.point.y}]` }),
+      }),
+    });
+
+    act(() => hc.highlightChartPoint(0, 2));
+
+    expect(wrapper.findTooltip()!.findBody()!.getElement().textContent).toBe(
+      " [Line series 1] [13] [Line series 2] [23]",
+    );
+  });
+
+  test("renders customized pie segment details", () => {
+    const { wrapper } = renderChart({
+      highcharts,
+      options: { series: pieSeries },
+      getTooltipContent: () => ({
+        header: () => "Header",
+        details: ({ point }) => [
+          { key: `[${point.name}]`, value: ` [${point.y}]` },
+          { key: " [custom key]", value: " [custom value]" },
+        ],
+      }),
+    });
+
+    act(() => hc.highlightChartPoint(0, 2));
+
+    expect(wrapper.findTooltip()!.findBody()!.getElement().textContent).toBe("[P3] [60] [custom key] [custom value]");
+  });
 });

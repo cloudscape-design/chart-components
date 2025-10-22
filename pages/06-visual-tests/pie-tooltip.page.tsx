@@ -26,9 +26,9 @@ export default function () {
   return (
     <Page title="Pie chart tooltip visual regression page">
       <CoreChart
-        {...omit(chartProps.cartesian, "ref")}
+        {...omit(chartProps.pie, "ref")}
+        ariaLabel="Pie chart"
         options={{
-          lang: { accessibility: { chartContainerLabel: "Pie chart" } },
           series: series,
         }}
         chartHeight={400}

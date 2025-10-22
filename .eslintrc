@@ -96,6 +96,19 @@
   },
   "overrides": [
     {
+      "files": ["src/**"],
+      "excludedFiles": ["src/**/__tests__/**"],
+      "rules": {
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "ImportDeclaration[source.value='highcharts'][importKind='value']",
+            "message": "Use `import type Highcharts from 'highcharts'` instead of regular import.",
+          },
+        ],
+      },
+    },
+    {
       "files": ["**/__integ__/**", "./test/**"],
       "rules": {
         // useBrowser is not a React hook

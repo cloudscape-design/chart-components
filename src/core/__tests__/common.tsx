@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { act, useState } from "react";
-import { render } from "@testing-library/react";
+import { fireEvent, render } from "@testing-library/react";
 
 import "@cloudscape-design/components/test-utils/dom";
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
+import { fireNonCancelableEvent } from "../../../lib/components/internal/events";
 import { TestI18nProvider } from "../../../lib/components/internal/utils/test-i18n-provider";
 import CoreChart from "../../../lib/components/internal-do-not-use/core-chart";
 import createWrapper from "../../../lib/components/test-utils/dom";
@@ -23,20 +24,21 @@ export function StatefulChart(props: CoreChartProps) {
     <CoreChart
       {...props}
       visibleItems={visibleItems}
-      onVisibleItemsChange={(legendItems) => {
+      onVisibleItemsChange={({ detail: { items: legendItems, isApiCall } }) => {
         const visibleItems = legendItems.filter((i) => i.visible).map((i) => i.id);
         setVisibleItems(visibleItems);
-        props.onVisibleItemsChange?.(legendItems);
+        fireNonCancelableEvent(props.onVisibleItemsChange, { items: legendItems, isApiCall });
       }}
     />
   );
 }
 
-type TestProps = Partial<CoreChartProps> & {
+export type CoreChartTestProps = Partial<CoreChartProps> & {
+  onLegendItemHighlight?: () => void;
   i18nProvider?: Record<string, Record<string, string>>;
 };
 
-export function renderChart({ i18nProvider, ...props }: TestProps, Component = CoreChart) {
+export function renderChart({ i18nProvider, ...props }: CoreChartTestProps, Component = CoreChart) {
   const ComponentWrapper = (props: CoreChartProps) => {
     return i18nProvider ? (
       <TestI18nProvider messages={i18nProvider}>
@@ -49,11 +51,11 @@ export function renderChart({ i18nProvider, ...props }: TestProps, Component = C
   const { rerender } = render(<ComponentWrapper {...props} />);
   return {
     wrapper: createChartWrapper(),
-    rerender: (props: TestProps) => rerender(<ComponentWrapper {...props} />),
+    rerender: (props: CoreChartTestProps) => rerender(<ComponentWrapper {...props} />),
   };
 }
 
-export function renderStatefulChart(props: TestProps) {
+export function renderStatefulChart(props: CoreChartTestProps) {
   return renderChart(props, StatefulChart);
 }
 
@@ -85,4 +87,9 @@ export function selectLegendItem(index: number, wrapper: BaseChartWrapper = crea
 export function toggleLegendItem(index: number, wrapper: BaseChartWrapper = createChartWrapper()) {
   const modifier = Math.random() > 0.5 ? { metaKey: true } : { ctrlKey: true };
   act(() => wrapper.findLegend()!.findItems()[index].click(modifier));
+}
+export function hoverLegendItem(index: number, wrapper: BaseChartWrapper = createChartWrapper()) {
+  act(() => {
+    fireEvent.mouseOver(wrapper.findLegend()!.findItems()[index].getElement());
+  });
 }

@@ -7,7 +7,10 @@ import { NonCancelableEventHandler } from "../internal/events";
 // CartesianChartProps is the type for CartesianChart React component properties. Unlike in Highcharts API,
 // we pass options directly to the component, instead of grouping them all into a single "options" property.
 // We do still organize related options in groups, e.g.: "SeriesOptions", "TooltipOptions".
-export interface CartesianChartProps extends CoreTypes.BaseChartOptions, CoreTypes.CoreCartesianOptions {
+export interface CartesianChartProps
+  extends CoreTypes.BaseChartOptions,
+    CoreTypes.CoreCartesianOptions,
+    CoreTypes.WithCartesianI18nStrings {
   /**
    * Inverts X and Y axes. Use it to show horizontal columns (bars).
    * This property corresponds to [chart.inverted](https://api.highcharts.com/highcharts/chart.inverted).
@@ -21,7 +24,7 @@ export interface CartesianChartProps extends CoreTypes.BaseChartOptions, CoreTyp
   stacking?: "normal";
 
   /**
-   * Chart series options.
+   * Defines series options of the chart.
    * This property corresponds to [series](https://api.highcharts.com/highcharts/series), and extends it
    * with two additional series types: "x-threshold", and "y-threshold".
    *
@@ -39,31 +42,29 @@ export interface CartesianChartProps extends CoreTypes.BaseChartOptions, CoreTyp
   series: readonly CartesianChartProps.SeriesOptions[];
 
   /**
-   * Chart tooltip options.
-   *
-   * Supported options:
-   * * `enabled` - (optional, boolean) - Hides the tooltip.
+   * Defines tooltip options of the chart, including:
+   * * `enabled` - (optional, boolean) - Hides the tooltip when set to false.
    * * `size` - (optional, "small" | "medium" | "large") - Specifies max tooltip size.
    * * `placement` - (optional, "middle" | "outside") - Specifies preferred tooltip placement.
    * * `point` - (optional, function) - Customizes tooltip series point rendering.
-   * * `header` - (optional, function) - Provides a custom tooltip header.
-   * * `body` - (optional, function) - Provides a custom tooltip content.
-   * * `footer` - (optional, function) - Adds a tooltip footer.
+   * * `header` - (optional, function) - Renders a custom tooltip header.
+   * * `body` - (optional, function) - Renders a custom tooltip body.
+   * * `footer` - (optional, function) - Renders a custom tooltip footer.
    */
   tooltip?: CartesianChartProps.TooltipOptions;
 
   /**
-   * X-axis options.
+   * Defines options of the chart's x axis.
    * This property corresponds to [xAxis](https://api.highcharts.com/highcharts/xAxis), and extends it
    * with a custom value formatter.
    *
    * Supported options:
    * * `title` (optional, string) - Axis title.
-   * * `type` (optional, 'linear' | 'datetime' | 'category' | 'logarithmic') - Axis type.
-   * * * linear - Uses continuous proportional values scale.
-   * * * datetime - Similar to linear, but takes epoch time as values.
-   * * * category - Uses discrete scale, requires `categories` to be set.
-   * * * logarithmic - Uses continuous logarithmic values scale.
+   * * `type` (optional, "linear" | "datetime" | "category" | "logarithmic") - Axis type.
+   * * * "linear" - Uses continuous proportional values scale.
+   * * * "datetime" - Similar to linear, but takes epoch time as values.
+   * * * "category" - Uses discrete scale, requires `categories` to be set.
+   * * * "logarithmic" - Uses continuous logarithmic values scale.
    * * `min` (optional, number) - Axis min value boundary.
    * * `max` (optional, number) - Axis max value boundary.
    * * `tickInterval` (optional, number) - Distance between axis ticks.
@@ -74,52 +75,49 @@ export interface CartesianChartProps extends CoreTypes.BaseChartOptions, CoreTyp
   xAxis?: CartesianChartProps.XAxisOptions;
 
   /**
-   * Y-axis options.
+   * Defines options of the chart's y axis.
    * This property corresponds to [xAxis](https://api.highcharts.com/highcharts/yAxis), and extends it
    * with a custom value formatter.
    *
    * Supported options:
    * * `title` (optional, string) - Axis title.
-   * * `type` (optional, 'linear' | 'datetime' | 'category' | 'logarithmic') - Axis type.
-   * * * linear - Uses continuous proportional values scale.
-   * * * datetime - Similar to linear, but takes epoch time as values.
-   * * * category - Uses discrete scale, requires `categories` to be set.
-   * * * logarithmic - Uses continuous logarithmic values scale.
+   * * `type` (optional, "linear" | "datetime" | "category" | "logarithmic") - Axis type.
+   * * * "linear" - Uses continuous proportional values scale.
+   * * * "datetime" - Similar to linear, but takes epoch time as values.
+   * * * "category" - Uses discrete scale, requires `categories` to be set.
+   * * * "logarithmic" - Uses continuous logarithmic values scale.
    * * `min` (optional, number) - Axis min value boundary.
    * * `max` (optional, number) - Axis max value boundary.
    * * `tickInterval` (optional, number) - Distance between axis ticks.
    * * `categories` (optional, Array<string>) - Predefined list of values, used for categorical axis type.
    * * `reversedStacks` (optional, boolean) - Reverts series order in stacked series.
    * * `valueFormatter` (optional, function) - Takes axis tick as input and returns a formatted string. This formatter also
-   * applies to the tooltip series value.
+   * applies to the tooltip points values.
    */
   yAxis?: CartesianChartProps.YAxisOptions;
 
   /**
-   * Specifies visible series by their IDs. When unset, all series are visible by default, and the visibility state
-   * is managed internally by the component. When a series does not have an ID, its name is used instead.
-   * When the property is provided, use `onChangeVisibleSeries` to manage state updates.
+   * Specifies which series to show using their IDs. By default, all series are visible and managed by the component.
+   * If a series doesn't have an ID, its name is used. When using this property, manage state updates with `onVisibleSeriesChange`.
    */
   visibleSeries?: readonly string[];
 
   /**
-   * A callback, triggered when series visibility changes as result of user interacting with the legend or filter.
+   * A callback function, triggered when series visibility changes as a result of user interaction with the legend or filter.
    */
-  onChangeVisibleSeries?: NonCancelableEventHandler<{ visibleSeries: string[] }>;
-
-  /**
-   * An object that contains all of the localized strings required by the component.
-   * @i18n
-   */
-  i18nStrings?: CoreTypes.CartesianI18nStrings;
+  onVisibleSeriesChange?: NonCancelableEventHandler<{ visibleSeries: string[] }>;
 }
 
 export namespace CartesianChartProps {
   export interface Ref {
-    // Controls series visibility that works with both controlled and uncontrolled visibility mode.
+    /**
+     * Controls series visibility and works with both controlled and uncontrolled visibility modes.
+     */
     setVisibleSeries(visibleSeries: readonly string[]): void;
-    // Same as `setVisibleSeries`, but applies to all series and requires no series IDs on input. This is useful when
-    // implementing clear-filter action in no-match state.
+    /**
+     * Functions similarly to `setVisibleSeries`, but applies to all series and doesn't require series IDs as input.
+     * Use this when implementing clear-filter actions in no-match states.
+     */
     showAllSeries(): void;
   }
 
@@ -185,7 +183,7 @@ export namespace CartesianChartProps {
     errorRanges: { low: number; high: number; series: CartesianChartProps.ErrorBarSeriesOptions }[];
     series: NonErrorBarSeriesOptions;
   }
-  export type TooltipPointFormatted = CoreTypes.TooltipPointFormatted;
+  export type TooltipPointFormatted = CoreTypes.BaseTooltipPointFormatted;
 
   export type LegendOptions = CoreTypes.BaseLegendOptions;
 

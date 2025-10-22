@@ -5,6 +5,7 @@ import { useRef } from "react";
 import type Highcharts from "highcharts";
 
 import * as Styles from "../internal/chart-styles";
+import { getChartSeries } from "../internal/utils/chart-series";
 import { PieChartProps } from "./interfaces";
 
 import testClasses from "./test-classes/styles.css.js";
@@ -31,8 +32,8 @@ class ChartInnerDescriptions {
   private descriptionElement: null | Highcharts.SVGElement = null;
 
   public create({ innerAreaTitle, innerAreaDescription }: InnerAreaProps, chart: Highcharts.Chart) {
-    const centerX = chart.plotLeft + chart.series[0].center[0];
-    const centerY = chart.plotTop + chart.series[0].center[1];
+    const centerX = chart.plotLeft + getChartSeries(chart.series)[0].center[0];
+    const centerY = chart.plotTop + getChartSeries(chart.series)[0].center[1];
 
     if (innerAreaTitle) {
       this.titleElement = chart.renderer

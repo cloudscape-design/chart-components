@@ -45,7 +45,8 @@ describe("CoreChart: fit-size", () => {
   test("uses explicit chart height", () => {
     const { rerender } = renderChart({ highcharts });
 
-    expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(undefined), expect.anything());
+    // Default height is used when explicit height is not set.
+    expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(400), expect.anything());
 
     rerender({ highcharts, options: { chart: { height: "20rem" } } });
 
@@ -110,20 +111,27 @@ describe("CoreChart: fit-size", () => {
       const offset = verticalAxisTitlePlacement === "top" ? 28 : 0;
       const { rerender } = renderChart({ highcharts, fitHeight: true, verticalAxisTitlePlacement });
 
-      await waitFor(() => {
-        expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(80 - offset), expect.anything());
-      });
-
-      rerender({ highcharts, fitHeight: true, chartHeight: 300, verticalAxisTitlePlacement });
-
-      await waitFor(() => {
-        expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(80 - offset), expect.anything());
-      });
-
-      rerender({ highcharts, fitHeight: true, chartHeight: 300, chartMinHeight: 200, verticalAxisTitlePlacement });
-
+      // Uses default min height of 200px.
       await waitFor(() => {
         expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(200 - offset), expect.anything());
+      });
+
+      // Uses measured height when it is bigger than explicitly provided min height.
+      rerender({ highcharts, fitHeight: true, chartMinHeight: 50, verticalAxisTitlePlacement });
+      await waitFor(() => {
+        expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(80 - offset), expect.anything());
+      });
+
+      // Chart height has no effect on charts with fit-height.
+      rerender({ highcharts, fitHeight: true, chartMinHeight: 50, chartHeight: 300, verticalAxisTitlePlacement });
+      await waitFor(() => {
+        expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(80 - offset), expect.anything());
+      });
+
+      // Taking min height which is above the default min height.
+      rerender({ highcharts, fitHeight: true, chartHeight: 300, chartMinHeight: 250, verticalAxisTitlePlacement });
+      await waitFor(() => {
+        expect(HighchartsReact).toHaveBeenCalledWith(chartOptionsWithHeight(250 - offset), expect.anything());
       });
     },
   );

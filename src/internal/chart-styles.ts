@@ -133,7 +133,7 @@ export const seriesDataLabelsCss: Highcharts.CSSObject = {
   textOutline: "",
 };
 
-export const seriesOpacityInactive = 0.2;
+export const seriesOpacityInactive = 0.3;
 
 export const verticalAxisTitleBlockSize = 24;
 export const verticalAxisTitleMargin = 4;

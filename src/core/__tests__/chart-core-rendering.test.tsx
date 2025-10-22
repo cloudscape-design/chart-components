@@ -38,10 +38,39 @@ describe("CoreChart: rendering", () => {
     expect(callback).toHaveBeenCalledWith({
       chart: hc.getChart(),
       highcharts,
+      highlightItems: expect.any(Function),
       setItemsVisible: expect.any(Function),
       highlightChartPoint: expect.any(Function),
       highlightChartGroup: expect.any(Function),
       clearChartHighlight: expect.any(Function),
     });
+  });
+
+  // To hide the axes we pass them as empty arrays instead of undefined.
+  // See: https://github.com/highcharts/highcharts/issues/23337.
+  test("hides cartesian axes after re-rendering", () => {
+    const { wrapper, rerender } = renderChart({
+      highcharts,
+      options: {
+        title: { text: "Chart title" },
+        series: [{ type: "line", name: "Site 1", data: [1, 2, 3] }],
+        xAxis: [{ title: { text: "X" } }],
+        yAxis: [{ title: { text: "Y" } }],
+      },
+    });
+    expect(wrapper.findXAxisTitle()!.getElement()).toHaveTextContent("X");
+    expect(wrapper.findYAxisTitle()!.getElement()).toHaveTextContent("Y");
+
+    rerender({
+      highcharts,
+      options: {
+        title: { text: "Chart title" },
+        series: [{ type: "line", name: "Site 1", data: [1, 2, 3] }],
+        xAxis: [],
+        yAxis: [],
+      },
+    });
+    expect(wrapper.findXAxisTitle()).toBe(null);
+    expect(wrapper.findYAxisTitle()).toBe(null);
   });
 });

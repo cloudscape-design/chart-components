@@ -10,16 +10,10 @@ import LiveRegion from "@cloudscape-design/components/live-region";
 
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../internal/components/series-details";
 import { useSelector } from "../../internal/utils/async-store";
+import { getChartSeries } from "../../internal/utils/chart-series";
 import { ChartAPI } from "../chart-api";
 import { getFormatter } from "../formatters";
-import {
-  BaseI18nStrings,
-  CoreTooltipContent,
-  CoreTooltipOptions,
-  GetTooltipContent,
-  GetTooltipContentProps,
-  TooltipSlotProps,
-} from "../interfaces";
+import { BaseI18nStrings, CoreChartProps } from "../interfaces";
 import { getPointColor, getSeriesColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../utils";
 
 import styles from "../styles.css.js";
@@ -50,9 +44,9 @@ export function ChartTooltip({
   getTooltipContent: getTooltipContentOverrides,
   api,
   i18nStrings,
-}: CoreTooltipOptions & {
+}: CoreChartProps.TooltipOptions & {
   i18nStrings?: BaseI18nStrings;
-  getTooltipContent?: GetTooltipContent;
+  getTooltipContent?: CoreChartProps.GetTooltipContent;
   api: ChartAPI;
 }) {
   const [expandedSeries, setExpandedSeries] = useState<ExpandedSeriesState>({});
@@ -121,7 +115,9 @@ function getTrackKey(point: null | Highcharts.Point, group: readonly Highcharts.
 
 function getTooltipContent(
   api: ChartAPI,
-  props: GetTooltipContentProps & { renderers?: CoreTooltipContent } & ExpandedSeriesStateProps,
+  props: CoreChartProps.GetTooltipContentProps & {
+    renderers?: CoreChartProps.TooltipContentRenderer;
+  } & ExpandedSeriesStateProps,
 ): null | RenderedTooltipContent {
   if (props.point && props.point.series.type === "pie") {
     return getTooltipContentPie(api, { ...props, point: props.point });
@@ -140,7 +136,9 @@ function getTooltipContentCartesian(
     expandedSeries,
     renderers = {},
     setExpandedSeries,
-  }: GetTooltipContentProps & { renderers?: CoreTooltipContent } & ExpandedSeriesStateProps,
+  }: CoreChartProps.GetTooltipContentProps & {
+    renderers?: CoreChartProps.TooltipContentRenderer;
+  } & ExpandedSeriesStateProps,
 ): RenderedTooltipContent {
   // The cartesian tooltip might or might not have a selected point, but it always has a non-empty group.
   // By design, every point of the group has the same x value.
@@ -148,11 +146,11 @@ function getTooltipContentCartesian(
   const chart = group[0].series.chart;
   const getSeriesMarker = (series: Highcharts.Series) =>
     api.renderMarker(getSeriesMarkerType(series), getSeriesColor(series), true);
-  const matchedItems = findTooltipSeriesItems(chart.series, group);
+  const matchedItems = findTooltipSeriesItems(getChartSeries(chart.series), group);
   const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
     const valueFormatter = getFormatter(item.point.series.yAxis);
     const itemY = isXThreshold(item.point.series) ? null : (item.point.y ?? null);
-    const customContent = renderers.point ? renderers.point({ item }) : null;
+    const customContent = renderers.point ? renderers.point({ item }) : undefined;
     return {
       key: customContent?.key ?? item.point.series.name,
       value: customContent?.value ?? valueFormatter(itemY),
@@ -161,8 +159,7 @@ function getTooltipContentCartesian(
       expandableId: customContent?.expandable ? item.point.series.name : undefined,
       highlighted: item.point.x === point?.x && item.point.y === point?.y,
       description:
-        customContent?.description ??
-        (item.errorRanges.length ? (
+        customContent?.description === undefined && item.errorRanges.length ? (
           <>
             {item.errorRanges.map((errorBarPoint, index) => (
               <div key={index} className={styles["error-range"]}>
@@ -173,12 +170,14 @@ function getTooltipContentCartesian(
               </div>
             ))}
           </>
-        ) : null),
+        ) : (
+          customContent?.description
+        ),
     };
   });
   // We only support cartesian charts with a single x axis.
   const titleFormatter = getFormatter(chart.xAxis[0]);
-  const slotRenderProps: TooltipSlotProps = { x, items: matchedItems };
+  const slotRenderProps: CoreChartProps.TooltipSlotProps = { x, items: matchedItems };
   return {
     header: renderers.header?.(slotRenderProps) ?? titleFormatter(x),
     body: renderers.body?.(slotRenderProps) ?? (
@@ -204,9 +203,9 @@ function getTooltipContentCartesian(
 
 function getTooltipContentPie(
   api: ChartAPI,
-  { point, renderers = {} }: { point: Highcharts.Point } & { renderers?: CoreTooltipContent },
+  { point, renderers = {} }: { point: Highcharts.Point } & { renderers?: CoreChartProps.TooltipContentRenderer },
 ): RenderedTooltipContent {
-  const tooltipDetails: TooltipSlotProps = { x: point.x, items: [{ point, errorRanges: [] }] };
+  const tooltipDetails: CoreChartProps.TooltipSlotProps = { x: point.x, items: [{ point, errorRanges: [] }] };
   return {
     header: renderers.header?.(tooltipDetails) ?? (
       <div className={styles["tooltip-default-header"]}>
@@ -216,11 +215,15 @@ function getTooltipContentPie(
         </Box>
       </div>
     ),
-    body: renderers.body?.(tooltipDetails) ?? (
-      // We expect all pie chart segments to have defined y values. We use y=0 as fallback
-      // because the property is optional in Highcharts types.
-      <ChartSeriesDetails details={[{ key: point.series.name, value: point.y ?? 0 }]} />
-    ),
+    body:
+      renderers.body?.(tooltipDetails) ??
+      (renderers.details ? (
+        <ChartSeriesDetails details={renderers.details({ point })} compactList={true} />
+      ) : (
+        // We expect all pie chart segments to have defined y values. We use y=0 as fallback
+        // because the property is optional in Highcharts types.
+        <ChartSeriesDetails details={[{ key: point.series.name, value: point.y ?? 0 }]} />
+      )),
     footer: renderers.footer?.(tooltipDetails),
   };
 }

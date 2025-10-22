@@ -15,6 +15,9 @@ import testClasses from "./test-classes/styles.css.js";
 // Chart container implements the layout for top-level components, including chart plot, legend, and more.
 // It also implements the height- and width overflow behaviors.
 
+const DEFAULT_CHART_HEIGHT = 400;
+const DEFAULT_CHART_MIN_HEIGHT = 200;
+
 interface ChartContainerProps {
   // The header, footer, vertical axis title, and legend are rendered as is, and we measure the height of these components
   // to compute the available height for the chart plot when fitHeight=true. When there is not enough vertical space, the
@@ -29,6 +32,7 @@ interface ChartContainerProps {
   legendBottomMaxHeight?: number;
   legendPosition: "bottom" | "side";
   footer?: React.ReactNode;
+  noData?: React.ReactNode;
   fitHeight?: boolean;
   chartHeight?: number;
   chartMinHeight?: number;
@@ -46,22 +50,22 @@ export function ChartContainer({
   legendPosition,
   legendBottomMaxHeight,
   navigator,
+  noData,
   fitHeight,
   chartHeight,
   chartMinHeight,
   chartMinWidth,
 }: ChartContainerProps) {
+  const { refs, measures } = useContainerQueries();
+
   // The vertical axis title is rendered above the chart, and is technically not a part of the chart plot.
   // However, we want to include it to the chart's height computations as it does belong to the chart logically.
   // We do so by taking the title's constant height into account, when "top" axis placement is chosen.
   const verticalTitleOffset = Styles.verticalAxisTitleBlockSize + Styles.verticalAxisTitleMargin;
   const heightOffset = verticalAxisTitlePlacement === "top" ? verticalTitleOffset : 0;
-  const withMinHeight = (height?: number) =>
-    height === undefined ? chartMinHeight : Math.max(chartMinHeight ?? 0, height) - heightOffset;
-
-  const { refs, measures } = useContainerQueries();
+  const withMinHeight = (height: number) => Math.max(chartMinHeight ?? DEFAULT_CHART_MIN_HEIGHT, height) - heightOffset;
   const measuredChartHeight = withMinHeight(measures.chart - measures.header - measures.footer);
-  const effectiveChartHeight = fitHeight ? measuredChartHeight : withMinHeight(chartHeight);
+  const effectiveChartHeight = fitHeight ? measuredChartHeight : withMinHeight(chartHeight ?? DEFAULT_CHART_HEIGHT);
   return (
     <div
       ref={refs.chart}
@@ -83,6 +87,7 @@ export function ChartContainer({
           >
             {verticalAxisTitle}
             {chart(effectiveChartHeight)}
+            {noData}
           </div>
           <div className={styles["side-legend-container"]} style={{ maxBlockSize: effectiveChartHeight }}>
             {legend}
@@ -91,10 +96,11 @@ export function ChartContainer({
       ) : (
         <div
           style={chartMinWidth !== undefined ? { minInlineSize: chartMinWidth } : {}}
-          className={testClasses["chart-plot-wrapper"]}
+          className={clsx(styles["chart-plot-wrapper"], testClasses["chart-plot-wrapper"])}
         >
           {verticalAxisTitle}
           {chart(effectiveChartHeight)}
+          {!legend || legendPosition === "bottom" ? noData : null}
         </div>
       )}
 

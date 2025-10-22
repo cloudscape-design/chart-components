@@ -63,7 +63,11 @@ export function Page({
       id: "settings",
       content: <Drawer header={<Header variant="h2">Page settings</Header>}>{settings}</Drawer>,
       trigger: { iconName: "ellipsis" },
-      ariaLabels: { drawerName: "Page settings", triggerButton: "Open page settings" },
+      ariaLabels: {
+        drawerName: "Page settings",
+        triggerButton: "Open page settings",
+        closeButton: "Close page settings",
+      },
     });
   }
   return (
@@ -72,8 +76,6 @@ export function Page({
       navigationHide={true}
       activeDrawerId={toolsOpen ? "settings" : null}
       onDrawerChange={({ detail }) => setToolsOpen(!!detail.activeDrawerId)}
-      tools={settings && <Drawer header={<Header variant="h2">Page settings</Header>}>{settings}</Drawer>}
-      toolsHide={!settings}
       drawers={drawers}
       content={
         <Box>
@@ -264,7 +266,7 @@ const ChartFrame = forwardRef(
     ref: React.Ref<HTMLDivElement>,
   ) => {
     return (
-      <div ref={ref} className={styles["chart-frame"]} style={{ height, width, overflow: "hidden" }}>
+      <div ref={ref} className={styles["chart-frame"]} style={{ height, width }}>
         {children}
         <div className={styles["chart-frame-annotation"]}>{annotation}</div>
       </div>

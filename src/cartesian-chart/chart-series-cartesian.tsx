@@ -3,6 +3,8 @@
 
 import type Highcharts from "highcharts";
 
+import { colorChartsErrorBarMarker } from "@cloudscape-design/design-tokens";
+
 import { PointDataItemType, RangeDataItemOptions } from "../core/interfaces";
 import { createThresholdMetadata, getOptionsId } from "../core/utils";
 import * as Styles from "../internal/chart-styles";
@@ -46,9 +48,10 @@ export const transformCartesianSeries = (
       return { type: "line", id: s.id, name: s.name, data, custom, enableMouseTracking, ...style };
     }
     if (s.type === "errorbar") {
+      const color = s.color ?? colorChartsErrorBarMarker;
       // In Highcharts, the error-bar series graphic color is represented as stem-, and whisker colors.
       // We simplify that, and only expose a single color prop that sets both of those.
-      const colors = s.color ? { stemColor: s.color, whiskerColor: s.color } : {};
+      const colors = { stemColor: color, whiskerColor: color };
       return { ...s, data: s.data as Writeable<RangeDataItemOptions[]>, ...colors };
     }
     return { ...s, data: s.data as Writeable<PointDataItemType[]> };

@@ -26,7 +26,7 @@ import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
 import { getFormatter } from "./formatters";
 import { useChartI18n } from "./i18n-utils";
 import { CoreChartProps } from "./interfaces";
-import { getPointAccessibleDescription } from "./utils";
+import { getPointAccessibleDescription, hasVisibleLegendItems } from "./utils";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -58,6 +58,7 @@ export function InternalCoreChart({
   filter,
   keyboardNavigation = true,
   onHighlight,
+  onLegendItemHighlight,
   onClearHighlight,
   onVisibleItemsChange,
   visibleItems,
@@ -292,28 +293,22 @@ export function InternalCoreChart({
               <HighchartsReact
                 highcharts={highcharts}
                 options={highchartsOptions}
-                callback={(chart: Highcharts.Chart) => {
-                  callback?.({
-                    chart,
-                    highcharts: highcharts as typeof Highcharts,
-                    setItemsVisible: (visibleItemIds) => api.setItemsVisible(visibleItemIds),
-                    highlightChartPoint: (point) => api.highlightChartPoint(point),
-                    highlightChartGroup: (group) => api.highlightChartGroup(group),
-                    clearChartHighlight: () => api.clearChartHighlight(),
-                  });
-                }}
+                callback={(chart: Highcharts.Chart) =>
+                  callback?.({ chart, highcharts: highcharts as typeof Highcharts, ...api.publicApi })
+                }
               />
             </>
           );
         }}
         navigator={navigator}
         legend={
-          context.legendEnabled ? (
+          context.legendEnabled && hasVisibleLegendItems(options) ? (
             <ChartLegend
               {...legendOptions}
               position={legendPosition}
               api={api}
               i18nStrings={i18nStrings}
+              onItemHighlight={onLegendItemHighlight}
               getLegendTooltipContent={rest.getLegendTooltipContent}
             />
           ) : null
@@ -333,6 +328,7 @@ export function InternalCoreChart({
             />
           ) : null
         }
+        noData={context.noDataEnabled && <ChartNoData {...noDataOptions} i18nStrings={i18nStrings} api={api} />}
       />
 
       {context.tooltipEnabled && (
@@ -343,8 +339,6 @@ export function InternalCoreChart({
           api={api}
         />
       )}
-
-      {context.noDataEnabled && <ChartNoData {...noDataOptions} i18nStrings={i18nStrings} api={api} />}
     </div>
   );
 }

@@ -4,6 +4,7 @@
 import type Highcharts from "highcharts";
 
 import * as Styles from "../../internal/chart-styles";
+import { getSeriesData } from "../../internal/utils/series-data";
 import { getPointId, getSeriesId } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
@@ -62,7 +63,7 @@ export class ChartExtraHighlight {
     });
     for (const s of this.context.chart().series) {
       this.setSeriesState(s, includedSeries.has(s) ? "" : "inactive");
-      // We use special handling for column- series to make stacks or groups of columns that have a shared X highlighted.
+      // For column series we ensure only one group/stack that matches selected X is highlighted.
       // See: https://github.com/highcharts/highcharts/issues/23076.
       if (s.type === "column") {
         for (const d of s.data) {
@@ -86,10 +87,10 @@ export class ChartExtraHighlight {
         }
         this.setPointState(point, "hover");
       }
-      // We override point state that could have been set for columns using this.highlightChartGroup().
+      // For column series we ensure only one group/stack that matches selected X is highlighted.
       else if (s.type === "column") {
         for (const d of s.data) {
-          this.setPointState(d, "");
+          this.setPointState(d, d === point ? "hover" : "inactive");
         }
       }
     }
@@ -140,7 +141,7 @@ export class ChartExtraHighlight {
       if (prevState === "inactive") {
         inactiveSeriesIds.add(getSeriesId(s));
       }
-      for (const p of s.data) {
+      for (const p of getSeriesData(s.data)) {
         const prevState = this.pointState.get(getSeriesId(s))?.get(this.getPointKey(p));
         if (prevState) {
           this.setPointState(p, prevState);
@@ -183,7 +184,7 @@ export class ChartExtraHighlight {
         (overridden as SeriesSetStateWithLock)[SET_STATE_LOCK] = true;
         s.setState = overridden;
       }
-      for (const d of s.data) {
+      for (const d of getSeriesData(s.data)) {
         if ((d.setState as PointSetStateWithLock)[SET_STATE_LOCK] === undefined) {
           const original = d.setState;
           // The overridden setState method does nothing unless setState[SET_STATE_LOCK] === false.

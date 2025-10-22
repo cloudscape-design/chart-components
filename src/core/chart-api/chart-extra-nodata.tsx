@@ -4,6 +4,7 @@
 import type Highcharts from "highcharts";
 
 import AsyncStore from "../../internal/utils/async-store";
+import { getChartSeries } from "../../internal/utils/chart-series";
 import { ChartExtraContext } from "./chart-extra-context";
 
 // The reactive state is used to propagate updates to the corresponding no-data React component.
@@ -38,9 +39,8 @@ export class ChartExtraNodata extends AsyncStore<ReactiveNodataState> {
   };
 
   private getContainerStyle(): React.CSSProperties {
-    const inlineOffset = this.chart.chartWidth - this.chart.plotWidth;
     const blockOffset = this.chart.chartHeight - this.chart.plotHeight;
-    return { insetInlineStart: `${inlineOffset}px`, insetBlockEnd: `${blockOffset}px` };
+    return { insetBlockEnd: `${blockOffset}px` };
   }
 
   private get chart() {
@@ -51,7 +51,7 @@ export class ChartExtraNodata extends AsyncStore<ReactiveNodataState> {
 function findAllSeriesWithData(chart: Highcharts.Chart) {
   // When a series becomes hidden, Highcharts no longer computes the data array, so the series.data is empty.
   // That is why we assert the data from series.options instead.
-  return chart.series.filter((s) => {
+  return getChartSeries(chart.series).filter((s) => {
     const data = "data" in s.options && s.options.data && Array.isArray(s.options.data) ? s.options.data : [];
     return data.some((i) => i !== null && (typeof i === "object" && "y" in i ? i.y !== null : true));
   });

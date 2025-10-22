@@ -69,7 +69,11 @@ function ChartSeriesDetails(
       <ul className={clsx(styles.list, compactList && styles.compact)}>
         {details.map(({ key, value, marker, isDimmed, subItems, expandableId, description, highlighted }, index) => (
           <li
-            key={index}
+            // Include 'highlighted' in the key to force React re-render when highlight state changes.
+            // Without this, the highlight indicator div may not be removed when cursor moves away from data points
+            // due to React's reconciliation algorithm not detecting the state change in complex data scenarios.
+            // This ensures proper cleanup of visual highlight indicators.
+            key={[index, highlighted].join("-")}
             className={clsx({
               [styles.dimmed]: isDimmed,
               [styles["list-item"]]: true,

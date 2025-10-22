@@ -8,8 +8,7 @@ import { vi } from "vitest";
 import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 
 import "highcharts/modules/accessibility";
-import { CoreChartProps } from "../../../lib/components/core/interfaces";
-import { createChartWrapper, renderChart } from "./common";
+import { CoreChartTestProps, createChartWrapper, renderChart } from "./common";
 
 const seriesShort2: Highcharts.SeriesOptionsType[] = [
   {
@@ -64,7 +63,7 @@ const seriesLong1: Highcharts.SeriesOptionsType[] = [
     data: range(1, 1001).map((x) => ({ x, y: -x })),
   },
 ];
-function commonProps(invertedSetting: boolean | "random" = false, series = seriesShort2): CoreChartProps {
+function commonProps(invertedSetting: boolean | "random" = false, series = seriesShort2): CoreChartTestProps {
   const inverted = invertedSetting === "random" ? Math.random() > 0.5 : invertedSetting;
   return {
     highcharts,
