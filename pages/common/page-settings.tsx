@@ -73,6 +73,8 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
   options: {
     more?: boolean;
     xrange?: boolean;
+    solidgauge?: boolean;
+    boost?: boolean;
   } = {},
 ): {
   settings: SettingsType;

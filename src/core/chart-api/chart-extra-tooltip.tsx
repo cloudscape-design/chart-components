@@ -10,9 +10,9 @@ import * as Styles from "../../internal/chart-styles";
 import { renderMarker } from "../../internal/components/series-marker/render-marker";
 import AsyncStore from "../../internal/utils/async-store";
 import { SVGRendererPool, SVGRendererSingle } from "../../internal/utils/renderer-utils";
-import { DebouncedCall } from "../../internal/utils/utils";
+import { DebouncedCall, isEqualArrays } from "../../internal/utils/utils";
 import { Rect } from "../interfaces";
-import { getGroupRect, getPointRect, isXThreshold } from "../utils";
+import { getGroupRect, getPointRect, getSeriesId, isXThreshold } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
 import testClasses from "../test-classes/styles.css.js";
@@ -71,15 +71,15 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
 
   public showTooltipOnPoint(point: Highcharts.Point, matchingGroup: readonly Highcharts.Point[], ignoreLock = false) {
     if (!this.tooltipLock || ignoreLock) {
+      this.updateTooltipCursor({ point, group: matchingGroup });
       this.set(() => ({ visible: true, pinned: false, point, group: matchingGroup }));
-      this.onRenderTooltip({ point, group: matchingGroup });
     }
   }
 
   public showTooltipOnGroup(group: readonly Highcharts.Point[], ignoreLock = false) {
     if (!this.tooltipLock || ignoreLock) {
-      this.set(() => ({ visible: true, pinned: false, point: null, group }));
-      this.onRenderTooltip({ point: null, group });
+      this.updateTooltipCursor({ point: null, group });
+      this.setGroupIfDifferent(group);
     }
   }
 
@@ -97,15 +97,32 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     }
   }
 
-  private onRenderTooltip = (props: { point: null | Highcharts.Point; group: readonly Highcharts.Point[] }) => {
-    if (this.context.chart().series.some((s) => s.type === "pie")) {
-      return this.onRenderTooltipPie(props.group[0]);
+  // Avoid re-rendering the tooltip on every cursor position change when hovering over the graph.
+  // Just re-render when the groups are different.
+  private setGroupIfDifferent(group: readonly Highcharts.Point[]) {
+    function isGroupEqual(a: Highcharts.Point, b: Highcharts.Point) {
+      return a?.x === b?.x && a?.y === b?.y && getSeriesId(a?.series) === getSeriesId(b?.series);
+    }
+    this.set((prev) => {
+      return prev.point === null && isEqualArrays(prev.group, group, isGroupEqual)
+        ? prev
+        : { visible: true, pinned: false, point: null, group };
+    });
+  }
+
+  private updateTooltipCursor = (props: { point: null | Highcharts.Point; group: readonly Highcharts.Point[] }) => {
+    const chartType =
+      this.context.chart().series.find((s) => s.type === "pie" || s.type === "solidgauge")?.type ?? "cartesian";
+    if (chartType === "pie") {
+      return this.updateTooltipCursorPie(props.group[0]);
+    } else if (chartType === "solidgauge") {
+      return this.updateTooltipCursorGauge(props.group[0]);
     } else {
-      return this.onRenderTooltipCartesian(props);
+      return this.updateTooltipCursorCartesian(props);
     }
   };
 
-  private onRenderTooltipCartesian = ({
+  private updateTooltipCursorCartesian = ({
     point,
     group,
   }: {
@@ -121,10 +138,17 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     this.groupTrack.rect(this.context.chart().renderer, { ...groupRect, ...this.commonTrackAttrs });
   };
 
-  private onRenderTooltipPie = (point: Highcharts.Point) => {
+  private updateTooltipCursorPie = (point: Highcharts.Point) => {
     // We only create target track for pie chart as pie chart does not support groups.
     // It is also expected that only "target" tooltip position is used for pie charts.
     const pointRect = getPieChartTargetPlacement(point);
+    this.targetTrack.rect(this.context.chart().renderer, { ...pointRect, ...this.commonTrackAttrs });
+  };
+
+  private updateTooltipCursorGauge = (point: Highcharts.Point) => {
+    // Solid gauge charts are similar to pie charts in that they have a circular shape
+    // and don't support grouping. We use a similar approach to pie charts.
+    const pointRect = getSolidGaugeTargetPlacement(point);
     this.targetTrack.rect(this.context.chart().renderer, { ...pointRect, ...this.commonTrackAttrs });
   };
 
@@ -216,4 +240,14 @@ function getPieMiddlePlacement(point: Highcharts.Point): Rect {
   const radius =
     (typeof relativeDiameter === "number" ? relativeDiameter : (relativeDiameter / 100) * chart.plotWidth) / 2;
   return { x: centerX, y: centerY - radius, width: 1, height: 2 * radius };
+}
+
+function getSolidGaugeTargetPlacement(point: Highcharts.Point): Rect {
+  const chart = point.series.chart;
+  return {
+    x: chart.plotLeft + chart.plotWidth / 2,
+    y: chart.plotTop + chart.plotHeight / 2,
+    width: 0.1,
+    height: 0.1,
+  };
 }

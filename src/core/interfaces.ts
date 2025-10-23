@@ -38,12 +38,12 @@ export interface BaseChartOptions {
   /**
    * Defines the minimum allowed height of the chart plot. Use this when `fitHeight=true` to
    * prevent the chart plot from becoming too small to display its content. When the parent
-   * container is smaller than the minimum height, a vertical scrollbar appears automatically.
+   * container is shorter than the minimum height, a vertical scrollbar appears automatically.
    */
   chartMinHeight?: number;
 
   /**
-   * Defines the minimum allowed width of the chart plot. When the parent container is smaller the
+   * Defines the minimum allowed width of the chart plot. When the parent container is narrower than the
    * minimum width, the horizontal scrollbar is automatically added.
    */
   chartMinWidth?: number;
@@ -372,7 +372,7 @@ export interface CoreChartProps
    */
   onClearHighlight?: NonCancelableEventHandler<CoreChartProps.HighlightClearDetail>;
   /**
-   * Use Cloudscape keyboard navigation, `true` by default.
+   * Use Cloudscape keyboard navigation.
    */
   keyboardNavigation?: boolean;
   /**
@@ -474,6 +474,29 @@ export namespace CoreChartProps {
   }
 
   export type I18nStrings = CartesianI18nStrings & PieI18nStrings;
+}
+
+export interface CoreLegendProps {
+  items: readonly CoreLegendProps.Item[];
+  title?: string;
+  ariaLabel?: string;
+  actions?: React.ReactNode;
+  alignment?: "horizontal" | "vertical";
+  onClearHighlight?: NonCancelableEventHandler;
+  onItemHighlight?: NonCancelableEventHandler<CoreLegendProps.ItemHighlightDetail>;
+  onVisibleItemsChange?: NonCancelableEventHandler<CoreLegendProps.VisibleItemsChangeDetail>;
+  getLegendTooltipContent?: CoreLegendProps.GetTooltipContent;
+}
+
+export namespace CoreLegendProps {
+  export type Item = InternalComponentTypes.LegendItem;
+  export type GetTooltipContent = InternalComponentTypes.GetLegendTooltipContent;
+  export interface ItemHighlightDetail {
+    item: Item;
+  }
+  export interface VisibleItemsChangeDetail {
+    items: readonly string[];
+  }
 }
 
 // Utility types

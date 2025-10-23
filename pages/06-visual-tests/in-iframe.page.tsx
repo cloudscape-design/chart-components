@@ -10,11 +10,11 @@ import { IframeWrapper } from "../utils/iframe-wrapper";
 
 export default function () {
   return (
-    <IframeWrapper
-      AppComponent={() => {
-        const { chartProps } = useChartSettings();
-        return (
-          <Page title="Chart inside iframe visual regression page">
+    <Page title="Chart inside iframe visual regression page">
+      <IframeWrapper
+        AppComponent={() => {
+          const { chartProps } = useChartSettings();
+          return (
             <CoreChart
               {...omit(chartProps.pie, "ref")}
               ariaLabel="Pie chart"
@@ -40,9 +40,9 @@ export default function () {
                 }, 0);
               }}
             />
-          </Page>
-        );
-      }}
-    />
+          );
+        }}
+      />
+    </Page>
   );
 }
