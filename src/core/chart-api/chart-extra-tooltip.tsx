@@ -52,6 +52,10 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
   private targetTrack = new SVGRendererSingle();
   private groupTrack = new SVGRendererSingle();
 
+  // Cached coordinates to update cursor's position on re-render.
+  private lastPoint: null | Highcharts.Point = null;
+  private lastGroup: null | readonly Highcharts.Point[] = null;
+
   constructor(context: ChartExtraContext) {
     super({ visible: false, pinned: false, point: null, group: [] });
     this.context = context;
@@ -62,6 +66,12 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
   // The getTrack function ensures the latest element reference is given on each request.
   public getTargetTrack = () => (this.targetTrack.element?.element ?? null) as null | SVGElement;
   public getGroupTrack = () => (this.groupTrack.element?.element ?? null) as null | SVGElement;
+
+  public onChartRender() {
+    if (this.lastGroup && this.get().visible) {
+      this.updateTooltipCursor({ point: this.lastPoint, group: this.lastGroup });
+    }
+  }
 
   public onChartDestroy() {
     this.cursor.destroy();
@@ -111,6 +121,9 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
   }
 
   private updateTooltipCursor = (props: { point: null | Highcharts.Point; group: readonly Highcharts.Point[] }) => {
+    this.lastPoint = props.point;
+    this.lastGroup = props.group;
+
     const chartType =
       this.context.chart().series.find((s) => s.type === "pie" || s.type === "solidgauge")?.type ?? "cartesian";
     if (chartType === "pie") {
