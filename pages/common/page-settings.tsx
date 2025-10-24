@@ -15,6 +15,7 @@ import Select from "@cloudscape-design/components/select";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
 import { CartesianChartProps, PieChartProps } from "../../lib/components";
+import { CoreChartProps } from "../../src/core/interfaces";
 import AppContext, { AppContextType } from "../app/app-context";
 import { useHighcharts } from "./use-highcharts";
 
@@ -36,6 +37,7 @@ export interface PageSettings {
   showLegendActions: boolean;
   legendBottomMaxHeight?: number;
   legendPosition: "bottom" | "side";
+  legendHorizontalAlign: CoreChartProps.LegendOptionsHorizontalAlignment;
   showCustomHeader: boolean;
   showHeaderFilter: boolean;
   showCustomFooter: boolean;
@@ -60,6 +62,7 @@ const DEFAULT_SETTINGS: PageSettings = {
   showLegend: true,
   showLegendTitle: false,
   legendPosition: "bottom",
+  legendHorizontalAlign: "start",
   showLegendActions: false,
   showCustomHeader: false,
   showHeaderFilter: false,
@@ -149,7 +152,8 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
     actions: settings.showLegendActions ? <Button variant="icon" iconName="search" /> : undefined,
     position: settings.legendPosition,
     bottomMaxHeight: settings.legendBottomMaxHeight,
-  };
+    horizontalAlignment: settings.legendHorizontalAlign,
+  } satisfies CoreChartProps.LegendOptions;
   return {
     settings,
     setSettings,
@@ -384,6 +388,32 @@ export function PageSettingsForm({
                   ]}
                   onChange={({ detail }) =>
                     setSettings({ legendPosition: detail.selectedId as string as "bottom" | "side" })
+                  }
+                />
+              );
+            case "legendHorizontalAlign":
+              return (
+                <SegmentedControl
+                  label="Legend Horizontal Align"
+                  selectedId={
+                    settings.showLegend && settings.legendPosition === "bottom" ? settings.legendHorizontalAlign : null
+                  }
+                  options={[
+                    {
+                      text: "Start",
+                      id: "start",
+                      disabled: !settings.showLegend || settings.legendPosition !== "bottom",
+                    },
+                    {
+                      text: "Center",
+                      id: "center",
+                      disabled: !settings.showLegend || settings.legendPosition !== "bottom",
+                    },
+                  ]}
+                  onChange={({ detail }) =>
+                    setSettings({
+                      legendHorizontalAlign: detail.selectedId as CoreChartProps.LegendOptionsHorizontalAlignment,
+                    })
                   }
                 />
               );

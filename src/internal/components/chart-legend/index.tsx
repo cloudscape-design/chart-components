@@ -16,6 +16,7 @@ import {
 import Box from "@cloudscape-design/components/box";
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
 
+import { CoreChartProps } from "../../../core/interfaces";
 import { DebouncedCall } from "../../utils/utils";
 import { GetLegendTooltipContentProps, LegendItem, LegendTooltipContent } from "../interfaces";
 
@@ -32,6 +33,7 @@ export interface ChartLegendProps {
   ariaLabel?: string;
   actions?: React.ReactNode;
   position: "bottom" | "side";
+  horizontalAlignment: CoreChartProps.LegendOptionsHorizontalAlignment;
   onItemHighlightEnter: (item: LegendItem) => void;
   onItemHighlightExit: () => void;
   onItemVisibilityChange: (hiddenItems: string[]) => void;
@@ -48,6 +50,7 @@ export const ChartLegend = ({
   onItemHighlightEnter,
   onItemHighlightExit,
   getTooltipContent,
+  horizontalAlignment,
 }: ChartLegendProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const elementsByIndexRef = useRef<Record<number, HTMLElement>>([]);
@@ -246,7 +249,12 @@ export const ChartLegend = ({
         onMouseLeave={() => (isMouseInContainer.current = false)}
       >
         {legendTitle && (
-          <Box fontWeight="bold" className={testClasses.title}>
+          <Box
+            fontWeight="bold"
+            className={clsx(testClasses.title, {
+              [styles[`legend-title-${horizontalAlignment}`]]: position === "bottom",
+            })}
+          >
             {legendTitle}
           </Box>
         )}
@@ -256,6 +264,7 @@ export const ChartLegend = ({
           // Setting the tab index to -1 does fix the problem.
           tabIndex={-1}
           className={clsx(styles.list, {
+            [styles[`list-bottom-${horizontalAlignment}`]]: position === "bottom",
             [styles["list-bottom"]]: position === "bottom",
             [styles["list-side"]]: position === "side",
           })}

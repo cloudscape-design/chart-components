@@ -91,7 +91,14 @@ export default function () {
       subtitle="The page demonstrates the use of the core chart, including additional legend settings."
       settings={
         <PageSettingsForm
-          selectedSettings={["showLegend", "legendPosition", "showLegendTitle", "showLegendActions", "useFallback"]}
+          selectedSettings={[
+            "showLegend",
+            "legendPosition",
+            "legendHorizontalAlign",
+            "showLegendTitle",
+            "showLegendActions",
+            "useFallback",
+          ]}
         />
       }
     >

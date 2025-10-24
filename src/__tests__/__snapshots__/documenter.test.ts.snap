@@ -1591,6 +1591,20 @@ Supported Highcharts versions: 12.",
             },
             {
               "inlineType": {
+                "name": "CoreChartProps.LegendOptionsHorizontalAlignment",
+                "type": "union",
+                "valueDescriptions": undefined,
+                "values": [
+                  "start",
+                  "center",
+                ],
+              },
+              "name": "horizontalAlignment",
+              "optional": true,
+              "type": "string",
+            },
+            {
+              "inlineType": {
                 "name": ""side" | "bottom"",
                 "type": "union",
                 "valueDescriptions": undefined,
