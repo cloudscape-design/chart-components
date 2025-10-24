@@ -13,7 +13,7 @@ const loremIpsum =
 export default function () {
   return (
     <Page
-      title="Legend demo"
+      title="Chart with many series"
       subtitle="This pages shows how legend works in a chart with many series."
       settings={
         <PageSettingsForm
