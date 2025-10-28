@@ -221,9 +221,16 @@ export function getGroupRect(points: readonly Highcharts.Point[]): Rect {
     maxX = Math.max(maxX, r.x + r.width);
     maxY = Math.max(maxY, r.y + r.height);
   }
-  return chart.inverted
-    ? { x: chart.plotLeft, y: minY, width: chart.plotWidth, height: maxY - minY }
-    : { x: minX, y: chart.plotTop, width: maxX - minX, height: chart.plotHeight };
+  return safeRect(
+    chart.inverted
+      ? { x: chart.plotLeft, y: minY, width: chart.plotWidth, height: maxY - minY }
+      : { x: minX, y: chart.plotTop, width: maxX - minX, height: chart.plotHeight },
+  );
+}
+
+// We ensure rect width and height are non-zero to ensure its position is calculated correctly in Firefox.
+export function safeRect(rect: Rect): Rect {
+  return { ...rect, width: Math.max(0.1, rect.width), height: Math.max(0.1, rect.height) };
 }
 
 export function getChartAccessibleDescription(chart: Highcharts.Chart) {

@@ -12,7 +12,7 @@ import AsyncStore from "../../internal/utils/async-store";
 import { SVGRendererPool, SVGRendererSingle } from "../../internal/utils/renderer-utils";
 import { DebouncedCall, isEqualArrays } from "../../internal/utils/utils";
 import { Rect } from "../interfaces";
-import { getGroupRect, getPointRect, getSeriesId, isXThreshold } from "../utils";
+import { getGroupRect, getPointRect, getSeriesId, isXThreshold, safeRect } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
 import testClasses from "../test-classes/styles.css.js";
@@ -61,7 +61,9 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
   // trackRef.current = targetElement.element as it might get invalidated unexpectedly.
   // The getTrack function ensures the latest element reference is given on each request.
   public getTargetTrack = () => (this.targetTrack.element?.element ?? null) as null | SVGElement;
-  public getGroupTrack = () => (this.groupTrack.element?.element ?? null) as null | SVGElement;
+  public getGroupTrack = () => {
+    return (this.groupTrack.element?.element ?? null) as null | SVGElement;
+  };
 
   public onChartDestroy() {
     this.cursor.destroy();
@@ -222,8 +224,7 @@ function getPieChartTargetPlacement(point: Highcharts.Point): Rect {
   // Instead, there is a `tooltipPos` tuple, which is not covered by TS.
   // See: https://github.com/highcharts/highcharts/issues/23118.
   if ("tooltipPos" in point && Array.isArray(point.tooltipPos)) {
-    // We use very small but non-zero track size as otherwise it is placed incorrectly in Firefox.
-    return { x: point.tooltipPos[0], y: point.tooltipPos[1], width: 0.1, height: 0.1 };
+    return safeRect({ x: point.tooltipPos[0], y: point.tooltipPos[1], width: 0, height: 0 });
   }
   // We use the alternative, middle, tooltip placement as a fallback, in case the undocumented "tooltipPos"
   // is no longer available in the point.
@@ -244,10 +245,10 @@ function getPieMiddlePlacement(point: Highcharts.Point): Rect {
 
 function getSolidGaugeTargetPlacement(point: Highcharts.Point): Rect {
   const chart = point.series.chart;
-  return {
+  return safeRect({
     x: chart.plotLeft + chart.plotWidth / 2,
     y: chart.plotTop + chart.plotHeight / 2,
-    width: 0.1,
-    height: 0.1,
-  };
+    width: 0,
+    height: 0,
+  });
 }
