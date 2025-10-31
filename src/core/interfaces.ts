@@ -188,12 +188,12 @@ export interface BaseTooltipPointFormatted {
   subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
 }
 
-export interface AreaSeriesOptions extends BaseCartesianSeriesOptions {
+export interface AreaSeriesOptions extends BaseCartesianLineLikeOptions {
   type: "area";
   data: readonly PointDataItemType[];
 }
 
-export interface AreaSplineSeriesOptions extends BaseCartesianSeriesOptions {
+export interface AreaSplineSeriesOptions extends BaseCartesianLineLikeOptions {
   type: "areaspline";
   data: readonly PointDataItemType[];
 }
@@ -203,12 +203,12 @@ export interface ColumnSeriesOptions extends BaseCartesianSeriesOptions {
   data: readonly PointDataItemType[];
 }
 
-export interface LineSeriesOptions extends BaseCartesianSeriesOptions {
+export interface LineSeriesOptions extends BaseCartesianLineLikeOptions {
   type: "line";
   data: readonly PointDataItemType[];
 }
 
-export interface SplineSeriesOptions extends BaseCartesianSeriesOptions {
+export interface SplineSeriesOptions extends BaseCartesianLineLikeOptions {
   type: "spline";
   data: readonly PointDataItemType[];
 }
@@ -226,22 +226,22 @@ export interface ErrorBarSeriesOptions extends Omit<BaseCartesianSeriesOptions, 
   linkedTo: string;
 }
 
-export interface XThresholdSeriesOptions extends BaseCartesianSeriesOptions {
+export interface XThresholdSeriesOptions extends BaseCartesianLineLikeOptions {
   type: "x-threshold";
   value: number;
 }
 
-export interface YThresholdSeriesOptions extends BaseCartesianSeriesOptions {
+export interface YThresholdSeriesOptions extends BaseCartesianLineLikeOptions {
   type: "y-threshold";
   value: number;
 }
 
-export interface PieSeriesOptions extends BaseCartesianSeriesOptions {
+export interface PieSeriesOptions extends BaseSeriesOptions {
   type: "pie";
   data: readonly PieSegmentOptions[];
 }
 
-export interface DonutSeriesOptions extends BaseCartesianSeriesOptions {
+export interface DonutSeriesOptions extends BaseSeriesOptions {
   type: "donut";
   data: readonly PieSegmentOptions[];
 }
@@ -266,10 +266,16 @@ export interface RangeDataItemOptions {
   high: number;
 }
 
-interface BaseCartesianSeriesOptions {
+interface BaseSeriesOptions {
   id?: string;
   name: string;
   color?: string;
+}
+
+type BaseCartesianSeriesOptions = BaseSeriesOptions;
+
+interface BaseCartesianLineLikeOptions extends BaseCartesianSeriesOptions {
+  dashStyle?: Highcharts.DashStyleValue;
 }
 
 // The symbols union matches that of Highcharts.PointMarkerOptionsObject
