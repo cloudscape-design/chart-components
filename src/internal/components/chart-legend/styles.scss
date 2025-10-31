@@ -37,7 +37,13 @@
 
 .list-bottom {
   flex-wrap: wrap;
-  justify-content: space-between;
+
+  &.list-bottom-start {
+    justify-content: start;
+  }
+  &.list-bottom-center {
+    justify-content: center;
+  }
 }
 
 .list-side {
@@ -46,12 +52,19 @@
 }
 
 .legend-bottom {
-  flex: 1;
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
   max-inline-size: 100%;
   gap: cs.$space-scaled-xxs cs.$space-static-m;
+}
+
+.legend-title-start {
+  text-align: start;
+}
+
+.legend-title-center {
+  text-align: center;
 }
 
 .legend-side {

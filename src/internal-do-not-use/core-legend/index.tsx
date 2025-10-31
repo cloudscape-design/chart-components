@@ -15,6 +15,7 @@ export const CoreLegend = ({
   onClearHighlight,
   onVisibleItemsChange,
   getLegendTooltipContent,
+  horizontalAlignment = "start",
 }: CoreLegendProps) => {
   const position = alignment === "horizontal" ? "bottom" : "side";
 
@@ -28,6 +29,7 @@ export const CoreLegend = ({
       actions={actions}
       legendTitle={title}
       position={position}
+      horizontalAlignment={horizontalAlignment}
       ariaLabel={ariaLabel}
       getTooltipContent={(props) => getLegendTooltipContent?.(props) ?? null}
       onItemHighlightExit={() => fireNonCancelableEvent(onClearHighlight)}

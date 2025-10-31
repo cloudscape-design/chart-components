@@ -3,7 +3,11 @@
   "compilerOptions": {
     "noEmit": true,
     "tsBuildInfoFile": "./.cache/unit-tests.tsbuildinfo",
-    "types": ["vitest/globals", "@testing-library/jest-dom"]
+    "types": ["vitest/globals", "@testing-library/jest-dom"],
+    "paths": {
+      "@lib/*": ["./lib/*"]
+    },
+    "baseUrl": "./"
   },
   "include": ["types", "**/__tests__"],
   "exclude": []
