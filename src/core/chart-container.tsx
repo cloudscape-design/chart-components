@@ -28,7 +28,8 @@ interface ChartContainerProps {
   header?: React.ReactNode;
   filter?: React.ReactNode;
   navigator?: React.ReactNode;
-  legend?: React.ReactNode;
+  firstLegend?: React.ReactNode;
+  secondLegend?: React.ReactNode;
   legendBottomMaxHeight?: number;
   legendPosition: "bottom" | "side";
   footer?: React.ReactNode;
@@ -46,7 +47,8 @@ export function ChartContainer({
   header,
   filter,
   footer,
-  legend,
+  firstLegend,
+  secondLegend,
   legendPosition,
   legendBottomMaxHeight,
   navigator,
@@ -79,7 +81,7 @@ export function ChartContainer({
         {filter}
       </div>
 
-      {legend && legendPosition === "side" ? (
+      {firstLegend && legendPosition === "side" ? (
         <div className={styles["chart-plot-and-legend-wrapper"]}>
           <div
             style={{ minInlineSize: chartMinWidth ?? 0 }}
@@ -89,8 +91,13 @@ export function ChartContainer({
             {chart(effectiveChartHeight)}
             {noData}
           </div>
-          <div className={styles["side-legend-container"]} style={{ maxBlockSize: effectiveChartHeight }}>
-            {legend}
+          <div
+            aria-label={"Legend"}
+            className={styles["side-legend-container"]}
+            style={{ maxBlockSize: effectiveChartHeight }}
+          >
+            {firstLegend}
+            {secondLegend}
           </div>
         </div>
       ) : (
@@ -100,15 +107,22 @@ export function ChartContainer({
         >
           {verticalAxisTitle}
           {chart(effectiveChartHeight)}
-          {!legend || legendPosition === "bottom" ? noData : null}
+          {!firstLegend || legendPosition === "bottom" ? noData : null}
         </div>
       )}
 
       <div ref={refs.footer} style={chartMinWidth !== undefined ? { minInlineSize: chartMinWidth } : {}}>
         {navigator && <div className={testClasses["chart-navigator"]}>{navigator}</div>}
-        {legend &&
-          legendPosition === "bottom" &&
-          (legendBottomMaxHeight ? <div style={{ maxHeight: `${legendBottomMaxHeight}px` }}>{legend}</div> : legend)}
+        {firstLegend && legendPosition === "bottom" && (
+          <div
+            aria-label={"Legend"}
+            className={styles["bottom-legend-container"]}
+            style={{ maxBlockSize: legendBottomMaxHeight ? `${legendBottomMaxHeight}px` : undefined }}
+          >
+            {firstLegend}
+            {secondLegend}
+          </div>
+        )}
         {footer}
       </div>
     </div>

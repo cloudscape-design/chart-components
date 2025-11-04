@@ -16,7 +16,7 @@ export const CoreLegend = ({
   onVisibleItemsChange,
   getLegendTooltipContent,
 }: CoreLegendProps) => {
-  const position = alignment === "horizontal" ? "bottom" : "side";
+  const type = alignment === "horizontal" ? "bottom" : "stacked";
 
   if (items.length === 0) {
     return null;
@@ -24,10 +24,10 @@ export const CoreLegend = ({
 
   return (
     <ChartLegendComponent
+      type={type}
       items={items}
       actions={actions}
       legendTitle={title}
-      position={position}
       ariaLabel={ariaLabel}
       getTooltipContent={(props) => getLegendTooltipContent?.(props) ?? null}
       onItemHighlightExit={() => fireNonCancelableEvent(onClearHighlight)}

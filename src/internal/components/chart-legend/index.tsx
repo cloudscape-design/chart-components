@@ -4,6 +4,7 @@
 import { forwardRef, Ref, useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 
+import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import {
   circleIndex,
   handleKey,
@@ -25,13 +26,16 @@ import testClasses from "./test-classes/styles.css.js";
 const TOOLTIP_BLUR_DELAY = 50;
 const HIGHLIGHT_LOST_DELAY = 50;
 const SCROLL_DELAY = 100;
+const SHOULD_STACK_SIZE = 400;
+
+export type ChartLegendType = "bottom" | "stacked" | "stacked-top" | "stacked-bottom" | "bottom-left" | "bottom-right";
 
 export interface ChartLegendProps {
+  type: ChartLegendType;
   items: readonly LegendItem[];
   legendTitle?: string;
   ariaLabel?: string;
   actions?: React.ReactNode;
-  position: "bottom" | "side";
   onItemHighlightEnter: (item: LegendItem) => void;
   onItemHighlightExit: () => void;
   onItemVisibilityChange: (hiddenItems: string[]) => void;
@@ -39,17 +43,18 @@ export interface ChartLegendProps {
 }
 
 export const ChartLegend = ({
+  type,
   items,
   legendTitle,
   ariaLabel,
   actions,
-  position,
   onItemVisibilityChange,
   onItemHighlightEnter,
   onItemHighlightExit,
   getTooltipContent,
 }: ChartLegendProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [shouldStack, containerQueryRef] = useContainerQuery((rect) => rect.borderBoxWidth <= SHOULD_STACK_SIZE);
+  const containerRef = containerQueryRef as React.RefObject<HTMLDivElement>;
   const elementsByIndexRef = useRef<Record<number, HTMLElement>>([]);
   const elementsByIdRef = useRef<Record<string, HTMLElement>>({});
   const tooltipRef = useRef<HTMLElement>(null);
@@ -57,6 +62,22 @@ export const ChartLegend = ({
   const scrollIntoViewControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [tooltipItemId, setTooltipItemId] = useState<string | null>(null);
+
+  const filteredItems = useMemo(() => {
+    switch (type) {
+      case "bottom":
+      case "stacked":
+        return items;
+      case "bottom-left":
+      case "stacked-top":
+        return items.filter((item) => !item.oppositeAxis);
+      case "bottom-right":
+      case "stacked-bottom":
+        return items.filter((item) => item.oppositeAxis);
+    }
+    return items;
+  }, [items, type]);
+
   const { showTooltip, hideTooltip } = useMemo(() => {
     const control = new DebouncedCall();
     return {
@@ -91,7 +112,7 @@ export const ChartLegend = ({
 
   // Scrolling to the highlighted legend item.
   useEffect(() => {
-    const highlightedIndex = items.findIndex((item) => item.highlighted);
+    const highlightedIndex = filteredItems.findIndex((item) => item.highlighted);
     if (highlightedIndex === -1) {
       return;
     }
@@ -114,10 +135,10 @@ export const ChartLegend = ({
         container.scrollTo({ top, behavior: "smooth" });
       }
     }, SCROLL_DELAY);
-  }, [items, scrollIntoViewControl]);
+  }, [containerRef, filteredItems, scrollIntoViewControl]);
 
   const showHighlight = (itemId: string) => {
-    const item = items.find((item) => item.id === itemId);
+    const item = filteredItems.find((item) => item.id === itemId);
     if (item?.visible) {
       highlightControl.cancelPrevious();
       onItemHighlightEnter(item);
@@ -163,7 +184,7 @@ export const ChartLegend = ({
       // Preventing default fixes an issue in Safari+VO when VO additionally interprets arrow keys as its commands.
       event.preventDefault();
 
-      const range = [0, items.length - 1] as [number, number];
+      const range = [0, filteredItems.length - 1] as [number, number];
 
       handleKey(event, {
         onInlineStart: () => focusElement(circleIndex(selectedIndex - 1, range)),
@@ -171,7 +192,7 @@ export const ChartLegend = ({
         onBlockStart: () => focusElement(circleIndex(selectedIndex - 1, range)),
         onBlockEnd: () => focusElement(circleIndex(selectedIndex + 1, range)),
         onHome: () => focusElement(0),
-        onEnd: () => focusElement(items.length - 1),
+        onEnd: () => focusElement(filteredItems.length - 1),
         onEscape: () => onItemHighlightExit(),
       });
     }
@@ -222,11 +243,16 @@ export const ChartLegend = ({
     onItemHighlightExit();
   };
 
+  const isDual = type.includes("-");
+  const isBottom = type.startsWith("bottom");
+  const isStacked = type.startsWith("stacked") || shouldStack;
+  const isBottomRightNotStacked = type === "bottom-right" && !shouldStack;
+
   const tooltipTrack = useRef<null | HTMLElement>(null);
-  const tooltipTarget = items.find((item) => item.id === tooltipItemId) ?? null;
+  const tooltipTarget = filteredItems.find((item) => item.id === tooltipItemId) ?? null;
   tooltipTrack.current = tooltipItemId ? elementsByIdRef.current[tooltipItemId] : null;
   const tooltipContent = tooltipTarget && getTooltipContent({ legendItem: tooltipTarget });
-  const tooltipPosition = position === "bottom" ? "bottom" : "left";
+  const tooltipPosition = isStacked ? "left" : "bottom";
 
   return (
     <SingleTabStopNavigationProvider
@@ -236,103 +262,92 @@ export const ChartLegend = ({
       onUnregisterActive={(element: HTMLElement) => onUnregisterActive(element, navigationAPI)}
     >
       <div
-        ref={containerRef}
         role="toolbar"
         aria-label={legendTitle || ariaLabel}
-        className={clsx(testClasses.root, styles.root, {
-          [styles["root-side"]]: position === "side",
-        })}
+        className={clsx(styles.root, { [styles["root-bottom-dual"]]: isDual && isBottom })}
         onMouseEnter={() => (isMouseInContainer.current = true)}
         onMouseLeave={() => (isMouseInContainer.current = false)}
       >
         {legendTitle && (
-          <Box fontWeight="bold" className={testClasses.title}>
+          <Box fontWeight="bold" textAlign={isBottomRightNotStacked ? "right" : "left"} className={testClasses.title}>
             {legendTitle}
           </Box>
         )}
-
         <div
           // The list element is not focusable. However, the focus lands on it regardless, when testing in Firefox.
           // Setting the tab index to -1 does fix the problem.
           tabIndex={-1}
+          ref={containerRef}
           className={clsx(styles.list, {
-            [styles["list-bottom"]]: position === "bottom",
-            [styles["list-side"]]: position === "side",
+            [styles["list-side"]]: isStacked,
+            [styles["list-bottom"]]: !isStacked,
+            [styles["list-bottom-opposite"]]: isBottomRightNotStacked,
           })}
         >
           {actions && (
-            <>
+            <div
+              className={clsx(testClasses.actions, styles.actions, {
+                [styles["actions-side"]]: isStacked,
+                [styles["actions-bottom"]]: !isStacked,
+              })}
+            >
+              {actions}
               <div
-                className={clsx(testClasses.actions, styles.actions, {
-                  [styles["actions-bottom"]]: position === "bottom",
-                  [styles["actions-side"]]: position === "side",
+                className={clsx({
+                  [styles["actions-divider-side"]]: isStacked,
+                  [styles["actions-divider-bottom"]]: !isStacked,
                 })}
-              >
-                {actions}
-                <div
-                  className={clsx(styles["actions-divider"], {
-                    [styles["actions-divider-bottom"]]: position === "bottom",
-                    [styles["actions-divider-side"]]: position === "side",
-                  })}
-                />
-              </div>
-            </>
+              />
+            </div>
           )}
-          <div
-            className={clsx({
-              [styles["legend-bottom"]]: position === "bottom",
-              [styles["legend-side"]]: position === "side",
-            })}
-          >
-            {items.map((item, index) => {
-              const handlers = {
-                onMouseEnter: () => {
-                  showHighlight(item.id);
-                  showTooltip(item.id);
-                },
-                onMouseLeave: () => {
-                  clearHighlight();
-                  hideTooltip();
-                },
-                onFocus: () => {
-                  onFocus(index, item.id);
-                },
-                onBlur: (event: React.FocusEvent) => {
-                  onBlur(event);
-                },
-                onKeyDown,
-              };
-              const thisTriggerRef = (elem: null | HTMLElement) => {
-                if (elem) {
-                  elementsByIndexRef.current[index] = elem;
-                  elementsByIdRef.current[item.id] = elem;
-                } else {
-                  delete elementsByIndexRef.current[index];
-                  delete elementsByIdRef.current[index];
-                }
-              };
-              return (
-                <LegendItemTrigger
-                  key={index}
-                  {...handlers}
-                  ref={thisTriggerRef}
-                  onClick={(event) => {
-                    if (event.metaKey || event.ctrlKey) {
-                      toggleItem(item.id);
-                    } else {
-                      selectItem(item.id);
-                    }
-                  }}
-                  isHighlighted={item.highlighted}
-                  someHighlighted={items.some((item) => item.highlighted)}
-                  itemId={item.id}
-                  label={item.name}
-                  visible={item.visible}
-                  marker={item.marker}
-                />
-              );
-            })}
-          </div>
+          {filteredItems.map((item, index) => {
+            const handlers = {
+              onMouseEnter: () => {
+                showHighlight(item.id);
+                showTooltip(item.id);
+              },
+              onMouseLeave: () => {
+                clearHighlight();
+                hideTooltip();
+              },
+              onFocus: () => {
+                onFocus(index, item.id);
+              },
+              onBlur: (event: React.FocusEvent) => {
+                onBlur(event);
+              },
+              onKeyDown,
+            };
+            const thisTriggerRef = (elem: null | HTMLElement) => {
+              if (elem) {
+                elementsByIndexRef.current[index] = elem;
+                elementsByIdRef.current[item.id] = elem;
+              } else {
+                delete elementsByIndexRef.current[index];
+                delete elementsByIdRef.current[item.id];
+              }
+            };
+            return (
+              <LegendItemTrigger
+                key={index}
+                {...handlers}
+                ref={thisTriggerRef}
+                onClick={(event) => {
+                  if (event.metaKey || event.ctrlKey) {
+                    toggleItem(item.id);
+                  } else {
+                    selectItem(item.id);
+                  }
+                }}
+                isHighlighted={item.highlighted}
+                someHighlighted={items.some((item) => item.highlighted)}
+                itemId={item.id}
+                label={item.name}
+                visible={item.visible}
+                marker={item.marker}
+              />
+            );
+          })}
         </div>
         {tooltipContent && (
           <InternalChartTooltip

@@ -34,6 +34,7 @@ export interface PageSettings {
   showLegend: boolean;
   showLegendTitle: boolean;
   showLegendActions: boolean;
+  legendType: "single" | "dual";
   legendBottomMaxHeight?: number;
   legendPosition: "bottom" | "side";
   showCustomHeader: boolean;
@@ -59,6 +60,7 @@ const DEFAULT_SETTINGS: PageSettings = {
   tooltipSize: "medium",
   showLegend: true,
   showLegendTitle: false,
+  legendType: "single",
   legendPosition: "bottom",
   showLegendActions: false,
   showCustomHeader: false,
@@ -146,7 +148,9 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
   };
   const legend = {
     enabled: settings.showLegend,
+    type: settings.legendType,
     title: settings.showLegendTitle ? "Legend title" : undefined,
+    oppositeLegendTitle: settings.showLegendTitle ? "Opposite Legend title" : undefined,
     actions: settings.showLegendActions ? <Button variant="icon" iconName="search" /> : undefined,
     position: settings.legendPosition,
     bottomMaxHeight: settings.legendBottomMaxHeight,
@@ -343,6 +347,20 @@ export function PageSettingsForm({
                 >
                   Show legend
                 </Checkbox>
+              );
+            case "legendType":
+              return (
+                <SegmentedControl
+                  label="Legend Type"
+                  selectedId={settings.legendType}
+                  options={[
+                    { text: "Single", id: "single", disabled: !settings.showLegend },
+                    { text: "Dual", id: "dual", disabled: !settings.showLegend },
+                  ]}
+                  onChange={({ detail }) =>
+                    setSettings({ legendType: detail.selectedId as string as "single" | "dual" })
+                  }
+                />
               );
             case "showLegendTitle":
               return (
