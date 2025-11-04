@@ -122,18 +122,18 @@ export default function () {
         chartHeight={400}
         tooltip={{ placement: "outside" }}
         getTooltipContent={() => ({
-          point({ item }) {
+          point({ item, dismissTooltip }) {
             const value = item ? (item.point.y ?? null) : null;
             return {
               value: (
                 <div>
-                  {numberFormatter(value)} <Button variant="inline-icon" iconName="settings" />
+                  {numberFormatter(value)} <Button variant="inline-icon" iconName="settings" onClick={dismissTooltip} />
                 </div>
               ),
             };
           },
-          footer() {
-            return <Button>Footer action</Button>;
+          footer({ dismissTooltip }) {
+            return <Button onClick={dismissTooltip}>Footer action</Button>;
           },
         })}
         getLegendTooltipContent={({ legendItem }) => ({

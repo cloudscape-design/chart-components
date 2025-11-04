@@ -70,6 +70,9 @@ export function ChartTooltip({
     group: tooltip.group,
     expandedSeries,
     setExpandedSeries,
+    dismissTooltip: () => {
+      api.onDismissTooltip(false, true);
+    },
   });
   if (!content) {
     return null;
@@ -117,6 +120,7 @@ function getTooltipContent(
   api: ChartAPI,
   props: CoreChartProps.GetTooltipContentProps & {
     renderers?: CoreChartProps.TooltipContentRenderer;
+    dismissTooltip: () => void;
   } & ExpandedSeriesStateProps,
 ): null | RenderedTooltipContent {
   if (props.point && props.point.series.type === "pie") {
@@ -136,8 +140,10 @@ function getTooltipContentCartesian(
     expandedSeries,
     renderers = {},
     setExpandedSeries,
+    dismissTooltip,
   }: CoreChartProps.GetTooltipContentProps & {
     renderers?: CoreChartProps.TooltipContentRenderer;
+    dismissTooltip: () => void;
   } & ExpandedSeriesStateProps,
 ): RenderedTooltipContent {
   // The cartesian tooltip might or might not have a selected point, but it always has a non-empty group.
@@ -150,7 +156,12 @@ function getTooltipContentCartesian(
   const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
     const valueFormatter = getFormatter(item.point.series.yAxis);
     const itemY = isXThreshold(item.point.series) ? null : (item.point.y ?? null);
-    const customContent = renderers.point ? renderers.point({ item }) : undefined;
+    const customContent = renderers.point
+      ? renderers.point({
+          item,
+          dismissTooltip,
+        })
+      : undefined;
     return {
       key: customContent?.key ?? item.point.series.name,
       value: customContent?.value ?? valueFormatter(itemY),
@@ -177,7 +188,11 @@ function getTooltipContentCartesian(
   });
   // We only support cartesian charts with a single x axis.
   const titleFormatter = getFormatter(chart.xAxis[0]);
-  const slotRenderProps: CoreChartProps.TooltipSlotProps = { x, items: matchedItems };
+  const slotRenderProps: CoreChartProps.TooltipSlotProps = {
+    x,
+    items: matchedItems,
+    dismissTooltip,
+  };
   return {
     header: renderers.header?.(slotRenderProps) ?? titleFormatter(x),
     body: renderers.body?.(slotRenderProps) ?? (
@@ -203,9 +218,17 @@ function getTooltipContentCartesian(
 
 function getTooltipContentPie(
   api: ChartAPI,
-  { point, renderers = {} }: { point: Highcharts.Point } & { renderers?: CoreChartProps.TooltipContentRenderer },
+  {
+    point,
+    renderers = {},
+    dismissTooltip,
+  }: { point: Highcharts.Point } & { renderers?: CoreChartProps.TooltipContentRenderer; dismissTooltip: () => void },
 ): RenderedTooltipContent {
-  const tooltipDetails: CoreChartProps.TooltipSlotProps = { x: point.x, items: [{ point, errorRanges: [] }] };
+  const tooltipDetails: CoreChartProps.TooltipSlotProps = {
+    x: point.x,
+    items: [{ point, errorRanges: [] }],
+    dismissTooltip,
+  };
   return {
     header: renderers.header?.(tooltipDetails) ?? (
       <div className={styles["tooltip-default-header"]}>
@@ -218,7 +241,13 @@ function getTooltipContentPie(
     body:
       renderers.body?.(tooltipDetails) ??
       (renderers.details ? (
-        <ChartSeriesDetails details={renderers.details({ point })} compactList={true} />
+        <ChartSeriesDetails
+          details={renderers.details({
+            point,
+            dismissTooltip,
+          })}
+          compactList={true}
+        />
       ) : (
         // We expect all pie chart segments to have defined y values. We use y=0 as fallback
         // because the property is optional in Highcharts types.

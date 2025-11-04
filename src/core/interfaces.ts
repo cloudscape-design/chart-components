@@ -451,14 +451,26 @@ export namespace CoreChartProps {
   }
   export interface TooltipPointProps {
     item: TooltipContentItem;
+    /**
+     * Method used to dismiss the tooltip.
+     */
+    dismissTooltip: () => void;
   }
   export interface TooltipSlotProps {
     x: number;
     items: TooltipContentItem[];
+    /**
+     * Method used to dismiss the tooltip.
+     */
+    dismissTooltip: () => void;
   }
 
   export interface TooltipDetailsProps {
     point: Highcharts.Point;
+    /**
+     * Method used to dismiss the tooltip.
+     */
+    dismissTooltip: () => void;
   }
 
   export type TooltipDetail = BaseTooltipDetail;

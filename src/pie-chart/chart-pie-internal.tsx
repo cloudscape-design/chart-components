@@ -73,7 +73,7 @@ export const InternalPieChart = forwardRef(
       };
       const transformSlotProps = (props: CoreChartProps.TooltipSlotProps): PieChartProps.TooltipDetailsRenderProps => {
         const point = props.items[0].point;
-        return transformDetailsProps({ point });
+        return transformDetailsProps({ point, dismissTooltip: props.dismissTooltip });
       };
       return {
         header: tooltip?.header ? (props) => tooltip.header!(transformSlotProps(props)) : undefined,

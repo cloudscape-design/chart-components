@@ -169,9 +169,9 @@ export class ChartAPI {
   // Callbacks assigned to the tooltip.
   public onMouseEnterTooltip = this.chartExtraPointer.onMouseEnterTooltip.bind(this.chartExtraPointer);
   public onMouseLeaveTooltip = this.chartExtraPointer.onMouseLeaveTooltip.bind(this.chartExtraPointer);
-  public onDismissTooltip = (outsideClick?: boolean) => {
+  public onDismissTooltip = (outsideClick?: boolean, ignorePinned: boolean = false) => {
     const { pinned, point, group } = this.chartExtraTooltip.get();
-    if (pinned) {
+    if (ignorePinned || pinned) {
       this.chartExtraTooltip.hideTooltip();
       // The chart highlight is preserved while the tooltip is pinned. We need to clear it manually here, for the case
       // when the pointer lands outside the chart after the tooltip is dismissed, so that the mouse-out event won't fire.
