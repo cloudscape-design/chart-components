@@ -3,7 +3,8 @@
 
 import type Highcharts from "highcharts";
 
-import { ChartSeriesMarkerType } from "../internal/components/series-marker";
+// import type { SeriesOptionsType } from "highcharts";
+import { ChartSeriesMarkerStatus, ChartSeriesMarkerType } from "../internal/components/series-marker";
 import { getChartSeries } from "../internal/utils/chart-series";
 import { getFormatter } from "./formatters";
 import { ChartLabels } from "./i18n-utils";
@@ -15,6 +16,7 @@ export interface LegendItemSpec {
   markerType: ChartSeriesMarkerType;
   color: string;
   visible: boolean;
+  status?: ChartSeriesMarkerStatus;
 }
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
@@ -123,6 +125,9 @@ export function getSeriesColor(series?: Highcharts.Series): string {
 export function getPointColor(point?: Highcharts.Point): string {
   return typeof point?.color === "string" ? point.color : "black";
 }
+export function getSeriesStatus(series?: Highcharts.Series): ChartSeriesMarkerStatus | undefined {
+  return series?.userOptions.status;
+}
 
 // The custom legend implementation does not rely on the Highcharts legend. When Highcharts legend is disabled,
 // the chart object does not include information on legend items. Instead, we collect series and pie segments
@@ -151,6 +156,7 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
         markerType: getSeriesMarkerType(series),
         color: getSeriesColor(series),
         visible: series.visible,
+        status: getSeriesStatus(series),
       });
     }
   };
@@ -162,6 +168,7 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
         markerType: getSeriesMarkerType(point.series),
         color: getPointColor(point),
         visible: point.visible,
+        status: getSeriesStatus(point.series),
       });
     }
   };
