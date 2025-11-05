@@ -15,13 +15,14 @@ function randomInt(min: number, max: number) {
   return min + Math.floor(pseudoRandom() * (max - min));
 }
 
-function shuffleArray<T>(array: T[]): void {
+function shuffleArray<T>(array: T[]): T[] {
   let currentIndex = array.length;
   while (currentIndex !== 0) {
     const randomIndex = Math.floor(Math.random() * currentIndex);
     currentIndex--;
     [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
   }
+  return array;
 }
 
 const colors = [
@@ -35,20 +36,6 @@ const colors = [
   "#7798BF",
   "#AAEEEE",
   "#FF9655",
-];
-
-const dashStyles: Highcharts.DashStyleValue[] = [
-  "Dash",
-  "DashDot",
-  "Dot",
-  "LongDash",
-  "LongDashDot",
-  "LongDashDotDot",
-  "ShortDash",
-  "ShortDashDot",
-  "ShortDashDotDot",
-  "ShortDot",
-  "Solid",
 ];
 
 const baseline = [
@@ -114,30 +101,20 @@ for (let i = 0; i < 10; i++) {
   secondarySeriesData[`data${letter}`] = generateSecondaryAxisData(letter, i);
 }
 
-const series: Highcharts.SeriesOptionsType[] = [];
-
-Object.entries(primarySeriesData).forEach(([, data], index) => {
-  series.push({
-    name: data[0].name,
-    type: "line",
-    data: data,
-    yAxis: 0,
-    color: colors[index],
-  });
-});
-
-Object.entries(secondarySeriesData).forEach(([, data], index) => {
-  series.push({
-    name: data[0].name,
-    type: "line",
-    data: data,
-    yAxis: 1,
-    color: colors[index],
-    dashStyle: dashStyles[index % dashStyles.length],
-  });
-});
-
-shuffleArray(series);
+const series: Highcharts.SeriesOptionsType[] = shuffleArray(
+  [...Object.values(primarySeriesData), ...Object.values(secondarySeriesData)].map((data, index) => {
+    const name = data[0].name;
+    const isPercentage = name.startsWith("Percentage");
+    return {
+      name,
+      type: "line",
+      data: data,
+      yAxis: isPercentage ? 1 : 0,
+      color: colors[index % colors.length],
+      dashStyle: isPercentage ? "Dash" : "Solid",
+    };
+  }),
+);
 
 export default function () {
   const { chartProps } = useChartSettings();
@@ -184,32 +161,28 @@ export default function () {
         }}
         getLegendTooltipContent={({ legendItem }) => ({
           header: (
-            <div>
-              <div style={{ display: "flex" }}>
-                {legendItem.marker}
-                {legendItem.name}
-              </div>
+            <div style={{ display: "flex" }}>
+              {legendItem.marker}
+              {legendItem.name}
             </div>
           ),
           body: (
-            <>
-              <table>
-                <tbody style={{ textAlign: "left" }}>
-                  <tr>
-                    <th scope="row">Period</th>
-                    <td>15 min</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Statistic</th>
-                    <td>Average</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Unit</th>
-                    <td>Count</td>
-                  </tr>
-                </tbody>
-              </table>
-            </>
+            <table>
+              <tbody style={{ textAlign: "left" }}>
+                <tr>
+                  <th scope="row">Period</th>
+                  <td>15 min</td>
+                </tr>
+                <tr>
+                  <th scope="row">Statistic</th>
+                  <td>Average</td>
+                </tr>
+                <tr>
+                  <th scope="row">Unit</th>
+                  <td>Count</td>
+                </tr>
+              </tbody>
+            </table>
           ),
           footer: (
             <Link external={true} href="https://example.com/" variant="primary">
