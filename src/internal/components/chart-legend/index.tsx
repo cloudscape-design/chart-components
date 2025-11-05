@@ -281,7 +281,7 @@ export const ChartLegend = ({
           className={clsx(styles.list, {
             [styles["list-side"]]: isStacked,
             [styles["list-bottom"]]: !isStacked,
-            [styles["list-bottom-opposite"]]: isBottomRightNotStacked,
+            [styles["list-bottom-secondary"]]: isBottomRightNotStacked,
           })}
         >
           {actions && (

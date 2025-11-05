@@ -32,15 +32,15 @@ import { getPointAccessibleDescription, hasVisibleLegendItems } from "./utils";
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
 
-function getLegendType(options: CoreChartProps.LegendOptions, isSecondLegend: boolean = false): ChartLegendType {
+function getLegendType(options: CoreChartProps.LegendOptions, isSecondaryLegend: boolean = false): ChartLegendType {
   switch (options.type) {
     case "single":
       return options.position === "side" ? "stacked" : "bottom";
     case "dual":
       if (options.position === "side") {
-        return isSecondLegend ? "stacked-bottom" : "stacked-top";
+        return isSecondaryLegend ? "stacked-bottom" : "stacked-top";
       }
-      return isSecondLegend ? "bottom-right" : "bottom-left";
+      return isSecondaryLegend ? "bottom-right" : "bottom-left";
   }
   return "bottom";
 }
@@ -315,7 +315,7 @@ export function InternalCoreChart({
           );
         }}
         navigator={navigator}
-        firstLegend={
+        primaryLegend={
           context.legendEnabled && hasVisibleLegendItems(options) ? (
             <ChartLegend
               type={legendOptions ? getLegendType(legendOptions) : "bottom"}
@@ -328,7 +328,7 @@ export function InternalCoreChart({
             />
           ) : null
         }
-        secondLegend={
+        secondaryLegend={
           legendOptions && legendOptions.type === "dual" ? (
             <ChartLegend
               type={getLegendType(legendOptions, true)}

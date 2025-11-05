@@ -150,7 +150,7 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
     enabled: settings.showLegend,
     type: settings.legendType,
     title: settings.showLegendTitle ? "Legend title" : undefined,
-    oppositeLegendTitle: settings.showLegendTitle ? "Opposite Legend title" : undefined,
+    secondaryLegendTitle: settings.showLegendTitle ? "Secondary Legend title" : undefined,
     actions: settings.showLegendActions ? <Button variant="icon" iconName="search" /> : undefined,
     position: settings.legendPosition,
     bottomMaxHeight: settings.legendBottomMaxHeight,

@@ -28,8 +28,8 @@ interface ChartContainerProps {
   header?: React.ReactNode;
   filter?: React.ReactNode;
   navigator?: React.ReactNode;
-  firstLegend?: React.ReactNode;
-  secondLegend?: React.ReactNode;
+  primaryLegend?: React.ReactNode;
+  secondaryLegend?: React.ReactNode;
   legendBottomMaxHeight?: number;
   legendPosition: "bottom" | "side";
   footer?: React.ReactNode;
@@ -47,8 +47,8 @@ export function ChartContainer({
   header,
   filter,
   footer,
-  firstLegend,
-  secondLegend,
+  primaryLegend,
+  secondaryLegend,
   legendPosition,
   legendBottomMaxHeight,
   navigator,
@@ -81,7 +81,7 @@ export function ChartContainer({
         {filter}
       </div>
 
-      {firstLegend && legendPosition === "side" ? (
+      {primaryLegend && legendPosition === "side" ? (
         <div className={styles["chart-plot-and-legend-wrapper"]}>
           <div
             style={{ minInlineSize: chartMinWidth ?? 0 }}
@@ -96,8 +96,8 @@ export function ChartContainer({
             className={styles["side-legend-container"]}
             style={{ maxBlockSize: effectiveChartHeight }}
           >
-            {firstLegend}
-            {secondLegend}
+            {primaryLegend}
+            {secondaryLegend}
           </div>
         </div>
       ) : (
@@ -107,20 +107,20 @@ export function ChartContainer({
         >
           {verticalAxisTitle}
           {chart(effectiveChartHeight)}
-          {!firstLegend || legendPosition === "bottom" ? noData : null}
+          {!primaryLegend || legendPosition === "bottom" ? noData : null}
         </div>
       )}
 
       <div ref={refs.footer} style={chartMinWidth !== undefined ? { minInlineSize: chartMinWidth } : {}}>
         {navigator && <div className={testClasses["chart-navigator"]}>{navigator}</div>}
-        {firstLegend && legendPosition === "bottom" && (
+        {primaryLegend && legendPosition === "bottom" && (
           <div
             aria-label={"Legend"}
             className={styles["bottom-legend-container"]}
             style={{ maxBlockSize: legendBottomMaxHeight ? `${legendBottomMaxHeight}px` : undefined }}
           >
-            {firstLegend}
-            {secondLegend}
+            {primaryLegend}
+            {secondaryLegend}
           </div>
         )}
         {footer}

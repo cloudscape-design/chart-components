@@ -421,7 +421,7 @@ export namespace CoreChartProps {
     bottomMaxHeight?: number;
     type?: "single" | "dual";
     position?: "bottom" | "side";
-    oppositeLegendTitle?: string;
+    secondaryLegendTitle?: string;
   }
   export type LegendItem = InternalComponentTypes.LegendItem;
   export type LegendTooltipContent = InternalComponentTypes.LegendTooltipContent;
