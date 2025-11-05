@@ -8,8 +8,6 @@
 @use "@cloudscape-design/component-toolkit/internal/focus-visible" as focus-visible;
 @use "./motion";
 
-$legend-horizontal-padding: 40px;
-
 .root {
   @include styles.styles-reset;
   @include styles.default-text-style;
@@ -25,10 +23,6 @@ $legend-horizontal-padding: 40px;
   &:focus {
     outline: none;
   }
-}
-
-.root-bottom-dual {
-  max-width: calc(50% - #{$legend-horizontal-padding} / 2);
 }
 
 .list {

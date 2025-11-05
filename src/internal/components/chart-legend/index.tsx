@@ -243,8 +243,6 @@ export const ChartLegend = ({
     onItemHighlightExit();
   };
 
-  const isDual = type.includes("-");
-  const isBottom = type.startsWith("bottom");
   const isStacked = type.startsWith("stacked") || shouldStack;
   const isBottomRightNotStacked = type === "bottom-right" && !shouldStack;
 
@@ -264,7 +262,7 @@ export const ChartLegend = ({
       <div
         role="toolbar"
         aria-label={legendTitle || ariaLabel}
-        className={clsx(styles.root, { [styles["root-bottom-dual"]]: isDual && isBottom })}
+        className={styles.root}
         onMouseEnter={() => (isMouseInContainer.current = true)}
         onMouseLeave={() => (isMouseInContainer.current = false)}
       >
