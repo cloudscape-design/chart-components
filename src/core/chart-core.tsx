@@ -334,7 +334,7 @@ export function InternalCoreChart({
               type={getLegendType(legendOptions, true)}
               api={api}
               i18nStrings={i18nStrings}
-              title={legendOptions.title}
+              title={legendOptions.secondaryLegendTitle}
               actions={legendOptions.actions}
               onItemHighlight={onLegendItemHighlight}
               getLegendTooltipContent={rest.getLegendTooltipContent}
