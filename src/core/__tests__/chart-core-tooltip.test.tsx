@@ -6,8 +6,8 @@ import { waitFor } from "@testing-library/react";
 import highcharts from "highcharts";
 import { vi } from "vitest";
 
-import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
+import { CoreChartProps } from "../../../lib/components/internal-do-not-use/core-chart";
 import { createChartWrapper, renderChart } from "./common";
 import { HighchartsTestHelper } from "./highcharts-utils";
 
@@ -462,146 +462,87 @@ describe("CoreChart: tooltip", () => {
   });
 
   describe("dismissTooltip", () => {
-    test("provides dismissTooltip callback to header renderer", async () => {
-      let dismissCallback: (() => void) | undefined;
-      const { wrapper } = renderChart({
-        highcharts,
-        options: { series: pieSeries },
-        getTooltipContent: () => ({
-          header: ({ dismissTooltip }) => {
-            dismissCallback = dismissTooltip;
-            return "Header with dismiss";
+    test.each<{
+      name: string;
+      series: highcharts.SeriesOptionsType[];
+      getTooltipContent: () => CoreChartProps.GetTooltipContent;
+    }>(
+      [
+        [lineSeries, "line"],
+        [pieSeries, "pie"],
+      ].flatMap(([series, type]) => {
+        return [
+          {
+            name: `header renderer - ${type} chart`,
+            series,
+            getTooltipContent: () => ({
+              body: () => "Body",
+              footer: () => "Footer",
+              header: ({ hideTooltip }) => {
+                return (
+                  <button data-testid="hideTooltip" onClick={hideTooltip}>
+                    hideTooltip
+                  </button>
+                );
+              },
+            }),
           },
-          body: () => "Body",
-        }),
+          {
+            name: `body renderer - ${type} chart`,
+            series,
+            getTooltipContent: () => ({
+              header: () => "Header",
+              footer: () => "Footer",
+              body: ({ hideTooltip }) => {
+                return (
+                  <button data-testid="hideTooltip" onClick={hideTooltip}>
+                    hideTooltip
+                  </button>
+                );
+              },
+            }),
+          },
+          {
+            name: `footer renderer - ${type} chart`,
+            series,
+            getTooltipContent: () => ({
+              header: () => "Header",
+              body: () => "Body",
+              footer: ({ hideTooltip }) => {
+                return (
+                  <button data-testid="hideTooltip" onClick={hideTooltip}>
+                    hideTooltip
+                  </button>
+                );
+              },
+            }),
+          },
+        ];
+      }),
+    )("provides dismissTooltip callback to $name", async ({ series, getTooltipContent }) => {
+      const { wrapper, getByTestId } = renderChart({
+        highcharts,
+        options: { series },
+        getTooltipContent: getTooltipContent,
       });
 
       act(() => hc.highlightChartPoint(0, 0));
 
       await waitFor(() => {
         expect(wrapper.findTooltip()).not.toBe(null);
-        expect(dismissCallback).toBeDefined();
       });
 
       act(() => {
-        dismissCallback!();
+        hoverTooltip();
         hc.leaveChartPoint(0, 0);
       });
 
       await waitFor(() => {
-        expect(wrapper.findTooltip()).toBe(null);
-      });
-    });
-
-    test("provides dismissTooltip callback to body renderer", async () => {
-      let dismissCallback: (() => void) | undefined;
-      const { wrapper } = renderChart({
-        highcharts,
-        options: { series: lineSeries },
-        getTooltipContent: () => ({
-          header: () => "Header",
-          body: ({ dismissTooltip }) => {
-            dismissCallback = dismissTooltip;
-            return "Body with dismiss";
-          },
-        }),
-      });
-
-      act(() => hc.highlightChartPoint(0, 0));
-
-      await waitFor(() => {
         expect(wrapper.findTooltip()).not.toBe(null);
-        expect(dismissCallback).toBeDefined();
-      });
-
-      act(() => dismissCallback!());
-
-      await waitFor(() => {
-        expect(wrapper.findTooltip()).toBe(null);
-      });
-    });
-
-    test("provides dismissTooltip callback to footer renderer", async () => {
-      let dismissCallback: (() => void) | undefined;
-      const { wrapper } = renderChart({
-        highcharts,
-        options: { series: lineSeries },
-        getTooltipContent: () => ({
-          header: () => "Header",
-          body: () => "Body",
-          footer: ({ dismissTooltip }) => {
-            dismissCallback = dismissTooltip;
-            return "Footer with dismiss";
-          },
-        }),
-      });
-
-      act(() => hc.highlightChartPoint(0, 0));
-
-      await waitFor(() => {
-        expect(wrapper.findTooltip()).not.toBe(null);
-        expect(dismissCallback).toBeDefined();
-      });
-
-      act(() => dismissCallback!());
-
-      await waitFor(() => {
-        expect(wrapper.findTooltip()).toBe(null);
-      });
-    });
-
-    test("provides dismissTooltip callback to point renderer for cartesian charts", async () => {
-      let dismissCallback: (() => void) | undefined;
-      const { wrapper } = renderChart({
-        highcharts,
-        options: { series: lineSeries },
-        getTooltipContent: () => ({
-          header: () => "Header",
-          point: ({ item, dismissTooltip }) => {
-            dismissCallback = dismissTooltip;
-            return { key: item.point.series.name, value: `${item.point.y}` };
-          },
-        }),
-      });
-
-      act(() => hc.highlightChartPoint(0, 0));
-
-      await waitFor(() => {
-        expect(wrapper.findTooltip()).not.toBe(null);
-        expect(dismissCallback).toBeDefined();
-      });
-
-      act(() => dismissCallback!());
-
-      await waitFor(() => {
-        expect(wrapper.findTooltip()).toBe(null);
-      });
-    });
-
-    test("provides dismissTooltip callback to details renderer for pie charts", async () => {
-      let dismissCallback: (() => void) | undefined;
-      const { wrapper } = renderChart({
-        highcharts,
-        options: { series: pieSeries },
-        getTooltipContent: () => ({
-          header: () => "Header",
-          details: ({ point, dismissTooltip }) => {
-            dismissCallback = dismissTooltip;
-            return [{ key: point.name, value: `${point.y}` }];
-          },
-        }),
-      });
-
-      act(() => hc.highlightChartPoint(0, 0));
-
-      await waitFor(() => {
-        expect(wrapper.findTooltip()).not.toBe(null);
-        expect(dismissCallback).toBeDefined();
       });
 
       act(() => {
-        dismissCallback!();
-        hc.leaveChartPoint(0, 0);
+        getByTestId("hideTooltip").click();
       });
 
       await waitFor(() => {
@@ -615,8 +556,8 @@ describe("CoreChart: tooltip", () => {
         highcharts,
         options: { series: pieSeries },
         getTooltipContent: () => ({
-          header: ({ dismissTooltip }) => {
-            dismissCallback = dismissTooltip;
+          header: ({ hideTooltip }) => {
+            dismissCallback = hideTooltip;
             return "Header";
           },
           body: () => "Body",

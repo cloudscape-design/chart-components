@@ -48,9 +48,10 @@ export function renderChart({ i18nProvider, ...props }: CoreChartTestProps, Comp
       <Component options={{}} {...props} />
     );
   };
-  const { rerender } = render(<ComponentWrapper {...props} />);
+  const { rerender, getByTestId } = render(<ComponentWrapper {...props} />);
   return {
     wrapper: createChartWrapper(),
+    getByTestId,
     rerender: (props: CoreChartTestProps) => rerender(<ComponentWrapper {...props} />),
   };
 }

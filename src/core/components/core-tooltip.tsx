@@ -70,8 +70,8 @@ export function ChartTooltip({
     group: tooltip.group,
     expandedSeries,
     setExpandedSeries,
-    dismissTooltip: () => {
-      api.onDismissTooltip(false, true);
+    hideTooltip: () => {
+      api.hideTooltip();
     },
   });
   if (!content) {
@@ -120,7 +120,7 @@ function getTooltipContent(
   api: ChartAPI,
   props: CoreChartProps.GetTooltipContentProps & {
     renderers?: CoreChartProps.TooltipContentRenderer;
-    dismissTooltip: () => void;
+    hideTooltip: () => void;
   } & ExpandedSeriesStateProps,
 ): null | RenderedTooltipContent {
   if (props.point && props.point.series.type === "pie") {
@@ -140,10 +140,10 @@ function getTooltipContentCartesian(
     expandedSeries,
     renderers = {},
     setExpandedSeries,
-    dismissTooltip,
+    hideTooltip,
   }: CoreChartProps.GetTooltipContentProps & {
     renderers?: CoreChartProps.TooltipContentRenderer;
-    dismissTooltip: () => void;
+    hideTooltip: () => void;
   } & ExpandedSeriesStateProps,
 ): RenderedTooltipContent {
   // The cartesian tooltip might or might not have a selected point, but it always has a non-empty group.
@@ -159,7 +159,7 @@ function getTooltipContentCartesian(
     const customContent = renderers.point
       ? renderers.point({
           item,
-          dismissTooltip,
+          hideTooltip,
         })
       : undefined;
     return {
@@ -191,7 +191,7 @@ function getTooltipContentCartesian(
   const slotRenderProps: CoreChartProps.TooltipSlotProps = {
     x,
     items: matchedItems,
-    dismissTooltip,
+    hideTooltip: hideTooltip,
   };
   return {
     header: renderers.header?.(slotRenderProps) ?? titleFormatter(x),
@@ -221,13 +221,13 @@ function getTooltipContentPie(
   {
     point,
     renderers = {},
-    dismissTooltip,
-  }: { point: Highcharts.Point } & { renderers?: CoreChartProps.TooltipContentRenderer; dismissTooltip: () => void },
+    hideTooltip,
+  }: { point: Highcharts.Point } & { renderers?: CoreChartProps.TooltipContentRenderer; hideTooltip: () => void },
 ): RenderedTooltipContent {
   const tooltipDetails: CoreChartProps.TooltipSlotProps = {
     x: point.x,
     items: [{ point, errorRanges: [] }],
-    dismissTooltip,
+    hideTooltip,
   };
   return {
     header: renderers.header?.(tooltipDetails) ?? (
@@ -244,7 +244,7 @@ function getTooltipContentPie(
         <ChartSeriesDetails
           details={renderers.details({
             point,
-            dismissTooltip,
+            hideTooltip,
           })}
           compactList={true}
         />

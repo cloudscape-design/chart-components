@@ -169,9 +169,9 @@ export class ChartAPI {
   // Callbacks assigned to the tooltip.
   public onMouseEnterTooltip = this.chartExtraPointer.onMouseEnterTooltip.bind(this.chartExtraPointer);
   public onMouseLeaveTooltip = this.chartExtraPointer.onMouseLeaveTooltip.bind(this.chartExtraPointer);
-  public onDismissTooltip = (outsideClick?: boolean, ignorePinned: boolean = false) => {
+  public onDismissTooltip = (outsideClick?: boolean) => {
     const { pinned, point, group } = this.chartExtraTooltip.get();
-    if (ignorePinned || pinned) {
+    if (pinned) {
       this.chartExtraTooltip.hideTooltip();
       // The chart highlight is preserved while the tooltip is pinned. We need to clear it manually here, for the case
       // when the pointer lands outside the chart after the tooltip is dismissed, so that the mouse-out event won't fire.
@@ -182,6 +182,14 @@ export class ChartAPI {
         this.chartExtraNavigation.focusApplication(point, group);
       }
     }
+  };
+
+  // Hide the tooltip from an action initiated by the tooltip's content
+  public hideTooltip = () => {
+    this.chartExtraTooltip.hideTooltip();
+    // The chart highlight is preserved while the tooltip is pinned. We need to clear it manually here, for the case
+    // when the pointer lands outside the chart after the tooltip is dismissed, so that the mouse-out event won't fire.
+    this.clearChartHighlight({ isApiCall: false });
   };
 
   // Reference to the role="application" element used for navigation.
