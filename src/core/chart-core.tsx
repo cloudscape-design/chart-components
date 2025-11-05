@@ -329,7 +329,7 @@ export function InternalCoreChart({
           ) : null
         }
         secondaryLegend={
-          legendOptions && legendOptions.type === "dual" ? (
+          context.legendEnabled && legendOptions && legendOptions.type === "dual" ? (
             <ChartLegend
               type={getLegendType(legendOptions, true)}
               api={api}
