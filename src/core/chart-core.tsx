@@ -13,7 +13,6 @@ import Spinner from "@cloudscape-design/components/spinner";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import * as Styles from "../internal/chart-styles";
-import { ChartLegendType } from "../internal/components/chart-legend";
 import { castArray } from "../internal/utils/utils";
 import { useChartAPI } from "./chart-api";
 import { ChartContainer } from "./chart-container";
@@ -31,19 +30,6 @@ import { getPointAccessibleDescription, hasVisibleLegendItems } from "./utils";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
-
-function getLegendType(options: CoreChartProps.LegendOptions, isSecondaryLegend: boolean = false): ChartLegendType {
-  switch (options.type) {
-    case "single":
-      return options.position === "side" ? "stacked" : "bottom";
-    case "dual":
-      if (options.position === "side") {
-        return isSecondaryLegend ? "stacked-bottom" : "stacked-top";
-      }
-      return isSecondaryLegend ? "bottom-right" : "bottom-left";
-  }
-  return "bottom";
-}
 
 /**
  * CoreChart is the core internal abstraction that accepts the entire set of Highcharts options along
@@ -318,8 +304,9 @@ export function InternalCoreChart({
         primaryLegend={
           context.legendEnabled && hasVisibleLegendItems(options) ? (
             <ChartLegend
-              type={legendOptions ? getLegendType(legendOptions) : "bottom"}
               api={api}
+              type={legendOptions?.type === "single" ? "single" : "primary"}
+              alignment={legendOptions?.position === "side" ? "vertical" : "horizontal"}
               i18nStrings={i18nStrings}
               title={legendOptions?.title}
               actions={legendOptions?.actions}
@@ -331,8 +318,9 @@ export function InternalCoreChart({
         secondaryLegend={
           context.legendEnabled && legendOptions && legendOptions.type === "dual" ? (
             <ChartLegend
-              type={getLegendType(legendOptions, true)}
               api={api}
+              type={"secondary"}
+              alignment={legendOptions?.position === "side" ? "vertical" : "horizontal"}
               i18nStrings={i18nStrings}
               title={legendOptions.secondaryLegendTitle}
               actions={legendOptions.actions}

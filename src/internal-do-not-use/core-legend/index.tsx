@@ -16,8 +16,6 @@ export const CoreLegend = ({
   onVisibleItemsChange,
   getLegendTooltipContent,
 }: CoreLegendProps) => {
-  const type = alignment === "horizontal" ? "bottom" : "stacked";
-
   const onToggleItem = (itemId: string) => {
     const visibleItems = items.filter((i) => i.visible).map((i) => i.id);
     if (visibleItems.includes(itemId)) {
@@ -50,8 +48,9 @@ export const CoreLegend = ({
 
   return (
     <ChartLegendComponent
-      type={type}
       items={items}
+      type={"single"}
+      alignment={alignment}
       actions={actions}
       legendTitle={title}
       ariaLabel={ariaLabel}

@@ -3,39 +3,25 @@
 
 import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-use/i18n";
 
-import { ChartLegend as ChartLegendComponent, ChartLegendType } from "../../internal/components/chart-legend";
-import { LegendItem } from "../../internal/components/interfaces";
+import { ChartLegend as ChartLegendComponent } from "../../internal/components/chart-legend";
 import { fireNonCancelableEvent, NonCancelableEventHandler } from "../../internal/events";
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
 import { BaseI18nStrings, CoreChartProps } from "../interfaces";
 
-function getFilteredItems(type: ChartLegendType, items: readonly LegendItem[]) {
-  switch (type) {
-    case "bottom":
-    case "stacked":
-      return items;
-    case "bottom-left":
-    case "stacked-top":
-      return items.filter((item) => !item.oppositeAxis);
-    case "bottom-right":
-    case "stacked-bottom":
-      return items.filter((item) => item.oppositeAxis);
-  }
-  return items;
-}
-
 export function ChartLegend({
-  type,
   api,
+  type,
+  alignment,
   title,
   actions,
   i18nStrings,
   onItemHighlight,
   getLegendTooltipContent,
 }: {
-  type: ChartLegendType;
   api: ChartAPI;
+  alignment: "horizontal" | "vertical";
+  type: "single" | "primary" | "secondary";
   title?: string;
   actions?: React.ReactNode;
   i18nStrings?: BaseI18nStrings;
@@ -47,8 +33,13 @@ export function ChartLegend({
   const legendItems = useSelector(api.legendStore, (s) => s.items);
   const isChartTooltipPinned = useSelector(api.tooltipStore, (s) => s.pinned);
 
-  const filteredItems = getFilteredItems(type, legendItems);
   const someHighlighted = legendItems.some((item) => item.highlighted);
+  const filteredItems =
+    type === "single"
+      ? legendItems
+      : type === "primary"
+        ? legendItems.filter((item) => !item.oppositeAxis)
+        : legendItems.filter((item) => item.oppositeAxis);
 
   const onToggleItem = (itemId: string) => {
     const visibleItems = legendItems.filter((i) => i.visible).map((i) => i.id);
@@ -78,6 +69,7 @@ export function ChartLegend({
   return (
     <ChartLegendComponent
       type={type}
+      alignment={alignment}
       ariaLabel={ariaLabel}
       legendTitle={title}
       items={filteredItems}

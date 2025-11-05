@@ -28,12 +28,11 @@ const HIGHLIGHT_LOST_DELAY = 50;
 const SCROLL_DELAY = 100;
 const SHOULD_STACK_SIZE = 400;
 
-export type ChartLegendType = "bottom" | "stacked" | "stacked-top" | "stacked-bottom" | "bottom-left" | "bottom-right";
-
 export interface ChartLegendProps {
-  type: ChartLegendType;
   someHighlighted: boolean;
   items: readonly LegendItem[];
+  alignment: "horizontal" | "vertical";
+  type: "single" | "primary" | "secondary";
   legendTitle?: string;
   ariaLabel?: string;
   actions?: React.ReactNode;
@@ -45,8 +44,9 @@ export interface ChartLegendProps {
 }
 
 export const ChartLegend = ({
-  type,
   items,
+  type,
+  alignment,
   someHighlighted,
   legendTitle,
   ariaLabel,
@@ -57,7 +57,7 @@ export const ChartLegend = ({
   onItemHighlightExit,
   getTooltipContent,
 }: ChartLegendProps) => {
-  const [shouldStack, containerQueryRef] = useContainerQuery((rect) => rect.borderBoxWidth <= SHOULD_STACK_SIZE);
+  const [shouldAutoStack, containerQueryRef] = useContainerQuery((rect) => rect.borderBoxWidth <= SHOULD_STACK_SIZE);
   const containerRef = containerQueryRef as React.RefObject<HTMLDivElement>;
   const elementsByIndexRef = useRef<Record<number, HTMLElement>>([]);
   const elementsByIdRef = useRef<Record<string, HTMLElement>>({});
@@ -210,8 +210,8 @@ export const ChartLegend = ({
     navigationAPI.current!.updateFocusTarget();
   });
 
-  const isStacked = type.startsWith("stacked") || shouldStack;
-  const isBottomRightNotStacked = type === "bottom-right" && !shouldStack;
+  const isStacked = alignment === "vertical" || shouldAutoStack;
+  const isHorizontalSecondaryAndNotStacked = alignment === "horizontal" && type === "secondary" && !shouldAutoStack;
 
   const tooltipTrack = useRef<null | HTMLElement>(null);
   const tooltipTarget = items.find((item) => item.id === tooltipItemId) ?? null;
@@ -234,7 +234,11 @@ export const ChartLegend = ({
         onMouseLeave={() => (isMouseInContainer.current = false)}
       >
         {legendTitle && (
-          <Box fontWeight="bold" textAlign={isBottomRightNotStacked ? "right" : "left"} className={testClasses.title}>
+          <Box
+            fontWeight="bold"
+            className={testClasses.title}
+            textAlign={isHorizontalSecondaryAndNotStacked ? "right" : "left"}
+          >
             {legendTitle}
           </Box>
         )}
@@ -246,7 +250,7 @@ export const ChartLegend = ({
           className={clsx(styles.list, {
             [styles["list-side"]]: isStacked,
             [styles["list-bottom"]]: !isStacked,
-            [styles["list-bottom-secondary"]]: isBottomRightNotStacked,
+            [styles["list-bottom-secondary"]]: isHorizontalSecondaryAndNotStacked,
           })}
         >
           {actions && (
