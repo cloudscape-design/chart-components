@@ -32,23 +32,27 @@ export type ChartLegendType = "bottom" | "stacked" | "stacked-top" | "stacked-bo
 
 export interface ChartLegendProps {
   type: ChartLegendType;
+  someHighlighted: boolean;
   items: readonly LegendItem[];
   legendTitle?: string;
   ariaLabel?: string;
   actions?: React.ReactNode;
+  onToggleItem: (itemId: string) => void;
+  onSelectItem: (itemId: string) => void;
   onItemHighlightEnter: (item: LegendItem) => void;
   onItemHighlightExit: () => void;
-  onItemVisibilityChange: (hiddenItems: string[]) => void;
   getTooltipContent: (props: GetLegendTooltipContentProps) => null | LegendTooltipContent;
 }
 
 export const ChartLegend = ({
   type,
   items,
+  someHighlighted,
   legendTitle,
   ariaLabel,
   actions,
-  onItemVisibilityChange,
+  onToggleItem,
+  onSelectItem,
   onItemHighlightEnter,
   onItemHighlightExit,
   getTooltipContent,
@@ -62,21 +66,6 @@ export const ChartLegend = ({
   const scrollIntoViewControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [tooltipItemId, setTooltipItemId] = useState<string | null>(null);
-
-  const filteredItems = useMemo(() => {
-    switch (type) {
-      case "bottom":
-      case "stacked":
-        return items;
-      case "bottom-left":
-      case "stacked-top":
-        return items.filter((item) => !item.oppositeAxis);
-      case "bottom-right":
-      case "stacked-bottom":
-        return items.filter((item) => item.oppositeAxis);
-    }
-    return items;
-  }, [items, type]);
 
   const { showTooltip, hideTooltip } = useMemo(() => {
     const control = new DebouncedCall();
@@ -112,7 +101,7 @@ export const ChartLegend = ({
 
   // Scrolling to the highlighted legend item.
   useEffect(() => {
-    const highlightedIndex = filteredItems.findIndex((item) => item.highlighted);
+    const highlightedIndex = items.findIndex((item) => item.highlighted);
     if (highlightedIndex === -1) {
       return;
     }
@@ -135,10 +124,10 @@ export const ChartLegend = ({
         container.scrollTo({ top, behavior: "smooth" });
       }
     }, SCROLL_DELAY);
-  }, [containerRef, filteredItems, scrollIntoViewControl]);
+  }, [containerRef, items, scrollIntoViewControl]);
 
   const showHighlight = (itemId: string) => {
-    const item = filteredItems.find((item) => item.id === itemId);
+    const item = items.find((item) => item.id === itemId);
     if (item?.visible) {
       highlightControl.cancelPrevious();
       onItemHighlightEnter(item);
@@ -184,7 +173,7 @@ export const ChartLegend = ({
       // Preventing default fixes an issue in Safari+VO when VO additionally interprets arrow keys as its commands.
       event.preventDefault();
 
-      const range = [0, filteredItems.length - 1] as [number, number];
+      const range = [0, items.length - 1] as [number, number];
 
       handleKey(event, {
         onInlineStart: () => focusElement(circleIndex(selectedIndex - 1, range)),
@@ -192,7 +181,7 @@ export const ChartLegend = ({
         onBlockStart: () => focusElement(circleIndex(selectedIndex - 1, range)),
         onBlockEnd: () => focusElement(circleIndex(selectedIndex + 1, range)),
         onHome: () => focusElement(0),
-        onEnd: () => focusElement(filteredItems.length - 1),
+        onEnd: () => focusElement(items.length - 1),
         onEscape: () => onItemHighlightExit(),
       });
     }
@@ -221,33 +210,11 @@ export const ChartLegend = ({
     navigationAPI.current!.updateFocusTarget();
   });
 
-  const toggleItem = (itemId: string) => {
-    const visibleItems = items.filter((i) => i.visible).map((i) => i.id);
-    if (visibleItems.includes(itemId)) {
-      onItemVisibilityChange(visibleItems.filter((visibleItemId) => visibleItemId !== itemId));
-    } else {
-      onItemVisibilityChange([...visibleItems, itemId]);
-    }
-    // Needed for touch devices.
-    onItemHighlightExit();
-  };
-
-  const selectItem = (itemId: string) => {
-    const visibleItems = items.filter((i) => i.visible).map((i) => i.id);
-    if (visibleItems.length === 1 && visibleItems[0] === itemId) {
-      onItemVisibilityChange(items.map((i) => i.id));
-    } else {
-      onItemVisibilityChange([itemId]);
-    }
-    // Needed for touch devices.
-    onItemHighlightExit();
-  };
-
   const isStacked = type.startsWith("stacked") || shouldStack;
   const isBottomRightNotStacked = type === "bottom-right" && !shouldStack;
 
   const tooltipTrack = useRef<null | HTMLElement>(null);
-  const tooltipTarget = filteredItems.find((item) => item.id === tooltipItemId) ?? null;
+  const tooltipTarget = items.find((item) => item.id === tooltipItemId) ?? null;
   tooltipTrack.current = tooltipItemId ? elementsByIdRef.current[tooltipItemId] : null;
   const tooltipContent = tooltipTarget && getTooltipContent({ legendItem: tooltipTarget });
   const tooltipPosition = isStacked ? "left" : "bottom";
@@ -298,7 +265,7 @@ export const ChartLegend = ({
               />
             </div>
           )}
-          {filteredItems.map((item, index) => {
+          {items.map((item, index) => {
             const handlers = {
               onMouseEnter: () => {
                 showHighlight(item.id);
@@ -332,13 +299,13 @@ export const ChartLegend = ({
                 ref={thisTriggerRef}
                 onClick={(event) => {
                   if (event.metaKey || event.ctrlKey) {
-                    toggleItem(item.id);
+                    onToggleItem(item.id);
                   } else {
-                    selectItem(item.id);
+                    onSelectItem(item.id);
                   }
                 }}
                 isHighlighted={item.highlighted}
-                someHighlighted={items.some((item) => item.highlighted)}
+                someHighlighted={someHighlighted}
                 itemId={item.id}
                 label={item.name}
                 visible={item.visible}
