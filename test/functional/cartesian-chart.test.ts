@@ -14,8 +14,8 @@ test(
   "pins chart tooltip after hovering chart point and then chart point group",
   setupTest("#/01-cartesian-chart/column-chart-test", async (page) => {
     const chart = w.findCartesianHighcharts('[data-testid="grouped-column-chart"]');
-    const point = chart.find('[aria-label="Jul 2019 6.32K, Prev costs"]');
-    const expectedTooltipContent = ["Jul 2019\nCosts\n8.77K\nPrev costs\n6.32K"];
+    const point = chart.find('[aria-label="Jul 2019 6.322K, Prev costs"]');
+    const expectedTooltipContent = ["Jul 2019\nCosts\n8.768K\nPrev costs\n6.322K"];
 
     const pointBox = await page.getBoundingBox(point.toSelector());
     const pointCenter = [pointBox.left + pointBox.width / 2, pointBox.top + pointBox.height / 2];
