@@ -254,20 +254,13 @@ export const ChartLegend = ({
           })}
         >
           {actions && (
-            <div
-              className={clsx(testClasses.actions, styles.actions, {
-                [styles["actions-side"]]: isStacked,
-                [styles["actions-bottom"]]: !isStacked,
-              })}
-            >
-              {actions}
-              <div
-                className={clsx({
-                  [styles["actions-divider-side"]]: isStacked,
-                  [styles["actions-divider-bottom"]]: !isStacked,
-                })}
-              />
-            </div>
+            <>
+              <div className={clsx(testClasses.actions, styles.actions, styles["actions-bottom"])}>
+                {actions}
+                {!isStacked && <div className={styles["actions-divider-bottom"]} />}
+              </div>
+              {isStacked && <div className={styles["actions-divider-side"]} />}
+            </>
           )}
           {items.map((item, index) => {
             const handlers = {
