@@ -11,6 +11,9 @@ describe("ChartSeriesMarker", () => {
   const defaultProps = {
     type: "line",
     color: "#0073bb",
+    i18nStrings: {
+      seriesStatusWarningAriaLabel: "warning",
+    },
   } satisfies ComponentProps<typeof ChartSeriesMarker>;
 
   describe("Warning SVG display", () => {
@@ -28,6 +31,13 @@ describe("ChartSeriesMarker", () => {
 
       // Should have two SVGs: marker + warning
       expect(svgs).toHaveLength(2);
+    });
+
+    test("renders warning SVG with correct aria-label", () => {
+      const { container } = render(<ChartSeriesMarker {...defaultProps} status="warning" />);
+      const warningSvg = container.querySelector("svg[aria-label='warning']");
+
+      expect(warningSvg).toBeTruthy();
     });
   });
 });

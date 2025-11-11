@@ -3,8 +3,8 @@
 
 import type Highcharts from "highcharts";
 
-// import type { SeriesOptionsType } from "highcharts";
-import { ChartSeriesMarkerStatus, ChartSeriesMarkerType } from "../internal/components/series-marker";
+import { ChartSeriesMarkerType } from "../internal/components/series-marker";
+import { ChartSeriesMarkerStatus } from "../internal/components/series-marker/interfaces";
 import { getChartSeries } from "../internal/utils/chart-series";
 import { getFormatter } from "./formatters";
 import { ChartLabels } from "./i18n-utils";
