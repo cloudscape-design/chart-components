@@ -11,3 +11,9 @@ export type ChartSeriesMarkerType =
   | "triangle"
   | "triangle-down"
   | "circle";
+
+export type ChartSeriesMarkerStatus = "warning";
+
+export type ChartSeriesMarkerI18n = Partial<{
+  seriesStatusWarningAriaLabel: string;
+}>;

@@ -3,9 +3,10 @@
 
 import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-use/i18n";
 
+import { ChartSeriesMarkerI18n } from "../internal/components/series-marker/interfaces";
 import { CoreChartProps } from "./interfaces";
 
-export interface ChartLabels {
+export interface ChartLabels extends ChartSeriesMarkerI18n {
   chartLabel?: string;
   chartDescription?: string;
   chartContainerLabel?: string;
@@ -22,7 +23,7 @@ export function useChartI18n({
   ariaLabel?: string;
   ariaDescription?: string;
   i18nStrings?: CoreChartProps.I18nStrings;
-}) {
+}): ChartLabels {
   const i18n = useInternalI18n("[charts]");
   const i18nPie = useInternalI18n("pie-chart");
   return {

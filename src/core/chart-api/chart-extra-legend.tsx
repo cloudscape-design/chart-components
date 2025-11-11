@@ -3,11 +3,8 @@
 
 import type Highcharts from "highcharts";
 
-import {
-  ChartSeriesMarker,
-  ChartSeriesMarkerStatus,
-  ChartSeriesMarkerType,
-} from "../../internal/components/series-marker";
+import { ChartSeriesMarker, ChartSeriesMarkerType } from "../../internal/components/series-marker";
+import { ChartSeriesMarkerStatus } from "../../internal/components/series-marker/interfaces";
 import { fireNonCancelableEvent } from "../../internal/events";
 import AsyncStore from "../../internal/utils/async-store";
 import { getChartSeries } from "../../internal/utils/chart-series";
@@ -119,7 +116,13 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
   ): React.ReactNode {
     const key = `${type}:${color}:${visible}`;
     const marker = this.markersCache.get(key) ?? (
-      <ChartSeriesMarker type={type} color={color} visible={visible} status={status} />
+      <ChartSeriesMarker
+        type={type}
+        color={color}
+        visible={visible}
+        status={status}
+        i18nStrings={this.context.settings.labels}
+      />
     );
     this.markersCache.set(key, marker);
     return marker;
