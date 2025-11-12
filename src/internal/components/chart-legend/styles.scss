@@ -57,6 +57,13 @@
   flex-direction: row;
   max-inline-size: 100%;
   gap: cs.$space-scaled-xxs cs.$space-static-m;
+
+  &.legend-bottom-start {
+    justify-content: start;
+  }
+  &.legend-bottom-center {
+    justify-content: center;
+  }
 }
 
 .legend-title-start {

@@ -289,6 +289,7 @@ export const ChartLegend = ({
           )}
           <div
             className={clsx({
+              [styles[`legend-bottom-${horizontalAlignment}`]]: position === "bottom",
               [styles["legend-bottom"]]: position === "bottom",
               [styles["legend-side"]]: position === "side",
             })}

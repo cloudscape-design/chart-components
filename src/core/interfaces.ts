@@ -421,7 +421,7 @@ export namespace CoreChartProps {
     bottomMaxHeight?: number;
     position?: "bottom" | "side";
     /**
-     * When {@link position} is set to "bottom", horizontalAlignment sets the legend horizontal alignment.
+     * This property only applies when `position="bottom"`.
      */
     horizontalAlignment?: LegendOptionsHorizontalAlignment;
   }
