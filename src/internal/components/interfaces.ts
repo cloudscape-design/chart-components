@@ -7,7 +7,7 @@ export interface LegendItem {
   marker: React.ReactNode;
   visible: boolean;
   highlighted: boolean;
-  oppositeAxis?: boolean;
+  isSecondary?: boolean;
 }
 
 export type GetLegendTooltipContent = (props: GetLegendTooltipContentProps) => LegendTooltipContent;

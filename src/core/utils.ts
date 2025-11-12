@@ -15,7 +15,7 @@ export interface LegendItemSpec {
   markerType: ChartSeriesMarkerType;
   color: string;
   visible: boolean;
-  oppositeAxis: boolean;
+  isSecondary: boolean;
 }
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
@@ -152,11 +152,11 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
         markerType: getSeriesMarkerType(series),
         color: getSeriesColor(series),
         visible: series.visible,
-        oppositeAxis: series.yAxis.options.opposite ?? false,
+        isSecondary: series.yAxis.options.opposite ?? false,
       });
     }
   };
-  const addPointItem = (point: Highcharts.Point, oppositeAxis: boolean) => {
+  const addPointItem = (point: Highcharts.Point, isSecondary: boolean) => {
     if (point.series.type === "pie") {
       legendItems.push({
         id: getPointId(point),
@@ -164,14 +164,14 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
         markerType: getSeriesMarkerType(point.series),
         color: getPointColor(point),
         visible: point.visible,
-        oppositeAxis,
+        isSecondary,
       });
     }
   };
   for (const s of getChartSeries(chart.series)) {
     addSeriesItem(s);
-    const oppositeAxis = s.yAxis.options.opposite ?? false;
-    s.data.forEach((p) => addPointItem(p, oppositeAxis));
+    const isSecondary = s.yAxis.options.opposite ?? false;
+    s.data.forEach((p) => addPointItem(p, isSecondary));
   }
   return legendItems;
 }

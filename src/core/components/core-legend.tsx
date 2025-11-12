@@ -38,8 +38,8 @@ export function ChartLegend({
     type === "single"
       ? legendItems
       : type === "primary"
-        ? legendItems.filter((item) => !item.oppositeAxis)
-        : legendItems.filter((item) => item.oppositeAxis);
+        ? legendItems.filter((item) => !item.isSecondary)
+        : legendItems.filter((item) => item.isSecondary);
 
   const onToggleItem = (itemId: string) => {
     const visibleItems = legendItems.filter((i) => i.visible).map((i) => i.id);
