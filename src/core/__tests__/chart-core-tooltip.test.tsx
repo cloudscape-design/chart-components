@@ -520,7 +520,7 @@ describe("CoreChart: tooltip", () => {
         ];
       }),
     )("provides dismissTooltip callback to $name", async ({ series, getTooltipContent }) => {
-      const { wrapper, getByTestId } = renderChart({
+      const { wrapper } = renderChart({
         highcharts,
         options: { series },
         getTooltipContent: getTooltipContent,
@@ -542,7 +542,7 @@ describe("CoreChart: tooltip", () => {
       });
 
       act(() => {
-        getByTestId("hideTooltip").click();
+        wrapper.findTooltip()!.find(`[data-testid="hideTooltip"]`).click();
       });
 
       await waitFor(() => {
