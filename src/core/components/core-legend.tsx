@@ -17,11 +17,13 @@ export function ChartLegend({
   i18nStrings,
   onItemHighlight,
   getLegendTooltipContent,
+  horizontalAlignment = "start",
 }: {
   api: ChartAPI;
   title?: string;
   actions?: React.ReactNode;
   position: "bottom" | "side";
+  horizontalAlignment?: CoreChartProps.LegendOptionsHorizontalAlignment;
   i18nStrings?: BaseI18nStrings;
   onItemHighlight?: NonCancelableEventHandler<CoreChartProps.LegendItemHighlightDetail>;
   getLegendTooltipContent?: CoreChartProps.GetLegendTooltipContent;
@@ -39,6 +41,7 @@ export function ChartLegend({
       ariaLabel={ariaLabel}
       legendTitle={title}
       items={legendItems}
+      horizontalAlignment={horizontalAlignment}
       actions={actions}
       position={position}
       onItemVisibilityChange={api.onItemVisibilityChange}

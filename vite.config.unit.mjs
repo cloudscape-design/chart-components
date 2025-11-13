@@ -1,6 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import path from "path";
+import { fileURLToPath } from "url";
 import { defineConfig } from "vite";
 
 import base from "./vite.config.mjs";
@@ -9,6 +11,11 @@ import base from "./vite.config.mjs";
 export default defineConfig({
   ...base,
   root: "./",
+  resolve: {
+    alias: {
+      "@lib": path.resolve(path.dirname(fileURLToPath(import.meta.url)), "lib"),
+    },
+  },
   test: {
     include: ["./src/**/__tests__/**/*.test.{ts,tsx}"],
     environment: "jsdom",

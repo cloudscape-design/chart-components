@@ -420,7 +420,14 @@ export namespace CoreChartProps {
   export interface LegendOptions extends BaseLegendOptions {
     bottomMaxHeight?: number;
     position?: "bottom" | "side";
+    /**
+     * This property only applies when `position="bottom"`.
+     */
+    horizontalAlignment?: LegendOptionsHorizontalAlignment;
   }
+
+  export type LegendOptionsHorizontalAlignment = "start" | "center";
+
   export type LegendItem = InternalComponentTypes.LegendItem;
   export type LegendTooltipContent = InternalComponentTypes.LegendTooltipContent;
   export type GetLegendTooltipContent = InternalComponentTypes.GetLegendTooltipContent;
@@ -488,6 +495,7 @@ export interface CoreLegendProps {
   ariaLabel?: string;
   actions?: React.ReactNode;
   alignment?: "horizontal" | "vertical";
+  horizontalAlignment?: CoreChartProps.LegendOptionsHorizontalAlignment;
   onClearHighlight?: NonCancelableEventHandler;
   onItemHighlight?: NonCancelableEventHandler<CoreLegendProps.ItemHighlightDetail>;
   onVisibleItemsChange?: NonCancelableEventHandler<CoreLegendProps.VisibleItemsChangeDetail>;
