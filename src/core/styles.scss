@@ -114,7 +114,7 @@ $side-legend-min-inline-size: max(20%, 150px);
 
 .bottom-legend-container {
   display: flex;
-  overflow: hidden;
+  overflow: auto;
   gap: cs.$space-scaled-xxl;
   justify-content: space-between;
 }
