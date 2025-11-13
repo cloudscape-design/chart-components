@@ -16,7 +16,31 @@ export const CoreLegend = ({
   onVisibleItemsChange,
   getLegendTooltipContent,
 }: CoreLegendProps) => {
-  const position = alignment === "horizontal" ? "bottom" : "side";
+  const onToggleItem = (itemId: string) => {
+    const visibleItems = items.filter((i) => i.visible).map((i) => i.id);
+    if (visibleItems.includes(itemId)) {
+      fireNonCancelableEvent(onVisibleItemsChange, {
+        items: visibleItems.filter((visibleItemId) => visibleItemId !== itemId),
+      });
+    } else {
+      fireNonCancelableEvent(onVisibleItemsChange, {
+        items: [...visibleItems, itemId],
+      });
+    }
+    // Needed for touch devices.
+    fireNonCancelableEvent(onClearHighlight);
+  };
+
+  const onSelectItem = (itemId: string) => {
+    const visibleItems = items.filter((i) => i.visible).map((i) => i.id);
+    if (visibleItems.length === 1 && visibleItems[0] === itemId) {
+      fireNonCancelableEvent(onVisibleItemsChange, { items: items.map((i) => i.id) });
+    } else {
+      fireNonCancelableEvent(onVisibleItemsChange, { items: [itemId] });
+    }
+    // Needed for touch devices.
+    fireNonCancelableEvent(onClearHighlight);
+  };
 
   if (items.length === 0) {
     return null;
@@ -25,14 +49,17 @@ export const CoreLegend = ({
   return (
     <ChartLegendComponent
       items={items}
+      type={"single"}
+      alignment={alignment}
       actions={actions}
       legendTitle={title}
-      position={position}
       ariaLabel={ariaLabel}
+      someHighlighted={items.some((item) => item.highlighted)}
       getTooltipContent={(props) => getLegendTooltipContent?.(props) ?? null}
+      onToggleItem={onToggleItem}
+      onSelectItem={onSelectItem}
       onItemHighlightExit={() => fireNonCancelableEvent(onClearHighlight)}
       onItemHighlightEnter={(item) => fireNonCancelableEvent(onItemHighlight, { item })}
-      onItemVisibilityChange={(items) => fireNonCancelableEvent(onVisibleItemsChange, { items })}
     />
   );
 };

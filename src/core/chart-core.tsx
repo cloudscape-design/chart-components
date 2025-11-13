@@ -301,13 +301,29 @@ export function InternalCoreChart({
           );
         }}
         navigator={navigator}
-        legend={
+        primaryLegend={
           context.legendEnabled && hasVisibleLegendItems(options) ? (
             <ChartLegend
-              {...legendOptions}
-              position={legendPosition}
               api={api}
+              type={legendOptions?.type === "single" ? "single" : "primary"}
+              alignment={legendOptions?.position === "side" ? "vertical" : "horizontal"}
               i18nStrings={i18nStrings}
+              title={legendOptions?.title}
+              actions={legendOptions?.actions}
+              onItemHighlight={onLegendItemHighlight}
+              getLegendTooltipContent={rest.getLegendTooltipContent}
+            />
+          ) : null
+        }
+        secondaryLegend={
+          context.legendEnabled && legendOptions && legendOptions.type === "dual" ? (
+            <ChartLegend
+              api={api}
+              type={"secondary"}
+              alignment={legendOptions?.position === "side" ? "vertical" : "horizontal"}
+              i18nStrings={i18nStrings}
+              title={legendOptions.secondaryLegendTitle}
+              actions={legendOptions.secondaryLegendActions}
               onItemHighlight={onLegendItemHighlight}
               getLegendTooltipContent={rest.getLegendTooltipContent}
             />

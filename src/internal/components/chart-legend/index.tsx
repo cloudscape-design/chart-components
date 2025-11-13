@@ -4,6 +4,7 @@
 import { forwardRef, Ref, useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 
+import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import {
   circleIndex,
   handleKey,
@@ -25,31 +26,39 @@ import testClasses from "./test-classes/styles.css.js";
 const TOOLTIP_BLUR_DELAY = 50;
 const HIGHLIGHT_LOST_DELAY = 50;
 const SCROLL_DELAY = 100;
+const SHOULD_STACK_SIZE = 400;
 
 export interface ChartLegendProps {
+  someHighlighted: boolean;
   items: readonly LegendItem[];
+  alignment: "horizontal" | "vertical";
+  type: "single" | "primary" | "secondary";
   legendTitle?: string;
   ariaLabel?: string;
   actions?: React.ReactNode;
-  position: "bottom" | "side";
+  onToggleItem: (itemId: string) => void;
+  onSelectItem: (itemId: string) => void;
   onItemHighlightEnter: (item: LegendItem) => void;
   onItemHighlightExit: () => void;
-  onItemVisibilityChange: (hiddenItems: string[]) => void;
   getTooltipContent: (props: GetLegendTooltipContentProps) => null | LegendTooltipContent;
 }
 
 export const ChartLegend = ({
   items,
+  type,
+  alignment,
+  someHighlighted,
   legendTitle,
   ariaLabel,
   actions,
-  position,
-  onItemVisibilityChange,
+  onToggleItem,
+  onSelectItem,
   onItemHighlightEnter,
   onItemHighlightExit,
   getTooltipContent,
 }: ChartLegendProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [shouldAutoStack, containerQueryRef] = useContainerQuery((rect) => rect.borderBoxWidth <= SHOULD_STACK_SIZE);
+  const containerRef = containerQueryRef as React.RefObject<HTMLDivElement>;
   const elementsByIndexRef = useRef<Record<number, HTMLElement>>([]);
   const elementsByIdRef = useRef<Record<string, HTMLElement>>({});
   const tooltipRef = useRef<HTMLElement>(null);
@@ -57,6 +66,7 @@ export const ChartLegend = ({
   const scrollIntoViewControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [tooltipItemId, setTooltipItemId] = useState<string | null>(null);
+
   const { showTooltip, hideTooltip } = useMemo(() => {
     const control = new DebouncedCall();
     return {
@@ -114,7 +124,7 @@ export const ChartLegend = ({
         container.scrollTo({ top, behavior: "smooth" });
       }
     }, SCROLL_DELAY);
-  }, [items, scrollIntoViewControl]);
+  }, [containerRef, items, scrollIntoViewControl]);
 
   const showHighlight = (itemId: string) => {
     const item = items.find((item) => item.id === itemId);
@@ -200,33 +210,14 @@ export const ChartLegend = ({
     navigationAPI.current!.updateFocusTarget();
   });
 
-  const toggleItem = (itemId: string) => {
-    const visibleItems = items.filter((i) => i.visible).map((i) => i.id);
-    if (visibleItems.includes(itemId)) {
-      onItemVisibilityChange(visibleItems.filter((visibleItemId) => visibleItemId !== itemId));
-    } else {
-      onItemVisibilityChange([...visibleItems, itemId]);
-    }
-    // Needed for touch devices.
-    onItemHighlightExit();
-  };
-
-  const selectItem = (itemId: string) => {
-    const visibleItems = items.filter((i) => i.visible).map((i) => i.id);
-    if (visibleItems.length === 1 && visibleItems[0] === itemId) {
-      onItemVisibilityChange(items.map((i) => i.id));
-    } else {
-      onItemVisibilityChange([itemId]);
-    }
-    // Needed for touch devices.
-    onItemHighlightExit();
-  };
+  const isStacked = alignment === "vertical" || shouldAutoStack;
+  const isHorizontalSecondaryAndNotStacked = alignment === "horizontal" && type === "secondary" && !shouldAutoStack;
 
   const tooltipTrack = useRef<null | HTMLElement>(null);
   const tooltipTarget = items.find((item) => item.id === tooltipItemId) ?? null;
   tooltipTrack.current = tooltipItemId ? elementsByIdRef.current[tooltipItemId] : null;
   const tooltipContent = tooltipTarget && getTooltipContent({ legendItem: tooltipTarget });
-  const tooltipPosition = position === "bottom" ? "bottom" : "left";
+  const tooltipPosition = isStacked ? "left" : "bottom";
 
   return (
     <SingleTabStopNavigationProvider
@@ -236,103 +227,89 @@ export const ChartLegend = ({
       onUnregisterActive={(element: HTMLElement) => onUnregisterActive(element, navigationAPI)}
     >
       <div
-        ref={containerRef}
         role="toolbar"
         aria-label={legendTitle || ariaLabel}
-        className={clsx(testClasses.root, styles.root, {
-          [styles["root-side"]]: position === "side",
-        })}
+        className={styles.root}
         onMouseEnter={() => (isMouseInContainer.current = true)}
         onMouseLeave={() => (isMouseInContainer.current = false)}
       >
         {legendTitle && (
-          <Box fontWeight="bold" className={testClasses.title}>
+          <Box
+            fontWeight="bold"
+            className={testClasses.title}
+            textAlign={isHorizontalSecondaryAndNotStacked ? "right" : "left"}
+          >
             {legendTitle}
           </Box>
         )}
-
         <div
           // The list element is not focusable. However, the focus lands on it regardless, when testing in Firefox.
           // Setting the tab index to -1 does fix the problem.
           tabIndex={-1}
+          ref={containerRef}
           className={clsx(styles.list, {
-            [styles["list-bottom"]]: position === "bottom",
-            [styles["list-side"]]: position === "side",
+            [styles["list-side"]]: isStacked,
+            [styles["list-bottom"]]: !isStacked,
+            [styles["list-bottom-secondary"]]: isHorizontalSecondaryAndNotStacked,
           })}
         >
           {actions && (
             <>
-              <div
-                className={clsx(testClasses.actions, styles.actions, {
-                  [styles["actions-bottom"]]: position === "bottom",
-                  [styles["actions-side"]]: position === "side",
-                })}
-              >
+              <div className={clsx(testClasses.actions, styles.actions, styles["actions-bottom"])}>
                 {actions}
-                <div
-                  className={clsx(styles["actions-divider"], {
-                    [styles["actions-divider-bottom"]]: position === "bottom",
-                    [styles["actions-divider-side"]]: position === "side",
-                  })}
-                />
+                {!isStacked && <div className={styles["actions-divider-bottom"]} />}
               </div>
+              {isStacked && <div className={styles["actions-divider-side"]} />}
             </>
           )}
-          <div
-            className={clsx({
-              [styles["legend-bottom"]]: position === "bottom",
-              [styles["legend-side"]]: position === "side",
-            })}
-          >
-            {items.map((item, index) => {
-              const handlers = {
-                onMouseEnter: () => {
-                  showHighlight(item.id);
-                  showTooltip(item.id);
-                },
-                onMouseLeave: () => {
-                  clearHighlight();
-                  hideTooltip();
-                },
-                onFocus: () => {
-                  onFocus(index, item.id);
-                },
-                onBlur: (event: React.FocusEvent) => {
-                  onBlur(event);
-                },
-                onKeyDown,
-              };
-              const thisTriggerRef = (elem: null | HTMLElement) => {
-                if (elem) {
-                  elementsByIndexRef.current[index] = elem;
-                  elementsByIdRef.current[item.id] = elem;
-                } else {
-                  delete elementsByIndexRef.current[index];
-                  delete elementsByIdRef.current[index];
-                }
-              };
-              return (
-                <LegendItemTrigger
-                  key={index}
-                  {...handlers}
-                  ref={thisTriggerRef}
-                  onClick={(event) => {
-                    if (event.metaKey || event.ctrlKey) {
-                      toggleItem(item.id);
-                    } else {
-                      selectItem(item.id);
-                    }
-                  }}
-                  isHighlighted={item.highlighted}
-                  someHighlighted={items.some((item) => item.highlighted)}
-                  itemId={item.id}
-                  label={item.name}
-                  visible={item.visible}
-                  marker={item.marker}
-                />
-              );
-            })}
-          </div>
+          {items.map((item, index) => {
+            const handlers = {
+              onMouseEnter: () => {
+                showHighlight(item.id);
+                showTooltip(item.id);
+              },
+              onMouseLeave: () => {
+                clearHighlight();
+                hideTooltip();
+              },
+              onFocus: () => {
+                onFocus(index, item.id);
+              },
+              onBlur: (event: React.FocusEvent) => {
+                onBlur(event);
+              },
+              onKeyDown,
+            };
+            const thisTriggerRef = (elem: null | HTMLElement) => {
+              if (elem) {
+                elementsByIndexRef.current[index] = elem;
+                elementsByIdRef.current[item.id] = elem;
+              } else {
+                delete elementsByIndexRef.current[index];
+                delete elementsByIdRef.current[item.id];
+              }
+            };
+            return (
+              <LegendItemTrigger
+                key={index}
+                {...handlers}
+                ref={thisTriggerRef}
+                onClick={(event) => {
+                  if (event.metaKey || event.ctrlKey) {
+                    onToggleItem(item.id);
+                  } else {
+                    onSelectItem(item.id);
+                  }
+                }}
+                isHighlighted={item.highlighted}
+                someHighlighted={someHighlighted}
+                itemId={item.id}
+                label={item.name}
+                visible={item.visible}
+                marker={item.marker}
+              />
+            );
+          })}
         </div>
         {tooltipContent && (
           <InternalChartTooltip
