@@ -323,7 +323,7 @@ export function InternalCoreChart({
               alignment={legendOptions?.position === "side" ? "vertical" : "horizontal"}
               i18nStrings={i18nStrings}
               title={legendOptions.secondaryLegendTitle}
-              actions={legendOptions.actions}
+              actions={legendOptions.secondaryLegendActions}
               onItemHighlight={onLegendItemHighlight}
               getLegendTooltipContent={rest.getLegendTooltipContent}
             />

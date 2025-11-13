@@ -422,6 +422,7 @@ export namespace CoreChartProps {
     type?: "single" | "dual";
     position?: "bottom" | "side";
     secondaryLegendTitle?: string;
+    secondaryLegendActions?: React.ReactNode;
   }
   export type LegendItem = InternalComponentTypes.LegendItem;
   export type LegendTooltipContent = InternalComponentTypes.LegendTooltipContent;
