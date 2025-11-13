@@ -534,7 +534,6 @@ describe("CoreChart: tooltip", () => {
 
       act(() => {
         hoverTooltip();
-        hc.leaveChartPoint(0, 0);
       });
 
       await waitFor(() => {
@@ -581,7 +580,6 @@ describe("CoreChart: tooltip", () => {
       });
 
       act(() => {
-        hc.leaveChartPoint(0, 0);
         dismissCallback!();
       });
 
