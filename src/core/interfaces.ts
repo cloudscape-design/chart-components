@@ -458,14 +458,17 @@ export namespace CoreChartProps {
   }
   export interface TooltipPointProps {
     item: TooltipContentItem;
+    hideTooltip: () => void;
   }
   export interface TooltipSlotProps {
     x: number;
     items: TooltipContentItem[];
+    hideTooltip: () => void;
   }
 
   export interface TooltipDetailsProps {
     point: Highcharts.Point;
+    hideTooltip: () => void;
   }
 
   export type TooltipDetail = BaseTooltipDetail;
