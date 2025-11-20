@@ -178,6 +178,11 @@ Supported Highcharts versions: 12.",
             "type": "string",
           },
           {
+            "name": "seriesStatusWarningAriaLabel",
+            "optional": false,
+            "type": "string",
+          },
+          {
             "name": "xAxisRoleDescription",
             "optional": true,
             "type": "string",
@@ -828,6 +833,11 @@ Supported Highcharts versions: 12.",
           {
             "name": "seriesFilterSelectedAriaLabel",
             "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "seriesStatusWarningAriaLabel",
+            "optional": false,
             "type": "string",
           },
         ],

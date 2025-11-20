@@ -4,6 +4,7 @@
 import type Highcharts from "highcharts";
 
 import type * as InternalComponentTypes from "../internal/components/interfaces";
+import { ChartSeriesMarkerI18n } from "../internal/components/series-marker/interfaces";
 import { type NonCancelableEventHandler } from "../internal/events";
 
 // All charts take `highcharts` instance, that can be served statically or dynamically.
@@ -113,7 +114,7 @@ export interface BaseTooltipDetail {
   value: React.ReactNode;
 }
 
-export interface BaseI18nStrings {
+export interface BaseI18nStrings extends ChartSeriesMarkerI18n {
   loadingText?: string;
   errorText?: string;
   recoveryText?: string;
@@ -142,6 +143,7 @@ export interface WithCartesianI18nStrings {
    * * `chartRoleDescription` (optional, string) - Accessible role description of the chart plot area, e.g. "interactive chart".
    * * `xAxisRoleDescription` (optional, string) - Accessible role description of the x axis, e.g. "x axis".
    * * `yAxisRoleDescription` (optional, string) - Accessible role description of the y axis, e.g. "y axis".
+   * * `seriesStatusWarningAriaLabel` (optional, string) - ARIA label for series with status warning, e.g. "warning".
    */
   i18nStrings?: CartesianI18nStrings;
 }
@@ -162,6 +164,7 @@ export interface WithPieI18nStrings {
    * * `detailPopoverDismissAriaLabel` (optional, string) - ARIA label for the details popover dismiss button.
    * * `chartRoleDescription` (optional, string) - Accessible role description of the chart plot area, e.g. "interactive chart".
    * * `segmentRoleDescription` (optional, string) - Accessible role description of the segment.
+   * * `seriesStatusWarningAriaLabel` (optional, string) - ARIA label for series with status warning, e.g. "warning".
    */
   i18nStrings?: PieI18nStrings;
 }
