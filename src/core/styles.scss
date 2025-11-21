@@ -112,9 +112,19 @@ $side-legend-min-inline-size: max(20%, 150px);
   flex: 1;
 }
 
+.bottom-legend-container {
+  display: flex;
+  overflow: auto;
+  gap: cs.$space-scaled-xxl;
+  justify-content: space-between;
+}
+
 .side-legend-container {
   flex: 0;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: cs.$space-scaled-s;
+  margin-inline-start: cs.$space-scaled-s;
   max-inline-size: $side-legend-max-inline-size;
   min-inline-size: $side-legend-min-inline-size;
 }
