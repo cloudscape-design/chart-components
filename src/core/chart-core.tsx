@@ -26,7 +26,7 @@ import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
 import { getFormatter } from "./formatters";
 import { useChartI18n } from "./i18n-utils";
 import { CoreChartProps } from "./interfaces";
-import { getPointAccessibleDescription, hasVisibleLegendItems } from "./utils";
+import { getPointAccessibleDescription, hasVisibleLegendItems, hasVisibleSecondaryLegendItems } from "./utils";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -114,6 +114,7 @@ export function InternalCoreChart({
   const apiOptions = api.getOptions();
   const inverted = !!options.chart?.inverted;
   const isRtl = () => getIsRtl(rootRef?.current);
+  const visibleSecondaryItems = hasVisibleSecondaryLegendItems(options);
   return (
     <div {...rootProps}>
       <ChartContainer
@@ -301,13 +302,35 @@ export function InternalCoreChart({
           );
         }}
         navigator={navigator}
-        legend={
+        primaryLegend={
           context.legendEnabled && hasVisibleLegendItems(options) ? (
             <ChartLegend
-              {...legendOptions}
-              position={legendPosition}
               api={api}
+              items={"primary"}
               i18nStrings={i18nStrings}
+              title={legendOptions?.title}
+              actions={legendOptions?.actions}
+              alignment={legendOptions?.position === "side" ? "vertical" : "horizontal"}
+              horizontalAlignment={
+                !visibleSecondaryItems && (legendOptions?.position ?? "bottom") === "bottom"
+                  ? legendOptions?.horizontalAlignment
+                  : "start"
+              }
+              onItemHighlight={onLegendItemHighlight}
+              getLegendTooltipContent={rest.getLegendTooltipContent}
+            />
+          ) : null
+        }
+        secondaryLegend={
+          context.legendEnabled && visibleSecondaryItems ? (
+            <ChartLegend
+              api={api}
+              items={"secondary"}
+              i18nStrings={i18nStrings}
+              title={legendOptions?.secondaryLegendTitle}
+              actions={legendOptions?.secondaryLegendActions}
+              alignment={legendOptions?.position === "side" ? "vertical" : "horizontal"}
+              horizontalAlignment={legendOptions?.position === "side" ? "start" : "end"}
               onItemHighlight={onLegendItemHighlight}
               getLegendTooltipContent={rest.getLegendTooltipContent}
             />
