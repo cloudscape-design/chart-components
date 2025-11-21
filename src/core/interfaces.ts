@@ -121,6 +121,7 @@ export interface BaseI18nStrings {
   seriesFilterPlaceholder?: string;
   seriesFilterSelectedAriaLabel?: string;
   legendAriaLabel?: string;
+  secondaryLegendAriaLabel?: string;
   detailPopoverDismissAriaLabel?: string;
   chartRoleDescription?: string;
 }
@@ -421,7 +422,15 @@ export namespace CoreChartProps {
     bottomMaxHeight?: number;
     position?: "bottom" | "side";
     /**
-     * This property only applies when `position="bottom"`.
+     * This property only applies when there are secondary items.
+     */
+    secondaryLegendTitle?: string;
+    /**
+     * This property only applies when there are secondary items.
+     */
+    secondaryLegendActions?: React.ReactNode;
+    /**
+     * This property only applies when there are no secondary items and `position="bottom"`.
      */
     horizontalAlignment?: LegendOptionsHorizontalAlignment;
   }

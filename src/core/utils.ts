@@ -15,6 +15,7 @@ export interface LegendItemSpec {
   markerType: ChartSeriesMarkerType;
   color: string;
   visible: boolean;
+  isSecondary: boolean;
 }
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
@@ -151,10 +152,11 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
         markerType: getSeriesMarkerType(series),
         color: getSeriesColor(series),
         visible: series.visible,
+        isSecondary: series.yAxis?.options?.opposite ?? false,
       });
     }
   };
-  const addPointItem = (point: Highcharts.Point) => {
+  const addPointItem = (point: Highcharts.Point, isSecondary: boolean) => {
     if (point.series.type === "pie") {
       legendItems.push({
         id: getPointId(point),
@@ -162,12 +164,14 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
         markerType: getSeriesMarkerType(point.series),
         color: getPointColor(point),
         visible: point.visible,
+        isSecondary,
       });
     }
   };
   for (const s of getChartSeries(chart.series)) {
     addSeriesItem(s);
-    s.data.forEach(addPointItem);
+    const isSecondary = s.yAxis?.options?.opposite ?? false;
+    s.data.forEach((p) => addPointItem(p, isSecondary));
   }
   return legendItems;
 }
@@ -184,6 +188,32 @@ export function hasVisibleLegendItems(options: Highcharts.Options) {
       return false;
     }
     return series.showInLegend !== false;
+  });
+}
+
+export function hasVisibleSecondaryLegendItems(options: Highcharts.Options) {
+  // Note: While native Highcharts supports multiple legend groups, this
+  // implementation simplifies to at most 2 legend groups:
+  // - One group for all axes with opposite=false (primary axes)
+  // - One group for all axes with opposite=true (secondary axes)
+
+  // Normalize yAxis to an array format for consistent processing
+  // Handles three cases: array of axes, single axis object, or no axes
+  const yAxes = Array.isArray(options.yAxis) ? options.yAxis : options.yAxis ? [options.yAxis] : [];
+
+  return !!options.series?.some((series) => {
+    // Get the y-axis reference for this series (defaults to 0 for the primary axis)
+    const yAxisRef = series.yAxis ?? 0;
+
+    // Resolve the actual y-axis object from the reference
+    // The reference can be either an index or a string id
+    const yAxis = typeof yAxisRef === "number" ? yAxes[yAxisRef] : yAxes.find((axis) => axis.id === yAxisRef);
+
+    // Check if this y-axis is a secondary axis (positioned on the opposite side of the chart)
+    const isSecondary = yAxis?.opposite ?? false;
+
+    // Return true if this series is on a secondary axis and should be shown in the legend
+    return isSecondary && series.showInLegend !== false;
   });
 }
 

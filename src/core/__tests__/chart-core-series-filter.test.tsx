@@ -63,8 +63,8 @@ describe("CoreChart: series filter", () => {
       expect.objectContaining({
         detail: {
           items: [
-            { id: "L1", name: "L1", marker: expect.anything(), visible: false, highlighted: false },
-            { id: "L2", name: "L2", marker: expect.anything(), visible: true, highlighted: false },
+            { id: "L1", name: "L1", marker: expect.anything(), visible: false, highlighted: false, isSecondary: false },
+            { id: "L2", name: "L2", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
           ],
           isApiCall: false,
         },

@@ -12,8 +12,9 @@ import { BaseI18nStrings, CoreChartProps } from "../interfaces";
 export function ChartLegend({
   api,
   title,
+  items,
   actions,
-  position,
+  alignment,
   i18nStrings,
   onItemHighlight,
   getLegendTooltipContent,
@@ -22,29 +23,63 @@ export function ChartLegend({
   api: ChartAPI;
   title?: string;
   actions?: React.ReactNode;
-  position: "bottom" | "side";
-  horizontalAlignment?: CoreChartProps.LegendOptionsHorizontalAlignment;
+  items: "primary" | "secondary";
+  alignment: "horizontal" | "vertical";
+  horizontalAlignment?: "start" | "center" | "end";
   i18nStrings?: BaseI18nStrings;
   onItemHighlight?: NonCancelableEventHandler<CoreChartProps.LegendItemHighlightDetail>;
   getLegendTooltipContent?: CoreChartProps.GetLegendTooltipContent;
 }) {
   const i18n = useInternalI18n("[charts]");
-  const ariaLabel = i18n("i18nStrings.legendAriaLabel", i18nStrings?.legendAriaLabel);
-  const legendItems = useSelector(api.legendStore, (s) => s.items);
-  const isChartTooltipPinned = useSelector(api.tooltipStore, (s) => s.pinned);
+  const ariaLabel = i18n(
+    "i18nStrings.legendAriaLabel",
+    items === "primary" ? i18nStrings?.legendAriaLabel : i18nStrings?.secondaryLegendAriaLabel,
+  );
 
-  if (legendItems.length === 0) {
+  const legendItems = useSelector(api.legendStore, (s) => s.items);
+  const someHighlighted = legendItems.some((item) => item.highlighted);
+  const isChartTooltipPinned = useSelector(api.tooltipStore, (s) => s.pinned);
+  const filteredItems =
+    items === "primary"
+      ? legendItems.filter((item) => !item.isSecondary)
+      : legendItems.filter((item) => item.isSecondary);
+
+  const onToggleItem = (itemId: string) => {
+    const visibleItems = legendItems.filter((i) => i.visible).map((i) => i.id);
+    if (visibleItems.includes(itemId)) {
+      api.onItemVisibilityChange(visibleItems.filter((visibleItemId) => visibleItemId !== itemId));
+    } else {
+      api.onItemVisibilityChange([...visibleItems, itemId]);
+    }
+    // Needed for touch devices.
+    api.onClearChartItemsHighlight();
+  };
+
+  const onSelectItem = (itemId: string) => {
+    const visibleItems = legendItems.filter((i) => i.visible).map((i) => i.id);
+    if (visibleItems.length === 1 && visibleItems[0] === itemId) {
+      api.onItemVisibilityChange(legendItems.map((i) => i.id));
+    } else {
+      api.onItemVisibilityChange([itemId]);
+    }
+    // Needed for touch devices.
+    api.onClearChartItemsHighlight();
+  };
+
+  if (filteredItems.length === 0) {
     return null;
   }
   return (
     <ChartLegendComponent
       ariaLabel={ariaLabel}
       legendTitle={title}
-      items={legendItems}
+      items={filteredItems}
+      someHighlighted={someHighlighted}
       horizontalAlignment={horizontalAlignment}
       actions={actions}
-      position={position}
-      onItemVisibilityChange={api.onItemVisibilityChange}
+      alignment={alignment}
+      onToggleItem={onToggleItem}
+      onSelectItem={onSelectItem}
       onItemHighlightExit={api.onClearChartItemsHighlight}
       onItemHighlightEnter={(item) => {
         api.onHighlightChartItems([item.id]);
