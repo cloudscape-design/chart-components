@@ -22,4 +22,16 @@ $marker-margin-right: cs.$space-static-xxs;
   block-size: $marker-size;
   flex-shrink: 0;
   cursor: inherit;
+  position: relative;
+}
+
+.marker-status {
+  position: absolute;
+  inset-inline-end: -3px;
+  inset-block-end: -3px;
+  inline-size: 13px;
+  block-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
