@@ -11,8 +11,8 @@ import { BaseI18nStrings, CoreChartProps } from "../interfaces";
 
 export function ChartLegend({
   api,
+  type,
   title,
-  items,
   actions,
   alignment,
   i18nStrings,
@@ -23,8 +23,8 @@ export function ChartLegend({
   api: ChartAPI;
   title?: string;
   actions?: React.ReactNode;
-  items: "primary" | "secondary";
   alignment: "horizontal" | "vertical";
+  type: "single" | "primary" | "secondary";
   horizontalAlignment?: "start" | "center" | "end";
   i18nStrings?: BaseI18nStrings;
   onItemHighlight?: NonCancelableEventHandler<CoreChartProps.LegendItemHighlightDetail>;
@@ -33,16 +33,18 @@ export function ChartLegend({
   const i18n = useInternalI18n("[charts]");
   const ariaLabel = i18n(
     "i18nStrings.legendAriaLabel",
-    items === "primary" ? i18nStrings?.legendAriaLabel : i18nStrings?.secondaryLegendAriaLabel,
+    type === "primary" ? i18nStrings?.legendAriaLabel : i18nStrings?.secondaryLegendAriaLabel,
   );
 
   const legendItems = useSelector(api.legendStore, (s) => s.items);
   const someHighlighted = legendItems.some((item) => item.highlighted);
   const isChartTooltipPinned = useSelector(api.tooltipStore, (s) => s.pinned);
   const filteredItems =
-    items === "primary"
-      ? legendItems.filter((item) => !item.isSecondary)
-      : legendItems.filter((item) => item.isSecondary);
+    type === "single"
+      ? legendItems
+      : type === "primary"
+        ? legendItems.filter((item) => !item.isSecondary)
+        : legendItems.filter((item) => item.isSecondary);
 
   const onToggleItem = (itemId: string) => {
     const visibleItems = legendItems.filter((i) => i.visible).map((i) => i.id);

@@ -51,6 +51,21 @@ const series: Highcharts.SeriesOptionsType[] = [
   },
 ];
 
+const yAxes: Highcharts.YAxisOptions[] = [
+  { id: "primary", opposite: false },
+  { id: "secondary", opposite: true },
+];
+
+const primarySeries: Highcharts.SeriesOptionsType[] = [
+  { type: "line", name: "Primary 1", data: [1, 2, 3], yAxis: 0 },
+  { type: "line", name: "Primary 2", data: [2, 3, 4], yAxis: 0 },
+];
+
+const secondarySeries: Highcharts.SeriesOptionsType[] = [
+  { type: "line", name: "Secondary 1", data: [10, 20, 30], yAxis: 1 },
+  { type: "line", name: "Secondary 2", data: [15, 25, 35], yAxis: 1 },
+];
+
 const getItemSelector = (options?: { active?: boolean; dimmed?: boolean }) => {
   let selector = `.${legendTestClasses.item}`;
   if (options?.active === true) {
@@ -84,6 +99,11 @@ describe("CoreChart: legend", () => {
 
   test.each([undefined, true])("renders legend when legend.enabled=undefined or legend.enabled=true", (enabled) => {
     renderChart({ highcharts, options: { series }, legend: { enabled } });
+    expect(createChartWrapper().findLegend()).not.toBe(null);
+  });
+
+  test("renders when only secondary axis series exist", () => {
+    renderChart({ highcharts, options: { series: secondarySeries, yAxis: yAxes } });
     expect(createChartWrapper().findLegend()).not.toBe(null);
   });
 
@@ -483,104 +503,62 @@ describe("CoreChart: legend", () => {
   });
 });
 
-const primarySeries: Highcharts.SeriesOptionsType[] = [
-  { type: "line", name: "Primary 1", data: [1, 2, 3], yAxis: 0 },
-  { type: "line", name: "Primary 2", data: [2, 3, 4], yAxis: 0 },
-];
-
-const secondarySeries: Highcharts.SeriesOptionsType[] = [
-  { type: "line", name: "Secondary 1", data: [10, 20, 30], yAxis: 1 },
-  { type: "line", name: "Secondary 2", data: [15, 25, 35], yAxis: 1 },
-];
-
-const yAxes: Highcharts.YAxisOptions[] = [
-  { id: "primary", opposite: false },
-  { id: "secondary", opposite: true },
-];
-
 describe("CoreChart: secondary legend", () => {
-  describe("Test utilities", () => {
-    test("findSecondaryLegend returns null when no secondary axis series exist", () => {
-      renderChart({ highcharts, options: { series: primarySeries } });
-      expect(createChartWrapper().findSecondaryLegend()).toBe(null);
-    });
-
-    test("findSecondaryLegend returns secondary legend when secondary axis series exist", () => {
-      renderChart({
-        highcharts,
-        options: { series: [...primarySeries, ...secondarySeries], yAxis: yAxes },
-      });
-      expect(createChartWrapper().findSecondaryLegend()).not.toBe(null);
-    });
-
-    test("getSecondaryLegendItems returns empty array when no secondary legend exists", () => {
-      renderChart({ highcharts, options: { series: primarySeries } });
-      expect(createChartWrapper().findSecondaryLegend()?.findItems() ?? []).toEqual([]);
-    });
-
-    test("getSecondaryLegendItems returns items when secondary legend exists", () => {
-      renderChart({
-        highcharts,
-        options: { series: [...primarySeries, ...secondarySeries], yAxis: yAxes },
-      });
-      expect(createChartWrapper().findSecondaryLegend()?.findItems() ?? []).toHaveLength(2);
-    });
+  test("does not render when no secondary axis series exist", () => {
+    renderChart({ highcharts, options: { series: primarySeries, yAxis: yAxes } });
+    expect(createChartWrapper().findSecondaryLegend()).toBe(null);
   });
 
-  describe("Rendering", () => {
-    test("renders no secondary legend when legend.enabled=false", () => {
-      renderChart({
-        highcharts,
-        options: { series: [...primarySeries, ...secondarySeries], yAxis: yAxes },
-        legend: { enabled: false },
-      });
-      expect(createChartWrapper().findSecondaryLegend()).toBe(null);
+  test("does not render when only secondary axis series exist", () => {
+    renderChart({ highcharts, options: { series: secondarySeries, yAxis: yAxes } });
+    expect(createChartWrapper().findSecondaryLegend()).toBe(null);
+  });
+
+  test("renders when both primary and secondary axis series exist", () => {
+    renderChart({ highcharts, options: { series: [...primarySeries, ...secondarySeries], yAxis: yAxes } });
+    expect(createChartWrapper().findSecondaryLegend()).not.toBe(null);
+  });
+
+  test("renders no secondary legend when legend.enabled=false", () => {
+    renderChart({
+      highcharts,
+      legend: { enabled: false },
+      options: { series: [...primarySeries, ...secondarySeries], yAxis: yAxes },
+    });
+    expect(createChartWrapper().findSecondaryLegend()).toBe(null);
+  });
+
+  test("renders expected secondary legend items", () => {
+    renderChart({
+      highcharts,
+      visibleItems: ["Secondary 1", "Secondary 2"],
+      options: { series: [...primarySeries, ...secondarySeries], yAxis: yAxes },
     });
 
-    test("renders secondary legend when secondary axis series exist", () => {
-      renderChart({
-        highcharts,
-        options: { series: [...primarySeries, ...secondarySeries], yAxis: yAxes },
-      });
-      expect(createChartWrapper().findSecondaryLegend()).not.toBe(null);
+    const items = createChartWrapper().findSecondaryLegend()!.findItems();
+    expect(items.map((w) => w.getElement().textContent)).toEqual(["Secondary 1", "Secondary 2"]);
+  });
+
+  test("renders secondary legend title if specified", () => {
+    renderChart({
+      highcharts,
+      legend: { secondaryLegendTitle: "Secondary Legend" },
+      options: { series: [...primarySeries, ...secondarySeries], yAxis: yAxes },
     });
 
-    test("renders expected secondary legend items", () => {
-      renderChart({
-        highcharts,
-        options: { series: [...primarySeries, ...secondarySeries], yAxis: yAxes },
-        visibleItems: ["Secondary 1", "Secondary 2"],
-      });
+    expect(createChartWrapper().findSecondaryLegend()!.findTitle()!.getElement().textContent).toBe("Secondary Legend");
+  });
 
-      const items = createChartWrapper().findSecondaryLegend()?.findItems() ?? [];
-      expect(items.map((w) => w.getElement().textContent)).toEqual(["Secondary 1", "Secondary 2"]);
+  test("renders secondary legend actions if specified", () => {
+    renderChart({
+      highcharts,
+      legend: { secondaryLegendActions: "Secondary Actions" },
+      options: { series: [...primarySeries, ...secondarySeries], yAxis: yAxes },
     });
 
-    test("renders secondary legend title if specified", () => {
-      renderChart({
-        highcharts,
-        options: { series: [...primarySeries, ...secondarySeries], yAxis: yAxes },
-        legend: { secondaryLegendTitle: "Secondary Axis" },
-      });
-
-      const secondaryLegend = createChartWrapper().findSecondaryLegend();
-      expect(secondaryLegend).not.toBe(null);
-      const title = secondaryLegend!.find('[class*="title"]');
-      expect(title?.getElement().textContent).toBe("Secondary Axis");
-    });
-
-    test("renders secondary legend actions if specified", () => {
-      renderChart({
-        highcharts,
-        options: { series: [...primarySeries, ...secondarySeries], yAxis: yAxes },
-        legend: { secondaryLegendActions: "Secondary Actions" },
-      });
-
-      const secondaryLegend = createChartWrapper().findSecondaryLegend();
-      expect(secondaryLegend).not.toBe(null);
-      const actions = secondaryLegend!.find('[class*="actions"]');
-      expect(actions?.getElement().textContent).toBe("Secondary Actions");
-    });
+    expect(createChartWrapper().findSecondaryLegend()!.findActions()!.getElement().textContent).toBe(
+      "Secondary Actions",
+    );
   });
 
   describe("Event handlers", () => {
