@@ -31,10 +31,9 @@ export function ChartLegend({
   getLegendTooltipContent?: CoreChartProps.GetLegendTooltipContent;
 }) {
   const i18n = useInternalI18n("[charts]");
-  const ariaLabel = i18n(
-    "i18nStrings.legendAriaLabel",
-    type === "primary" ? i18nStrings?.legendAriaLabel : i18nStrings?.secondaryLegendAriaLabel,
-  );
+  const legendAriaLabel = i18n("i18nStrings.legendAriaLabel", i18nStrings?.legendAriaLabel);
+  const secondaryLegendAriaLabel = i18n("i18nStrings.legendAriaLabel", i18nStrings?.secondaryLegendAriaLabel);
+  const ariaLabel = type === "secondary" ? secondaryLegendAriaLabel : legendAriaLabel;
 
   const legendItems = useSelector(api.legendStore, (s) => s.items);
   const someHighlighted = legendItems.some((item) => item.highlighted);
