@@ -3,6 +3,8 @@
 
 import highcharts from "highcharts";
 
+import "highcharts/highcharts-more";
+import "highcharts/modules/solid-gauge";
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import {
   getChartLegendItems,
@@ -97,7 +99,7 @@ describe("CoreChart: utils", () => {
       expect(items[0].isSecondary).toBe(true);
     });
 
-    test("sets isSecondary to false for pie chart points", () => {
+    test.each(["pie", "gauge"] as const)("sets isSecondary to false for %s", (type) => {
       let chartApi: CoreChartProps.ChartAPI | null = null;
       renderChart({
         highcharts,
@@ -105,12 +107,13 @@ describe("CoreChart: utils", () => {
           yAxis: { opposite: false },
           series: [
             {
-              type: "pie",
+              type,
               visible: true,
-              name: "Pie Series",
+              showInLegend: true,
+              name: "Series",
               data: [
-                { name: "Segment 1", color: "red" },
-                { name: "Segment 2", color: "blue" },
+                { name: "Segment 1", color: "red", value: 30 },
+                { name: "Segment 2", color: "blue", value: 70 },
               ],
             },
           ],
@@ -119,9 +122,15 @@ describe("CoreChart: utils", () => {
       });
 
       const items = getChartLegendItems(chartApi!.chart);
-      expect(items).toHaveLength(2);
-      expect(items[0].isSecondary).toBe(false);
-      expect(items[1].isSecondary).toBe(false);
+
+      if (type === "gauge") {
+        expect(items).toHaveLength(1);
+        expect(items[0].isSecondary).toBe(false);
+      } else {
+        expect(items).toHaveLength(2);
+        expect(items[0].isSecondary).toBe(false);
+        expect(items[1].isSecondary).toBe(false);
+      }
     });
   });
 });
