@@ -121,9 +121,12 @@ export interface BaseI18nStrings {
   seriesFilterPlaceholder?: string;
   seriesFilterSelectedAriaLabel?: string;
   legendAriaLabel?: string;
-  secondaryLegendAriaLabel?: string;
   detailPopoverDismissAriaLabel?: string;
   chartRoleDescription?: string;
+}
+
+export interface CoreI18nStrings extends BaseI18nStrings {
+  secondaryLegendAriaLabel?: string;
 }
 
 export interface WithCartesianI18nStrings {
@@ -386,7 +389,7 @@ export interface CoreChartProps
    * An object that contains all of the localized strings required by the component.
    * @i18n
    */
-  i18nStrings?: CartesianI18nStrings & PieI18nStrings;
+  i18nStrings?: CartesianI18nStrings & PieI18nStrings & CoreI18nStrings;
 }
 
 export namespace CoreChartProps {
