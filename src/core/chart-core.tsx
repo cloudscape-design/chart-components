@@ -26,7 +26,7 @@ import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
 import { getFormatter } from "./formatters";
 import { useChartI18n } from "./i18n-utils";
 import { CoreChartProps } from "./interfaces";
-import { getPointAccessibleDescription, hasVisibleLegendItems, shouldShowSecondaryLegend } from "./utils";
+import { getLegendsProps, getPointAccessibleDescription } from "./utils";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -84,6 +84,13 @@ export function InternalCoreChart({
   const mergedRootRef = useMergeRefs(rootRef, __internalRootRef);
   const rootProps = { ref: mergedRootRef, className: rootClassName, ...getDataAttributes(rest) };
   const legendPosition = legendOptions?.position ?? "bottom";
+  const legendProps = getLegendsProps(options, legendOptions);
+  const commonLegendProps = {
+    api: api,
+    i18nStrings: i18nStrings,
+    onItemHighlight: onLegendItemHighlight,
+    getLegendTooltipContent: rest.getLegendTooltipContent,
+  };
   const containerProps = {
     fitHeight,
     chartHeight,
@@ -114,7 +121,6 @@ export function InternalCoreChart({
   const apiOptions = api.getOptions();
   const inverted = !!options.chart?.inverted;
   const isRtl = () => getIsRtl(rootRef?.current);
-  const showSecondaryLegend = shouldShowSecondaryLegend(options);
   return (
     <div {...rootProps}>
       <ChartContainer
@@ -303,37 +309,13 @@ export function InternalCoreChart({
         }}
         navigator={navigator}
         primaryLegend={
-          context.legendEnabled && hasVisibleLegendItems(options) ? (
-            <ChartLegend
-              api={api}
-              type={showSecondaryLegend ? "primary" : "single"}
-              i18nStrings={i18nStrings}
-              title={legendOptions?.title}
-              actions={legendOptions?.actions}
-              alignment={legendOptions?.position === "side" ? "vertical" : "horizontal"}
-              horizontalAlignment={
-                !showSecondaryLegend && (legendOptions?.position ?? "bottom") === "bottom"
-                  ? legendOptions?.horizontalAlignment
-                  : "start"
-              }
-              onItemHighlight={onLegendItemHighlight}
-              getLegendTooltipContent={rest.getLegendTooltipContent}
-            />
+          context.legendEnabled && legendProps.primary ? (
+            <ChartLegend {...commonLegendProps} {...legendProps.primary} />
           ) : null
         }
         secondaryLegend={
-          context.legendEnabled && showSecondaryLegend ? (
-            <ChartLegend
-              api={api}
-              type={"secondary"}
-              i18nStrings={i18nStrings}
-              title={legendOptions?.secondaryLegendTitle}
-              actions={legendOptions?.secondaryLegendActions}
-              alignment={legendOptions?.position === "side" ? "vertical" : "horizontal"}
-              horizontalAlignment={legendOptions?.position === "side" ? "start" : "end"}
-              onItemHighlight={onLegendItemHighlight}
-              getLegendTooltipContent={rest.getLegendTooltipContent}
-            />
+          context.legendEnabled && legendProps.secondary ? (
+            <ChartLegend {...commonLegendProps} {...legendProps.secondary} />
           ) : null
         }
         verticalAxisTitle={

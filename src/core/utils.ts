@@ -7,7 +7,7 @@ import { ChartSeriesMarkerType } from "../internal/components/series-marker";
 import { getChartSeries } from "../internal/utils/chart-series";
 import { getFormatter } from "./formatters";
 import { ChartLabels } from "./i18n-utils";
-import { Rect } from "./interfaces";
+import { CoreChartProps, Rect } from "./interfaces";
 
 export interface LegendItemSpec {
   id: string;
@@ -233,6 +233,35 @@ export function shouldShowSecondaryLegend(options: Highcharts.Options) {
 
   // Only return true if BOTH primary and secondary series exist
   return hasPrimarySeries && hasSecondarySeries;
+}
+
+export function getLegendsProps(
+  options: CoreChartProps.ChartOptions,
+  legendOptions: CoreChartProps.LegendOptions | undefined,
+) {
+  const visibleItems = hasVisibleLegendItems(options);
+  const showSecondaryLegend = shouldShowSecondaryLegend(options);
+  const isSingleLegendAtBottom = !showSecondaryLegend && (legendOptions?.position ?? "bottom") === "bottom";
+  return {
+    primary: !visibleItems
+      ? undefined
+      : ({
+          type: showSecondaryLegend ? "primary" : "single",
+          title: legendOptions?.title,
+          actions: legendOptions?.actions,
+          alignment: legendOptions?.position === "side" ? "vertical" : "horizontal",
+          horizontalAlignment: isSingleLegendAtBottom ? legendOptions?.horizontalAlignment : "start",
+        } as const),
+    secondary: !showSecondaryLegend
+      ? undefined
+      : ({
+          type: "secondary",
+          title: legendOptions?.secondaryLegendTitle,
+          actions: legendOptions?.secondaryLegendActions,
+          alignment: legendOptions?.position === "side" ? "vertical" : "horizontal",
+          horizontalAlignment: legendOptions?.position === "side" ? "start" : "end",
+        } as const),
+  };
 }
 
 // This function returns coordinates of a rectangle, including the target point.
