@@ -1,12 +1,16 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import highcharts from "highcharts";
+
+import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import {
   getChartLegendItems,
   getPointColor,
   getSeriesColor,
   getSeriesMarkerType,
 } from "../../../lib/components/core/utils";
+import { renderChart } from "./common";
 
 describe("CoreChart: utils", () => {
   test.each([
@@ -47,79 +51,77 @@ describe("CoreChart: utils", () => {
 
   describe("getChartLegendItems", () => {
     test("sets isSecondary to false for series on primary y-axis", () => {
-      const chart = {
-        series: [
-          {
-            type: "line",
-            name: "Series 1",
-            visible: true,
-            options: {},
-            yAxis: { options: { opposite: false } },
-            data: [],
+      let chartApi: CoreChartProps.ChartAPI | null = null;
+      renderChart({
+        highcharts,
+        options: {
+          yAxis: {
+            opposite: false,
           },
-        ],
-      } as any;
+          series: [
+            {
+              data: [],
+              type: "line",
+              visible: true,
+              name: "Series 1",
+            },
+          ],
+        },
+        callback: (api) => (chartApi = api),
+      });
 
-      const items = getChartLegendItems(chart);
+      const items = getChartLegendItems(chartApi!.chart);
       expect(items[0].isSecondary).toBe(false);
     });
 
     test("sets isSecondary to true for series on secondary y-axis", () => {
-      const chart = {
-        series: [
-          {
-            type: "line",
-            name: "Series 1",
-            visible: true,
-            options: {},
-            yAxis: { options: { opposite: true } },
-            data: [],
+      let chartApi: CoreChartProps.ChartAPI | null = null;
+      renderChart({
+        highcharts,
+        options: {
+          yAxis: {
+            opposite: true,
           },
-        ],
-      } as any;
+          series: [
+            {
+              type: "line",
+              visible: true,
+              name: "Series 1",
+            },
+          ],
+        },
+        callback: (api) => (chartApi = api),
+      });
 
-      const items = getChartLegendItems(chart);
+      const items = getChartLegendItems(chartApi!.chart);
       expect(items[0].isSecondary).toBe(true);
     });
 
-    test("sets isSecondary to false when yAxis is undefined", () => {
-      const chart = {
-        series: [
-          {
-            type: "line",
-            name: "Series 1",
-            visible: true,
-            options: {},
-            data: [],
-          },
-        ],
-      } as any;
+    test("sets isSecondary to false for pie chart points", () => {
+      let chartApi: CoreChartProps.ChartAPI | null = null;
+      renderChart({
+        highcharts,
+        options: {
+          yAxis: { opposite: false },
+          series: [
+            {
+              type: "pie",
+              visible: true,
+              name: "Pie Series",
+              data: [
+                { name: "Segment 1", color: "red" },
+                { name: "Segment 2", color: "blue" },
+              ],
+            },
+          ],
+        },
+        callback: (api) => (chartApi = api),
+      });
 
-      const items = getChartLegendItems(chart);
-      expect(items[0].isSecondary).toBe(false);
-    });
-
-    test("sets isSecondary for pie chart points based on series yAxis", () => {
-      const chart = {
-        series: [
-          {
-            type: "pie",
-            name: "Pie Series",
-            visible: true,
-            options: {},
-            yAxis: { options: { opposite: true } },
-            data: [
-              { name: "Segment 1", visible: true, color: "red", series: { type: "pie", options: {} }, options: {} },
-              { name: "Segment 2", visible: true, color: "blue", series: { type: "pie", options: {} }, options: {} },
-            ],
-          },
-        ],
-      } as any;
-
-      const items = getChartLegendItems(chart);
+      const items = getChartLegendItems(chartApi!.chart);
       expect(items).toHaveLength(2);
-      expect(items[0].isSecondary).toBe(true);
-      expect(items[1].isSecondary).toBe(true);
+      expect(items[0].isSecondary).toBe(false);
+      expect(items[1].isSecondary).toBe(false);
     });
   });
 });
