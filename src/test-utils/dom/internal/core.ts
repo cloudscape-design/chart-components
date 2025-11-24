@@ -25,6 +25,10 @@ export default class CoreChartWrapper extends BaseChartWrapper {
     return this.findComponent(`.${CoreChartLegendWrapper.rootSelector}`, CoreChartLegendWrapper);
   }
 
+  public findSecondaryLegend(): null | CoreChartLegendWrapper {
+    return this.findComponent(`.${CoreChartLegendWrapper.rootSelector}:nth-child(2)`, CoreChartLegendWrapper);
+  }
+
   public findVerticalAxisTitle(): null | ElementWrapper {
     return (
       this.findByClassName(testClasses["axis-vertical-title"]) ??
