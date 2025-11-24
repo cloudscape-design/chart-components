@@ -87,7 +87,7 @@ export function InternalCoreChart({
   const legendProps = getLegendsProps(options, legendOptions);
   const commonLegendProps = {
     api: api,
-    i18nStrings: i18nStrings,
+    i18nStrings,
     onItemHighlight: onLegendItemHighlight,
     getLegendTooltipContent: rest.getLegendTooltipContent,
   };

@@ -7,7 +7,7 @@ import { ChartLegend as ChartLegendComponent } from "../../internal/components/c
 import { fireNonCancelableEvent, NonCancelableEventHandler } from "../../internal/events";
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
-import { BaseI18nStrings, CoreChartProps } from "../interfaces";
+import { CoreChartProps, CoreI18nStrings } from "../interfaces";
 
 export function ChartLegend({
   api,
@@ -26,7 +26,7 @@ export function ChartLegend({
   alignment: "horizontal" | "vertical";
   type: "single" | "primary" | "secondary";
   horizontalAlignment?: "start" | "center" | "end";
-  i18nStrings?: BaseI18nStrings;
+  i18nStrings?: CoreI18nStrings;
   onItemHighlight?: NonCancelableEventHandler<CoreChartProps.LegendItemHighlightDetail>;
   getLegendTooltipContent?: CoreChartProps.GetLegendTooltipContent;
 }) {
