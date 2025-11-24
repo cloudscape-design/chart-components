@@ -192,17 +192,26 @@ export function hasVisibleLegendItems(options: Highcharts.Options) {
 }
 
 export function shouldShowSecondaryLegend(options: Highcharts.Options) {
-  // Note: While native Highcharts supports multiple legend groups, this
-  // implementation simplifies to at most 2 legend groups:
+  // Note: While native Highcharts supports multiple legends, this
+  // implementation simplifies to at most 2 legends:
   // - One group for all axes with opposite=false (primary axes)
   // - One group for all axes with opposite=true (secondary axes)
   //
   // Important: A secondary legend should only be shown when BOTH primary and secondary
   // series exist. This prevents abuse of the secondary legend API to force right-hand
   // alignment when there's no actual dual-legend layout.
+  //
+  // Why we target yAxis only:
+  // In typical chart usage, dual-axis layouts use the y-axis for different scales
+  // (e.g., temperature on left, humidity on right). The x-axis is shared across all series.
+  // While Highcharts technically supports opposite x-axes, this is rare in practice and
+  // not supported by our dual-legend implementation.
+  //
+  // Why we support at most 2 axes:
+  // Supporting only primary and secondary axes simplifies the UX. Also, charts with more than 2 y-axes
+  // become difficult to read and interpret. This constraint also ensures a predictable legend layout
+  // with clear primary/secondary grouping.
 
-  // Normalize yAxis to an array format for consistent processing
-  // Handles three cases: array of axes, single axis object, or no axes
   const yAxes = Array.isArray(options.yAxis) ? options.yAxis : options.yAxis ? [options.yAxis] : [];
 
   let hasPrimarySeries = false;
