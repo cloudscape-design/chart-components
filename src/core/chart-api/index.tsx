@@ -253,19 +253,28 @@ export class ChartAPI {
       },
       onFocusGroup: (group: Highcharts.Point[]) => {
         this.highlightActions(group, { isApiCall: false, overrideTooltipLock: true });
-        this.chartExtraNavigation.announceElement(getGroupAccessibleDescription(group), false);
+        this.chartExtraNavigation.announceElement(
+          getGroupAccessibleDescription(group, this.context.settings.locale),
+          false,
+        );
       },
       onFocusPoint: (point: Highcharts.Point) => {
         const labels = this.context.settings.labels;
         this.highlightActions(point, { isApiCall: false, overrideTooltipLock: true });
-        this.chartExtraNavigation.announceElement(getPointAccessibleDescription(point, labels), false);
+        this.chartExtraNavigation.announceElement(
+          getPointAccessibleDescription(point, labels, this.context.settings.locale),
+          false,
+        );
       },
       onBlur: () => this.clearChartHighlight({ isApiCall: false }),
       onActivateGroup: () => {
         const current = this.chartExtraTooltip.get();
         if (current.group.length > 0) {
           this.chartExtraTooltip.pinTooltip();
-          this.chartExtraNavigation.announceElement(getGroupAccessibleDescription(current.group), true);
+          this.chartExtraNavigation.announceElement(
+            getGroupAccessibleDescription(current.group, this.context.settings.locale),
+            true,
+          );
         }
       },
       onActivatePoint: () => {
@@ -273,7 +282,10 @@ export class ChartAPI {
         if (current.point) {
           const labels = this.context.settings.labels;
           this.chartExtraTooltip.pinTooltip();
-          this.chartExtraNavigation.announceElement(getPointAccessibleDescription(current.point, labels), true);
+          this.chartExtraNavigation.announceElement(
+            getPointAccessibleDescription(current.point, labels, this.context.settings.locale),
+            true,
+          );
         }
       },
     };

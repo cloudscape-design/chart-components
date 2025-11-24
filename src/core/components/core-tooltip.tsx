@@ -44,10 +44,12 @@ export function ChartTooltip({
   getTooltipContent: getTooltipContentOverrides,
   api,
   i18nStrings,
+  locale,
 }: CoreChartProps.TooltipOptions & {
   i18nStrings?: BaseI18nStrings;
   getTooltipContent?: CoreChartProps.GetTooltipContent;
   api: ChartAPI;
+  locale: string;
 }) {
   const [expandedSeries, setExpandedSeries] = useState<ExpandedSeriesState>({});
   const tooltip = useSelector(api.tooltipStore, (s) => s);
@@ -70,6 +72,7 @@ export function ChartTooltip({
     group: tooltip.group,
     expandedSeries,
     setExpandedSeries,
+    locale,
   });
   if (!content) {
     return null;
@@ -117,6 +120,7 @@ function getTooltipContent(
   api: ChartAPI,
   props: CoreChartProps.GetTooltipContentProps & {
     renderers?: CoreChartProps.TooltipContentRenderer;
+    locale: string;
   } & ExpandedSeriesStateProps,
 ): null | RenderedTooltipContent {
   if (props.point && props.point.series.type === "pie") {
@@ -136,8 +140,10 @@ function getTooltipContentCartesian(
     expandedSeries,
     renderers = {},
     setExpandedSeries,
+    locale,
   }: CoreChartProps.GetTooltipContentProps & {
     renderers?: CoreChartProps.TooltipContentRenderer;
+    locale: string;
   } & ExpandedSeriesStateProps,
 ): RenderedTooltipContent {
   // The cartesian tooltip might or might not have a selected point, but it always has a non-empty group.
@@ -148,7 +154,7 @@ function getTooltipContentCartesian(
     api.renderMarker(getSeriesMarkerType(series), getSeriesColor(series), true);
   const matchedItems = findTooltipSeriesItems(getChartSeries(chart.series), group);
   const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
-    const valueFormatter = getFormatter(item.point.series.yAxis);
+    const valueFormatter = getFormatter(locale, item.point.series.yAxis);
     const itemY = isXThreshold(item.point.series) ? null : (item.point.y ?? null);
     const customContent = renderers.point ? renderers.point({ item }) : undefined;
     return {
@@ -176,7 +182,7 @@ function getTooltipContentCartesian(
     };
   });
   // We only support cartesian charts with a single x axis.
-  const titleFormatter = getFormatter(chart.xAxis[0]);
+  const titleFormatter = getFormatter(locale, chart.xAxis[0]);
   const slotRenderProps: CoreChartProps.TooltipSlotProps = { x, items: matchedItems };
   return {
     header: renderers.header?.(slotRenderProps) ?? titleFormatter(x),

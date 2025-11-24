@@ -17,6 +17,9 @@ export function dateFormatter(value: null | number) {
     .join("\n");
 }
 
+/**
+ * @see https://www.unicode.org/cldr/cldr-aux/charts/29/verify/numbers/en.html
+ */
 export function numberFormatter(value: number | null, locale: string = "en-US"): string {
   if (value === null) {
     return "";
@@ -32,7 +35,7 @@ export function numberFormatter(value: number | null, locale: string = "en-US"):
   if (absValue < 1e-9) {
     return new Intl.NumberFormat(locale, {
       notation: "scientific",
-      maximumFractionDigits: 9,
+      maximumFractionDigits: 2,
     }).format(value);
   }
 
@@ -40,7 +43,7 @@ export function numberFormatter(value: number | null, locale: string = "en-US"):
   return new Intl.NumberFormat(locale, {
     notation: "compact",
     compactDisplay: "short",
-    maximumFractionDigits: 9,
+    maximumFractionDigits: 2,
   }).format(value);
 }
 

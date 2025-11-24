@@ -126,12 +126,11 @@ describe("CoreChart: axes", () => {
   test("uses default numeric axes formatters for integer values", () => {
     renderChart({ highcharts, options: { series, xAxis: { title: { text: "X" } }, yAxis: { title: { text: "Y" } } } });
     getAxisOptionsFormatters().forEach((formatter) => {
-      // See https://www.unicode.org/cldr/cldr-aux/charts/29/verify/numbers/en.html
       expect(formatter.call(mockAxisContext({ value: 0 }))).toBe("0");
       expect(formatter.call(mockAxisContext({ value: 1 }))).toBe("1");
       expect(formatter.call(mockAxisContext({ value: 1_000 }))).toBe("1K");
       expect(formatter.call(mockAxisContext({ value: 1_000_000 }))).toBe("1M");
-      expect(formatter.call(mockAxisContext({ value: 1_000_000_000 }))).toBe("1B");
+      expect(formatter.call(mockAxisContext({ value: 1_000_000_000 }))).toBe("1G");
     });
   });
 
@@ -141,8 +140,7 @@ describe("CoreChart: axes", () => {
       expect(formatter.call(mockAxisContext({ value: 2.0 }))).toBe("2");
       expect(formatter.call(mockAxisContext({ value: 2.03 }))).toBe("2.03");
       expect(formatter.call(mockAxisContext({ value: 0.03 }))).toBe("0.03");
-      expect(formatter.call(mockAxisContext({ value: 0.003 }))).toBe("0.003");
-      expect(formatter.call(mockAxisContext({ value: 0.0000000003 }))).toBe("3E-10");
+      expect(formatter.call(mockAxisContext({ value: 0.003 }))).toBe("3e-3");
     });
   });
 

@@ -6,8 +6,8 @@ import clsx from "clsx";
 import type Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 
-import { getIsRtl, useMergeRefs, useUniqueId } from "@cloudscape-design/component-toolkit/internal";
-import { isDevelopment } from "@cloudscape-design/component-toolkit/internal";
+import { getIsRtl, isDevelopment, useMergeRefs, useUniqueId } from "@cloudscape-design/component-toolkit/internal";
+import { normalizeLocale } from "@cloudscape-design/components/internal/utils/locale";
 import Spinner from "@cloudscape-design/components/spinner";
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
@@ -15,6 +15,7 @@ import { InternalBaseComponentProps } from "../internal/base-component/use-base-
 import * as Styles from "../internal/chart-styles";
 import { castArray } from "../internal/utils/utils";
 import { useChartAPI } from "./chart-api";
+import { ChartExtraContext } from "./chart-api/chart-extra-context";
 import { ChartContainer } from "./chart-container";
 import { ChartApplication } from "./components/core-application";
 import { ChartFilters } from "./components/core-filters";
@@ -66,6 +67,9 @@ export function InternalCoreChart({
   ...rest
 }: CoreChartProps & InternalBaseComponentProps) {
   const highcharts = rest.highcharts as null | typeof Highcharts;
+
+  const locale = normalizeLocale("InternalCoreChart", rest.locale ?? null);
+
   const labels = useChartI18n({ ariaLabel, ariaDescription, i18nStrings });
   const context = {
     chartId: useUniqueId(),
@@ -74,7 +78,8 @@ export function InternalCoreChart({
     tooltipEnabled: tooltipOptions?.enabled !== false,
     keyboardNavigationEnabled: keyboardNavigation,
     labels,
-  };
+    locale,
+  } satisfies ChartExtraContext.Settings;
   const handlers = { onHighlight, onClearHighlight, onVisibleItemsChange };
   const state = { visibleItems };
   const api = useChartAPI(context, handlers, state);
@@ -203,7 +208,7 @@ export function InternalCoreChart({
               keyboardNavigation: options.accessibility?.keyboardNavigation ?? { enabled: !keyboardNavigation },
               point: {
                 // Point description formatter is overridden to respect custom axes value formatters.
-                descriptionFormatter: (point) => getPointAccessibleDescription(point, labels),
+                descriptionFormatter: (point) => getPointAccessibleDescription(point, labels, locale),
                 ...options.accessibility?.point,
               },
             },
@@ -266,7 +271,7 @@ export function InternalCoreChart({
               opposite: inverted && isRtl() ? !xAxisOptions.opposite : xAxisOptions.opposite,
               className: xAxisClassName(inverted, xAxisOptions.className),
               title: axisTitle(xAxisOptions.title ?? {}, !inverted || verticalAxisTitlePlacement === "side"),
-              labels: axisLabels(xAxisOptions.labels ?? {}),
+              labels: axisLabels(xAxisOptions.labels ?? {}, locale),
             })),
             yAxis: castArray(options.yAxis)?.map((yAxisOptions) => ({
               ...Styles.yAxisOptions,
@@ -276,7 +281,7 @@ export function InternalCoreChart({
               opposite: !inverted && isRtl() ? !yAxisOptions.opposite : yAxisOptions.opposite,
               className: yAxisClassName(inverted, yAxisOptions.className),
               title: axisTitle(yAxisOptions.title ?? {}, inverted || verticalAxisTitlePlacement === "side"),
-              labels: axisLabels(yAxisOptions.labels ?? {}),
+              labels: axisLabels(yAxisOptions.labels ?? {}, locale),
               plotLines: yAxisPlotLines(yAxisOptions.plotLines, emphasizeBaseline),
               // We use reversed stack by default so that the order of points in the tooltip and series in the legend
               // correspond the order of stacks.
@@ -333,6 +338,7 @@ export function InternalCoreChart({
 
       {context.tooltipEnabled && (
         <ChartTooltip
+          locale={locale}
           {...tooltipOptions}
           i18nStrings={i18nStrings}
           getTooltipContent={rest.getTooltipContent}
@@ -376,11 +382,14 @@ function axisTitle<O extends Highcharts.XAxisTitleOptions | Highcharts.YAxisTitl
 
 // We use custom formatters instead of Highcharts defaults to ensure consistent formatting
 // between axis ticks and tooltip contents.
-function axisLabels<O extends Highcharts.XAxisLabelsOptions | Highcharts.YAxisLabelsOptions>(options: O): O {
+function axisLabels<O extends Highcharts.XAxisLabelsOptions | Highcharts.YAxisLabelsOptions>(
+  options: O,
+  locale: string,
+): O {
   return {
     style: Styles.axisLabelsCss,
     formatter: function () {
-      const formattedValue = getFormatter(this.axis)(this.value);
+      const formattedValue = getFormatter(locale, this.axis)(this.value);
       return formattedValue.replace(/\n/g, "<br />");
     },
     ...options,

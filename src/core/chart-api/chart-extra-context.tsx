@@ -32,6 +32,7 @@ export namespace ChartExtraContext {
     tooltipEnabled: boolean;
     keyboardNavigationEnabled: boolean;
     labels: ChartLabels;
+    locale: string;
   }
 
   export interface Handlers {
@@ -63,6 +64,7 @@ export function createChartContext(): ChartExtraContext {
       tooltipEnabled: false,
       keyboardNavigationEnabled: false,
       labels: {},
+      locale: "en-US",
     },
     handlers: {},
     state: {},

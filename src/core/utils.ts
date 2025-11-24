@@ -237,10 +237,10 @@ export function getChartAccessibleDescription(chart: Highcharts.Chart) {
   return chart.options.lang?.accessibility?.chartContainerLabel ?? "";
 }
 
-export function getPointAccessibleDescription(point: Highcharts.Point, labels: ChartLabels) {
+export function getPointAccessibleDescription(point: Highcharts.Point, labels: ChartLabels, locale: string) {
   if (point.series.xAxis && point.series.yAxis) {
-    const formattedX = getFormatter(point.series.xAxis)(point.x);
-    const formattedY = getFormatter(point.series.yAxis)(point.y);
+    const formattedX = getFormatter(locale, point.series.xAxis)(point.x);
+    const formattedY = getFormatter(locale, point.series.yAxis)(point.y);
     return `${formattedX} ${formattedY}, ${point.series.name}`;
   } else if (point.series.type === "pie") {
     const segmentLabel = labels.chartSegmentLabel ? `${labels.chartSegmentLabel} ` : "";
@@ -250,9 +250,9 @@ export function getPointAccessibleDescription(point: Highcharts.Point, labels: C
   }
 }
 
-export function getGroupAccessibleDescription(group: readonly Highcharts.Point[]) {
+export function getGroupAccessibleDescription(group: readonly Highcharts.Point[], locale: string) {
   const firstPoint = group[0];
-  return getFormatter(firstPoint.series.xAxis)(firstPoint.x);
+  return getFormatter(locale, firstPoint.series.xAxis)(firstPoint.x);
 }
 
 // The area-, line-, or scatter series markers are rendered as single graphic elements,
