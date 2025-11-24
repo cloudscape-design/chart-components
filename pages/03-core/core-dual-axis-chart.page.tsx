@@ -127,6 +127,7 @@ export default function () {
           selectedSettings={[
             "showLegend",
             "legendPosition",
+            "legendHorizontalAlign",
             "legendBottomMaxHeight",
             "showLegendTitle",
             "showLegendActions",

@@ -26,7 +26,7 @@ import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
 import { getFormatter } from "./formatters";
 import { useChartI18n } from "./i18n-utils";
 import { CoreChartProps } from "./interfaces";
-import { getPointAccessibleDescription, hasVisibleLegendItems, hasVisibleSecondaryLegendItems } from "./utils";
+import { getPointAccessibleDescription, hasVisibleLegendItems, shouldShowSecondaryLegend } from "./utils";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -114,7 +114,7 @@ export function InternalCoreChart({
   const apiOptions = api.getOptions();
   const inverted = !!options.chart?.inverted;
   const isRtl = () => getIsRtl(rootRef?.current);
-  const visibleSecondaryItems = hasVisibleSecondaryLegendItems(options);
+  const showSecondaryLegend = shouldShowSecondaryLegend(options);
   return (
     <div {...rootProps}>
       <ChartContainer
@@ -306,13 +306,13 @@ export function InternalCoreChart({
           context.legendEnabled && hasVisibleLegendItems(options) ? (
             <ChartLegend
               api={api}
-              items={"primary"}
+              type={showSecondaryLegend ? "primary" : "single"}
               i18nStrings={i18nStrings}
               title={legendOptions?.title}
               actions={legendOptions?.actions}
               alignment={legendOptions?.position === "side" ? "vertical" : "horizontal"}
               horizontalAlignment={
-                !visibleSecondaryItems && (legendOptions?.position ?? "bottom") === "bottom"
+                !showSecondaryLegend && (legendOptions?.position ?? "bottom") === "bottom"
                   ? legendOptions?.horizontalAlignment
                   : "start"
               }
@@ -322,10 +322,10 @@ export function InternalCoreChart({
           ) : null
         }
         secondaryLegend={
-          context.legendEnabled && visibleSecondaryItems ? (
+          context.legendEnabled && showSecondaryLegend ? (
             <ChartLegend
               api={api}
-              items={"secondary"}
+              type={"secondary"}
               i18nStrings={i18nStrings}
               title={legendOptions?.secondaryLegendTitle}
               actions={legendOptions?.secondaryLegendActions}

@@ -191,17 +191,29 @@ export function hasVisibleLegendItems(options: Highcharts.Options) {
   });
 }
 
-export function hasVisibleSecondaryLegendItems(options: Highcharts.Options) {
+export function shouldShowSecondaryLegend(options: Highcharts.Options) {
   // Note: While native Highcharts supports multiple legend groups, this
   // implementation simplifies to at most 2 legend groups:
   // - One group for all axes with opposite=false (primary axes)
   // - One group for all axes with opposite=true (secondary axes)
+  //
+  // Important: A secondary legend should only be shown when BOTH primary and secondary
+  // series exist. This prevents abuse of the secondary legend API to force right-hand
+  // alignment when there's no actual dual-legend layout.
 
   // Normalize yAxis to an array format for consistent processing
   // Handles three cases: array of axes, single axis object, or no axes
   const yAxes = Array.isArray(options.yAxis) ? options.yAxis : options.yAxis ? [options.yAxis] : [];
 
-  return !!options.series?.some((series) => {
+  let hasPrimarySeries = false;
+  let hasSecondarySeries = false;
+
+  options.series?.forEach((series) => {
+    // Skip series that shouldn't appear in legend
+    if (series.showInLegend === false) {
+      return;
+    }
+
     // Get the y-axis reference for this series (defaults to 0 for the primary axis)
     const yAxisRef = series.yAxis ?? 0;
 
@@ -212,9 +224,15 @@ export function hasVisibleSecondaryLegendItems(options: Highcharts.Options) {
     // Check if this y-axis is a secondary axis (positioned on the opposite side of the chart)
     const isSecondary = yAxis?.opposite ?? false;
 
-    // Return true if this series is on a secondary axis and should be shown in the legend
-    return isSecondary && series.showInLegend !== false;
+    if (isSecondary) {
+      hasSecondarySeries = true;
+    } else {
+      hasPrimarySeries = true;
+    }
   });
+
+  // Only return true if BOTH primary and secondary series exist
+  return hasPrimarySeries && hasSecondarySeries;
 }
 
 // This function returns coordinates of a rectangle, including the target point.
