@@ -201,18 +201,36 @@ export function shouldShowSecondaryLegend(options: Highcharts.Options) {
   // series exist. This prevents abuse of the secondary legend API to force right-hand
   // alignment when there's no actual dual-legend layout.
   //
-  // Why we target yAxis only:
+  // Axis selection based on chart orientation:
   // In typical chart usage, dual-axis layouts use the y-axis for different scales
   // (e.g., temperature on left, humidity on right). The x-axis is shared across all series.
-  // While Highcharts technically supports opposite x-axes, this is rare in practice and
-  // not supported by our dual-legend implementation.
+  // However, when a chart is inverted (options.chart.inverted=true), the x-axes and y-axes
+  // are swapped. In inverted charts, we check x-axes instead of y-axes, since the x-axis
+  // becomes the value axis that can have different scales on opposite sides.
+  // While Highcharts technically supports opposite axes in both orientations, we only
+  // support this for the value axis (y-axis in normal charts, x-axis in inverted charts).
   //
   // Why we support at most 2 axes:
-  // Supporting only primary and secondary axes simplifies the UX. Also, charts with more than 2 y-axes
-  // become difficult to read and interpret. This constraint also ensures a predictable legend layout
-  // with clear primary/secondary grouping.
+  // Supporting only primary and secondary axes simplifies the UX. Also, charts with more than 2
+  // value axes become difficult to read and interpret. This constraint also ensures a predictable
+  // legend layout with clear primary/secondary grouping.
 
-  const yAxes = Array.isArray(options.yAxis) ? options.yAxis : options.yAxis ? [options.yAxis] : [];
+  const isInverted = options.chart?.inverted ?? false;
+
+  // In inverted charts, x-axis becomes the value axis. In normal charts, y-axis is the value axis
+  const valueAxes = (
+    isInverted
+      ? Array.isArray(options.xAxis)
+        ? options.xAxis
+        : options.xAxis
+          ? [options.xAxis]
+          : []
+      : Array.isArray(options.yAxis)
+        ? options.yAxis
+        : options.yAxis
+          ? [options.yAxis]
+          : []
+  ) as Array<{ id?: string; opposite?: boolean }>;
 
   let hasPrimarySeries = false;
   let hasSecondarySeries = false;
@@ -223,15 +241,16 @@ export function shouldShowSecondaryLegend(options: Highcharts.Options) {
       return;
     }
 
-    // Get the y-axis reference for this series (defaults to 0 for the primary axis)
-    const yAxisRef = series.yAxis ?? 0;
+    // Get the axis reference for this series (defaults to 0 for the primary axis)
+    // In inverted charts, check xAxis. In normal charts, check yAxis
+    const axisRef = isInverted ? (series.xAxis ?? 0) : (series.yAxis ?? 0);
 
-    // Resolve the actual y-axis object from the reference
+    // Resolve the actual axis object from the reference
     // The reference can be either an index or a string id
-    const yAxis = typeof yAxisRef === "number" ? yAxes[yAxisRef] : yAxes.find((axis) => axis.id === yAxisRef);
+    const axis = typeof axisRef === "number" ? valueAxes[axisRef] : valueAxes.find((a) => a.id === axisRef);
 
-    // Check if this y-axis is a secondary axis (positioned on the opposite side of the chart)
-    const isSecondary = yAxis?.opposite ?? false;
+    // Check if this axis is a secondary axis (positioned on the opposite side of the chart)
+    const isSecondary = axis?.opposite ?? false;
 
     if (isSecondary) {
       hasSecondarySeries = true;
