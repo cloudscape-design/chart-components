@@ -1,6 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-use/i18n";
+
 import { CoreLegendProps } from "../../core/interfaces";
 import { ChartLegend as ChartLegendComponent } from "../../internal/components/chart-legend";
 import { fireNonCancelableEvent } from "../../internal/events";
@@ -9,7 +11,7 @@ export const CoreLegend = ({
   items,
   title,
   actions,
-  ariaLabel,
+  ariaLabel: legendAriaLabel,
   alignment = "horizontal",
   onItemHighlight,
   onClearHighlight,
@@ -17,6 +19,9 @@ export const CoreLegend = ({
   getLegendTooltipContent,
   horizontalAlignment = "start",
 }: CoreLegendProps) => {
+  const i18n = useInternalI18n("[charts]");
+  const ariaLabel = i18n("i18nStrings.legendAriaLabel", legendAriaLabel);
+
   const onToggleItem = (itemId: string) => {
     const visibleItems = items.filter((i) => i.visible).map((i) => i.id);
     if (visibleItems.includes(itemId)) {
