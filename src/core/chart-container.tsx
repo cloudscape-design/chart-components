@@ -81,7 +81,7 @@ export function ChartContainer({
         {filter}
       </div>
 
-      {primaryLegend && legendPosition === "side" ? (
+      {(primaryLegend || secondaryLegend) && legendPosition === "side" ? (
         <div className={styles["chart-plot-and-legend-wrapper"]}>
           <div
             style={{ minInlineSize: chartMinWidth ?? 0 }}
@@ -109,7 +109,7 @@ export function ChartContainer({
 
       <div ref={refs.footer} style={chartMinWidth !== undefined ? { minInlineSize: chartMinWidth } : {}}>
         {navigator && <div className={testClasses["chart-navigator"]}>{navigator}</div>}
-        {primaryLegend && legendPosition === "bottom" && (
+        {(primaryLegend || secondaryLegend) && legendPosition === "bottom" && (
           <div
             className={styles["bottom-legend-container"]}
             style={{ maxBlockSize: legendBottomMaxHeight ? `${legendBottomMaxHeight}px` : undefined }}

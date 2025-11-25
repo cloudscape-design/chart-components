@@ -8,10 +8,10 @@ import "highcharts/modules/solid-gauge";
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import {
   getChartLegendItems,
+  getLegendsProps,
   getPointColor,
   getSeriesColor,
   getSeriesMarkerType,
-  shouldShowSecondaryLegend,
 } from "../../../lib/components/core/utils";
 import { renderChart } from "./common";
 
@@ -133,11 +133,122 @@ describe("CoreChart: utils", () => {
         expect(items[1].isSecondary).toBe(false);
       }
     });
+
+    describe("inverted charts", () => {
+      test("checks x-axis for secondary axis in inverted charts", () => {
+        let chartApi: CoreChartProps.ChartAPI | null = null;
+        renderChart({
+          highcharts,
+          options: {
+            chart: { inverted: true },
+            xAxis: { opposite: true },
+            yAxis: { opposite: false },
+            series: [
+              {
+                type: "line",
+                visible: true,
+                name: "Series 1",
+              },
+            ],
+          },
+          callback: (api) => (chartApi = api),
+        });
+
+        const items = getChartLegendItems(chartApi!.chart);
+        expect(items[0].isSecondary).toBe(true);
+      });
+
+      test("checks x-axis (not y-axis) for secondary axis in inverted charts", () => {
+        let chartApi: CoreChartProps.ChartAPI | null = null;
+        renderChart({
+          highcharts,
+          options: {
+            chart: { inverted: true },
+            xAxis: { opposite: false },
+            yAxis: { opposite: true },
+            series: [
+              {
+                type: "line",
+                visible: true,
+                name: "Series 1",
+              },
+            ],
+          },
+          callback: (api) => (chartApi = api),
+        });
+
+        const items = getChartLegendItems(chartApi!.chart);
+        // Should check x-axis (opposite: false) not y-axis (opposite: true)
+        expect(items[0].isSecondary).toBe(false);
+      });
+
+      test("handles pie charts in inverted charts correctly", () => {
+        let chartApi: CoreChartProps.ChartAPI | null = null;
+        renderChart({
+          highcharts,
+          options: {
+            chart: { inverted: true },
+            xAxis: { opposite: true },
+            yAxis: { opposite: false },
+            series: [
+              {
+                type: "pie",
+                visible: true,
+                showInLegend: true,
+                name: "Pie Series",
+                data: [
+                  { name: "Segment 1", color: "red", y: 30 },
+                  { name: "Segment 2", color: "blue", y: 70 },
+                ],
+              },
+            ],
+          },
+          callback: (api) => (chartApi = api),
+        });
+
+        const items = getChartLegendItems(chartApi!.chart);
+        // Pie charts don't use axes, so isSecondary should always be false
+        expect(items).toHaveLength(2);
+        expect(items[0].isSecondary).toBe(false);
+        expect(items[1].isSecondary).toBe(false);
+      });
+
+      test("handles multiple axes in inverted charts", () => {
+        let chartApi: CoreChartProps.ChartAPI | null = null;
+        renderChart({
+          highcharts,
+          options: {
+            chart: { inverted: true },
+            xAxis: [{ opposite: false }, { opposite: true }],
+            series: [
+              {
+                type: "line",
+                visible: true,
+                name: "Primary Series",
+                xAxis: 0,
+              },
+              {
+                type: "line",
+                visible: true,
+                name: "Secondary Series",
+                xAxis: 1,
+              },
+            ],
+          },
+          callback: (api) => (chartApi = api),
+        });
+
+        const items = getChartLegendItems(chartApi!.chart);
+        expect(items).toHaveLength(2);
+        expect(items[0].isSecondary).toBe(false);
+        expect(items[1].isSecondary).toBe(true);
+      });
+    });
   });
 
-  describe("shouldShowSecondaryLegend", () => {
+  describe("getLegendsProps", () => {
     describe("non-inverted charts", () => {
-      test("returns false when only primary y-axis series exist", () => {
+      test("returns no secondary legend when only primary y-axis series exist", () => {
         const options: highcharts.Options = {
           yAxis: [{ opposite: false }, { opposite: false }],
           series: [
@@ -145,10 +256,10 @@ describe("CoreChart: utils", () => {
             { type: "line", name: "Series 2", yAxis: 1 },
           ],
         };
-        expect(shouldShowSecondaryLegend(options)).toBe(false);
+        expect(getLegendsProps(options, undefined).secondary).toBeUndefined();
       });
 
-      test("returns true when only secondary y-axis series exist", () => {
+      test("returns secondary legend when only secondary y-axis series exist", () => {
         const options: highcharts.Options = {
           yAxis: [{ opposite: true }, { opposite: true }],
           series: [
@@ -156,10 +267,10 @@ describe("CoreChart: utils", () => {
             { type: "line", name: "Series 2", yAxis: 1 },
           ],
         };
-        expect(shouldShowSecondaryLegend(options)).toBe(true);
+        expect(getLegendsProps(options, undefined).secondary).toBeDefined();
       });
 
-      test("returns true when both primary and secondary y-axis series exist", () => {
+      test("returns secondary legend when both primary and secondary y-axis series exist", () => {
         const options: highcharts.Options = {
           yAxis: [{ opposite: false }, { opposite: true }],
           series: [
@@ -167,15 +278,15 @@ describe("CoreChart: utils", () => {
             { type: "line", name: "Series 2", yAxis: 1 },
           ],
         };
-        expect(shouldShowSecondaryLegend(options)).toBe(true);
+        expect(getLegendsProps(options, undefined).secondary).toBeDefined();
       });
 
-      test("returns false when no series exist", () => {
+      test("returns no secondary legend when no series exist", () => {
         const options: highcharts.Options = {
           yAxis: [{ opposite: false }, { opposite: true }],
           series: [],
         };
-        expect(shouldShowSecondaryLegend(options)).toBe(false);
+        expect(getLegendsProps(options, undefined).secondary).toBeUndefined();
       });
 
       test("ignores series with showInLegend=false", () => {
@@ -186,7 +297,7 @@ describe("CoreChart: utils", () => {
             { type: "line", name: "Series 2", yAxis: 1, showInLegend: false },
           ],
         };
-        expect(shouldShowSecondaryLegend(options)).toBe(false);
+        expect(getLegendsProps(options, undefined).secondary).toBeUndefined();
       });
 
       test("handles series referencing axes by id", () => {
@@ -200,7 +311,7 @@ describe("CoreChart: utils", () => {
             { type: "line", name: "Series 2", yAxis: "secondary" },
           ],
         };
-        expect(shouldShowSecondaryLegend(options)).toBe(true);
+        expect(getLegendsProps(options, undefined).secondary).toBeDefined();
       });
 
       test("handles default yAxis (defaults to 0)", () => {
@@ -211,12 +322,12 @@ describe("CoreChart: utils", () => {
             { type: "line", name: "Series 2", yAxis: 1 },
           ],
         };
-        expect(shouldShowSecondaryLegend(options)).toBe(true);
+        expect(getLegendsProps(options, undefined).secondary).toBeDefined();
       });
     });
 
     describe("inverted charts", () => {
-      test("returns false when only primary x-axis series exist", () => {
+      test("returns no secondary legend when only primary x-axis series exist", () => {
         const options: highcharts.Options = {
           chart: { inverted: true },
           xAxis: [{ opposite: false }, { opposite: false }],
@@ -225,10 +336,10 @@ describe("CoreChart: utils", () => {
             { type: "line", name: "Series 2", xAxis: 1 },
           ],
         };
-        expect(shouldShowSecondaryLegend(options)).toBe(false);
+        expect(getLegendsProps(options, undefined).secondary).toBeUndefined();
       });
 
-      test("returns true when only secondary x-axis series exist", () => {
+      test("returns secondary legend when only secondary x-axis series exist", () => {
         const options: highcharts.Options = {
           chart: { inverted: true },
           xAxis: [{ opposite: true }, { opposite: true }],
@@ -237,10 +348,10 @@ describe("CoreChart: utils", () => {
             { type: "line", name: "Series 2", xAxis: 1 },
           ],
         };
-        expect(shouldShowSecondaryLegend(options)).toBe(true);
+        expect(getLegendsProps(options, undefined).secondary).toBeDefined();
       });
 
-      test("returns true when both primary and secondary x-axis series exist", () => {
+      test("returns secondary legend when both primary and secondary x-axis series exist", () => {
         const options: highcharts.Options = {
           chart: { inverted: true },
           xAxis: [{ opposite: false }, { opposite: true }],
@@ -249,7 +360,7 @@ describe("CoreChart: utils", () => {
             { type: "line", name: "Series 2", xAxis: 1 },
           ],
         };
-        expect(shouldShowSecondaryLegend(options)).toBe(true);
+        expect(getLegendsProps(options, undefined).secondary).toBeDefined();
       });
 
       test("ignores series with showInLegend=false in inverted charts", () => {
@@ -261,7 +372,7 @@ describe("CoreChart: utils", () => {
             { type: "line", name: "Series 2", xAxis: 1, showInLegend: false },
           ],
         };
-        expect(shouldShowSecondaryLegend(options)).toBe(false);
+        expect(getLegendsProps(options, undefined).secondary).toBeUndefined();
       });
 
       test("handles series referencing x-axes by id in inverted charts", () => {
@@ -276,7 +387,7 @@ describe("CoreChart: utils", () => {
             { type: "line", name: "Series 2", xAxis: "secondary" },
           ],
         };
-        expect(shouldShowSecondaryLegend(options)).toBe(true);
+        expect(getLegendsProps(options, undefined).secondary).toBeDefined();
       });
 
       test("handles default xAxis in inverted charts (defaults to 0)", () => {
@@ -288,7 +399,7 @@ describe("CoreChart: utils", () => {
             { type: "line", name: "Series 2", xAxis: 1 },
           ],
         };
-        expect(shouldShowSecondaryLegend(options)).toBe(true);
+        expect(getLegendsProps(options, undefined).secondary).toBeDefined();
       });
 
       test("ignores y-axis in inverted charts and checks x-axis instead", () => {
@@ -301,7 +412,7 @@ describe("CoreChart: utils", () => {
             { type: "line", name: "Series 2", yAxis: 1, xAxis: 0 },
           ],
         };
-        expect(shouldShowSecondaryLegend(options)).toBe(false);
+        expect(getLegendsProps(options, undefined).secondary).toBeUndefined();
       });
     });
   });
