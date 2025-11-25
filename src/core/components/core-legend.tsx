@@ -79,6 +79,7 @@ export function ChartLegend({
       legendTitle={title}
       items={filteredItems}
       someHighlighted={someHighlighted}
+      isSecondary={type === "secondary"}
       horizontalAlignment={horizontalAlignment}
       actions={actions}
       alignment={alignment}

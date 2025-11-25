@@ -22,11 +22,11 @@ export default class CoreChartWrapper extends BaseChartWrapper {
   }
 
   public findLegend(): null | CoreChartLegendWrapper {
-    return this.findComponent(`.${CoreChartLegendWrapper.rootSelector}`, CoreChartLegendWrapper);
+    return this.findComponent(`.${CoreChartLegendWrapper.rootPrimarySelector}`, CoreChartLegendWrapper);
   }
 
   public findSecondaryLegend(): null | CoreChartLegendWrapper {
-    return this.findComponent(`.${CoreChartLegendWrapper.rootSelector}:nth-child(2)`, CoreChartLegendWrapper);
+    return this.findComponent(`.${CoreChartLegendWrapper.rootSecondarySelector}`, CoreChartLegendWrapper);
   }
 
   public findVerticalAxisTitle(): null | ElementWrapper {
