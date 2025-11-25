@@ -197,10 +197,6 @@ export function shouldShowSecondaryLegend(options: Highcharts.Options) {
   // - One group for all axes with opposite=false (primary axes)
   // - One group for all axes with opposite=true (secondary axes)
   //
-  // Important: A secondary legend should only be shown when BOTH primary and secondary
-  // series exist. This prevents abuse of the secondary legend API to force right-hand
-  // alignment when there's no actual dual-legend layout.
-  //
   // Axis selection based on chart orientation:
   // In typical chart usage, dual-axis layouts use the y-axis for different scales
   // (e.g., temperature on left, humidity on right). The x-axis is shared across all series.
@@ -211,9 +207,8 @@ export function shouldShowSecondaryLegend(options: Highcharts.Options) {
   // support this for the value axis (y-axis in normal charts, x-axis in inverted charts).
   //
   // Why we support at most 2 axes:
-  // Supporting only primary and secondary axes simplifies the UX. Also, charts with more than 2
-  // value axes become difficult to read and interpret. This constraint also ensures a predictable
-  // legend layout with clear primary/secondary grouping.
+  // The current implementation supports at most 2 axes, as there is currently no UX solution to
+  // handle more than that, although it is technically possible with Highcharts.
 
   const isInverted = options.chart?.inverted ?? false;
 
