@@ -504,9 +504,9 @@ describe("CoreChart: secondary legend", () => {
     expect(createChartWrapper().findSecondaryLegend()).toBe(null);
   });
 
-  test("does not render when only secondary axis series exist", () => {
+  test("renders when only secondary axis series exist", () => {
     renderChart({ highcharts, options: { series: secondarySeries, yAxis: yAxes } });
-    expect(createChartWrapper().findSecondaryLegend()).toBe(null);
+    expect(createChartWrapper().findSecondaryLegend()).not.toBe(null);
   });
 
   test("renders when both primary and secondary axis series exist", () => {
