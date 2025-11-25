@@ -216,37 +216,35 @@ function isSeriesOptions(item: LegendItemOptions): item is Highcharts.SeriesOpti
 }
 
 // Helper function to check if a legend item belongs to a secondary axis
+// A secondary axis is one positioned on the opposite side of the chart (opposite=true)
+// This determines which legend group (primary or secondary) the item should appear in
 function isSecondaryLegendItem(
   item: LegendItemOptions,
-  options: Highcharts.Options,
   isInverted: boolean,
   valueAxes: Array<{ id?: string; opposite?: boolean }>,
 ): boolean {
+  // Only series (not pie segments/points) can be associated with axes
   if (isSeriesOptions(item)) {
+    // Non-cartesian chart types (gauge, solidgauge) don't use traditional axes
+    // They always belong to the primary legend
+    const isNonCartesian = item.type === "gauge" || item.type === "solidgauge";
+    if (isNonCartesian) {
+      return false;
+    }
     // Get the axis reference for this series (defaults to 0 for the primary axis)
     // In inverted charts, check xAxis. In normal charts, check yAxis
     const axisRef = isInverted ? (item.xAxis ?? 0) : (item.yAxis ?? 0);
     // Resolve the actual axis object from the reference
-    // The reference can be either an index or a string id
+    // The reference can be either an index (number) or a string id
     const axis = typeof axisRef === "number" ? valueAxes[axisRef] : valueAxes.find((a) => a.id === axisRef);
     // Check if this axis is a secondary axis (positioned on the opposite side of the chart)
+    // If the axis is not found or opposite is undefined, default to false (primary)
     return axis?.opposite ?? false;
-  } else {
-    const pieSeries = options.series?.find((s) => {
-      if (s.type === "pie" && Array.isArray(s.data)) {
-        return s.data.some((point) => point === item);
-      }
-      return false;
-    });
-
-    if (pieSeries) {
-      const axisRef = isInverted ? (pieSeries.xAxis ?? 0) : (pieSeries.yAxis ?? 0);
-      const axis = typeof axisRef === "number" ? valueAxes[axisRef] : valueAxes.find((a) => a.id === axisRef);
-      return axis?.opposite ?? false;
-    }
-
-    return false;
   }
+
+  // Pie chart segments (points) are not associated with axes
+  // They always belong to the primary legend
+  return false;
 }
 
 // Partitions legend items into primary and secondary groups based on their associated axis
@@ -272,7 +270,7 @@ function partitionLegendItems(
   const primary: LegendItemOptions[] = [];
   const secondary: LegendItemOptions[] = [];
   for (const item of items) {
-    if (isSecondaryLegendItem(item, options, isInverted, valueAxes)) {
+    if (isSecondaryLegendItem(item, isInverted, valueAxes)) {
       secondary.push(item);
     } else {
       primary.push(item);
