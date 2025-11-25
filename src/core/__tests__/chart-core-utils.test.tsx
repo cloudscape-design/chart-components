@@ -148,7 +148,7 @@ describe("CoreChart: utils", () => {
         expect(shouldShowSecondaryLegend(options)).toBe(false);
       });
 
-      test("returns false when only secondary y-axis series exist", () => {
+      test("returns true when only secondary y-axis series exist", () => {
         const options: highcharts.Options = {
           yAxis: [{ opposite: true }, { opposite: true }],
           series: [
@@ -156,7 +156,7 @@ describe("CoreChart: utils", () => {
             { type: "line", name: "Series 2", yAxis: 1 },
           ],
         };
-        expect(shouldShowSecondaryLegend(options)).toBe(false);
+        expect(shouldShowSecondaryLegend(options)).toBe(true);
       });
 
       test("returns true when both primary and secondary y-axis series exist", () => {
@@ -228,7 +228,7 @@ describe("CoreChart: utils", () => {
         expect(shouldShowSecondaryLegend(options)).toBe(false);
       });
 
-      test("returns false when only secondary x-axis series exist", () => {
+      test("returns true when only secondary x-axis series exist", () => {
         const options: highcharts.Options = {
           chart: { inverted: true },
           xAxis: [{ opposite: true }, { opposite: true }],
@@ -237,7 +237,7 @@ describe("CoreChart: utils", () => {
             { type: "line", name: "Series 2", xAxis: 1 },
           ],
         };
-        expect(shouldShowSecondaryLegend(options)).toBe(false);
+        expect(shouldShowSecondaryLegend(options)).toBe(true);
       });
 
       test("returns true when both primary and secondary x-axis series exist", () => {

@@ -23,8 +23,8 @@ export function ChartLegend({
   api: ChartAPI;
   title?: string;
   actions?: React.ReactNode;
+  type: "primary" | "secondary";
   alignment: "horizontal" | "vertical";
-  type: "single" | "primary" | "secondary";
   horizontalAlignment?: "start" | "center" | "end";
   i18nStrings?: CoreI18nStrings;
   onItemHighlight?: NonCancelableEventHandler<CoreChartProps.LegendItemHighlightDetail>;
@@ -44,11 +44,9 @@ export function ChartLegend({
   const someHighlighted = legendItems.some((item) => item.highlighted);
   const isChartTooltipPinned = useSelector(api.tooltipStore, (s) => s.pinned);
   const filteredItems =
-    type === "single"
-      ? legendItems
-      : type === "primary"
-        ? legendItems.filter((item) => !item.isSecondary)
-        : legendItems.filter((item) => item.isSecondary);
+    type === "primary"
+      ? legendItems.filter((item) => !item.isSecondary)
+      : legendItems.filter((item) => item.isSecondary);
 
   const onToggleItem = (itemId: string) => {
     const visibleItems = legendItems.filter((i) => i.visible).map((i) => i.id);

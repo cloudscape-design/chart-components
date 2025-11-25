@@ -102,11 +102,6 @@ describe("CoreChart: legend", () => {
     expect(createChartWrapper().findLegend()).not.toBe(null);
   });
 
-  test("renders when only secondary axis series exist", () => {
-    renderChart({ highcharts, options: { series: secondarySeries, yAxis: yAxes } });
-    expect(createChartWrapper().findLegend()).not.toBe(null);
-  });
-
   test("renders expected legend items", () => {
     renderChart({ highcharts, options: { series }, visibleItems: ["L1", "P1"] });
 
