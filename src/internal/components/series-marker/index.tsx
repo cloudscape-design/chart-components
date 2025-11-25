@@ -1,8 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { useId } from "react";
+
 import { BaseComponentProps } from "@cloudscape-design/components/internal/base-component";
-import { colorTextInteractiveDisabled } from "@cloudscape-design/design-tokens";
+import { colorBorderStatusWarning, colorTextInteractiveDisabled } from "@cloudscape-design/design-tokens";
 
 import styles from "./styles.css.js";
 
@@ -43,104 +45,113 @@ export function ChartSeriesMarker({
   i18nStrings,
 }: ChartSeriesMarkerProps) {
   color = visible ? color : colorTextInteractiveDisabled;
+
+  // As React re-renders the components, a new ID should be created for masks.
+  // Not doing so will not evaluate the mask.
+  const maskId = useId();
+
   return (
     <div className={styles.marker}>
-      <svg focusable={false} aria-hidden={true} viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-        {type === "line" && <SVGLine color={color} />}
+      <svg focusable={false} aria-hidden={true} viewBox="0 0 32 16" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id={maskId}>
+            <rect width="100%" height="100%" fill="white" />
 
-        {type === "dashed" && <SVGLineDashed color={color} />}
+            {status === "warning" && <SVGWarningMask></SVGWarningMask>}
+          </mask>
+        </defs>
 
-        {type === "large-square" && <SVGLargeSquare color={color} />}
+        {status === "warning" && <SVGWarning ariaLabel={i18nStrings.seriesStatusWarningAriaLabel ?? ""}></SVGWarning>}
 
-        {type === "hollow-square" && <SVGHollowSquare color={color} />}
+        {type === "line" && <SVGLine maskId={maskId} color={color} />}
 
-        {type === "square" && <SVGSquare color={color} />}
+        {type === "dashed" && <SVGLineDashed maskId={maskId} color={color} />}
 
-        {type === "diamond" && <SVGDiamond color={color} />}
+        {type === "large-square" && <SVGLargeSquare maskId={maskId} color={color} />}
 
-        {type === "triangle" && <SVGTriangle color={color} />}
+        {type === "hollow-square" && <SVGHollowSquare maskId={maskId} color={color} />}
 
-        {type === "triangle-down" && <SVGTriangleDown color={color} />}
+        {type === "square" && <SVGSquare maskId={maskId} color={color} />}
 
-        {type === "circle" && <SVGCircle color={color} />}
+        {type === "diamond" && <SVGDiamond maskId={maskId} color={color} />}
+
+        {type === "triangle" && <SVGTriangle maskId={maskId} color={color} />}
+
+        {type === "triangle-down" && <SVGTriangleDown maskId={maskId} color={color} />}
+
+        {type === "circle" && <SVGCircle maskId={maskId} color={color} />}
       </svg>
-      {status === "warning" && (
-        <div className={styles["marker-status"]}>
-          <SVGWarning ariaLabel={i18nStrings.seriesStatusWarningAriaLabel ?? ""} />
-        </div>
-      )}
     </div>
   );
 }
 
-function SVGLine({ color }: { color: string }) {
-  return <rect x={1} y={7} height={4} width={14} strokeWidth={0} rx={2} fill={color} />;
+function SVGLine({ color, maskId }: { color: string; maskId: string }) {
+  return <rect mask={`url(#${maskId})`} x={1} y={7} height={4} width={14} strokeWidth={0} rx={2} fill={color} />;
 }
 
-function SVGLineDashed({ color }: { color: string }) {
+function SVGLineDashed({ color, maskId }: { color: string; maskId: string }) {
   return (
     <>
-      <rect x={1} y={7} height={4} width={6} strokeWidth={0} rx={2} fill={color} />
-      <rect x={9} y={7} height={4} width={6} strokeWidth={0} rx={2} fill={color} />
+      <rect mask={`url(#${maskId})`} x={1} y={7} height={4} width={6} strokeWidth={0} rx={2} fill={color} />
+      <rect mask={`url(#${maskId})`} x={9} y={7} height={4} width={6} strokeWidth={0} rx={2} fill={color} />
     </>
   );
 }
 
-function SVGLargeSquare({ color }: { color: string }) {
+function SVGLargeSquare({ color, maskId }: { color: string; maskId: string }) {
   const shape = { x: 0, y: 0, width: 16, height: 16, rx: 2, transform: scale(16, 0.85) };
-  return <rect {...shape} strokeWidth={0} fill={color} />;
+  return <rect mask={`url(#${maskId})`} {...shape} strokeWidth={0} fill={color} />;
 }
 
-function SVGHollowSquare({ color }: { color: string }) {
+function SVGHollowSquare({ color, maskId }: { color: string; maskId: string }) {
   const size = { x: 0, y: 0, width: 16, height: 16, rx: 2, transform: scale(16, 0.75) };
-  return <rect {...size} strokeWidth={2} stroke={color} fill={color} fillOpacity="0.40" />;
+  return <rect mask={`url(#${maskId})`} {...size} strokeWidth={2} stroke={color} fill={color} fillOpacity="0.40" />;
 }
 
-function SVGSquare({ color }: { color: string }) {
+function SVGSquare({ color, maskId }: { color: string; maskId: string }) {
   const size = { x: 3, y: 3, width: 10, height: 10, rx: 2 };
-  return <rect {...size} strokeWidth={0} fill={color} />;
+  return <rect mask={`url(#${maskId})`} {...size} strokeWidth={0} fill={color} />;
 }
 
-function SVGDiamond({ color }: { color: string }) {
+function SVGDiamond({ color, maskId }: { color: string; maskId: string }) {
   const shape = { points: "8,0 16,8 8,16 0,8", transform: scale(16, 0.65) };
-  return <polygon {...shape} strokeWidth={0} fill={color} />;
+  return <polygon mask={`url(#${maskId})`} {...shape} strokeWidth={0} fill={color} />;
 }
 
-function SVGTriangle({ color }: { color: string }) {
+function SVGTriangle({ color, maskId }: { color: string; maskId: string }) {
   const shape = { points: "8,0 16,16 0,16", transform: scale(16, 0.65) };
-  return <polygon {...shape} strokeWidth={0} fill={color} />;
+  return <polygon mask={`url(#${maskId})`} {...shape} strokeWidth={0} fill={color} />;
 }
 
-function SVGTriangleDown({ color }: { color: string }) {
+function SVGTriangleDown({ color, maskId }: { color: string; maskId: string }) {
   const shape = { points: "8,16 0,0 16,0", transform: scale(16, 0.65) };
-  return <polygon {...shape} strokeWidth={0} fill={color} />;
+  return <polygon mask={`url(#${maskId})`} {...shape} strokeWidth={0} fill={color} />;
 }
 
-function SVGCircle({ color }: { color: string }) {
+function SVGCircle({ color, maskId }: { color: string; maskId: string }) {
   const shape = { cx: 8, cy: 8, r: 5 };
-  return <circle {...shape} strokeWidth={0} fill={color} />;
+  return <circle mask={`url(#${maskId})`} {...shape} strokeWidth={0} fill={color} />;
 }
+
+const SVGWarningTranslate = `translate(12, 1)`;
 
 function SVGWarning({ ariaLabel }: { ariaLabel: string }) {
   return (
-    <svg
+    <path
       aria-label={ariaLabel}
-      width="2048"
-      height="2048"
-      viewBox="0 0 2048 2048"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M1026.13 189.272C1070.05 189.638 1112.23 201.32 1150.09 223.616L1151.92 224.703L1153.73 225.798C1190.95 248.557 1220.82 279.873 1241.92 317.63L1242.93 319.462L1243.02 319.61L1243.1 319.76L1842.42 1418.91C1886.25 1498.63 1883.99 1587.56 1838.52 1665.03L1838.52 1665.02C1816.34 1702.83 1785.36 1733.29 1747.79 1754.95C1709.7 1776.91 1667.35 1788.26 1623.32 1788.26H424.678C380.651 1788.26 338.304 1776.91 300.21 1754.95C262.607 1733.27 231.602 1702.77 209.421 1664.92L209.422 1664.92C163.991 1587.46 161.763 1498.54 205.625 1418.83L804.904 319.759L805.066 319.462C826.549 280.274 857.415 247.911 896.081 224.703L897.91 223.616C936.377 200.961 979.316 189.264 1024 189.264L1026.13 189.272Z"
-        fill="white"
-        stroke="white"
-        strokeWidth="300"
-      />
-      <path
-        d="M1123.89 1412.66V1264.33C1123.89 1257.05 1121.42 1250.93 1116.47 1245.99C1111.53 1241.04 1105.68 1238.57 1098.92 1238.57H949.085C942.322 1238.57 936.469 1241.04 931.526 1245.99C926.584 1250.93 924.113 1257.05 924.113 1264.33V1412.66C924.113 1419.94 926.584 1426.06 931.526 1431C936.469 1435.95 942.322 1438.42 949.085 1438.42H1098.92C1105.68 1438.42 1111.53 1435.95 1116.47 1431C1121.42 1426.06 1123.89 1419.94 1123.89 1412.66ZM1122.33 1120.69L1136.37 762.375C1136.37 756.13 1133.77 751.186 1128.57 747.543C1121.81 741.818 1115.56 738.956 1109.84 738.956H938.16C932.437 738.956 926.194 741.818 919.431 747.543C914.228 751.186 911.627 756.651 911.627 763.937L924.893 1120.69C924.893 1125.9 927.495 1130.19 932.697 1133.57C937.899 1136.96 944.142 1138.65 951.426 1138.65H1095.79C1103.08 1138.65 1109.19 1136.96 1114.13 1133.57C1119.07 1130.19 1121.81 1125.9 1122.33 1120.69ZM1111.4 391.567L1710.72 1490.72C1728.93 1523.51 1728.41 1556.3 1709.16 1589.08C1700.32 1604.18 1688.22 1616.15 1672.88 1624.99C1657.53 1633.84 1641.01 1638.26 1623.32 1638.26H424.678C406.99 1638.26 390.472 1633.84 375.125 1624.99C359.778 1616.15 347.682 1604.18 338.838 1589.08C319.589 1556.3 319.068 1523.51 337.277 1490.72L936.599 391.567C945.443 375.434 957.669 362.683 973.276 353.315C988.883 343.948 1005.79 339.264 1024 339.264C1042.21 339.264 1059.12 343.948 1074.72 353.315C1090.33 362.683 1102.56 375.434 1111.4 391.567Z"
-        fill="#E07700"
-      />
-    </svg>
+      transform={`${SVGWarningTranslate} ${scale(16, 0.8)}`}
+      d="M9.14157,12.3948v-1.713c0,-0.084,-0.028,-0.154,-0.085,-0.211c-0.056,-0.058,-0.123,-0.086,-0.2,-0.086h-1.713c-0.077,0,-0.144,0.028,-0.2,0.086c-0.057,0.057,-0.085,0.127,-0.085,0.211v1.713c0,0.084,0.028,0.155,0.085,0.212c0.056,0.057,0.123,0.085,0.2,0.085h1.713c0.077,0,0.144,-0.028,0.2,-0.085c0.057,-0.057,0.085,-0.128,0.085,-0.212zm-0.018,-3.371l0.161,-4.138c0,-0.072,-0.03,-0.129,-0.089,-0.171c-0.078,-0.066,-0.149,-0.099,-0.215,-0.099h-1.962c-0.065,0,-0.136,0.033,-0.214,0.099c-0.059,0.042,-0.089,0.105,-0.089,0.189l0.152,4.12c0,0.06,0.03,0.109,0.089,0.148c0.059,0.039,0.131,0.059,0.214,0.059h1.65c0.083,0,0.153,-0.02,0.21,-0.059c0.056,-0.039,0.087,-0.088,0.093,-0.148zm-0.125,-8.419l6.85,12.692c0.208,0.378,0.202,0.757,-0.018,1.136c-0.101,0.174,-0.24,0.312,-0.415,0.414c-0.175,0.102,-0.364,0.154,-0.566,0.154h-13.699c-0.202,0,-0.391,-0.052,-0.566,-0.154c-0.176,-0.102,-0.314,-0.24,-0.415,-0.414c-0.22,-0.379,-0.226,-0.758,-0.018,-1.136l6.849,-12.692c0.101,-0.187,0.241,-0.334,0.42,-0.442c0.178,-0.108,0.371,-0.162,0.579,-0.162c0.208,0,0.402,0.054,0.58,0.162c0.178,0.108,0.318,0.255,0.419,0.442z"
+      fill={colorBorderStatusWarning}
+    />
+  );
+}
+
+function SVGWarningMask() {
+  return (
+    <path
+      transform={`${SVGWarningTranslate} ${scale(16, 1.4)}`}
+      d="M8 0C8.2081 2.01716e-08 8.40171 0.0539363 8.58008 0.162109C8.75826 0.270216 8.898 0.417425 8.99902 0.603516L15.8486 13.2959C16.0567 13.6744 16.05 14.0531 15.8301 14.4316C15.7291 14.6058 15.5913 14.7445 15.416 14.8467C15.2407 14.9488 15.0517 15 14.8496 15H1.15039C0.94832 15 0.759318 14.9488 0.583984 14.8467C0.408709 14.7445 0.270949 14.6058 0.169922 14.4316C-0.0499612 14.0531 -0.0566966 13.6744 0.151367 13.2959L7.00098 0.603516C7.102 0.417424 7.24174 0.270216 7.41992 0.162109C7.59829 0.0539363 7.7919 0 8 0Z"
+      fill="black"
+    />
   );
 }
