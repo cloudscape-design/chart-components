@@ -31,8 +31,13 @@ export function ChartLegend({
   getLegendTooltipContent?: CoreChartProps.GetLegendTooltipContent;
 }) {
   const i18n = useInternalI18n("[charts]");
+  // TODO: This is a temporary approach for the initial release.
+  // We need a change to @cloudscape-design/components to provide built-in i18n support
+  // for the secondary legend ARIA label (similar to legendAriaLabel).
+  // For now, only the primary legend has built-in i18n support via the i18n() call,
+  // while the secondary legend requires explicit user-provided i18nStrings.secondaryLegendAriaLabel.
   const legendAriaLabel = i18n("i18nStrings.legendAriaLabel", i18nStrings?.legendAriaLabel);
-  const secondaryLegendAriaLabel = i18n("i18nStrings.legendAriaLabel", i18nStrings?.secondaryLegendAriaLabel);
+  const secondaryLegendAriaLabel = i18nStrings?.secondaryLegendAriaLabel;
   const ariaLabel = type === "secondary" ? secondaryLegendAriaLabel : legendAriaLabel;
 
   const legendItems = useSelector(api.legendStore, (s) => s.items);
