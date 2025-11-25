@@ -126,6 +126,14 @@ export interface BaseI18nStrings {
 }
 
 export interface CoreI18nStrings extends BaseI18nStrings {
+  /**
+   * ARIA label for the secondary legend when using dual axes charts.
+   *
+   * **Important**: When using dual axes, you should explicitly provide visible titles or ARIA labels
+   * for both the primary and secondary legends to ensure proper accessibility. The primary legend
+   * has built-in i18n support through `legendAriaLabel`, but the secondary legend currently requires
+   * this property to be explicitly provided.
+   */
   secondaryLegendAriaLabel?: string;
 }
 
