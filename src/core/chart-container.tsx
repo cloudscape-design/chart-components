@@ -103,7 +103,7 @@ export function ChartContainer({
         >
           {verticalAxisTitle}
           {chart(effectiveChartHeight)}
-          {!primaryLegend || legendPosition === "bottom" ? noData : null}
+          {!(primaryLegend || secondaryLegend) || legendPosition === "bottom" ? noData : null}
         </div>
       )}
 
