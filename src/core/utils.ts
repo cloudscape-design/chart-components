@@ -232,10 +232,7 @@ export function shouldShowSecondaryLegend(options: Highcharts.Options) {
           : []
   ) as Array<{ id?: string; opposite?: boolean }>;
 
-  let hasPrimarySeries = false;
-  let hasSecondarySeries = false;
-
-  options.series?.forEach((series) => {
+  return options.series?.some((series) => {
     // Skip series that shouldn't appear in legend
     if (series.showInLegend === false) {
       return;
@@ -251,16 +248,8 @@ export function shouldShowSecondaryLegend(options: Highcharts.Options) {
 
     // Check if this axis is a secondary axis (positioned on the opposite side of the chart)
     const isSecondary = axis?.opposite ?? false;
-
-    if (isSecondary) {
-      hasSecondarySeries = true;
-    } else {
-      hasPrimarySeries = true;
-    }
+    return isSecondary;
   });
-
-  // Only return true if BOTH primary and secondary series exist
-  return hasPrimarySeries && hasSecondarySeries;
 }
 
 export function getLegendsProps(
@@ -274,7 +263,7 @@ export function getLegendsProps(
     primary: !visibleItems
       ? undefined
       : ({
-          type: showSecondaryLegend ? "primary" : "single",
+          type: "primary",
           title: legendOptions?.title,
           actions: legendOptions?.actions,
           alignment: legendOptions?.position === "side" ? "vertical" : "horizontal",
