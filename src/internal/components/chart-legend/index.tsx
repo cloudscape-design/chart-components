@@ -13,7 +13,7 @@ import {
   useMergeRefs,
   useSingleTabStopNavigation,
 } from "@cloudscape-design/component-toolkit/internal";
-import Box from "@cloudscape-design/components/box";
+import Box, { BoxProps } from "@cloudscape-design/components/box";
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
 
 import { DebouncedCall } from "../../utils/utils";
@@ -26,14 +26,17 @@ const TOOLTIP_BLUR_DELAY = 50;
 const HIGHLIGHT_LOST_DELAY = 50;
 const SCROLL_DELAY = 100;
 
+export type LegendAlignment = "horizontal" | "vertical";
+export type LegendHorizontalAlignment = "start" | "center" | "end";
+
 export interface ChartLegendProps {
   items: readonly LegendItem[];
   legendTitle?: string;
   ariaLabel?: string;
   actions?: React.ReactNode;
   someHighlighted: boolean;
-  alignment: "horizontal" | "vertical";
-  horizontalAlignment: "start" | "center" | "end";
+  alignment: LegendAlignment;
+  horizontalAlignment: LegendHorizontalAlignment;
   onToggleItem: (itemId: string) => void;
   onSelectItem: (itemId: string) => void;
   onItemHighlightEnter: (item: LegendItem) => void;
@@ -229,7 +232,7 @@ export const ChartLegend = ({
         onMouseLeave={() => (isMouseInContainer.current = false)}
       >
         {legendTitle && (
-          <Box fontWeight="bold" className={testClasses.title} textAlign={getLegendTitleAlignment(horizontalAlignment)}>
+          <Box fontWeight="bold" className={testClasses.title} textAlign={getBoxTextAlignment(horizontalAlignment)}>
             {legendTitle}
           </Box>
         )}
@@ -331,7 +334,7 @@ export const ChartLegend = ({
   );
 };
 
-function getLegendTitleAlignment(horizontalAlignment: "start" | "center" | "end") {
+function getBoxTextAlignment(horizontalAlignment: LegendHorizontalAlignment): BoxProps.TextAlign {
   switch (horizontalAlignment) {
     case "start":
       return "left";
