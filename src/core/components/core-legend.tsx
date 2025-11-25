@@ -11,10 +11,10 @@ import { CoreChartProps, CoreI18nStrings } from "../interfaces";
 
 export function ChartLegend({
   api,
-  type,
   title,
   actions,
   alignment,
+  isSecondary,
   i18nStrings,
   onItemHighlight,
   getLegendTooltipContent,
@@ -22,8 +22,8 @@ export function ChartLegend({
 }: {
   api: ChartAPI;
   title?: string;
+  isSecondary: boolean;
   actions?: React.ReactNode;
-  type: "primary" | "secondary";
   alignment: "horizontal" | "vertical";
   horizontalAlignment?: "start" | "center" | "end";
   i18nStrings?: CoreI18nStrings;
@@ -38,15 +38,14 @@ export function ChartLegend({
   // while the secondary legend requires explicit user-provided i18nStrings.secondaryLegendAriaLabel.
   const legendAriaLabel = i18n("i18nStrings.legendAriaLabel", i18nStrings?.legendAriaLabel);
   const secondaryLegendAriaLabel = i18nStrings?.secondaryLegendAriaLabel;
-  const ariaLabel = type === "secondary" ? secondaryLegendAriaLabel : legendAriaLabel;
+  const ariaLabel = isSecondary ? secondaryLegendAriaLabel : legendAriaLabel;
 
   const legendItems = useSelector(api.legendStore, (s) => s.items);
   const someHighlighted = legendItems.some((item) => item.highlighted);
   const isChartTooltipPinned = useSelector(api.tooltipStore, (s) => s.pinned);
-  const filteredItems =
-    type === "primary"
-      ? legendItems.filter((item) => !item.isSecondary)
-      : legendItems.filter((item) => item.isSecondary);
+  const filteredItems = isSecondary
+    ? legendItems.filter((item) => item.isSecondary)
+    : legendItems.filter((item) => !item.isSecondary);
 
   const onToggleItem = (itemId: string) => {
     const visibleItems = legendItems.filter((i) => i.visible).map((i) => i.id);
@@ -78,8 +77,8 @@ export function ChartLegend({
       ariaLabel={ariaLabel}
       legendTitle={title}
       items={filteredItems}
+      isSecondary={isSecondary}
       someHighlighted={someHighlighted}
-      isSecondary={type === "secondary"}
       horizontalAlignment={horizontalAlignment}
       actions={actions}
       alignment={alignment}
