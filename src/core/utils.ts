@@ -134,7 +134,7 @@ export function getPointColor(point?: Highcharts.Point): string {
 export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendItemSpec[] {
   const legendItems: LegendItemSpec[] = [];
   const isInverted = chart.inverted ?? false;
-  const addSeriesItem = (series: Highcharts.Series) => {
+  const addSeriesItem = (series: Highcharts.Series, isSecondary: boolean) => {
     // The pie series is not shown in the legend. Instead, we show pie segments.
     if (series.type === "pie") {
       return;
@@ -147,14 +147,13 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
     // We respect Highcharts showInLegend option to allow hiding certain series from the legend.
     // The same is not supported for pie chart segments.
     if (series.options.showInLegend !== false) {
-      const valueAxis = isInverted ? series.xAxis : series.yAxis;
       legendItems.push({
         id: getSeriesId(series),
         name: series.name,
         markerType: getSeriesMarkerType(series),
         color: getSeriesColor(series),
         visible: series.visible,
-        isSecondary: valueAxis?.options?.opposite ?? false,
+        isSecondary,
       });
     }
   };
@@ -171,9 +170,10 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
     }
   };
   for (const s of getChartSeries(chart.series)) {
-    addSeriesItem(s);
     const valueAxis = isInverted ? s.xAxis : s.yAxis;
-    const isSecondary = valueAxis?.options?.opposite ?? false;
+    const isNonCartesian = s.type === "pie" || s.type === "gauge" || s.type === "solidgauge";
+    const isSecondary = isNonCartesian ? false : (valueAxis?.options?.opposite ?? false);
+    addSeriesItem(s, isSecondary);
     s.data.forEach((p) => addPointItem(p, isSecondary));
   }
   return legendItems;

@@ -105,7 +105,7 @@ describe("CoreChart: utils", () => {
       renderChart({
         highcharts,
         options: {
-          yAxis: { opposite: false },
+          yAxis: { opposite: true },
           series: [
             {
               type,
@@ -158,61 +158,6 @@ describe("CoreChart: utils", () => {
         expect(items[0].isSecondary).toBe(true);
       });
 
-      test("checks x-axis (not y-axis) for secondary axis in inverted charts", () => {
-        let chartApi: CoreChartProps.ChartAPI | null = null;
-        renderChart({
-          highcharts,
-          options: {
-            chart: { inverted: true },
-            xAxis: { opposite: false },
-            yAxis: { opposite: true },
-            series: [
-              {
-                type: "line",
-                visible: true,
-                name: "Series 1",
-              },
-            ],
-          },
-          callback: (api) => (chartApi = api),
-        });
-
-        const items = getChartLegendItems(chartApi!.chart);
-        // Should check x-axis (opposite: false) not y-axis (opposite: true)
-        expect(items[0].isSecondary).toBe(false);
-      });
-
-      test("handles pie charts in inverted charts correctly", () => {
-        let chartApi: CoreChartProps.ChartAPI | null = null;
-        renderChart({
-          highcharts,
-          options: {
-            chart: { inverted: true },
-            xAxis: { opposite: true },
-            yAxis: { opposite: false },
-            series: [
-              {
-                type: "pie",
-                visible: true,
-                showInLegend: true,
-                name: "Pie Series",
-                data: [
-                  { name: "Segment 1", color: "red", y: 30 },
-                  { name: "Segment 2", color: "blue", y: 70 },
-                ],
-              },
-            ],
-          },
-          callback: (api) => (chartApi = api),
-        });
-
-        const items = getChartLegendItems(chartApi!.chart);
-        // Pie charts don't use axes, so isSecondary should always be false
-        expect(items).toHaveLength(2);
-        expect(items[0].isSecondary).toBe(false);
-        expect(items[1].isSecondary).toBe(false);
-      });
-
       test("handles multiple axes in inverted charts", () => {
         let chartApi: CoreChartProps.ChartAPI | null = null;
         renderChart({
@@ -242,6 +187,42 @@ describe("CoreChart: utils", () => {
         expect(items).toHaveLength(2);
         expect(items[0].isSecondary).toBe(false);
         expect(items[1].isSecondary).toBe(true);
+      });
+
+      test.each(["pie", "gauge"] as const)("sets isSecondary to false for %s", (type) => {
+        let chartApi: CoreChartProps.ChartAPI | null = null;
+        renderChart({
+          highcharts,
+          options: {
+            chart: { inverted: true },
+            xAxis: { opposite: true },
+            yAxis: { opposite: false },
+            series: [
+              {
+                type,
+                visible: true,
+                showInLegend: true,
+                name: "Pie Series",
+                data: [
+                  { name: "Segment 1", color: "red", y: 30 },
+                  { name: "Segment 2", color: "blue", y: 70 },
+                ],
+              },
+            ],
+          },
+          callback: (api) => (chartApi = api),
+        });
+
+        const items = getChartLegendItems(chartApi!.chart);
+
+        if (type === "gauge") {
+          expect(items).toHaveLength(1);
+          expect(items[0].isSecondary).toBe(false);
+        } else {
+          expect(items).toHaveLength(2);
+          expect(items[0].isSecondary).toBe(false);
+          expect(items[1].isSecondary).toBe(false);
+        }
       });
     });
   });
