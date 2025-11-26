@@ -1765,6 +1765,11 @@ for each visited { x, y } point.",
               "type": "string",
             },
             {
+              "name": "renderDebounceDuration",
+              "optional": true,
+              "type": "number",
+            },
+            {
               "inlineType": {
                 "name": ""small" | "medium" | "large"",
                 "type": "union",
