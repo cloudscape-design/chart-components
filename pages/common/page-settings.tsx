@@ -32,6 +32,7 @@ export interface PageSettings {
   emphasizeBaseline: boolean;
   tooltipPlacement: "default" | "middle" | "outside";
   tooltipSize: "small" | "medium" | "large";
+  tooltipSeriesSorting: CoreChartProps.TooltipOptions["seriesSorting"];
   showLegend: boolean;
   showLegendTitle: boolean;
   showLegendActions: boolean;
@@ -68,6 +69,7 @@ const DEFAULT_SETTINGS: PageSettings = {
   showHeaderFilter: false,
   showCustomFooter: false,
   useFallback: false,
+  tooltipSeriesSorting: "asAdded",
 };
 
 export const PageSettingsContext = createContext<PageSettings>(DEFAULT_SETTINGS);
@@ -85,6 +87,7 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
   chartProps: {
     cartesian: Omit<CartesianChartProps, "series"> & { ref: React.Ref<CartesianChartProps.Ref> };
     pie: Omit<PieChartProps, "series"> & { ref: React.Ref<PieChartProps.Ref> };
+    core: Omit<CoreChartProps, "series" | "options">;
   };
   isEmpty: boolean;
 } {
@@ -178,6 +181,18 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
         tooltip: { size: settings.tooltipSize },
         legend,
       },
+      core: {
+        highcharts,
+        noData,
+        tooltip: {
+          placement: settings.tooltipPlacement === "default" ? undefined : settings.tooltipPlacement,
+          size: settings.tooltipSize,
+          seriesSorting: settings.tooltipSeriesSorting,
+        },
+        legend,
+        emphasizeBaseline: settings.emphasizeBaseline,
+        verticalAxisTitlePlacement: settings.verticalAxisTitlePlacement,
+      },
     },
     isEmpty: settings.emptySeries || settings.seriesLoading || settings.seriesError,
   };
@@ -188,6 +203,11 @@ const tooltipPlacementOptions = [{ value: "default" }, { value: "middle" }, { va
 const tooltipSizeOptions = [{ value: "small" }, { value: "medium" }, { value: "large" }];
 
 const verticalAxisTitlePlacementOptions = [{ value: "top" }, { value: "side" }];
+
+const tooltipSeriesSortingOptions = [
+  { id: "asAdded", text: "asAdded" },
+  { id: "byValueDesc", text: "byValueDesc" },
+];
 
 export function PageSettingsForm({
   selectedSettings,
@@ -338,6 +358,19 @@ export function PageSettingsForm({
                     }
                   />
                 </FormField>
+              );
+            case "tooltipSeriesSorting":
+              return (
+                <SegmentedControl
+                  label="Tooltip Series Sorting"
+                  selectedId={settings.tooltipSeriesSorting ?? null}
+                  options={tooltipSeriesSortingOptions}
+                  onChange={({ detail }) =>
+                    setSettings({
+                      tooltipSeriesSorting: detail.selectedId as CoreChartProps.TooltipOptions["seriesSorting"],
+                    })
+                  }
+                />
               );
             case "showLegend":
               return (
