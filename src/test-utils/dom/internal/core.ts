@@ -22,11 +22,17 @@ export default class CoreChartWrapper extends BaseChartWrapper {
   }
 
   public findLegend(): null | CoreChartLegendWrapper {
-    return this.findComponent(`.${CoreChartLegendWrapper.rootPrimarySelector}`, CoreChartLegendWrapper);
+    return this.findComponent(
+      `.${CoreChartLegendWrapper.rootSelector}.${testClasses["legend-primary"]}`,
+      CoreChartLegendWrapper,
+    );
   }
 
   public findSecondaryLegend(): null | CoreChartLegendWrapper {
-    return this.findComponent(`.${CoreChartLegendWrapper.rootSecondarySelector}`, CoreChartLegendWrapper);
+    return this.findComponent(
+      `.${CoreChartLegendWrapper.rootSelector}.${testClasses["legend-secondary"]}`,
+      CoreChartLegendWrapper,
+    );
   }
 
   public findVerticalAxisTitle(): null | ElementWrapper {

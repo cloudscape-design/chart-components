@@ -310,12 +310,16 @@ export function InternalCoreChart({
         navigator={navigator}
         primaryLegend={
           context.legendEnabled && legendProps.primary ? (
-            <ChartLegend {...commonLegendProps} {...legendProps.primary} />
+            <ChartLegend {...commonLegendProps} {...legendProps.primary} className={testClasses["legend-primary"]} />
           ) : null
         }
         secondaryLegend={
           context.legendEnabled && legendProps.secondary ? (
-            <ChartLegend {...commonLegendProps} {...legendProps.secondary} />
+            <ChartLegend
+              {...commonLegendProps}
+              {...legendProps.secondary}
+              className={testClasses["legend-secondary"]}
+            />
           ) : null
         }
         verticalAxisTitle={

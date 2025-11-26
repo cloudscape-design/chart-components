@@ -22,7 +22,7 @@ export default class BaseChartWrapper extends ComponentWrapper {
    * Finds chart's legend when defined.
    */
   public findLegend(): null | BaseChartLegendWrapper {
-    return this.findComponent(`.${BaseChartLegendWrapper.rootPrimarySelector}`, BaseChartLegendWrapper);
+    return this.findComponent(`.${BaseChartLegendWrapper.rootSelector}`, BaseChartLegendWrapper);
   }
 
   /**
@@ -135,8 +135,7 @@ interface LegendItemOptions {
 }
 
 export class BaseChartLegendWrapper extends ComponentWrapper {
-  static rootPrimarySelector: string = legendTestClasses["root-primary"];
-  static rootSecondarySelector: string = legendTestClasses["root-secondary"];
+  static rootSelector: string = legendTestClasses.root;
 
   /**
    * Finds legend's visible title element when defined.

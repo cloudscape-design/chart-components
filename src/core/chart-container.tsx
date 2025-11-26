@@ -68,6 +68,7 @@ export function ChartContainer({
   const withMinHeight = (height: number) => Math.max(chartMinHeight ?? DEFAULT_CHART_MIN_HEIGHT, height) - heightOffset;
   const measuredChartHeight = withMinHeight(measures.chart - measures.header - measures.footer);
   const effectiveChartHeight = fitHeight ? measuredChartHeight : withMinHeight(chartHeight ?? DEFAULT_CHART_HEIGHT);
+  const hasLegend = primaryLegend || secondaryLegend;
   return (
     <div
       ref={refs.chart}
@@ -81,7 +82,7 @@ export function ChartContainer({
         {filter}
       </div>
 
-      {(primaryLegend || secondaryLegend) && legendPosition === "side" ? (
+      {hasLegend && legendPosition === "side" ? (
         <div className={styles["chart-plot-and-legend-wrapper"]}>
           <div
             style={{ minInlineSize: chartMinWidth ?? 0 }}
@@ -103,13 +104,13 @@ export function ChartContainer({
         >
           {verticalAxisTitle}
           {chart(effectiveChartHeight)}
-          {!(primaryLegend || secondaryLegend) || legendPosition === "bottom" ? noData : null}
+          {!hasLegend || legendPosition === "bottom" ? noData : null}
         </div>
       )}
 
       <div ref={refs.footer} style={chartMinWidth !== undefined ? { minInlineSize: chartMinWidth } : {}}>
         {navigator && <div className={testClasses["chart-navigator"]}>{navigator}</div>}
-        {(primaryLegend || secondaryLegend) && legendPosition === "bottom" && (
+        {hasLegend && legendPosition === "bottom" && (
           <div
             className={styles["bottom-legend-container"]}
             style={{ maxBlockSize: legendBottomMaxHeight ? `${legendBottomMaxHeight}px` : undefined }}

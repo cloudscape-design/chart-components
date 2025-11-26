@@ -14,6 +14,7 @@ export function ChartLegend({
   title,
   actions,
   alignment,
+  className,
   isSecondary,
   i18nStrings,
   onItemHighlight,
@@ -22,6 +23,7 @@ export function ChartLegend({
 }: {
   api: ChartAPI;
   title?: string;
+  className?: string;
   isSecondary: boolean;
   actions?: React.ReactNode;
   alignment: "horizontal" | "vertical";
@@ -31,12 +33,9 @@ export function ChartLegend({
   getLegendTooltipContent?: CoreChartProps.GetLegendTooltipContent;
 }) {
   const i18n = useInternalI18n("[charts]");
-  // TODO: This is a temporary approach for the initial release.
-  // We need a change to @cloudscape-design/components to provide built-in i18n support
-  // for the secondary legend ARIA label (similar to legendAriaLabel).
-  // For now, only the primary legend has built-in i18n support via the i18n() call,
-  // while the secondary legend requires explicit user-provided i18nStrings.secondaryLegendAriaLabel.
   const legendAriaLabel = i18n("i18nStrings.legendAriaLabel", i18nStrings?.legendAriaLabel);
+  // There's currently no builtin property for the secondary ARIA
+  // label, it must be explcitely provided by the consumers.
   const secondaryLegendAriaLabel = i18nStrings?.secondaryLegendAriaLabel;
   const ariaLabel = isSecondary ? secondaryLegendAriaLabel : legendAriaLabel;
 
@@ -75,9 +74,9 @@ export function ChartLegend({
   return (
     <ChartLegendComponent
       ariaLabel={ariaLabel}
+      className={className}
       legendTitle={title}
       items={filteredItems}
-      isSecondary={isSecondary}
       someHighlighted={someHighlighted}
       horizontalAlignment={horizontalAlignment}
       actions={actions}

@@ -5,6 +5,7 @@ import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
 import { getChartSeries } from "../internal/utils/chart-series";
+import { castArray } from "../internal/utils/utils";
 import { getFormatter } from "./formatters";
 import { ChartLabels } from "./i18n-utils";
 import { CoreChartProps, Rect } from "./interfaces";
@@ -171,29 +172,34 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
   };
   for (const s of getChartSeries(chart.series)) {
     const valueAxis = isInverted ? s.xAxis : s.yAxis;
-    const isNonCartesian = s.type === "pie" || s.type === "gauge" || s.type === "solidgauge";
-    const isSecondary = isNonCartesian ? false : (valueAxis?.options?.opposite ?? false);
+    const isSecondary = valueAxis?.options?.opposite ?? false;
     addSeriesItem(s, isSecondary);
     s.data.forEach((p) => addPointItem(p, isSecondary));
   }
   return legendItems;
 }
 
-export type LegendItemOptions = Highcharts.SeriesOptionsType | Highcharts.PointOptionsObject;
+export type LegendItemOptions = Highcharts.SeriesOptionsType | Highcharts.PointOptionsType;
 
-export function getVisibleLegendSeries(options: Highcharts.Options): LegendItemOptions[] {
-  const items: LegendItemOptions[] = [];
+export function getVisibleLegendItems(options: Highcharts.Options) {
+  const isInverted = options.chart?.inverted ?? false;
+  const valueAxes = (isInverted ? castArray(options.xAxis) : castArray(options.yAxis)) ?? [];
+
+  const primaryItems: LegendItemOptions[] = [];
+  const secondaryItems: LegendItemOptions[] = [];
+  const addLegendItem = (item: LegendItemOptions) => {
+    if (isSecondaryLegendItem(item, isInverted, valueAxes)) {
+      secondaryItems.push(item);
+    } else {
+      primaryItems.push(item);
+    }
+  };
 
   options.series?.forEach((series) => {
     // The pie series is not shown in the legend. Instead, we show pie segments (points).
     if (series.type === "pie") {
-      if (Array.isArray(series.data) && series.data.length > 0) {
-        // Filter to only include point options objects (not arrays, numbers, or null)
-        const pointOptions = series.data.filter(
-          (point): point is Highcharts.PointOptionsObject =>
-            point !== null && typeof point === "object" && !Array.isArray(point),
-        );
-        items.push(...pointOptions);
+      if (Array.isArray(series.data)) {
+        series.data.forEach((point) => addLegendItem(point));
       }
       return;
     }
@@ -202,128 +208,57 @@ export function getVisibleLegendSeries(options: Highcharts.Options): LegendItemO
     if (series.type === "errorbar") {
       return;
     }
-    // Add the series if it should be shown in the legend
     if (series.showInLegend !== false) {
-      items.push(series);
+      addLegendItem(series);
     }
   });
 
-  return items;
+  return { primaryItems, secondaryItems };
 }
 
-function isSeriesOptions(item: LegendItemOptions): item is Highcharts.SeriesOptionsType {
-  return "type" in item && typeof item.type === "string";
-}
-
-// Helper function to check if a legend item belongs to a secondary axis
-// A secondary axis is one positioned on the opposite side of the chart (opposite=true)
-// This determines which legend group (primary or secondary) the item should appear in
 function isSecondaryLegendItem(
   item: LegendItemOptions,
   isInverted: boolean,
   valueAxes: Array<{ id?: string; opposite?: boolean }>,
 ): boolean {
-  // Only series (not pie segments/points) can be associated with axes
-  if (isSeriesOptions(item)) {
-    // Non-cartesian chart types (gauge, solidgauge) don't use traditional axes
-    // They always belong to the primary legend
-    const isNonCartesian = item.type === "gauge" || item.type === "solidgauge";
-    if (isNonCartesian) {
-      return false;
-    }
-    // Get the axis reference for this series (defaults to 0 for the primary axis)
-    // In inverted charts, check xAxis. In normal charts, check yAxis
+  // Only items that have an associated axis can be considered secondary
+  if (item && typeof item === "object" && ("xAxis" in item || "yAxis" in item)) {
     const axisRef = isInverted ? (item.xAxis ?? 0) : (item.yAxis ?? 0);
-    // Resolve the actual axis object from the reference
-    // The reference can be either an index (number) or a string id
-    const axis = typeof axisRef === "number" ? valueAxes[axisRef] : valueAxes.find((a) => a.id === axisRef);
-    // Check if this axis is a secondary axis (positioned on the opposite side of the chart)
-    // If the axis is not found or opposite is undefined, default to false (primary)
-    return axis?.opposite ?? false;
+    // An axis reference can be a an index into the axes array or an explicitely passed id
+    const valueAxis = typeof axisRef === "number" ? valueAxes[axisRef] : valueAxes.find((a) => a.id === axisRef);
+    return valueAxis?.opposite ?? false;
   }
-
-  // Pie chart segments (points) are not associated with axes
-  // They always belong to the primary legend
   return false;
-}
-
-// Partitions legend items into primary and secondary groups based on their associated axis
-function partitionLegendItems(
-  items: LegendItemOptions[],
-  options: Highcharts.Options,
-): { primary: LegendItemOptions[]; secondary: LegendItemOptions[] } {
-  const isInverted = options.chart?.inverted ?? false;
-  const valueAxes = (
-    isInverted
-      ? Array.isArray(options.xAxis)
-        ? options.xAxis
-        : options.xAxis
-          ? [options.xAxis]
-          : []
-      : Array.isArray(options.yAxis)
-        ? options.yAxis
-        : options.yAxis
-          ? [options.yAxis]
-          : []
-  ) as Array<{ id?: string; opposite?: boolean }>;
-
-  const primary: LegendItemOptions[] = [];
-  const secondary: LegendItemOptions[] = [];
-  for (const item of items) {
-    if (isSecondaryLegendItem(item, isInverted, valueAxes)) {
-      secondary.push(item);
-    } else {
-      primary.push(item);
-    }
-  }
-
-  return { primary, secondary };
 }
 
 export function getLegendsProps(
   options: CoreChartProps.ChartOptions,
   legendOptions: CoreChartProps.LegendOptions | undefined,
 ) {
-  // Note: While native Highcharts supports multiple legends, this
-  // implementation simplifies to at most 2 legends:
-  // - One group for all axes with opposite=false (primary axes)
-  // - One group for all axes with opposite=true (secondary axes)
-  //
-  // Axis selection based on chart orientation:
-  // In typical chart usage, dual-axis layouts use the y-axis for different scales
-  // (e.g., temperature on left, humidity on right). The x-axis is shared across all series.
-  // However, when a chart is inverted (options.chart.inverted=true), the x-axes and y-axes
-  // are swapped. In inverted charts, we check x-axes instead of y-axes, since the x-axis
-  // becomes the value axis that can have different scales on opposite sides.
-  // While Highcharts technically supports opposite axes in both orientations, we only
-  // support this for the value axis (y-axis in normal charts, x-axis in inverted charts).
-  //
-  // Why we support at most 2 axes:
-  // The current implementation supports at most 2 axes, as there is currently no UX solution to
-  // handle more than that, although it is technically possible with Highcharts.
-  const items = getVisibleLegendSeries(options);
-  const { primary, secondary } = partitionLegendItems(items, options);
-  const isSingleLegendAtBottom = secondary.length === 0 && (legendOptions?.position ?? "bottom") === "bottom";
+  // While Highcharts supports more than two axes, this
+  // implementation supports at most two, in which case one
+  // of them must be set as opposite (secondary).
+  const { primaryItems, secondaryItems } = getVisibleLegendItems(options);
   return {
     primary:
-      primary.length === 0
+      primaryItems.length === 0
         ? undefined
         : ({
             isSecondary: false,
             title: legendOptions?.title,
             actions: legendOptions?.actions,
             alignment: legendOptions?.position === "side" ? "vertical" : "horizontal",
-            horizontalAlignment: isSingleLegendAtBottom ? legendOptions?.horizontalAlignment : "start",
+            horizontalAlignment: secondaryItems.length === 0 ? legendOptions?.horizontalAlignment : "start",
           } as const),
     secondary:
-      secondary.length === 0
+      secondaryItems.length === 0
         ? undefined
         : ({
             isSecondary: true,
             title: legendOptions?.secondaryLegendTitle,
             actions: legendOptions?.secondaryLegendActions,
             alignment: legendOptions?.position === "side" ? "vertical" : "horizontal",
-            horizontalAlignment: legendOptions?.position === "side" ? "start" : "end",
+            horizontalAlignment: "end",
           } as const),
   };
 }
