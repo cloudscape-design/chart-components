@@ -33,7 +33,7 @@ export interface ChartLegendProps {
   items: readonly LegendItem[];
   legendTitle?: string;
   ariaLabel?: string;
-  isSecondary?: boolean;
+  className?: string;
   actions?: React.ReactNode;
   someHighlighted: boolean;
   alignment: LegendAlignment;
@@ -51,8 +51,8 @@ export const ChartLegend = ({
   ariaLabel,
   actions,
   alignment,
+  className,
   someHighlighted,
-  isSecondary = false,
   onToggleItem,
   onSelectItem,
   onItemHighlightEnter,
@@ -229,10 +229,7 @@ export const ChartLegend = ({
       <div
         role="toolbar"
         aria-label={legendTitle || ariaLabel}
-        className={clsx(styles.root, {
-          [testClasses["root-primary"]]: !isSecondary,
-          [testClasses["root-secondary"]]: isSecondary,
-        })}
+        className={clsx(testClasses.root, styles.root, className)}
         onMouseEnter={() => (isMouseInContainer.current = true)}
         onMouseLeave={() => (isMouseInContainer.current = false)}
       >

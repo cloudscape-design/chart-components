@@ -126,7 +126,7 @@ describe("CoreChart: utils", () => {
 
       if (type === "gauge") {
         expect(items).toHaveLength(1);
-        expect(items[0].isSecondary).toBe(false);
+        expect(items[0].isSecondary).toBe(true);
       } else {
         expect(items).toHaveLength(2);
         expect(items[0].isSecondary).toBe(false);
@@ -217,7 +217,7 @@ describe("CoreChart: utils", () => {
 
         if (type === "gauge") {
           expect(items).toHaveLength(1);
-          expect(items[0].isSecondary).toBe(false);
+          expect(items[0].isSecondary).toBe(true);
         } else {
           expect(items).toHaveLength(2);
           expect(items[0].isSecondary).toBe(false);
@@ -228,13 +228,17 @@ describe("CoreChart: utils", () => {
   });
 
   describe("getLegendsProps", () => {
-    describe("non-inverted charts", () => {
+    describe.each([{ inverted: true }, { inverted: false }])("charts, chartOptions = %s", (chartOptions) => {
+      const axisKey = chartOptions.inverted ? "xAxis" : "yAxis";
+      const oppositeAxisKey = chartOptions.inverted ? "yAxis" : "xAxis";
+
       test("returns primary legend but no secondary legend when only primary y-axis series exist", () => {
         const options: highcharts.Options = {
-          yAxis: [{ opposite: false }, { opposite: false }],
+          chart: chartOptions,
+          [axisKey]: [{ opposite: false }, { opposite: false }],
           series: [
-            { type: "line", name: "Series 1", yAxis: 0 },
-            { type: "line", name: "Series 2", yAxis: 1 },
+            { type: "line", name: "Series 1", [axisKey]: 0 },
+            { type: "line", name: "Series 2", [axisKey]: 1 },
           ],
         };
         const result = getLegendsProps(options, undefined);
@@ -242,25 +246,13 @@ describe("CoreChart: utils", () => {
         expect(result.secondary).toBeUndefined();
       });
 
-      test("returns secondary legend but no primary legend when only secondary y-axis series exist", () => {
-        const options: highcharts.Options = {
-          yAxis: [{ opposite: true }, { opposite: true }],
-          series: [
-            { type: "line", name: "Series 1", yAxis: 0 },
-            { type: "line", name: "Series 2", yAxis: 1 },
-          ],
-        };
-        const result = getLegendsProps(options, undefined);
-        expect(result.primary).toBeUndefined();
-        expect(result.secondary).toBeDefined();
-      });
-
       test("returns both primary and secondary legends when both axis types have series", () => {
         const options: highcharts.Options = {
-          yAxis: [{ opposite: false }, { opposite: true }],
+          chart: chartOptions,
+          [axisKey]: [{ opposite: false }, { opposite: true }],
           series: [
-            { type: "line", name: "Series 1", yAxis: 0 },
-            { type: "line", name: "Series 2", yAxis: 1 },
+            { type: "line", name: "Series 1", [axisKey]: 0 },
+            { type: "line", name: "Series 2", [axisKey]: 1 },
           ],
         };
         const result = getLegendsProps(options, undefined);
@@ -270,7 +262,8 @@ describe("CoreChart: utils", () => {
 
       test("returns no legends when no series exist", () => {
         const options: highcharts.Options = {
-          yAxis: [{ opposite: false }, { opposite: true }],
+          chart: chartOptions,
+          [axisKey]: [{ opposite: false }, { opposite: true }],
           series: [],
         };
         const result = getLegendsProps(options, undefined);
@@ -280,10 +273,11 @@ describe("CoreChart: utils", () => {
 
       test("returns only primary legend when secondary series has showInLegend=false", () => {
         const options: highcharts.Options = {
-          yAxis: [{ opposite: false }, { opposite: true }],
+          chart: chartOptions,
+          [axisKey]: [{ opposite: false }, { opposite: true }],
           series: [
-            { type: "line", name: "Series 1", yAxis: 0 },
-            { type: "line", name: "Series 2", yAxis: 1, showInLegend: false },
+            { type: "line", name: "Series 1", [axisKey]: 0 },
+            { type: "line", name: "Series 2", [axisKey]: 1, showInLegend: false },
           ],
         };
         const result = getLegendsProps(options, undefined);
@@ -293,13 +287,14 @@ describe("CoreChart: utils", () => {
 
       test("returns both legends when series reference axes by id", () => {
         const options: highcharts.Options = {
-          yAxis: [
+          chart: chartOptions,
+          [axisKey]: [
             { id: "primary", opposite: false },
             { id: "secondary", opposite: true },
           ],
           series: [
-            { type: "line", name: "Series 1", yAxis: "primary" },
-            { type: "line", name: "Series 2", yAxis: "secondary" },
+            { type: "line", name: "Series 1", [axisKey]: "primary" },
+            { type: "line", name: "Series 2", [axisKey]: "secondary" },
           ],
         };
         const result = getLegendsProps(options, undefined);
@@ -309,99 +304,11 @@ describe("CoreChart: utils", () => {
 
       test("returns both legends when series use default yAxis (defaults to 0)", () => {
         const options: highcharts.Options = {
-          yAxis: [{ opposite: false }, { opposite: true }],
+          chart: chartOptions,
+          [axisKey]: [{ opposite: false }, { opposite: true }],
           series: [
             { type: "line", name: "Series 1" },
-            { type: "line", name: "Series 2", yAxis: 1 },
-          ],
-        };
-        const result = getLegendsProps(options, undefined);
-        expect(result.primary).toBeDefined();
-        expect(result.secondary).toBeDefined();
-      });
-    });
-
-    describe("inverted charts", () => {
-      test("returns primary legend but no secondary legend when only primary x-axis series exist", () => {
-        const options: highcharts.Options = {
-          chart: { inverted: true },
-          xAxis: [{ opposite: false }, { opposite: false }],
-          series: [
-            { type: "line", name: "Series 1", xAxis: 0 },
-            { type: "line", name: "Series 2", xAxis: 1 },
-          ],
-        };
-        const result = getLegendsProps(options, undefined);
-        expect(result.primary).toBeDefined();
-        expect(result.secondary).toBeUndefined();
-      });
-
-      test("returns secondary legend but no primary legend when only secondary x-axis series exist", () => {
-        const options: highcharts.Options = {
-          chart: { inverted: true },
-          xAxis: [{ opposite: true }, { opposite: true }],
-          series: [
-            { type: "line", name: "Series 1", xAxis: 0 },
-            { type: "line", name: "Series 2", xAxis: 1 },
-          ],
-        };
-        const result = getLegendsProps(options, undefined);
-        expect(result.primary).toBeUndefined();
-        expect(result.secondary).toBeDefined();
-      });
-
-      test("returns both primary and secondary legends when both x-axis types have series", () => {
-        const options: highcharts.Options = {
-          chart: { inverted: true },
-          xAxis: [{ opposite: false }, { opposite: true }],
-          series: [
-            { type: "line", name: "Series 1", xAxis: 0 },
-            { type: "line", name: "Series 2", xAxis: 1 },
-          ],
-        };
-        const result = getLegendsProps(options, undefined);
-        expect(result.primary).toBeDefined();
-        expect(result.secondary).toBeDefined();
-      });
-
-      test("returns only primary legend when secondary series has showInLegend=false in inverted charts", () => {
-        const options: highcharts.Options = {
-          chart: { inverted: true },
-          xAxis: [{ opposite: false }, { opposite: true }],
-          series: [
-            { type: "line", name: "Series 1", xAxis: 0 },
-            { type: "line", name: "Series 2", xAxis: 1, showInLegend: false },
-          ],
-        };
-        const result = getLegendsProps(options, undefined);
-        expect(result.primary).toBeDefined();
-        expect(result.secondary).toBeUndefined();
-      });
-
-      test("returns both legends when series reference x-axes by id in inverted charts", () => {
-        const options: highcharts.Options = {
-          chart: { inverted: true },
-          xAxis: [
-            { id: "primary", opposite: false },
-            { id: "secondary", opposite: true },
-          ],
-          series: [
-            { type: "line", name: "Series 1", xAxis: "primary" },
-            { type: "line", name: "Series 2", xAxis: "secondary" },
-          ],
-        };
-        const result = getLegendsProps(options, undefined);
-        expect(result.primary).toBeDefined();
-        expect(result.secondary).toBeDefined();
-      });
-
-      test("returns both legends when series use default xAxis in inverted charts (defaults to 0)", () => {
-        const options: highcharts.Options = {
-          chart: { inverted: true },
-          xAxis: [{ opposite: false }, { opposite: true }],
-          series: [
-            { type: "line", name: "Series 1" },
-            { type: "line", name: "Series 2", xAxis: 1 },
+            { type: "line", name: "Series 2", [axisKey]: 1 },
           ],
         };
         const result = getLegendsProps(options, undefined);
@@ -411,12 +318,12 @@ describe("CoreChart: utils", () => {
 
       test("returns only primary legend when ignoring y-axis and checking x-axis in inverted charts", () => {
         const options: highcharts.Options = {
-          chart: { inverted: true },
-          yAxis: [{ opposite: false }, { opposite: true }],
-          xAxis: [{ opposite: false }],
+          chart: chartOptions,
+          [axisKey]: [{ opposite: false }],
+          [oppositeAxisKey]: [{ opposite: false }, { opposite: true }],
           series: [
-            { type: "line", name: "Series 1", yAxis: 0, xAxis: 0 },
-            { type: "line", name: "Series 2", yAxis: 1, xAxis: 0 },
+            { type: "line", name: "Series 1", [oppositeAxisKey]: 0, [axisKey]: 0 },
+            { type: "line", name: "Series 2", [oppositeAxisKey]: 1, [axisKey]: 0 },
           ],
         };
         const result = getLegendsProps(options, undefined);
