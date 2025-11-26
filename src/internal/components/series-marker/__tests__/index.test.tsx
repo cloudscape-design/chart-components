@@ -2,10 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ComponentProps } from "react";
+import { ChartSeriesMarker } from "@lib/components/internal/components/series-marker";
 import { render } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
-
-import { ChartSeriesMarker } from "..";
 
 describe("ChartSeriesMarker", () => {
   const defaultProps = {
@@ -19,25 +18,18 @@ describe("ChartSeriesMarker", () => {
   describe("Warning SVG display", () => {
     test("does not render warning SVG when status is undefined", () => {
       const { container } = render(<ChartSeriesMarker {...defaultProps} />);
-      const svgs = container.querySelectorAll("svg");
+      const svgs = container.querySelector("path[aria-label='warning']");
 
       // Should only have one SVG (the marker itself)
-      expect(svgs).toHaveLength(1);
+      expect(svgs).toBeFalsy();
     });
 
     test("renders warning SVG when status is 'warning'", () => {
       const { container } = render(<ChartSeriesMarker {...defaultProps} status="warning" />);
-      const svgs = container.querySelectorAll("svg");
+      const svgs = container.querySelector("path[aria-label='warning']");
 
       // Should have two SVGs: marker + warning
-      expect(svgs).toHaveLength(2);
-    });
-
-    test("renders warning SVG with correct aria-label", () => {
-      const { container } = render(<ChartSeriesMarker {...defaultProps} status="warning" />);
-      const warningSvg = container.querySelector("svg[aria-label='warning']");
-
-      expect(warningSvg).toBeTruthy();
+      expect(svgs).toBeTruthy();
     });
   });
 });

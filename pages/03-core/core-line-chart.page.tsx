@@ -73,7 +73,7 @@ const series: Highcharts.SeriesOptionsType[] = [
     name: "Comprehensive System Resource Utilization Measurements Over Time",
     type: "line",
     data: dataC,
-    status: "warning" as const,
+    status: "warning",
   },
   {
     name: "X",
