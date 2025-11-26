@@ -44,6 +44,7 @@ export function ChartTooltip({
   getTooltipContent: getTooltipContentOverrides,
   api,
   i18nStrings,
+  seriesSorting = "asAdded",
 }: CoreChartProps.TooltipOptions & {
   i18nStrings?: BaseI18nStrings;
   getTooltipContent?: CoreChartProps.GetTooltipContent;
@@ -70,6 +71,7 @@ export function ChartTooltip({
     group: tooltip.group,
     expandedSeries,
     setExpandedSeries,
+    seriesSorting,
     hideTooltip: () => {
       api.hideTooltip();
     },
@@ -121,6 +123,7 @@ function getTooltipContent(
   props: CoreChartProps.GetTooltipContentProps & {
     renderers?: CoreChartProps.TooltipContentRenderer;
     hideTooltip: () => void;
+    seriesSorting: NonNullable<CoreChartProps.TooltipOptions["seriesSorting"]>;
   } & ExpandedSeriesStateProps,
 ): null | RenderedTooltipContent {
   if (props.point && props.point.series.type === "pie") {
@@ -141,9 +144,11 @@ function getTooltipContentCartesian(
     renderers = {},
     setExpandedSeries,
     hideTooltip,
+    seriesSorting,
   }: CoreChartProps.GetTooltipContentProps & {
     renderers?: CoreChartProps.TooltipContentRenderer;
     hideTooltip: () => void;
+    seriesSorting: NonNullable<CoreChartProps.TooltipOptions["seriesSorting"]>;
   } & ExpandedSeriesStateProps,
 ): RenderedTooltipContent {
   // The cartesian tooltip might or might not have a selected point, but it always has a non-empty group.
@@ -152,7 +157,7 @@ function getTooltipContentCartesian(
   const chart = group[0].series.chart;
   const getSeriesMarker = (series: Highcharts.Series) =>
     api.renderMarker(getSeriesMarkerType(series), getSeriesColor(series), true);
-  const matchedItems = findTooltipSeriesItems(getChartSeries(chart.series), group);
+  const matchedItems = findTooltipSeriesItems(getChartSeries(chart.series), group, seriesSorting);
   const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
     const valueFormatter = getFormatter(item.point.series.yAxis);
     const itemY = isXThreshold(item.point.series) ? null : (item.point.y ?? null);
@@ -260,6 +265,7 @@ function getTooltipContentPie(
 function findTooltipSeriesItems(
   series: readonly Highcharts.Series[],
   group: readonly Highcharts.Point[],
+  seriesSorting: NonNullable<CoreChartProps.TooltipOptions["seriesSorting"]>,
 ): MatchedItem[] {
   const seriesOrder = series.reduce((d, s, i) => d.set(s, i), new Map<Highcharts.Series, number>());
   const getSeriesIndex = (s: Highcharts.Series) => seriesOrder.get(s) ?? -1;
@@ -304,8 +310,11 @@ function findTooltipSeriesItems(
   }
   return (
     matchedItems
-      // We sort matched items by series order. If there are multiple items that belong to the same series, we sort them by value.
-      .sort((i1, i2) => {
+      .sort((i2, i1) => {
+        if (seriesSorting === "byValue") {
+          return (i1.point.y ?? 0) - (i2.point.y ?? 0);
+        }
+        // We sort matched items by series order. If there are multiple items that belong to the same series, we sort them by value.
         const s1 = getSeriesIndex(i1.point.series) - getSeriesIndex(i2.point.series);
         return s1 || (i1.point.y ?? 0) - (i2.point.y ?? 0);
       })

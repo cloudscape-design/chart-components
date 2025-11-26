@@ -437,6 +437,7 @@ export namespace CoreChartProps {
     enabled?: boolean;
     placement?: "middle" | "outside" | "target";
     size?: "small" | "medium" | "large";
+    seriesSorting?: "asAdded" | "byValue";
   }
 
   export type GetTooltipContent = (props: GetTooltipContentProps) => TooltipContentRenderer;

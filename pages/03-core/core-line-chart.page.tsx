@@ -127,7 +127,7 @@ export default function () {
           },
         }}
         chartHeight={400}
-        tooltip={{ placement: "outside" }}
+        tooltip={{ placement: "outside", seriesSorting: "byValue" }}
         getTooltipContent={() => ({
           point({ item, hideTooltip }) {
             const value = item ? (item.point.y ?? null) : null;
