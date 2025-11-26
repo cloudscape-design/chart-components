@@ -310,9 +310,9 @@ function findTooltipSeriesItems(
   }
   return (
     matchedItems
-      .sort((i2, i1) => {
-        if (seriesSorting === "byValue") {
-          return (i1.point.y ?? 0) - (i2.point.y ?? 0);
+      .sort((i1, i2) => {
+        if (seriesSorting === "byValueDesc") {
+          return (i2.point.y ?? 0) - (i1.point.y ?? 0);
         }
         // We sort matched items by series order. If there are multiple items that belong to the same series, we sort them by value.
         const s1 = getSeriesIndex(i1.point.series) - getSeriesIndex(i2.point.series);
