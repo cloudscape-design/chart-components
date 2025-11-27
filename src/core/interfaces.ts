@@ -114,7 +114,7 @@ export interface BaseTooltipDetail {
   value: React.ReactNode;
 }
 
-export interface BaseI18nStrings extends ChartSeriesMarkerI18n {
+export interface BaseI18nStrings {
   loadingText?: string;
   errorText?: string;
   recoveryText?: string;
@@ -143,7 +143,6 @@ export interface WithCartesianI18nStrings {
    * * `chartRoleDescription` (optional, string) - Accessible role description of the chart plot area, e.g. "interactive chart".
    * * `xAxisRoleDescription` (optional, string) - Accessible role description of the x axis, e.g. "x axis".
    * * `yAxisRoleDescription` (optional, string) - Accessible role description of the y axis, e.g. "y axis".
-   * * `seriesStatusWarningAriaLabel` (optional, string) - ARIA label for series with status warning, e.g. "warning".
    */
   i18nStrings?: CartesianI18nStrings;
 }
@@ -164,7 +163,6 @@ export interface WithPieI18nStrings {
    * * `detailPopoverDismissAriaLabel` (optional, string) - ARIA label for the details popover dismiss button.
    * * `chartRoleDescription` (optional, string) - Accessible role description of the chart plot area, e.g. "interactive chart".
    * * `segmentRoleDescription` (optional, string) - Accessible role description of the segment.
-   * * `seriesStatusWarningAriaLabel` (optional, string) - ARIA label for series with status warning, e.g. "warning".
    */
   i18nStrings?: PieI18nStrings;
 }
@@ -388,7 +386,7 @@ export interface CoreChartProps
    * An object that contains all of the localized strings required by the component.
    * @i18n
    */
-  i18nStrings?: CartesianI18nStrings & PieI18nStrings;
+  i18nStrings?: CartesianI18nStrings & PieI18nStrings & ChartSeriesMarkerI18n;
 }
 
 export namespace CoreChartProps {

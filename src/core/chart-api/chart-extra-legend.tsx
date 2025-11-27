@@ -114,7 +114,7 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
     visible = true,
     status?: ChartSeriesMarkerStatus,
   ): React.ReactNode {
-    const key = `${type}:${color}:${visible}`;
+    const key = `${type}:${color}:${visible}:${status}`;
     const marker = this.markersCache.get(key) ?? (
       <ChartSeriesMarker
         type={type}
