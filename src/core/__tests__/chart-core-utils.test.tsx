@@ -53,59 +53,94 @@ describe("CoreChart: utils", () => {
   );
 
   describe("getChartLegendItems", () => {
-    test("sets isSecondary to false for series on primary y-axis", () => {
-      let chartApi: CoreChartProps.ChartAPI | null = null;
-      renderChart({
-        highcharts,
-        options: {
-          yAxis: {
-            opposite: false,
+    describe.each([{ inverted: true }, { inverted: false }])("charts, chartOptions = %s", (chartOptions) => {
+      const axisKey = chartOptions.inverted ? "xAxis" : "yAxis";
+      const oppositeAxisKey = chartOptions.inverted ? "yAxis" : "xAxis";
+
+      test("sets isSecondary to false for series on default axis", () => {
+        let chartApi: CoreChartProps.ChartAPI | null = null;
+        renderChart({
+          highcharts,
+          options: {
+            chart: chartOptions,
+            [axisKey]: { opposite: false },
+            [oppositeAxisKey]: { opposite: true },
+            series: [
+              {
+                data: [],
+                type: "line",
+                visible: true,
+                name: "Series 1",
+              },
+            ],
           },
-          series: [
-            {
-              data: [],
-              type: "line",
-              visible: true,
-              name: "Series 1",
-            },
-          ],
-        },
-        callback: (api) => (chartApi = api),
+          callback: (api) => (chartApi = api),
+        });
+
+        const items = getChartLegendItems(chartApi!.chart);
+        expect(items[0].isSecondary).toBe(false);
       });
 
-      const items = getChartLegendItems(chartApi!.chart);
-      expect(items[0].isSecondary).toBe(false);
-    });
-
-    test("sets isSecondary to true for series on secondary y-axis", () => {
-      let chartApi: CoreChartProps.ChartAPI | null = null;
-      renderChart({
-        highcharts,
-        options: {
-          yAxis: {
-            opposite: true,
+      test("sets isSecondary to true for series on default axis", () => {
+        let chartApi: CoreChartProps.ChartAPI | null = null;
+        renderChart({
+          highcharts,
+          options: {
+            chart: chartOptions,
+            [axisKey]: { opposite: true },
+            [oppositeAxisKey]: { opposite: false },
+            series: [
+              {
+                type: "line",
+                visible: true,
+                name: "Series 1",
+              },
+            ],
           },
-          series: [
-            {
-              type: "line",
-              visible: true,
-              name: "Series 1",
-            },
-          ],
-        },
-        callback: (api) => (chartApi = api),
+          callback: (api) => (chartApi = api),
+        });
+
+        const items = getChartLegendItems(chartApi!.chart);
+        expect(items[0].isSecondary).toBe(true);
       });
 
-      const items = getChartLegendItems(chartApi!.chart);
-      expect(items[0].isSecondary).toBe(true);
+      test("handles multiple axes", () => {
+        let chartApi: CoreChartProps.ChartAPI | null = null;
+        renderChart({
+          highcharts,
+          options: {
+            chart: chartOptions,
+            [axisKey]: [{ opposite: false }, { opposite: true }],
+            series: [
+              {
+                type: "line",
+                visible: true,
+                name: "Primary Series",
+                [axisKey]: 0,
+              },
+              {
+                type: "line",
+                visible: true,
+                name: "Secondary Series",
+                [axisKey]: 1,
+              },
+            ],
+          },
+          callback: (api) => (chartApi = api),
+        });
+
+        const items = getChartLegendItems(chartApi!.chart);
+        expect(items).toHaveLength(2);
+        expect(items[0].isSecondary).toBe(false);
+        expect(items[1].isSecondary).toBe(true);
+      });
     });
 
-    test.each(["pie", "gauge"] as const)("sets isSecondary to false for %s", (type) => {
+    test.each(["pie", "gauge", "solidgauge"] as const)("sets isSecondary to false for %s", (type) => {
       let chartApi: CoreChartProps.ChartAPI | null = null;
       renderChart({
         highcharts,
         options: {
-          yAxis: { opposite: true },
           series: [
             {
               type,
@@ -124,106 +159,14 @@ describe("CoreChart: utils", () => {
 
       const items = getChartLegendItems(chartApi!.chart);
 
-      if (type === "gauge") {
+      if (type === "gauge" || type === "solidgauge") {
         expect(items).toHaveLength(1);
-        expect(items[0].isSecondary).toBe(true);
+        expect(items[0].isSecondary).toBe(false);
       } else {
         expect(items).toHaveLength(2);
         expect(items[0].isSecondary).toBe(false);
         expect(items[1].isSecondary).toBe(false);
       }
-    });
-
-    describe("inverted charts", () => {
-      test("checks x-axis for secondary axis in inverted charts", () => {
-        let chartApi: CoreChartProps.ChartAPI | null = null;
-        renderChart({
-          highcharts,
-          options: {
-            chart: { inverted: true },
-            xAxis: { opposite: true },
-            yAxis: { opposite: false },
-            series: [
-              {
-                type: "line",
-                visible: true,
-                name: "Series 1",
-              },
-            ],
-          },
-          callback: (api) => (chartApi = api),
-        });
-
-        const items = getChartLegendItems(chartApi!.chart);
-        expect(items[0].isSecondary).toBe(true);
-      });
-
-      test("handles multiple axes in inverted charts", () => {
-        let chartApi: CoreChartProps.ChartAPI | null = null;
-        renderChart({
-          highcharts,
-          options: {
-            chart: { inverted: true },
-            xAxis: [{ opposite: false }, { opposite: true }],
-            series: [
-              {
-                type: "line",
-                visible: true,
-                name: "Primary Series",
-                xAxis: 0,
-              },
-              {
-                type: "line",
-                visible: true,
-                name: "Secondary Series",
-                xAxis: 1,
-              },
-            ],
-          },
-          callback: (api) => (chartApi = api),
-        });
-
-        const items = getChartLegendItems(chartApi!.chart);
-        expect(items).toHaveLength(2);
-        expect(items[0].isSecondary).toBe(false);
-        expect(items[1].isSecondary).toBe(true);
-      });
-
-      test.each(["pie", "gauge"] as const)("sets isSecondary to false for %s", (type) => {
-        let chartApi: CoreChartProps.ChartAPI | null = null;
-        renderChart({
-          highcharts,
-          options: {
-            chart: { inverted: true },
-            xAxis: { opposite: true },
-            yAxis: { opposite: false },
-            series: [
-              {
-                type,
-                visible: true,
-                showInLegend: true,
-                name: "Pie Series",
-                data: [
-                  { name: "Segment 1", color: "red", y: 30 },
-                  { name: "Segment 2", color: "blue", y: 70 },
-                ],
-              },
-            ],
-          },
-          callback: (api) => (chartApi = api),
-        });
-
-        const items = getChartLegendItems(chartApi!.chart);
-
-        if (type === "gauge") {
-          expect(items).toHaveLength(1);
-          expect(items[0].isSecondary).toBe(true);
-        } else {
-          expect(items).toHaveLength(2);
-          expect(items[0].isSecondary).toBe(false);
-          expect(items[1].isSecondary).toBe(false);
-        }
-      });
     });
   });
 
@@ -232,7 +175,7 @@ describe("CoreChart: utils", () => {
       const axisKey = chartOptions.inverted ? "xAxis" : "yAxis";
       const oppositeAxisKey = chartOptions.inverted ? "yAxis" : "xAxis";
 
-      test("returns primary legend but no secondary legend when only primary y-axis series exist", () => {
+      test("returns primary legend but no secondary legend when only primary series exist", () => {
         const options: highcharts.Options = {
           chart: chartOptions,
           [axisKey]: [{ opposite: false }, { opposite: false }],
@@ -302,7 +245,7 @@ describe("CoreChart: utils", () => {
         expect(result.secondary).toBeDefined();
       });
 
-      test("returns both legends when series use default yAxis (defaults to 0)", () => {
+      test("returns both legends when series use default axis (defaults to 0)", () => {
         const options: highcharts.Options = {
           chart: chartOptions,
           [axisKey]: [{ opposite: false }, { opposite: true }],
@@ -316,7 +259,7 @@ describe("CoreChart: utils", () => {
         expect(result.secondary).toBeDefined();
       });
 
-      test("returns only primary legend when ignoring y-axis and checking x-axis in inverted charts", () => {
+      test("returns only primary legend when ignoring the opposite axis key", () => {
         const options: highcharts.Options = {
           chart: chartOptions,
           [axisKey]: [{ opposite: false }],
