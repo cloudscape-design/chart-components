@@ -184,11 +184,12 @@ export type LegendItemOptions = Highcharts.SeriesOptionsType | Highcharts.PointO
 export function getVisibleLegendItems(options: Highcharts.Options) {
   const isInverted = options.chart?.inverted ?? false;
   const valueAxes = (isInverted ? castArray(options.xAxis) : castArray(options.yAxis)) ?? [];
+  const defaultOpposite = valueAxes.length > 0 ? (valueAxes[0].opposite ?? false) : false;
 
   const primaryItems: LegendItemOptions[] = [];
   const secondaryItems: LegendItemOptions[] = [];
   const addLegendItem = (item: LegendItemOptions) => {
-    if (isSecondaryLegendItem(item, isInverted, valueAxes)) {
+    if (isSecondaryLegendItem(item, isInverted, defaultOpposite, valueAxes)) {
       secondaryItems.push(item);
     } else {
       primaryItems.push(item);
@@ -219,6 +220,7 @@ export function getVisibleLegendItems(options: Highcharts.Options) {
 function isSecondaryLegendItem(
   item: LegendItemOptions,
   isInverted: boolean,
+  defaultOpposite: boolean,
   valueAxes: Array<{ id?: string; opposite?: boolean }>,
 ): boolean {
   // Only items that have an associated axis can be considered secondary
@@ -228,7 +230,7 @@ function isSecondaryLegendItem(
     const valueAxis = typeof axisRef === "number" ? valueAxes[axisRef] : valueAxes.find((a) => a.id === axisRef);
     return valueAxis?.opposite ?? false;
   }
-  return false;
+  return defaultOpposite;
 }
 
 export function getLegendsProps(
