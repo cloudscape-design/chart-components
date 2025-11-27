@@ -26,7 +26,7 @@ import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
 import { getFormatter } from "./formatters";
 import { useChartI18n } from "./i18n-utils";
 import { CoreChartProps } from "./interfaces";
-import { getPointAccessibleDescription, hasVisibleLegendItems } from "./utils";
+import { getLegendsProps, getPointAccessibleDescription } from "./utils";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -84,6 +84,12 @@ export function InternalCoreChart({
   const mergedRootRef = useMergeRefs(rootRef, __internalRootRef);
   const rootProps = { ref: mergedRootRef, className: rootClassName, ...getDataAttributes(rest) };
   const legendPosition = legendOptions?.position ?? "bottom";
+  const commonLegendProps = {
+    api: api,
+    i18nStrings,
+    onItemHighlight: onLegendItemHighlight,
+    getLegendTooltipContent: rest.getLegendTooltipContent,
+  };
   const containerProps = {
     fitHeight,
     chartHeight,
@@ -114,6 +120,27 @@ export function InternalCoreChart({
   const apiOptions = api.getOptions();
   const inverted = !!options.chart?.inverted;
   const isRtl = () => getIsRtl(rootRef?.current);
+
+  // Compute RTL-adjusted options that will be used for both legend positioning and chart rendering
+  const rtlAdjustedOptions: CoreChartProps.ChartOptions = {
+    ...options,
+    xAxis: castArray(options.xAxis)?.map((xAxisOptions) => ({
+      ...xAxisOptions,
+      // Depending on the chart.inverted the x-axis can be rendered as vertical, and needs to respect page direction.
+      reversed: !inverted && isRtl() ? !xAxisOptions.reversed : xAxisOptions.reversed,
+      opposite: inverted && isRtl() ? !xAxisOptions.opposite : xAxisOptions.opposite,
+    })),
+    yAxis: castArray(options.yAxis)?.map((yAxisOptions) => ({
+      ...yAxisOptions,
+      // Depending on the chart.inverted the y-axis can be rendered as vertical, and needs to respect page direction.
+      reversed: inverted && isRtl() ? !yAxisOptions.reversed : yAxisOptions.reversed,
+      opposite: !inverted && isRtl() ? !yAxisOptions.opposite : yAxisOptions.opposite,
+    })),
+  };
+
+  // Get legend props using RTL-adjusted options so that legend positioning respects axis flipping
+  const legendProps = getLegendsProps(rtlAdjustedOptions, legendOptions);
+
   return (
     <div {...rootProps}>
       <ChartContainer
@@ -258,22 +285,16 @@ export function InternalCoreChart({
                 dataLabels: { ...Styles.pieSeriesDataLabels, ...options.plotOptions?.pie?.dataLabels },
               },
             },
-            xAxis: castArray(options.xAxis)?.map((xAxisOptions) => ({
+            xAxis: castArray(rtlAdjustedOptions.xAxis)?.map((xAxisOptions) => ({
               ...Styles.xAxisOptions,
               ...xAxisOptions,
-              // Depending on the chart.inverted the x-axis can be rendered as vertical, and needs to respect page direction.
-              reversed: !inverted && isRtl() ? !xAxisOptions.reversed : xAxisOptions.reversed,
-              opposite: inverted && isRtl() ? !xAxisOptions.opposite : xAxisOptions.opposite,
               className: xAxisClassName(inverted, xAxisOptions.className),
               title: axisTitle(xAxisOptions.title ?? {}, !inverted || verticalAxisTitlePlacement === "side"),
               labels: axisLabels(xAxisOptions.labels ?? {}),
             })),
-            yAxis: castArray(options.yAxis)?.map((yAxisOptions) => ({
+            yAxis: castArray(rtlAdjustedOptions.yAxis)?.map((yAxisOptions) => ({
               ...Styles.yAxisOptions,
               ...yAxisOptions,
-              // Depending on the chart.inverted the y-axis can be rendered as vertical, and needs to respect page direction.
-              reversed: inverted && isRtl() ? !yAxisOptions.reversed : yAxisOptions.reversed,
-              opposite: !inverted && isRtl() ? !yAxisOptions.opposite : yAxisOptions.opposite,
               className: yAxisClassName(inverted, yAxisOptions.className),
               title: axisTitle(yAxisOptions.title ?? {}, inverted || verticalAxisTitlePlacement === "side"),
               labels: axisLabels(yAxisOptions.labels ?? {}),
@@ -301,15 +322,17 @@ export function InternalCoreChart({
           );
         }}
         navigator={navigator}
-        legend={
-          context.legendEnabled && hasVisibleLegendItems(options) ? (
+        primaryLegend={
+          context.legendEnabled && legendProps.primary ? (
+            <ChartLegend {...commonLegendProps} {...legendProps.primary} className={testClasses["legend-primary"]} />
+          ) : null
+        }
+        secondaryLegend={
+          context.legendEnabled && legendProps.secondary ? (
             <ChartLegend
-              {...legendOptions}
-              position={legendPosition}
-              api={api}
-              i18nStrings={i18nStrings}
-              onItemHighlight={onLegendItemHighlight}
-              getLegendTooltipContent={rest.getLegendTooltipContent}
+              {...commonLegendProps}
+              {...legendProps.secondary}
+              className={testClasses["legend-secondary"]}
             />
           ) : null
         }

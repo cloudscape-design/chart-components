@@ -13,10 +13,9 @@ import {
   useMergeRefs,
   useSingleTabStopNavigation,
 } from "@cloudscape-design/component-toolkit/internal";
-import Box from "@cloudscape-design/components/box";
+import Box, { BoxProps } from "@cloudscape-design/components/box";
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
 
-import { CoreChartProps } from "../../../core/interfaces";
 import { DebouncedCall } from "../../utils/utils";
 import { GetLegendTooltipContentProps, LegendItem, LegendTooltipContent } from "../interfaces";
 
@@ -27,16 +26,22 @@ const TOOLTIP_BLUR_DELAY = 50;
 const HIGHLIGHT_LOST_DELAY = 50;
 const SCROLL_DELAY = 100;
 
+export type LegendAlignment = "horizontal" | "vertical";
+export type LegendHorizontalAlignment = "start" | "center" | "end";
+
 export interface ChartLegendProps {
   items: readonly LegendItem[];
   legendTitle?: string;
   ariaLabel?: string;
+  className?: string;
   actions?: React.ReactNode;
-  position: "bottom" | "side";
-  horizontalAlignment: CoreChartProps.LegendOptionsHorizontalAlignment;
+  someHighlighted: boolean;
+  alignment: LegendAlignment;
+  horizontalAlignment: LegendHorizontalAlignment;
+  onToggleItem: (itemId: string) => void;
+  onSelectItem: (itemId: string) => void;
   onItemHighlightEnter: (item: LegendItem) => void;
   onItemHighlightExit: () => void;
-  onItemVisibilityChange: (hiddenItems: string[]) => void;
   getTooltipContent: (props: GetLegendTooltipContentProps) => null | LegendTooltipContent;
 }
 
@@ -45,8 +50,11 @@ export const ChartLegend = ({
   legendTitle,
   ariaLabel,
   actions,
-  position,
-  onItemVisibilityChange,
+  alignment,
+  className,
+  someHighlighted,
+  onToggleItem,
+  onSelectItem,
   onItemHighlightEnter,
   onItemHighlightExit,
   getTooltipContent,
@@ -203,33 +211,13 @@ export const ChartLegend = ({
     navigationAPI.current!.updateFocusTarget();
   });
 
-  const toggleItem = (itemId: string) => {
-    const visibleItems = items.filter((i) => i.visible).map((i) => i.id);
-    if (visibleItems.includes(itemId)) {
-      onItemVisibilityChange(visibleItems.filter((visibleItemId) => visibleItemId !== itemId));
-    } else {
-      onItemVisibilityChange([...visibleItems, itemId]);
-    }
-    // Needed for touch devices.
-    onItemHighlightExit();
-  };
-
-  const selectItem = (itemId: string) => {
-    const visibleItems = items.filter((i) => i.visible).map((i) => i.id);
-    if (visibleItems.length === 1 && visibleItems[0] === itemId) {
-      onItemVisibilityChange(items.map((i) => i.id));
-    } else {
-      onItemVisibilityChange([itemId]);
-    }
-    // Needed for touch devices.
-    onItemHighlightExit();
-  };
+  const isVertical = alignment === "vertical";
 
   const tooltipTrack = useRef<null | HTMLElement>(null);
   const tooltipTarget = items.find((item) => item.id === tooltipItemId) ?? null;
   tooltipTrack.current = tooltipItemId ? elementsByIdRef.current[tooltipItemId] : null;
   const tooltipContent = tooltipTarget && getTooltipContent({ legendItem: tooltipTarget });
-  const tooltipPosition = position === "bottom" ? "bottom" : "left";
+  const tooltipPosition = isVertical ? "left" : "bottom";
 
   return (
     <SingleTabStopNavigationProvider
@@ -239,110 +227,85 @@ export const ChartLegend = ({
       onUnregisterActive={(element: HTMLElement) => onUnregisterActive(element, navigationAPI)}
     >
       <div
-        ref={containerRef}
         role="toolbar"
         aria-label={legendTitle || ariaLabel}
-        className={clsx(testClasses.root, styles.root, {
-          [styles["root-side"]]: position === "side",
-        })}
+        className={clsx(testClasses.root, styles.root, className)}
         onMouseEnter={() => (isMouseInContainer.current = true)}
         onMouseLeave={() => (isMouseInContainer.current = false)}
       >
         {legendTitle && (
-          <Box
-            fontWeight="bold"
-            className={clsx(testClasses.title, {
-              [styles[`legend-title-${horizontalAlignment}`]]: position === "bottom",
-            })}
-          >
+          <Box fontWeight="bold" className={testClasses.title} textAlign={getBoxTextAlignment(horizontalAlignment)}>
             {legendTitle}
           </Box>
         )}
-
         <div
           // The list element is not focusable. However, the focus lands on it regardless, when testing in Firefox.
           // Setting the tab index to -1 does fix the problem.
           tabIndex={-1}
+          ref={containerRef}
           className={clsx(styles.list, {
-            [styles[`list-bottom-${horizontalAlignment}`]]: position === "bottom",
-            [styles["list-bottom"]]: position === "bottom",
-            [styles["list-side"]]: position === "side",
+            [styles[`list-bottom-${horizontalAlignment}`]]: !isVertical,
+            [styles["list-bottom"]]: !isVertical,
+            [styles["list-side"]]: isVertical,
           })}
         >
           {actions && (
             <>
-              <div
-                className={clsx(testClasses.actions, styles.actions, {
-                  [styles["actions-bottom"]]: position === "bottom",
-                  [styles["actions-side"]]: position === "side",
-                })}
-              >
+              <div className={clsx(testClasses.actions, styles.actions, styles["actions-bottom"])}>
                 {actions}
-                <div
-                  className={clsx(styles["actions-divider"], {
-                    [styles["actions-divider-bottom"]]: position === "bottom",
-                    [styles["actions-divider-side"]]: position === "side",
-                  })}
-                />
+                {!isVertical && <div className={styles["actions-divider-bottom"]} />}
               </div>
+              {isVertical && <div className={styles["actions-divider-side"]} />}
             </>
           )}
-          <div
-            className={clsx({
-              [styles[`legend-bottom-${horizontalAlignment}`]]: position === "bottom",
-              [styles["legend-bottom"]]: position === "bottom",
-              [styles["legend-side"]]: position === "side",
-            })}
-          >
-            {items.map((item, index) => {
-              const handlers = {
-                onMouseEnter: () => {
-                  showHighlight(item.id);
-                  showTooltip(item.id);
-                },
-                onMouseLeave: () => {
-                  clearHighlight();
-                  hideTooltip();
-                },
-                onFocus: () => {
-                  onFocus(index, item.id);
-                },
-                onBlur: (event: React.FocusEvent) => {
-                  onBlur(event);
-                },
-                onKeyDown,
-              };
-              const thisTriggerRef = (elem: null | HTMLElement) => {
-                if (elem) {
-                  elementsByIndexRef.current[index] = elem;
-                  elementsByIdRef.current[item.id] = elem;
-                } else {
-                  delete elementsByIndexRef.current[index];
-                  delete elementsByIdRef.current[index];
-                }
-              };
-              return (
-                <LegendItemTrigger
-                  key={index}
-                  {...handlers}
-                  ref={thisTriggerRef}
-                  onClick={(event) => {
-                    if (event.metaKey || event.ctrlKey) {
-                      toggleItem(item.id);
-                    } else {
-                      selectItem(item.id);
-                    }
-                  }}
-                  isHighlighted={item.highlighted}
-                  someHighlighted={items.some((item) => item.highlighted)}
-                  itemId={item.id}
-                  label={item.name}
-                  visible={item.visible}
-                  marker={item.marker}
-                />
-              );
-            })}
-          </div>
+          {items.map((item, index) => {
+            const handlers = {
+              onMouseEnter: () => {
+                showHighlight(item.id);
+                showTooltip(item.id);
+              },
+              onMouseLeave: () => {
+                clearHighlight();
+                hideTooltip();
+              },
+              onFocus: () => {
+                onFocus(index, item.id);
+              },
+              onBlur: (event: React.FocusEvent) => {
+                onBlur(event);
+              },
+              onKeyDown,
+            };
+            const thisTriggerRef = (elem: null | HTMLElement) => {
+              if (elem) {
+                elementsByIndexRef.current[index] = elem;
+                elementsByIdRef.current[item.id] = elem;
+              } else {
+                delete elementsByIndexRef.current[index];
+                delete elementsByIdRef.current[item.id];
+              }
+            };
+            return (
+              <LegendItemTrigger
+                key={index}
+                {...handlers}
+                ref={thisTriggerRef}
+                onClick={(event) => {
+                  if (event.metaKey || event.ctrlKey) {
+                    onToggleItem(item.id);
+                  } else {
+                    onSelectItem(item.id);
+                  }
+                }}
+                isHighlighted={item.highlighted}
+                someHighlighted={someHighlighted}
+                itemId={item.id}
+                label={item.name}
+                visible={item.visible}
+                marker={item.marker}
+              />
+            );
+          })}
         </div>
         {tooltipContent && (
           <InternalChartTooltip
@@ -372,6 +335,17 @@ export const ChartLegend = ({
     </SingleTabStopNavigationProvider>
   );
 };
+
+function getBoxTextAlignment(horizontalAlignment: LegendHorizontalAlignment): BoxProps.TextAlign {
+  switch (horizontalAlignment) {
+    case "start":
+      return "left";
+    case "center":
+      return "center";
+    case "end":
+      return "right";
+  }
+}
 
 const LegendItemTrigger = forwardRef(
   (
