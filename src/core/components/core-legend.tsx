@@ -35,7 +35,7 @@ export function ChartLegend({
   const i18n = useInternalI18n("[charts]");
   const legendAriaLabel = i18n("i18nStrings.legendAriaLabel", i18nStrings?.legendAriaLabel);
   // There's currently no builtin property for the secondary ARIA
-  // label, it must be explcitely provided by the consumers.
+  // label, it must be explicitly provided by the consumers.
   const secondaryLegendAriaLabel = i18nStrings?.secondaryLegendAriaLabel;
   const ariaLabel = isSecondary ? secondaryLegendAriaLabel : legendAriaLabel;
 
