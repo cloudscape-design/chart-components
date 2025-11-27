@@ -226,7 +226,7 @@ function isSecondaryLegendItem(
   // Only items that have an associated axis can be considered secondary
   if (item && typeof item === "object" && ("xAxis" in item || "yAxis" in item)) {
     const axisRef = isInverted ? (item.xAxis ?? 0) : (item.yAxis ?? 0);
-    // An axis reference can be a an index into the axes array or an explicitely passed id
+    // An axis reference can be an index into the axes array or an explicitly passed id
     const valueAxis = typeof axisRef === "number" ? valueAxes[axisRef] : valueAxes.find((a) => a.id === axisRef);
     return valueAxis?.opposite ?? false;
   }
