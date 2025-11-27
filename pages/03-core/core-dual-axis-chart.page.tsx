@@ -15,16 +15,6 @@ function randomInt(min: number, max: number) {
   return min + Math.floor(pseudoRandom() * (max - min));
 }
 
-function shuffleArray<T>(array: T[]): T[] {
-  let currentIndex = array.length;
-  while (currentIndex !== 0) {
-    const randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-  }
-  return array;
-}
-
 const colors = [
   "#F15C80",
   "#2B908F",
@@ -101,20 +91,21 @@ for (let i = 0; i < 10; i++) {
   secondarySeriesData[`data${letter}`] = generateSecondaryAxisData(letter, i);
 }
 
-const series: Highcharts.SeriesOptionsType[] = shuffleArray(
-  [...Object.values(primarySeriesData), ...Object.values(secondarySeriesData)].map((data, index) => {
-    const name = data[0].name;
-    const isPercentage = name.startsWith("Percentage");
-    return {
-      name,
-      type: "line",
-      data: data,
-      yAxis: isPercentage ? 1 : 0,
-      color: colors[index % colors.length],
-      dashStyle: isPercentage ? "Dash" : "Solid",
-    };
-  }),
-);
+const series: Highcharts.SeriesOptionsType[] = [
+  ...Object.values(primarySeriesData),
+  ...Object.values(secondarySeriesData),
+].map((data, index) => {
+  const name = data[0].name;
+  const isPercentage = name.startsWith("Percentage");
+  return {
+    name,
+    type: "line",
+    data: data,
+    yAxis: isPercentage ? 1 : 0,
+    color: colors[index % colors.length],
+    dashStyle: isPercentage ? "Dash" : "Solid",
+  };
+});
 
 export default function () {
   const { chartProps } = useChartSettings();
