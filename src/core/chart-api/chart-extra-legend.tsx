@@ -4,6 +4,7 @@
 import type Highcharts from "highcharts";
 
 import { ChartSeriesMarker, ChartSeriesMarkerType } from "../../internal/components/series-marker";
+import { ChartSeriesMarkerStatus } from "../../internal/components/series-marker/interfaces";
 import { fireNonCancelableEvent } from "../../internal/events";
 import AsyncStore from "../../internal/utils/async-store";
 import { getChartSeries } from "../../internal/utils/chart-series";
@@ -82,8 +83,8 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
 
   private initLegend = () => {
     const itemSpecs = getChartLegendItems(this.context.chart());
-    const legendItems = itemSpecs.map(({ id, name, color, markerType, visible }) => {
-      const marker = this.renderMarker(markerType, color, visible);
+    const legendItems = itemSpecs.map(({ id, name, color, markerType, visible, status }) => {
+      const marker = this.renderMarker(markerType, color, visible, status);
       return { id, name, marker, visible, highlighted: false };
     });
     this.updateLegendItems(legendItems);
@@ -107,9 +108,22 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
   // The chart markers derive from type and color and are cached to avoid unnecessary renders,
   // and allow comparing them by reference.
   private markersCache = new Map<string, React.ReactNode>();
-  public renderMarker(type: ChartSeriesMarkerType, color: string, visible = true): React.ReactNode {
-    const key = `${type}:${color}:${visible}`;
-    const marker = this.markersCache.get(key) ?? <ChartSeriesMarker type={type} color={color} visible={visible} />;
+  public renderMarker(
+    type: ChartSeriesMarkerType,
+    color: string,
+    visible = true,
+    status?: ChartSeriesMarkerStatus,
+  ): React.ReactNode {
+    const key = `${type}:${color}:${visible}:${status}`;
+    const marker = this.markersCache.get(key) ?? (
+      <ChartSeriesMarker
+        type={type}
+        color={color}
+        visible={visible}
+        status={status}
+        i18nStrings={this.context.settings.labels}
+      />
+    );
     this.markersCache.set(key, marker);
     return marker;
   }

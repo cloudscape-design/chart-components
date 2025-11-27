@@ -18,8 +18,9 @@ $marker-margin-right: cs.$space-static-xxs;
   border-start-end-radius: 2px;
   border-end-start-radius: 2px;
   border-end-end-radius: 2px;
-  inline-size: $marker-size;
+  inline-size: $marker-size * 2;
   block-size: $marker-size;
   flex-shrink: 0;
   cursor: inherit;
+  position: relative;
 }

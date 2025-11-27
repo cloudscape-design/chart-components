@@ -4,6 +4,7 @@
 import type Highcharts from "highcharts";
 
 import type * as InternalComponentTypes from "../internal/components/interfaces";
+import { ChartSeriesMarkerI18n } from "../internal/components/series-marker/interfaces";
 import { type NonCancelableEventHandler } from "../internal/events";
 
 // All charts take `highcharts` instance, that can be served statically or dynamically.
@@ -385,7 +386,7 @@ export interface CoreChartProps
    * An object that contains all of the localized strings required by the component.
    * @i18n
    */
-  i18nStrings?: CartesianI18nStrings & PieI18nStrings;
+  i18nStrings?: CartesianI18nStrings & PieI18nStrings & ChartSeriesMarkerI18n;
 }
 
 export namespace CoreChartProps {
