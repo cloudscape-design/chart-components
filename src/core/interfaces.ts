@@ -4,7 +4,7 @@
 import type Highcharts from "highcharts";
 
 import type * as InternalComponentTypes from "../internal/components/interfaces";
-import { ChartSeriesMarkerI18n } from "../internal/components/series-marker/interfaces";
+import { ChartSeriesMarkerI18n, ChartSeriesMarkerStatus } from "../internal/components/series-marker/interfaces";
 import { type NonCancelableEventHandler } from "../internal/events";
 
 // All charts take `highcharts` instance, that can be served statically or dynamically.
@@ -387,6 +387,12 @@ export interface CoreChartProps
    * @i18n
    */
   i18nStrings?: CartesianI18nStrings & PieI18nStrings & ChartSeriesMarkerI18n;
+
+  /**
+   * This property is used to provide a custom status for the series markers.
+   * The callback function is called for each series and should return a status value.
+   */
+  getSeriesStatus?: (series: Highcharts.Series) => ChartSeriesMarkerStatus | undefined;
 }
 
 export namespace CoreChartProps {

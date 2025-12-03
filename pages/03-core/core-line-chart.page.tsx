@@ -70,10 +70,10 @@ const series: Highcharts.SeriesOptionsType[] = [
     data: dataB,
   },
   {
+    id: "A",
     name: "Comprehensive System Resource Utilization Measurements Over Time",
     type: "line",
     data: dataC,
-    status: "warning",
   },
   {
     name: "X",
@@ -127,6 +127,7 @@ export default function () {
             },
           },
         }}
+        getSeriesStatus={(s) => (s.userOptions.id === "A" ? "warning" : undefined)}
         chartHeight={400}
         tooltip={{ placement: "outside" }}
         getTooltipContent={() => ({

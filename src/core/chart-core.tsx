@@ -63,6 +63,7 @@ export function InternalCoreChart({
   onVisibleItemsChange,
   visibleItems,
   __internalRootRef,
+  getSeriesStatus,
   ...rest
 }: CoreChartProps & InternalBaseComponentProps) {
   const highcharts = rest.highcharts as null | typeof Highcharts;
@@ -74,6 +75,7 @@ export function InternalCoreChart({
     tooltipEnabled: tooltipOptions?.enabled !== false,
     keyboardNavigationEnabled: keyboardNavigation,
     labels,
+    getSeriesStatus: getSeriesStatus ?? (() => undefined),
   };
   const handlers = { onHighlight, onClearHighlight, onVisibleItemsChange };
   const state = { visibleItems };

@@ -8,7 +8,7 @@ import { ChartSeriesMarkerStatus } from "../internal/components/series-marker/in
 import { getChartSeries } from "../internal/utils/chart-series";
 import { getFormatter } from "./formatters";
 import { ChartLabels } from "./i18n-utils";
-import { Rect } from "./interfaces";
+import { CoreChartProps, Rect } from "./interfaces";
 
 export interface LegendItemSpec {
   id: string;
@@ -125,9 +125,6 @@ export function getSeriesColor(series?: Highcharts.Series): string {
 export function getPointColor(point?: Highcharts.Point): string {
   return typeof point?.color === "string" ? point.color : "black";
 }
-export function getSeriesStatus(series?: Highcharts.Series): ChartSeriesMarkerStatus | undefined {
-  return series?.userOptions.status;
-}
 
 // The custom legend implementation does not rely on the Highcharts legend. When Highcharts legend is disabled,
 // the chart object does not include information on legend items. Instead, we collect series and pie segments
@@ -135,7 +132,10 @@ export function getSeriesStatus(series?: Highcharts.Series): ChartSeriesMarkerSt
 
 // There exists a Highcharts APIs to access legend items, but it is unfortunately not available, when
 // Highcharts legend is disabled. Instead, we use this custom method to collect legend items from the chart.
-export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendItemSpec[] {
+export function getChartLegendItems(
+  chart: Highcharts.Chart,
+  getSeriesStatus: NonNullable<CoreChartProps["getSeriesStatus"]>,
+): readonly LegendItemSpec[] {
   const legendItems: LegendItemSpec[] = [];
   const addSeriesItem = (series: Highcharts.Series) => {
     // The pie series is not shown in the legend. Instead, we show pie segments.

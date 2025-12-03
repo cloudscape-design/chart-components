@@ -1475,6 +1475,30 @@ If not provided, no tooltip will be displayed.",
         "analyticsTag": undefined,
         "defaultValue": undefined,
         "deprecatedTag": undefined,
+        "description": "This property is used to provide a custom status for the series markers.
+The callback function is called for each series and should return a status value.",
+        "i18nTag": undefined,
+        "inlineType": {
+          "name": "(series: Highcharts.Series) => "warning"",
+          "parameters": [
+            {
+              "name": "series",
+              "type": "Highcharts.Series",
+            },
+          ],
+          "returnType": ""warning"",
+          "type": "function",
+        },
+        "name": "getSeriesStatus",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "((series: Highcharts.Series) => "warning" | undefined)",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
         "description": "Called whenever chart tooltip is rendered to provide content for tooltip's header, body, and (optional) footer.",
         "i18nTag": undefined,
         "inlineType": {
