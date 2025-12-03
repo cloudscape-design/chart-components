@@ -61,7 +61,7 @@ export function ChartTooltip({
   }
 
   const chart = debouncedTooltip.group[0]?.series.chart;
-  const renderers = getTooltipContentOverrides?.({ point: debouncedTooltip?.point, group: debouncedTooltip?.group });
+  const renderers = getTooltipContentOverrides?.({ point: debouncedTooltip.point, group: debouncedTooltip.group });
   const getTrack = placement === "target" ? api.getTargetTrack : api.getGroupTrack;
   const position = (() => {
     if (placement === "target" || placement === "middle") {
