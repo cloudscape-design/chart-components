@@ -73,7 +73,7 @@ export function ChartTooltip({
   const content = getTooltipContent(api, {
     renderers,
     point: debouncedTooltip?.point,
-    group: debouncedTooltip?.group || [],
+    group: debouncedTooltip?.group,
     expandedSeries,
     setExpandedSeries,
     hideTooltip: () => {
@@ -86,7 +86,7 @@ export function ChartTooltip({
   return (
     <InternalChartTooltip
       getTrack={getTrack}
-      trackKey={getTrackKey(debouncedTooltip?.point, debouncedTooltip?.group || [])}
+      trackKey={getTrackKey(debouncedTooltip?.point, debouncedTooltip?.group)}
       container={null}
       dismissButton={debouncedTooltip?.pinned}
       dismissAriaLabel={i18nStrings?.detailPopoverDismissAriaLabel}
