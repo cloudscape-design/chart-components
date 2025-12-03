@@ -56,7 +56,7 @@ export function ChartTooltip({
   const tooltip = useSelector(api.tooltipStore, (s) => s);
   const debouncedTooltip = useDebounce(tooltip, debounce === true ? DEFAULT_DEBOUNCE : debounce || 0);
 
-  if (!debouncedTooltip || !debouncedTooltip?.visible || debouncedTooltip?.group?.length === 0) {
+  if (!debouncedTooltip || !debouncedTooltip.visible || debouncedTooltip.group.length === 0) {
     return null;
   }
 
@@ -72,8 +72,8 @@ export function ChartTooltip({
   })();
   const content = getTooltipContent(api, {
     renderers,
-    point: debouncedTooltip?.point,
-    group: debouncedTooltip?.group,
+    point: debouncedTooltip.point,
+    group: debouncedTooltip.group,
     expandedSeries,
     setExpandedSeries,
     hideTooltip: () => {
@@ -86,9 +86,9 @@ export function ChartTooltip({
   return (
     <InternalChartTooltip
       getTrack={getTrack}
-      trackKey={getTrackKey(debouncedTooltip?.point, debouncedTooltip?.group)}
+      trackKey={getTrackKey(debouncedTooltip.point, debouncedTooltip.group)}
       container={null}
-      dismissButton={debouncedTooltip?.pinned}
+      dismissButton={debouncedTooltip.pinned}
       dismissAriaLabel={i18nStrings?.detailPopoverDismissAriaLabel}
       onDismiss={api.onDismissTooltip}
       onMouseEnter={api.onMouseEnterTooltip}
