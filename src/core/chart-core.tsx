@@ -26,7 +26,7 @@ import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
 import { getFormatter } from "./formatters";
 import { useChartI18n } from "./i18n-utils";
 import { CoreChartProps } from "./interfaces";
-import { getPointAccessibleDescription } from "./utils";
+import { getPointAccessibleDescription, hasVisibleLegendItems } from "./utils";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -302,7 +302,7 @@ export function InternalCoreChart({
         }}
         navigator={navigator}
         legend={
-          context.legendEnabled ? (
+          context.legendEnabled && hasVisibleLegendItems(options) ? (
             <ChartLegend
               {...legendOptions}
               position={legendPosition}
@@ -328,6 +328,7 @@ export function InternalCoreChart({
             />
           ) : null
         }
+        noData={context.noDataEnabled && <ChartNoData {...noDataOptions} i18nStrings={i18nStrings} api={api} />}
       />
 
       {context.tooltipEnabled && (
@@ -338,8 +339,6 @@ export function InternalCoreChart({
           api={api}
         />
       )}
-
-      {context.noDataEnabled && <ChartNoData {...noDataOptions} i18nStrings={i18nStrings} api={api} />}
     </div>
   );
 }

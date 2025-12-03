@@ -8,9 +8,9 @@ import { applyDisplayName } from "../../internal/utils/apply-display-name";
 
 export { CoreChartProps };
 
-function CoreChart(props: CoreChartProps) {
+function CoreChart({ keyboardNavigation = true, ...props }: CoreChartProps) {
   const baseComponentProps = useBaseComponent("ChartCore", { props: {} });
-  return <InternalCoreChart {...props} {...baseComponentProps} />;
+  return <InternalCoreChart keyboardNavigation={keyboardNavigation} {...props} {...baseComponentProps} />;
 }
 
 applyDisplayName(CoreChart, "CoreChart");

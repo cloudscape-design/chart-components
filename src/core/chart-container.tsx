@@ -32,6 +32,7 @@ interface ChartContainerProps {
   legendBottomMaxHeight?: number;
   legendPosition: "bottom" | "side";
   footer?: React.ReactNode;
+  noData?: React.ReactNode;
   fitHeight?: boolean;
   chartHeight?: number;
   chartMinHeight?: number;
@@ -49,6 +50,7 @@ export function ChartContainer({
   legendPosition,
   legendBottomMaxHeight,
   navigator,
+  noData,
   fitHeight,
   chartHeight,
   chartMinHeight,
@@ -85,6 +87,7 @@ export function ChartContainer({
           >
             {verticalAxisTitle}
             {chart(effectiveChartHeight)}
+            {noData}
           </div>
           <div className={styles["side-legend-container"]} style={{ maxBlockSize: effectiveChartHeight }}>
             {legend}
@@ -93,10 +96,11 @@ export function ChartContainer({
       ) : (
         <div
           style={chartMinWidth !== undefined ? { minInlineSize: chartMinWidth } : {}}
-          className={testClasses["chart-plot-wrapper"]}
+          className={clsx(styles["chart-plot-wrapper"], testClasses["chart-plot-wrapper"])}
         >
           {verticalAxisTitle}
           {chart(effectiveChartHeight)}
+          {!legend || legendPosition === "bottom" ? noData : null}
         </div>
       )}
 

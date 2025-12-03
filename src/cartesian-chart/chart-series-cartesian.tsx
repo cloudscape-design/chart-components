@@ -27,10 +27,10 @@ export const transformCartesianSeries = (
     const seriesId = getOptionsId(s);
     const style = { ...Styles.thresholdPlotLine, color: s.color ?? Styles.thresholdPlotLine.color };
     if (s.type === "x-threshold" && visibleSeries.includes(seriesId)) {
-      xPlotLines.push({ id: seriesId, value: s.value, ...style });
+      xPlotLines.push({ id: seriesId, value: s.value, ...style, dashStyle: s.dashStyle ?? style.dashStyle });
     }
     if (s.type === "y-threshold" && visibleSeries.includes(seriesId)) {
-      yPlotLines.push({ id: seriesId, value: s.value, ...style });
+      yPlotLines.push({ id: seriesId, value: s.value, ...style, dashStyle: s.dashStyle ?? style.dashStyle });
     }
   }
   // The threshold series require data points to enable keyboard navigation and hover effects.

@@ -7,6 +7,7 @@ import type Highcharts from "highcharts";
 import { fireNonCancelableEvent } from "../../internal/events";
 import { ReadonlyAsyncStore } from "../../internal/utils/async-store";
 import { getChartSeries } from "../../internal/utils/chart-series";
+import { getSeriesData } from "../../internal/utils/series-data";
 import { Writeable } from "../../internal/utils/utils";
 import {
   getChartAccessibleDescription,
@@ -110,6 +111,7 @@ export class ChartAPI {
       chartAPI.chartExtraLegend.onChartRender();
       chartAPI.chartExtraNodata.onChartRender();
       chartAPI.chartExtraAxisTitles.onChartRender();
+      chartAPI.chartExtraTooltip.onChartRender();
       chartAPI.handleDestroyedPoints();
       chartAPI.resetColorCounter();
       chartAPI.showMarkersForIsolatedPoints();
@@ -181,6 +183,14 @@ export class ChartAPI {
         this.chartExtraNavigation.focusApplication(point, group);
       }
     }
+  };
+
+  // Hide the tooltip from an action initiated by the tooltip's content
+  public hideTooltip = () => {
+    this.chartExtraTooltip.hideTooltip();
+    // The chart highlight is preserved while the tooltip is pinned. We need to clear it manually here, for the case
+    // when the pointer lands outside the chart after the tooltip is dismissed, so that the mouse-out event won't fire.
+    this.clearChartHighlight({ isApiCall: false });
   };
 
   // Reference to the role="application" element used for navigation.
@@ -307,14 +317,15 @@ export class ChartAPI {
   private showMarkersForIsolatedPoints() {
     let shouldRedraw = false;
     for (const s of this.context.chart().series) {
-      for (let i = 0; i < s.data.length; i++) {
-        const isEligibleSeries = !isXThreshold(s) && s.type !== "scatter" && !s.data[i].options.marker?.enabled;
+      const seriesData = getSeriesData(s.data);
+      for (let i = 0; i < seriesData.length; i++) {
+        const isEligibleSeries = !isXThreshold(s) && s.type !== "scatter" && !seriesData[i].options.marker?.enabled;
         if (
           isEligibleSeries &&
-          (s.data[i - 1]?.y === undefined || s.data[i - 1]?.y === null) &&
-          (s.data[i + 1]?.y === undefined || s.data[i + 1]?.y === null)
+          (seriesData[i - 1]?.y === undefined || seriesData[i - 1]?.y === null) &&
+          (seriesData[i + 1]?.y === undefined || seriesData[i + 1]?.y === null)
         ) {
-          s.data[i].update({ marker: { enabled: true } }, false);
+          seriesData[i].update({ marker: { enabled: true } }, false);
           shouldRedraw = true;
         }
       }

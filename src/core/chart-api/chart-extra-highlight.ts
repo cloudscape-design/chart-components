@@ -4,6 +4,7 @@
 import type Highcharts from "highcharts";
 
 import * as Styles from "../../internal/chart-styles";
+import { getSeriesData } from "../../internal/utils/series-data";
 import { getPointId, getSeriesId } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
@@ -140,7 +141,7 @@ export class ChartExtraHighlight {
       if (prevState === "inactive") {
         inactiveSeriesIds.add(getSeriesId(s));
       }
-      for (const p of s.data) {
+      for (const p of getSeriesData(s.data)) {
         const prevState = this.pointState.get(getSeriesId(s))?.get(this.getPointKey(p));
         if (prevState) {
           this.setPointState(p, prevState);
@@ -183,7 +184,7 @@ export class ChartExtraHighlight {
         (overridden as SeriesSetStateWithLock)[SET_STATE_LOCK] = true;
         s.setState = overridden;
       }
-      for (const d of s.data) {
+      for (const d of getSeriesData(s.data)) {
         if ((d.setState as PointSetStateWithLock)[SET_STATE_LOCK] === undefined) {
           const original = d.setState;
           // The overridden setState method does nothing unless setState[SET_STATE_LOCK] === false.

@@ -11,7 +11,7 @@ interface TestI18nProviderProps {
 
 export function TestI18nProvider({ messages = {}, locale = "en", children }: TestI18nProviderProps) {
   return (
-    <I18nProvider locale={locale} messages={[{ "@cloudscape-design/components": { [locale]: messages } }]}>
+    <I18nProvider locale={locale} messages={[{ "cloudscape-design-components": { [locale]: messages } }]}>
       {children}
     </I18nProvider>
   );

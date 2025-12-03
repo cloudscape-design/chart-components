@@ -126,6 +126,7 @@ describe("CoreChart: axes", () => {
   test("uses default numeric axes formatters for integer values", () => {
     renderChart({ highcharts, options: { series, xAxis: { title: { text: "X" } }, yAxis: { title: { text: "Y" } } } });
     getAxisOptionsFormatters().forEach((formatter) => {
+      expect(formatter.call(mockAxisContext({ value: 0 }))).toBe("0");
       expect(formatter.call(mockAxisContext({ value: 1 }))).toBe("1");
       expect(formatter.call(mockAxisContext({ value: 1_000 }))).toBe("1K");
       expect(formatter.call(mockAxisContext({ value: 1_000_000 }))).toBe("1M");
@@ -138,6 +139,8 @@ describe("CoreChart: axes", () => {
     getAxisOptionsFormatters().forEach((formatter) => {
       expect(formatter.call(mockAxisContext({ value: 2.0 }))).toBe("2");
       expect(formatter.call(mockAxisContext({ value: 2.03 }))).toBe("2.03");
+      expect(formatter.call(mockAxisContext({ value: 0.03 }))).toBe("0.03");
+      expect(formatter.call(mockAxisContext({ value: 0.003 }))).toBe("3e-3");
     });
   });
 

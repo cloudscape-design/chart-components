@@ -80,7 +80,9 @@ export function getSeriesMarkerType(series?: Highcharts.Series): ChartSeriesMark
     return "large-square";
   }
   const seriesSymbol = "symbol" in series && typeof series.symbol === "string" ? series.symbol : "circle";
-  if ("dashStyle" in series.options && series.options.dashStyle) {
+  // In Highcharts, dashStyle supports different types of dashes: https://jsfiddle.net/gh/get/library/pure/highcharts/highcharts/tree/master/samples/highcharts/plotoptions/series-dashstyle-all/
+  // Return a dashed legend symbol for all of these dashes, excluding the default "Solid" option
+  if ("dashStyle" in series.options && series.options.dashStyle && series.options.dashStyle !== "Solid") {
     return "dashed";
   }
   switch (series.type) {
@@ -170,6 +172,21 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
   return legendItems;
 }
 
+export function hasVisibleLegendItems(options: Highcharts.Options) {
+  return !!options.series?.some((series) => {
+    // The pie series is not shown in the legend, but their segments are always shown.
+    if (series.type === "pie") {
+      return Array.isArray(series.data) && series.data.length > 0;
+    }
+    // We only support errorbar series that are linked to other series. Those are not represented separately
+    // in the legend, but can be controlled from the outside, using controllable items visibility API.
+    if (series.type === "errorbar") {
+      return false;
+    }
+    return series.showInLegend !== false;
+  });
+}
+
 // This function returns coordinates of a rectangle, including the target point.
 // There are differences in how the rectangle is computed, but in all cases it is supposed to
 // enclose the point's visual representation in the chart, with no extra offsets.
@@ -204,9 +221,16 @@ export function getGroupRect(points: readonly Highcharts.Point[]): Rect {
     maxX = Math.max(maxX, r.x + r.width);
     maxY = Math.max(maxY, r.y + r.height);
   }
-  return chart.inverted
-    ? { x: chart.plotLeft, y: minY, width: chart.plotWidth, height: maxY - minY }
-    : { x: minX, y: chart.plotTop, width: maxX - minX, height: chart.plotHeight };
+  return safeRect(
+    chart.inverted
+      ? { x: chart.plotLeft, y: minY, width: chart.plotWidth, height: maxY - minY }
+      : { x: minX, y: chart.plotTop, width: maxX - minX, height: chart.plotHeight },
+  );
+}
+
+// We ensure rect width and height are non-zero to ensure its position is calculated correctly in Firefox.
+export function safeRect(rect: Rect): Rect {
+  return { ...rect, width: Math.max(0.1, rect.width), height: Math.max(0.1, rect.height) };
 }
 
 export function getChartAccessibleDescription(chart: Highcharts.Chart) {

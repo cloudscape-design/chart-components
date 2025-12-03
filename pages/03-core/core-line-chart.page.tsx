@@ -60,17 +60,17 @@ const dataC = baseline.map(({ x, y }) => ({ x, y: y === null ? null : y + random
 
 const series: Highcharts.SeriesOptionsType[] = [
   {
-    name: "A",
+    name: "Very Long Series Name for Network Traffic Analysis Data Points",
     type: "line",
     data: dataA,
   },
   {
-    name: "B",
+    name: "Extremely Detailed Performance Metrics for Cloud Infrastructure",
     type: "line",
     data: dataB,
   },
   {
-    name: "C",
+    name: "Comprehensive System Resource Utilization Measurements Over Time",
     type: "line",
     data: dataC,
   },
@@ -91,7 +91,14 @@ export default function () {
       subtitle="The page demonstrates the use of the core chart, including additional legend settings."
       settings={
         <PageSettingsForm
-          selectedSettings={["showLegend", "legendPosition", "showLegendTitle", "showLegendActions", "useFallback"]}
+          selectedSettings={[
+            "showLegend",
+            "legendPosition",
+            "legendHorizontalAlign",
+            "showLegendTitle",
+            "showLegendActions",
+            "useFallback",
+          ]}
         />
       }
     >
@@ -122,18 +129,18 @@ export default function () {
         chartHeight={400}
         tooltip={{ placement: "outside" }}
         getTooltipContent={() => ({
-          point({ item }) {
+          point({ item, hideTooltip }) {
             const value = item ? (item.point.y ?? null) : null;
             return {
               value: (
                 <div>
-                  {numberFormatter(value)} <Button variant="inline-icon" iconName="settings" />
+                  {numberFormatter(value)} <Button variant="inline-icon" iconName="settings" onClick={hideTooltip} />
                 </div>
               ),
             };
           },
-          footer() {
-            return <Button>Footer action</Button>;
+          footer({ hideTooltip }) {
+            return <Button onClick={hideTooltip}>Footer action</Button>;
           },
         })}
         getLegendTooltipContent={({ legendItem }) => ({

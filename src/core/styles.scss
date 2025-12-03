@@ -108,6 +108,7 @@ $side-legend-min-inline-size: max(20%, 150px);
 }
 
 .chart-plot-wrapper {
+  position: relative;
   flex: 1;
 }
 

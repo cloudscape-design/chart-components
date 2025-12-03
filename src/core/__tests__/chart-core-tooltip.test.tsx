@@ -6,8 +6,8 @@ import { waitFor } from "@testing-library/react";
 import highcharts from "highcharts";
 import { vi } from "vitest";
 
-import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
+import { CoreChartProps } from "../../../lib/components/internal-do-not-use/core-chart";
 import { createChartWrapper, renderChart } from "./common";
 import { HighchartsTestHelper } from "./highcharts-utils";
 
@@ -316,6 +316,45 @@ describe("CoreChart: tooltip", () => {
     }
   });
 
+  test("only re-renders when group has changed", () => {
+    const getTooltipContentMock = vi.fn(() => ({
+      header: () => "Tooltip title",
+      body: () => "Tooltip body",
+      footer: () => "Tooltip footer",
+    }));
+    renderChart({
+      highcharts,
+      options: {
+        series: lineSeries,
+        chart: {
+          events: {
+            load() {
+              this.plotTop = 0;
+              this.plotLeft = 0;
+              this.plotWidth = 100;
+              this.plotHeight = 100;
+            },
+          },
+        },
+      },
+      getTooltipContent: getTooltipContentMock,
+    });
+
+    act(() => {
+      hc.getChart().container.dispatchEvent(createMouseMoveEvent({ pageX: 1, pageY: 0 }));
+    });
+
+    act(() => {
+      hc.getChart().container.dispatchEvent(createMouseMoveEvent({ pageX: 1, pageY: 2 }));
+    });
+
+    act(() => {
+      hc.getChart().container.dispatchEvent(createMouseMoveEvent({ pageX: 1, pageY: 4 }));
+    });
+
+    expect(getTooltipContentMock).toHaveBeenCalledTimes(2);
+  });
+
   test("renders highlight markers", async () => {
     const { wrapper } = renderChart({
       highcharts,
@@ -420,5 +459,133 @@ describe("CoreChart: tooltip", () => {
     act(() => hc.highlightChartPoint(0, 2));
 
     expect(wrapper.findTooltip()!.findBody()!.getElement().textContent).toBe("[P3] [60] [custom key] [custom value]");
+  });
+
+  describe("dismissTooltip", () => {
+    test.each<{
+      name: string;
+      series: highcharts.SeriesOptionsType[];
+      getTooltipContent: () => CoreChartProps.GetTooltipContent;
+    }>(
+      [
+        [lineSeries, "line"],
+        [pieSeries, "pie"],
+      ].flatMap(([series, type]) => {
+        return [
+          {
+            name: `header renderer - ${type} chart`,
+            series,
+            getTooltipContent: () => ({
+              body: () => "Body",
+              footer: () => "Footer",
+              header: ({ hideTooltip }) => {
+                return (
+                  <button data-testid="hideTooltip" onClick={hideTooltip}>
+                    hideTooltip
+                  </button>
+                );
+              },
+            }),
+          },
+          {
+            name: `body renderer - ${type} chart`,
+            series,
+            getTooltipContent: () => ({
+              header: () => "Header",
+              footer: () => "Footer",
+              body: ({ hideTooltip }) => {
+                return (
+                  <button data-testid="hideTooltip" onClick={hideTooltip}>
+                    hideTooltip
+                  </button>
+                );
+              },
+            }),
+          },
+          {
+            name: `footer renderer - ${type} chart`,
+            series,
+            getTooltipContent: () => ({
+              header: () => "Header",
+              body: () => "Body",
+              footer: ({ hideTooltip }) => {
+                return (
+                  <button data-testid="hideTooltip" onClick={hideTooltip}>
+                    hideTooltip
+                  </button>
+                );
+              },
+            }),
+          },
+        ];
+      }),
+    )("provides dismissTooltip callback to $name", async ({ series, getTooltipContent }) => {
+      const { wrapper } = renderChart({
+        highcharts,
+        options: { series },
+        getTooltipContent: getTooltipContent,
+      });
+
+      act(() => hc.highlightChartPoint(0, 0));
+
+      await waitFor(() => {
+        expect(wrapper.findTooltip()).not.toBe(null);
+      });
+
+      act(() => {
+        hoverTooltip();
+      });
+
+      await waitFor(() => {
+        expect(wrapper.findTooltip()).not.toBe(null);
+      });
+
+      act(() => {
+        wrapper.findTooltip()!.find(`[data-testid="hideTooltip"]`).click();
+      });
+
+      await waitFor(() => {
+        expect(wrapper.findTooltip()).toBe(null);
+      });
+    });
+
+    test("dismissTooltip callback works when tooltip is pinned", async () => {
+      let dismissCallback: (() => void) | undefined;
+      const { wrapper } = renderChart({
+        highcharts,
+        options: { series: pieSeries },
+        getTooltipContent: () => ({
+          header: ({ hideTooltip }) => {
+            dismissCallback = hideTooltip;
+            return "Header";
+          },
+          body: () => "Body",
+        }),
+      });
+
+      act(() => hc.highlightChartPoint(0, 0));
+
+      await waitFor(() => {
+        expect(wrapper.findTooltip()).not.toBe(null);
+        expect(wrapper.findTooltip()!.findDismissButton()).toBe(null);
+        expect(dismissCallback).toBeDefined();
+      });
+
+      // Pin tooltip
+      act(() => hc.clickChartPoint(0, 0));
+
+      await waitFor(() => {
+        expect(wrapper.findTooltip()).not.toBe(null);
+        expect(wrapper.findTooltip()!.findDismissButton()).not.toBe(null);
+      });
+
+      act(() => {
+        dismissCallback!();
+      });
+
+      await waitFor(() => {
+        expect(wrapper.findTooltip()).toBe(null);
+      });
+    });
   });
 });

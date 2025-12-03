@@ -38,12 +38,12 @@ export interface BaseChartOptions {
   /**
    * Defines the minimum allowed height of the chart plot. Use this when `fitHeight=true` to
    * prevent the chart plot from becoming too small to display its content. When the parent
-   * container is smaller than the minimum height, a vertical scrollbar appears automatically.
+   * container is shorter than the minimum height, a vertical scrollbar appears automatically.
    */
   chartMinHeight?: number;
 
   /**
-   * Defines the minimum allowed width of the chart plot. When the parent container is smaller the
+   * Defines the minimum allowed width of the chart plot. When the parent container is narrower than the
    * minimum width, the horizontal scrollbar is automatically added.
    */
   chartMinWidth?: number;
@@ -188,12 +188,12 @@ export interface BaseTooltipPointFormatted {
   subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
 }
 
-export interface AreaSeriesOptions extends BaseCartesianSeriesOptions {
+export interface AreaSeriesOptions extends BaseCartesianLineLikeOptions {
   type: "area";
   data: readonly PointDataItemType[];
 }
 
-export interface AreaSplineSeriesOptions extends BaseCartesianSeriesOptions {
+export interface AreaSplineSeriesOptions extends BaseCartesianLineLikeOptions {
   type: "areaspline";
   data: readonly PointDataItemType[];
 }
@@ -203,12 +203,12 @@ export interface ColumnSeriesOptions extends BaseCartesianSeriesOptions {
   data: readonly PointDataItemType[];
 }
 
-export interface LineSeriesOptions extends BaseCartesianSeriesOptions {
+export interface LineSeriesOptions extends BaseCartesianLineLikeOptions {
   type: "line";
   data: readonly PointDataItemType[];
 }
 
-export interface SplineSeriesOptions extends BaseCartesianSeriesOptions {
+export interface SplineSeriesOptions extends BaseCartesianLineLikeOptions {
   type: "spline";
   data: readonly PointDataItemType[];
 }
@@ -226,22 +226,22 @@ export interface ErrorBarSeriesOptions extends Omit<BaseCartesianSeriesOptions, 
   linkedTo: string;
 }
 
-export interface XThresholdSeriesOptions extends BaseCartesianSeriesOptions {
+export interface XThresholdSeriesOptions extends BaseCartesianLineLikeOptions {
   type: "x-threshold";
   value: number;
 }
 
-export interface YThresholdSeriesOptions extends BaseCartesianSeriesOptions {
+export interface YThresholdSeriesOptions extends BaseCartesianLineLikeOptions {
   type: "y-threshold";
   value: number;
 }
 
-export interface PieSeriesOptions extends BaseCartesianSeriesOptions {
+export interface PieSeriesOptions extends BaseSeriesOptions {
   type: "pie";
   data: readonly PieSegmentOptions[];
 }
 
-export interface DonutSeriesOptions extends BaseCartesianSeriesOptions {
+export interface DonutSeriesOptions extends BaseSeriesOptions {
   type: "donut";
   data: readonly PieSegmentOptions[];
 }
@@ -266,10 +266,16 @@ export interface RangeDataItemOptions {
   high: number;
 }
 
-interface BaseCartesianSeriesOptions {
+interface BaseSeriesOptions {
   id?: string;
   name: string;
   color?: string;
+}
+
+type BaseCartesianSeriesOptions = BaseSeriesOptions;
+
+interface BaseCartesianLineLikeOptions extends BaseCartesianSeriesOptions {
+  dashStyle?: Highcharts.DashStyleValue;
 }
 
 // The symbols union matches that of Highcharts.PointMarkerOptionsObject
@@ -372,7 +378,7 @@ export interface CoreChartProps
    */
   onClearHighlight?: NonCancelableEventHandler<CoreChartProps.HighlightClearDetail>;
   /**
-   * Use Cloudscape keyboard navigation, `true` by default.
+   * Use Cloudscape keyboard navigation.
    */
   keyboardNavigation?: boolean;
   /**
@@ -414,7 +420,14 @@ export namespace CoreChartProps {
   export interface LegendOptions extends BaseLegendOptions {
     bottomMaxHeight?: number;
     position?: "bottom" | "side";
+    /**
+     * This property only applies when `position="bottom"`.
+     */
+    horizontalAlignment?: LegendOptionsHorizontalAlignment;
   }
+
+  export type LegendOptionsHorizontalAlignment = "start" | "center";
+
   export type LegendItem = InternalComponentTypes.LegendItem;
   export type LegendTooltipContent = InternalComponentTypes.LegendTooltipContent;
   export type GetLegendTooltipContent = InternalComponentTypes.GetLegendTooltipContent;
@@ -445,14 +458,17 @@ export namespace CoreChartProps {
   }
   export interface TooltipPointProps {
     item: TooltipContentItem;
+    hideTooltip: () => void;
   }
   export interface TooltipSlotProps {
     x: number;
     items: TooltipContentItem[];
+    hideTooltip: () => void;
   }
 
   export interface TooltipDetailsProps {
     point: Highcharts.Point;
+    hideTooltip: () => void;
   }
 
   export type TooltipDetail = BaseTooltipDetail;
@@ -474,6 +490,30 @@ export namespace CoreChartProps {
   }
 
   export type I18nStrings = CartesianI18nStrings & PieI18nStrings;
+}
+
+export interface CoreLegendProps {
+  items: readonly CoreLegendProps.Item[];
+  title?: string;
+  ariaLabel?: string;
+  actions?: React.ReactNode;
+  alignment?: "horizontal" | "vertical";
+  horizontalAlignment?: CoreChartProps.LegendOptionsHorizontalAlignment;
+  onClearHighlight?: NonCancelableEventHandler;
+  onItemHighlight?: NonCancelableEventHandler<CoreLegendProps.ItemHighlightDetail>;
+  onVisibleItemsChange?: NonCancelableEventHandler<CoreLegendProps.VisibleItemsChangeDetail>;
+  getLegendTooltipContent?: CoreLegendProps.GetTooltipContent;
+}
+
+export namespace CoreLegendProps {
+  export type Item = InternalComponentTypes.LegendItem;
+  export type GetTooltipContent = InternalComponentTypes.GetLegendTooltipContent;
+  export interface ItemHighlightDetail {
+    item: Item;
+  }
+  export interface VisibleItemsChangeDetail {
+    items: readonly string[];
+  }
 }
 
 // Utility types

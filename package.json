@@ -46,7 +46,8 @@
     "./test-utils/selectors": "./test-utils/selectors/index.js",
     "./test-utils/selectors/internal/core": "./test-utils/selectors/internal/core.js",
     "./internal/api-docs/*.js": "./internal/api-docs/*.js",
-    "./internal-do-not-use/core-chart": "./internal-do-not-use/core-chart/index.js"
+    "./internal-do-not-use/core-chart": "./internal-do-not-use/core-chart/index.js",
+    "./internal-do-not-use/core-legend": "./internal-do-not-use/core-legend/index.js"
   },
   "dependencies": {
     "@cloudscape-design/component-toolkit": "^1.0.0-beta",
@@ -113,7 +114,7 @@
     "stylelint-config-recommended-scss": "^14.1.0",
     "stylelint-prettier": "^5.0.2",
     "typescript": "^4.9.4",
-    "vite": "^6.3.4",
+    "vite": "^6.4.1",
     "vitest": "^3.0.7"
   },
   "//": "ensure that typedoc uses latest typescript. It prints a warning, but works",
