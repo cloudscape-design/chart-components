@@ -9,16 +9,18 @@ import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-
 import LiveRegion from "@cloudscape-design/components/live-region";
 
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../internal/components/series-details";
+import { useSelector } from "../../internal/utils/async-store";
 import { getChartSeries } from "../../internal/utils/chart-series";
+import { useDebounce } from "../../internal/utils/use-debounce";
 import { ChartAPI } from "../chart-api";
 import { getFormatter } from "../formatters";
 import { BaseI18nStrings, CoreChartProps } from "../interfaces";
 import { getPointColor, getSeriesColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../utils";
-import { useDebouncedTooltip } from "./use-debounced-tooltip";
 
 import styles from "../styles.css.js";
 
 const MIN_VISIBLE_BLOCK_SIZE = 200;
+const DEFAULT_DEBOUNCE = 200;
 
 type ExpandedSeriesState = Record<string, Set<string>>;
 
@@ -44,16 +46,17 @@ export function ChartTooltip({
   getTooltipContent: getTooltipContentOverrides,
   api,
   i18nStrings,
-  renderDebounceDuration = 0,
+  debounce = false,
 }: CoreChartProps.TooltipOptions & {
   i18nStrings?: BaseI18nStrings;
   getTooltipContent?: CoreChartProps.GetTooltipContent;
   api: ChartAPI;
 }) {
   const [expandedSeries, setExpandedSeries] = useState<ExpandedSeriesState>({});
-  const debouncedTooltip = useDebouncedTooltip(api, renderDebounceDuration);
+  const tooltip = useSelector(api.tooltipStore, (s) => s);
+  const debouncedTooltip = useDebounce(tooltip, debounce === true ? DEFAULT_DEBOUNCE : debounce || 0);
 
-  if (!debouncedTooltip?.visible || debouncedTooltip?.group?.length === 0) {
+  if (!debouncedTooltip || !debouncedTooltip?.visible || debouncedTooltip?.group?.length === 0) {
     return null;
   }
 

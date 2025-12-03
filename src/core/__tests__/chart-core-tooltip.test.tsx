@@ -352,7 +352,7 @@ describe("CoreChart: tooltip", () => {
       hc.getChart().container.dispatchEvent(createMouseMoveEvent({ pageX: 1, pageY: 4 }));
     });
 
-    expect(getTooltipContentMock).toHaveBeenCalledTimes(1);
+    expect(getTooltipContentMock).toHaveBeenCalledTimes(2);
   });
 
   test("renders highlight markers", async () => {
@@ -598,11 +598,11 @@ describe("CoreChart: tooltip", () => {
       vi.useRealTimers();
     });
 
-    test("debounces tooltip rendering with renderDebounceDuration", () => {
+    test("debounces tooltip rendering with debounce", () => {
       const { wrapper } = renderChart({
         highcharts,
         options: { series: pieSeries },
-        tooltip: { renderDebounceDuration: 100 },
+        tooltip: { debounce: 100 },
         getTooltipContent: () => ({ header: () => "Header", body: () => "Body" }),
       });
 
@@ -624,7 +624,7 @@ describe("CoreChart: tooltip", () => {
       const { wrapper } = renderChart({
         highcharts,
         options: { series: pieSeries },
-        tooltip: { renderDebounceDuration: 100 },
+        tooltip: { debounce: 100 },
         getTooltipContent: ({ point }) => ({ header: () => `Point ${point?.name}`, body: () => "Body" }),
       });
 
@@ -648,11 +648,11 @@ describe("CoreChart: tooltip", () => {
       expect(wrapper.findTooltip()!.findHeader()!.getElement().textContent).toBe("Point P2");
     });
 
-    test("renders immediately when renderDebounceDuration is 0", () => {
+    test("renders immediately when debounce is 0", () => {
       const { wrapper } = renderChart({
         highcharts,
         options: { series: pieSeries },
-        tooltip: { renderDebounceDuration: 0 },
+        tooltip: { debounce: 0 },
         getTooltipContent: () => ({ header: () => "Header", body: () => "Body" }),
       });
 

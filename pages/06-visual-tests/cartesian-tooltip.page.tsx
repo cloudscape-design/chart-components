@@ -63,6 +63,24 @@ export default function () {
           }, 0);
         }}
       />
+
+      <h2>Debounced Tooltip (500ms)</h2>
+      <CoreChart
+        {...omit(chartProps.cartesian, "ref")}
+        ariaLabel="Line chart with debounced tooltip"
+        options={{
+          series: series,
+          xAxis: [{ type: "datetime", title: { text: "Time (UTC)" }, valueFormatter: dateFormatter }],
+          yAxis: [{ title: { text: "Events" } }],
+        }}
+        chartHeight={400}
+        tooltip={{ placement: "outside", debounce: 500 }}
+        getTooltipContent={() => ({
+          footer() {
+            return <Button>Debounced Footer</Button>;
+          },
+        })}
+      />
     </Page>
   );
 }
