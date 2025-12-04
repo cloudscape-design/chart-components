@@ -11,7 +11,7 @@ import LiveRegion from "@cloudscape-design/components/live-region";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../internal/components/series-details";
 import { useSelector } from "../../internal/utils/async-store";
 import { getChartSeries } from "../../internal/utils/chart-series";
-import { useDebouncedComponent } from "../../internal/utils/use-debounced-component";
+import { useDebouncedValue } from "../../internal/utils/use-debounced-value";
 import { ChartAPI } from "../chart-api";
 import { getFormatter } from "../formatters";
 import { BaseI18nStrings, CoreChartProps } from "../interfaces";
@@ -54,7 +54,7 @@ export function ChartTooltip({
 }) {
   const [expandedSeries, setExpandedSeries] = useState<ExpandedSeriesState>({});
   const tooltip = useSelector(api.tooltipStore, (s) => s);
-  const debouncedTooltip = useDebouncedComponent(tooltip, debounce === true ? DEFAULT_DEBOUNCE : debounce || 0);
+  const debouncedTooltip = useDebouncedValue(tooltip, debounce === true ? DEFAULT_DEBOUNCE : debounce || 0);
 
   if (!debouncedTooltip || !debouncedTooltip.visible || debouncedTooltip.group.length === 0) {
     return null;

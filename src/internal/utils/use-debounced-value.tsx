@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from "react";
 
 import { DebouncedCall } from "./utils";
 
-export function useDebouncedComponent<T>(component: T, duration: number) {
-  const [debouncedComponent, setDebouncedComponent] = useState<T | null>(null);
+export function useDebouncedValue<T>(value: T, duration: number) {
+  const [debouncedValue, setDebouncedValue] = useState<T | null>(null);
   const [shouldRender, setShouldRender] = useState(false);
   const debouncedCall = useRef(new DebouncedCall());
 
@@ -18,16 +18,16 @@ export function useDebouncedComponent<T>(component: T, duration: number) {
     setShouldRender(false);
     const current = debouncedCall.current;
     current.call(() => {
-      setDebouncedComponent(component);
+      setDebouncedValue(value);
       setShouldRender(true);
     }, duration);
 
     return () => current.cancelPrevious();
-  }, [component, duration]);
+  }, [value, duration]);
 
   if (duration <= 0) {
-    return component;
+    return value;
   }
 
-  return shouldRender ? debouncedComponent : null;
+  return shouldRender ? debouncedValue : null;
 }
