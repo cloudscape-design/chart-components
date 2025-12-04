@@ -111,6 +111,7 @@ export class ChartAPI {
       chartAPI.chartExtraLegend.onChartRender();
       chartAPI.chartExtraNodata.onChartRender();
       chartAPI.chartExtraAxisTitles.onChartRender();
+      chartAPI.chartExtraTooltip.onChartRender();
       chartAPI.handleDestroyedPoints();
       chartAPI.resetColorCounter();
       chartAPI.showMarkersForIsolatedPoints();
