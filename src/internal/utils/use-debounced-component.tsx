@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { DebouncedCall } from "./utils";
 
-export function useDebounce<T>(component: T, duration: number) {
+export function useDebouncedComponent<T>(component: T, duration: number) {
   const [debouncedComponent, setDebouncedComponent] = useState<T | null>(null);
   const [shouldRender, setShouldRender] = useState(false);
   const debouncedCall = useRef(new DebouncedCall());
