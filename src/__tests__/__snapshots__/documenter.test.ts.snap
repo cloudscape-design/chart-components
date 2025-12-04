@@ -1745,6 +1745,21 @@ for each visited { x, y } point.",
           "name": "CoreChartProps.TooltipOptions",
           "properties": [
             {
+              "inlineType": {
+                "name": "number | boolean",
+                "type": "union",
+                "valueDescriptions": undefined,
+                "values": [
+                  "number",
+                  "false",
+                  "true",
+                ],
+              },
+              "name": "debounce",
+              "optional": true,
+              "type": "number | boolean",
+            },
+            {
               "name": "enabled",
               "optional": true,
               "type": "boolean",
