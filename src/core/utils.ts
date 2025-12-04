@@ -4,10 +4,11 @@
 import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
+import { ChartSeriesMarkerStatus } from "../internal/components/series-marker/interfaces";
 import { getChartSeries } from "../internal/utils/chart-series";
 import { getFormatter } from "./formatters";
 import { ChartLabels } from "./i18n-utils";
-import { Rect } from "./interfaces";
+import { CoreChartProps, Rect } from "./interfaces";
 
 export interface LegendItemSpec {
   id: string;
@@ -15,6 +16,7 @@ export interface LegendItemSpec {
   markerType: ChartSeriesMarkerType;
   color: string;
   visible: boolean;
+  status?: ChartSeriesMarkerStatus;
 }
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
@@ -130,7 +132,10 @@ export function getPointColor(point?: Highcharts.Point): string {
 
 // There exists a Highcharts APIs to access legend items, but it is unfortunately not available, when
 // Highcharts legend is disabled. Instead, we use this custom method to collect legend items from the chart.
-export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendItemSpec[] {
+export function getChartLegendItems(
+  chart: Highcharts.Chart,
+  getSeriesStatus: NonNullable<CoreChartProps["getSeriesStatus"]>,
+): readonly LegendItemSpec[] {
   const legendItems: LegendItemSpec[] = [];
   const addSeriesItem = (series: Highcharts.Series) => {
     // The pie series is not shown in the legend. Instead, we show pie segments.
@@ -151,6 +156,7 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
         markerType: getSeriesMarkerType(series),
         color: getSeriesColor(series),
         visible: series.visible,
+        status: getSeriesStatus(series),
       });
     }
   };
@@ -162,6 +168,7 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
         markerType: getSeriesMarkerType(point.series),
         color: getPointColor(point),
         visible: point.visible,
+        status: getSeriesStatus(point.series),
       });
     }
   };
