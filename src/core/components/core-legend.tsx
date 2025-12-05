@@ -16,6 +16,7 @@ export function ChartLegend({
   position,
   i18nStrings,
   onItemHighlight,
+  onItemHighlightExit,
   getLegendTooltipContent,
   horizontalAlignment = "start",
 }: {
@@ -26,6 +27,7 @@ export function ChartLegend({
   horizontalAlignment?: CoreChartProps.LegendOptionsHorizontalAlignment;
   i18nStrings?: BaseI18nStrings;
   onItemHighlight?: NonCancelableEventHandler<CoreChartProps.LegendItemHighlightDetail>;
+  onItemHighlightExit?: NonCancelableEventHandler;
   getLegendTooltipContent?: CoreChartProps.GetLegendTooltipContent;
 }) {
   const i18n = useInternalI18n("[charts]");
@@ -45,7 +47,10 @@ export function ChartLegend({
       actions={actions}
       position={position}
       onItemVisibilityChange={api.onItemVisibilityChange}
-      onItemHighlightExit={api.onClearChartItemsHighlight}
+      onItemHighlightExit={() => {
+        api.onClearChartItemsHighlight();
+        fireNonCancelableEvent(onItemHighlightExit);
+      }}
       onItemHighlightEnter={(item) => {
         api.onHighlightChartItems([item.id]);
         fireNonCancelableEvent(onItemHighlight, { item });

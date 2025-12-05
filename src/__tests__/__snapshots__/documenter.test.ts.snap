@@ -1234,6 +1234,15 @@ exports[`internal core API matches snapshot > internal-core-chart 1`] = `
       {
         "cancelable": false,
         "deprecatedTag": undefined,
+        "description": "Called when a legend item highlight is cleared.",
+        "detailInlineType": undefined,
+        "detailType": undefined,
+        "name": "onLegendItemHighlightExit",
+        "systemTags": undefined,
+      },
+      {
+        "cancelable": false,
+        "deprecatedTag": undefined,
         "description": "Called when series/points visibility changes due to user interaction with legend or filter.",
         "detailInlineType": {
           "name": "CoreChartProps.VisibleItemsChangeDetail",

@@ -357,6 +357,10 @@ export interface CoreChartProps
    */
   onLegendItemHighlight?: NonCancelableEventHandler<CoreChartProps.LegendItemHighlightDetail>;
   /**
+   * Called when a legend item highlight is cleared.
+   */
+  onLegendItemHighlightExit?: NonCancelableEventHandler;
+  /**
    * Called when series/points visibility changes due to user interaction with legend or filter.
    */
   onVisibleItemsChange?: NonCancelableEventHandler<CoreChartProps.VisibleItemsChangeDetail>;
