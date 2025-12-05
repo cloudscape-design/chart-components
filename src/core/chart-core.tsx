@@ -121,9 +121,70 @@ export function InternalCoreChart({
   const inverted = !!options.chart?.inverted;
   const isRtl = getIsRtl(rootRef?.current);
 
-  // Compute RTL-adjusted options that will be used for both legend positioning and chart rendering
-  const rtlAdjustedOptions: Highcharts.Options = {
+  // The Highcharts options takes all provided Highcharts options and custom properties and merges them together, so that
+  // the Cloudscape features and custom Highcharts extensions co-exist.
+  // For certain options we provide Cloudscape styling, but in all cases this can be explicitly overridden.
+  options = {
     ...options,
+    // Hide credits by default.
+    credits: options.credits ?? { enabled: false },
+    // Hide chart title by default.
+    title: options.title ?? { text: "" },
+    // Use Cloudscape color palette by default.
+    // This cannot be reset to Highcharts' default from the outside, but it is possible to provide custom palette.
+    colors: options.colors ?? Styles.colors,
+    chart: {
+      // Animations are disabled by default.
+      // This is done for UX and a11y reasons as Highcharts animations do not match our animation timings, and do
+      // not respect disabled motion settings. These issues can likely be resolved or we can provide custom animations
+      // instead, but this is not a priority.
+      animation: false,
+      ...Styles.chart,
+      ...options.chart,
+      className: clsx(testClasses["chart-plot"], options.chart?.className),
+      // The debug errors are enabled by default in development mode, but this only works
+      // if the Highcharts debugger module is loaded.
+      displayErrors: options.chart?.displayErrors ?? isDevelopment,
+      style: { ...Styles.chartPlotCss, ...options.chart?.style },
+    },
+    series: options.series,
+    // Highcharts legend is disabled by default in favour of the custom Cloudscape legend.
+    legend: options.legend ?? { enabled: false },
+    lang: {
+      ...options.lang,
+      accessibility: {
+        // The default chart title is disabled by default to prevent the default "Chart" in the screen-reader detail.
+        defaultChartTitle: "",
+        chartContainerLabel: labels.chartLabel,
+        svgContainerLabel: labels.chartContainerLabel,
+        // We used {names[0]} to inject the axis title, see: https://api.highcharts.com/highcharts/lang.accessibility.axis.xAxisDescriptionSingular.
+        axis: {
+          xAxisDescriptionSingular: labels.chartXAxisLabel ? `${labels.chartXAxisLabel}, {names[0]}` : undefined,
+          yAxisDescriptionSingular: labels.chartYAxisLabel ? `${labels.chartYAxisLabel}, {names[0]}` : undefined,
+        },
+        ...options.lang?.accessibility,
+      },
+    },
+    accessibility: {
+      description: labels.chartDescription,
+      screenReaderSection: {
+        // We use custom before-message to remove detail that are currently not supported with our i18n.
+        // See: https://api.highcharts.com/highcharts/accessibility.screenReaderSection.beforeChartFormat.
+        beforeChartFormat: "<div>{xAxisDescription}</div><div>{yAxisDescription}</div>",
+        // We hide after message as it is currently not supported with our i18n.
+        afterChartFormat: "",
+      },
+      ...options.accessibility,
+      // Highcharts keyboard navigation is disabled by default in favour of the custom Cloudscape navigation.
+      keyboardNavigation: options.accessibility?.keyboardNavigation ?? { enabled: !keyboardNavigation },
+      point: {
+        // Point description formatter is overridden to respect custom axes value formatters.
+        descriptionFormatter: (point) => getPointAccessibleDescription(point, labels),
+        ...options.accessibility?.point,
+      },
+    },
+    // We use the rtl adjusted axes (instead of the original options.xAxis/yAxis) to ensure the chart renders
+    // with the correct axis orientation for RTL layouts, matching what was used for legend positioning above.
     xAxis: castArray(options.xAxis)?.map((xAxisOptions) => ({
       ...Styles.xAxisOptions,
       ...xAxisOptions,
@@ -148,48 +209,59 @@ export function InternalCoreChart({
       // correspond the order of stacks.
       reversedStacks: yAxisOptions.reversedStacks ?? true,
     })),
+    plotOptions: {
+      ...options.plotOptions,
+      series: {
+        // Animations are disabled by default, same as in the options.chart.
+        animation: false,
+        // Sticky tracking is disabled by default due to sub-optimal UX in dense charts.
+        stickyTracking: false,
+        borderColor: Styles.seriesBorderColor,
+        ...options.plotOptions?.series,
+        dataLabels: { style: Styles.seriesDataLabelsCss, ...options.plotOptions?.series?.dataLabels },
+        states: {
+          ...options.plotOptions?.series?.states,
+          inactive: { opacity: Styles.seriesOpacityInactive, ...options.plotOptions?.series?.states?.inactive },
+        },
+      },
+      area: { ...Styles.areaSeries, ...options.plotOptions?.area },
+      areaspline: { ...Styles.areaSeries, ...options.plotOptions?.areaspline },
+      arearange: { ...Styles.areaSeries, ...options.plotOptions?.arearange },
+      areasplinerange: { ...Styles.areaSeries, ...options.plotOptions?.areasplinerange },
+      line: { ...Styles.lineSeries, ...options.plotOptions?.line },
+      spline: { ...Styles.lineSeries, ...options.plotOptions?.spline },
+      column: { ...Styles.columnSeries, ...options.plotOptions?.column },
+      errorbar: { ...Styles.errorbarSeries, ...options.plotOptions?.errorbar },
+      // Pie chart is shown in legend by default, that is required for standalone pie charts.
+      pie: {
+        showInLegend: true,
+        ...Styles.pieSeries,
+        ...options.plotOptions?.pie,
+        dataLabels: { ...Styles.pieSeriesDataLabels, ...options.plotOptions?.pie?.dataLabels },
+      },
+    },
+    // We don't use Highcharts tooltip, but certain tooltip options such as tooltip.snap or tooltip.shared
+    // affect the hovering behavior of Highcharts. That is only the case when the tooltip is not disabled,
+    // so we render it, but hide with styles.
+    tooltip: options.tooltip ?? { enabled: true, snap: Styles.tooltipSnap, style: { opacity: 0 } },
   };
 
-  const legendProps = getLegendsProps(rtlAdjustedOptions, legendOptions);
+  const legendProps = getLegendsProps(options, legendOptions);
 
   return (
     <div {...rootProps}>
       <ChartContainer
         {...containerProps}
         chart={(height) => {
-          // The Highcharts options takes all provided Highcharts options and custom properties and merges them together, so that
-          // the Cloudscape features and custom Highcharts extensions co-exist.
-          // For certain options we provide Cloudscape styling, but in all cases this can be explicitly overridden.
-          // We use the rtl adjusted axes (instead of the original options.xAxis/yAxis) to ensure the chart renders
-          // with the correct axis orientation for RTL layouts, matching what was used for legend positioning above.
+          // We declare event handlers here to ensure that no event fires until the chart is initialized.
           const highchartsOptions: Highcharts.Options = {
             ...options,
-            xAxis: rtlAdjustedOptions.xAxis,
-            yAxis: rtlAdjustedOptions.yAxis,
-            // Hide credits by default.
-            credits: options.credits ?? { enabled: false },
-            // Hide chart title by default.
-            title: options.title ?? { text: "" },
-            // Use Cloudscape color palette by default.
-            // This cannot be reset to Highcharts' default from the outside, but it is possible to provide custom palette.
-            colors: options.colors ?? Styles.colors,
             chart: {
-              // Animations are disabled by default.
-              // This is done for UX and a11y reasons as Highcharts animations do not match our animation timings, and do
-              // not respect disabled motion settings. These issues can likely be resolved or we can provide custom animations
-              // instead, but this is not a priority.
-              animation: false,
-              ...Styles.chart,
               ...options.chart,
-              className: clsx(testClasses["chart-plot"], options.chart?.className),
               // Use height computed from chartHeight, chartMinHeight, and fitHeight settings by default.
               // It is possible to override it by explicitly providing chart.height, but this will not be
               // compatible with any of the above settings.
               height: options.chart?.height ?? height,
-              // The debug errors are enabled by default in development mode, but this only works
-              // if the Highcharts debugger module is loaded.
-              displayErrors: options.chart?.displayErrors ?? isDevelopment,
-              style: { ...Styles.chartPlotCss, ...options.chart?.style },
               // We override certain chart events to inject additional behaviors, but it is still possible to define
               // custom callbacks. The Cloudscape behaviors can be disabled or altered via components API. For instance,
               // if no-data props are not provided - the related on-render computations will be skipped.
@@ -209,60 +281,10 @@ export function InternalCoreChart({
                 },
               },
             },
-            series: options.series,
-            // Highcharts legend is disabled by default in favour of the custom Cloudscape legend.
-            legend: options.legend ?? { enabled: false },
-            lang: {
-              ...options.lang,
-              accessibility: {
-                // The default chart title is disabled by default to prevent the default "Chart" in the screen-reader detail.
-                defaultChartTitle: "",
-                chartContainerLabel: labels.chartLabel,
-                svgContainerLabel: labels.chartContainerLabel,
-                // We used {names[0]} to inject the axis title, see: https://api.highcharts.com/highcharts/lang.accessibility.axis.xAxisDescriptionSingular.
-                axis: {
-                  xAxisDescriptionSingular: labels.chartXAxisLabel
-                    ? `${labels.chartXAxisLabel}, {names[0]}`
-                    : undefined,
-                  yAxisDescriptionSingular: labels.chartYAxisLabel
-                    ? `${labels.chartYAxisLabel}, {names[0]}`
-                    : undefined,
-                },
-                ...options.lang?.accessibility,
-              },
-            },
-            accessibility: {
-              description: labels.chartDescription,
-              screenReaderSection: {
-                // We use custom before-message to remove detail that are currently not supported with our i18n.
-                // See: https://api.highcharts.com/highcharts/accessibility.screenReaderSection.beforeChartFormat.
-                beforeChartFormat: "<div>{xAxisDescription}</div><div>{yAxisDescription}</div>",
-                // We hide after message as it is currently not supported with our i18n.
-                afterChartFormat: "",
-              },
-              ...options.accessibility,
-              // Highcharts keyboard navigation is disabled by default in favour of the custom Cloudscape navigation.
-              keyboardNavigation: options.accessibility?.keyboardNavigation ?? { enabled: !keyboardNavigation },
-              point: {
-                // Point description formatter is overridden to respect custom axes value formatters.
-                descriptionFormatter: (point) => getPointAccessibleDescription(point, labels),
-                ...options.accessibility?.point,
-              },
-            },
             plotOptions: {
               ...options.plotOptions,
               series: {
-                // Animations are disabled by default, same as in the options.chart.
-                animation: false,
-                // Sticky tracking is disabled by default due to sub-optimal UX in dense charts.
-                stickyTracking: false,
-                borderColor: Styles.seriesBorderColor,
                 ...options.plotOptions?.series,
-                dataLabels: { style: Styles.seriesDataLabelsCss, ...options.plotOptions?.series?.dataLabels },
-                states: {
-                  ...options.plotOptions?.series?.states,
-                  inactive: { opacity: Styles.seriesOpacityInactive, ...options.plotOptions?.series?.states?.inactive },
-                },
                 // We override certain point events to inject additional behaviors, but it is still possible to define
                 // custom callbacks. The Cloudscape behaviors can be disabled or altered via components API.
                 point: {
@@ -284,26 +306,7 @@ export function InternalCoreChart({
                   },
                 },
               },
-              area: { ...Styles.areaSeries, ...options.plotOptions?.area },
-              areaspline: { ...Styles.areaSeries, ...options.plotOptions?.areaspline },
-              arearange: { ...Styles.areaSeries, ...options.plotOptions?.arearange },
-              areasplinerange: { ...Styles.areaSeries, ...options.plotOptions?.areasplinerange },
-              line: { ...Styles.lineSeries, ...options.plotOptions?.line },
-              spline: { ...Styles.lineSeries, ...options.plotOptions?.spline },
-              column: { ...Styles.columnSeries, ...options.plotOptions?.column },
-              errorbar: { ...Styles.errorbarSeries, ...options.plotOptions?.errorbar },
-              // Pie chart is shown in legend by default, that is required for standalone pie charts.
-              pie: {
-                showInLegend: true,
-                ...Styles.pieSeries,
-                ...options.plotOptions?.pie,
-                dataLabels: { ...Styles.pieSeriesDataLabels, ...options.plotOptions?.pie?.dataLabels },
-              },
             },
-            // We don't use Highcharts tooltip, but certain tooltip options such as tooltip.snap or tooltip.shared
-            // affect the hovering behavior of Highcharts. That is only the case when the tooltip is not disabled,
-            // so we render it, but hide with styles.
-            tooltip: options.tooltip ?? { enabled: true, snap: Styles.tooltipSnap, style: { opacity: 0 } },
           };
           return (
             <>
