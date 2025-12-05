@@ -160,8 +160,12 @@ export function InternalCoreChart({
           // The Highcharts options takes all provided Highcharts options and custom properties and merges them together, so that
           // the Cloudscape features and custom Highcharts extensions co-exist.
           // For certain options we provide Cloudscape styling, but in all cases this can be explicitly overridden.
+          // We use the rtl adjusted axes (instead of the original options.xAxis/yAxis) to ensure the chart renders
+          // with the correct axis orientation for RTL layouts, matching what was used for legend positioning above.
           const highchartsOptions: Highcharts.Options = {
             ...options,
+            xAxis: rtlAdjustedOptions.xAxis,
+            yAxis: rtlAdjustedOptions.yAxis,
             // Hide credits by default.
             credits: options.credits ?? { enabled: false },
             // Hide chart title by default.
@@ -296,8 +300,6 @@ export function InternalCoreChart({
                 dataLabels: { ...Styles.pieSeriesDataLabels, ...options.plotOptions?.pie?.dataLabels },
               },
             },
-            xAxis: rtlAdjustedOptions.xAxis,
-            yAxis: rtlAdjustedOptions.yAxis,
             // We don't use Highcharts tooltip, but certain tooltip options such as tooltip.snap or tooltip.shared
             // affect the hovering behavior of Highcharts. That is only the case when the tooltip is not disabled,
             // so we render it, but hide with styles.
