@@ -27,6 +27,8 @@ function setupTestBase<P extends BasePageObject & { init?(): Promise<void> }>(
       await page.init();
     }
 
+    await page.waitForJsTimers();
+
     await test(page);
   });
 }
