@@ -102,30 +102,25 @@ function secondFormatter(value: number) {
   });
 }
 
-function numberFormatter(value: number): string {
-  const format = (num: number) => parseFloat(num.toFixed(2)).toString(); // trims unnecessary decimals
-
+function numberFormatter(value: number, locale: string = "en-US"): string {
   const absValue = Math.abs(value);
 
   if (absValue === 0) {
     return "0";
   }
 
-  if (absValue < 0.01) {
-    return value.toExponential(0);
+  // Use scientific notation for very small numbers
+  if (absValue < 1e-9) {
+    return new Intl.NumberFormat(locale, {
+      notation: "scientific",
+      maximumFractionDigits: 9,
+    }).format(value);
   }
 
-  if (absValue >= 1e9) {
-    return format(value / 1e9) + "G";
-  }
-
-  if (absValue >= 1e6) {
-    return format(value / 1e6) + "M";
-  }
-
-  if (absValue >= 1e3) {
-    return format(value / 1e3) + "K";
-  }
-
-  return format(value);
+  // Use compact notation for normal range
+  return new Intl.NumberFormat(locale, {
+    notation: "compact",
+    compactDisplay: "short",
+    maximumFractionDigits: 9,
+  }).format(value);
 }
