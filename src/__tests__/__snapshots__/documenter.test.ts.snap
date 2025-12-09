@@ -1766,12 +1766,12 @@ for each visited { x, y } point.",
             },
             {
               "inlineType": {
-                "name": ""asAdded" | "byValueDesc"",
+                "name": ""as-added" | "by-value-desc"",
                 "type": "union",
                 "valueDescriptions": undefined,
                 "values": [
-                  "asAdded",
-                  "byValueDesc",
+                  "as-added",
+                  "by-value-desc",
                 ],
               },
               "name": "seriesSorting",

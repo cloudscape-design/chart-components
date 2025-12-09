@@ -609,13 +609,13 @@ describe("CoreChart: tooltip", () => {
       },
     ];
 
-    test("maintains series order when explicitly set to 'asAdded'", () => {
+    test("maintains series order when explicitly set to 'as-added'", () => {
       const { wrapper } = renderChart({
         highcharts,
         options: {
           series: lineSeries,
         },
-        tooltip: { seriesSorting: "asAdded" },
+        tooltip: { seriesSorting: "as-added" },
         getTooltipContent: () => ({
           header: () => "Header",
           body: ({ items }) => (
@@ -640,14 +640,14 @@ describe("CoreChart: tooltip", () => {
       expect(series1!.getElement().textContent).toBe("Line series 2: 21");
     });
 
-    describe('seriesSorting: "byValueDesc"', () => {
+    describe('seriesSorting: "by-value-desc"', () => {
       test("sorts series by value in descending order", () => {
         const { wrapper } = renderChart({
           highcharts,
           options: {
             series: lineSeries,
           },
-          tooltip: { seriesSorting: "byValueDesc" },
+          tooltip: { seriesSorting: "by-value-desc" },
           getTooltipContent: () => ({
             header: () => "Header",
             body: ({ items }) => (
@@ -678,7 +678,7 @@ describe("CoreChart: tooltip", () => {
           options: {
             series: lineSeries,
           },
-          tooltip: { seriesSorting: "byValueDesc" },
+          tooltip: { seriesSorting: "by-value-desc" },
           getTooltipContent: () => ({
             header: () => "Header",
             body: ({ items }) => (

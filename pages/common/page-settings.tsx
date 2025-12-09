@@ -69,7 +69,7 @@ const DEFAULT_SETTINGS: PageSettings = {
   showHeaderFilter: false,
   showCustomFooter: false,
   useFallback: false,
-  tooltipSeriesSorting: "asAdded",
+  tooltipSeriesSorting: "as-added",
 };
 
 export const PageSettingsContext = createContext<PageSettings>(DEFAULT_SETTINGS);
@@ -205,8 +205,8 @@ const tooltipSizeOptions = [{ value: "small" }, { value: "medium" }, { value: "l
 const verticalAxisTitlePlacementOptions = [{ value: "top" }, { value: "side" }];
 
 const tooltipSeriesSortingOptions = [
-  { id: "asAdded", text: "asAdded" },
-  { id: "byValueDesc", text: "byValueDesc" },
+  { id: "as-added", text: "as-added" },
+  { id: "by-value-desc", text: "by-value-desc" },
 ];
 
 export function PageSettingsForm({

@@ -44,7 +44,7 @@ export function ChartTooltip({
   getTooltipContent: getTooltipContentOverrides,
   api,
   i18nStrings,
-  seriesSorting = "asAdded",
+  seriesSorting = "as-added",
 }: CoreChartProps.TooltipOptions & {
   i18nStrings?: BaseI18nStrings;
   getTooltipContent?: CoreChartProps.GetTooltipContent;
@@ -311,7 +311,7 @@ function findTooltipSeriesItems(
   return (
     matchedItems
       .sort((i1, i2) => {
-        if (seriesSorting === "byValueDesc") {
+        if (seriesSorting === "by-value-desc") {
           return (i2.point.y ?? 0) - (i1.point.y ?? 0);
         }
         // We sort matched items by series order. If there are multiple items that belong to the same series, we sort them by value.
