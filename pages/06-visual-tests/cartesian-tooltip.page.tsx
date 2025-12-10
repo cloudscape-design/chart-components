@@ -31,7 +31,7 @@ const dataA = baseline.map(({ x, y }) => ({ x, y }));
 const dataB = baseline.map(({ x, y }, index) => ({ x, y: y + index * 10000 }));
 
 const series: Highcharts.SeriesOptionsType[] = [
-  { id: 'A', name: "A", type: "spline", data: dataA },
+  { id: "A", name: "A", type: "spline", data: dataA },
   { name: "B", type: "spline", data: dataB },
 ];
 

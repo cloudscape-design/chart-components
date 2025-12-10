@@ -30,7 +30,7 @@ import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
 import { getFormatter } from "./formatters";
 import { useChartI18n } from "./i18n-utils";
 import { CoreChartProps } from "./interfaces";
-import { fillDefaultsForGetItemProps, getPointAccessibleDescription, hasVisibleLegendItems } from "./utils";
+import { fillDefaultsForGetItemProps } from "./utils";
 import { getLegendsProps, getPointAccessibleDescription } from "./utils";
 
 import styles from "./styles.css.js";
