@@ -9,6 +9,7 @@ import { BaseComponentProps } from "@cloudscape-design/components/internal/base-
 import { InternalExpandableSection } from "@cloudscape-design/components/internal/do-not-use/expandable-section";
 
 import { getDataAttributes } from "../../base-component/get-data-attributes";
+import { scrollIntoViewNearestContainer } from "../../utils/dom";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -59,8 +60,8 @@ function ChartSeriesDetails(
 
   const selectedIndex = details.findIndex((d) => d.highlighted);
   useEffect(() => {
-    if (selectedIndex !== -1 && selectedRef.current && "scrollIntoView" in selectedRef.current) {
-      selectedRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (selectedIndex !== -1 && selectedRef.current) {
+      scrollIntoViewNearestContainer(selectedRef.current, { behavior: "smooth", scrollMode: "always" });
     }
   }, [selectedIndex]);
 
