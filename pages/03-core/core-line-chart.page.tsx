@@ -127,7 +127,9 @@ export default function () {
             },
           },
         }}
-        getSeriesStatus={(s) => (s.userOptions.id === "A" ? "warning" : undefined)}
+        getItemProps={(id) => ({
+          status: id === "A" ? "warning" : "default",
+        })}
         chartHeight={400}
         tooltip={{ placement: "outside" }}
         getTooltipContent={() => ({

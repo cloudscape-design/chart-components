@@ -54,6 +54,7 @@ const permutationsForColors = [
       ],
       color: [color],
       i18nStrings: [{ seriesStatusWarningAriaLabel: "warning" }],
+      status: ["default"],
     },
   ]),
 );

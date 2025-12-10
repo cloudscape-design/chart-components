@@ -12,6 +12,7 @@ import { getDataAttributes } from "../../base-component/get-data-attributes";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
+import { ChartSeriesMarkerStatus } from "../series-marker/interfaces";
 
 interface ChartDetailPair {
   key: ReactNode;
@@ -24,6 +25,8 @@ interface ListItemProps {
   subItems?: ReadonlyArray<ChartDetailPair>;
   marker?: React.ReactNode;
   description?: ReactNode;
+  status: ChartSeriesMarkerStatus;
+  statusAriaDescription: string;
 }
 
 export interface ChartSeriesDetailItem extends ChartDetailPair {
@@ -172,12 +175,13 @@ function ExpandableSeries({
   );
 }
 
-function NonExpandableSeries({ itemKey, value, subItems, marker, description }: ListItemProps) {
+function NonExpandableSeries({ itemKey, value, subItems, marker, description, status }: ListItemProps) {
   return (
     <>
       <div className={clsx(styles["key-value-pair"], styles.announced)}>
         <div className={clsx(testClasses.key, styles.key)}>
           {marker}
+          <span style={{ display: "none" }}>warning status</span>
           <span>{itemKey}</span>
         </div>
         <span className={clsx(testClasses.value, styles.value)}>{value}</span>

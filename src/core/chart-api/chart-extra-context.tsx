@@ -8,7 +8,7 @@ import { getChartSeries } from "../../internal/utils/chart-series";
 import { getSeriesData } from "../../internal/utils/series-data";
 import { ChartLabels } from "../i18n-utils";
 import { CoreChartProps, Rect } from "../interfaces";
-import { getGroupRect, isSeriesStacked } from "../utils";
+import { fillDefaultsForGetItemProps, getGroupRect, isSeriesStacked } from "../utils";
 
 // Chart API context is used for dependency injection for chart utilities.
 // It is initialized on chart render, and includes the chart instance, consumer
@@ -32,7 +32,7 @@ export namespace ChartExtraContext {
     tooltipEnabled: boolean;
     keyboardNavigationEnabled: boolean;
     labels: ChartLabels;
-    getSeriesStatus: NonNullable<CoreChartProps["getSeriesStatus"]>;
+    getItemProps: ReturnType<typeof fillDefaultsForGetItemProps>;
   }
 
   export interface Handlers {
@@ -64,7 +64,7 @@ export function createChartContext(): ChartExtraContext {
       tooltipEnabled: false,
       keyboardNavigationEnabled: false,
       labels: {},
-      getSeriesStatus: () => undefined,
+      getItemProps: fillDefaultsForGetItemProps(undefined),
     },
     handlers: {},
     state: {},

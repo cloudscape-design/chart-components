@@ -6,9 +6,10 @@ import type Highcharts from "highcharts";
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
 import { ChartSeriesMarkerStatus } from "../internal/components/series-marker/interfaces";
 import { getChartSeries } from "../internal/utils/chart-series";
+import { castArray } from "../internal/utils/utils";
 import { getFormatter } from "./formatters";
 import { ChartLabels } from "./i18n-utils";
-import { CoreChartProps, Rect } from "./interfaces";
+import { ChartItemOptions, CoreChartProps, Rect } from "./interfaces";
 
 export interface LegendItemSpec {
   id: string;
@@ -16,7 +17,8 @@ export interface LegendItemSpec {
   markerType: ChartSeriesMarkerType;
   color: string;
   visible: boolean;
-  status?: ChartSeriesMarkerStatus;
+  isSecondary: boolean;
+  status: ChartSeriesMarkerStatus;
 }
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
@@ -134,10 +136,11 @@ export function getPointColor(point?: Highcharts.Point): string {
 // Highcharts legend is disabled. Instead, we use this custom method to collect legend items from the chart.
 export function getChartLegendItems(
   chart: Highcharts.Chart,
-  getSeriesStatus: NonNullable<CoreChartProps["getSeriesStatus"]>,
+  getItemProps: ReturnType<typeof fillDefaultsForGetItemProps>,
 ): readonly LegendItemSpec[] {
   const legendItems: LegendItemSpec[] = [];
-  const addSeriesItem = (series: Highcharts.Series) => {
+  const isInverted = chart.inverted ?? false;
+  const addSeriesItem = (series: Highcharts.Series, isSecondary: boolean) => {
     // The pie series is not shown in the legend. Instead, we show pie segments.
     if (series.type === "pie") {
       return;
@@ -150,48 +153,126 @@ export function getChartLegendItems(
     // We respect Highcharts showInLegend option to allow hiding certain series from the legend.
     // The same is not supported for pie chart segments.
     if (series.options.showInLegend !== false) {
+      const seriesId = getSeriesId(series);
       legendItems.push({
-        id: getSeriesId(series),
+        id: seriesId,
         name: series.name,
         markerType: getSeriesMarkerType(series),
         color: getSeriesColor(series),
         visible: series.visible,
-        status: getSeriesStatus(series),
+        isSecondary,
+        status: getItemProps(seriesId).status,
       });
     }
   };
-  const addPointItem = (point: Highcharts.Point) => {
+  const addPointItem = (point: Highcharts.Point, isSecondary: boolean) => {
     if (point.series.type === "pie") {
+      const pointId = getPointId(point);
+
       legendItems.push({
-        id: getPointId(point),
+        id: pointId,
         name: point.name,
         markerType: getSeriesMarkerType(point.series),
         color: getPointColor(point),
         visible: point.visible,
-        status: getSeriesStatus(point.series),
+        status: getItemProps(pointId).status,
+        isSecondary,
       });
     }
   };
   for (const s of getChartSeries(chart.series)) {
-    addSeriesItem(s);
-    s.data.forEach(addPointItem);
+    const valueAxis = isInverted ? s.xAxis : s.yAxis;
+    const isSecondary = valueAxis?.options?.opposite ?? false;
+    addSeriesItem(s, isSecondary);
+    s.data.forEach((p) => addPointItem(p, isSecondary));
   }
   return legendItems;
 }
 
-export function hasVisibleLegendItems(options: Highcharts.Options) {
-  return !!options.series?.some((series) => {
-    // The pie series is not shown in the legend, but their segments are always shown.
+export type LegendItemOptions = Highcharts.SeriesOptionsType | Highcharts.PointOptionsType;
+
+export function getVisibleLegendItems(options: Highcharts.Options) {
+  const isInverted = options.chart?.inverted ?? false;
+  const valueAxes = (isInverted ? castArray(options.xAxis) : castArray(options.yAxis)) ?? [];
+  const defaultOpposite = valueAxes.length > 0 ? (valueAxes[0].opposite ?? false) : false;
+
+  const primaryItems: LegendItemOptions[] = [];
+  const secondaryItems: LegendItemOptions[] = [];
+  const addLegendItem = (item: LegendItemOptions) => {
+    if (isSecondaryLegendItem(item, isInverted, defaultOpposite, valueAxes)) {
+      secondaryItems.push(item);
+    } else {
+      primaryItems.push(item);
+    }
+  };
+
+  options.series?.forEach((series) => {
+    // The pie series is not shown in the legend. Instead, we show pie segments (points).
     if (series.type === "pie") {
-      return Array.isArray(series.data) && series.data.length > 0;
+      if (Array.isArray(series.data)) {
+        series.data.forEach((point) => addLegendItem(point));
+      }
+      return;
     }
     // We only support errorbar series that are linked to other series. Those are not represented separately
     // in the legend, but can be controlled from the outside, using controllable items visibility API.
     if (series.type === "errorbar") {
-      return false;
+      return;
     }
-    return series.showInLegend !== false;
+    if (series.showInLegend !== false) {
+      addLegendItem(series);
+    }
   });
+
+  return { primaryItems, secondaryItems };
+}
+
+function isSecondaryLegendItem(
+  item: LegendItemOptions,
+  isInverted: boolean,
+  defaultOpposite: boolean,
+  valueAxes: Array<{ id?: string; opposite?: boolean }>,
+): boolean {
+  // Only items that have an associated axis can be considered secondary
+  if (item && typeof item === "object" && ("xAxis" in item || "yAxis" in item)) {
+    const axisRef = isInverted ? (item.xAxis ?? 0) : (item.yAxis ?? 0);
+    // An axis reference can be an index into the axes array or an explicitly passed id
+    const valueAxis = typeof axisRef === "number" ? valueAxes[axisRef] : valueAxes.find((a) => a.id === axisRef);
+    return valueAxis?.opposite ?? false;
+  }
+  return defaultOpposite;
+}
+
+export function getLegendsProps(
+  options: CoreChartProps.ChartOptions,
+  legendOptions: CoreChartProps.LegendOptions | undefined,
+) {
+  // While Highcharts supports more than two axes, this
+  // implementation supports at most two, in which case one
+  // of them must be set as opposite (secondary).
+  const { primaryItems, secondaryItems } = getVisibleLegendItems(options);
+  return {
+    primary:
+      primaryItems.length === 0
+        ? undefined
+        : ({
+            isSecondary: false,
+            title: legendOptions?.title,
+            actions: legendOptions?.actions,
+            alignment: legendOptions?.position === "side" ? "vertical" : "horizontal",
+            horizontalAlignment: secondaryItems.length === 0 ? legendOptions?.horizontalAlignment : "start",
+          } as const),
+    secondary:
+      secondaryItems.length === 0
+        ? undefined
+        : ({
+            isSecondary: true,
+            title: legendOptions?.secondaryLegendTitle,
+            actions: legendOptions?.secondaryLegendActions,
+            alignment: legendOptions?.position === "side" ? "vertical" : "horizontal",
+            horizontalAlignment: "end",
+          } as const),
+  };
 }
 
 // This function returns coordinates of a rectangle, including the target point.
@@ -319,4 +400,21 @@ function getChartRect(rect: Rect, chart: Highcharts.Chart, canBeInverted: boolea
         width: rect.width,
         height: rect.height,
       };
+}
+
+/**
+ * Creates a function that returns chart item properties with default values applied.
+ *
+ * This higher-order function wraps an optional `getItemProps` function and ensures that
+ * all required properties of `ChartItemOptions` are present, filling in defaults where needed.
+ */
+export function fillDefaultsForGetItemProps(
+  getItemProps: CoreChartProps["getItemProps"],
+): (id: string) => Required<ChartItemOptions> {
+  return (id: string) => {
+    const prevItem = getItemProps?.(id) ?? {};
+    return {
+      status: prevItem.status ?? "default",
+    };
+  };
 }

@@ -82,10 +82,10 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
   };
 
   private initLegend = () => {
-    const itemSpecs = getChartLegendItems(this.context.chart(), this.context.settings.getSeriesStatus);
-    const legendItems = itemSpecs.map(({ id, name, color, markerType, visible, status }) => {
+    const itemSpecs = getChartLegendItems(this.context.chart(), this.context.settings.getItemProps);
+    const legendItems = itemSpecs.map(({ id, name, color, markerType, visible, status, isSecondary }) => {
       const marker = this.renderMarker(markerType, color, visible, status);
-      return { id, name, marker, visible, highlighted: false };
+      return { id, name, marker, visible, isSecondary, highlighted: false };
     });
     this.updateLegendItems(legendItems);
   };
@@ -112,7 +112,7 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
     type: ChartSeriesMarkerType,
     color: string,
     visible = true,
-    status?: ChartSeriesMarkerStatus,
+    status: ChartSeriesMarkerStatus,
   ): React.ReactNode {
     const key = `${type}:${color}:${visible}:${status}`;
     const marker = this.markersCache.get(key) ?? (

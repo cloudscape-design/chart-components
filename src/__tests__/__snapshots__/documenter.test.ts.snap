@@ -1203,6 +1203,11 @@ exports[`internal core API matches snapshot > internal-core-chart 1`] = `
                     "type": "string",
                   },
                   {
+                    "name": "isSecondary",
+                    "optional": true,
+                    "type": "boolean",
+                  },
+                  {
                     "name": "marker",
                     "optional": true,
                     "type": "React.ReactNode",
@@ -1562,19 +1567,19 @@ Supported Highcharts versions: 12.",
         "description": "An object that contains all of the localized strings required by the component.",
         "i18nTag": true,
         "inlineType": {
-          "name": "CartesianI18nStrings & PieI18nStrings & Partial<{ seriesStatusWarningAriaLabel: string; }>",
+          "name": "CartesianI18nStrings & PieI18nStrings & CoreI18nStrings",
           "type": "union",
           "valueDescriptions": undefined,
           "values": [
             "CartesianI18nStrings",
             "PieI18nStrings",
-            "Partial<{ seriesStatusWarningAriaLabel: string; }>",
+            "CoreI18nStrings",
           ],
         },
         "name": "i18nStrings",
         "optional": true,
         "systemTags": undefined,
-        "type": "CartesianI18nStrings & PieI18nStrings & Partial<{ seriesStatusWarningAriaLabel: string; }>",
+        "type": "CartesianI18nStrings & PieI18nStrings & CoreI18nStrings",
         "visualRefreshTag": undefined,
       },
       {
@@ -1639,6 +1644,16 @@ Supported Highcharts versions: 12.",
                 ],
               },
               "name": "position",
+              "optional": true,
+              "type": "string",
+            },
+            {
+              "name": "secondaryLegendActions",
+              "optional": true,
+              "type": "React.ReactNode",
+            },
+            {
+              "name": "secondaryLegendTitle",
               "optional": true,
               "type": "string",
             },
@@ -1769,6 +1784,21 @@ for each visited { x, y } point.",
         "inlineType": {
           "name": "CoreChartProps.TooltipOptions",
           "properties": [
+            {
+              "inlineType": {
+                "name": "number | boolean",
+                "type": "union",
+                "valueDescriptions": undefined,
+                "values": [
+                  "number",
+                  "false",
+                  "true",
+                ],
+              },
+              "name": "debounce",
+              "optional": true,
+              "type": "number | boolean",
+            },
             {
               "name": "enabled",
               "optional": true,

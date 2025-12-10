@@ -11,14 +11,16 @@ import LiveRegion from "@cloudscape-design/components/live-region";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../internal/components/series-details";
 import { useSelector } from "../../internal/utils/async-store";
 import { getChartSeries } from "../../internal/utils/chart-series";
+import { useDebouncedValue } from "../../internal/utils/use-debounced-value";
 import { ChartAPI } from "../chart-api";
 import { getFormatter } from "../formatters";
 import { BaseI18nStrings, CoreChartProps } from "../interfaces";
-import { getPointColor, getSeriesColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../utils";
+import { getPointColor, getPointId, getSeriesColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../utils";
 
 import styles from "../styles.css.js";
 
 const MIN_VISIBLE_BLOCK_SIZE = 200;
+const DEFAULT_DEBOUNCE = 200;
 
 type ExpandedSeriesState = Record<string, Set<string>>;
 
@@ -44,6 +46,7 @@ export function ChartTooltip({
   getTooltipContent: getTooltipContentOverrides,
   api,
   i18nStrings,
+  debounce = false,
 }: CoreChartProps.TooltipOptions & {
   i18nStrings?: BaseI18nStrings;
   getTooltipContent?: CoreChartProps.GetTooltipContent;
@@ -51,11 +54,14 @@ export function ChartTooltip({
 }) {
   const [expandedSeries, setExpandedSeries] = useState<ExpandedSeriesState>({});
   const tooltip = useSelector(api.tooltipStore, (s) => s);
-  if (!tooltip.visible || tooltip.group.length === 0) {
+  const debouncedTooltip = useDebouncedValue(tooltip, debounce === true ? DEFAULT_DEBOUNCE : debounce || 0);
+
+  if (!debouncedTooltip || !debouncedTooltip.visible || debouncedTooltip.group.length === 0) {
     return null;
   }
-  const chart = tooltip.group[0]?.series.chart;
-  const renderers = getTooltipContentOverrides?.({ point: tooltip.point, group: tooltip.group });
+
+  const chart = debouncedTooltip.group[0]?.series.chart;
+  const renderers = getTooltipContentOverrides?.({ point: debouncedTooltip.point, group: debouncedTooltip.group });
   const getTrack = placement === "target" ? api.getTargetTrack : api.getGroupTrack;
   const position = (() => {
     if (placement === "target" || placement === "middle") {
@@ -66,8 +72,8 @@ export function ChartTooltip({
   })();
   const content = getTooltipContent(api, {
     renderers,
-    point: tooltip.point,
-    group: tooltip.group,
+    point: debouncedTooltip.point,
+    group: debouncedTooltip.group,
     expandedSeries,
     setExpandedSeries,
     hideTooltip: () => {
@@ -80,9 +86,9 @@ export function ChartTooltip({
   return (
     <InternalChartTooltip
       getTrack={getTrack}
-      trackKey={getTrackKey(tooltip.point, tooltip.group)}
+      trackKey={getTrackKey(debouncedTooltip.point, debouncedTooltip.group)}
       container={null}
-      dismissButton={tooltip.pinned}
+      dismissButton={debouncedTooltip.pinned}
       dismissAriaLabel={i18nStrings?.detailPopoverDismissAriaLabel}
       onDismiss={api.onDismissTooltip}
       onMouseEnter={api.onMouseEnterTooltip}
@@ -155,7 +161,7 @@ function getTooltipContentCartesian(
       getSeriesMarkerType(series),
       getSeriesColor(series),
       true,
-      api.context.settings.getSeriesStatus(series),
+      api.context.settings.getItemProps(getSeriesId(series)).status,
     );
   const matchedItems = findTooltipSeriesItems(getChartSeries(chart.series), group);
   const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
@@ -241,7 +247,7 @@ function getTooltipContentPie(
           getSeriesMarkerType(point.series),
           getPointColor(point),
           true,
-          api.context.settings.getSeriesStatus(point.series),
+          api.context.settings.getItemProps(getPointId(point)).status,
         )}
         <Box variant="span" fontWeight="bold">
           {point.name}

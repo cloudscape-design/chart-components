@@ -31,7 +31,7 @@ const dataA = baseline.map(({ x, y }) => ({ x, y }));
 const dataB = baseline.map(({ x, y }, index) => ({ x, y: y + index * 10000 }));
 
 const series: Highcharts.SeriesOptionsType[] = [
-  { name: "A", type: "spline", data: dataA },
+  { id: 'A', name: "A", type: "spline", data: dataA },
   { name: "B", type: "spline", data: dataB },
 ];
 
@@ -49,6 +49,9 @@ export default function () {
         }}
         chartHeight={400}
         tooltip={{ placement: "outside" }}
+        getItemProps={(id) => ({
+          status: id === "A" ? "warning" : "default",
+        })}
         getTooltipContent={() => ({
           footer() {
             return <Button>Footer action</Button>;

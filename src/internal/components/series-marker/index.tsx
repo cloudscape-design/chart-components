@@ -6,6 +6,8 @@ import { useId } from "react";
 import { BaseComponentProps } from "@cloudscape-design/components/internal/base-component";
 import { colorBorderStatusWarning, colorTextInteractiveDisabled } from "@cloudscape-design/design-tokens";
 
+import { ChartSeriesMarkerStatus } from "./interfaces";
+
 import styles from "./styles.css.js";
 
 export type ChartSeriesMarkerType =
@@ -19,8 +21,6 @@ export type ChartSeriesMarkerType =
   | "triangle-down"
   | "circle";
 
-export type ChartSeriesMarkerStatus = "warning";
-
 export type ChartSeriesMarkerI18n = Partial<{
   seriesStatusWarningAriaLabel: string;
 }>;
@@ -29,7 +29,7 @@ export interface ChartSeriesMarkerProps extends BaseComponentProps {
   type: ChartSeriesMarkerType;
   color: string;
   visible?: boolean;
-  status?: ChartSeriesMarkerStatus;
+  status: ChartSeriesMarkerStatus;
   i18nStrings: ChartSeriesMarkerI18n;
 }
 
@@ -52,7 +52,7 @@ export function ChartSeriesMarker({
 
   return (
     <div className={styles.marker}>
-      <svg focusable={false} aria-hidden={true} viewBox="0 0 32 16" xmlns="http://www.w3.org/2000/svg">
+      <svg focusable={false} aria-hidden={true} viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <mask id={maskId}>
             <rect width="100%" height="100%" fill="white" />
@@ -133,7 +133,7 @@ function SVGCircle({ color, maskId }: { color: string; maskId: string }) {
   return <circle mask={`url(#${maskId})`} {...shape} strokeWidth={0} fill={color} />;
 }
 
-const SVGWarningTranslate = `translate(12, 1)`;
+const SVGWarningTranslate = `translate(9, 1)`;
 
 function SVGWarning({ ariaLabel }: { ariaLabel: string }) {
   return (
