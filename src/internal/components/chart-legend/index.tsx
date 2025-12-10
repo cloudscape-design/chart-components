@@ -16,6 +16,7 @@ import {
 import Box, { BoxProps } from "@cloudscape-design/components/box";
 import { InternalChartTooltip } from "@cloudscape-design/components/internal/do-not-use/chart-tooltip";
 
+import { scrollIntoViewNearestContainer } from "../../utils/dom";
 import { DebouncedCall } from "../../utils/utils";
 import { GetLegendTooltipContentProps, LegendItem, LegendTooltipContent } from "../interfaces";
 
@@ -110,20 +111,11 @@ export const ChartLegend = ({
       if (isMouseInContainer.current) {
         return;
       }
-      const container = containerRef.current;
       const element = elementsByIndexRef.current?.[highlightedIndex];
-      if (!container || !element) {
+      if (!element) {
         return;
       }
-      const elementRect = element.getBoundingClientRect();
-      const containerRect = container.getBoundingClientRect();
-      const isVisible = elementRect.top >= containerRect.top && elementRect.bottom <= containerRect.bottom;
-      if (!isVisible) {
-        const elementCenter = elementRect.top + elementRect.height / 2;
-        const containerCenter = containerRect.top + containerRect.height / 2;
-        const top = container.scrollTop + (elementCenter - containerCenter);
-        container.scrollTo({ top, behavior: "smooth" });
-      }
+      scrollIntoViewNearestContainer(element, { behavior: "smooth", scrollMode: "if-needed" });
     }, SCROLL_DELAY);
   }, [items, scrollIntoViewControl]);
 
