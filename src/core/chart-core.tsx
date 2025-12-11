@@ -1,6 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
 import { useRef } from "react";
 import clsx from "clsx";
 import type Highcharts from "highcharts";
@@ -15,6 +18,7 @@ import { InternalBaseComponentProps } from "../internal/base-component/use-base-
 import * as Styles from "../internal/chart-styles";
 import { castArray } from "../internal/utils/utils";
 import { useChartAPI } from "./chart-api";
+import { ChartExtraContext } from "./chart-api/chart-extra-context";
 import { ChartContainer } from "./chart-container";
 import { ChartApplication } from "./components/core-application";
 import { ChartFilters } from "./components/core-filters";
@@ -26,6 +30,7 @@ import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
 import { getFormatter } from "./formatters";
 import { useChartI18n } from "./i18n-utils";
 import { CoreChartProps } from "./interfaces";
+import { fillDefaultsForGetItemProps } from "./utils";
 import { getLegendsProps, getPointAccessibleDescription } from "./utils";
 
 import styles from "./styles.css.js";
@@ -63,17 +68,19 @@ export function InternalCoreChart({
   onVisibleItemsChange,
   visibleItems,
   __internalRootRef,
+  getItemProps,
   ...rest
 }: CoreChartProps & InternalBaseComponentProps) {
   const highcharts = rest.highcharts as null | typeof Highcharts;
   const labels = useChartI18n({ ariaLabel, ariaDescription, i18nStrings });
-  const context = {
+  const context: ChartExtraContext["settings"] = {
     chartId: useUniqueId(),
     noDataEnabled: !!noDataOptions,
     legendEnabled: legendOptions?.enabled !== false,
     tooltipEnabled: tooltipOptions?.enabled !== false,
     keyboardNavigationEnabled: keyboardNavigation,
     labels,
+    getItemProps: fillDefaultsForGetItemProps(getItemProps),
   };
   const handlers = { onHighlight, onClearHighlight, onVisibleItemsChange };
   const state = { visibleItems };

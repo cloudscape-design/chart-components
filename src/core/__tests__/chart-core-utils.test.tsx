@@ -7,6 +7,7 @@ import "highcharts/highcharts-more";
 import "highcharts/modules/solid-gauge";
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import {
+  fillDefaultsForGetItemProps,
   getChartLegendItems,
   getLegendsProps,
   getPointColor,
@@ -79,7 +80,7 @@ describe("CoreChart: utils", () => {
             callback: (api) => (chartApi = api),
           });
 
-          const items = getChartLegendItems(chartApi!.chart);
+          const items = getChartLegendItems(chartApi!.chart, fillDefaultsForGetItemProps(undefined));
           expect(items[0].isSecondary).toBe(axisOptions.opposite);
         },
       );
@@ -109,7 +110,7 @@ describe("CoreChart: utils", () => {
           callback: (api) => (chartApi = api),
         });
 
-        const items = getChartLegendItems(chartApi!.chart);
+        const items = getChartLegendItems(chartApi!.chart, fillDefaultsForGetItemProps(undefined));
         expect(items).toHaveLength(2);
         expect(items[0].isSecondary).toBe(false);
         expect(items[1].isSecondary).toBe(true);
@@ -137,7 +138,7 @@ describe("CoreChart: utils", () => {
         callback: (api) => (chartApi = api),
       });
 
-      const items = getChartLegendItems(chartApi!.chart);
+      const items = getChartLegendItems(chartApi!.chart, fillDefaultsForGetItemProps(undefined));
 
       if (type === "gauge" || type === "solidgauge") {
         expect(items).toHaveLength(1);
@@ -252,6 +253,34 @@ describe("CoreChart: utils", () => {
         const result = getLegendsProps(options, undefined);
         expect(result.primary).toBeDefined();
         expect(result.secondary).toBeUndefined();
+      });
+    });
+  });
+
+  describe("fillDefaultsForGetItemProps", () => {
+    describe.each([
+      {
+        scenario: "getItemProps is undefined",
+        getItemProps: undefined,
+        id: "item1",
+        expected: { status: "default" },
+      },
+      {
+        scenario: "getItemProps returns empty object",
+        getItemProps: () => ({}),
+        id: "item1",
+        expected: { status: "default" },
+      },
+      {
+        scenario: "getItemProps returns status",
+        getItemProps: () => ({ status: "active" as const }),
+        id: "item1",
+        expected: { status: "active" },
+      },
+    ])("$scenario", ({ getItemProps, id, expected }) => {
+      it("should return correct default values", () => {
+        const result = fillDefaultsForGetItemProps(getItemProps);
+        expect(result(id)).toEqual(expected);
       });
     });
   });

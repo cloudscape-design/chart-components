@@ -15,7 +15,7 @@ import { useDebouncedValue } from "../../internal/utils/use-debounced-value";
 import { ChartAPI } from "../chart-api";
 import { getFormatter } from "../formatters";
 import { BaseI18nStrings, CoreChartProps } from "../interfaces";
-import { getPointColor, getSeriesColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../utils";
+import { getPointColor, getPointId, getSeriesColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../utils";
 
 import styles from "../styles.css.js";
 
@@ -157,7 +157,12 @@ function getTooltipContentCartesian(
   const x = group[0].x;
   const chart = group[0].series.chart;
   const getSeriesMarker = (series: Highcharts.Series) =>
-    api.renderMarker(getSeriesMarkerType(series), getSeriesColor(series), true);
+    api.renderMarker(
+      getSeriesMarkerType(series),
+      getSeriesColor(series),
+      true,
+      api.context.settings.getItemProps(getSeriesId(series)).status,
+    );
   const matchedItems = findTooltipSeriesItems(getChartSeries(chart.series), group);
   const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
     const valueFormatter = getFormatter(item.point.series.yAxis);
@@ -238,7 +243,12 @@ function getTooltipContentPie(
   return {
     header: renderers.header?.(tooltipDetails) ?? (
       <div className={styles["tooltip-default-header"]}>
-        {api.renderMarker(getSeriesMarkerType(point.series), getPointColor(point))}
+        {api.renderMarker(
+          getSeriesMarkerType(point.series),
+          getPointColor(point),
+          true,
+          api.context.settings.getItemProps(getPointId(point)).status,
+        )}
         <Box variant="span" fontWeight="bold">
           {point.name}
         </Box>

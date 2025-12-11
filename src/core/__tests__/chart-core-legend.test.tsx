@@ -1,12 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { act } from "react";
 import highcharts from "highcharts";
-import { vi } from "vitest";
+import { act } from "react";
+import { describe, vi } from "vitest";
 
 import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 
+import * as seriesMarker from "../../../lib/components/internal/components/series-marker";
 import {
   createChartWrapper,
   hoverLegendItem,
@@ -90,6 +91,8 @@ const mouseOver = (element: HTMLElement) => element.dispatchEvent(new MouseEvent
 const mouseOut = (element: HTMLElement) => element.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
 const clearHighlightPause = () => new Promise((resolve) => setTimeout(resolve, 100));
 const mouseLeavePause = () => new Promise((resolve) => setTimeout(resolve, 300));
+
+vi.mock(import("../../../lib/components/internal/components/series-marker"), { spy: true });
 
 describe("CoreChart: legend", () => {
   test("renders no legend when legend.enabled=false", () => {
@@ -495,6 +498,49 @@ describe("CoreChart: legend", () => {
         },
       }),
     );
+  });
+
+  describe("Marker status", () => {
+    const seriesMarkerMock = vi.mocked(seriesMarker.ChartSeriesMarker);
+
+    beforeEach(() => {
+      seriesMarkerMock.mockImplementation((props) => {
+        return <div data-testid={props.status}></div>;
+      });
+    });
+    afterEach(() => {
+      seriesMarkerMock.mockReset();
+    });
+
+    test("should render markers using the corresponding status", () => {
+      const { wrapper } = renderChart({
+        highcharts,
+        options: {
+          series: [
+            {
+              id: "L1",
+              type: "line",
+              name: "L1",
+              data: [1],
+            },
+            {
+              id: "L2",
+              type: "line",
+              name: "L2",
+              data: [1],
+            },
+          ],
+        },
+        getItemProps: (id) => ({
+          status: id === "L1" ? "warning" : "default",
+        }),
+      });
+
+      const warnings = wrapper.findAll('[data-testid="warning"]');
+      const defaults = wrapper.findAll('[data-testid="default"]');
+      expect(warnings).toHaveLength(1);
+      expect(defaults).toHaveLength(1);
+    });
   });
 });
 

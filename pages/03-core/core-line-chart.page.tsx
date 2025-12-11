@@ -70,6 +70,7 @@ const series: Highcharts.SeriesOptionsType[] = [
     data: dataB,
   },
   {
+    id: "A",
     name: "Comprehensive System Resource Utilization Measurements Over Time",
     type: "line",
     data: dataC,
@@ -126,6 +127,9 @@ export default function () {
             },
           },
         }}
+        getItemProps={(id) => ({
+          status: id === "A" ? "warning" : "default",
+        })}
         chartHeight={400}
         tooltip={{ placement: "outside" }}
         getTooltipContent={() => ({

@@ -19,6 +19,10 @@ import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
 
+const i18nStrings = {
+  seriesStatusWarningAriaLabel: "warning",
+};
+
 function randomInt(min: number, max: number) {
   return min + Math.floor(pseudoRandom() * (max - min));
 }
@@ -105,21 +109,45 @@ const initialLegendItems: readonly LegendItem[] = [
   {
     id: "CPU Utilization",
     name: "CPU Utilization",
-    marker: <ChartSeriesMarker color={colors[0]} type={"square"} visible={true} />,
+    marker: (
+      <ChartSeriesMarker
+        status={"default"}
+        i18nStrings={i18nStrings}
+        color={colors[0]}
+        type={"square"}
+        visible={true}
+      />
+    ),
     visible: true,
     highlighted: false,
   },
   {
     id: "Memory Usage",
     name: "Memory Usage",
-    marker: <ChartSeriesMarker color={colors[1]} type={"square"} visible={true} />,
+    marker: (
+      <ChartSeriesMarker
+        status={"default"}
+        i18nStrings={i18nStrings}
+        color={colors[1]}
+        type={"square"}
+        visible={true}
+      />
+    ),
     visible: true,
     highlighted: false,
   },
   {
     id: "Storage Capacity",
     name: "Storage Capacity",
-    marker: <ChartSeriesMarker color={colors[2]} type={"square"} visible={true} />,
+    marker: (
+      <ChartSeriesMarker
+        status={"default"}
+        i18nStrings={i18nStrings}
+        color={colors[2]}
+        type={"square"}
+        visible={true}
+      />
+    ),
     visible: true,
     highlighted: false,
   },
@@ -180,7 +208,15 @@ export default function () {
           ...item,
           visible,
           highlighted: visible,
-          marker: <ChartSeriesMarker color={colors[index % colors.length]} type={"square"} visible={visible} />,
+          marker: (
+            <ChartSeriesMarker
+              status={"default"}
+              i18nStrings={i18nStrings}
+              color={colors[index % colors.length]}
+              type={"square"}
+              visible={visible}
+            />
+          ),
         };
       });
     });
