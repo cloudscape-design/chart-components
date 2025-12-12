@@ -10,8 +10,6 @@ import { HighchartsTestHelper } from "./highcharts-utils";
 
 const hc = new HighchartsTestHelper(highcharts);
 
-const clearHighlightPause = () => new Promise((resolve) => setTimeout(resolve, 100));
-
 describe("CoreChart: highlight", () => {
   test("highlights linked errorbar when target series is highlighted", async () => {
     renderChart({
@@ -55,7 +53,7 @@ describe("CoreChart: highlight", () => {
     expect(hc.getChartSeries(3).state).toBe("hover");
 
     act(() => hc.leaveChartPoint(1, 0));
-    await clearHighlightPause();
+    await hc.clearHighlightPause();
 
     expect(hc.getChartSeries(0).state).toBe("");
     expect(hc.getChartSeries(1).state).toBe("");
@@ -90,7 +88,7 @@ describe("CoreChart: highlight", () => {
       expect(hc.getChartPoint(1, 1).state).toBe("inactive");
 
       act(() => hc.leaveChartPoint(1, 0));
-      await clearHighlightPause();
+      await hc.clearHighlightPause();
 
       expect(hc.getChartSeries(0).state).toBe("");
       expect(hc.getChartPoint(0, 0).state).toBe("");
