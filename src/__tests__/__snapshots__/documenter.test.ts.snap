@@ -1797,6 +1797,20 @@ for each visited { x, y } point.",
             },
             {
               "inlineType": {
+                "name": ""as-added" | "by-value-desc"",
+                "type": "union",
+                "valueDescriptions": undefined,
+                "values": [
+                  "as-added",
+                  "by-value-desc",
+                ],
+              },
+              "name": "seriesSorting",
+              "optional": true,
+              "type": "string",
+            },
+            {
+              "inlineType": {
                 "name": ""small" | "medium" | "large"",
                 "type": "union",
                 "valueDescriptions": undefined,
