@@ -712,7 +712,7 @@ describe("CoreChart: tooltip", () => {
       expect(series1!.getElement().textContent).toBe("Line series 2: 21");
     });
 
-    test("maintains series order when not explicitelly provided", () => {
+    test("maintains series order when not explicitly provided", () => {
       const { wrapper } = renderChart({
         highcharts,
         options: {
