@@ -93,6 +93,11 @@ export function hoverLegendItem(index: number, wrapper: BaseChartWrapper = creat
     fireEvent.mouseOver(wrapper.findLegend()!.findItems()[index].getElement());
   });
 }
+export function leaveLegendItem(index: number, wrapper: BaseChartWrapper = createChartWrapper()) {
+  act(() => {
+    fireEvent.mouseLeave(wrapper.findLegend()!.findItems()[index].getElement());
+  });
+}
 
 export function selectSecondaryLegendItem(index: number, wrapper: ExtendedTestWrapper = createChartWrapper()) {
   act(() => wrapper.findSecondaryLegend()!.findItems()[index].click());

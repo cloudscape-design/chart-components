@@ -9,8 +9,6 @@ import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import { renderChart, selectLegendItem } from "./common";
 import { HighchartsTestHelper } from "./highcharts-utils";
 
-const clearHighlightPause = () => new Promise((resolve) => setTimeout(resolve, 100));
-
 const hc = new HighchartsTestHelper(highcharts);
 
 const series: Highcharts.SeriesOptionsType[] = [
@@ -68,7 +66,7 @@ describe("CoreChart: API tests", () => {
 
     act(() => hc.highlightChartPoint(0, 0));
     act(() => hc.leaveChartPoint(0, 0));
-    await clearHighlightPause();
+    await hc.clearHighlightPause();
 
     expect(onClearHighlight).toHaveBeenCalledWith(expect.objectContaining({ detail: { isApiCall: false } }));
   });
