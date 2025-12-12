@@ -589,6 +589,78 @@ describe("CoreChart: tooltip", () => {
     });
   });
 
+  describe("debounce functionality", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    test("debounces tooltip rendering with debounce", () => {
+      const { wrapper } = renderChart({
+        highcharts,
+        options: { series: pieSeries },
+        tooltip: { debounce: 100 },
+        getTooltipContent: () => ({ header: () => "Header", body: () => "Body" }),
+      });
+
+      act(() => hc.highlightChartPoint(0, 0));
+
+      // Tooltip should not be visible immediately
+      expect(wrapper.findTooltip()).toBe(null);
+
+      // Fast forward time by 50ms - still not visible
+      act(() => vi.advanceTimersByTime(50));
+      expect(wrapper.findTooltip()).toBe(null);
+
+      // Fast forward time by another 50ms (100ms total) - now visible
+      act(() => vi.advanceTimersByTime(50));
+      expect(wrapper.findTooltip()).not.toBe(null);
+    });
+
+    test("cancels previous debounced call when new highlight occurs", () => {
+      const { wrapper } = renderChart({
+        highcharts,
+        options: { series: pieSeries },
+        tooltip: { debounce: 100 },
+        getTooltipContent: ({ point }) => ({ header: () => `Point ${point?.name}`, body: () => "Body" }),
+      });
+
+      // Highlight first point
+      act(() => hc.highlightChartPoint(0, 0));
+
+      // Fast forward 50ms
+      act(() => vi.advanceTimersByTime(50));
+      expect(wrapper.findTooltip()).toBe(null);
+
+      // Highlight second point before first debounce completes
+      act(() => hc.highlightChartPoint(0, 1));
+
+      // Fast forward another 50ms (100ms from first highlight, 50ms from second)
+      act(() => vi.advanceTimersByTime(50));
+      expect(wrapper.findTooltip()).toBe(null);
+
+      // Fast forward another 50ms (100ms from second highlight)
+      act(() => vi.advanceTimersByTime(50));
+      expect(wrapper.findTooltip()).not.toBe(null);
+      expect(wrapper.findTooltip()!.findHeader()!.getElement().textContent).toBe("Point P2");
+    });
+
+    test("renders immediately when debounce is 0", () => {
+      const { wrapper } = renderChart({
+        highcharts,
+        options: { series: pieSeries },
+        tooltip: { debounce: 0 },
+        getTooltipContent: () => ({ header: () => "Header", body: () => "Body" }),
+      });
+
+      act(() => hc.highlightChartPoint(0, 0));
+      expect(wrapper.findTooltip()).not.toBe(null);
+    });
+  });
+
   describe("series sorting", () => {
     const lineSeries: Highcharts.SeriesOptionsType[] = [
       {

@@ -125,6 +125,18 @@ export interface BaseI18nStrings {
   chartRoleDescription?: string;
 }
 
+export interface CoreI18nStrings extends BaseI18nStrings {
+  /**
+   * ARIA label for the secondary legend when using dual axes charts.
+   *
+   * **Important**: When using dual axes, you should explicitly provide visible titles or ARIA labels
+   * for both the primary and secondary legends to ensure proper accessibility. The primary legend
+   * has built-in i18n support through `legendAriaLabel`, but the secondary legend currently requires
+   * this property to be explicitly provided.
+   */
+  secondaryLegendAriaLabel?: string;
+}
+
 export interface WithCartesianI18nStrings {
   /**
    * An object that contains all of the localized strings required by the component.
@@ -385,7 +397,7 @@ export interface CoreChartProps
    * An object that contains all of the localized strings required by the component.
    * @i18n
    */
-  i18nStrings?: CartesianI18nStrings & PieI18nStrings;
+  i18nStrings?: CartesianI18nStrings & PieI18nStrings & CoreI18nStrings;
 }
 
 export namespace CoreChartProps {
@@ -421,7 +433,15 @@ export namespace CoreChartProps {
     bottomMaxHeight?: number;
     position?: "bottom" | "side";
     /**
-     * This property only applies when `position="bottom"`.
+     * This property only applies when there are secondary items.
+     */
+    secondaryLegendTitle?: string;
+    /**
+     * This property only applies when there are secondary items.
+     */
+    secondaryLegendActions?: React.ReactNode;
+    /**
+     * This property only applies when there are no secondary items and `position="bottom"`.
      */
     horizontalAlignment?: LegendOptionsHorizontalAlignment;
   }
@@ -437,6 +457,7 @@ export namespace CoreChartProps {
     enabled?: boolean;
     placement?: "middle" | "outside" | "target";
     size?: "small" | "medium" | "large";
+    debounce?: number | boolean;
     seriesSorting?: "as-added" | "by-value-desc";
   }
 

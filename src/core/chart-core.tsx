@@ -26,7 +26,7 @@ import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
 import { getFormatter } from "./formatters";
 import { useChartI18n } from "./i18n-utils";
 import { CoreChartProps } from "./interfaces";
-import { getPointAccessibleDescription, hasVisibleLegendItems } from "./utils";
+import { getLegendsProps, getPointAccessibleDescription } from "./utils";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -84,6 +84,12 @@ export function InternalCoreChart({
   const mergedRootRef = useMergeRefs(rootRef, __internalRootRef);
   const rootProps = { ref: mergedRootRef, className: rootClassName, ...getDataAttributes(rest) };
   const legendPosition = legendOptions?.position ?? "bottom";
+  const commonLegendProps = {
+    api: api,
+    i18nStrings,
+    onItemHighlight: onLegendItemHighlight,
+    getLegendTooltipContent: rest.getLegendTooltipContent,
+  };
   const containerProps = {
     fitHeight,
     chartHeight,
@@ -113,7 +119,39 @@ export function InternalCoreChart({
 
   const apiOptions = api.getOptions();
   const inverted = !!options.chart?.inverted;
-  const isRtl = () => getIsRtl(rootRef?.current);
+  const isRtl = getIsRtl(rootRef?.current);
+
+  // Compute RTL-adjusted options that will be used for both legend positioning and chart rendering
+  const rtlAdjustedOptions: Highcharts.Options = {
+    ...options,
+    xAxis: castArray(options.xAxis)?.map((xAxisOptions) => ({
+      ...Styles.xAxisOptions,
+      ...xAxisOptions,
+      // Depending on the chart.inverted the x-axis can be rendered as vertical, and needs to respect page direction.
+      reversed: !inverted && isRtl ? !xAxisOptions.reversed : xAxisOptions.reversed,
+      opposite: inverted && isRtl ? !xAxisOptions.opposite : xAxisOptions.opposite,
+      className: xAxisClassName(inverted, xAxisOptions.className),
+      title: axisTitle(xAxisOptions.title ?? {}, !inverted || verticalAxisTitlePlacement === "side"),
+      labels: axisLabels(xAxisOptions.labels ?? {}),
+    })),
+    yAxis: castArray(options.yAxis)?.map((yAxisOptions) => ({
+      ...Styles.yAxisOptions,
+      ...yAxisOptions,
+      // Depending on the chart.inverted the y-axis can be rendered as vertical, and needs to respect page direction.
+      reversed: inverted && isRtl ? !yAxisOptions.reversed : yAxisOptions.reversed,
+      opposite: !inverted && isRtl ? !yAxisOptions.opposite : yAxisOptions.opposite,
+      className: yAxisClassName(inverted, yAxisOptions.className),
+      title: axisTitle(yAxisOptions.title ?? {}, inverted || verticalAxisTitlePlacement === "side"),
+      labels: axisLabels(yAxisOptions.labels ?? {}),
+      plotLines: yAxisPlotLines(yAxisOptions.plotLines, emphasizeBaseline),
+      // We use reversed stack by default so that the order of points in the tooltip and series in the legend
+      // correspond the order of stacks.
+      reversedStacks: yAxisOptions.reversedStacks ?? true,
+    })),
+  };
+
+  const legendProps = getLegendsProps(rtlAdjustedOptions, legendOptions);
+
   return (
     <div {...rootProps}>
       <ChartContainer
@@ -122,8 +160,12 @@ export function InternalCoreChart({
           // The Highcharts options takes all provided Highcharts options and custom properties and merges them together, so that
           // the Cloudscape features and custom Highcharts extensions co-exist.
           // For certain options we provide Cloudscape styling, but in all cases this can be explicitly overridden.
+          // We use the rtl adjusted axes (instead of the original options.xAxis/yAxis) to ensure the chart renders
+          // with the correct axis orientation for RTL layouts, matching what was used for legend positioning above.
           const highchartsOptions: Highcharts.Options = {
             ...options,
+            xAxis: rtlAdjustedOptions.xAxis,
+            yAxis: rtlAdjustedOptions.yAxis,
             // Hide credits by default.
             credits: options.credits ?? { enabled: false },
             // Hide chart title by default.
@@ -258,30 +300,6 @@ export function InternalCoreChart({
                 dataLabels: { ...Styles.pieSeriesDataLabels, ...options.plotOptions?.pie?.dataLabels },
               },
             },
-            xAxis: castArray(options.xAxis)?.map((xAxisOptions) => ({
-              ...Styles.xAxisOptions,
-              ...xAxisOptions,
-              // Depending on the chart.inverted the x-axis can be rendered as vertical, and needs to respect page direction.
-              reversed: !inverted && isRtl() ? !xAxisOptions.reversed : xAxisOptions.reversed,
-              opposite: inverted && isRtl() ? !xAxisOptions.opposite : xAxisOptions.opposite,
-              className: xAxisClassName(inverted, xAxisOptions.className),
-              title: axisTitle(xAxisOptions.title ?? {}, !inverted || verticalAxisTitlePlacement === "side"),
-              labels: axisLabels(xAxisOptions.labels ?? {}),
-            })),
-            yAxis: castArray(options.yAxis)?.map((yAxisOptions) => ({
-              ...Styles.yAxisOptions,
-              ...yAxisOptions,
-              // Depending on the chart.inverted the y-axis can be rendered as vertical, and needs to respect page direction.
-              reversed: inverted && isRtl() ? !yAxisOptions.reversed : yAxisOptions.reversed,
-              opposite: !inverted && isRtl() ? !yAxisOptions.opposite : yAxisOptions.opposite,
-              className: yAxisClassName(inverted, yAxisOptions.className),
-              title: axisTitle(yAxisOptions.title ?? {}, inverted || verticalAxisTitlePlacement === "side"),
-              labels: axisLabels(yAxisOptions.labels ?? {}),
-              plotLines: yAxisPlotLines(yAxisOptions.plotLines, emphasizeBaseline),
-              // We use reversed stack by default so that the order of points in the tooltip and series in the legend
-              // correspond the order of stacks.
-              reversedStacks: yAxisOptions.reversedStacks ?? true,
-            })),
             // We don't use Highcharts tooltip, but certain tooltip options such as tooltip.snap or tooltip.shared
             // affect the hovering behavior of Highcharts. That is only the case when the tooltip is not disabled,
             // so we render it, but hide with styles.
@@ -301,15 +319,17 @@ export function InternalCoreChart({
           );
         }}
         navigator={navigator}
-        legend={
-          context.legendEnabled && hasVisibleLegendItems(options) ? (
+        primaryLegend={
+          context.legendEnabled && legendProps.primary ? (
+            <ChartLegend {...commonLegendProps} {...legendProps.primary} className={testClasses["legend-primary"]} />
+          ) : null
+        }
+        secondaryLegend={
+          context.legendEnabled && legendProps.secondary ? (
             <ChartLegend
-              {...legendOptions}
-              position={legendPosition}
-              api={api}
-              i18nStrings={i18nStrings}
-              onItemHighlight={onLegendItemHighlight}
-              getLegendTooltipContent={rest.getLegendTooltipContent}
+              {...commonLegendProps}
+              {...legendProps.secondary}
+              className={testClasses["legend-secondary"]}
             />
           ) : null
         }
