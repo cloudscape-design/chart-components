@@ -712,6 +712,36 @@ describe("CoreChart: tooltip", () => {
       expect(series1!.getElement().textContent).toBe("Line series 2: 21");
     });
 
+    test("maintains series order when not explicitelly provided", () => {
+      const { wrapper } = renderChart({
+        highcharts,
+        options: {
+          series: lineSeries,
+        },
+        getTooltipContent: () => ({
+          header: () => "Header",
+          body: ({ items }) => (
+            <div>
+              {items.map((item, i) => (
+                <div key={i} data-testid={`series-${i}`}>
+                  {item.point.series.name}: {item.point.y}
+                </div>
+              ))}
+            </div>
+          ),
+        }),
+      });
+
+      act(() => hc.highlightChartPoint(0, 0));
+
+      expect(wrapper.findTooltip()).not.toBe(null);
+      const series0 = wrapper.findTooltip()!.find('[data-testid="series-0"]');
+      const series1 = wrapper.findTooltip()!.find('[data-testid="series-1"]');
+
+      expect(series0!.getElement().textContent).toBe("Line series 1: 11");
+      expect(series1!.getElement().textContent).toBe("Line series 2: 21");
+    });
+
     describe('seriesSorting: "by-value-desc"', () => {
       test("sorts series by value in descending order", () => {
         const { wrapper } = renderChart({
