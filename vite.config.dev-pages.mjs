@@ -11,8 +11,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const componentsPath = resolve(__dirname, "lib/components");
 
-const globals = { [componentsPath]: "components", highcharts: "highcharts" };
-
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react({ fastRefresh: false })],
@@ -24,10 +22,7 @@ export default defineConfig({
     },
     outDir: "lib/dev-pages/bundle",
     rollupOptions: {
-      external: [componentsPath, "highcharts"],
-      output: {
-        globals,
-      },
+      external: [componentsPath, "highcharts", /^@cloudscape-design\/*/],
     },
   },
 });
