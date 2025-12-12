@@ -11,6 +11,7 @@ import {
   createChartWrapper,
   hoverLegendItem,
   hoverSecondaryLegendItem,
+  leaveLegendItem,
   renderChart,
   renderStatefulChart,
   selectSecondaryLegendItem,
@@ -88,7 +89,6 @@ const getItem = (index: number, options?: { active?: boolean; dimmed?: boolean }
   createChartWrapper().findLegend()!.findAll(getItemSelector(options))[index];
 const mouseOver = (element: HTMLElement) => element.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
 const mouseOut = (element: HTMLElement) => element.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
-const clearHighlightPause = () => new Promise((resolve) => setTimeout(resolve, 100));
 const mouseLeavePause = () => new Promise((resolve) => setTimeout(resolve, 300));
 
 describe("CoreChart: legend", () => {
@@ -180,7 +180,7 @@ describe("CoreChart: legend", () => {
       expect(hc.getPlotLinesById("L3").map((l) => l.svgElem.opacity)).toEqual([1, 1]);
 
       act(() => mouseOut(getItem(0).getElement()));
-      await clearHighlightPause();
+      await hc.clearHighlightPause();
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual([
         "L1",
         "Line 3",
@@ -213,7 +213,7 @@ describe("CoreChart: legend", () => {
       expect(hc.getChartPoint(0, 2).state).toBe(undefined);
 
       act(() => mouseOut(getItem(0).getElement()));
-      await clearHighlightPause();
+      await hc.clearHighlightPause();
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
       expect(hc.getChartPoint(0, 0).state).toBe("");
       expect(hc.getChartPoint(0, 2).state).toBe("");
@@ -225,7 +225,7 @@ describe("CoreChart: legend", () => {
       expect(hc.getChartPoint(0, 2).state).toBe("hover");
 
       act(() => mouseOut(getItem(2).getElement()));
-      await clearHighlightPause();
+      await hc.clearHighlightPause();
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
       expect(hc.getChartPoint(0, 0).state).toBe("");
       expect(hc.getChartPoint(0, 2).state).toBe("");
@@ -255,7 +255,7 @@ describe("CoreChart: legend", () => {
 
       act(() => hc.leaveChartPoint(2, 0));
       await mouseLeavePause();
-      await clearHighlightPause();
+      await hc.clearHighlightPause();
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual([
         "L1",
         "Line 3",
@@ -283,7 +283,7 @@ describe("CoreChart: legend", () => {
 
       act(() => hc.leaveChartPoint(0, 2));
       await mouseLeavePause();
-      await clearHighlightPause();
+      await hc.clearHighlightPause();
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
     },
   );
@@ -388,7 +388,7 @@ describe("CoreChart: legend", () => {
 
       act(() => mouseOut(getItem(2).getElement()));
 
-      await clearHighlightPause();
+      await hc.clearHighlightPause();
       expect(wrapper.findLegend()!.findItemTooltip()).toBe(null);
     });
 
@@ -447,7 +447,7 @@ describe("CoreChart: legend", () => {
 
       act(() => mouseOut(getItem(2).getElement()));
 
-      await clearHighlightPause();
+      await hc.clearHighlightPause();
       expect(wrapper.findLegend()!.findItemTooltip()).toBe(null);
     });
 
@@ -476,9 +476,10 @@ describe("CoreChart: legend", () => {
     });
   });
 
-  test("calls onLegendItemHighlight when hovering over a legend item", () => {
+  test("calls onLegendItemHighlight and onClearHighlight when hovering over a legend item", async () => {
     const onLegendItemHighlight = vi.fn();
-    const { wrapper } = renderChart({ highcharts, options: { series }, onLegendItemHighlight });
+    const onClearHighlight = vi.fn();
+    const { wrapper } = renderChart({ highcharts, options: { series }, onLegendItemHighlight, onClearHighlight });
 
     hoverLegendItem(0, wrapper);
 
@@ -495,6 +496,11 @@ describe("CoreChart: legend", () => {
         },
       }),
     );
+
+    leaveLegendItem(0, wrapper);
+    await hc.clearHighlightPause();
+
+    expect(onClearHighlight).toHaveBeenCalled();
   });
 });
 
