@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import Highcharts from "highcharts";
-import { omit } from "lodash";
 
 import Button from "@cloudscape-design/components/button";
 import Link from "@cloudscape-design/components/link";
@@ -99,12 +98,13 @@ export default function () {
             "showLegendTitle",
             "showLegendActions",
             "useFallback",
+            "tooltipSeriesSorting",
           ]}
         />
       }
     >
       <CoreChart
-        {...omit(chartProps.cartesian, "ref")}
+        {...chartProps.core}
         highcharts={Highcharts}
         options={{
           lang: {
@@ -131,7 +131,6 @@ export default function () {
           status: id === "A" ? "warning" : "default",
         })}
         chartHeight={400}
-        tooltip={{ placement: "outside" }}
         getTooltipContent={() => ({
           point({ item, hideTooltip }) {
             const value = item ? (item.point.y ?? null) : null;

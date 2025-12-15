@@ -660,4 +660,162 @@ describe("CoreChart: tooltip", () => {
       expect(wrapper.findTooltip()).not.toBe(null);
     });
   });
+
+  describe("series sorting", () => {
+    const lineSeries: Highcharts.SeriesOptionsType[] = [
+      {
+        type: "line",
+        name: "Line series 1",
+        data: [
+          { x: 1, y: 11 },
+          { x: 2, y: 23 },
+        ],
+      },
+      {
+        type: "line",
+        name: "Line series 2",
+        data: [
+          { x: 1, y: 21 },
+          { x: 2, y: 11 },
+        ],
+      },
+    ];
+
+    test("maintains series order when explicitly set to 'as-added'", () => {
+      const { wrapper } = renderChart({
+        highcharts,
+        options: {
+          series: lineSeries,
+        },
+        tooltip: { seriesSorting: "as-added" },
+        getTooltipContent: () => ({
+          header: () => "Header",
+          body: ({ items }) => (
+            <div>
+              {items.map((item, i) => (
+                <div key={i} data-testid={`series-${i}`}>
+                  {item.point.series.name}: {item.point.y}
+                </div>
+              ))}
+            </div>
+          ),
+        }),
+      });
+
+      act(() => hc.highlightChartPoint(0, 0));
+
+      expect(wrapper.findTooltip()).not.toBe(null);
+      const series0 = wrapper.findTooltip()!.find('[data-testid="series-0"]');
+      const series1 = wrapper.findTooltip()!.find('[data-testid="series-1"]');
+
+      expect(series0!.getElement().textContent).toBe("Line series 1: 11");
+      expect(series1!.getElement().textContent).toBe("Line series 2: 21");
+    });
+
+    test("maintains series order when not explicitly provided", () => {
+      const { wrapper } = renderChart({
+        highcharts,
+        options: {
+          series: lineSeries,
+        },
+        getTooltipContent: () => ({
+          header: () => "Header",
+          body: ({ items }) => (
+            <div>
+              {items.map((item, i) => (
+                <div key={i} data-testid={`series-${i}`}>
+                  {item.point.series.name}: {item.point.y}
+                </div>
+              ))}
+            </div>
+          ),
+        }),
+      });
+
+      act(() => hc.highlightChartPoint(0, 0));
+
+      expect(wrapper.findTooltip()).not.toBe(null);
+      const series0 = wrapper.findTooltip()!.find('[data-testid="series-0"]');
+      const series1 = wrapper.findTooltip()!.find('[data-testid="series-1"]');
+
+      expect(series0!.getElement().textContent).toBe("Line series 1: 11");
+      expect(series1!.getElement().textContent).toBe("Line series 2: 21");
+    });
+
+    describe('seriesSorting: "by-value-desc"', () => {
+      test("sorts series by value in descending order", () => {
+        const { wrapper } = renderChart({
+          highcharts,
+          options: {
+            series: lineSeries,
+          },
+          tooltip: { seriesSorting: "by-value-desc" },
+          getTooltipContent: () => ({
+            header: () => "Header",
+            body: ({ items }) => (
+              <div>
+                {items.map((item, i) => (
+                  <div key={i} data-testid={`series-${i}`}>
+                    {item.point.series.name}: {item.point.y}
+                  </div>
+                ))}
+              </div>
+            ),
+          }),
+        });
+
+        act(() => hc.highlightChartPoint(0, 0));
+
+        expect(wrapper.findTooltip()).not.toBe(null);
+        const series0 = wrapper.findTooltip()!.find('[data-testid="series-0"]');
+        const series1 = wrapper.findTooltip()!.find('[data-testid="series-1"]');
+
+        expect(series0!.getElement().textContent).toBe("Line series 2: 21");
+        expect(series1!.getElement().textContent).toBe("Line series 1: 11");
+      });
+
+      test("re-sorts series when hovering different x positions", () => {
+        const { wrapper } = renderChart({
+          highcharts,
+          options: {
+            series: lineSeries,
+          },
+          tooltip: { seriesSorting: "by-value-desc" },
+          getTooltipContent: () => ({
+            header: () => "Header",
+            body: ({ items }) => (
+              <div>
+                {items.map((item, i) => (
+                  <div key={i} data-testid={`series-${i}`}>
+                    {item.point.series.name}: {item.point.y}
+                  </div>
+                ))}
+              </div>
+            ),
+          }),
+        });
+
+        act(() => hc.highlightChartPoint(0, 0));
+
+        {
+          expect(wrapper.findTooltip()).not.toBe(null);
+          const series0 = wrapper.findTooltip()!.find('[data-testid="series-0"]');
+          const series1 = wrapper.findTooltip()!.find('[data-testid="series-1"]');
+
+          expect(series0!.getElement().textContent).toBe("Line series 2: 21");
+          expect(series1!.getElement().textContent).toBe("Line series 1: 11");
+        }
+        act(() => hc.highlightChartPoint(0, 1));
+
+        {
+          expect(wrapper.findTooltip()).not.toBe(null);
+          const series0 = wrapper.findTooltip()!.find('[data-testid="series-0"]');
+          const series1 = wrapper.findTooltip()!.find('[data-testid="series-1"]');
+
+          expect(series0!.getElement().textContent).toBe("Line series 1: 23");
+          expect(series1!.getElement().textContent).toBe("Line series 2: 11");
+        }
+      });
+    });
+  });
 });

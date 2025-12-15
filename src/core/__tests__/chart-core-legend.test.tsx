@@ -1,8 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import highcharts from "highcharts";
 import { act } from "react";
+import highcharts from "highcharts";
 import { describe, vi } from "vitest";
 
 import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
@@ -12,6 +12,7 @@ import {
   createChartWrapper,
   hoverLegendItem,
   hoverSecondaryLegendItem,
+  leaveLegendItem,
   renderChart,
   renderStatefulChart,
   selectSecondaryLegendItem,
@@ -52,6 +53,8 @@ const series: Highcharts.SeriesOptionsType[] = [
   },
 ];
 
+const lineSeries = series.filter((s) => s.type === "line");
+
 const yAxes: Highcharts.YAxisOptions[] = [
   { id: "primary", opposite: false },
   { id: "secondary", opposite: true },
@@ -89,7 +92,6 @@ const getItem = (index: number, options?: { active?: boolean; dimmed?: boolean }
   createChartWrapper().findLegend()!.findAll(getItemSelector(options))[index];
 const mouseOver = (element: HTMLElement) => element.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
 const mouseOut = (element: HTMLElement) => element.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
-const clearHighlightPause = () => new Promise((resolve) => setTimeout(resolve, 100));
 const mouseLeavePause = () => new Promise((resolve) => setTimeout(resolve, 300));
 
 vi.mock(import("../../../lib/components/internal/components/series-marker"), { spy: true });
@@ -183,7 +185,7 @@ describe("CoreChart: legend", () => {
       expect(hc.getPlotLinesById("L3").map((l) => l.svgElem.opacity)).toEqual([1, 1]);
 
       act(() => mouseOut(getItem(0).getElement()));
-      await clearHighlightPause();
+      await hc.clearHighlightPause();
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual([
         "L1",
         "Line 3",
@@ -216,7 +218,7 @@ describe("CoreChart: legend", () => {
       expect(hc.getChartPoint(0, 2).state).toBe(undefined);
 
       act(() => mouseOut(getItem(0).getElement()));
-      await clearHighlightPause();
+      await hc.clearHighlightPause();
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
       expect(hc.getChartPoint(0, 0).state).toBe("");
       expect(hc.getChartPoint(0, 2).state).toBe("");
@@ -228,7 +230,7 @@ describe("CoreChart: legend", () => {
       expect(hc.getChartPoint(0, 2).state).toBe("hover");
 
       act(() => mouseOut(getItem(2).getElement()));
-      await clearHighlightPause();
+      await hc.clearHighlightPause();
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
       expect(hc.getChartPoint(0, 0).state).toBe("");
       expect(hc.getChartPoint(0, 2).state).toBe("");
@@ -258,7 +260,7 @@ describe("CoreChart: legend", () => {
 
       act(() => hc.leaveChartPoint(2, 0));
       await mouseLeavePause();
-      await clearHighlightPause();
+      await hc.clearHighlightPause();
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual([
         "L1",
         "Line 3",
@@ -286,7 +288,7 @@ describe("CoreChart: legend", () => {
 
       act(() => hc.leaveChartPoint(0, 2));
       await mouseLeavePause();
-      await clearHighlightPause();
+      await hc.clearHighlightPause();
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
     },
   );
@@ -391,7 +393,7 @@ describe("CoreChart: legend", () => {
 
       act(() => mouseOut(getItem(2).getElement()));
 
-      await clearHighlightPause();
+      await hc.clearHighlightPause();
       expect(wrapper.findLegend()!.findItemTooltip()).toBe(null);
     });
 
@@ -450,7 +452,7 @@ describe("CoreChart: legend", () => {
 
       act(() => mouseOut(getItem(2).getElement()));
 
-      await clearHighlightPause();
+      await hc.clearHighlightPause();
       expect(wrapper.findLegend()!.findItemTooltip()).toBe(null);
     });
 
@@ -479,9 +481,10 @@ describe("CoreChart: legend", () => {
     });
   });
 
-  test("calls onLegendItemHighlight when hovering over a legend item", () => {
+  test("calls onLegendItemHighlight and onClearHighlight when hovering over a legend item", async () => {
     const onLegendItemHighlight = vi.fn();
-    const { wrapper } = renderChart({ highcharts, options: { series }, onLegendItemHighlight });
+    const onClearHighlight = vi.fn();
+    const { wrapper } = renderChart({ highcharts, options: { series }, onLegendItemHighlight, onClearHighlight });
 
     hoverLegendItem(0, wrapper);
 
@@ -498,6 +501,34 @@ describe("CoreChart: legend", () => {
         },
       }),
     );
+
+    leaveLegendItem(0, wrapper);
+    await hc.clearHighlightPause();
+
+    expect(onClearHighlight).toHaveBeenCalled();
+  });
+
+  test("legend highlight state stays after re-render", () => {
+    const { wrapper, rerender } = renderChart({ highcharts, options: { series } });
+
+    hoverLegendItem(0, wrapper);
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["L1"]);
+
+    rerender({ highcharts, options: { series } });
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["L1"]);
+  });
+
+  test("legend highlight state is reset after re-render if items structure change", () => {
+    const { wrapper, rerender } = renderChart({ highcharts, options: { series: lineSeries } });
+
+    hoverLegendItem(0, wrapper);
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["L1"]);
+
+    rerender({ highcharts, options: { series: lineSeries.filter((s) => s.name !== "L2") } });
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["L1"]);
+
+    rerender({ highcharts, options: { series: lineSeries.filter((s) => s.name !== "L1") } });
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["L2", "Line 3"]);
   });
 
   describe("Marker status", () => {

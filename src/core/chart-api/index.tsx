@@ -214,6 +214,9 @@ export class ChartAPI {
     if (!this.isTooltipPinned) {
       this.chartExtraHighlight.clearChartItemsHighlight();
       this.chartExtraLegend.onClearHighlight();
+
+      // Notify the consumer that a clear-highlight action was made.
+      fireNonCancelableEvent(this.context.handlers.onClearHighlight, { isApiCall: false });
     }
   };
 

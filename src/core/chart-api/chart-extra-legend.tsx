@@ -3,6 +3,7 @@
 
 import type Highcharts from "highcharts";
 
+import { LegendItem } from "../../internal/components/interfaces";
 import { ChartSeriesMarker, ChartSeriesMarkerType } from "../../internal/components/series-marker";
 import { ChartSeriesMarkerStatus } from "../../internal/components/series-marker/interfaces";
 import { fireNonCancelableEvent } from "../../internal/events";
@@ -82,10 +83,11 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
   };
 
   private initLegend = () => {
+    const prevState = this.get().items.reduce((map, item) => map.set(item.id, item), new Map<string, LegendItem>());
     const itemSpecs = getChartLegendItems(this.context.chart(), this.context.settings.getItemProps);
     const legendItems = itemSpecs.map(({ id, name, color, markerType, visible, status, isSecondary }) => {
       const marker = this.renderMarker(markerType, color, visible, status);
-      return { id, name, marker, visible, isSecondary, highlighted: false };
+      return { id, name, marker, visible, isSecondary, highlighted: prevState.get(id)?.highlighted ?? false };
     });
     this.updateLegendItems(legendItems);
   };
