@@ -263,23 +263,43 @@ describe("CoreChart: utils", () => {
         scenario: "getItemProps is undefined",
         getItemProps: undefined,
         id: "item1",
-        expected: { status: "default" },
+        expected: { status: "default", markerAriaDescription: undefined },
       },
       {
         scenario: "getItemProps returns empty object",
         getItemProps: () => ({}),
         id: "item1",
-        expected: { status: "default" },
+        expected: { status: "default", markerAriaDescription: undefined },
       },
       {
         scenario: "getItemProps returns status",
-        getItemProps: () => ({ status: "active" as const }),
+        getItemProps: () => ({ status: "warning" as const }),
         id: "item1",
-        expected: { status: "active" },
+        expected: { status: "warning", markerAriaDescription: undefined },
       },
-    ])("$scenario", ({ getItemProps, id, expected }) => {
+      {
+        scenario: "getItemProps returns status and contains i18n",
+        getItemProps: () => ({ status: "warning" as const }),
+        id: "item1",
+        expected: { status: "warning", markerAriaDescription: "hello hi" },
+        options: {
+          markerAriaDescriptionTemplate: "hello {status}",
+          getI18nFromStatus: (): string => "hi",
+        },
+      },
+      {
+        scenario: "getItemProps returns status and contains i18n - getI18nFromStatus returns undefined",
+        getItemProps: () => ({ status: "warning" as const }),
+        id: "item1",
+        expected: { status: "warning", markerAriaDescription: undefined },
+        options: {
+          markerAriaDescriptionTemplate: "hello {status}",
+          getI18nFromStatus: (): undefined => undefined,
+        },
+      },
+    ])("$scenario", ({ getItemProps, id, expected, options }) => {
       it("should return correct default values", () => {
-        const result = fillDefaultsForGetItemProps(getItemProps);
+        const result = fillDefaultsForGetItemProps(getItemProps, options);
         expect(result(id)).toEqual(expected);
       });
     });

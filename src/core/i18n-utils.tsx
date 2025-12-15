@@ -3,10 +3,9 @@
 
 import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-use/i18n";
 
-import { ChartSeriesMarkerI18n } from "../internal/components/series-marker/interfaces";
 import { CoreChartProps } from "./interfaces";
 
-export interface ChartLabels extends ChartSeriesMarkerI18n {
+export interface ChartLabels {
   chartLabel?: string;
   chartDescription?: string;
   chartContainerLabel?: string;

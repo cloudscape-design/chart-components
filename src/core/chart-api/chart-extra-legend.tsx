@@ -85,10 +85,12 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
   private initLegend = () => {
     const prevState = this.get().items.reduce((map, item) => map.set(item.id, item), new Map<string, LegendItem>());
     const itemSpecs = getChartLegendItems(this.context.chart(), this.context.settings.getItemProps);
-    const legendItems = itemSpecs.map(({ id, name, color, markerType, visible, status, isSecondary }) => {
-      const marker = this.renderMarker(markerType, color, visible, status);
-      return { id, name, marker, visible, isSecondary, highlighted: prevState.get(id)?.highlighted ?? false };
-    });
+    const legendItems = itemSpecs.map(
+      ({ id, name, color, markerType, visible, status, isSecondary, markerAriaDescription }) => {
+        const marker = this.renderMarker(markerType, color, visible, status, markerAriaDescription);
+        return { id, name, marker, visible, isSecondary, highlighted: prevState.get(id)?.highlighted ?? false };
+      },
+    );
     this.updateLegendItems(legendItems);
   };
 
@@ -115,6 +117,7 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
     color: string,
     visible = true,
     status: ChartSeriesMarkerStatus,
+    markerAriaDescription?: string,
   ): React.ReactNode {
     const key = `${type}:${color}:${visible}:${status}`;
     const marker = this.markersCache.get(key) ?? (
@@ -123,7 +126,7 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
         color={color}
         visible={visible}
         status={status}
-        i18nStrings={this.context.settings.labels}
+        markerAriaDescription={markerAriaDescription}
       />
     );
     this.markersCache.set(key, marker);

@@ -53,7 +53,7 @@ const permutationsForColors = [
         "triangle-down",
       ],
       color: [color],
-      i18nStrings: [{ seriesStatusWarningAriaLabel: "warning" }],
+      markerAriaDescription: ["aria"],
       status: ["default"],
     },
   ]),

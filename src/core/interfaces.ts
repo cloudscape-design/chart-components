@@ -136,6 +136,15 @@ export interface CoreI18nStrings extends BaseI18nStrings {
    * this property to be explicitly provided.
    */
   secondaryLegendAriaLabel?: string;
+
+  /**
+   * @example "Series with status {status}".
+   */
+  chartMarkerAriaDescriptionTemplate?: string;
+  /**
+   * @example "warning".
+   */
+  chartItemStatusWarning?: string;
 }
 
 export interface WithCartesianI18nStrings {

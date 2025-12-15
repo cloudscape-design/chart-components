@@ -106,6 +106,10 @@ export default function () {
       <CoreChart
         {...chartProps.core}
         highcharts={Highcharts}
+        i18nStrings={{
+          chartItemStatusWarning: "warning",
+          chartMarkerAriaDescriptionTemplate: "Series with status {status}",
+        }}
         options={{
           lang: {
             accessibility: {

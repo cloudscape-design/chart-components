@@ -19,6 +19,7 @@ export interface LegendItemSpec {
   visible: boolean;
   isSecondary: boolean;
   status: ChartSeriesMarkerStatus;
+  markerAriaDescription?: string;
 }
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
@@ -154,6 +155,7 @@ export function getChartLegendItems(
     // The same is not supported for pie chart segments.
     if (series.options.showInLegend !== false) {
       const seriesId = getSeriesId(series);
+      const itemProps = getItemProps(seriesId);
       legendItems.push({
         id: seriesId,
         name: series.name,
@@ -161,7 +163,8 @@ export function getChartLegendItems(
         color: getSeriesColor(series),
         visible: series.visible,
         isSecondary,
-        status: getItemProps(seriesId).status,
+        status: itemProps.status,
+        markerAriaDescription: itemProps.markerAriaDescription,
       });
     }
   };
@@ -402,6 +405,11 @@ function getChartRect(rect: Rect, chart: Highcharts.Chart, canBeInverted: boolea
       };
 }
 
+export interface FillDefaultsForGetItemPropsOptions {
+  markerAriaDescriptionTemplate?: string;
+  getI18nFromStatus?: (status: ChartSeriesMarkerStatus) => string | undefined;
+}
+
 /**
  * Creates a function that returns chart item properties with default values applied.
  *
@@ -410,11 +418,32 @@ function getChartRect(rect: Rect, chart: Highcharts.Chart, canBeInverted: boolea
  */
 export function fillDefaultsForGetItemProps(
   getItemProps: CoreChartProps["getItemProps"],
-): (id: string) => Required<ChartItemOptions> {
+  options?: FillDefaultsForGetItemPropsOptions,
+): (id: string) => Required<ChartItemOptions> & {
+  markerAriaDescription?: string;
+} {
   return (id: string) => {
     const prevItem = getItemProps?.(id) ?? {};
+    const status = prevItem.status ?? "default";
+    const statusI18n = options?.getI18nFromStatus?.(status);
+
     return {
-      status: prevItem.status ?? "default",
+      status,
+      markerAriaDescription:
+        statusI18n !== undefined ? options?.markerAriaDescriptionTemplate?.replace("{status}", statusI18n) : undefined,
     };
+  };
+}
+
+export function i18nStatus(i18n: CoreChartProps["i18nStrings"]) {
+  return (status: ChartSeriesMarkerStatus) => {
+    switch (status) {
+      case "warning":
+        return i18n?.chartItemStatusWarning;
+      case "default":
+        return undefined;
+      default:
+        throw status satisfies never;
+    }
   };
 }

@@ -21,16 +21,12 @@ export type ChartSeriesMarkerType =
   | "triangle-down"
   | "circle";
 
-export type ChartSeriesMarkerI18n = Partial<{
-  seriesStatusWarningAriaLabel: string;
-}>;
-
 export interface ChartSeriesMarkerProps extends BaseComponentProps {
   type: ChartSeriesMarkerType;
   color: string;
   visible?: boolean;
   status: ChartSeriesMarkerStatus;
-  i18nStrings: ChartSeriesMarkerI18n;
+  markerAriaDescription?: string;
 }
 
 function scale(size: number, value: number) {
@@ -42,7 +38,7 @@ export function ChartSeriesMarker({
   color,
   visible = true,
   status,
-  i18nStrings,
+  markerAriaDescription,
 }: ChartSeriesMarkerProps) {
   color = visible ? color : colorTextInteractiveDisabled;
 
@@ -52,6 +48,7 @@ export function ChartSeriesMarker({
 
   return (
     <div className={styles.marker}>
+      {markerAriaDescription && <span className={styles.visuallyHidden}>{markerAriaDescription}</span>}
       <svg focusable={false} aria-hidden={true} viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <mask id={maskId}>
@@ -61,7 +58,7 @@ export function ChartSeriesMarker({
           </mask>
         </defs>
 
-        {status === "warning" && <SVGWarning ariaLabel={i18nStrings.seriesStatusWarningAriaLabel ?? ""}></SVGWarning>}
+        {status === "warning" && <SVGWarning></SVGWarning>}
 
         {type === "line" && <SVGLine maskId={maskId} color={color} />}
 
@@ -133,12 +130,12 @@ function SVGCircle({ color, maskId }: { color: string; maskId: string }) {
   return <circle mask={`url(#${maskId})`} {...shape} strokeWidth={0} fill={color} />;
 }
 
-const SVGWarningTranslate = `translate(9, 1)`;
+const SVGWarningTranslate = `translate(10, 1)`;
 
-function SVGWarning({ ariaLabel }: { ariaLabel: string }) {
+function SVGWarning() {
   return (
     <path
-      aria-label={ariaLabel}
+      data-testid="warning"
       transform={`${SVGWarningTranslate} ${scale(16, 0.8)}`}
       d="M9.14157,12.3948v-1.713c0,-0.084,-0.028,-0.154,-0.085,-0.211c-0.056,-0.058,-0.123,-0.086,-0.2,-0.086h-1.713c-0.077,0,-0.144,0.028,-0.2,0.086c-0.057,0.057,-0.085,0.127,-0.085,0.211v1.713c0,0.084,0.028,0.155,0.085,0.212c0.056,0.057,0.123,0.085,0.2,0.085h1.713c0.077,0,0.144,-0.028,0.2,-0.085c0.057,-0.057,0.085,-0.128,0.085,-0.212zm-0.018,-3.371l0.161,-4.138c0,-0.072,-0.03,-0.129,-0.089,-0.171c-0.078,-0.066,-0.149,-0.099,-0.215,-0.099h-1.962c-0.065,0,-0.136,0.033,-0.214,0.099c-0.059,0.042,-0.089,0.105,-0.089,0.189l0.152,4.12c0,0.06,0.03,0.109,0.089,0.148c0.059,0.039,0.131,0.059,0.214,0.059h1.65c0.083,0,0.153,-0.02,0.21,-0.059c0.056,-0.039,0.087,-0.088,0.093,-0.148zm-0.125,-8.419l6.85,12.692c0.208,0.378,0.202,0.757,-0.018,1.136c-0.101,0.174,-0.24,0.312,-0.415,0.414c-0.175,0.102,-0.364,0.154,-0.566,0.154h-13.699c-0.202,0,-0.391,-0.052,-0.566,-0.154c-0.176,-0.102,-0.314,-0.24,-0.415,-0.414c-0.22,-0.379,-0.226,-0.758,-0.018,-1.136l6.849,-12.692c0.101,-0.187,0.241,-0.334,0.42,-0.442c0.178,-0.108,0.371,-0.162,0.579,-0.162c0.208,0,0.402,0.054,0.58,0.162c0.178,0.108,0.318,0.255,0.419,0.442z"
       fill={colorBorderStatusWarning}

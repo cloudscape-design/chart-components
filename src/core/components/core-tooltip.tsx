@@ -161,13 +161,16 @@ function getTooltipContentCartesian(
   // By design, every point of the group has the same x value.
   const x = group[0].x;
   const chart = group[0].series.chart;
-  const getSeriesMarker = (series: Highcharts.Series) =>
-    api.renderMarker(
+  const getSeriesMarker = (series: Highcharts.Series) => {
+    const itemProps = api.context.settings.getItemProps(getSeriesId(series));
+    return api.renderMarker(
       getSeriesMarkerType(series),
       getSeriesColor(series),
       true,
-      api.context.settings.getItemProps(getSeriesId(series)).status,
+      itemProps.status,
+      itemProps.markerAriaDescription,
     );
+  };
   const matchedItems = findTooltipSeriesItems(getChartSeries(chart.series), group, seriesSorting);
   const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
     const valueFormatter = getFormatter(item.point.series.yAxis);
@@ -185,6 +188,7 @@ function getTooltipContentCartesian(
       subItems: customContent?.subItems,
       expandableId: customContent?.expandable ? item.point.series.name : undefined,
       highlighted: item.point.x === point?.x && item.point.y === point?.y,
+      itemAriaLabel: "awd",
       description:
         customContent?.description === undefined && item.errorRanges.length ? (
           <>
@@ -253,6 +257,7 @@ function getTooltipContentPie(
           getPointColor(point),
           true,
           api.context.settings.getItemProps(getPointId(point)).status,
+          api.context.settings.getItemProps(getPointId(point)).markerAriaDescription,
         )}
         <Box variant="span" fontWeight="bold">
           {point.name}
