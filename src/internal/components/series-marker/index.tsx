@@ -49,7 +49,7 @@ export function ChartSeriesMarker({
   return (
     <div className={styles.marker}>
       {markerAriaDescription && <span className={styles.visuallyHidden}>{markerAriaDescription}</span>}
-      <svg focusable={false} aria-hidden={true} viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg">
+      <svg focusable={false} aria-hidden={true} viewBox="0 0 25 16" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <mask id={maskId}>
             <rect width="100%" height="100%" fill="white" />

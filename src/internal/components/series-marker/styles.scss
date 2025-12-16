@@ -13,12 +13,11 @@ $marker-margin-right: cs.$space-static-xxs;
 .marker {
   @include styles.styles-reset;
   margin-block-start: $marker-margin-top;
-  margin-inline-end: $marker-margin-right;
   border-start-start-radius: 2px;
   border-start-end-radius: 2px;
   border-end-start-radius: 2px;
   border-end-end-radius: 2px;
-  inline-size: $marker-size * 1.5;
+  inline-size: 25px;
   block-size: $marker-size;
   flex-shrink: 0;
   cursor: inherit;
