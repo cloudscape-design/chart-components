@@ -9,8 +9,6 @@ import { defineConfig } from "vite";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const componentsPath = resolve(__dirname, "lib/components");
-
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react({ fastRefresh: false })],
@@ -22,7 +20,7 @@ export default defineConfig({
     },
     outDir: "lib/dev-pages/bundle",
     rollupOptions: {
-      external: [componentsPath, "highcharts", /^@cloudscape-design\/*/],
+      external: [/(?:\.\.\/)+?lib\/components/, /^@cloudscape-design\//, "highcharts", "react"],
     },
   },
 });
