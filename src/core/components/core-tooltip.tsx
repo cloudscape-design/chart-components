@@ -162,7 +162,7 @@ function getTooltipContentCartesian(
   const x = group[0].x;
   const chart = group[0].series.chart;
   const getSeriesMarker = (series: Highcharts.Series) => {
-    const itemProps = api.context.settings.getItemProps(getSeriesId(series));
+    const itemProps = api.context.settings.getItemOptions({ itemId: getSeriesId(series) });
     return api.renderMarker(
       getSeriesMarkerType(series),
       getSeriesColor(series),
@@ -256,8 +256,8 @@ function getTooltipContentPie(
           getSeriesMarkerType(point.series),
           getPointColor(point),
           true,
-          api.context.settings.getItemProps(getPointId(point)).status,
-          api.context.settings.getItemProps(getPointId(point)).markerAriaDescription,
+          api.context.settings.getItemOptions({ itemId: getPointId(point) }).status,
+          api.context.settings.getItemOptions({ itemId: getPointId(point) }).markerAriaDescription,
         )}
         <Box variant="span" fontWeight="bold">
           {point.name}

@@ -1,9 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-// SPDX-License-Identifier: Apache-2.0
-
 import { useRef } from "react";
 import clsx from "clsx";
 import type Highcharts from "highcharts";
@@ -30,7 +27,7 @@ import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
 import { getFormatter } from "./formatters";
 import { useChartI18n } from "./i18n-utils";
 import { CoreChartProps } from "./interfaces";
-import { fillDefaultsForGetItemProps, i18nStatus } from "./utils";
+import { fillDefaultsForgetItemOptions, i18nStatus } from "./utils";
 import { getLegendsProps, getPointAccessibleDescription } from "./utils";
 
 import styles from "./styles.css.js";
@@ -68,7 +65,7 @@ export function InternalCoreChart({
   onVisibleItemsChange,
   visibleItems,
   __internalRootRef,
-  getItemProps,
+  getItemOptions,
   ...rest
 }: CoreChartProps & InternalBaseComponentProps) {
   const highcharts = rest.highcharts as null | typeof Highcharts;
@@ -80,7 +77,7 @@ export function InternalCoreChart({
     tooltipEnabled: tooltipOptions?.enabled !== false,
     keyboardNavigationEnabled: keyboardNavigation,
     labels,
-    getItemProps: fillDefaultsForGetItemProps(getItemProps, {
+    getItemOptions: fillDefaultsForgetItemOptions(getItemOptions, {
       markerAriaDescriptionTemplate: i18nStrings?.chartMarkerAriaDescriptionTemplate,
       getI18nFromStatus: i18nStatus(i18nStrings),
     }),

@@ -9,7 +9,7 @@ import { getChartSeries } from "../internal/utils/chart-series";
 import { castArray } from "../internal/utils/utils";
 import { getFormatter } from "./formatters";
 import { ChartLabels } from "./i18n-utils";
-import { ChartItemOptions, CoreChartProps, Rect } from "./interfaces";
+import { CoreChartProps, Rect } from "./interfaces";
 
 export interface LegendItemSpec {
   id: string;
@@ -137,7 +137,7 @@ export function getPointColor(point?: Highcharts.Point): string {
 // Highcharts legend is disabled. Instead, we use this custom method to collect legend items from the chart.
 export function getChartLegendItems(
   chart: Highcharts.Chart,
-  getItemProps: ReturnType<typeof fillDefaultsForGetItemProps>,
+  getItemOptions: ReturnType<typeof fillDefaultsForgetItemOptions>,
 ): readonly LegendItemSpec[] {
   const legendItems: LegendItemSpec[] = [];
   const isInverted = chart.inverted ?? false;
@@ -155,7 +155,7 @@ export function getChartLegendItems(
     // The same is not supported for pie chart segments.
     if (series.options.showInLegend !== false) {
       const seriesId = getSeriesId(series);
-      const itemProps = getItemProps(seriesId);
+      const itemProps = getItemOptions({ itemId: seriesId });
       legendItems.push({
         id: seriesId,
         name: series.name,
@@ -178,7 +178,7 @@ export function getChartLegendItems(
         markerType: getSeriesMarkerType(point.series),
         color: getPointColor(point),
         visible: point.visible,
-        status: getItemProps(pointId).status,
+        status: getItemOptions({ itemId: pointId }).status,
         isSecondary,
       });
     }
@@ -405,7 +405,7 @@ function getChartRect(rect: Rect, chart: Highcharts.Chart, canBeInverted: boolea
       };
 }
 
-export interface FillDefaultsForGetItemPropsOptions {
+export interface FillDefaultsForgetItemOptionsOptions {
   markerAriaDescriptionTemplate?: string;
   getI18nFromStatus?: (status: ChartSeriesMarkerStatus) => string | undefined;
 }
@@ -413,17 +413,17 @@ export interface FillDefaultsForGetItemPropsOptions {
 /**
  * Creates a function that returns chart item properties with default values applied.
  *
- * This higher-order function wraps an optional `getItemProps` function and ensures that
+ * This higher-order function wraps an optional `getItemOptions` function and ensures that
  * all required properties of `ChartItemOptions` are present, filling in defaults where needed.
  */
-export function fillDefaultsForGetItemProps(
-  getItemProps: CoreChartProps["getItemProps"],
-  options?: FillDefaultsForGetItemPropsOptions,
-): (id: string) => Required<ChartItemOptions> & {
+export function fillDefaultsForgetItemOptions(
+  getItemOptions: CoreChartProps["getItemOptions"],
+  options?: FillDefaultsForgetItemOptionsOptions,
+): (props: CoreChartProps.GetItemOptionsProps) => Required<CoreChartProps.ChartItemOptions> & {
   markerAriaDescription?: string;
 } {
-  return (id: string) => {
-    const prevItem = getItemProps?.(id) ?? {};
+  return (props: CoreChartProps.GetItemOptionsProps) => {
+    const prevItem = getItemOptions?.(props) ?? {};
     const status = prevItem.status ?? "default";
     const statusI18n = options?.getI18nFromStatus?.(status);
 

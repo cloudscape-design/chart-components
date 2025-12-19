@@ -131,8 +131,8 @@ export default function () {
             },
           },
         }}
-        getItemProps={(id) => ({
-          status: id === "A" ? "warning" : "default",
+        getItemOptions={({ itemId }) => ({
+          status: itemId === "A" ? "warning" : "default",
         })}
         chartHeight={400}
         getTooltipContent={() => ({

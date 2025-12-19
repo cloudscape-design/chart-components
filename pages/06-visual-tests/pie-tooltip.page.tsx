@@ -31,8 +31,8 @@ export default function () {
         options={{
           series: series,
         }}
-        getItemProps={(id) => ({
-          status: id === "Failed" ? "warning" : "default",
+        getItemOptions={({ itemId }) => ({
+          status: itemId === "Failed" ? "warning" : "default",
         })}
         chartHeight={400}
         getTooltipContent={() => ({

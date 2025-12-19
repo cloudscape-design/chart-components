@@ -317,15 +317,6 @@ export interface CoreCartesianOptions {
   verticalAxisTitlePlacement?: "top" | "side";
 }
 
-export interface ChartItemOptions {
-  /**
-   * If specified, specifies the status of an item.
-   * An item can be a point or a series.
-   * @default "default"
-   */
-  status?: ChartSeriesMarkerStatus;
-}
-
 export interface CoreChartProps
   extends Pick<
       BaseChartOptions,
@@ -419,9 +410,8 @@ export interface CoreChartProps
   i18nStrings?: CartesianI18nStrings & PieI18nStrings & CoreI18nStrings & ChartSeriesMarkerI18n;
   /**
    * Specifies the options for each item in the chart.
-   * @param id the item id. Can be the id of a series or a point.
    */
-  getItemProps?: (id: string) => ChartItemOptions;
+  getItemOptions?: (props: CoreChartProps.GetItemOptionsProps) => CoreChartProps.ChartItemOptions;
 }
 
 export namespace CoreChartProps {
@@ -445,6 +435,22 @@ export namespace CoreChartProps {
   };
   export type XAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: null | number) => string };
   export type YAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: null | number) => string };
+
+  export interface ChartItemOptions {
+    /**
+     * If specified, specifies the status of an item.
+     * An item can be a point or a series.
+     * @default "default"
+     */
+    status?: ChartSeriesMarkerStatus;
+  }
+
+  export interface GetItemOptionsProps {
+    /**
+     * The item id. Can be the id of a series or a point.
+     */
+    itemId: string;
+  }
 
   export interface HeaderOptions {
     content: React.ReactNode;

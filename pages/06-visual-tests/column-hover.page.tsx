@@ -76,8 +76,8 @@ function Chart({ type }: { type: "single" | "stacked" | "grouped" }) {
         ],
         yAxis: [{ title: { text: "Error count" } }],
       }}
-      getItemProps={(id) => ({
-        status: id === "Severe" ? "warning" : "default",
+      getItemOptions={({ itemId }) => ({
+        status: itemId === "Severe" ? "warning" : "default",
       })}
       callback={(api) => {
         setTimeout(() => {

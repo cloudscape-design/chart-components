@@ -49,8 +49,8 @@ export default function () {
         }}
         chartHeight={400}
         tooltip={{ placement: "outside" }}
-        getItemProps={(id) => ({
-          status: id === "A" ? "warning" : "default",
+        getItemOptions={({ itemId }) => ({
+          status: itemId === "A" ? "warning" : "default",
         })}
         getTooltipContent={() => ({
           footer() {
