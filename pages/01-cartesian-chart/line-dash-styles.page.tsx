@@ -1,9 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { range } from "lodash";
-
 import { CartesianChart, CartesianChartProps } from "../../lib/components";
+import range from "../../lib/components/internal/utils/range";
 import { dateFormatter } from "../common/formatters";
 import { useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";

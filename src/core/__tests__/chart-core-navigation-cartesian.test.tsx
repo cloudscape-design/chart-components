@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import highcharts from "highcharts";
-import { range } from "lodash";
 import { vi } from "vitest";
 
 import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 
 import "highcharts/modules/accessibility";
+import range from "../../internal/utils/range";
 import { CoreChartTestProps, createChartWrapper, renderChart } from "./common";
 
 const seriesShort2: Highcharts.SeriesOptionsType[] = [

@@ -3,11 +3,11 @@
 
 import { useState } from "react";
 import Highcharts from "highcharts";
-import { omit } from "lodash";
 
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import Toggle from "@cloudscape-design/components/toggle";
 
+import omit from "../../lib/components/internal/utils/omit";
 import CoreChart, { CoreChartProps } from "../../lib/components/internal-do-not-use/core-chart";
 import { dateFormatter } from "../common/formatters";
 import { useChartSettings } from "../common/page-settings";

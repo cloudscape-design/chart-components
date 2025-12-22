@@ -1,9 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import flatten from "lodash/flatten";
-
 import SpaceBetween from "@cloudscape-design/components/space-between";
+
+import flatten from "../../lib/components/internal/utils/flatten";
 
 export type ComponentPermutations<Props> = {
   [prop in keyof Props]: ReadonlyArray<Props[prop]>;

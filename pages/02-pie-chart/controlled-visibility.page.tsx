@@ -1,9 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { sum } from "lodash";
-
 import { PieChart, PieChartProps } from "../../lib/components";
+import sum from "../../lib/components/internal/sum";
 import { PageSettings, PageSettingsForm, SeriesFilter, useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
 

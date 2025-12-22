@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { addDays, subYears } from "date-fns";
-import { range } from "lodash";
 
 import ColumnLayout from "@cloudscape-design/components/column-layout";
 
 import { CartesianChart } from "../../lib/components";
+import range from "../../lib/components/internal/utils/range";
 import { dateFormatter } from "../common/formatters";
 import { useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";

@@ -3,9 +3,10 @@
 
 import { createContext, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import mapValues from "lodash/mapValues";
 
 import { applyDensity, applyMode, Density, disableMotion, Mode } from "@cloudscape-design/global-styles";
+
+import mapValues from "../../lib/components/internal/utils/map-values";
 
 interface AppUrlParams {
   mode: Mode;

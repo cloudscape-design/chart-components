@@ -1,20 +1,40 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import lodash from "lodash";
 import fs from "node:fs";
 import path from "node:path";
 
-export function pascalCase(text) {
-  return capitalize(lodash.camelCase(text));
+/**
+ * Converts string to camelCase
+ */
+function camelCase(str) {
+  return str
+    .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
+      return index === 0 ? word.toLowerCase() : word.toUpperCase();
+    })
+    .replace(/\s+/g, "");
 }
 
-export function dashCase(text) {
-  return lodash.kebabCase(text);
+/**
+ * Converts string to kebab-case
+ */
+function kebabCase(str) {
+  return str
+    .replace(/([a-z])([A-Z])/g, "$1-$2")
+    .replace(/[\s_]+/g, "-")
+    .toLowerCase();
 }
 
 function capitalize(text) {
   return text[0].toUpperCase() + text.slice(1);
+}
+
+export function pascalCase(text) {
+  return capitalize(camelCase(text));
+}
+
+export function dashCase(text) {
+  return kebabCase(text);
 }
 
 export function listPublicDirs(baseDir) {

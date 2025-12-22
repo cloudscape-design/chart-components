@@ -3,7 +3,6 @@
 
 import { useRef, useState } from "react";
 import Highcharts from "highcharts";
-import { omit } from "lodash";
 
 import Link from "@cloudscape-design/components/link";
 import SpaceBetween from "@cloudscape-design/components/space-between";
@@ -12,6 +11,7 @@ import { CoreChartProps } from "../../lib/components/core/interfaces";
 import { colors } from "../../lib/components/internal/chart-styles";
 import { LegendItem } from "../../lib/components/internal/components/interfaces";
 import { ChartSeriesMarker } from "../../lib/components/internal/components/series-marker";
+import omit from "../../lib/components/internal/utils/omit";
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
 import { CoreLegend } from "../../lib/components/internal-do-not-use/core-legend";
 import { dateFormatter } from "../common/formatters";
