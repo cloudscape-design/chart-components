@@ -4,6 +4,7 @@
 import type Highcharts from "highcharts";
 
 import type * as InternalComponentTypes from "../internal/components/interfaces";
+import { ChartSeriesMarkerI18n, ChartSeriesMarkerStatus } from "../internal/components/series-marker/interfaces";
 import { type NonCancelableEventHandler } from "../internal/events";
 
 // All charts take `highcharts` instance, that can be served statically or dynamically.
@@ -135,6 +136,15 @@ export interface CoreI18nStrings extends BaseI18nStrings {
    * this property to be explicitly provided.
    */
   secondaryLegendAriaLabel?: string;
+
+  /**
+   * @example "Series with status {status}".
+   */
+  chartMarkerAriaDescriptionTemplate?: string;
+  /**
+   * @example "warning".
+   */
+  chartItemStatusWarning?: string;
 }
 
 export interface WithCartesianI18nStrings {
@@ -397,7 +407,11 @@ export interface CoreChartProps
    * An object that contains all of the localized strings required by the component.
    * @i18n
    */
-  i18nStrings?: CartesianI18nStrings & PieI18nStrings & CoreI18nStrings;
+  i18nStrings?: CartesianI18nStrings & PieI18nStrings & CoreI18nStrings & ChartSeriesMarkerI18n;
+  /**
+   * Specifies the options for each item in the chart.
+   */
+  getItemOptions?: (props: CoreChartProps.GetItemOptionsProps) => CoreChartProps.ChartItemOptions;
 }
 
 export namespace CoreChartProps {
@@ -421,6 +435,22 @@ export namespace CoreChartProps {
   };
   export type XAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: null | number) => string };
   export type YAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: null | number) => string };
+
+  export interface ChartItemOptions {
+    /**
+     * If specified, specifies the status of an item.
+     * An item can be a point or a series.
+     * @default "default"
+     */
+    status?: ChartSeriesMarkerStatus;
+  }
+
+  export interface GetItemOptionsProps {
+    /**
+     * The item id. Can be the id of a series or a point.
+     */
+    itemId: string;
+  }
 
   export interface HeaderOptions {
     content: React.ReactNode;

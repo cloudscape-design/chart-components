@@ -22,7 +22,7 @@ export function useChartI18n({
   ariaLabel?: string;
   ariaDescription?: string;
   i18nStrings?: CoreChartProps.I18nStrings;
-}) {
+}): ChartLabels {
   const i18n = useInternalI18n("[charts]");
   const i18nPie = useInternalI18n("pie-chart");
   return {

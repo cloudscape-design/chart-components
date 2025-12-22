@@ -21,7 +21,7 @@ import {
 
 import { ChartSeriesMarker, ChartSeriesMarkerProps } from "../../lib/components/internal/components/series-marker";
 import PermutationsView, { createPermutations } from "../common/permutations";
-import { Page } from "../common/templates";
+import { Page, PageSection } from "../common/templates";
 
 const permutationsForColors = [
   colorChartsPaletteCategorical1,
@@ -53,8 +53,14 @@ const permutationsForColors = [
         "triangle-down",
       ],
       color: [color],
+      markerAriaDescription: ["aria"],
+      status: ["default"],
     },
   ]),
+);
+
+const permutationsForWarningColors = permutationsForColors.map((permutations) =>
+  permutations.map((permutation) => ({ ...permutation, status: "warning" as const })),
 );
 
 export default function MarkerPermutations() {
@@ -70,6 +76,19 @@ export default function MarkerPermutations() {
           />
         ))}
       </SpaceBetween>
+
+      <PageSection title="Warning state">
+        <SpaceBetween size="m">
+          {permutationsForWarningColors.map((permutations, index) => (
+            <PermutationsView
+              key={index}
+              permutations={permutations}
+              render={(permutation) => <ChartSeriesMarker {...permutation} />}
+              direction="horizontal"
+            />
+          ))}
+        </SpaceBetween>
+      </PageSection>
     </Page>
   );
 }

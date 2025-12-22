@@ -69,6 +69,7 @@ const series: Highcharts.SeriesOptionsType[] = [
     data: dataB,
   },
   {
+    id: "A",
     name: "Comprehensive System Resource Utilization Measurements Over Time",
     type: "line",
     data: dataC,
@@ -105,6 +106,10 @@ export default function () {
       <CoreChart
         {...chartProps.core}
         highcharts={Highcharts}
+        i18nStrings={{
+          chartItemStatusWarning: "warning",
+          chartMarkerAriaDescriptionTemplate: "Series with status {status}",
+        }}
         options={{
           lang: {
             accessibility: {
@@ -126,6 +131,9 @@ export default function () {
             },
           },
         }}
+        getItemOptions={({ itemId }) => ({
+          status: itemId === "A" ? "warning" : "default",
+        })}
         chartHeight={400}
         getTooltipContent={() => ({
           point({ item, hideTooltip }) {
