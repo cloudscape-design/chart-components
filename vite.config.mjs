@@ -9,6 +9,11 @@ export default defineConfig({
   plugins: [react({ fastRefresh: false })],
   root: "./pages",
   base: "./",
+  resolve: {
+    alias: {
+      lodash: "lodash-es",
+    },
+  },
   server: {
     open: "/index.html",
   },
