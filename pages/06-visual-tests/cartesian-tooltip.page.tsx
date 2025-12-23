@@ -3,11 +3,11 @@
 
 import Button from "@cloudscape-design/components/button";
 
-import omit from "../../lib/components/internal/utils/omit";
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
 import { dateFormatter } from "../common/formatters";
 import { useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
+import omit from "../utils/omit";
 
 const baseline = [
   { x: 1600984800000, y: 58020 },

@@ -11,11 +11,11 @@ import SpaceBetween from "@cloudscape-design/components/space-between";
 import { colorChartsBlue1400, colorChartsLineTick } from "@cloudscape-design/design-tokens";
 
 import { CoreChartProps } from "../../lib/components/core/interfaces";
-import omit from "../../lib/components/internal/utils/omit";
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
 import { dateFormatter } from "../common/formatters";
 import { PageSettings, PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
+import omit from "../utils/omit";
 import pseudoRandom from "../utils/pseudo-random";
 
 interface ThisPageSettings extends PageSettings {
@@ -134,7 +134,7 @@ function Charts() {
     settings: { keepZoomingFrame = true },
     chartProps,
   } = useChartSettings<ThisPageSettings>({ more: true });
-  const commonProps = omit(chartProps.cartesian, ["ref"]);
+  const commonProps = omit(chartProps.cartesian, "ref");
   const scatterChartRef = useRef<CoreChartProps.ChartAPI>(null) as React.MutableRefObject<CoreChartProps.ChartAPI>;
   const getScatterChart = () => scatterChartRef.current!;
   const navigatorChartRef = useRef<CoreChartProps.ChartAPI>(null) as React.MutableRefObject<CoreChartProps.ChartAPI>;

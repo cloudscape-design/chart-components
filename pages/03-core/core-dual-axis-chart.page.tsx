@@ -3,11 +3,11 @@
 
 import Link from "@cloudscape-design/components/link";
 
-import omit from "../../lib/components/internal/utils/omit";
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
 import { dateFormatter } from "../common/formatters";
 import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
+import omit from "../utils/omit";
 import pseudoRandom from "../utils/pseudo-random";
 
 function randomInt(min: number, max: number) {

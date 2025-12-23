@@ -18,6 +18,6 @@
     "strict": true,
     "tsBuildInfoFile": "./.cache/source.tsbuildinfo"
   },
-  "include": ["src", "types"],
+  "include": ["src", "types", "pages/utils/sum.ts", "pages/utils/map-values.ts", "pages/utils/flatten.ts", "pages/utils/omit.ts"],
   "exclude": ["**/__tests__/**", "src/test-utils/**"]
 }

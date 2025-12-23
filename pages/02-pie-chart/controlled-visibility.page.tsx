@@ -2,12 +2,15 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PieChart, PieChartProps } from "../../lib/components";
-import sum from "../../lib/components/internal/sum";
 import { PageSettings, PageSettingsForm, SeriesFilter, useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
 
 interface ThisPageSettings extends PageSettings {
   visibleItems: string;
+}
+
+function sum(array: number[]): number {
+  return array.reduce((acc, val) => acc + val, 0);
 }
 
 const pieChartSeries: PieChartProps.SeriesOptions = {
