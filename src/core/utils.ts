@@ -159,7 +159,7 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
     }
   };
   const addPointItem = (point: Highcharts.Point, isSecondary: boolean) => {
-    if (point.series.type === "pie") {
+    if (point?.series?.type === "pie") {
       legendItems.push({
         id: getPointId(point),
         name: point.name,
