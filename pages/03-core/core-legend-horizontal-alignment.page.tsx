@@ -5,10 +5,10 @@ import ColumnLayout from "@cloudscape-design/components/column-layout";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
 import { CoreChartProps } from "../../lib/components/core/interfaces";
-import omit from "../../lib/components/internal/utils/omit";
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
 import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
+import omit from "../utils/omit";
 import pseudoRandom from "../utils/pseudo-random";
 
 function randomInt(min: number, max: number) {

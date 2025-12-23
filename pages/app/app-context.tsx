@@ -6,8 +6,6 @@ import { useSearchParams } from "react-router-dom";
 
 import { applyDensity, applyMode, Density, disableMotion, Mode } from "@cloudscape-design/global-styles";
 
-import mapValues from "../../lib/components/internal/utils/map-values";
-
 interface AppUrlParams {
   mode: Mode;
   density: Density;
@@ -40,16 +38,17 @@ const AppContext = createContext<AppContextType>(appContextDefaults);
 
 export default AppContext;
 
-function parseQuery(urlParams: URLSearchParams) {
-  const queryParams: Record<string, any> = { ...appContextDefaults.urlParams };
-  urlParams.forEach((value, key) => (queryParams[key] = value));
+function castToBoolean(s: string) {
+  if (s === "true" || s === "false") {
+    return s === "true";
+  }
+  return s;
+}
 
-  return mapValues(queryParams, (value) => {
-    if (value === "true" || value === "false") {
-      return value === "true";
-    }
-    return value;
-  });
+export function parseQuery(urlParams: URLSearchParams) {
+  const queryParams: Record<string, any> = { ...appContextDefaults };
+  urlParams.forEach((value, key) => (queryParams[key] = castToBoolean(value)));
+  return queryParams as AppUrlParams;
 }
 
 function formatQuery(params: AppUrlParams) {

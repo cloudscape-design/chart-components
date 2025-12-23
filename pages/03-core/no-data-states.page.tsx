@@ -5,10 +5,10 @@ import Highcharts from "highcharts";
 
 import Box from "@cloudscape-design/components/box";
 
-import omit from "../../lib/components/internal/utils/omit";
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
 import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { FramedDemo, Page, PageSection } from "../common/templates";
+import omit from "../utils/omit";
 
 export default function () {
   const { chartProps } = useChartSettings();

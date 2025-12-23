@@ -3,14 +3,12 @@
 
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
-import flatten from "../../lib/components/internal/utils/flatten";
-
 export type ComponentPermutations<Props> = {
   [prop in keyof Props]: ReadonlyArray<Props[prop]>;
 };
 
 export function createPermutations<Props>(permutations: Array<ComponentPermutations<Props>>) {
-  return flatten(permutations.map((set) => doCreatePermutations(set)));
+  return permutations.map((set) => doCreatePermutations(set)).flat();
 }
 
 function doCreatePermutations<Props>(permutations: ComponentPermutations<Props>) {

@@ -3,10 +3,10 @@
 
 import Button from "@cloudscape-design/components/button";
 
-import omit from "../../lib/components/internal/utils/omit";
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
 import { useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
+import omit from "../utils/omit";
 
 const series: Highcharts.SeriesOptionsType[] = [
   {
