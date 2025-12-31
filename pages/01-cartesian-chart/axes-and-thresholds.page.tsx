@@ -1,8 +1,19 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { addDays, subYears } from "date-fns";
 import { range } from "lodash";
+
+const addDays = (date: Date, days: number) => {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+};
+
+const subYears = (date: Date, years: number) => {
+  const result = new Date(date);
+  result.setFullYear(result.getFullYear() - years);
+  return result;
+};
 
 import ColumnLayout from "@cloudscape-design/components/column-layout";
 
