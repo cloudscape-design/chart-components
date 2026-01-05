@@ -57,7 +57,12 @@ export function ChartTooltip({
   const tooltip = useSelector(api.tooltipStore, (s) => s);
   const debouncedTooltip = useDebouncedValue(tooltip, debounce === true ? DEFAULT_DEBOUNCE : debounce || 0);
 
-  if (!debouncedTooltip || !debouncedTooltip.visible || debouncedTooltip.group.length === 0) {
+  if (
+    !debouncedTooltip ||
+    !debouncedTooltip.visible ||
+    debouncedTooltip.group.length === 0 ||
+    debouncedTooltip.group[0].series === undefined
+  ) {
     return null;
   }
 

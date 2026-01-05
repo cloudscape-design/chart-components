@@ -186,6 +186,10 @@ class HighlightCursorCartesian {
 
   public create(target: Rect, point: null | Highcharts.Point, group: readonly Highcharts.Point[], showLine: boolean) {
     this.hide();
+    if (!group[0]?.series) {
+      return;
+    }
+
     const chart = group[0]?.series.chart;
     if (!chart) {
       return;

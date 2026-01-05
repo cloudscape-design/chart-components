@@ -6,7 +6,6 @@
 @use "../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
 
 $side-legend-max-inline-size: 30%;
-$side-legend-min-inline-size: max(20%, 150px);
 
 .root {
   position: relative;
@@ -126,7 +125,6 @@ $side-legend-min-inline-size: max(20%, 150px);
   gap: cs.$space-scaled-s;
   margin-inline-start: cs.$space-scaled-s;
   max-inline-size: $side-legend-max-inline-size;
-  min-inline-size: $side-legend-min-inline-size;
 }
 
 .application {

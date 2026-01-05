@@ -169,9 +169,8 @@ export function getChartLegendItems(
     }
   };
   const addPointItem = (point: Highcharts.Point, isSecondary: boolean) => {
-    if (point.series.type === "pie") {
+    if (point?.series?.type === "pie") {
       const pointId = getPointId(point);
-
       legendItems.push({
         id: pointId,
         name: point.name,
@@ -282,6 +281,10 @@ export function getLegendsProps(
 // There are differences in how the rectangle is computed, but in all cases it is supposed to
 // enclose the point's visual representation in the chart, with no extra offsets.
 export function getPointRect(point: Highcharts.Point): Rect {
+  if (!point.series) {
+    return { x: 0, y: 0, width: 0, height: 0 };
+  }
+
   switch (point.series.type) {
     case "column":
       return getColumnPointRect(point);
@@ -296,7 +299,7 @@ export function getPointRect(point: Highcharts.Point): Rect {
 // which includes all given points, but also stretched vertically or horizontally (in inverted charts)
 // to the entire chart's height or width.
 export function getGroupRect(points: readonly Highcharts.Point[]): Rect {
-  if (points.length === 0) {
+  if (points.length === 0 || !points[0].series) {
     return { x: 0, y: 0, width: 0, height: 0 };
   }
   const chart = points[0].series.chart;
