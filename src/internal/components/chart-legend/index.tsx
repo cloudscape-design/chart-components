@@ -23,6 +23,7 @@ import { GetLegendTooltipContentProps, LegendItem, LegendTooltipContent } from "
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
 
+const TOOLTIP_SHOW_DELAY = 300;
 const TOOLTIP_BLUR_DELAY = 50;
 const HIGHLIGHT_LOST_DELAY = 50;
 const SCROLL_DELAY = 100;
@@ -73,7 +74,7 @@ export const ChartLegend = ({
     const control = new DebouncedCall();
     return {
       showTooltip(itemId: string) {
-        control.call(() => setTooltipItemId(itemId));
+        control.call(() => setTooltipItemId(itemId), TOOLTIP_SHOW_DELAY);
       },
       hideTooltip(lock = false) {
         control.call(() => setTooltipItemId(null), TOOLTIP_BLUR_DELAY);

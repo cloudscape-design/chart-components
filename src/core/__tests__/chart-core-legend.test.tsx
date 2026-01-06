@@ -92,6 +92,7 @@ const getItem = (index: number, options?: { active?: boolean; dimmed?: boolean }
 const mouseOver = (element: HTMLElement) => element.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
 const mouseOut = (element: HTMLElement) => element.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
 const mouseLeavePause = () => new Promise((resolve) => setTimeout(resolve, 300));
+const tooltipShowPause = () => new Promise((resolve) => setTimeout(resolve, 350));
 
 describe("CoreChart: legend", () => {
   test("renders no legend when legend.enabled=false", () => {
@@ -378,12 +379,14 @@ describe("CoreChart: legend", () => {
       expect(wrapper.findLegend()!.findItemTooltip()).toBe(null);
 
       act(() => mouseOver(getItem(0).getElement()));
+      await tooltipShowPause();
 
       expect(wrapper.findLegend()!.findItemTooltip()).not.toBe(null);
       expect(wrapper.findLegend()!.findItemTooltip()!.findHeader()!.getElement().textContent).toBe("L1");
 
       act(() => mouseOut(getItem(0).getElement()));
       act(() => mouseOver(getItem(2).getElement()));
+      await tooltipShowPause();
 
       expect(wrapper.findLegend()!.findItemTooltip()).not.toBe(null);
       expect(wrapper.findLegend()!.findItemTooltip()!.findHeader()!.getElement().textContent).toBe("Line 3");
@@ -394,7 +397,7 @@ describe("CoreChart: legend", () => {
       expect(wrapper.findLegend()!.findItemTooltip()).toBe(null);
     });
 
-    test("renders legend tooltip on focus in cartesian chart", () => {
+    test("renders legend tooltip on focus in cartesian chart", async () => {
       const { wrapper } = renderChart({
         highcharts,
         options: {
@@ -412,11 +415,13 @@ describe("CoreChart: legend", () => {
       expect(wrapper.findLegend()!.findItemTooltip()).toBe(null);
 
       act(() => getItem(0).focus());
+      await tooltipShowPause();
 
       expect(wrapper.findLegend()!.findItemTooltip()).not.toBe(null);
       expect(wrapper.findLegend()!.findItemTooltip()!.findHeader()!.getElement().textContent).toBe("L1");
 
       getItem(0).keydown({ keyCode: KeyCode.right });
+      await tooltipShowPause();
 
       expect(wrapper.findLegend()!.findItemTooltip()).not.toBe(null);
       expect(wrapper.findLegend()!.findItemTooltip()!.findHeader()!.getElement().textContent).toBe("L2");
@@ -436,6 +441,7 @@ describe("CoreChart: legend", () => {
       expect(wrapper.findLegend()!.findItemTooltip()).toBe(null);
 
       act(() => mouseOver(getItem(0).getElement()));
+      await tooltipShowPause();
 
       expect(wrapper.findLegend()!.findItemTooltip()).not.toBe(null);
       expect(wrapper.findLegend()!.findItemTooltip()).not.toBe(null);
@@ -443,6 +449,7 @@ describe("CoreChart: legend", () => {
 
       act(() => mouseOut(getItem(0).getElement()));
       act(() => mouseOver(getItem(2).getElement()));
+      await tooltipShowPause();
 
       expect(wrapper.findLegend()!.findItemTooltip()).not.toBe(null);
       expect(wrapper.findLegend()!.findItemTooltip()!.findHeader()!.getElement().textContent).toBe("Pie 3");
@@ -453,7 +460,7 @@ describe("CoreChart: legend", () => {
       expect(wrapper.findLegend()!.findItemTooltip()).toBe(null);
     });
 
-    test("renders legend tooltip on focus in pie chart", () => {
+    test("renders legend tooltip on focus in pie chart", async () => {
       const { wrapper } = renderChart({
         highcharts,
         options: { series: series.filter((s) => s.type === "pie") },
@@ -467,11 +474,13 @@ describe("CoreChart: legend", () => {
       expect(wrapper.findLegend()!.findItemTooltip()).toBe(null);
 
       act(() => getItem(0).focus());
+      await tooltipShowPause();
 
       expect(wrapper.findLegend()!.findItemTooltip()).not.toBe(null);
       expect(wrapper.findLegend()!.findItemTooltip()!.findHeader()!.getElement().textContent).toBe("P1");
 
       getItem(0).keydown({ keyCode: KeyCode.right });
+      await tooltipShowPause();
 
       expect(wrapper.findLegend()!.findItemTooltip()).not.toBe(null);
       expect(wrapper.findLegend()!.findItemTooltip()!.findHeader()!.getElement().textContent).toBe("P2");
