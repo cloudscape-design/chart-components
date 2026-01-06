@@ -13,7 +13,3 @@ export type ChartSeriesMarkerType =
   | "circle";
 
 export type ChartSeriesMarkerStatus = "warning" | "default";
-
-export type ChartSeriesMarkerI18n = Partial<{
-  seriesStatusWarningAriaLabel: string;
-}>;
