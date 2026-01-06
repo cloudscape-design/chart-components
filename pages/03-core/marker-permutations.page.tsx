@@ -53,7 +53,7 @@ const permutationsForColors = [
         "triangle-down",
       ],
       color: [color],
-      markerAriaDescription: ["aria"],
+      ariaLabel: ["aria"],
       status: ["default"],
     },
   ]),

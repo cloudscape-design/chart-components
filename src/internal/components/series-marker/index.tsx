@@ -24,7 +24,7 @@ export interface ChartSeriesMarkerProps extends BaseComponentProps {
   type: ChartSeriesMarkerType;
   color: string;
   visible?: boolean;
-  status: ChartSeriesMarkerStatus;
+  status?: ChartSeriesMarkerStatus;
   ariaLabel?: string;
 }
 
@@ -32,7 +32,13 @@ function scale(size: number, value: number) {
   return `translate(${size * ((1 - value) / 2)}, ${size * ((1 - value) / 2)}) scale(${value})`;
 }
 
-export function ChartSeriesMarker({ type = "line", color, visible = true, status, ariaLabel }: ChartSeriesMarkerProps) {
+export function ChartSeriesMarker({
+  type = "line",
+  color,
+  visible = true,
+  status = "default",
+  ariaLabel,
+}: ChartSeriesMarkerProps) {
   color = visible ? color : colorTextInteractiveDisabled;
 
   // As React re-renders the components, a new ID should be created for masks.

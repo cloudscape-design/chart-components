@@ -1459,7 +1459,7 @@ minimum width, the horizontal scrollbar is automatically added.",
         "description": "Specifies the options for each item in the chart.",
         "i18nTag": undefined,
         "inlineType": {
-          "name": "(props: CoreChartProps.GetItemOptionsProps) => CoreChartProps.ChartItemOptions",
+          "name": "CoreChartProps.GetItemOptions",
           "parameters": [
             {
               "name": "props",
@@ -1472,7 +1472,7 @@ minimum width, the horizontal scrollbar is automatically added.",
         "name": "getItemOptions",
         "optional": true,
         "systemTags": undefined,
-        "type": "((props: CoreChartProps.GetItemOptionsProps) => CoreChartProps.ChartItemOptions)",
+        "type": "CoreChartProps.GetItemOptions",
         "visualRefreshTag": undefined,
       },
       {

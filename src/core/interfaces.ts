@@ -138,13 +138,11 @@ export interface CoreI18nStrings extends BaseI18nStrings {
   secondaryLegendAriaLabel?: string;
 
   /**
-   * @example "Series with status {status}".
+   * ARIA label for the marker of a series.
+   * @param status the status of the series.
+   * @note series with status "default" will not announce a label, thus excluded by this method.
    */
-  chartMarkerAriaDescriptionTemplate?: string;
-  /**
-   * @example "warning".
-   */
-  chartItemStatusWarning?: string;
+  itemMarkerAriaLabel?: (status: Exclude<ChartSeriesMarkerStatus, "default">) => string;
 }
 
 export interface WithCartesianI18nStrings {
@@ -411,7 +409,7 @@ export interface CoreChartProps
   /**
    * Specifies the options for each item in the chart.
    */
-  getItemOptions?: (props: CoreChartProps.GetItemOptionsProps) => CoreChartProps.ChartItemOptions;
+  getItemOptions?: CoreChartProps.GetItemOptions;
 }
 
 export namespace CoreChartProps {
@@ -426,6 +424,8 @@ export namespace CoreChartProps {
     highlightChartGroup(group: readonly Highcharts.Point[]): void;
     clearChartHighlight(): void;
   }
+
+  export type GetItemOptions = (props: CoreChartProps.GetItemOptionsProps) => CoreChartProps.ChartItemOptions;
 
   // The extended version of Highcharts.Options. The axes types are extended with Cloudscape value formatter.
   // We use a custom formatter because we cannot use the built-in Highcharts formatter for our tooltip.

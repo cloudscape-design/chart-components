@@ -7,7 +7,6 @@ import "highcharts/highcharts-more";
 import "highcharts/modules/solid-gauge";
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import {
-  fillDefaultsForgetItemOptions,
   getChartLegendItems,
   getLegendsProps,
   getPointColor,
@@ -80,7 +79,7 @@ describe("CoreChart: utils", () => {
             callback: (api) => (chartApi = api),
           });
 
-          const items = getChartLegendItems(chartApi!.chart, fillDefaultsForgetItemOptions(undefined));
+          const items = getChartLegendItems(chartApi!.chart, () => ({}), undefined);
           expect(items[0].isSecondary).toBe(axisOptions.opposite);
         },
       );
@@ -110,7 +109,7 @@ describe("CoreChart: utils", () => {
           callback: (api) => (chartApi = api),
         });
 
-        const items = getChartLegendItems(chartApi!.chart, fillDefaultsForgetItemOptions(undefined));
+        const items = getChartLegendItems(chartApi!.chart, () => ({}), undefined);
         expect(items).toHaveLength(2);
         expect(items[0].isSecondary).toBe(false);
         expect(items[1].isSecondary).toBe(true);
@@ -138,7 +137,7 @@ describe("CoreChart: utils", () => {
         callback: (api) => (chartApi = api),
       });
 
-      const items = getChartLegendItems(chartApi!.chart, fillDefaultsForgetItemOptions(undefined));
+      const items = getChartLegendItems(chartApi!.chart, () => ({}), undefined);
 
       if (type === "gauge" || type === "solidgauge") {
         expect(items).toHaveLength(1);
@@ -253,54 +252,6 @@ describe("CoreChart: utils", () => {
         const result = getLegendsProps(options, undefined);
         expect(result.primary).toBeDefined();
         expect(result.secondary).toBeUndefined();
-      });
-    });
-  });
-
-  describe("fillDefaultsForgetItemOptions", () => {
-    describe.each([
-      {
-        scenario: "getItemOptions is undefined",
-        getItemOptions: undefined,
-        id: "item1",
-        expected: { status: "default", markerAriaDescription: undefined },
-      },
-      {
-        scenario: "getItemOptions returns empty object",
-        getItemOptions: () => ({}),
-        id: "item1",
-        expected: { status: "default", markerAriaDescription: undefined },
-      },
-      {
-        scenario: "getItemOptions returns status",
-        getItemOptions: () => ({ status: "warning" as const }),
-        id: "item1",
-        expected: { status: "warning", markerAriaDescription: undefined },
-      },
-      {
-        scenario: "getItemOptions returns status and contains i18n",
-        getItemOptions: () => ({ status: "warning" as const }),
-        id: "item1",
-        expected: { status: "warning", markerAriaDescription: "hello hi" },
-        options: {
-          markerAriaDescriptionTemplate: "hello {status}",
-          getI18nFromStatus: (): string => "hi",
-        },
-      },
-      {
-        scenario: "getItemOptions returns status and contains i18n - getI18nFromStatus returns undefined",
-        getItemOptions: () => ({ status: "warning" as const }),
-        id: "item1",
-        expected: { status: "warning", markerAriaDescription: undefined },
-        options: {
-          markerAriaDescriptionTemplate: "hello {status}",
-          getI18nFromStatus: (): undefined => undefined,
-        },
-      },
-    ])("$scenario", ({ getItemOptions, id, expected, options }) => {
-      it("should return correct default values", () => {
-        const result = fillDefaultsForgetItemOptions(getItemOptions, options);
-        expect(result(id)).toEqual(expected);
       });
     });
   });

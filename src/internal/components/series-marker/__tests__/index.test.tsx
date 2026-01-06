@@ -10,7 +10,7 @@ describe("ChartSeriesMarker", () => {
   const defaultProps = {
     type: "line",
     color: "#0073bb",
-    markerAriaDescription: "This is a description",
+    ariaLabel: "This is a description",
   } satisfies ChartSeriesMarkerProps;
 
   describe("Warning SVG display", () => {

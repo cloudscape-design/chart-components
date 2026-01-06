@@ -9,7 +9,7 @@ import { getChartSeries } from "../internal/utils/chart-series";
 import { castArray } from "../internal/utils/utils";
 import { getFormatter } from "./formatters";
 import { ChartLabels } from "./i18n-utils";
-import { CoreChartProps, Rect } from "./interfaces";
+import { CoreChartProps, CoreI18nStrings, Rect } from "./interfaces";
 
 export interface LegendItemSpec {
   id: string;
@@ -18,8 +18,8 @@ export interface LegendItemSpec {
   color: string;
   visible: boolean;
   isSecondary: boolean;
-  status: ChartSeriesMarkerStatus;
-  markerAriaDescription?: string;
+  status?: ChartSeriesMarkerStatus;
+  markerAriaLabel?: string;
 }
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
@@ -137,7 +137,8 @@ export function getPointColor(point?: Highcharts.Point): string {
 // Highcharts legend is disabled. Instead, we use this custom method to collect legend items from the chart.
 export function getChartLegendItems(
   chart: Highcharts.Chart,
-  getItemOptions: ReturnType<typeof fillDefaultsForgetItemOptions>,
+  getItemOptions: CoreChartProps.GetItemOptions,
+  itemMarkerAriaLabel: CoreI18nStrings["itemMarkerAriaLabel"],
 ): readonly LegendItemSpec[] {
   const legendItems: LegendItemSpec[] = [];
   const isInverted = chart.inverted ?? false;
@@ -156,6 +157,7 @@ export function getChartLegendItems(
     if (series.options.showInLegend !== false) {
       const seriesId = getSeriesId(series);
       const itemProps = getItemOptions({ itemId: seriesId });
+      const status = itemProps.status;
       legendItems.push({
         id: seriesId,
         name: series.name,
@@ -163,8 +165,8 @@ export function getChartLegendItems(
         color: getSeriesColor(series),
         visible: series.visible,
         isSecondary,
-        status: itemProps.status,
-        markerAriaDescription: itemProps.markerAriaDescription,
+        status: status,
+        markerAriaLabel: status !== undefined && status !== "default" ? itemMarkerAriaLabel?.(status) : undefined,
       });
     }
   };
@@ -406,47 +408,4 @@ function getChartRect(rect: Rect, chart: Highcharts.Chart, canBeInverted: boolea
         width: rect.width,
         height: rect.height,
       };
-}
-
-export interface FillDefaultsForgetItemOptionsOptions {
-  markerAriaDescriptionTemplate?: string;
-  getI18nFromStatus?: (status: ChartSeriesMarkerStatus) => string | undefined;
-}
-
-/**
- * Creates a function that returns chart item properties with default values applied.
- *
- * This higher-order function wraps an optional `getItemOptions` function and ensures that
- * all required properties of `ChartItemOptions` are present, filling in defaults where needed.
- */
-export function fillDefaultsForgetItemOptions(
-  getItemOptions: CoreChartProps["getItemOptions"],
-  options?: FillDefaultsForgetItemOptionsOptions,
-): (props: CoreChartProps.GetItemOptionsProps) => Required<CoreChartProps.ChartItemOptions> & {
-  markerAriaDescription?: string;
-} {
-  return (props: CoreChartProps.GetItemOptionsProps) => {
-    const prevItem = getItemOptions?.(props) ?? {};
-    const status = prevItem.status ?? "default";
-    const statusI18n = options?.getI18nFromStatus?.(status);
-
-    return {
-      status,
-      markerAriaDescription:
-        statusI18n !== undefined ? options?.markerAriaDescriptionTemplate?.replace("{status}", statusI18n) : undefined,
-    };
-  };
-}
-
-export function i18nStatus(i18n: CoreChartProps["i18nStrings"]) {
-  return (status: ChartSeriesMarkerStatus) => {
-    switch (status) {
-      case "warning":
-        return i18n?.chartItemStatusWarning;
-      case "default":
-        return undefined;
-      default:
-        throw status satisfies never;
-    }
-  };
 }

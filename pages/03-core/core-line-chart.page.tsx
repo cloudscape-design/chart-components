@@ -107,8 +107,12 @@ export default function () {
         {...chartProps.core}
         highcharts={Highcharts}
         i18nStrings={{
-          chartItemStatusWarning: "warning",
-          chartMarkerAriaDescriptionTemplate: "Series with status {status}",
+          itemMarkerAriaLabel: (status) => {
+            if (status === "warning") {
+              return "Warning status";
+            }
+            return status as never;
+          },
         }}
         options={{
           lang: {

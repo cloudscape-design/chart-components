@@ -27,7 +27,6 @@ import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
 import { getFormatter } from "./formatters";
 import { useChartI18n } from "./i18n-utils";
 import { CoreChartProps } from "./interfaces";
-import { fillDefaultsForgetItemOptions, i18nStatus } from "./utils";
 import { getLegendsProps, getPointAccessibleDescription } from "./utils";
 
 import styles from "./styles.css.js";
@@ -77,10 +76,8 @@ export function InternalCoreChart({
     tooltipEnabled: tooltipOptions?.enabled !== false,
     keyboardNavigationEnabled: keyboardNavigation,
     labels,
-    getItemOptions: fillDefaultsForgetItemOptions(getItemOptions, {
-      markerAriaDescriptionTemplate: i18nStrings?.chartMarkerAriaDescriptionTemplate,
-      getI18nFromStatus: i18nStatus(i18nStrings),
-    }),
+    getItemOptions: getItemOptions ?? (() => ({})),
+    itemMarkerAriaLabel: i18nStrings?.itemMarkerAriaLabel,
   };
   const handlers = { onHighlight, onClearHighlight, onVisibleItemsChange };
   const state = { visibleItems };
