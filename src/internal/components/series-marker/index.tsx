@@ -1,8 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useId } from "react";
-
+import { useUniqueId } from "@cloudscape-design/component-toolkit/internal";
 import { BaseComponentProps } from "@cloudscape-design/components/internal/base-component";
 import { colorBorderStatusWarning, colorTextInteractiveDisabled } from "@cloudscape-design/design-tokens";
 
@@ -26,29 +25,23 @@ export interface ChartSeriesMarkerProps extends BaseComponentProps {
   color: string;
   visible?: boolean;
   status: ChartSeriesMarkerStatus;
-  markerAriaDescription?: string;
+  ariaLabel?: string;
 }
 
 function scale(size: number, value: number) {
   return `translate(${size * ((1 - value) / 2)}, ${size * ((1 - value) / 2)}) scale(${value})`;
 }
 
-export function ChartSeriesMarker({
-  type = "line",
-  color,
-  visible = true,
-  status,
-  markerAriaDescription,
-}: ChartSeriesMarkerProps) {
+export function ChartSeriesMarker({ type = "line", color, visible = true, status, ariaLabel }: ChartSeriesMarkerProps) {
   color = visible ? color : colorTextInteractiveDisabled;
 
   // As React re-renders the components, a new ID should be created for masks.
   // Not doing so will not evaluate the mask.
-  const maskId = useId();
+  const maskId = useUniqueId("chart-series-marker");
 
   return (
     <div className={styles.marker}>
-      {markerAriaDescription && <span className={styles.visuallyHidden}>{markerAriaDescription}</span>}
+      {ariaLabel && <span className={styles["visually-hidden"]}>{ariaLabel}</span>}
       <svg focusable={false} aria-hidden={true} viewBox="0 0 25 16" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <mask id={maskId}>
