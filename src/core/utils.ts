@@ -4,6 +4,7 @@
 import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
+import { ChartSeriesMarkerStatus } from "../internal/components/series-marker/interfaces";
 import { getChartSeries } from "../internal/utils/chart-series";
 import { castArray } from "../internal/utils/utils";
 import { getFormatter } from "./formatters";
@@ -17,6 +18,8 @@ export interface LegendItemSpec {
   color: string;
   visible: boolean;
   isSecondary: boolean;
+  status?: ChartSeriesMarkerStatus;
+  markerAriaLabel?: string;
 }
 
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
@@ -132,7 +135,15 @@ export function getPointColor(point?: Highcharts.Point): string {
 
 // There exists a Highcharts APIs to access legend items, but it is unfortunately not available, when
 // Highcharts legend is disabled. Instead, we use this custom method to collect legend items from the chart.
-export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendItemSpec[] {
+export function getChartLegendItems({
+  chart,
+  getItemOptions = () => ({}),
+  itemMarkerStatusAriaLabel,
+}: {
+  chart: Highcharts.Chart;
+  getItemOptions?: CoreChartProps.GetItemOptions;
+  itemMarkerStatusAriaLabel?: ChartLabels["itemMarkerLabel"];
+}): readonly LegendItemSpec[] {
   const legendItems: LegendItemSpec[] = [];
   const isInverted = chart.inverted ?? false;
   const addSeriesItem = (series: Highcharts.Series, isSecondary: boolean) => {
@@ -148,24 +159,31 @@ export function getChartLegendItems(chart: Highcharts.Chart): readonly LegendIte
     // We respect Highcharts showInLegend option to allow hiding certain series from the legend.
     // The same is not supported for pie chart segments.
     if (series.options.showInLegend !== false) {
+      const seriesId = getSeriesId(series);
+      const itemProps = getItemOptions(seriesId);
+      const status = itemProps.status;
       legendItems.push({
-        id: getSeriesId(series),
+        id: seriesId,
         name: series.name,
         markerType: getSeriesMarkerType(series),
         color: getSeriesColor(series),
         visible: series.visible,
         isSecondary,
+        status: status,
+        markerAriaLabel: itemMarkerStatusAriaLabel?.(status),
       });
     }
   };
   const addPointItem = (point: Highcharts.Point, isSecondary: boolean) => {
     if (point?.series?.type === "pie") {
+      const pointId = getPointId(point);
       legendItems.push({
-        id: getPointId(point),
+        id: pointId,
         name: point.name,
         markerType: getSeriesMarkerType(point.series),
         color: getPointColor(point),
         visible: point.visible,
+        status: getItemOptions(pointId).status,
         isSecondary,
       });
     }

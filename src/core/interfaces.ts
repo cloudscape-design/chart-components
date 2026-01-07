@@ -4,6 +4,7 @@
 import type Highcharts from "highcharts";
 
 import type * as InternalComponentTypes from "../internal/components/interfaces";
+import { ChartSeriesMarkerStatus } from "../internal/components/series-marker/interfaces";
 import { type NonCancelableEventHandler } from "../internal/events";
 
 // All charts take `highcharts` instance, that can be served statically or dynamically.
@@ -135,6 +136,11 @@ export interface CoreI18nStrings extends BaseI18nStrings {
    * this property to be explicitly provided.
    */
   secondaryLegendAriaLabel?: string;
+
+  /**
+   * ARIA label for the marker of a series. Series with status "default" will not announce a label, thus excluded by this method.
+   */
+  itemMarkerStatusAriaLabel?: (status: Exclude<ChartSeriesMarkerStatus, "default">) => string;
 }
 
 export interface WithCartesianI18nStrings {
@@ -397,7 +403,11 @@ export interface CoreChartProps
    * An object that contains all of the localized strings required by the component.
    * @i18n
    */
-  i18nStrings?: CartesianI18nStrings & PieI18nStrings & CoreI18nStrings;
+  i18nStrings?: CoreChartProps.I18nStrings;
+  /**
+   * Specifies the options for each item in the chart.
+   */
+  getItemOptions?: CoreChartProps.GetItemOptions;
 }
 
 export namespace CoreChartProps {
@@ -413,6 +423,11 @@ export namespace CoreChartProps {
     clearChartHighlight(): void;
   }
 
+  /**
+   * The item id. Can be the id of a series or a point.
+   */
+  export type GetItemOptions = (itemId: string) => CoreChartProps.ChartItemOptions;
+
   // The extended version of Highcharts.Options. The axes types are extended with Cloudscape value formatter.
   // We use a custom formatter because we cannot use the built-in Highcharts formatter for our tooltip.
   export type ChartOptions = Omit<Highcharts.Options, "xAxis" | "yAxis"> & {
@@ -421,6 +436,14 @@ export namespace CoreChartProps {
   };
   export type XAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: null | number) => string };
   export type YAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: null | number) => string };
+
+  export interface ChartItemOptions {
+    /**
+     * If specified, specifies the status of an item.
+     * An item can be a point or a series.
+     */
+    status?: ChartSeriesMarkerStatus;
+  }
 
   export interface HeaderOptions {
     content: React.ReactNode;
@@ -511,7 +534,7 @@ export namespace CoreChartProps {
     isApiCall: boolean;
   }
 
-  export type I18nStrings = CartesianI18nStrings & PieI18nStrings;
+  export type I18nStrings = CartesianI18nStrings & PieI18nStrings & CoreI18nStrings;
 }
 
 export interface CoreLegendProps {

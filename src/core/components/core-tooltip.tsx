@@ -15,7 +15,7 @@ import { useDebouncedValue } from "../../internal/utils/use-debounced-value";
 import { ChartAPI } from "../chart-api";
 import { getFormatter } from "../formatters";
 import { BaseI18nStrings, CoreChartProps } from "../interfaces";
-import { getPointColor, getSeriesColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../utils";
+import { getPointColor, getPointId, getSeriesColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../utils";
 
 import styles from "../styles.css.js";
 
@@ -166,8 +166,16 @@ function getTooltipContentCartesian(
   // By design, every point of the group has the same x value.
   const x = group[0].x;
   const chart = group[0].series.chart;
-  const getSeriesMarker = (series: Highcharts.Series) =>
-    api.renderMarker(getSeriesMarkerType(series), getSeriesColor(series), true);
+  const getSeriesMarker = (series: Highcharts.Series) => {
+    const itemOptions = api.context.settings.getItemOptions?.(getSeriesId(series));
+    return api.renderMarker({
+      type: getSeriesMarkerType(series),
+      color: getSeriesColor(series),
+      visible: true,
+      status: itemOptions?.status,
+      ariaLabel: api.context.settings.labels.itemMarkerLabel?.(itemOptions?.status),
+    });
+  };
   const matchedItems = findTooltipSeriesItems(getChartSeries(chart.series), group, seriesSorting);
   const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
     const valueFormatter = getFormatter(item.point.series.yAxis);
@@ -245,10 +253,20 @@ function getTooltipContentPie(
     items: [{ point, errorRanges: [] }],
     hideTooltip,
   };
+
+  const itemOptions = api.context.settings.getItemOptions?.(getPointId(point));
+  const markerAriaLabel = api.context.settings.labels.itemMarkerLabel?.(itemOptions?.status);
+
   return {
     header: renderers.header?.(tooltipDetails) ?? (
       <div className={styles["tooltip-default-header"]}>
-        {api.renderMarker(getSeriesMarkerType(point.series), getPointColor(point))}
+        {api.renderMarker({
+          type: getSeriesMarkerType(point.series),
+          color: getPointColor(point),
+          visible: true,
+          status: itemOptions?.status,
+          ariaLabel: markerAriaLabel,
+        })}
         <Box variant="span" fontWeight="bold">
           {point.name}
         </Box>

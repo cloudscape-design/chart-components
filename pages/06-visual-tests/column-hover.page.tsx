@@ -46,6 +46,7 @@ function Chart({ type }: { type: "single" | "stacked" | "grouped" }) {
         plotOptions: { series: { stacking: type === "stacked" ? "normal" : undefined } },
         series: [
           {
+            id: "Severe",
             name: "Severe",
             type: "column" as const,
             data: [22, 28, 25, 13, 28],
@@ -75,6 +76,9 @@ function Chart({ type }: { type: "single" | "stacked" | "grouped" }) {
         ],
         yAxis: [{ title: { text: "Error count" } }],
       }}
+      getItemOptions={(itemId) => ({
+        status: itemId === "Severe" ? "warning" : "default",
+      })}
       callback={(api) => {
         setTimeout(() => {
           if (api.chart.series) {

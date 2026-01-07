@@ -5,6 +5,7 @@ import type Highcharts from "highcharts";
 
 import { LegendItem } from "../../internal/components/interfaces";
 import { ChartSeriesMarker, ChartSeriesMarkerType } from "../../internal/components/series-marker";
+import { ChartSeriesMarkerStatus } from "../../internal/components/series-marker/interfaces";
 import { fireNonCancelableEvent } from "../../internal/events";
 import AsyncStore from "../../internal/utils/async-store";
 import { getChartSeries } from "../../internal/utils/chart-series";
@@ -83,11 +84,17 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
 
   private initLegend = () => {
     const prevState = this.get().items.reduce((map, item) => map.set(item.id, item), new Map<string, LegendItem>());
-    const itemSpecs = getChartLegendItems(this.context.chart());
-    const legendItems = itemSpecs.map(({ id, name, color, markerType, visible, isSecondary }) => {
-      const marker = this.renderMarker(markerType, color, visible);
-      return { id, name, marker, visible, isSecondary, highlighted: prevState.get(id)?.highlighted ?? false };
+    const itemSpecs = getChartLegendItems({
+      chart: this.context.chart(),
+      getItemOptions: this.context.settings.getItemOptions,
+      itemMarkerStatusAriaLabel: this.context.settings.labels.itemMarkerLabel,
     });
+    const legendItems = itemSpecs.map(
+      ({ id, name, color, markerType, visible, status, isSecondary, markerAriaLabel }) => {
+        const marker = this.renderMarker({ type: markerType, color, visible, status, ariaLabel: markerAriaLabel });
+        return { id, name, marker, visible, isSecondary, highlighted: prevState.get(id)?.highlighted ?? false };
+      },
+    );
     this.updateLegendItems(legendItems);
   };
 
@@ -109,9 +116,23 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
   // The chart markers derive from type and color and are cached to avoid unnecessary renders,
   // and allow comparing them by reference.
   private markersCache = new Map<string, React.ReactNode>();
-  public renderMarker(type: ChartSeriesMarkerType, color: string, visible = true): React.ReactNode {
-    const key = `${type}:${color}:${visible}`;
-    const marker = this.markersCache.get(key) ?? <ChartSeriesMarker type={type} color={color} visible={visible} />;
+  public renderMarker({
+    type,
+    status = "default",
+    color,
+    visible = true,
+    ariaLabel,
+  }: {
+    type: ChartSeriesMarkerType;
+    color: string;
+    visible?: boolean;
+    status?: ChartSeriesMarkerStatus;
+    ariaLabel?: string;
+  }): React.ReactNode {
+    const key = `${type}:${color}:${visible}:${status}`;
+    const marker = this.markersCache.get(key) ?? (
+      <ChartSeriesMarker type={type} color={color} visible={visible} status={status} ariaLabel={ariaLabel} />
+    );
     this.markersCache.set(key, marker);
     return marker;
   }

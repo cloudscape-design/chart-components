@@ -32,6 +32,7 @@ export namespace ChartExtraContext {
     tooltipEnabled: boolean;
     keyboardNavigationEnabled: boolean;
     labels: ChartLabels;
+    getItemOptions?: CoreChartProps.GetItemOptions;
   }
 
   export interface Handlers {

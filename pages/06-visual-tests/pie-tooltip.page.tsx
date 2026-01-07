@@ -15,7 +15,7 @@ const series: Highcharts.SeriesOptionsType[] = [
     type: "pie",
     data: [
       { name: "Running", y: 60 },
-      { name: "Failed", y: 30 },
+      { name: "Failed", y: 30, id: "Failed" },
       { name: "In-progress", y: 10 },
     ],
   },
@@ -31,6 +31,9 @@ export default function () {
         options={{
           series: series,
         }}
+        getItemOptions={(itemId) => ({
+          status: itemId === "Failed" ? "warning" : "default",
+        })}
         chartHeight={400}
         getTooltipContent={() => ({
           footer() {

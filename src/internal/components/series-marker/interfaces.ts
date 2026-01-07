@@ -11,3 +11,5 @@ export type ChartSeriesMarkerType =
   | "triangle"
   | "triangle-down"
   | "circle";
+
+export type ChartSeriesMarkerStatus = "warning" | "default";
