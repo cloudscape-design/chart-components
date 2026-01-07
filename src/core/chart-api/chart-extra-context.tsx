@@ -63,11 +63,7 @@ export function createChartContext(): ChartExtraContext {
       legendEnabled: false,
       tooltipEnabled: false,
       keyboardNavigationEnabled: false,
-      labels: {
-        itemMarkerLabel() {
-          return undefined;
-        },
-      },
+      labels: {},
     },
     handlers: {},
     state: {},

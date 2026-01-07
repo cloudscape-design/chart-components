@@ -173,7 +173,7 @@ function getTooltipContentCartesian(
       color: getSeriesColor(series),
       visible: true,
       status: itemOptions?.status,
-      ariaLabel: api.context.settings.labels.itemMarkerLabel(itemOptions?.status),
+      ariaLabel: api.context.settings.labels.itemMarkerLabel?.(itemOptions?.status),
     });
   };
   const matchedItems = findTooltipSeriesItems(getChartSeries(chart.series), group, seriesSorting);
@@ -255,7 +255,7 @@ function getTooltipContentPie(
   };
 
   const itemOptions = api.context.settings.getItemOptions?.(getPointId(point));
-  const markerAriaLabel = api.context.settings.labels.itemMarkerLabel(itemOptions?.status);
+  const markerAriaLabel = api.context.settings.labels.itemMarkerLabel?.(itemOptions?.status);
 
   return {
     header: renderers.header?.(tooltipDetails) ?? (

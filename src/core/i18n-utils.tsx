@@ -13,7 +13,7 @@ export interface ChartLabels {
   chartXAxisLabel?: string;
   chartYAxisLabel?: string;
   chartSegmentLabel?: string;
-  itemMarkerLabel: (status?: ChartSeriesMarkerStatus) => string | undefined;
+  itemMarkerLabel?: (status?: ChartSeriesMarkerStatus) => string | undefined;
 }
 
 export function useChartI18n({
