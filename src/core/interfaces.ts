@@ -91,6 +91,12 @@ export interface BaseChartOptions {
    * * `additionalFilters` (optional, slot) - A slot for custom chart filters at the top of the chart.
    */
   filter?: BaseFilterOptions;
+
+  /**
+   * The locale to be used for formatting numbers, dates, etc. Defaults to the browser locale.
+   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl#Locale_identification_and_negotiation
+   */
+  locale?: string;
 }
 
 export interface BaseLegendOptions {
@@ -320,6 +326,7 @@ export interface CoreChartProps
       | "ariaDescription"
       | "filter"
       | "noData"
+      | "locale"
     >,
     CoreCartesianOptions {
   /**

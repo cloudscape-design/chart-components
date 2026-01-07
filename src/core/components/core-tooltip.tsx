@@ -46,12 +46,14 @@ export function ChartTooltip({
   getTooltipContent: getTooltipContentOverrides,
   api,
   i18nStrings,
+  locale,
   debounce = false,
   seriesSorting = "as-added",
 }: CoreChartProps.TooltipOptions & {
   i18nStrings?: BaseI18nStrings;
   getTooltipContent?: CoreChartProps.GetTooltipContent;
   api: ChartAPI;
+  locale: string;
 }) {
   const [expandedSeries, setExpandedSeries] = useState<ExpandedSeriesState>({});
   const tooltip = useSelector(api.tooltipStore, (s) => s);
@@ -86,6 +88,7 @@ export function ChartTooltip({
     hideTooltip: () => {
       api.hideTooltip();
     },
+    locale,
   });
   if (!content) {
     return null;
@@ -135,6 +138,7 @@ function getTooltipContent(
     renderers?: CoreChartProps.TooltipContentRenderer;
     hideTooltip: () => void;
     seriesSorting: NonNullable<CoreChartProps.TooltipOptions["seriesSorting"]>;
+    locale: string;
   } & ExpandedSeriesStateProps,
 ): null | RenderedTooltipContent {
   if (props.point && props.point.series.type === "pie") {
@@ -156,8 +160,10 @@ function getTooltipContentCartesian(
     setExpandedSeries,
     hideTooltip,
     seriesSorting,
+    locale,
   }: CoreChartProps.GetTooltipContentProps & {
     renderers?: CoreChartProps.TooltipContentRenderer;
+    locale: string;
     hideTooltip: () => void;
     seriesSorting: NonNullable<CoreChartProps.TooltipOptions["seriesSorting"]>;
   } & ExpandedSeriesStateProps,
@@ -170,7 +176,7 @@ function getTooltipContentCartesian(
     api.renderMarker(getSeriesMarkerType(series), getSeriesColor(series), true);
   const matchedItems = findTooltipSeriesItems(getChartSeries(chart.series), group, seriesSorting);
   const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
-    const valueFormatter = getFormatter(item.point.series.yAxis);
+    const valueFormatter = getFormatter(locale, item.point.series.yAxis);
     const itemY = isXThreshold(item.point.series) ? null : (item.point.y ?? null);
     const customContent = renderers.point
       ? renderers.point({
@@ -203,7 +209,7 @@ function getTooltipContentCartesian(
     };
   });
   // We only support cartesian charts with a single x axis.
-  const titleFormatter = getFormatter(chart.xAxis[0]);
+  const titleFormatter = getFormatter(locale, chart.xAxis[0]);
   const slotRenderProps: CoreChartProps.TooltipSlotProps = {
     x,
     items: matchedItems,

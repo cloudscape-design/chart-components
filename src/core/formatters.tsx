@@ -7,7 +7,7 @@ import { CoreChartProps } from "./interfaces";
 
 // Takes value formatter from the axis options (InternalXAxisOptions.valueFormatter or InternalYAxisOptions.valueFormatter),
 // or provides a default formatter for numeric and datetime values.
-export function getFormatter(axis?: Highcharts.Axis) {
+export function getFormatter(locale: string, axis?: Highcharts.Axis) {
   return (value: unknown): string => {
     if (typeof value === "string") {
       return value;
@@ -28,13 +28,13 @@ export function getFormatter(axis?: Highcharts.Axis) {
     if (axis.options.type === "datetime") {
       const extremes = axis.getExtremes();
       const formatter = getDefaultDatetimeFormatter([extremes.dataMin, extremes.dataMax]);
-      return formatter(value);
+      return formatter(value, locale);
     }
-    return numberFormatter(value);
+    return numberFormatter(value, locale);
   };
 }
 
-function getDefaultDatetimeFormatter(extremes: [number, number]): (value: number) => string {
+function getDefaultDatetimeFormatter(extremes: [number, number]): (value: number, locale: string) => string {
   const second = 1000;
   const minute = 60 * second;
   const hour = 60 * minute;
@@ -59,51 +59,56 @@ function getDefaultDatetimeFormatter(extremes: [number, number]): (value: number
   return secondFormatter;
 }
 
-function yearFormatter(value: number) {
-  return new Date(value).toLocaleDateString("en-US", {
+function yearFormatter(value: number, locale: string) {
+  return new Date(value).toLocaleDateString(locale, {
     year: "numeric",
   });
 }
 
-function monthFormatter(value: number) {
-  return new Date(value).toLocaleDateString("en-US", {
+function monthFormatter(value: number, locale: string) {
+  return new Date(value).toLocaleDateString(locale, {
     year: "numeric",
     month: "short",
   });
 }
 
-function dayFormatter(value: number) {
-  return new Date(value).toLocaleDateString("en-US", {
+function dayFormatter(value: number, locale: string) {
+  return new Date(value).toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
   });
 }
 
-function hourFormatter(value: number) {
-  return new Date(value).toLocaleDateString("en-US", {
+function hourFormatter(value: number, locale: string) {
+  return new Date(value).toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
     hour: "numeric",
   });
 }
 
-function minuteFormatter(value: number) {
-  return new Date(value).toLocaleDateString("en-US", {
+function minuteFormatter(value: number, locale: string) {
+  return new Date(value).toLocaleDateString(locale, {
     hour: "numeric",
     minute: "numeric",
   });
 }
 
-function secondFormatter(value: number) {
-  return new Date(value).toLocaleDateString("en-US", {
+function secondFormatter(value: number, locale: string) {
+  return new Date(value).toLocaleDateString(locale, {
     hour: "numeric",
     minute: "numeric",
     second: "numeric",
   });
 }
 
-function numberFormatter(value: number): string {
-  const format = (num: number) => parseFloat(num.toFixed(2)).toString(); // trims unnecessary decimals
+/**
+ * @see https://www.unicode.org/cldr/cldr-aux/charts/29/verify/numbers/en.html
+ */
+export function numberFormatter(value: number | null, locale: string): string {
+  if (value === null) {
+    return "";
+  }
 
   const absValue = Math.abs(value);
 
@@ -111,21 +116,18 @@ function numberFormatter(value: number): string {
     return "0";
   }
 
-  if (absValue < 0.01) {
-    return value.toExponential(0);
+  // Use scientific notation for very small numbers
+  if (absValue < 10e-3) {
+    return new Intl.NumberFormat(locale, {
+      notation: "scientific",
+      maximumFractionDigits: 2,
+    }).format(value);
   }
 
-  if (absValue >= 1e9) {
-    return format(value / 1e9) + "G";
-  }
-
-  if (absValue >= 1e6) {
-    return format(value / 1e6) + "M";
-  }
-
-  if (absValue >= 1e3) {
-    return format(value / 1e3) + "K";
-  }
-
-  return format(value);
+  // Use compact notation for normal range
+  return new Intl.NumberFormat(locale, {
+    notation: "compact",
+    compactDisplay: "short",
+    maximumFractionDigits: 2,
+  }).format(value);
 }

@@ -130,7 +130,7 @@ describe("CoreChart: axes", () => {
       expect(formatter.call(mockAxisContext({ value: 1 }))).toBe("1");
       expect(formatter.call(mockAxisContext({ value: 1_000 }))).toBe("1K");
       expect(formatter.call(mockAxisContext({ value: 1_000_000 }))).toBe("1M");
-      expect(formatter.call(mockAxisContext({ value: 1_000_000_000 }))).toBe("1G");
+      expect(formatter.call(mockAxisContext({ value: 1_000_000_000 }))).toBe("1B");
     });
   });
 
@@ -140,7 +140,7 @@ describe("CoreChart: axes", () => {
       expect(formatter.call(mockAxisContext({ value: 2.0 }))).toBe("2");
       expect(formatter.call(mockAxisContext({ value: 2.03 }))).toBe("2.03");
       expect(formatter.call(mockAxisContext({ value: 0.03 }))).toBe("0.03");
-      expect(formatter.call(mockAxisContext({ value: 0.003 }))).toBe("3e-3");
+      expect(formatter.call(mockAxisContext({ value: 0.003 }))).toBe("3E-3");
     });
   });
 

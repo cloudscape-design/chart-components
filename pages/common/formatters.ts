@@ -17,12 +17,13 @@ export function dateFormatter(value: null | number) {
     .join("\n");
 }
 
-export function numberFormatter(value: null | number) {
+/**
+ * @see https://www.unicode.org/cldr/cldr-aux/charts/29/verify/numbers/en.html
+ */
+export function numberFormatter(value: number | null, locale: string = "en-US"): string {
   if (value === null) {
     return "";
   }
-
-  const format = (num: number) => parseFloat(num.toFixed(2)).toString(); // trims unnecessary decimals
 
   const absValue = Math.abs(value);
 
@@ -30,23 +31,20 @@ export function numberFormatter(value: null | number) {
     return "0";
   }
 
-  if (absValue < 0.01) {
-    return value.toExponential(0);
+  // Use scientific notation for very small numbers
+  if (absValue < 1e-9) {
+    return new Intl.NumberFormat(locale, {
+      notation: "scientific",
+      maximumFractionDigits: 2,
+    }).format(value);
   }
 
-  if (absValue >= 1e9) {
-    return format(value / 1e9) + "G";
-  }
-
-  if (absValue >= 1e6) {
-    return format(value / 1e6) + "M";
-  }
-
-  if (absValue >= 1e3) {
-    return format(value / 1e3) + "K";
-  }
-
-  return format(value);
+  // Use compact notation for normal range
+  return new Intl.NumberFormat(locale, {
+    notation: "compact",
+    compactDisplay: "short",
+    maximumFractionDigits: 2,
+  }).format(value);
 }
 
 export function moneyFormatter(value: null | number) {
