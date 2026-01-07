@@ -7,7 +7,7 @@ import type Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 
 import { getIsRtl, isDevelopment, useMergeRefs, useUniqueId } from "@cloudscape-design/component-toolkit/internal";
-import { normalizeLocale } from "@cloudscape-design/components/internal/utils/locale";
+import { normalizeLocale } from "@cloudscape-design/component-toolkit/internal/locale";
 import Spinner from "@cloudscape-design/components/spinner";
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";

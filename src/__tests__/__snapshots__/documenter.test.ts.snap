@@ -233,6 +233,12 @@ This property corresponds to [chart.inverted](https://api.highcharts.com/highcha
       "type": "BaseLegendOptions",
     },
     {
+      "description": "The locale to be used for formatting numbers, dates, etc. Defaults to the browser locale.",
+      "name": "locale",
+      "optional": true,
+      "type": "string",
+    },
+    {
       "description": "Defines options to represent empty, no-match, loading, and error state of the chart, including:
 * \`statusType\` (optional, "finished" | "loading" | "error") - Specifies the current status of loading data.
 * \`empty\` (optional, ReactNode) - Content displayed when the chart data is empty.
@@ -878,6 +884,12 @@ Supported Highcharts versions: 12.",
       "name": "legend",
       "optional": true,
       "type": "BaseLegendOptions",
+    },
+    {
+      "description": "The locale to be used for formatting numbers, dates, etc. Defaults to the browser locale.",
+      "name": "locale",
+      "optional": true,
+      "type": "string",
     },
     {
       "description": "Defines options to represent empty, no-match, loading, and error state of the chart, including:
@@ -1645,6 +1657,19 @@ Supported Highcharts versions: 12.",
         "optional": true,
         "systemTags": undefined,
         "type": "CoreChartProps.LegendOptions",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "The locale to be used for formatting numbers, dates, etc. Defaults to the browser locale.",
+        "i18nTag": undefined,
+        "inlineType": undefined,
+        "name": "locale",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "string",
         "visualRefreshTag": undefined,
       },
       {

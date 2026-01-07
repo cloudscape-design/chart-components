@@ -117,7 +117,7 @@ export function numberFormatter(value: number | null, locale: string): string {
   }
 
   // Use scientific notation for very small numbers
-  if (absValue < 1e-9) {
+  if (absValue < 10e-3) {
     return new Intl.NumberFormat(locale, {
       notation: "scientific",
       maximumFractionDigits: 2,
