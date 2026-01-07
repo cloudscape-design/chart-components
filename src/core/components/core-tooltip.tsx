@@ -168,13 +168,13 @@ function getTooltipContentCartesian(
   const chart = group[0].series.chart;
   const getSeriesMarker = (series: Highcharts.Series) => {
     const { status } = api.context.settings.getItemOptions({ itemId: getSeriesId(series) });
-    return api.renderMarker(
-      getSeriesMarkerType(series),
-      getSeriesColor(series),
-      true,
+    return api.renderMarker({
+      type: getSeriesMarkerType(series),
+      color: getSeriesColor(series),
+      visible: true,
       status,
-      status !== undefined && status !== "default" ? api.context.settings.itemMarkerAriaLabel?.(status) : undefined,
-    );
+      ariaLabel: api.context.settings.labels.itemMarkerLabel(status),
+    });
   };
   const matchedItems = findTooltipSeriesItems(getChartSeries(chart.series), group, seriesSorting);
   const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
@@ -193,7 +193,6 @@ function getTooltipContentCartesian(
       subItems: customContent?.subItems,
       expandableId: customContent?.expandable ? item.point.series.name : undefined,
       highlighted: item.point.x === point?.x && item.point.y === point?.y,
-      itemAriaLabel: "awd",
       description:
         customContent?.description === undefined && item.errorRanges.length ? (
           <>
@@ -256,13 +255,18 @@ function getTooltipContentPie(
   };
 
   const { status } = api.context.settings.getItemOptions({ itemId: getPointId(point) });
-  const markerAriaLabel =
-    status !== undefined && status !== "default" ? api.context.settings.itemMarkerAriaLabel?.(status) : undefined;
+  const markerAriaLabel = api.context.settings.labels.itemMarkerLabel(status);
 
   return {
     header: renderers.header?.(tooltipDetails) ?? (
       <div className={styles["tooltip-default-header"]}>
-        {api.renderMarker(getSeriesMarkerType(point.series), getPointColor(point), true, status, markerAriaLabel)}
+        {api.renderMarker({
+          type: getSeriesMarkerType(point.series),
+          color: getPointColor(point),
+          visible: true,
+          status,
+          ariaLabel: markerAriaLabel,
+        })}
         <Box variant="span" fontWeight="bold">
           {point.name}
         </Box>

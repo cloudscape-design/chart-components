@@ -77,7 +77,6 @@ export function InternalCoreChart({
     keyboardNavigationEnabled: keyboardNavigation,
     labels,
     getItemOptions: getItemOptions ?? (() => ({})),
-    itemMarkerAriaLabel: i18nStrings?.itemMarkerAriaLabel,
   };
   const handlers = { onHighlight, onClearHighlight, onVisibleItemsChange };
   const state = { visibleItems };

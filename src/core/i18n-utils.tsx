@@ -3,6 +3,7 @@
 
 import { useInternalI18n } from "@cloudscape-design/components/internal/do-not-use/i18n";
 
+import { ChartSeriesMarkerStatus } from "../internal/components/series-marker/interfaces";
 import { CoreChartProps } from "./interfaces";
 
 export interface ChartLabels {
@@ -12,6 +13,7 @@ export interface ChartLabels {
   chartXAxisLabel?: string;
   chartYAxisLabel?: string;
   chartSegmentLabel?: string;
+  itemMarkerLabel: (status?: ChartSeriesMarkerStatus) => string | undefined;
 }
 
 export function useChartI18n({
@@ -34,5 +36,13 @@ export function useChartI18n({
     chartXAxisLabel: i18n("i18nStrings.xAxisAriaRoleDescription", i18nStrings?.xAxisRoleDescription),
     chartYAxisLabel: i18n("i18nStrings.yAxisAriaRoleDescription", i18nStrings?.yAxisRoleDescription),
     chartSegmentLabel: i18nPie("i18nStrings.segmentAriaRoleDescription", i18nStrings?.segmentRoleDescription),
+    itemMarkerLabel: (status = "default") => {
+      switch (status) {
+        case "warning":
+          return i18nStrings?.itemMarkerStatusAriaLabel?.(status);
+        default:
+          return undefined;
+      }
+    },
   };
 }

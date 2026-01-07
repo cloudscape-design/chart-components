@@ -105,21 +105,21 @@ const initialLegendItems: readonly LegendItem[] = [
   {
     id: "CPU Utilization",
     name: "CPU Utilization",
-    marker: <ChartSeriesMarker status={"default"} color={colors[0]} type={"square"} visible={true} />,
+    marker: <ChartSeriesMarker color={colors[0]} type={"square"} visible={true} />,
     visible: true,
     highlighted: false,
   },
   {
     id: "Memory Usage",
     name: "Memory Usage",
-    marker: <ChartSeriesMarker status={"default"} color={colors[1]} type={"square"} visible={true} />,
+    marker: <ChartSeriesMarker color={colors[1]} type={"square"} visible={true} />,
     visible: true,
     highlighted: false,
   },
   {
     id: "Storage Capacity",
     name: "Storage Capacity",
-    marker: <ChartSeriesMarker status={"default"} color={colors[2]} type={"square"} visible={true} />,
+    marker: <ChartSeriesMarker color={colors[2]} type={"square"} visible={true} />,
     visible: true,
     highlighted: false,
   },
@@ -180,14 +180,7 @@ export default function () {
           ...item,
           visible,
           highlighted: visible,
-          marker: (
-            <ChartSeriesMarker
-              status={"default"}
-              color={colors[index % colors.length]}
-              type={"square"}
-              visible={visible}
-            />
-          ),
+          marker: <ChartSeriesMarker color={colors[index % colors.length]} type={"square"} visible={visible} />,
         };
       });
     });

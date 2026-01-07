@@ -9,7 +9,7 @@ import { getChartSeries } from "../internal/utils/chart-series";
 import { castArray } from "../internal/utils/utils";
 import { getFormatter } from "./formatters";
 import { ChartLabels } from "./i18n-utils";
-import { CoreChartProps, CoreI18nStrings, Rect } from "./interfaces";
+import { CoreChartProps, Rect } from "./interfaces";
 
 export interface LegendItemSpec {
   id: string;
@@ -135,11 +135,15 @@ export function getPointColor(point?: Highcharts.Point): string {
 
 // There exists a Highcharts APIs to access legend items, but it is unfortunately not available, when
 // Highcharts legend is disabled. Instead, we use this custom method to collect legend items from the chart.
-export function getChartLegendItems(
-  chart: Highcharts.Chart,
-  getItemOptions: CoreChartProps.GetItemOptions,
-  itemMarkerAriaLabel: CoreI18nStrings["itemMarkerAriaLabel"],
-): readonly LegendItemSpec[] {
+export function getChartLegendItems({
+  chart,
+  getItemOptions = () => ({}),
+  itemMarkerStatusAriaLabel,
+}: {
+  chart: Highcharts.Chart;
+  getItemOptions?: CoreChartProps.GetItemOptions;
+  itemMarkerStatusAriaLabel?: ChartLabels["itemMarkerLabel"];
+}): readonly LegendItemSpec[] {
   const legendItems: LegendItemSpec[] = [];
   const isInverted = chart.inverted ?? false;
   const addSeriesItem = (series: Highcharts.Series, isSecondary: boolean) => {
@@ -166,7 +170,7 @@ export function getChartLegendItems(
         visible: series.visible,
         isSecondary,
         status: status,
-        markerAriaLabel: status !== undefined && status !== "default" ? itemMarkerAriaLabel?.(status) : undefined,
+        markerAriaLabel: itemMarkerStatusAriaLabel?.(status),
       });
     }
   };

@@ -1566,7 +1566,7 @@ Supported Highcharts versions: 12.",
         "description": "An object that contains all of the localized strings required by the component.",
         "i18nTag": true,
         "inlineType": {
-          "name": "CartesianI18nStrings & PieI18nStrings & CoreI18nStrings",
+          "name": "CoreChartProps.I18nStrings",
           "type": "union",
           "valueDescriptions": undefined,
           "values": [
@@ -1578,7 +1578,7 @@ Supported Highcharts versions: 12.",
         "name": "i18nStrings",
         "optional": true,
         "systemTags": undefined,
-        "type": "CartesianI18nStrings & PieI18nStrings & CoreI18nStrings",
+        "type": "CoreChartProps.I18nStrings",
         "visualRefreshTag": undefined,
       },
       {

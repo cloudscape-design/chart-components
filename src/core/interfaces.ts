@@ -138,11 +138,9 @@ export interface CoreI18nStrings extends BaseI18nStrings {
   secondaryLegendAriaLabel?: string;
 
   /**
-   * ARIA label for the marker of a series.
-   * @param status the status of the series.
-   * @note series with status "default" will not announce a label, thus excluded by this method.
+   * ARIA label for the marker of a series. Series with status "default" will not announce a label, thus excluded by this method.
    */
-  itemMarkerAriaLabel?: (status: Exclude<ChartSeriesMarkerStatus, "default">) => string;
+  itemMarkerStatusAriaLabel?: (status: Exclude<ChartSeriesMarkerStatus, "default">) => string;
 }
 
 export interface WithCartesianI18nStrings {
@@ -405,7 +403,7 @@ export interface CoreChartProps
    * An object that contains all of the localized strings required by the component.
    * @i18n
    */
-  i18nStrings?: CartesianI18nStrings & PieI18nStrings & CoreI18nStrings;
+  i18nStrings?: CoreChartProps.I18nStrings;
   /**
    * Specifies the options for each item in the chart.
    */
@@ -541,7 +539,7 @@ export namespace CoreChartProps {
     isApiCall: boolean;
   }
 
-  export type I18nStrings = CartesianI18nStrings & PieI18nStrings;
+  export type I18nStrings = CartesianI18nStrings & PieI18nStrings & CoreI18nStrings;
 }
 
 export interface CoreLegendProps {

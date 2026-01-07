@@ -84,14 +84,14 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
 
   private initLegend = () => {
     const prevState = this.get().items.reduce((map, item) => map.set(item.id, item), new Map<string, LegendItem>());
-    const itemSpecs = getChartLegendItems(
-      this.context.chart(),
-      this.context.settings.getItemOptions,
-      this.context.settings.itemMarkerAriaLabel,
-    );
+    const itemSpecs = getChartLegendItems({
+      chart: this.context.chart(),
+      getItemOptions: this.context.settings.getItemOptions,
+      itemMarkerStatusAriaLabel: this.context.settings.labels.itemMarkerLabel,
+    });
     const legendItems = itemSpecs.map(
       ({ id, name, color, markerType, visible, status, isSecondary, markerAriaLabel }) => {
-        const marker = this.renderMarker(markerType, color, visible, status, markerAriaLabel);
+        const marker = this.renderMarker({ type: markerType, color, visible, status, ariaLabel: markerAriaLabel });
         return { id, name, marker, visible, isSecondary, highlighted: prevState.get(id)?.highlighted ?? false };
       },
     );
@@ -116,13 +116,19 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
   // The chart markers derive from type and color and are cached to avoid unnecessary renders,
   // and allow comparing them by reference.
   private markersCache = new Map<string, React.ReactNode>();
-  public renderMarker(
-    type: ChartSeriesMarkerType,
-    color: string,
+  public renderMarker({
+    type,
+    status,
+    color,
     visible = true,
-    status?: ChartSeriesMarkerStatus,
-    ariaLabel?: string,
-  ): React.ReactNode {
+    ariaLabel,
+  }: {
+    type: ChartSeriesMarkerType;
+    color: string;
+    visible?: boolean;
+    status?: ChartSeriesMarkerStatus;
+    ariaLabel?: string;
+  }): React.ReactNode {
     const key = `${type}:${color}:${visible}:${status}`;
     const marker = this.markersCache.get(key) ?? (
       <ChartSeriesMarker type={type} color={color} visible={visible} status={status} ariaLabel={ariaLabel} />

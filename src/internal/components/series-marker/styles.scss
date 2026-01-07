@@ -7,6 +7,7 @@
 @use "../../../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
 
 $marker-size: 16px;
+$marker-inline-size: 25px; // marker-inline-size is greater than marker-size, to have space for the (potential) status marker.
 $marker-margin-top: cs.$space-static-xxxs;
 $marker-margin-right: cs.$space-static-xxs;
 
@@ -17,7 +18,7 @@ $marker-margin-right: cs.$space-static-xxs;
   border-start-end-radius: 2px;
   border-end-start-radius: 2px;
   border-end-end-radius: 2px;
-  inline-size: 25px;
+  inline-size: $marker-inline-size;
   block-size: $marker-size;
   flex-shrink: 0;
   cursor: inherit;

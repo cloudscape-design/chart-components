@@ -113,7 +113,7 @@ export default function LegendEventsDemo() {
   const legendItems: LegendItem[] = series.map((s) => ({
     id: s.name,
     name: s.name,
-    marker: <ChartSeriesMarker color={s.color} type="line" status="default" />,
+    marker: <ChartSeriesMarker color={s.color} type="line" />,
     visible: visibleItems.has(s.name),
     highlighted: highlightedItem === s.name,
   }));

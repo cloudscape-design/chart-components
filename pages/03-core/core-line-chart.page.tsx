@@ -107,7 +107,7 @@ export default function () {
         {...chartProps.core}
         highcharts={Highcharts}
         i18nStrings={{
-          itemMarkerAriaLabel: (status) => {
+          itemMarkerStatusAriaLabel: (status) => {
             if (status === "warning") {
               return "Warning status";
             }

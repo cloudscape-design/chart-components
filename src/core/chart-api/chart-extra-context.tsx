@@ -7,7 +7,7 @@ import { NonCancelableEventHandler } from "../../internal/events";
 import { getChartSeries } from "../../internal/utils/chart-series";
 import { getSeriesData } from "../../internal/utils/series-data";
 import { ChartLabels } from "../i18n-utils";
-import { CoreChartProps, CoreI18nStrings, Rect } from "../interfaces";
+import { CoreChartProps, Rect } from "../interfaces";
 import { getGroupRect, isSeriesStacked } from "../utils";
 
 // Chart API context is used for dependency injection for chart utilities.
@@ -33,7 +33,6 @@ export namespace ChartExtraContext {
     keyboardNavigationEnabled: boolean;
     labels: ChartLabels;
     getItemOptions: CoreChartProps.GetItemOptions;
-    itemMarkerAriaLabel: CoreI18nStrings["itemMarkerAriaLabel"];
   }
 
   export interface Handlers {
@@ -64,9 +63,12 @@ export function createChartContext(): ChartExtraContext {
       legendEnabled: false,
       tooltipEnabled: false,
       keyboardNavigationEnabled: false,
-      labels: {},
+      labels: {
+        itemMarkerLabel() {
+          return undefined;
+        },
+      },
       getItemOptions: () => ({}),
-      itemMarkerAriaLabel: () => "",
     },
     handlers: {},
     state: {},

@@ -79,7 +79,7 @@ describe("CoreChart: utils", () => {
             callback: (api) => (chartApi = api),
           });
 
-          const items = getChartLegendItems(chartApi!.chart, () => ({}), undefined);
+          const items = getChartLegendItems({ chart: chartApi!.chart });
           expect(items[0].isSecondary).toBe(axisOptions.opposite);
         },
       );
@@ -109,7 +109,7 @@ describe("CoreChart: utils", () => {
           callback: (api) => (chartApi = api),
         });
 
-        const items = getChartLegendItems(chartApi!.chart, () => ({}), undefined);
+        const items = getChartLegendItems({ chart: chartApi!.chart });
         expect(items).toHaveLength(2);
         expect(items[0].isSecondary).toBe(false);
         expect(items[1].isSecondary).toBe(true);
@@ -137,7 +137,7 @@ describe("CoreChart: utils", () => {
         callback: (api) => (chartApi = api),
       });
 
-      const items = getChartLegendItems(chartApi!.chart, () => ({}), undefined);
+      const items = getChartLegendItems({ chart: chartApi!.chart });
 
       if (type === "gauge" || type === "solidgauge") {
         expect(items).toHaveLength(1);
