@@ -135,9 +135,9 @@ describe("CoreChart: visibility", () => {
       expect.objectContaining({
         detail: {
           items: [
-            { id: "L1", name: "L1", marker: expect.anything(), visible: false, highlighted: false },
-            { id: "L2", name: "L2", marker: expect.anything(), visible: true, highlighted: false },
-            { id: "L3", name: "L3", marker: expect.anything(), visible: true, highlighted: false },
+            { id: "L1", name: "L1", marker: expect.anything(), visible: false, highlighted: false, isSecondary: false },
+            { id: "L2", name: "L2", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
+            { id: "L3", name: "L3", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
           ],
           isApiCall: false,
         },
@@ -152,9 +152,9 @@ describe("CoreChart: visibility", () => {
       expect.objectContaining({
         detail: {
           items: [
-            { id: "L1", name: "L1", marker: expect.anything(), visible: false, highlighted: false },
-            { id: "L2", name: "L2", marker: expect.anything(), visible: true, highlighted: false },
-            { id: "L3", name: "L3", marker: expect.anything(), visible: false, highlighted: false },
+            { id: "L1", name: "L1", marker: expect.anything(), visible: false, highlighted: false, isSecondary: false },
+            { id: "L2", name: "L2", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
+            { id: "L3", name: "L3", marker: expect.anything(), visible: false, highlighted: false, isSecondary: false },
           ],
           isApiCall: false,
         },
@@ -169,9 +169,9 @@ describe("CoreChart: visibility", () => {
       expect.objectContaining({
         detail: {
           items: [
-            { id: "L1", name: "L1", marker: expect.anything(), visible: true, highlighted: false },
-            { id: "L2", name: "L2", marker: expect.anything(), visible: true, highlighted: false },
-            { id: "L3", name: "L3", marker: expect.anything(), visible: true, highlighted: false },
+            { id: "L1", name: "L1", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
+            { id: "L2", name: "L2", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
+            { id: "L3", name: "L3", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
           ],
           isApiCall: false,
         },
@@ -234,8 +234,8 @@ describe("CoreChart: visibility", () => {
       expect.objectContaining({
         detail: {
           items: [
-            { id: "1", name: "Line", marker: expect.anything(), visible: true, highlighted: false },
-            { id: "2", name: "Line", marker: expect.anything(), visible: true, highlighted: false },
+            { id: "1", name: "Line", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
+            { id: "2", name: "Line", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
           ],
           isApiCall: false,
         },
@@ -248,8 +248,22 @@ describe("CoreChart: visibility", () => {
       expect.objectContaining({
         detail: {
           items: [
-            { id: "1", name: "Line", marker: expect.anything(), visible: false, highlighted: false },
-            { id: "2", name: "Line", marker: expect.anything(), visible: false, highlighted: false },
+            {
+              id: "1",
+              name: "Line",
+              marker: expect.anything(),
+              visible: false,
+              highlighted: false,
+              isSecondary: false,
+            },
+            {
+              id: "2",
+              name: "Line",
+              marker: expect.anything(),
+              visible: false,
+              highlighted: false,
+              isSecondary: false,
+            },
           ],
           isApiCall: false,
         },
@@ -292,9 +306,9 @@ describe("CoreChart: visibility", () => {
       expect.objectContaining({
         detail: {
           items: [
-            { id: "A", name: "A", marker: expect.anything(), visible: true, highlighted: false },
-            { id: "B", name: "B", marker: expect.anything(), visible: false, highlighted: false },
-            { id: "C", name: "C", marker: expect.anything(), visible: true, highlighted: false },
+            { id: "A", name: "A", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
+            { id: "B", name: "B", marker: expect.anything(), visible: false, highlighted: false, isSecondary: false },
+            { id: "C", name: "C", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
           ],
           isApiCall: false,
         },
@@ -309,9 +323,9 @@ describe("CoreChart: visibility", () => {
       expect.objectContaining({
         detail: {
           items: [
-            { id: "A", name: "A", marker: expect.anything(), visible: true, highlighted: false },
-            { id: "B", name: "B", marker: expect.anything(), visible: false, highlighted: false },
-            { id: "C", name: "C", marker: expect.anything(), visible: false, highlighted: false },
+            { id: "A", name: "A", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
+            { id: "B", name: "B", marker: expect.anything(), visible: false, highlighted: false, isSecondary: false },
+            { id: "C", name: "C", marker: expect.anything(), visible: false, highlighted: false, isSecondary: false },
           ],
           isApiCall: false,
         },
@@ -326,9 +340,9 @@ describe("CoreChart: visibility", () => {
       expect.objectContaining({
         detail: {
           items: [
-            { id: "A", name: "A", marker: expect.anything(), visible: true, highlighted: false },
-            { id: "B", name: "B", marker: expect.anything(), visible: true, highlighted: false },
-            { id: "C", name: "C", marker: expect.anything(), visible: true, highlighted: false },
+            { id: "A", name: "A", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
+            { id: "B", name: "B", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
+            { id: "C", name: "C", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
           ],
           isApiCall: false,
         },
@@ -398,8 +412,22 @@ describe("CoreChart: visibility", () => {
       expect.objectContaining({
         detail: {
           items: [
-            { id: "1", name: "Segment", marker: expect.anything(), visible: true, highlighted: false },
-            { id: "2", name: "Segment", marker: expect.anything(), visible: true, highlighted: false },
+            {
+              id: "1",
+              name: "Segment",
+              marker: expect.anything(),
+              visible: true,
+              highlighted: false,
+              isSecondary: false,
+            },
+            {
+              id: "2",
+              name: "Segment",
+              marker: expect.anything(),
+              visible: true,
+              highlighted: false,
+              isSecondary: false,
+            },
           ],
           isApiCall: false,
         },
@@ -412,8 +440,22 @@ describe("CoreChart: visibility", () => {
       expect.objectContaining({
         detail: {
           items: [
-            { id: "1", name: "Segment", marker: expect.anything(), visible: false, highlighted: false },
-            { id: "2", name: "Segment", marker: expect.anything(), visible: false, highlighted: false },
+            {
+              id: "1",
+              name: "Segment",
+              marker: expect.anything(),
+              visible: false,
+              highlighted: false,
+              isSecondary: false,
+            },
+            {
+              id: "2",
+              name: "Segment",
+              marker: expect.anything(),
+              visible: false,
+              highlighted: false,
+              isSecondary: false,
+            },
           ],
           isApiCall: false,
         },

@@ -12,51 +12,47 @@
   @include styles.styles-reset;
   @include styles.default-text-style;
 
-  overflow: auto;
-  max-height: inherit;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+
+  inline-size: 100%;
+  max-block-size: inherit;
 
   &:focus {
     outline: none;
   }
 }
 
-.root-side {
-  display: flex;
-  flex-direction: column;
-}
-
 .list {
   display: flex;
+  overflow-y: auto;
   list-style: none;
   margin-block: 0;
   margin-inline: 0;
   padding-block: cs.$space-static-xxxs;
   padding-inline: cs.$space-static-xxxs;
-  padding-block-start: cs.$space-scaled-xs;
+  margin-block-start: cs.$space-scaled-xs;
 }
 
 .list-bottom {
   flex-wrap: wrap;
-  justify-content: space-between;
+  gap: cs.$space-scaled-xxs cs.$space-static-m;
+
+  &.list-bottom-start {
+    justify-content: start;
+  }
+  &.list-bottom-center {
+    justify-content: center;
+  }
+  &.list-bottom-end {
+    justify-content: end;
+  }
 }
 
 .list-side {
   flex-wrap: nowrap;
-  flex-direction: column;
-}
-
-.legend-bottom {
-  flex: 1;
-  display: flex;
-  flex-wrap: wrap;
-  flex-direction: row;
-  max-inline-size: 100%;
-  gap: cs.$space-scaled-xxs cs.$space-static-m;
-}
-
-.legend-side {
-  display: flex;
-  flex-wrap: wrap;
   flex-direction: column;
   gap: cs.$space-scaled-xxs cs.$space-static-m;
 }
@@ -127,8 +123,11 @@
 }
 
 .actions-divider-side {
-  inline-size: 80%;
-  block-size: 1px;
+  display: block;
+  border: 0;
+  padding: 0;
+  inline-size: 100%;
   margin-block-end: cs.$space-scaled-xs;
-  background: cs.$color-border-divider-default;
+  margin-top: 7px;
+  border-top: 1px solid cs.$color-border-divider-default;
 }

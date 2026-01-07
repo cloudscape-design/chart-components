@@ -35,7 +35,8 @@
     "build:src:environment": "node scripts/environment",
     "build:themeable": "node scripts/themeable-source",
     "build:pages:vite": "vite build",
-    "build:pages:tsc": "tsc -p pages/tsconfig.json"
+    "build:pages:tsc": "tsc -p pages/tsconfig.json",
+    "build:pages:bundle": "vite build -c vite.config.dev-pages.mjs"
   },
   "exports": {
     ".": "./index.js",
@@ -104,6 +105,7 @@
     "jsdom": "^20.0.3",
     "lint-staged": "^15.5.0",
     "lodash": "^4.17.21",
+    "lodash-es": "^4.17.22",
     "npm-run-all": "^4.1.5",
     "prettier": "^3.2.5",
     "puppeteer-core": "^24.10.2",
@@ -119,7 +121,8 @@
   },
   "//": "ensure that typedoc uses latest typescript. It prints a warning, but works",
   "overrides": {
-    "typescript": "^4.9.4"
+    "typescript": "^4.9.4",
+    "glob": "^10.5.0"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

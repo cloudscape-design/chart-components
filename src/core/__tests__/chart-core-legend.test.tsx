@@ -7,7 +7,16 @@ import { vi } from "vitest";
 
 import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 
-import { createChartWrapper, hoverLegendItem, renderChart } from "./common";
+import {
+  createChartWrapper,
+  hoverLegendItem,
+  hoverSecondaryLegendItem,
+  leaveLegendItem,
+  renderChart,
+  renderStatefulChart,
+  selectSecondaryLegendItem,
+  toggleSecondaryLegendItem,
+} from "./common";
 import { HighchartsTestHelper } from "./highcharts-utils";
 
 import legendTestClasses from "../../../lib/components/internal/components/chart-legend/test-classes/styles.selectors.js";
@@ -43,6 +52,23 @@ const series: Highcharts.SeriesOptionsType[] = [
   },
 ];
 
+const lineSeries = series.filter((s) => s.type === "line");
+
+const yAxes: Highcharts.YAxisOptions[] = [
+  { id: "primary", opposite: false },
+  { id: "secondary", opposite: true },
+];
+
+const primarySeries: Highcharts.SeriesOptionsType[] = [
+  { type: "line", name: "Primary 1", data: [1, 2, 3], yAxis: 0 },
+  { type: "line", name: "Primary 2", data: [2, 3, 4], yAxis: 0 },
+];
+
+const secondarySeries: Highcharts.SeriesOptionsType[] = [
+  { type: "line", name: "Secondary 1", data: [10, 20, 30], yAxis: 1 },
+  { type: "line", name: "Secondary 2", data: [15, 25, 35], yAxis: 1 },
+];
+
 const getItemSelector = (options?: { active?: boolean; dimmed?: boolean }) => {
   let selector = `.${legendTestClasses.item}`;
   if (options?.active === true) {
@@ -65,7 +91,6 @@ const getItem = (index: number, options?: { active?: boolean; dimmed?: boolean }
   createChartWrapper().findLegend()!.findAll(getItemSelector(options))[index];
 const mouseOver = (element: HTMLElement) => element.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
 const mouseOut = (element: HTMLElement) => element.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
-const clearHighlightPause = () => new Promise((resolve) => setTimeout(resolve, 100));
 const mouseLeavePause = () => new Promise((resolve) => setTimeout(resolve, 300));
 
 describe("CoreChart: legend", () => {
@@ -157,7 +182,7 @@ describe("CoreChart: legend", () => {
       expect(hc.getPlotLinesById("L3").map((l) => l.svgElem.opacity)).toEqual([1, 1]);
 
       act(() => mouseOut(getItem(0).getElement()));
-      await clearHighlightPause();
+      await hc.clearHighlightPause();
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual([
         "L1",
         "Line 3",
@@ -190,7 +215,7 @@ describe("CoreChart: legend", () => {
       expect(hc.getChartPoint(0, 2).state).toBe(undefined);
 
       act(() => mouseOut(getItem(0).getElement()));
-      await clearHighlightPause();
+      await hc.clearHighlightPause();
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
       expect(hc.getChartPoint(0, 0).state).toBe("");
       expect(hc.getChartPoint(0, 2).state).toBe("");
@@ -202,7 +227,7 @@ describe("CoreChart: legend", () => {
       expect(hc.getChartPoint(0, 2).state).toBe("hover");
 
       act(() => mouseOut(getItem(2).getElement()));
-      await clearHighlightPause();
+      await hc.clearHighlightPause();
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
       expect(hc.getChartPoint(0, 0).state).toBe("");
       expect(hc.getChartPoint(0, 2).state).toBe("");
@@ -232,7 +257,7 @@ describe("CoreChart: legend", () => {
 
       act(() => hc.leaveChartPoint(2, 0));
       await mouseLeavePause();
-      await clearHighlightPause();
+      await hc.clearHighlightPause();
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual([
         "L1",
         "Line 3",
@@ -260,7 +285,7 @@ describe("CoreChart: legend", () => {
 
       act(() => hc.leaveChartPoint(0, 2));
       await mouseLeavePause();
-      await clearHighlightPause();
+      await hc.clearHighlightPause();
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
     },
   );
@@ -365,7 +390,7 @@ describe("CoreChart: legend", () => {
 
       act(() => mouseOut(getItem(2).getElement()));
 
-      await clearHighlightPause();
+      await hc.clearHighlightPause();
       expect(wrapper.findLegend()!.findItemTooltip()).toBe(null);
     });
 
@@ -424,7 +449,7 @@ describe("CoreChart: legend", () => {
 
       act(() => mouseOut(getItem(2).getElement()));
 
-      await clearHighlightPause();
+      await hc.clearHighlightPause();
       expect(wrapper.findLegend()!.findItemTooltip()).toBe(null);
     });
 
@@ -453,9 +478,10 @@ describe("CoreChart: legend", () => {
     });
   });
 
-  test("calls onLegendItemHighlight when hovering over a legend item", () => {
+  test("calls onLegendItemHighlight and onClearHighlight when hovering over a legend item", async () => {
     const onLegendItemHighlight = vi.fn();
-    const { wrapper } = renderChart({ highcharts, options: { series }, onLegendItemHighlight });
+    const onClearHighlight = vi.fn();
+    const { wrapper } = renderChart({ highcharts, options: { series }, onLegendItemHighlight, onClearHighlight });
 
     hoverLegendItem(0, wrapper);
 
@@ -472,5 +498,153 @@ describe("CoreChart: legend", () => {
         },
       }),
     );
+
+    leaveLegendItem(0, wrapper);
+    await hc.clearHighlightPause();
+
+    expect(onClearHighlight).toHaveBeenCalled();
+  });
+
+  test("legend highlight state stays after re-render", () => {
+    const { wrapper, rerender } = renderChart({ highcharts, options: { series } });
+
+    hoverLegendItem(0, wrapper);
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["L1"]);
+
+    rerender({ highcharts, options: { series } });
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["L1"]);
+  });
+
+  test("legend highlight state is reset after re-render if items structure change", () => {
+    const { wrapper, rerender } = renderChart({ highcharts, options: { series: lineSeries } });
+
+    hoverLegendItem(0, wrapper);
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["L1"]);
+
+    rerender({ highcharts, options: { series: lineSeries.filter((s) => s.name !== "L2") } });
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["L1"]);
+
+    rerender({ highcharts, options: { series: lineSeries.filter((s) => s.name !== "L1") } });
+    expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["L2", "Line 3"]);
+  });
+});
+
+describe("CoreChart: secondary legend", () => {
+  test("does not render when no secondary axis series exist", () => {
+    renderChart({ highcharts, options: { series: primarySeries, yAxis: yAxes } });
+    expect(createChartWrapper().findSecondaryLegend()).toBe(null);
+  });
+
+  test("renders when only secondary axis series exist", () => {
+    renderChart({ highcharts, options: { series: secondarySeries, yAxis: yAxes } });
+    expect(createChartWrapper().findSecondaryLegend()).not.toBe(null);
+  });
+
+  test("renders when both primary and secondary axis series exist", () => {
+    renderChart({ highcharts, options: { series: [...primarySeries, ...secondarySeries], yAxis: yAxes } });
+    expect(createChartWrapper().findSecondaryLegend()).not.toBe(null);
+  });
+
+  test("renders no secondary legend when legend.enabled=false", () => {
+    renderChart({
+      highcharts,
+      legend: { enabled: false },
+      options: { series: [...primarySeries, ...secondarySeries], yAxis: yAxes },
+    });
+    expect(createChartWrapper().findSecondaryLegend()).toBe(null);
+  });
+
+  test("renders expected secondary legend items", () => {
+    renderChart({
+      highcharts,
+      visibleItems: ["Secondary 1", "Secondary 2"],
+      options: { series: [...primarySeries, ...secondarySeries], yAxis: yAxes },
+    });
+
+    const items = createChartWrapper().findSecondaryLegend()!.findItems();
+    expect(items.map((w) => w.getElement().textContent)).toEqual(["Secondary 1", "Secondary 2"]);
+  });
+
+  test("renders secondary legend title if specified", () => {
+    renderChart({
+      highcharts,
+      legend: { secondaryLegendTitle: "Secondary Legend" },
+      options: { series: [...primarySeries, ...secondarySeries], yAxis: yAxes },
+    });
+
+    expect(createChartWrapper().findSecondaryLegend()!.findTitle()!.getElement().textContent).toBe("Secondary Legend");
+  });
+
+  test("renders secondary legend actions if specified", () => {
+    renderChart({
+      highcharts,
+      legend: { secondaryLegendActions: "Secondary Actions" },
+      options: { series: [...primarySeries, ...secondarySeries], yAxis: yAxes },
+    });
+
+    expect(createChartWrapper().findSecondaryLegend()!.findActions()!.getElement().textContent).toBe(
+      "Secondary Actions",
+    );
+  });
+
+  describe("Event handlers", () => {
+    test("calls onLegendItemHighlight when hovering secondary legend item", () => {
+      const onLegendItemHighlight = vi.fn();
+      renderChart({
+        highcharts,
+        options: { series: [...primarySeries, ...secondarySeries], yAxis: yAxes },
+        onLegendItemHighlight,
+      });
+
+      act(() => hoverSecondaryLegendItem(0));
+
+      expect(onLegendItemHighlight).toHaveBeenCalledWith(
+        expect.objectContaining({
+          detail: {
+            item: expect.objectContaining({
+              id: "Secondary 1",
+              name: "Secondary 1",
+            }),
+          },
+        }),
+      );
+    });
+
+    test("triggers visibility change when clicking secondary legend item", () => {
+      const onVisibleItemsChange = vi.fn();
+      renderStatefulChart({
+        highcharts,
+        options: { series: [...primarySeries, ...secondarySeries], yAxis: yAxes },
+        visibleItems: ["Primary 1", "Primary 2", "Secondary 1", "Secondary 2"],
+        onVisibleItemsChange,
+      });
+
+      selectSecondaryLegendItem(0);
+
+      expect(onVisibleItemsChange).toHaveBeenCalled();
+      const call = onVisibleItemsChange.mock.calls[0][0];
+      const secondary1 = call.detail.items.find((item: any) => item.id === "Secondary 1");
+      const secondary2 = call.detail.items.find((item: any) => item.id === "Secondary 2");
+      expect(secondary1.visible).toBe(true);
+      expect(secondary2.visible).toBe(false);
+    });
+
+    test("triggers visibility change when toggling secondary legend item", () => {
+      const onVisibleItemsChange = vi.fn();
+      renderStatefulChart({
+        highcharts,
+        options: { series: [...primarySeries, ...secondarySeries], yAxis: yAxes },
+        visibleItems: ["Primary 1", "Primary 2", "Secondary 1", "Secondary 2"],
+        onVisibleItemsChange,
+      });
+
+      toggleSecondaryLegendItem(0);
+
+      expect(onVisibleItemsChange).toHaveBeenCalled();
+      const call = onVisibleItemsChange.mock.calls[0][0];
+      const secondaryItem = call.detail.items.find((item: any) => item.id === "Secondary 1");
+      expect(secondaryItem).toBeDefined();
+      expect(secondaryItem.visible).toBe(false);
+    });
   });
 });

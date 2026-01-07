@@ -41,6 +41,10 @@ export class HighchartsTestHelper {
       .axes.flatMap((axis) => (axis as any).plotLinesAndBands)
       .filter((plotLine) => plotLine.options.id === id);
   }
+
+  public clearHighlightPause() {
+    return new Promise((resolve) => setTimeout(resolve, 100));
+  }
 }
 
 export class ChartRendererStub {

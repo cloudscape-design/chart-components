@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import Highcharts from "highcharts";
-import { omit } from "lodash";
 
 import Button from "@cloudscape-design/components/button";
 import Link from "@cloudscape-design/components/link";
@@ -91,12 +90,20 @@ export default function () {
       subtitle="The page demonstrates the use of the core chart, including additional legend settings."
       settings={
         <PageSettingsForm
-          selectedSettings={["showLegend", "legendPosition", "showLegendTitle", "showLegendActions", "useFallback"]}
+          selectedSettings={[
+            "showLegend",
+            "legendPosition",
+            "legendHorizontalAlign",
+            "showLegendTitle",
+            "showLegendActions",
+            "useFallback",
+            "tooltipSeriesSorting",
+          ]}
         />
       }
     >
       <CoreChart
-        {...omit(chartProps.cartesian, "ref")}
+        {...chartProps.core}
         highcharts={Highcharts}
         options={{
           lang: {
@@ -120,20 +127,19 @@ export default function () {
           },
         }}
         chartHeight={400}
-        tooltip={{ placement: "outside" }}
         getTooltipContent={() => ({
-          point({ item }) {
+          point({ item, hideTooltip }) {
             const value = item ? (item.point.y ?? null) : null;
             return {
               value: (
                 <div>
-                  {numberFormatter(value)} <Button variant="inline-icon" iconName="settings" />
+                  {numberFormatter(value)} <Button variant="inline-icon" iconName="settings" onClick={hideTooltip} />
                 </div>
               ),
             };
           },
-          footer() {
-            return <Button>Footer action</Button>;
+          footer({ hideTooltip }) {
+            return <Button onClick={hideTooltip}>Footer action</Button>;
           },
         })}
         getLegendTooltipContent={({ legendItem }) => ({

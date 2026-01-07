@@ -14,6 +14,7 @@ import Header from "@cloudscape-design/components/header";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
 import AppContext from "../app/app-context";
+import { IframeWrapper } from "../utils/iframe-wrapper";
 import { ScreenshotArea } from "./screenshot-area";
 
 import styles from "./styles.module.scss";
@@ -48,12 +49,22 @@ export function Page({
   settings,
   children,
   screenshotArea = true,
+  iframe,
+  splitPanel,
+  splitPanelOpen,
+  splitPanelPreferences,
+  onSplitPanelToggle,
 }: {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   settings?: React.ReactNode;
   children: React.ReactNode;
   screenshotArea?: boolean;
+  iframe?: { id?: string };
+  splitPanel?: React.ReactNode;
+  splitPanelOpen?: boolean;
+  splitPanelPreferences?: AppLayoutProps.SplitPanelPreferences;
+  onSplitPanelToggle?: () => void;
 }) {
   const { urlParams } = useContext(AppContext);
   const [toolsOpen, setToolsOpen] = useState(!urlParams.screenshotMode);
@@ -70,6 +81,19 @@ export function Page({
       },
     });
   }
+
+  const content = (
+    <Box>
+      <h1>{title}</h1>
+      {subtitle && !urlParams.screenshotMode && (
+        <Box variant="p" margin={{ bottom: "xs" }}>
+          {subtitle}
+        </Box>
+      )}
+      <Box>{screenshotArea ? <ScreenshotArea>{children}</ScreenshotArea> : children}</Box>
+    </Box>
+  );
+
   return (
     <AppLayout
       headerSelector="#h"
@@ -77,17 +101,11 @@ export function Page({
       activeDrawerId={toolsOpen ? "settings" : null}
       onDrawerChange={({ detail }) => setToolsOpen(!!detail.activeDrawerId)}
       drawers={drawers}
-      content={
-        <Box>
-          <h1>{title}</h1>
-          {subtitle && !urlParams.screenshotMode && (
-            <Box variant="p" margin={{ bottom: "xs" }}>
-              {subtitle}
-            </Box>
-          )}
-          <Box>{screenshotArea ? <ScreenshotArea>{children}</ScreenshotArea> : children}</Box>
-        </Box>
-      }
+      splitPanelOpen={splitPanelOpen}
+      onSplitPanelToggle={onSplitPanelToggle}
+      splitPanelPreferences={splitPanelPreferences}
+      splitPanel={splitPanel}
+      content={iframe ? <IframeWrapper {...iframe} AppComponent={() => content} /> : content}
     />
   );
 }

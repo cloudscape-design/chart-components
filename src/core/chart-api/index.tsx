@@ -111,6 +111,7 @@ export class ChartAPI {
       chartAPI.chartExtraLegend.onChartRender();
       chartAPI.chartExtraNodata.onChartRender();
       chartAPI.chartExtraAxisTitles.onChartRender();
+      chartAPI.chartExtraTooltip.onChartRender();
       chartAPI.handleDestroyedPoints();
       chartAPI.resetColorCounter();
       chartAPI.showMarkersForIsolatedPoints();
@@ -184,6 +185,14 @@ export class ChartAPI {
     }
   };
 
+  // Hide the tooltip from an action initiated by the tooltip's content
+  public hideTooltip = () => {
+    this.chartExtraTooltip.hideTooltip();
+    // The chart highlight is preserved while the tooltip is pinned. We need to clear it manually here, for the case
+    // when the pointer lands outside the chart after the tooltip is dismissed, so that the mouse-out event won't fire.
+    this.clearChartHighlight({ isApiCall: false });
+  };
+
   // Reference to the role="application" element used for navigation.
   public setApplication = this.chartExtraNavigation.setApplication.bind(this.chartExtraNavigation);
 
@@ -205,6 +214,9 @@ export class ChartAPI {
     if (!this.isTooltipPinned) {
       this.chartExtraHighlight.clearChartItemsHighlight();
       this.chartExtraLegend.onClearHighlight();
+
+      // Notify the consumer that a clear-highlight action was made.
+      fireNonCancelableEvent(this.context.handlers.onClearHighlight, { isApiCall: false });
     }
   };
 

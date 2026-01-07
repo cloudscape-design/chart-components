@@ -11,6 +11,7 @@ import LiveRegion from "@cloudscape-design/components/live-region";
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../internal/components/series-details";
 import { useSelector } from "../../internal/utils/async-store";
 import { getChartSeries } from "../../internal/utils/chart-series";
+import { useDebouncedValue } from "../../internal/utils/use-debounced-value";
 import { ChartAPI } from "../chart-api";
 import { getFormatter } from "../formatters";
 import { BaseI18nStrings, CoreChartProps } from "../interfaces";
@@ -19,6 +20,7 @@ import { getPointColor, getSeriesColor, getSeriesId, getSeriesMarkerType, isXThr
 import styles from "../styles.css.js";
 
 const MIN_VISIBLE_BLOCK_SIZE = 200;
+const DEFAULT_DEBOUNCE = 200;
 
 type ExpandedSeriesState = Record<string, Set<string>>;
 
@@ -45,6 +47,8 @@ export function ChartTooltip({
   api,
   i18nStrings,
   locale,
+  debounce = false,
+  seriesSorting = "as-added",
 }: CoreChartProps.TooltipOptions & {
   i18nStrings?: BaseI18nStrings;
   getTooltipContent?: CoreChartProps.GetTooltipContent;
@@ -53,11 +57,19 @@ export function ChartTooltip({
 }) {
   const [expandedSeries, setExpandedSeries] = useState<ExpandedSeriesState>({});
   const tooltip = useSelector(api.tooltipStore, (s) => s);
-  if (!tooltip.visible || tooltip.group.length === 0) {
+  const debouncedTooltip = useDebouncedValue(tooltip, debounce === true ? DEFAULT_DEBOUNCE : debounce || 0);
+
+  if (
+    !debouncedTooltip ||
+    !debouncedTooltip.visible ||
+    debouncedTooltip.group.length === 0 ||
+    debouncedTooltip.group[0].series === undefined
+  ) {
     return null;
   }
-  const chart = tooltip.group[0]?.series.chart;
-  const renderers = getTooltipContentOverrides?.({ point: tooltip.point, group: tooltip.group });
+
+  const chart = debouncedTooltip.group[0]?.series.chart;
+  const renderers = getTooltipContentOverrides?.({ point: debouncedTooltip.point, group: debouncedTooltip.group });
   const getTrack = placement === "target" ? api.getTargetTrack : api.getGroupTrack;
   const position = (() => {
     if (placement === "target" || placement === "middle") {
@@ -68,10 +80,14 @@ export function ChartTooltip({
   })();
   const content = getTooltipContent(api, {
     renderers,
-    point: tooltip.point,
-    group: tooltip.group,
+    point: debouncedTooltip.point,
+    group: debouncedTooltip.group,
     expandedSeries,
     setExpandedSeries,
+    seriesSorting,
+    hideTooltip: () => {
+      api.hideTooltip();
+    },
     locale,
   });
   if (!content) {
@@ -80,9 +96,9 @@ export function ChartTooltip({
   return (
     <InternalChartTooltip
       getTrack={getTrack}
-      trackKey={getTrackKey(tooltip.point, tooltip.group)}
+      trackKey={getTrackKey(debouncedTooltip.point, debouncedTooltip.group)}
       container={null}
-      dismissButton={tooltip.pinned}
+      dismissButton={debouncedTooltip.pinned}
       dismissAriaLabel={i18nStrings?.detailPopoverDismissAriaLabel}
       onDismiss={api.onDismissTooltip}
       onMouseEnter={api.onMouseEnterTooltip}
@@ -120,6 +136,8 @@ function getTooltipContent(
   api: ChartAPI,
   props: CoreChartProps.GetTooltipContentProps & {
     renderers?: CoreChartProps.TooltipContentRenderer;
+    hideTooltip: () => void;
+    seriesSorting: NonNullable<CoreChartProps.TooltipOptions["seriesSorting"]>;
     locale: string;
   } & ExpandedSeriesStateProps,
 ): null | RenderedTooltipContent {
@@ -140,10 +158,14 @@ function getTooltipContentCartesian(
     expandedSeries,
     renderers = {},
     setExpandedSeries,
+    hideTooltip,
+    seriesSorting,
     locale,
   }: CoreChartProps.GetTooltipContentProps & {
     renderers?: CoreChartProps.TooltipContentRenderer;
     locale: string;
+    hideTooltip: () => void;
+    seriesSorting: NonNullable<CoreChartProps.TooltipOptions["seriesSorting"]>;
   } & ExpandedSeriesStateProps,
 ): RenderedTooltipContent {
   // The cartesian tooltip might or might not have a selected point, but it always has a non-empty group.
@@ -152,11 +174,16 @@ function getTooltipContentCartesian(
   const chart = group[0].series.chart;
   const getSeriesMarker = (series: Highcharts.Series) =>
     api.renderMarker(getSeriesMarkerType(series), getSeriesColor(series), true);
-  const matchedItems = findTooltipSeriesItems(getChartSeries(chart.series), group);
+  const matchedItems = findTooltipSeriesItems(getChartSeries(chart.series), group, seriesSorting);
   const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
     const valueFormatter = getFormatter(locale, item.point.series.yAxis);
     const itemY = isXThreshold(item.point.series) ? null : (item.point.y ?? null);
-    const customContent = renderers.point ? renderers.point({ item }) : undefined;
+    const customContent = renderers.point
+      ? renderers.point({
+          item,
+          hideTooltip,
+        })
+      : undefined;
     return {
       key: customContent?.key ?? item.point.series.name,
       value: customContent?.value ?? valueFormatter(itemY),
@@ -183,7 +210,11 @@ function getTooltipContentCartesian(
   });
   // We only support cartesian charts with a single x axis.
   const titleFormatter = getFormatter(locale, chart.xAxis[0]);
-  const slotRenderProps: CoreChartProps.TooltipSlotProps = { x, items: matchedItems };
+  const slotRenderProps: CoreChartProps.TooltipSlotProps = {
+    x,
+    items: matchedItems,
+    hideTooltip: hideTooltip,
+  };
   return {
     header: renderers.header?.(slotRenderProps) ?? titleFormatter(x),
     body: renderers.body?.(slotRenderProps) ?? (
@@ -209,9 +240,17 @@ function getTooltipContentCartesian(
 
 function getTooltipContentPie(
   api: ChartAPI,
-  { point, renderers = {} }: { point: Highcharts.Point } & { renderers?: CoreChartProps.TooltipContentRenderer },
+  {
+    point,
+    renderers = {},
+    hideTooltip,
+  }: { point: Highcharts.Point } & { renderers?: CoreChartProps.TooltipContentRenderer; hideTooltip: () => void },
 ): RenderedTooltipContent {
-  const tooltipDetails: CoreChartProps.TooltipSlotProps = { x: point.x, items: [{ point, errorRanges: [] }] };
+  const tooltipDetails: CoreChartProps.TooltipSlotProps = {
+    x: point.x,
+    items: [{ point, errorRanges: [] }],
+    hideTooltip,
+  };
   return {
     header: renderers.header?.(tooltipDetails) ?? (
       <div className={styles["tooltip-default-header"]}>
@@ -224,7 +263,13 @@ function getTooltipContentPie(
     body:
       renderers.body?.(tooltipDetails) ??
       (renderers.details ? (
-        <ChartSeriesDetails details={renderers.details({ point })} compactList={true} />
+        <ChartSeriesDetails
+          details={renderers.details({
+            point,
+            hideTooltip,
+          })}
+          compactList={true}
+        />
       ) : (
         // We expect all pie chart segments to have defined y values. We use y=0 as fallback
         // because the property is optional in Highcharts types.
@@ -237,6 +282,7 @@ function getTooltipContentPie(
 function findTooltipSeriesItems(
   series: readonly Highcharts.Series[],
   group: readonly Highcharts.Point[],
+  seriesSorting: NonNullable<CoreChartProps.TooltipOptions["seriesSorting"]>,
 ): MatchedItem[] {
   const seriesOrder = series.reduce((d, s, i) => d.set(s, i), new Map<Highcharts.Series, number>());
   const getSeriesIndex = (s: Highcharts.Series) => seriesOrder.get(s) ?? -1;
@@ -281,8 +327,11 @@ function findTooltipSeriesItems(
   }
   return (
     matchedItems
-      // We sort matched items by series order. If there are multiple items that belong to the same series, we sort them by value.
       .sort((i1, i2) => {
+        if (seriesSorting === "by-value-desc") {
+          return (i2.point.y ?? 0) - (i1.point.y ?? 0);
+        }
+        // We sort matched items by series order. If there are multiple items that belong to the same series, we sort them by value.
         const s1 = getSeriesIndex(i1.point.series) - getSeriesIndex(i2.point.series);
         return s1 || (i1.point.y ?? 0) - (i2.point.y ?? 0);
       })

@@ -15,6 +15,7 @@ import Select from "@cloudscape-design/components/select";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
 import { CartesianChartProps, PieChartProps } from "../../lib/components";
+import { CoreChartProps } from "../../src/core/interfaces";
 import AppContext, { AppContextType } from "../app/app-context";
 import { useHighcharts } from "./use-highcharts";
 
@@ -31,11 +32,13 @@ export interface PageSettings {
   emphasizeBaseline: boolean;
   tooltipPlacement: "default" | "middle" | "outside";
   tooltipSize: "small" | "medium" | "large";
+  tooltipSeriesSorting: CoreChartProps.TooltipOptions["seriesSorting"];
   showLegend: boolean;
   showLegendTitle: boolean;
   showLegendActions: boolean;
   legendBottomMaxHeight?: number;
   legendPosition: "bottom" | "side";
+  legendHorizontalAlign: CoreChartProps.LegendOptionsHorizontalAlignment;
   showCustomHeader: boolean;
   showHeaderFilter: boolean;
   showCustomFooter: boolean;
@@ -60,11 +63,13 @@ const DEFAULT_SETTINGS: PageSettings = {
   showLegend: true,
   showLegendTitle: false,
   legendPosition: "bottom",
+  legendHorizontalAlign: "start",
   showLegendActions: false,
   showCustomHeader: false,
   showHeaderFilter: false,
   showCustomFooter: false,
   useFallback: false,
+  tooltipSeriesSorting: "as-added",
 };
 
 export const PageSettingsContext = createContext<PageSettings>(DEFAULT_SETTINGS);
@@ -82,6 +87,7 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
   chartProps: {
     cartesian: Omit<CartesianChartProps, "series"> & { ref: React.Ref<CartesianChartProps.Ref> };
     pie: Omit<PieChartProps, "series"> & { ref: React.Ref<PieChartProps.Ref> };
+    core: Omit<CoreChartProps, "series" | "options">;
   };
   isEmpty: boolean;
 } {
@@ -147,10 +153,13 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
   const legend = {
     enabled: settings.showLegend,
     title: settings.showLegendTitle ? "Legend title" : undefined,
+    secondaryLegendTitle: settings.showLegendTitle ? "Secondary Legend title" : undefined,
     actions: settings.showLegendActions ? <Button variant="icon" iconName="search" /> : undefined,
+    secondaryLegendActions: settings.showLegendActions ? <Button variant="icon" iconName="calendar" /> : undefined,
     position: settings.legendPosition,
     bottomMaxHeight: settings.legendBottomMaxHeight,
-  };
+    horizontalAlignment: settings.legendHorizontalAlign,
+  } satisfies CoreChartProps.LegendOptions;
   return {
     settings,
     setSettings,
@@ -174,6 +183,18 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
         tooltip: { size: settings.tooltipSize },
         legend,
       },
+      core: {
+        highcharts,
+        noData,
+        tooltip: {
+          placement: settings.tooltipPlacement === "default" ? undefined : settings.tooltipPlacement,
+          size: settings.tooltipSize,
+          seriesSorting: settings.tooltipSeriesSorting,
+        },
+        legend,
+        emphasizeBaseline: settings.emphasizeBaseline,
+        verticalAxisTitlePlacement: settings.verticalAxisTitlePlacement,
+      },
     },
     isEmpty: settings.emptySeries || settings.seriesLoading || settings.seriesError,
   };
@@ -184,6 +205,11 @@ const tooltipPlacementOptions = [{ value: "default" }, { value: "middle" }, { va
 const tooltipSizeOptions = [{ value: "small" }, { value: "medium" }, { value: "large" }];
 
 const verticalAxisTitlePlacementOptions = [{ value: "top" }, { value: "side" }];
+
+const tooltipSeriesSortingOptions = [
+  { id: "as-added", text: "as-added" },
+  { id: "by-value-desc", text: "by-value-desc" },
+];
 
 export function PageSettingsForm({
   selectedSettings,
@@ -335,6 +361,19 @@ export function PageSettingsForm({
                   />
                 </FormField>
               );
+            case "tooltipSeriesSorting":
+              return (
+                <SegmentedControl
+                  label="Tooltip Series Sorting"
+                  selectedId={settings.tooltipSeriesSorting ?? null}
+                  options={tooltipSeriesSortingOptions}
+                  onChange={({ detail }) =>
+                    setSettings({
+                      tooltipSeriesSorting: detail.selectedId as CoreChartProps.TooltipOptions["seriesSorting"],
+                    })
+                  }
+                />
+              );
             case "showLegend":
               return (
                 <Checkbox
@@ -385,6 +424,32 @@ export function PageSettingsForm({
                   ]}
                   onChange={({ detail }) =>
                     setSettings({ legendPosition: detail.selectedId as string as "bottom" | "side" })
+                  }
+                />
+              );
+            case "legendHorizontalAlign":
+              return (
+                <SegmentedControl
+                  label="Legend Horizontal Align"
+                  selectedId={
+                    settings.showLegend && settings.legendPosition === "bottom" ? settings.legendHorizontalAlign : null
+                  }
+                  options={[
+                    {
+                      text: "Start",
+                      id: "start",
+                      disabled: !settings.showLegend || settings.legendPosition !== "bottom",
+                    },
+                    {
+                      text: "Center",
+                      id: "center",
+                      disabled: !settings.showLegend || settings.legendPosition !== "bottom",
+                    },
+                  ]}
+                  onChange={({ detail }) =>
+                    setSettings({
+                      legendHorizontalAlign: detail.selectedId as CoreChartProps.LegendOptionsHorizontalAlignment,
+                    })
                   }
                 />
               );

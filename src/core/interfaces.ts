@@ -131,6 +131,18 @@ export interface BaseI18nStrings {
   chartRoleDescription?: string;
 }
 
+export interface CoreI18nStrings extends BaseI18nStrings {
+  /**
+   * ARIA label for the secondary legend when using dual axes charts.
+   *
+   * **Important**: When using dual axes, you should explicitly provide visible titles or ARIA labels
+   * for both the primary and secondary legends to ensure proper accessibility. The primary legend
+   * has built-in i18n support through `legendAriaLabel`, but the secondary legend currently requires
+   * this property to be explicitly provided.
+   */
+  secondaryLegendAriaLabel?: string;
+}
+
 export interface WithCartesianI18nStrings {
   /**
    * An object that contains all of the localized strings required by the component.
@@ -392,7 +404,7 @@ export interface CoreChartProps
    * An object that contains all of the localized strings required by the component.
    * @i18n
    */
-  i18nStrings?: CartesianI18nStrings & PieI18nStrings;
+  i18nStrings?: CartesianI18nStrings & PieI18nStrings & CoreI18nStrings;
 }
 
 export namespace CoreChartProps {
@@ -427,7 +439,22 @@ export namespace CoreChartProps {
   export interface LegendOptions extends BaseLegendOptions {
     bottomMaxHeight?: number;
     position?: "bottom" | "side";
+    /**
+     * This property only applies when there are secondary items.
+     */
+    secondaryLegendTitle?: string;
+    /**
+     * This property only applies when there are secondary items.
+     */
+    secondaryLegendActions?: React.ReactNode;
+    /**
+     * This property only applies when there are no secondary items and `position="bottom"`.
+     */
+    horizontalAlignment?: LegendOptionsHorizontalAlignment;
   }
+
+  export type LegendOptionsHorizontalAlignment = "start" | "center";
+
   export type LegendItem = InternalComponentTypes.LegendItem;
   export type LegendTooltipContent = InternalComponentTypes.LegendTooltipContent;
   export type GetLegendTooltipContent = InternalComponentTypes.GetLegendTooltipContent;
@@ -437,6 +464,8 @@ export namespace CoreChartProps {
     enabled?: boolean;
     placement?: "middle" | "outside" | "target";
     size?: "small" | "medium" | "large";
+    debounce?: number | boolean;
+    seriesSorting?: "as-added" | "by-value-desc";
   }
 
   export type GetTooltipContent = (props: GetTooltipContentProps) => TooltipContentRenderer;
@@ -458,14 +487,17 @@ export namespace CoreChartProps {
   }
   export interface TooltipPointProps {
     item: TooltipContentItem;
+    hideTooltip: () => void;
   }
   export interface TooltipSlotProps {
     x: number;
     items: TooltipContentItem[];
+    hideTooltip: () => void;
   }
 
   export interface TooltipDetailsProps {
     point: Highcharts.Point;
+    hideTooltip: () => void;
   }
 
   export type TooltipDetail = BaseTooltipDetail;
@@ -495,6 +527,7 @@ export interface CoreLegendProps {
   ariaLabel?: string;
   actions?: React.ReactNode;
   alignment?: "horizontal" | "vertical";
+  horizontalAlignment?: CoreChartProps.LegendOptionsHorizontalAlignment;
   onClearHighlight?: NonCancelableEventHandler;
   onItemHighlight?: NonCancelableEventHandler<CoreLegendProps.ItemHighlightDetail>;
   onVisibleItemsChange?: NonCancelableEventHandler<CoreLegendProps.VisibleItemsChangeDetail>;
