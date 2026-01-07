@@ -118,7 +118,7 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
   private markersCache = new Map<string, React.ReactNode>();
   public renderMarker({
     type,
-    status,
+    status = "default",
     color,
     visible = true,
     ariaLabel,

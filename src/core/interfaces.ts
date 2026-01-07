@@ -423,7 +423,10 @@ export namespace CoreChartProps {
     clearChartHighlight(): void;
   }
 
-  export type GetItemOptions = (props: CoreChartProps.GetItemOptionsProps) => CoreChartProps.ChartItemOptions;
+  /**
+   * The item id. Can be the id of a series or a point.
+   */
+  export type GetItemOptions = (itemId: string) => CoreChartProps.ChartItemOptions;
 
   // The extended version of Highcharts.Options. The axes types are extended with Cloudscape value formatter.
   // We use a custom formatter because we cannot use the built-in Highcharts formatter for our tooltip.
@@ -438,16 +441,8 @@ export namespace CoreChartProps {
     /**
      * If specified, specifies the status of an item.
      * An item can be a point or a series.
-     * @default "default"
      */
     status?: ChartSeriesMarkerStatus;
-  }
-
-  export interface GetItemOptionsProps {
-    /**
-     * The item id. Can be the id of a series or a point.
-     */
-    itemId: string;
   }
 
   export interface HeaderOptions {

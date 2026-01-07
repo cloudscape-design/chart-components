@@ -160,7 +160,7 @@ export function getChartLegendItems({
     // The same is not supported for pie chart segments.
     if (series.options.showInLegend !== false) {
       const seriesId = getSeriesId(series);
-      const itemProps = getItemOptions({ itemId: seriesId });
+      const itemProps = getItemOptions(seriesId);
       const status = itemProps.status;
       legendItems.push({
         id: seriesId,
@@ -183,7 +183,7 @@ export function getChartLegendItems({
         markerType: getSeriesMarkerType(point.series),
         color: getPointColor(point),
         visible: point.visible,
-        status: getItemOptions({ itemId: pointId }).status,
+        status: getItemOptions(pointId).status,
         isSecondary,
       });
     }

@@ -167,13 +167,13 @@ function getTooltipContentCartesian(
   const x = group[0].x;
   const chart = group[0].series.chart;
   const getSeriesMarker = (series: Highcharts.Series) => {
-    const { status } = api.context.settings.getItemOptions({ itemId: getSeriesId(series) });
+    const itemOptions = api.context.settings.getItemOptions?.(getSeriesId(series));
     return api.renderMarker({
       type: getSeriesMarkerType(series),
       color: getSeriesColor(series),
       visible: true,
-      status,
-      ariaLabel: api.context.settings.labels.itemMarkerLabel(status),
+      status: itemOptions?.status,
+      ariaLabel: api.context.settings.labels.itemMarkerLabel(itemOptions?.status),
     });
   };
   const matchedItems = findTooltipSeriesItems(getChartSeries(chart.series), group, seriesSorting);
@@ -254,8 +254,8 @@ function getTooltipContentPie(
     hideTooltip,
   };
 
-  const { status } = api.context.settings.getItemOptions({ itemId: getPointId(point) });
-  const markerAriaLabel = api.context.settings.labels.itemMarkerLabel(status);
+  const itemOptions = api.context.settings.getItemOptions?.(getPointId(point));
+  const markerAriaLabel = api.context.settings.labels.itemMarkerLabel(itemOptions?.status);
 
   return {
     header: renderers.header?.(tooltipDetails) ?? (
@@ -264,7 +264,7 @@ function getTooltipContentPie(
           type: getSeriesMarkerType(point.series),
           color: getPointColor(point),
           visible: true,
-          status,
+          status: itemOptions?.status,
           ariaLabel: markerAriaLabel,
         })}
         <Box variant="span" fontWeight="bold">

@@ -31,7 +31,7 @@ export default function () {
         options={{
           series: series,
         }}
-        getItemOptions={({ itemId }) => ({
+        getItemOptions={(itemId) => ({
           status: itemId === "Failed" ? "warning" : "default",
         })}
         chartHeight={400}

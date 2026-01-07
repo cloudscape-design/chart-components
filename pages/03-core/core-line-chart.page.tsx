@@ -135,7 +135,7 @@ export default function () {
             },
           },
         }}
-        getItemOptions={({ itemId }) => ({
+        getItemOptions={(itemId) => ({
           status: itemId === "A" ? "warning" : "default",
         })}
         chartHeight={400}

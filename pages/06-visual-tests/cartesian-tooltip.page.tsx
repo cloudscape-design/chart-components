@@ -49,7 +49,7 @@ export default function () {
         }}
         chartHeight={400}
         tooltip={{ placement: "outside" }}
-        getItemOptions={({ itemId }) => ({
+        getItemOptions={(itemId) => ({
           status: itemId === "A" ? "warning" : "default",
         })}
         getTooltipContent={() => ({

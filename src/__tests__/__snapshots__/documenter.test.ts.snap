@@ -1462,8 +1462,8 @@ minimum width, the horizontal scrollbar is automatically added.",
           "name": "CoreChartProps.GetItemOptions",
           "parameters": [
             {
-              "name": "props",
-              "type": "CoreChartProps.GetItemOptionsProps",
+              "name": "itemId",
+              "type": "string",
             },
           ],
           "returnType": "CoreChartProps.ChartItemOptions",

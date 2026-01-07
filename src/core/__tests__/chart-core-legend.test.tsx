@@ -562,7 +562,7 @@ describe("CoreChart: legend", () => {
             },
           ],
         },
-        getItemOptions: ({ itemId }) => ({
+        getItemOptions: (itemId) => ({
           status: itemId === "L1" ? "warning" : "default",
         }),
       });

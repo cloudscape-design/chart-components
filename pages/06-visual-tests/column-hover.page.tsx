@@ -76,7 +76,7 @@ function Chart({ type }: { type: "single" | "stacked" | "grouped" }) {
         ],
         yAxis: [{ title: { text: "Error count" } }],
       }}
-      getItemOptions={({ itemId }) => ({
+      getItemOptions={(itemId) => ({
         status: itemId === "Severe" ? "warning" : "default",
       })}
       callback={(api) => {

@@ -32,7 +32,7 @@ export namespace ChartExtraContext {
     tooltipEnabled: boolean;
     keyboardNavigationEnabled: boolean;
     labels: ChartLabels;
-    getItemOptions: CoreChartProps.GetItemOptions;
+    getItemOptions?: CoreChartProps.GetItemOptions;
   }
 
   export interface Handlers {
@@ -68,7 +68,6 @@ export function createChartContext(): ChartExtraContext {
           return undefined;
         },
       },
-      getItemOptions: () => ({}),
     },
     handlers: {},
     state: {},
