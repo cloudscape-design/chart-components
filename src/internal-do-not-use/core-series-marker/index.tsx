@@ -8,7 +8,7 @@ import { applyDisplayName } from "../../internal/utils/apply-display-name";
 export { ChartSeriesMarkerProps };
 
 function CoreSeriesMarker(props: ChartSeriesMarkerProps) {
-  const baseComponentProps = useBaseComponent("ChartSeriesMarker", { props: {} });
+  const baseComponentProps = useBaseComponent("CoreSeriesMarker", { props: {} });
   return <ChartSeriesMarker {...props} {...baseComponentProps} />;
 }
 
