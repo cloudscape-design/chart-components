@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import highcharts from "highcharts";
+import highcharts, { SeriesLineOptions } from "highcharts";
 
 import "highcharts/highcharts-more";
 import { CartesianChartProps } from "../../../lib/components/cartesian-chart";
@@ -140,5 +140,21 @@ describe("CartesianChart: series", () => {
         expect(getLastPoint(hc.getChartSeries(2).data)).toEqual([x, 1]);
       }
     }
+  });
+
+  test("defaults threshold series dash style to 'ShortDash' when not provided", () => {
+    renderCartesianChart({
+      highcharts,
+      series: [{ type: "x-threshold", name: "X threshold", value: 1 }],
+    });
+    expect((hc.getChartSeries(0).options as SeriesLineOptions).dashStyle).toBe("ShortDash");
+  });
+
+  test("preserves threshold series dash style when provided", () => {
+    renderCartesianChart({
+      highcharts,
+      series: [{ type: "x-threshold", name: "X threshold", value: 1, dashStyle: "Solid" }],
+    });
+    expect((hc.getChartSeries(0).options as SeriesLineOptions).dashStyle).toBe("Solid");
   });
 });
