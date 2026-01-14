@@ -48,7 +48,8 @@
     "./test-utils/selectors/internal/core": "./test-utils/selectors/internal/core.js",
     "./internal/api-docs/*.js": "./internal/api-docs/*.js",
     "./internal-do-not-use/core-chart": "./internal-do-not-use/core-chart/index.js",
-    "./internal-do-not-use/core-legend": "./internal-do-not-use/core-legend/index.js"
+    "./internal-do-not-use/core-legend": "./internal-do-not-use/core-legend/index.js",
+    "./internal-do-not-use/core-series-marker": "./internal-do-not-use/core-series-marker/index.js"
   },
   "dependencies": {
     "@cloudscape-design/component-toolkit": "^1.0.0-beta",
