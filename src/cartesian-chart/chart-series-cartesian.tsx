@@ -44,7 +44,11 @@ export const transformCartesianSeries = (
           : thresholdX.map((x) => ({ x, y: s.value }));
       const { custom } = createThresholdMetadata(s.type, s.value);
       const enableMouseTracking = s.type === "y-threshold";
-      const style = { ...Styles.thresholdSeries, color: s.color ?? Styles.thresholdSeries.color };
+      const style = {
+        ...Styles.thresholdSeries,
+        color: s.color ?? Styles.thresholdSeries.color,
+        dashStyle: s.dashStyle ?? Styles.thresholdSeries.dashStyle,
+      };
       return { type: "line", id: s.id, name: s.name, data, custom, enableMouseTracking, ...style };
     }
     if (s.type === "errorbar") {
