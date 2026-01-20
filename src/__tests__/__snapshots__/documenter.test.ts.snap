@@ -327,9 +327,16 @@ Supported types:
       "defaultValue": "undefined",
       "description": "Enables series stacking behavior. Use it for column- or area- series.
 This property corresponds to "normal" stacking type in Highcharts ([plotOptions.series.stacking](https://api.highcharts.com/highcharts/plotOptions.series.stacking)).",
+      "inlineType": {
+        "name": "normal",
+        "type": "union",
+        "values": [
+          "normal",
+        ],
+      },
       "name": "stacking",
       "optional": true,
-      "type": ""normal"",
+      "type": "string",
     },
     {
       "description": "Defines tooltip options of the chart, including:
