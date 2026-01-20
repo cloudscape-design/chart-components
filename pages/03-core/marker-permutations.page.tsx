@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { createPermutations, PermutationsView } from "@cloudscape-design/build-tools/lib/dev-pages-utils";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import {
   colorChartsPaletteCategorical1,
@@ -20,7 +21,6 @@ import {
 } from "@cloudscape-design/design-tokens";
 
 import { ChartSeriesMarker, ChartSeriesMarkerProps } from "../../lib/components/internal/components/series-marker";
-import PermutationsView, { createPermutations } from "../common/permutations";
 import { Page, PageSection } from "../common/templates";
 
 const permutationsForColors = [
