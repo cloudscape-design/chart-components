@@ -84,6 +84,7 @@
     ],
     "simple-import-sort/imports": "warn",
     "@vitest/no-focused-tests": "error",
+    "@vitest/no-conditional-expect": "off",
   },
   "settings": {
     "react": {

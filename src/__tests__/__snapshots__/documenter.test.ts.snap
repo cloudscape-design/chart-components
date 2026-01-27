@@ -269,7 +269,7 @@ for the user to recover from the error.",
           },
           {
             "inlineType": {
-              "name": "NonCancelableEventHandler<{}>",
+              "name": "NonCancelableEventHandler",
               "parameters": [
                 {
                   "name": "event",
@@ -281,7 +281,7 @@ for the user to recover from the error.",
             },
             "name": "onRecoveryClick",
             "optional": true,
-            "type": "NonCancelableEventHandler<{}>",
+            "type": "NonCancelableEventHandler",
           },
           {
             "inlineType": {
@@ -923,7 +923,7 @@ for the user to recover from the error.",
           },
           {
             "inlineType": {
-              "name": "NonCancelableEventHandler<{}>",
+              "name": "NonCancelableEventHandler",
               "parameters": [
                 {
                   "name": "event",
@@ -935,7 +935,7 @@ for the user to recover from the error.",
             },
             "name": "onRecoveryClick",
             "optional": true,
-            "type": "NonCancelableEventHandler<{}>",
+            "type": "NonCancelableEventHandler",
           },
           {
             "inlineType": {
@@ -1718,7 +1718,7 @@ for the user to recover from the error.",
             },
             {
               "inlineType": {
-                "name": "NonCancelableEventHandler<{}>",
+                "name": "NonCancelableEventHandler",
                 "parameters": [
                   {
                     "name": "event",
@@ -1730,7 +1730,7 @@ for the user to recover from the error.",
               },
               "name": "onRecoveryClick",
               "optional": true,
-              "type": "NonCancelableEventHandler<{}>",
+              "type": "NonCancelableEventHandler",
             },
             {
               "inlineType": {

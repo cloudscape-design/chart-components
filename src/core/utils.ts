@@ -215,6 +215,10 @@ export function getVisibleLegendItems(options: Highcharts.Options) {
   };
 
   options.series?.forEach((series) => {
+    if (!("type" in series)) {
+      return;
+    }
+
     // The pie series is not shown in the legend. Instead, we show pie segments (points).
     if (series.type === "pie") {
       if (Array.isArray(series.data)) {
