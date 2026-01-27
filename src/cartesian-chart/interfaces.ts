@@ -8,9 +8,7 @@ import { NonCancelableEventHandler } from "../internal/events";
 // we pass options directly to the component, instead of grouping them all into a single "options" property.
 // We do still organize related options in groups, e.g.: "SeriesOptions", "TooltipOptions".
 export interface CartesianChartProps
-  extends CoreTypes.BaseChartOptions,
-    CoreTypes.CoreCartesianOptions,
-    CoreTypes.WithCartesianI18nStrings {
+  extends CoreTypes.BaseChartOptions, CoreTypes.CoreCartesianOptions, CoreTypes.WithCartesianI18nStrings {
   /**
    * Inverts X and Y axes. Use it to show horizontal columns (bars).
    * This property corresponds to [chart.inverted](https://api.highcharts.com/highcharts/chart.inverted).

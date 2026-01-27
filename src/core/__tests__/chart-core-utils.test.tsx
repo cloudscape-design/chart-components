@@ -1,6 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+/* eslint-disable @vitest/no-conditional-expect */
+
 import highcharts from "highcharts";
 
 import "highcharts/highcharts-more";

@@ -1,6 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+/* eslint-disable @vitest/no-conditional-expect */
+
 import path from "path";
 import { expect, test } from "vitest";
 
