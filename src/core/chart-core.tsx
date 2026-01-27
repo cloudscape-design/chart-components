@@ -6,9 +6,13 @@ import clsx from "clsx";
 import type Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 
-import { getIsRtl, useMergeRefs, useUniqueId } from "@cloudscape-design/component-toolkit/internal";
-import { isDevelopment } from "@cloudscape-design/component-toolkit/internal";
-import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
+import {
+  getIsRtl,
+  isDevelopment,
+  KeyCode,
+  useMergeRefs,
+  useUniqueId,
+} from "@cloudscape-design/component-toolkit/internal";
 import Spinner from "@cloudscape-design/components/spinner";
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
