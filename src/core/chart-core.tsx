@@ -106,9 +106,16 @@ export function InternalCoreChart({
 
   // AWSUI-61678
   // Add global Escape key listener to dismiss hover tooltips for WCAG Content on Hover/Focus compliance
+  // Only handles Escape when the chart application element does NOT have focus (to avoid interfering with keyboard navigation)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.keyCode === KeyCode.escape && context.tooltipEnabled) {
+        // Don't handle Escape if the chart's keyboard navigation is active (application element has focus)
+        const appElement = rootRef.current?.querySelector('[role="application"]');
+        if (appElement && document.activeElement === appElement) {
+          return;
+        }
+
         const tooltipState = api.tooltipStore.get();
         if (tooltipState.visible && !tooltipState.pinned) {
           api.hideTooltip();
@@ -120,7 +127,7 @@ export function InternalCoreChart({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [api, context.tooltipEnabled]);
+  }, [api, context.tooltipEnabled, rootRef]);
 
   // Render fallback using the same root and container props as for the chart to ensure consistent
   // size, test classes, and data-attributes assignment.
