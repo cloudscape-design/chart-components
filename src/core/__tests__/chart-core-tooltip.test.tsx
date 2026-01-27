@@ -818,4 +818,81 @@ describe("CoreChart: tooltip", () => {
       });
     });
   });
+
+  describe("Escape key dismissal", () => {
+    test("dismisses hover tooltip with Escape key when keyboard navigation is disabled", async () => {
+      const { wrapper } = renderChart({
+        highcharts,
+        options: { series: lineSeries },
+        keyboardNavigation: false,
+        getTooltipContent: () => ({
+          header: () => "Tooltip title",
+          body: () => "Tooltip body",
+        }),
+      });
+
+      // Show hover tooltip
+      act(() => hc.highlightChartPoint(0, 0));
+
+      await waitFor(() => {
+        expect(wrapper.findTooltip()).not.toBe(null);
+        expect(wrapper.findTooltip()!.findDismissButton()).toBe(null); // Not pinned
+      });
+
+      // Press Escape key
+      act(() => {
+        document.dispatchEvent(new KeyboardEvent("keydown", { keyCode: 27, bubbles: true }));
+      });
+
+      await waitFor(() => {
+        expect(wrapper.findTooltip()).toBe(null);
+      });
+    });
+
+    test("works for multiple charts when keyboard navigation is disabled", async () => {
+      const { wrapper: wrapper1 } = renderChart({
+        highcharts,
+        options: { series: lineSeries },
+        keyboardNavigation: false,
+        getTooltipContent: () => ({
+          header: () => "Chart 1",
+          body: () => "Body 1",
+        }),
+      });
+
+      const { wrapper: wrapper2 } = renderChart({
+        highcharts,
+        options: { series: pieSeries },
+        keyboardNavigation: false,
+        getTooltipContent: () => ({
+          header: () => "Chart 2",
+          body: () => "Body 2",
+        }),
+      });
+
+      // Get the second chart instance
+      const chart2 = highcharts.charts.filter(Boolean)[1]!;
+      const point = chart2.series[0].data[0];
+
+      // Show tooltip on chart 2 only
+      act(() => {
+        point.onMouseOver();
+      });
+
+      await waitFor(() => {
+        expect(wrapper1.findTooltip()).toBe(null);
+        expect(wrapper2.findTooltip()).not.toBe(null);
+      });
+
+      // Press Escape - only chart 2's tooltip should be dismissed
+      act(() => {
+        document.dispatchEvent(new KeyboardEvent("keydown", { keyCode: 27, bubbles: true }));
+      });
+
+      await waitFor(() => {
+        expect(wrapper1.findTooltip()).toBe(null);
+        expect(wrapper2.findTooltip()).toBe(null);
+      });
+    });
+  });
 });
