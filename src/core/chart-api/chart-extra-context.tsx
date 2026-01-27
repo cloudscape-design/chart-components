@@ -120,16 +120,39 @@ function computeDerivedState(chart: Highcharts.Chart): ChartExtraContext.Derived
     sortPoints(points);
   }
   const allX = Array.from(allXSet).sort(compareX);
+
+  // Group rects are computed lazily and cached. This avoids the expensive getGroupRect computation
+  // on every render when the rects aren't needed (e.g., when using keyboard navigation only).
+  const groupRectsCache = new Map<number, { group: Highcharts.Point[]; rect: Rect }>();
+  const getGroupRectForX = (x: number) => {
+    let cached = groupRectsCache.get(x);
+    if (!cached) {
+      const group = getXPoints(x);
+      cached = { group, rect: getGroupRect(group) };
+      groupRectsCache.set(x, cached);
+    }
+    return cached;
+  };
+
+  // Lazily computed groupRects array - only computed when accessed
+  let groupRectsArray: { group: Highcharts.Point[]; rect: Rect }[] | null = null;
+  const getGroupRects = () => {
+    if (!groupRectsArray) {
+      groupRectsArray = allX.map(getGroupRectForX);
+    }
+    return groupRectsArray;
+  };
+
   return {
     allX,
     getAllXInSeries: (s) => allXInSeries.get(s) ?? [],
     getPointsByX: (x) => pointsByX.get(x) ?? [],
     // Group rects are computed for every available x coordinate, each including at least one point with matching x value.
     // They enclose all matching points of the group and are used to match hover position and place the tooltip or focus outline.
-    groupRects: allX.map((x) => ({
-      group: getXPoints(x),
-      rect: getGroupRect(getXPoints(x)),
-    })),
+    // Using a getter for lazy evaluation - the array is only computed when first accessed.
+    get groupRects() {
+      return getGroupRects();
+    },
   };
 }
 
