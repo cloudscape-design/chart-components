@@ -818,4 +818,35 @@ describe("CoreChart: tooltip", () => {
       });
     });
   });
+
+  describe("Escape key dismissal", () => {
+    test("dismisses hover tooltip with Escape key when keyboard navigation is disabled", async () => {
+      const { wrapper } = renderChart({
+        highcharts,
+        options: { series: lineSeries },
+        keyboardNavigation: false,
+        getTooltipContent: () => ({
+          header: () => "Tooltip title",
+          body: () => "Tooltip body",
+        }),
+      });
+
+      // Show hover tooltip
+      act(() => hc.highlightChartPoint(0, 0));
+
+      await waitFor(() => {
+        expect(wrapper.findTooltip()).not.toBe(null);
+        expect(wrapper.findTooltip()!.findDismissButton()).toBe(null); // Not pinned
+      });
+
+      // Press Escape key
+      act(() => {
+        document.dispatchEvent(new KeyboardEvent("keydown", { keyCode: 27, bubbles: true }));
+      });
+
+      await waitFor(() => {
+        expect(wrapper.findTooltip()).toBe(null);
+      });
+    });
+  });
 });

@@ -1,13 +1,18 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import clsx from "clsx";
 import type Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 
-import { getIsRtl, useMergeRefs, useUniqueId } from "@cloudscape-design/component-toolkit/internal";
-import { isDevelopment } from "@cloudscape-design/component-toolkit/internal";
+import {
+  getIsRtl,
+  isDevelopment,
+  KeyCode,
+  useMergeRefs,
+  useUniqueId,
+} from "@cloudscape-design/component-toolkit/internal";
 import Spinner from "@cloudscape-design/components/spinner";
 
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
@@ -102,6 +107,27 @@ export function InternalCoreChart({
     verticalAxisTitlePlacement,
     legendBottomMaxHeight: legendOptions?.bottomMaxHeight,
   };
+
+  // AWSUI-61678
+  // Add global Escape key listener to dismiss hover tooltips for WCAG Content on Hover/Focus compliance
+  // Only enabled when keyboard navigation is disabled; when enabled, navigation handles Escape
+  useEffect(() => {
+    if (!context.keyboardNavigationEnabled) {
+      const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.keyCode === KeyCode.escape && context.tooltipEnabled) {
+          const tooltipState = api.tooltipStore.get();
+          if (tooltipState.visible && !tooltipState.pinned) {
+            api.hideTooltip();
+          }
+        }
+      };
+
+      document.addEventListener("keydown", handleKeyDown);
+      return () => {
+        document.removeEventListener("keydown", handleKeyDown);
+      };
+    }
+  }, [api, context.tooltipEnabled, context.keyboardNavigationEnabled]);
 
   // Render fallback using the same root and container props as for the chart to ensure consistent
   // size, test classes, and data-attributes assignment.
