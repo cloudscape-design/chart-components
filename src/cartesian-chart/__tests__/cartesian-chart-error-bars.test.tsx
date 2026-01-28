@@ -13,6 +13,17 @@ import "highcharts/modules/accessibility";
 import { HighchartsTestHelper } from "../../core/__tests__/highcharts-utils";
 import { getAllTooltipSeries, getTooltip, getTooltipSeries, renderCartesianChart } from "./common";
 
+vi.mock("@cloudscape-design/component-toolkit/internal", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@cloudscape-design/component-toolkit/internal")>();
+  return {
+    ...actual,
+    warnOnce: vi.fn(),
+  };
+});
+
+// later
+const warnOnce = vi.mocked(ComponentToolkitInternal.warnOnce);
+
 const hc = new HighchartsTestHelper(highcharts);
 
 describe("CartesianChart: errorbar series", () => {
@@ -134,8 +145,6 @@ describe("CartesianChart: errorbar series", () => {
   });
 
   describe("validation", () => {
-    const warnOnce = vi.spyOn(ComponentToolkitInternal, "warnOnce");
-
     beforeEach(() => {
       warnOnce.mockImplementation(() => null);
     });
