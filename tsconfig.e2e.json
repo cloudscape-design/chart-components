@@ -6,6 +6,6 @@
     "types": ["vite/client"],
     "tsBuildInfoFile": "./.cache/e2e-tests.tsbuildinfo"
   },
-  "include": ["types", "test"],
+  "include": ["types", "test", "vite/client"],
   "exclude": []
 }

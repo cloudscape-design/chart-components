@@ -314,7 +314,8 @@ export interface CoreCartesianOptions {
 }
 
 export interface CoreChartProps
-  extends Pick<
+  extends
+    Pick<
       BaseChartOptions,
       | "highcharts"
       | "fallback"
