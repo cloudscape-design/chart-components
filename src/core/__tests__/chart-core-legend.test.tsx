@@ -49,7 +49,6 @@ const series: Highcharts.SeriesOptionsType[] = [
       { name: "P2", y: 30 },
       { id: "P3", name: "Pie 3", y: 60 },
     ],
-    showInLegend: true,
   },
 ];
 
@@ -114,6 +113,14 @@ describe("CoreChart: legend", () => {
     expect(getItems().map((w) => w.getElement().textContent)).toEqual(["L1", "L2", "Line 3", "P1", "P2", "Pie 3"]);
     expect(getItems({ active: true }).map((w) => w.getElement().textContent)).toEqual(["L1", "P1"]);
     expect(getItems({ active: false }).map((w) => w.getElement().textContent)).toEqual(["L2", "Line 3", "P2", "Pie 3"]);
+  });
+
+  test("does not render series with showInLegend=false", () => {
+    const sVisible = series.filter((s) => s.name === "L1" || s.name === "L2");
+    const sHidden = series.filter((s) => !sVisible.includes(s)).map((s) => ({ ...s, showInLegend: false }));
+
+    renderChart({ highcharts, options: { series: [...sVisible, ...sHidden] } });
+    expect(getItems().map((w) => w.getElement().textContent)).toEqual(["L1", "L2", "P1", "P2", "Pie 3"]);
   });
 
   test("does not render title by default", () => {

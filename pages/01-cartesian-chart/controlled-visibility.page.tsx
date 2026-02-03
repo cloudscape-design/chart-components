@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import Checkbox from "@cloudscape-design/components/checkbox";
 import Link from "@cloudscape-design/components/link";
 
 import { CartesianChart, CartesianChartProps } from "../../lib/components";
@@ -9,6 +10,7 @@ import { PageSettings, PageSettingsForm, SeriesFilter, useChartSettings } from "
 import { Page, PageSection } from "../common/templates";
 
 interface ThisPageSettings extends PageSettings {
+  removeHidden: boolean;
   visibleItems: string;
 }
 
@@ -43,6 +45,7 @@ const defaultVisibleItems = "Costs,Costs last year,Peak cost";
 
 export default function () {
   const { settings, setSettings } = useChartSettings<ThisPageSettings>();
+  const removeHidden = settings.removeHidden ?? false;
   const visibleSeries = (settings.visibleItems ?? defaultVisibleItems).split(",");
   return (
     <Page
@@ -53,6 +56,16 @@ export default function () {
         <PageSettingsForm
           selectedSettings={[
             "showLegend",
+            {
+              content: (
+                <Checkbox
+                  checked={removeHidden}
+                  onChange={({ detail }) => setSettings({ removeHidden: detail.checked })}
+                >
+                  Remove hidden
+                </Checkbox>
+              ),
+            },
             {
               content: (
                 <SeriesFilter
@@ -76,12 +89,15 @@ export default function () {
 function ExampleMixedChart() {
   const { settings, setSettings, chartProps } = useChartSettings<ThisPageSettings>();
   const visibleSeries = (settings.visibleItems ?? defaultVisibleItems).split(",");
+  const filteredSeries = settings.removeHidden
+    ? mixedChartSeries.filter((s) => visibleSeries.includes(s.id!))
+    : mixedChartSeries;
   return (
     <CartesianChart
       {...chartProps.cartesian}
       chartHeight={379}
       ariaLabel="Mixed bar chart"
-      series={mixedChartSeries}
+      series={filteredSeries}
       tooltip={{
         point: ({ item }) => {
           return {

@@ -37,6 +37,10 @@ export const transformCartesianSeries = (
   const thresholdX = getThresholdX(originalSeries, visibleSeries);
   const thresholdY = getThresholdY(originalSeries, visibleSeries);
   function transformSeriesToHighcharts(s: CartesianChartProps.SeriesOptions): Highcharts.SeriesOptionsType {
+    // Highcharts does not properly update data on re-render. When the fake empty series is replaced with the real series,
+    // the properties are merged together, so the showInLegend=false is not overridden.
+    // That is why we explicitly override this property for all real series.
+    const shared = { showInLegend: true };
     if (s.type === "x-threshold" || s.type === "y-threshold") {
       const data =
         s.type === "x-threshold"
@@ -49,7 +53,7 @@ export const transformCartesianSeries = (
         color: s.color ?? Styles.thresholdSeries.color,
         dashStyle: s.dashStyle ?? Styles.thresholdSeries.dashStyle,
       };
-      return { type: "line", id: s.id, name: s.name, data, custom, enableMouseTracking, ...style };
+      return { type: "line", id: s.id, name: s.name, data, custom, enableMouseTracking, ...style, ...shared };
     }
     if (s.type === "errorbar") {
       const color = s.color ?? colorChartsErrorBarMarker;
@@ -58,7 +62,7 @@ export const transformCartesianSeries = (
       const colors = { stemColor: color, whiskerColor: color };
       return { ...s, data: s.data as Writeable<RangeDataItemOptions[]>, ...colors };
     }
-    return { ...s, data: s.data as Writeable<PointDataItemType[]> };
+    return { ...s, data: s.data as Writeable<PointDataItemType[]>, ...shared };
   }
   const series = originalSeries.map(transformSeriesToHighcharts);
   // We inject a fake empty series so that the empty state still shows axes, if defined.

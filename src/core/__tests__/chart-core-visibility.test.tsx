@@ -52,7 +52,6 @@ const pieSeries: Highcharts.SeriesOptionsType[] = [
       { name: "B", y: 20 },
       { name: "C", y: 70 },
     ],
-    showInLegend: true,
   },
 ];
 
@@ -377,7 +376,6 @@ describe("CoreChart: visibility", () => {
           { id: "1", name: "Segment", y: 20 },
           { id: "2", name: "Segment", y: 80 },
         ],
-        showInLegend: true,
       },
     ];
     const { rerender } = renderChart({

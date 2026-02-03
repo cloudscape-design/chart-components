@@ -103,4 +103,27 @@ describe("CartesianChart: visibility", () => {
       hiddenSeries: ["L1", "L2"],
     });
   });
+
+  test.each<CartesianChartProps.SeriesOptions>([
+    { type: "area", name: "S3", data: [] },
+    { type: "line", name: "S3", data: [] },
+    { type: "column", name: "S3", data: [] },
+    { type: "scatter", name: "S3", data: [] },
+    { type: "x-threshold", name: "S3", value: 0 },
+    { type: "y-threshold", name: "S3", value: 0 },
+  ])("new series become visible in the legend, type=$type", (s3) => {
+    const { rerender } = renderCartesianChart({ ...defaultProps, series: lineSeries });
+    expect(getVisibilityState().allLegendItems).toEqual(["L1", "L2"]);
+
+    rerender({ highcharts, series: [...lineSeries, s3] });
+    expect(getVisibilityState().allLegendItems).toEqual(["L1", "L2", "S3"]);
+  });
+
+  test("errorbar series do not become visible in the legend", () => {
+    const { rerender } = renderCartesianChart({ ...defaultProps, series: lineSeries });
+    expect(getVisibilityState().allLegendItems).toEqual(["L1", "L2"]);
+
+    rerender({ highcharts, series: [...lineSeries, { type: "errorbar", name: "EB", linkedTo: "L2", data: [] }] });
+    expect(getVisibilityState().allLegendItems).toEqual(["L1", "L2"]);
+  });
 });
