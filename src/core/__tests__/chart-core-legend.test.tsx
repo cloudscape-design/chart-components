@@ -3,7 +3,7 @@
 
 import { act } from "react";
 import highcharts from "highcharts";
-import { describe, vi } from "vitest";
+import { vi } from "vitest";
 
 import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 
@@ -91,10 +91,16 @@ const getItem = (index: number, options?: { active?: boolean; dimmed?: boolean }
   createChartWrapper().findLegend()!.findAll(getItemSelector(options))[index];
 const mouseOver = (element: HTMLElement) => element.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
 const mouseOut = (element: HTMLElement) => element.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
-const mouseLeavePause = () => new Promise((resolve) => setTimeout(resolve, 300));
-const tooltipShowPause = () => new Promise((resolve) => setTimeout(resolve, 350));
 
 vi.mock(import("../../../lib/components/internal/components/series-marker"), { spy: true });
+
+beforeAll(() => {
+  vi.useFakeTimers();
+});
+
+afterAll(() => {
+  vi.useRealTimers();
+});
 
 describe("CoreChart: legend", () => {
   test("renders no legend when legend.enabled=false", () => {
@@ -267,7 +273,7 @@ describe("CoreChart: legend", () => {
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["Line 3"]);
 
       act(() => hc.leaveChartPoint(2, 0));
-      await mouseLeavePause();
+      await hc.mouseLeavePause();
       await hc.clearHighlightPause();
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual([
         "L1",
@@ -295,7 +301,7 @@ describe("CoreChart: legend", () => {
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["Pie 3"]);
 
       act(() => hc.leaveChartPoint(0, 2));
-      await mouseLeavePause();
+      await hc.mouseLeavePause();
       await hc.clearHighlightPause();
       expect(getItems({ dimmed: false, active: true }).map((w) => w.getElement().textContent)).toEqual(["P1", "Pie 3"]);
     },
@@ -389,14 +395,14 @@ describe("CoreChart: legend", () => {
       expect(wrapper.findLegend()!.findItemTooltip()).toBe(null);
 
       act(() => mouseOver(getItem(0).getElement()));
-      await tooltipShowPause();
+      await hc.tooltipShowPause();
 
       expect(wrapper.findLegend()!.findItemTooltip()).not.toBe(null);
       expect(wrapper.findLegend()!.findItemTooltip()!.findHeader()!.getElement().textContent).toBe("L1");
 
       act(() => mouseOut(getItem(0).getElement()));
       act(() => mouseOver(getItem(2).getElement()));
-      await tooltipShowPause();
+      await hc.tooltipShowPause();
 
       expect(wrapper.findLegend()!.findItemTooltip()).not.toBe(null);
       expect(wrapper.findLegend()!.findItemTooltip()!.findHeader()!.getElement().textContent).toBe("Line 3");
@@ -425,13 +431,13 @@ describe("CoreChart: legend", () => {
       expect(wrapper.findLegend()!.findItemTooltip()).toBe(null);
 
       act(() => getItem(0).focus());
-      await tooltipShowPause();
+      await hc.tooltipShowPause();
 
       expect(wrapper.findLegend()!.findItemTooltip()).not.toBe(null);
       expect(wrapper.findLegend()!.findItemTooltip()!.findHeader()!.getElement().textContent).toBe("L1");
 
       getItem(0).keydown({ keyCode: KeyCode.right });
-      await tooltipShowPause();
+      await hc.tooltipShowPause();
 
       expect(wrapper.findLegend()!.findItemTooltip()).not.toBe(null);
       expect(wrapper.findLegend()!.findItemTooltip()!.findHeader()!.getElement().textContent).toBe("L2");
@@ -451,7 +457,7 @@ describe("CoreChart: legend", () => {
       expect(wrapper.findLegend()!.findItemTooltip()).toBe(null);
 
       act(() => mouseOver(getItem(0).getElement()));
-      await tooltipShowPause();
+      await hc.tooltipShowPause();
 
       expect(wrapper.findLegend()!.findItemTooltip()).not.toBe(null);
       expect(wrapper.findLegend()!.findItemTooltip()).not.toBe(null);
@@ -459,7 +465,7 @@ describe("CoreChart: legend", () => {
 
       act(() => mouseOut(getItem(0).getElement()));
       act(() => mouseOver(getItem(2).getElement()));
-      await tooltipShowPause();
+      await hc.tooltipShowPause();
 
       expect(wrapper.findLegend()!.findItemTooltip()).not.toBe(null);
       expect(wrapper.findLegend()!.findItemTooltip()!.findHeader()!.getElement().textContent).toBe("Pie 3");
@@ -484,13 +490,13 @@ describe("CoreChart: legend", () => {
       expect(wrapper.findLegend()!.findItemTooltip()).toBe(null);
 
       act(() => getItem(0).focus());
-      await tooltipShowPause();
+      await hc.tooltipShowPause();
 
       expect(wrapper.findLegend()!.findItemTooltip()).not.toBe(null);
       expect(wrapper.findLegend()!.findItemTooltip()!.findHeader()!.getElement().textContent).toBe("P1");
 
       getItem(0).keydown({ keyCode: KeyCode.right });
-      await tooltipShowPause();
+      await hc.tooltipShowPause();
 
       expect(wrapper.findLegend()!.findItemTooltip()).not.toBe(null);
       expect(wrapper.findLegend()!.findItemTooltip()!.findHeader()!.getElement().textContent).toBe("P2");

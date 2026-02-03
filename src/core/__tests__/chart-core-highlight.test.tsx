@@ -3,12 +3,21 @@
 
 import { act } from "react";
 import highcharts from "highcharts";
+import { vi } from "vitest";
 
 import "highcharts/highcharts-more";
 import { renderChart } from "./common";
 import { HighchartsTestHelper } from "./highcharts-utils";
 
 const hc = new HighchartsTestHelper(highcharts);
+
+beforeAll(() => {
+  vi.useFakeTimers();
+});
+
+afterAll(() => {
+  vi.useRealTimers();
+});
 
 describe("CoreChart: highlight", () => {
   test("highlights linked errorbar when target series is highlighted", async () => {

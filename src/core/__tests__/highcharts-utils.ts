@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type Highcharts from "highcharts";
+import { vi } from "vitest";
 
 export class HighchartsTestHelper {
   highcharts: typeof Highcharts;
@@ -43,7 +44,15 @@ export class HighchartsTestHelper {
   }
 
   public clearHighlightPause() {
-    return new Promise((resolve) => setTimeout(resolve, 100));
+    return vi.advanceTimersByTimeAsync(100);
+  }
+
+  public mouseLeavePause() {
+    return vi.advanceTimersByTimeAsync(300);
+  }
+
+  public tooltipShowPause() {
+    return vi.advanceTimersByTimeAsync(350);
   }
 }
 
