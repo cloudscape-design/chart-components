@@ -3,11 +3,14 @@
 
 import { sum } from "lodash";
 
+import Checkbox from "@cloudscape-design/components/checkbox";
+
 import { PieChart, PieChartProps } from "../../lib/components";
 import { PageSettings, PageSettingsForm, SeriesFilter, useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
 
 interface ThisPageSettings extends PageSettings {
+  removeHidden: boolean;
   visibleItems: string;
 }
 
@@ -25,6 +28,7 @@ const defaultVisibleItems = "Costs,Costs last year,Peak cost";
 
 export default function () {
   const { settings, setSettings } = useChartSettings<ThisPageSettings>();
+  const removeHidden = settings.removeHidden ?? false;
   const visibleSeries = (settings.visibleItems ?? defaultVisibleItems).split(",");
   return (
     <Page
@@ -35,6 +39,16 @@ export default function () {
         <PageSettingsForm
           selectedSettings={[
             "showLegend",
+            {
+              content: (
+                <Checkbox
+                  checked={removeHidden}
+                  onChange={({ detail }) => setSettings({ removeHidden: detail.checked })}
+                >
+                  Remove hidden
+                </Checkbox>
+              ),
+            },
             {
               content: (
                 <SeriesFilter
@@ -58,12 +72,15 @@ export default function () {
 function ExamplePieChart() {
   const { settings, setSettings, chartProps } = useChartSettings<ThisPageSettings>();
   const visibleSegments = (settings.visibleItems ?? defaultVisibleItems).split(",");
+  const filteredSeries = settings.removeHidden
+    ? { ...pieChartSeries, data: pieChartSeries.data.filter((i) => visibleSegments.includes(i.id!)) }
+    : pieChartSeries;
   return (
     <PieChart
       {...chartProps.pie}
       chartHeight={500}
       ariaLabel="Pie chart"
-      series={pieChartSeries}
+      series={filteredSeries}
       tooltip={{
         details({ segmentValue, totalValue }) {
           return [
