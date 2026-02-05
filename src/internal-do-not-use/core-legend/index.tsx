@@ -27,10 +27,14 @@ export const CoreLegend = ({
     if (visibleItems.includes(itemId)) {
       fireNonCancelableEvent(onVisibleItemsChange, {
         items: visibleItems.filter((visibleItemId) => visibleItemId !== itemId),
+        interactionType: "toggle",
+        targetItemId: itemId,
       });
     } else {
       fireNonCancelableEvent(onVisibleItemsChange, {
         items: [...visibleItems, itemId],
+        interactionType: "toggle",
+        targetItemId: itemId,
       });
     }
   };
@@ -38,9 +42,17 @@ export const CoreLegend = ({
   const onSelectItem = (itemId: string) => {
     const visibleItems = items.filter((i) => i.visible).map((i) => i.id);
     if (visibleItems.length === 1 && visibleItems[0] === itemId) {
-      fireNonCancelableEvent(onVisibleItemsChange, { items: items.map((i) => i.id) });
+      fireNonCancelableEvent(onVisibleItemsChange, {
+        items: items.map((i) => i.id),
+        interactionType: "select",
+        targetItemId: itemId,
+      });
     } else {
-      fireNonCancelableEvent(onVisibleItemsChange, { items: [itemId] });
+      fireNonCancelableEvent(onVisibleItemsChange, {
+        items: [itemId],
+        interactionType: "select",
+        targetItemId: itemId,
+      });
     }
   };
 

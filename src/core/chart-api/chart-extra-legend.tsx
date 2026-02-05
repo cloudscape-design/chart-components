@@ -46,14 +46,17 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
   };
 
   // A callback to be called when items visibility changes from the outside or from the legend.
-  public onItemVisibilityChange = (visibleItems: readonly string[], { isApiCall }: { isApiCall: boolean }) => {
+  public onItemVisibilityChange = (
+    visibleItems: readonly string[],
+    detail: { interactionType: "api" | "filter" } | { interactionType: "toggle" | "select"; targetItemId: string },
+  ) => {
     const currentItems = this.get().items;
     const updatedItems = currentItems.map((i) => ({ ...i, visible: visibleItems.includes(i.id) }));
     if (this.visibilityMode === "internal") {
       this.updateLegendItems(updatedItems);
       updateItemsVisibility(this.context.chart(), this.get().items, visibleItems);
     }
-    fireNonCancelableEvent(this.context.handlers.onVisibleItemsChange, { items: updatedItems, isApiCall });
+    fireNonCancelableEvent(this.context.handlers.onVisibleItemsChange, { items: updatedItems, ...detail });
   };
 
   // Updates legend highlight state when chart's point is highlighted.
