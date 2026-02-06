@@ -34,6 +34,14 @@ const pieSeries: Highcharts.SeriesOptionsType[] = [
   },
 ];
 
+beforeAll(() => {
+  vi.useFakeTimers();
+});
+
+afterAll(() => {
+  vi.useRealTimers();
+});
+
 describe("CoreChart: API tests", () => {
   test("passes isApiCall=false to onHighlight when triggered by an user interaction", () => {
     const onHighlight = vi.fn();
