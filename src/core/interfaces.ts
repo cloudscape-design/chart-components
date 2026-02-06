@@ -522,10 +522,29 @@ export namespace CoreChartProps {
   export interface LegendItemHighlightDetail {
     item: LegendItem;
   }
-  export interface VisibleItemsChangeDetail {
-    items: readonly LegendItem[];
-    isApiCall: boolean;
+
+  export interface ApiInteraction {
+    interactionType: "api";
   }
+  export interface FilterInteraction {
+    interactionType: "filter";
+  }
+  export interface ToggleInteraction {
+    interactionType: "toggle";
+    targetItemId: string;
+  }
+  export interface SelectInteraction {
+    interactionType: "select";
+    targetItemId: string;
+  }
+
+  export type VisibleItemsChangeDetail = { items: readonly LegendItem[] } & (
+    | ApiInteraction
+    | FilterInteraction
+    | ToggleInteraction
+    | SelectInteraction
+  );
+
   export interface HighlightChangeDetail {
     point: null | Highcharts.Point;
     group: readonly Highcharts.Point[];
@@ -557,9 +576,10 @@ export namespace CoreLegendProps {
   export interface ItemHighlightDetail {
     item: Item;
   }
-  export interface VisibleItemsChangeDetail {
-    items: readonly string[];
-  }
+  export type VisibleItemsChangeDetail = { items: readonly string[] } & (
+    | CoreChartProps.ToggleInteraction
+    | CoreChartProps.SelectInteraction
+  );
 }
 
 // Utility types

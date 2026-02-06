@@ -81,18 +81,20 @@ describe("CoreChart: API tests", () => {
     expect(onClearHighlight).toHaveBeenCalledWith(expect.objectContaining({ detail: { isApiCall: true } }));
   });
 
-  test("passes isApiCall=false to onVisibleItemsChange when triggered by user interaction", () => {
+  test("fires interactionType=select when triggered by user interaction", () => {
     const onVisibleItemsChange = vi.fn();
     const { wrapper } = renderChart({ highcharts, options: { series }, onVisibleItemsChange });
 
     selectLegendItem(0, wrapper);
 
     expect(onVisibleItemsChange).toHaveBeenCalledWith(
-      expect.objectContaining({ detail: { items: expect.any(Array), isApiCall: false } }),
+      expect.objectContaining({
+        detail: { items: expect.any(Array), interactionType: "select", targetItemId: "Line 1" },
+      }),
     );
   });
 
-  test("passes isApiCall=true to onVisibleItemsChange when triggered programmatically through API", () => {
+  test("fires interactionType=api when triggered programmatically through API", () => {
     const onVisibleItemsChange = vi.fn();
     let chartApi: CoreChartProps.ChartAPI | null = null;
 
@@ -100,7 +102,9 @@ describe("CoreChart: API tests", () => {
 
     act(() => chartApi!.setItemsVisible(["Line 1"]));
     expect(onVisibleItemsChange).toHaveBeenCalledWith(
-      expect.objectContaining({ detail: { items: expect.any(Array), isApiCall: true } }),
+      expect.objectContaining({
+        detail: { items: expect.any(Array), interactionType: "api" },
+      }),
     );
   });
 

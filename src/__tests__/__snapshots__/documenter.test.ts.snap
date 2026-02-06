@@ -1249,19 +1249,14 @@ exports[`internal core API matches snapshot > internal-core-chart 1`] = `
         "description": "Called when series/points visibility changes due to user interaction with legend or filter.",
         "detailInlineType": {
           "name": "CoreChartProps.VisibleItemsChangeDetail",
-          "properties": [
-            {
-              "name": "isApiCall",
-              "optional": false,
-              "type": "boolean",
-            },
-            {
-              "name": "items",
-              "optional": false,
-              "type": "ReadonlyArray<LegendItem>",
-            },
+          "type": "union",
+          "valueDescriptions": undefined,
+          "values": [
+            "{ items: ReadonlyArray<LegendItem>; } & CoreChartProps.ApiInteraction",
+            "{ items: ReadonlyArray<LegendItem>; } & CoreChartProps.FilterInteraction",
+            "{ items: ReadonlyArray<LegendItem>; } & CoreChartProps.ToggleInteraction",
+            "{ items: ReadonlyArray<LegendItem>; } & CoreChartProps.SelectInteraction",
           ],
-          "type": "object",
         },
         "detailType": "CoreChartProps.VisibleItemsChangeDetail",
         "name": "onVisibleItemsChange",

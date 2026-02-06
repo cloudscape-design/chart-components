@@ -43,7 +43,7 @@ function ChartSeriesFilter({ api, i18nStrings }: { api: ChartAPI; i18nStrings?: 
     <InternalChartSeriesFilter
       items={legendItems}
       selectedItems={legendItems.filter((i) => i.visible).map((i) => i.id)}
-      onChange={({ detail }) => api.onItemVisibilityChange(detail.selectedItems)}
+      onChange={({ detail }) => api.onItemVisibilityChange(detail.selectedItems, { interactionType: "filter" })}
       i18nStrings={{
         filterLabel: i18n("i18nStrings.filterLabel", i18nStrings?.seriesFilterLabel),
         filterPlaceholder: i18n("i18nStrings.filterPlaceholder", i18nStrings?.seriesFilterPlaceholder),

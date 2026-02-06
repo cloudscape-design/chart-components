@@ -24,10 +24,10 @@ export function StatefulChart(props: CoreChartProps) {
     <CoreChart
       {...props}
       visibleItems={visibleItems}
-      onVisibleItemsChange={({ detail: { items: legendItems, isApiCall } }) => {
-        const visibleItems = legendItems.filter((i) => i.visible).map((i) => i.id);
+      onVisibleItemsChange={({ detail }) => {
+        const visibleItems = detail.items.filter((i) => i.visible).map((i) => i.id);
         setVisibleItems(visibleItems);
-        fireNonCancelableEvent(props.onVisibleItemsChange, { items: legendItems, isApiCall });
+        fireNonCancelableEvent(props.onVisibleItemsChange, detail);
       }}
     />
   );

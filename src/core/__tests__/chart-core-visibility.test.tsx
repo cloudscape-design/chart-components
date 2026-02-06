@@ -138,7 +138,9 @@ describe("CoreChart: visibility", () => {
             { id: "L2", name: "L2", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
             { id: "L3", name: "L3", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
           ],
-          isApiCall: false,
+
+          interactionType: "toggle",
+          targetItemId: "L1",
         },
       }),
     );
@@ -155,7 +157,9 @@ describe("CoreChart: visibility", () => {
             { id: "L2", name: "L2", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
             { id: "L3", name: "L3", marker: expect.anything(), visible: false, highlighted: false, isSecondary: false },
           ],
-          isApiCall: false,
+
+          interactionType: "select",
+          targetItemId: "L2",
         },
       }),
     );
@@ -172,7 +176,9 @@ describe("CoreChart: visibility", () => {
             { id: "L2", name: "L2", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
             { id: "L3", name: "L3", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
           ],
-          isApiCall: false,
+
+          interactionType: "select",
+          targetItemId: "L2",
         },
       }),
     );
@@ -236,7 +242,9 @@ describe("CoreChart: visibility", () => {
             { id: "1", name: "Line", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
             { id: "2", name: "Line", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
           ],
-          isApiCall: false,
+
+          interactionType: "toggle",
+          targetItemId: "1",
         },
       }),
     );
@@ -264,7 +272,9 @@ describe("CoreChart: visibility", () => {
               isSecondary: false,
             },
           ],
-          isApiCall: false,
+
+          interactionType: "toggle",
+          targetItemId: "2",
         },
       }),
     );
@@ -309,7 +319,9 @@ describe("CoreChart: visibility", () => {
             { id: "B", name: "B", marker: expect.anything(), visible: false, highlighted: false, isSecondary: false },
             { id: "C", name: "C", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
           ],
-          isApiCall: false,
+
+          interactionType: "toggle",
+          targetItemId: "B",
         },
       }),
     );
@@ -326,7 +338,9 @@ describe("CoreChart: visibility", () => {
             { id: "B", name: "B", marker: expect.anything(), visible: false, highlighted: false, isSecondary: false },
             { id: "C", name: "C", marker: expect.anything(), visible: false, highlighted: false, isSecondary: false },
           ],
-          isApiCall: false,
+
+          interactionType: "select",
+          targetItemId: "A",
         },
       }),
     );
@@ -343,7 +357,9 @@ describe("CoreChart: visibility", () => {
             { id: "B", name: "B", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
             { id: "C", name: "C", marker: expect.anything(), visible: true, highlighted: false, isSecondary: false },
           ],
-          isApiCall: false,
+
+          interactionType: "select",
+          targetItemId: "A",
         },
       }),
     );
@@ -427,7 +443,9 @@ describe("CoreChart: visibility", () => {
               isSecondary: false,
             },
           ],
-          isApiCall: false,
+
+          interactionType: "toggle",
+          targetItemId: "1",
         },
       }),
     );
@@ -455,7 +473,9 @@ describe("CoreChart: visibility", () => {
               isSecondary: false,
             },
           ],
-          isApiCall: false,
+
+          interactionType: "toggle",
+          targetItemId: "2",
         },
       }),
     );

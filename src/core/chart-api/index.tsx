@@ -200,8 +200,10 @@ export class ChartAPI {
   public updateItemsVisibility = this.chartExtraLegend.updateItemsVisibility.bind(this.chartExtraLegend);
 
   // A callback used by the legend and filter components when series/segments visibility changes.
-  public onItemVisibilityChange = (items: readonly string[]) =>
-    this.chartExtraLegend.onItemVisibilityChange(items, { isApiCall: false });
+  public onItemVisibilityChange = (
+    items: readonly string[],
+    detail: { interactionType: "filter" } | { interactionType: "toggle" | "select"; targetItemId: string },
+  ) => this.chartExtraLegend.onItemVisibilityChange(items, detail);
 
   // Callbacks used by the legend component when items highlight state changes.
   public onHighlightChartItems = (itemIds: readonly string[]) => {
@@ -228,8 +230,8 @@ export class ChartAPI {
       this.chartExtraLegend.onHighlightItems(itemIds);
     }
   };
-  public setItemsVisible = (visibleItemsIds: readonly string[], { isApiCall }: { isApiCall: boolean }) => {
-    this.chartExtraLegend.onItemVisibilityChange(visibleItemsIds, { isApiCall });
+  public setItemsVisible = (visibleItemsIds: readonly string[]) => {
+    this.chartExtraLegend.onItemVisibilityChange(visibleItemsIds, { interactionType: "api" });
   };
   public highlightChartPoint = (point: Highcharts.Point, { isApiCall }: { isApiCall: boolean }) => {
     if (!this.isTooltipPinned) {
@@ -249,7 +251,7 @@ export class ChartAPI {
   public get publicApi() {
     return {
       highlightItems: (itemIds: readonly string[]) => this.highlightChartItems(itemIds),
-      setItemsVisible: (visibleItemIds: readonly string[]) => this.setItemsVisible(visibleItemIds, { isApiCall: true }),
+      setItemsVisible: (visibleItemIds: readonly string[]) => this.setItemsVisible(visibleItemIds),
       highlightChartPoint: (point: Highcharts.Point) => this.highlightChartPoint(point, { isApiCall: true }),
       highlightChartGroup: (group: readonly Highcharts.Point[]) => this.highlightChartGroup(group, { isApiCall: true }),
       clearChartHighlight: () => this.clearChartHighlight({ isApiCall: true }),

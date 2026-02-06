@@ -49,9 +49,12 @@ export function ChartLegend({
   const onToggleItem = (itemId: string) => {
     const visibleItems = legendItems.filter((i) => i.visible).map((i) => i.id);
     if (visibleItems.includes(itemId)) {
-      api.onItemVisibilityChange(visibleItems.filter((visibleItemId) => visibleItemId !== itemId));
+      api.onItemVisibilityChange(
+        visibleItems.filter((visibleItemId) => visibleItemId !== itemId),
+        { interactionType: "toggle", targetItemId: itemId },
+      );
     } else {
-      api.onItemVisibilityChange([...visibleItems, itemId]);
+      api.onItemVisibilityChange([...visibleItems, itemId], { interactionType: "toggle", targetItemId: itemId });
     }
     // Needed for touch devices.
     api.onClearChartItemsHighlight();
@@ -60,9 +63,12 @@ export function ChartLegend({
   const onSelectItem = (itemId: string) => {
     const visibleItems = legendItems.filter((i) => i.visible).map((i) => i.id);
     if (visibleItems.length === 1 && visibleItems[0] === itemId) {
-      api.onItemVisibilityChange(legendItems.map((i) => i.id));
+      api.onItemVisibilityChange(
+        legendItems.map((i) => i.id),
+        { interactionType: "select", targetItemId: itemId },
+      );
     } else {
-      api.onItemVisibilityChange([itemId]);
+      api.onItemVisibilityChange([itemId], { interactionType: "select", targetItemId: itemId });
     }
     // Needed for touch devices.
     api.onClearChartItemsHighlight();
