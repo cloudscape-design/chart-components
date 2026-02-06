@@ -9,6 +9,7 @@ import { ReadonlyAsyncStore } from "../../internal/utils/async-store";
 import { getChartSeries } from "../../internal/utils/chart-series";
 import { getSeriesData } from "../../internal/utils/series-data";
 import { Writeable } from "../../internal/utils/utils";
+import { CoreChartProps } from "../interfaces";
 import {
   getChartAccessibleDescription,
   getGroupAccessibleDescription,
@@ -202,7 +203,7 @@ export class ChartAPI {
   // A callback used by the legend and filter components when series/segments visibility changes.
   public onItemVisibilityChange = (
     items: readonly string[],
-    detail: { interactionType: "filter" } | { interactionType: "toggle" | "select"; targetItemId: string },
+    detail: CoreChartProps.FilterInteraction | CoreChartProps.ToggleInteraction | CoreChartProps.SelectInteraction,
   ) => this.chartExtraLegend.onItemVisibilityChange(items, detail);
 
   // Callbacks used by the legend component when items highlight state changes.
