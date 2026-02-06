@@ -9,6 +9,7 @@ import { ReadonlyAsyncStore } from "../../internal/utils/async-store";
 import { getChartSeries } from "../../internal/utils/chart-series";
 import { getSeriesData } from "../../internal/utils/series-data";
 import { Writeable } from "../../internal/utils/utils";
+import { CoreChartProps } from "../interfaces";
 import {
   getChartAccessibleDescription,
   getGroupAccessibleDescription,
@@ -200,10 +201,8 @@ export class ChartAPI {
   public updateItemsVisibility = this.chartExtraLegend.updateItemsVisibility.bind(this.chartExtraLegend);
 
   // A callback used by the legend and filter components when series/segments visibility changes.
-  public onItemVisibilityChange = (
-    items: readonly string[],
-    detail: { interactionType: "filter" } | { interactionType: "toggle" | "select"; targetItemId: string },
-  ) => this.chartExtraLegend.onItemVisibilityChange(items, detail);
+  public onItemVisibilityChange = (items: readonly string[], detail: CoreChartProps.InteractionKind) =>
+    this.chartExtraLegend.onItemVisibilityChange(items, detail);
 
   // Callbacks used by the legend component when items highlight state changes.
   public onHighlightChartItems = (itemIds: readonly string[]) => {
