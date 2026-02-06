@@ -46,14 +46,7 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
   };
 
   // A callback to be called when items visibility changes from the outside or from the legend.
-  public onItemVisibilityChange = (
-    visibleItems: readonly string[],
-    detail:
-      | CoreChartProps.ApiInteraction
-      | CoreChartProps.FilterInteraction
-      | CoreChartProps.ToggleInteraction
-      | CoreChartProps.SelectInteraction,
-  ) => {
+  public onItemVisibilityChange = (visibleItems: readonly string[], detail: CoreChartProps.InteractionKind) => {
     const currentItems = this.get().items;
     const updatedItems = currentItems.map((i) => ({ ...i, visible: visibleItems.includes(i.id) }));
     if (this.visibilityMode === "internal") {

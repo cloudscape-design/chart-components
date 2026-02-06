@@ -538,12 +538,9 @@ export namespace CoreChartProps {
     targetItemId: string;
   }
 
-  export type VisibleItemsChangeDetail = { items: readonly LegendItem[] } & (
-    | ApiInteraction
-    | FilterInteraction
-    | ToggleInteraction
-    | SelectInteraction
-  );
+  export type InteractionKind = ApiInteraction | FilterInteraction | ToggleInteraction | SelectInteraction;
+
+  export type VisibleItemsChangeDetail = { items: readonly LegendItem[] } & InteractionKind;
 
   export interface HighlightChangeDetail {
     point: null | Highcharts.Point;

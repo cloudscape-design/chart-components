@@ -201,10 +201,8 @@ export class ChartAPI {
   public updateItemsVisibility = this.chartExtraLegend.updateItemsVisibility.bind(this.chartExtraLegend);
 
   // A callback used by the legend and filter components when series/segments visibility changes.
-  public onItemVisibilityChange = (
-    items: readonly string[],
-    detail: CoreChartProps.FilterInteraction | CoreChartProps.ToggleInteraction | CoreChartProps.SelectInteraction,
-  ) => this.chartExtraLegend.onItemVisibilityChange(items, detail);
+  public onItemVisibilityChange = (items: readonly string[], detail: CoreChartProps.InteractionKind) =>
+    this.chartExtraLegend.onItemVisibilityChange(items, detail);
 
   // Callbacks used by the legend component when items highlight state changes.
   public onHighlightChartItems = (itemIds: readonly string[]) => {
