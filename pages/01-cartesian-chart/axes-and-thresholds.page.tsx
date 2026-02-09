@@ -15,8 +15,6 @@ const subYears = (date: Date, years: number) => {
   return result;
 };
 
-import ColumnLayout from "@cloudscape-design/components/column-layout";
-
 import { CartesianChart } from "../../lib/components";
 import { dateFormatter } from "../common/formatters";
 import { useChartSettings } from "../common/page-settings";
@@ -29,7 +27,7 @@ export default function () {
       title="Axes and thresholds"
       subtitle="This pages demonstrates different axes types, tick formatters, and thresholds."
     >
-      <ColumnLayout columns={2}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
         <PageSection title="Linear X, linear Y">
           <LinearLinear />
         </PageSection>
@@ -78,7 +76,7 @@ export default function () {
         <PageSection title="Datetime X, categorical Y">
           <CategoryDatetime />
         </PageSection>
-      </ColumnLayout>
+      </div>
     </Page>
   );
 }
