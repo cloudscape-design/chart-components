@@ -34,12 +34,12 @@ export class ChartExtraPointer {
 
   public onChartLoad = (chart: Highcharts.Chart) => {
     chart.container.addEventListener("mousemove", this.onChartMousemove);
-    chart.container.addEventListener("mouseout", this.onChartMouseout);
+    chart.container.addEventListener("mouseleave", this.onChartMouseout);
   };
 
   public onChartDestroy = () => {
     this.context.chartOrNull?.container?.removeEventListener("mousemove", this.onChartMousemove);
-    this.context.chartOrNull?.container?.removeEventListener("mouseout", this.onChartMouseout);
+    this.context.chartOrNull?.container?.removeEventListener("mouseleave", this.onChartMouseout);
   };
 
   // This event is triggered by Highcharts when the cursor is over a Highcharts point. We leave this to
