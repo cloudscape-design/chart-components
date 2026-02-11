@@ -36,7 +36,7 @@ const CartesianChart = forwardRef(
     const tooltip = transformTooltip(props.tooltip);
     const legend = transformLegend(props.legend);
 
-    const baseComponentProps = useBaseComponent("CartesianChart", {
+    const baseComponentProps = useBaseComponent("CartesianHighcharts", {
       props: { fitHeight, inverted, stacking, emphasizeBaseline, verticalAxisTitlePlacement },
       metadata: {},
     });

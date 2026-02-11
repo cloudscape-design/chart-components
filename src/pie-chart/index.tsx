@@ -20,7 +20,7 @@ const PieChart = forwardRef(({ fitHeight = false, ...props }: PieChartProps, ref
   const tooltip = transformTooltip(props.tooltip);
   const legend = transformLegend(props.legend);
 
-  const baseComponentProps = useBaseComponent("PieChart", { props: { fitHeight } });
+  const baseComponentProps = useBaseComponent("PieHighcharts", { props: { fitHeight } });
 
   return (
     <InternalPieChart
