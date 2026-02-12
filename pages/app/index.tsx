@@ -74,7 +74,7 @@ function Navigation() {
   const isDarkMode = urlParams.mode === Mode.Dark;
   const isCompactMode = urlParams.density === Density.Compact;
   const isRtl = urlParams.direction === "rtl";
-  return (
+  return urlParams.screenshotMode ? null : (
     <header id="h" style={{ position: "sticky", insetBlockStart: 0, zIndex: 1002 }}>
       <TopNavigation
         identity={{
