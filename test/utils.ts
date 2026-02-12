@@ -1,32 +1,14 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { BasePageObject, ScreenshotPageObject } from "@cloudscape-design/browser-test-tools/page-objects";
+import { BasePageObject } from "@cloudscape-design/browser-test-tools/page-objects";
 import useBrowser from "@cloudscape-design/browser-test-tools/use-browser";
 
 export function setupTest(url: string, test: (page: ChartPageObject) => Promise<void>) {
-  return setupTestBase(ChartPageObject, url, test);
-}
-
-export function setupScreenshotTest(url: string, test: (page: ScreenshotPageObject) => Promise<void>) {
-  return setupTestBase(ScreenshotPageObject, url, test);
-}
-
-function setupTestBase<P extends BasePageObject & { init?(): Promise<void> }>(
-  PageClass: new (browser: WebdriverIO.Browser) => P,
-  url: string,
-  test: (page: P) => Promise<void>,
-) {
   return useBrowser({}, async (browser) => {
     await browser.url(url);
-    const page = new PageClass(browser);
+    const page = new ChartPageObject(browser);
     await page.waitForVisible("main");
-
-    // Custom initialization.
-    if (page.init) {
-      await page.init();
-    }
-
     await test(page);
   });
 }
