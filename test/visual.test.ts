@@ -41,7 +41,7 @@ function setupScreenshotTest(url: string, test: (page: ScreenshotPageObject) => 
     await browser.url(url);
     const page = new ScreenshotPageObject(browser);
     await page.waitForVisible(".screenshot-area");
-    await page.waitForJsTimers(500);
+    await page.waitForJsTimers(499);
     await test(page);
   });
 }
