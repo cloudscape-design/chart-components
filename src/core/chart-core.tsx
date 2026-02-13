@@ -110,23 +110,28 @@ export function InternalCoreChart({
 
   // AWSUI-61678
   // Add global Escape key listener to dismiss hover tooltips for WCAG Content on Hover/Focus compliance
-  // Only enabled when keyboard navigation is disabled; when enabled, navigation handles Escape
+  // This listener handles Escape when using mouse hover. When keyboard navigation is active (application
+  // element is focused), the navigation handler deals with Escape, so we skip to avoid conflicts.
   useEffect(() => {
-    if (!context.keyboardNavigationEnabled) {
-      const handleKeyDown = (event: KeyboardEvent) => {
-        if (event.keyCode === KeyCode.escape && context.tooltipEnabled) {
-          const tooltipState = api.tooltipStore.get();
-          if (tooltipState.visible && !tooltipState.pinned) {
-            api.hideTooltip();
-          }
-        }
-      };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Skip if keyboard navigation is handling this (event originated from application element)
+      const target = event.target as Element;
+      if (context.keyboardNavigationEnabled && target?.closest('[role="application"]')) {
+        return;
+      }
 
-      document.addEventListener("keydown", handleKeyDown);
-      return () => {
-        document.removeEventListener("keydown", handleKeyDown);
-      };
-    }
+      if (event.keyCode === KeyCode.escape && context.tooltipEnabled) {
+        const tooltipState = api.tooltipStore.get();
+        if (tooltipState.visible && !tooltipState.pinned) {
+          api.hideTooltip();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, [api, context.tooltipEnabled, context.keyboardNavigationEnabled]);
 
   // Render fallback using the same root and container props as for the chart to ensure consistent

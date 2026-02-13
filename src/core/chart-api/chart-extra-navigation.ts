@@ -162,7 +162,9 @@ export class ChartExtraNavigation {
 
   private onKeyDown = (event: KeyboardEvent) => {
     // The `handleKey` helper we use does not prevent the default keys behavior, so we do it here for
-    // all used keyboard commands.
+    // all used keyboard commands. We also stop propagation to prevent the global escape handler in
+    // chart-core.tsx from interfering with navigation - when keyboard navigation is active, this
+    // handler is the authoritative one for all navigation keys.
     if (
       [
         KeyCode.up,
@@ -178,6 +180,7 @@ export class ChartExtraNavigation {
       ].includes(event.keyCode)
     ) {
       event.preventDefault();
+      event.stopPropagation();
     }
     // We execute different actions depending on the current focus target (chart, group, or point).
     // It is expected, that the focused element is still available in the chart.
