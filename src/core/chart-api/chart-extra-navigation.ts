@@ -27,6 +27,7 @@ export interface ChartExtraNavigationHandlers {
   onBlur(): void;
   onActivatePoint(point: Highcharts.Point, group: readonly Highcharts.Point[]): void;
   onActivateGroup(group: readonly Highcharts.Point[]): void;
+  onDismissHoverTooltip(): void;
 }
 
 export type FocusedState = FocusedStateChart | FocusedStateGroup | FocusedStatePoint;
@@ -193,6 +194,7 @@ export class ChartExtraNavigation {
   private onKeyDownChart = (event: KeyboardEvent) => {
     handleKey(event, {
       onActivate: () => this.moveToFirstGroup(),
+      onEscape: () => this.handlers.onDismissHoverTooltip(),
       onInlineStart: () => this.moveToLastGroup(),
       onInlineEnd: () => this.moveToFirstGroup(),
       onBlockStart: () => this.moveToLastGroup(),
