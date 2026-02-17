@@ -334,6 +334,8 @@ describe("CoreChart: navigation, cartesian charts", () => {
     expect(describeFocusedElement()).toBe("button:1[true,false]");
     expect(wrapper.findTooltip()!.getElement().textContent).toBe("1Line series 111Line series 221");
 
+    // First ESC dismisses tooltip, second ESC navigates to chart
+    keyDown(KeyCode.escape);
     keyDown(KeyCode.escape);
 
     expect(describeFocusedElement()).toBe("application:Test chart");
@@ -560,19 +562,21 @@ describe("CoreChart: navigation, cartesian charts", () => {
   );
 
   test("moves focus from point to group", () => {
-    const { wrapper } = renderChart(commonProps(false, seriesLong1));
+    const { wrapper } = renderChart(commonProps(false, seriesShort2));
 
     focusApplication();
     keyDown(KeyCode.enter);
     keyDown(KeyCode.down);
 
-    expect(describeFocusedElement()).toBe("button:1 -1, Line series 1[true,false]");
-    expect(wrapper.findTooltip()!.getElement().textContent).toBe("1Line series 1-1");
+    expect(describeFocusedElement()).toBe("button:1 11, Line series 1[true,false]");
+    expect(wrapper.findTooltip()!.getElement().textContent).toBe("1Line series 111Line series 221");
 
+    // First ESC dismisses tooltip, second ESC navigates to group
+    keyDown(KeyCode.escape);
     keyDown(KeyCode.escape);
 
     expect(describeFocusedElement()).toBe("button:1[true,false]");
-    expect(wrapper.findTooltip()!.getElement().textContent).toBe("1Line series 1-1");
+    expect(wrapper.findTooltip()!.getElement().textContent).toBe("1Line series 111Line series 221");
   });
 
   test("pins popover at point", () => {

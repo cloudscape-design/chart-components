@@ -174,6 +174,8 @@ describe("CoreChart: navigation, pie charts", () => {
     expect(describeFocusedElement()).toBe("button:P1, 10. Pie series[true,false]");
     expect(wrapper.findTooltip()!.getElement().textContent).toBe("P1Pie series10");
 
+    // First ESC dismisses tooltip, second ESC navigates to chart
+    keyDown(KeyCode.escape);
     keyDown(KeyCode.escape);
 
     expect(describeFocusedElement()).toBe("application:Test chart");
