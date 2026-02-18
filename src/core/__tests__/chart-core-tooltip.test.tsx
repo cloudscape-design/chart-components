@@ -819,6 +819,48 @@ describe("CoreChart: tooltip", () => {
     });
   });
 
+  test("hides tooltip when mouse moves outside plot area to the left", async () => {
+    const onHighlight = vi.fn();
+    const onClearHighlight = vi.fn();
+    const { wrapper } = renderChart({
+      highcharts,
+      options: {
+        series: lineSeries,
+        chart: {
+          events: {
+            load() {
+              this.plotTop = 0;
+              this.plotLeft = 50;
+              this.plotWidth = 100;
+              this.plotHeight = 100;
+            },
+          },
+        },
+      },
+      onHighlight,
+      onClearHighlight,
+      getTooltipContent: () => ({
+        header: () => "Tooltip title",
+        body: () => "Tooltip body",
+      }),
+    });
+
+    // Move mouse inside plot area to show tooltip
+    act(() => hc.getChart().container.dispatchEvent(createMouseMoveEvent({ pageX: 75, pageY: 50 })));
+
+    await waitFor(() => {
+      expect(wrapper.findTooltip()).not.toBe(null);
+    });
+
+    // Move mouse to the left, outside the plot area (plotLeft=50, so pageX=30 is outside)
+    act(() => hc.getChart().container.dispatchEvent(createMouseMoveEvent({ pageX: 30, pageY: 50 })));
+
+    await waitFor(() => {
+      expect(onClearHighlight).toHaveBeenCalled();
+      expect(wrapper.findTooltip()).toBe(null);
+    });
+  });
+
   describe("Escape key dismissal", () => {
     test("dismisses hover tooltip with Escape key when keyboard navigation is disabled", async () => {
       const { wrapper } = renderChart({

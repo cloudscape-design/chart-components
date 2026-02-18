@@ -110,10 +110,16 @@ export class ChartExtraPointer {
       this.setHoveredGroup(matchedGroup);
     }
     // If the plotX, plotY are outside of the series area (e.g. if the pointer is above axis titles or ticks),
-    // we clear the group hover state and trigger the on-hover-lost after a short delay.
+    // we immediately clear all hover state. Unlike transitions between points/groups within the plot area,
+    // there is no need to debounce here as the cursor has definitively left the data region.
     else {
+      this.hoveredPoint = null;
       this.hoveredGroup = null;
-      this.clearHover();
+      this.hoverLostCall.cancelPrevious();
+      if (!this.tooltipHovered) {
+        this.handlers.onHoverLost();
+        this.applyCursorStyle();
+      }
     }
   };
 
