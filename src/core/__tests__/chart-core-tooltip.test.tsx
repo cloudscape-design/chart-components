@@ -181,7 +181,9 @@ describe("CoreChart: tooltip", () => {
       expect(wrapper.findTooltip()!.findFooter()!.getElement().textContent).toBe("Tooltip footer");
     });
 
-    act(() => hc.getChart().container.dispatchEvent(new MouseEvent("mouseout", { bubbles: true, cancelable: true })));
+    act(() =>
+      hc.getChart().container.dispatchEvent(new MouseEvent("mouseleave", { bubbles: false, cancelable: false })),
+    );
 
     await waitFor(() => {
       expect(onClearHighlight).toHaveBeenCalled();

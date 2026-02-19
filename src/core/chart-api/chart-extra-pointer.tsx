@@ -65,11 +65,16 @@ export class ChartExtraPointer {
     this.hoveredGroup = null;
   };
 
-  // When the pointer leaves the tooltip it can hover another point or group. If that does not happen,
-  // the on-hover-lost handler is called after a short delay.
+  // When the pointer leaves the tooltip, we immediately check if any point or group is still hovered.
+  // If not, we fire onHoverLost immediately to prevent the tooltip from staying visible when the mouse
+  // exits the chart area through the tooltip (e.g., moving left).
   public onMouseLeaveTooltip = () => {
     this.tooltipHovered = false;
-    this.clearHover();
+    this.hoverLostCall.cancelPrevious();
+    if (!this.hoveredPoint && !this.hoveredGroup) {
+      this.handlers.onHoverLost();
+      this.applyCursorStyle();
+    }
   };
 
   // The mouse-move handler takes all move events inside the chart, and its purpose is to capture hover for groups
@@ -123,11 +128,16 @@ export class ChartExtraPointer {
     }
   };
 
-  // This event is triggered when the pointer leaves the chart area. Here, it is technically not necessary to add
-  // a delay before calling the on-hover-lost handler, but it is done for consistency in the UX.
+  // This event is triggered when the pointer leaves the chart container entirely.
+  // We immediately clear all hover state since the cursor has definitively left the chart.
   private onChartMouseout = () => {
+    this.hoveredPoint = null;
     this.hoveredGroup = null;
-    this.clearHover();
+    this.hoverLostCall.cancelPrevious();
+    if (!this.tooltipHovered) {
+      this.handlers.onHoverLost();
+      this.applyCursorStyle();
+    }
   };
 
   // This event is triggered by Highcharts when there is a click inside the chart plot. It might or might not include
