@@ -216,7 +216,7 @@ class HighlightCursorCartesian {
       if (p.plotX !== undefined && p.plotY !== undefined) {
         const selected = p === point;
         const className = clsx(testClasses["highlight-marker"], selected && testClasses["highlight-marker-selected"]);
-        renderMarker(chart, this.markerElementsPool, p, selected, className);
+        renderMarker({ chart, pool: this.markerElementsPool, point: p, selected, className });
       }
     }
   }
