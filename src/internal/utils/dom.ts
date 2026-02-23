@@ -21,7 +21,14 @@ export function scrollIntoViewNearestContainer(
   // Get element boundaries to measure scroll offsets.
   // In the future, could be replaced with a simple `element.scrollParent`.
   // https://drafts.csswg.org/cssom-view/#dom-htmlelement-scrollparent
-  const scrollParent = getScrollParent(element) ?? element.ownerDocument.documentElement;
+  const scrollParent = getScrollParent(element);
+
+  // If there is no scrollable parent, do not scroll. Falling back to document.documentElement
+  // would scroll the entire page, which is undesirable (e.g., when a tooltip appears on hover,
+  // scrolling the page to center the highlighted item is unexpected).
+  if (!scrollParent) {
+    return;
+  }
   const { top: elementTop, bottom: elementBottom, height: elementHeight } = element.getBoundingClientRect();
   const { top: scrollTop, bottom: scrollBottom, height: scrollHeight } = scrollParent.getBoundingClientRect();
 
