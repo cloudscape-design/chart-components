@@ -264,6 +264,17 @@ export class ChartAPI {
         this.clearChartHighlight({ isApiCall: false });
         this.chartExtraNavigation.announceChart(getChartAccessibleDescription(this.context.chart()));
       },
+      onDismissHoverTooltip: () => {
+        // Dismiss any visible non-pinned tooltip when ESC is pressed.
+        // Returns true if a tooltip was dismissed, false otherwise.
+        // Used by ESC handlers at group/point level to decide whether to also navigate.
+        const tooltipState = this.chartExtraTooltip.get();
+        if (tooltipState.visible && !tooltipState.pinned) {
+          this.clearChartHighlight({ isApiCall: false });
+          return true;
+        }
+        return false;
+      },
       onFocusGroup: (group: Highcharts.Point[]) => {
         this.highlightActions(group, { isApiCall: false, overrideTooltipLock: true });
         this.chartExtraNavigation.announceElement(getGroupAccessibleDescription(group), false);

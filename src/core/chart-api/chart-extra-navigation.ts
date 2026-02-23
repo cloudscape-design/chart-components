@@ -27,6 +27,9 @@ export interface ChartExtraNavigationHandlers {
   onBlur(): void;
   onActivatePoint(point: Highcharts.Point, group: readonly Highcharts.Point[]): void;
   onActivateGroup(group: readonly Highcharts.Point[]): void;
+  // Returns true if a tooltip was dismissed, false otherwise.
+  // Used by ESC handlers to decide whether to also navigate.
+  onDismissHoverTooltip(): boolean;
 }
 
 export type FocusedState = FocusedStateChart | FocusedStateGroup | FocusedStatePoint;
@@ -196,6 +199,7 @@ export class ChartExtraNavigation {
   private onKeyDownChart = (event: KeyboardEvent) => {
     handleKey(event, {
       onActivate: () => this.moveToFirstGroup(),
+      onEscape: () => this.handlers.onDismissHoverTooltip(),
       onInlineStart: () => this.moveToLastGroup(),
       onInlineEnd: () => this.moveToFirstGroup(),
       onBlockStart: () => this.moveToLastGroup(),
@@ -209,7 +213,11 @@ export class ChartExtraNavigation {
     const i = !!this.context.chart().inverted;
     handleKey(event, {
       onActivate: () => this.activateGroup(group),
-      onEscape: () => this.moveToChart(),
+      onEscape: () => {
+        if (!this.handlers.onDismissHoverTooltip()) {
+          this.moveToChart();
+        }
+      },
       onInlineStart: () => (i ? this.moveToFirstInGroup(group) : this.moveToPrevGroup(group)),
       onInlineEnd: () => (i ? this.moveToLastInGroup(group) : this.moveToNextGroup(group)),
       onBlockStart: () => (i ? this.moveToPrevGroup(group) : this.moveToLastInGroup(group)),
@@ -225,7 +233,11 @@ export class ChartExtraNavigation {
     const i = !!this.context.chart().inverted;
     handleKey(event, {
       onActivate: () => this.activatePoint(point, group),
-      onEscape: () => this.moveToParentGroup(point),
+      onEscape: () => {
+        if (!this.handlers.onDismissHoverTooltip()) {
+          this.moveToParentGroup(point);
+        }
+      },
       onInlineEnd: () => (i ? this.moveToPrevInGroup(point) : this.moveToNextInSeries(point)),
       onInlineStart: () => (i ? this.moveToNextInGroup(point) : this.moveToPrevInSeries(point)),
       onBlockEnd: () => (i ? this.moveToNextInSeries(point) : this.moveToNextInGroup(point)),
