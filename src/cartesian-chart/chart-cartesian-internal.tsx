@@ -52,16 +52,25 @@ export const InternalCartesianChart = forwardRef(
       // assuming Highcharts makes no modifications for those. These options are not referentially equal
       // to the ones we get from the consumer due to the internal validation/transformation we run on them.
       // See: https://api.highcharts.com/class-reference/Highcharts.Chart#userOptions.
-      const transformItem = (item: CoreChartProps.TooltipContentItem): CartesianChartProps.TooltipPointItem => ({
-        x: item.point.x,
-        y: isXThreshold(item.point.series) ? null : (item.point.y ?? null),
-        series: item.point.series.userOptions as NonErrorBarSeriesOptions,
-        errorRanges: item.errorRanges.map((point) => ({
-          low: point.options.low ?? 0,
-          high: point.options.high ?? 0,
-          series: point.series.userOptions as ErrorBarSeriesOptions,
-        })),
-      });
+      const transformItem = (item: CoreChartProps.TooltipContentItem): CartesianChartProps.TooltipPointItem => {
+        const userOptions = item.point.series.userOptions as NonErrorBarSeriesOptions;
+        // Restore original threshold type from custom metadata, since transformCartesianSeries
+        // replaces "x-threshold" and "y-threshold" with "line" for Highcharts compatibility.
+        const originalType = (item.point.series.userOptions.custom as { awsui?: { type?: string } })?.awsui?.type;
+        const series = originalType
+          ? ({ ...userOptions, type: originalType } as NonErrorBarSeriesOptions)
+          : userOptions;
+        return {
+          x: item.point.x,
+          y: isXThreshold(item.point.series) ? null : (item.point.y ?? null),
+          series,
+          errorRanges: item.errorRanges.map((point) => ({
+            low: point.options.low ?? 0,
+            high: point.options.high ?? 0,
+            series: point.series.userOptions as ErrorBarSeriesOptions,
+          })),
+        };
+      };
       const transformSeriesProps = (
         props: CoreChartProps.TooltipPointProps,
       ): CartesianChartProps.TooltipPointRenderProps => ({
