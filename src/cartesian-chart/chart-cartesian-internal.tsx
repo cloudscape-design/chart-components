@@ -56,7 +56,7 @@ export const InternalCartesianChart = forwardRef(
         const userOptions = item.point.series.userOptions as NonErrorBarSeriesOptions;
         // Restore original threshold type from custom metadata, since transformCartesianSeries
         // replaces "x-threshold" and "y-threshold" with "line" for Highcharts compatibility.
-        const originalType = (item.point.series.userOptions.custom as { awsui?: { type?: string } })?.awsui?.type;
+        const originalType = item.point.series.userOptions.custom?.awsui?.type;
         const series = originalType
           ? ({ ...userOptions, type: originalType } as NonErrorBarSeriesOptions)
           : userOptions;
