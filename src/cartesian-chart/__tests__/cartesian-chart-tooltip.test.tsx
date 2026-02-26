@@ -223,6 +223,34 @@ describe("CartesianChart: tooltip", () => {
       expect(getTooltipSeries(1).findValue().getElement().textContent).toBe(""); // X threshold has no y value
     });
 
+    test("preserves original threshold series type in tooltip items", async () => {
+      const receivedTypes: string[] = [];
+      renderCartesianChart({
+        highcharts,
+        series: [
+          { type: "line", name: "Line", data: [{ x: 1, y: 2 }] },
+          { type: "y-threshold", name: "Y Threshold", value: 5 },
+          { type: "x-threshold", name: "X Threshold", value: 1 },
+        ],
+        tooltip: {
+          point({ item }) {
+            receivedTypes.push(item.series.type);
+            return { key: item.series.name, value: String(item.y ?? "T") };
+          },
+        },
+      });
+
+      act(() => hc.highlightChartPoint(0, 0));
+
+      await waitFor(() => {
+        expect(getTooltip()).not.toBe(null);
+        // Threshold series should preserve their original type, not be reported as "line"
+        expect(receivedTypes).toContain("line");
+        expect(receivedTypes).toContain("y-threshold");
+        expect(receivedTypes).toContain("x-threshold");
+      });
+    });
+
     test("customizes tooltip slots", async () => {
       renderCartesianChart({
         highcharts,
