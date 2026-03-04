@@ -80,7 +80,7 @@ function getDefaultPointProps(point: Highcharts.Point, selected: boolean, classN
   const pointStyle: Highcharts.SVGAttributes = {
     zIndex: selected ? 6 : 5,
     opacity: 1,
-    style: "pointer-events: none",
+    "pointer-events": "none",
     class: className,
     "stroke-width": 2,
     stroke: selected ? colorTextBodyDefault : point.color,
@@ -92,7 +92,7 @@ function getDefaultPointProps(point: Highcharts.Point, selected: boolean, classN
     stroke: point.color,
     fill: "transparent",
     opacity: 0.4,
-    style: "pointer-events: none",
+    "pointer-events": "none",
     r: 8,
   };
   return { size, pointStyle, haloStyle };

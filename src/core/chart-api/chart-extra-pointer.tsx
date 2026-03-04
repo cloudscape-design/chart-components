@@ -8,8 +8,6 @@ import { DebouncedCall } from "../../internal/utils/utils";
 import { isPointVisible } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
-import styles from "../styles.css.js";
-
 const HOVER_LOST_DELAY = 25;
 
 export interface ChartExtraPointerHandlers {
@@ -189,9 +187,8 @@ export class ChartExtraPointer {
   private applyCursorStyle = () => {
     const container = this.context.chart().container;
     if (container) {
-      const isHovered = !!(this.hoveredPoint || this.hoveredGroup);
-      container.classList.toggle(styles["cursor-pointer"], isHovered);
-      container.classList.toggle(styles["cursor-default"], !isHovered);
+      const value = this.hoveredPoint || this.hoveredGroup ? "pointer" : "default";
+      container.style.cursor = value;
     }
   };
 }

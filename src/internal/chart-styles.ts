@@ -148,7 +148,7 @@ export const navigationFocusOutline = {
 export const cursorLine = {
   fill: colorChartsLineTick,
   zIndex: 5,
-  style: "pointer-events: none",
+  "pointer-events": "none",
 };
 
 export const focusOutlineOffsets = {
