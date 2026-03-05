@@ -186,15 +186,9 @@ export class ChartExtraPointer {
 
   private applyCursorStyle = () => {
     const container = this.context.chart().container;
-    const setCursor = (value: "pointer" | "default") => {
-      if (container && container.style.cursor !== value) {
-        container.style.cursor = value;
-      }
-    };
-    if (this.hoveredPoint || this.hoveredGroup) {
-      setCursor("pointer");
-    } else {
-      setCursor("default");
+    if (container) {
+      const value = this.hoveredPoint || this.hoveredGroup ? "pointer" : "default";
+      container.style.cursor = value;
     }
   };
 }

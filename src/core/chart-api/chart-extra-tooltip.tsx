@@ -168,7 +168,7 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
   };
 
   private get commonTrackAttrs() {
-    return { fill: "transparent", zIndex: -1, style: "pointer-events:none", direction: this.direction };
+    return { fill: "transparent", zIndex: -1, "pointer-events": "none", direction: this.direction };
   }
 
   // We compute the direction from the chart container and then explicitly set it to the track
