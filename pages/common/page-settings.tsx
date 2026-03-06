@@ -38,6 +38,7 @@ export interface PageSettings {
   showLegendActions: boolean;
   legendBottomMaxHeight?: number;
   legendPosition: "bottom" | "side";
+  legendHorizontalScroll: boolean;
   legendHorizontalAlign: CoreChartProps.LegendOptionsHorizontalAlignment;
   showCustomHeader: boolean;
   showHeaderFilter: boolean;
@@ -63,6 +64,7 @@ const DEFAULT_SETTINGS: PageSettings = {
   showLegend: true,
   showLegendTitle: false,
   legendPosition: "bottom",
+  legendHorizontalScroll: false,
   legendHorizontalAlign: "start",
   showLegendActions: false,
   showCustomHeader: false,
@@ -107,6 +109,7 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
     showLegend: parseBoolean(defaultSettings.showLegend, urlParams.showLegend),
     showLegendTitle: parseBoolean(defaultSettings.showLegendTitle, urlParams.showLegendTitle),
     showLegendActions: parseBoolean(defaultSettings.showLegendActions, urlParams.showLegendActions),
+    legendHorizontalScroll: parseBoolean(defaultSettings.legendHorizontalScroll, urlParams.legendHorizontalScroll),
     showCustomHeader: parseBoolean(defaultSettings.showCustomHeader, urlParams.showCustomHeader),
     showHeaderFilter: parseBoolean(defaultSettings.showHeaderFilter, urlParams.showHeaderFilter),
     showCustomFooter: parseBoolean(defaultSettings.showCustomFooter, urlParams.showCustomFooter),
@@ -159,6 +162,7 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
     position: settings.legendPosition,
     bottomMaxHeight: settings.legendBottomMaxHeight,
     horizontalAlignment: settings.legendHorizontalAlign,
+    enableHorizontalScroll: settings.legendHorizontalScroll,
   } satisfies CoreChartProps.LegendOptions;
   return {
     settings,
@@ -426,6 +430,15 @@ export function PageSettingsForm({
                     setSettings({ legendPosition: detail.selectedId as string as "bottom" | "side" })
                   }
                 />
+              );
+            case "legendHorizontalScroll":
+              return (
+                <Checkbox
+                  checked={settings.legendHorizontalScroll}
+                  onChange={({ detail }) => setSettings({ legendHorizontalScroll: detail.checked })}
+                >
+                  Enable legend horizontal scroll
+                </Checkbox>
               );
             case "legendHorizontalAlign":
               return (
