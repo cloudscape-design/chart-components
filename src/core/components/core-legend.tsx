@@ -19,6 +19,7 @@ export function ChartLegend({
   i18nStrings,
   onItemHighlight,
   getLegendTooltipContent,
+  enableHorizontalScroll,
   horizontalAlignment = "start",
 }: {
   api: ChartAPI;
@@ -26,6 +27,7 @@ export function ChartLegend({
   className?: string;
   isSecondary: boolean;
   actions?: React.ReactNode;
+  enableHorizontalScroll?: boolean;
   alignment: "horizontal" | "vertical";
   horizontalAlignment?: "start" | "center" | "end";
   i18nStrings?: CoreI18nStrings;
@@ -85,6 +87,7 @@ export function ChartLegend({
       items={filteredItems}
       someHighlighted={someHighlighted}
       horizontalAlignment={horizontalAlignment}
+      enableHorizontalScroll={enableHorizontalScroll}
       actions={actions}
       alignment={alignment}
       onToggleItem={onToggleItem}
