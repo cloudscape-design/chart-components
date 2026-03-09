@@ -74,8 +74,12 @@ export interface CartesianChartProps
 
   /**
    * Defines options of the chart's y axis.
-   * This property corresponds to [xAxis](https://api.highcharts.com/highcharts/yAxis), and extends it
+   * This property corresponds to [yAxis](https://api.highcharts.com/highcharts/yAxis), and extends it
    * with a custom value formatter.
+   *
+   * Use a single object for a single y axis, or a tuple of two objects for a dual-axis chart.
+   * When using a tuple, the second axis is automatically rendered on the opposite (right) side.
+   * Series can reference the secondary axis by setting `yAxis: 1`.
    *
    * Supported options:
    * * `title` (optional, string) - Axis title.
@@ -92,7 +96,7 @@ export interface CartesianChartProps
    * * `valueFormatter` (optional, function) - Takes axis tick as input and returns a formatted string. This formatter also
    * applies to the tooltip points values.
    */
-  yAxis?: CartesianChartProps.YAxisOptions;
+  yAxis?: CartesianChartProps.YAxisOptions | [CartesianChartProps.YAxisOptions, CartesianChartProps.YAxisOptions];
 
   /**
    * Specifies which series to show using their IDs. By default, all series are visible and managed by the component.

@@ -157,4 +157,40 @@ describe("CartesianChart: series", () => {
     });
     expect((hc.getChartSeries(0).options as SeriesLineOptions).dashStyle).toBe("Solid");
   });
+
+  test("series yAxis is passed through to Highcharts", () => {
+    renderCartesianChart({
+      highcharts,
+      series: [
+        { type: "line", name: "Primary", data: [{ x: 1, y: 1 }], yAxis: 0 },
+        { type: "line", name: "Secondary", data: [{ x: 1, y: 2 }], yAxis: 1 },
+      ],
+      yAxis: [{ title: "Primary" }, { title: "Secondary" }],
+    });
+    expect(hc.getChartSeries(0).options.yAxis).toBe(0);
+    expect(hc.getChartSeries(1).options.yAxis).toBe(1);
+  });
+
+  test("dual yAxis renders two axes with opposite on the secondary", () => {
+    renderCartesianChart({
+      highcharts,
+      series: [
+        { type: "line", name: "Primary", data: [{ x: 1, y: 1 }], yAxis: 0 },
+        { type: "line", name: "Secondary", data: [{ x: 1, y: 2 }], yAxis: 1 },
+      ],
+      yAxis: [{ title: "Primary" }, { title: "Secondary" }],
+    });
+    const chart = hc.getChart();
+    expect(chart.yAxis).toHaveLength(2);
+    expect(chart.yAxis[0].options.opposite).toBeFalsy();
+    expect(chart.yAxis[1].options.opposite).toBe(true);
+  });
+
+  test("series yAxis is not set when not provided", () => {
+    renderCartesianChart({
+      highcharts,
+      series: [{ type: "line", name: "Line", data: [{ x: 1, y: 1 }] }],
+    });
+    expect(hc.getChartSeries(0).options.yAxis).toBeUndefined();
+  });
 });

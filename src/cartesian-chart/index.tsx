@@ -108,24 +108,32 @@ function transformLineLikeSeries<
     | CartesianChartProps.SplineSeriesOptions,
 >(s: S): null | S {
   const data = transformPointData(s.data);
-  return { type: s.type, id: s.id, name: s.name, color: s.color, dashStyle: s.dashStyle, data } as S;
+  return { type: s.type, id: s.id, name: s.name, color: s.color, dashStyle: s.dashStyle, yAxis: s.yAxis, data } as S;
 }
 
 function transformColumnSeries<S extends CartesianChartProps.ColumnSeriesOptions>(s: S): null | S {
   const data = transformPointData(s.data);
-  return { type: s.type, id: s.id, name: s.name, color: s.color, data } as S;
+  return { type: s.type, id: s.id, name: s.name, color: s.color, yAxis: s.yAxis, data } as S;
 }
 
 function transformScatterSeries<S extends CartesianChartProps.ScatterSeriesOptions>(s: S): null | S {
   const data = transformPointData(s.data);
   const marker = s.marker ?? {};
-  return { type: s.type, id: s.id, name: s.name, color: s.color, data, marker } as S;
+  return { type: s.type, id: s.id, name: s.name, color: s.color, yAxis: s.yAxis, data, marker } as S;
 }
 
 function transformThresholdSeries<
   S extends CartesianChartProps.XThresholdSeriesOptions | CartesianChartProps.YThresholdSeriesOptions,
 >(s: S): null | S {
-  return { type: s.type, id: s.id, name: s.name, color: s.color, value: s.value, dashStyle: s.dashStyle } as S;
+  return {
+    type: s.type,
+    id: s.id,
+    name: s.name,
+    color: s.color,
+    yAxis: s.yAxis,
+    value: s.value,
+    dashStyle: s.dashStyle,
+  } as S;
 }
 
 function transformErrorBarSeries(
@@ -157,7 +165,15 @@ function transformErrorBarSeries(
     return null;
   }
   const data = transformRangeData(series.data);
-  return { type: series.type, id: series.id, name: series.name, color: series.color, linkedTo: series.linkedTo, data };
+  return {
+    type: series.type,
+    id: series.id,
+    name: series.name,
+    color: series.color,
+    yAxis: series.yAxis,
+    linkedTo: series.linkedTo,
+    data,
+  };
 }
 
 function transformPointData(data: readonly PointDataItemType[]): readonly PointDataItemType[] {
@@ -172,7 +188,16 @@ function transformXAxisOptions(axis?: CartesianChartProps.XAxisOptions): Cartesi
   return transformAxisOptions(axis);
 }
 
-function transformYAxisOptions(axis?: CartesianChartProps.YAxisOptions): CartesianChartProps.YAxisOptions {
+function transformYAxisOptions(
+  axis?: CartesianChartProps.YAxisOptions | [CartesianChartProps.YAxisOptions, CartesianChartProps.YAxisOptions],
+): CartesianChartProps.YAxisOptions | [CartesianChartProps.YAxisOptions, CartesianChartProps.YAxisOptions] {
+  if (Array.isArray(axis)) {
+    return [transformSingleYAxisOptions(axis[0]), transformSingleYAxisOptions(axis[1])];
+  }
+  return transformSingleYAxisOptions(axis);
+}
+
+function transformSingleYAxisOptions(axis?: CartesianChartProps.YAxisOptions): CartesianChartProps.YAxisOptions {
   return { ...transformAxisOptions(axis), reversedStacks: axis?.reversedStacks };
 }
 

@@ -290,7 +290,9 @@ interface BaseSeriesOptions {
   color?: string;
 }
 
-type BaseCartesianSeriesOptions = BaseSeriesOptions;
+interface BaseCartesianSeriesOptions extends BaseSeriesOptions {
+  yAxis?: number;
+}
 
 interface BaseCartesianLineLikeOptions extends BaseCartesianSeriesOptions {
   dashStyle?: Highcharts.DashStyleValue;
