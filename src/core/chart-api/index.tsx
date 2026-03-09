@@ -435,6 +435,9 @@ export class ChartAPI {
 
       // Update tooltip and legend state.
       this.chartExtraTooltip.hideTooltip();
+      // Reset the tooltipHovered flag to prevent it from getting stuck as true when the tooltip
+      // React component unmounts before the mouseleave event fires (e.g. when exiting to the left).
+      this.chartExtraPointer.resetTooltipHovered();
       this.chartExtraLegend.onClearHighlight();
 
       // Notify the consumer that a clear-highlight action was made.

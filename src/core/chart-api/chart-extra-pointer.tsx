@@ -65,6 +65,14 @@ export class ChartExtraPointer {
     this.hoveredGroup = null;
   };
 
+  // Reset the tooltip hovered state. This is called when the tooltip is programmatically hidden
+  // (e.g. via clearHighlightActions) to prevent tooltipHovered from getting stuck as true.
+  // This can happen when the tooltip React component unmounts before the mouseleave event fires,
+  // leaving tooltipHovered=true and causing subsequent onChartMouseout calls to skip onHoverLost.
+  public resetTooltipHovered = () => {
+    this.tooltipHovered = false;
+  };
+
   // When the pointer leaves the tooltip, we immediately check if any point or group is still hovered.
   // If not, we fire onHoverLost immediately to prevent the tooltip from staying visible when the mouse
   // exits the chart area through the tooltip (e.g., moving left).
