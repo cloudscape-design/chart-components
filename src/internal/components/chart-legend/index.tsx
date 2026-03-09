@@ -35,6 +35,7 @@ export interface ChartLegendProps {
   items: readonly LegendItem[];
   legendTitle?: string;
   ariaLabel?: string;
+  axisId?: string;
   className?: string;
   actions?: React.ReactNode;
   someHighlighted: boolean;
@@ -52,6 +53,7 @@ export const ChartLegend = ({
   items,
   legendTitle,
   ariaLabel,
+  axisId,
   actions,
   alignment,
   className,
@@ -225,6 +227,7 @@ export const ChartLegend = ({
         role="toolbar"
         aria-label={legendTitle || ariaLabel}
         className={clsx(testClasses.root, styles.root, className)}
+        data-axisid={axisId}
         onMouseEnter={() => (isMouseInContainer.current = true)}
         onMouseLeave={() => (isMouseInContainer.current = false)}
       >

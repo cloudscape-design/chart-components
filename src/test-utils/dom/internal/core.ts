@@ -21,18 +21,11 @@ export default class CoreChartWrapper extends BaseChartWrapper {
     return this.findByClassName(testClasses["chart-navigator"]);
   }
 
-  public findLegend(): null | CoreChartLegendWrapper {
-    return this.findComponent(
-      `.${CoreChartLegendWrapper.rootSelector}.${testClasses["legend-primary"]}`,
-      CoreChartLegendWrapper,
-    );
-  }
-
-  public findSecondaryLegend(): null | CoreChartLegendWrapper {
-    return this.findComponent(
-      `.${CoreChartLegendWrapper.rootSelector}.${testClasses["legend-secondary"]}`,
-      CoreChartLegendWrapper,
-    );
+  public findLegend({ axisId }: { axisId?: string } = {}): null | CoreChartLegendWrapper {
+    const selector = axisId
+      ? `.${CoreChartLegendWrapper.rootSelector}[data-axisid="${axisId}"]`
+      : `.${CoreChartLegendWrapper.rootSelector}.${testClasses["legend-primary"]}`;
+    return this.findComponent(selector, CoreChartLegendWrapper);
   }
 
   public findVerticalAxisTitle(): null | ElementWrapper {

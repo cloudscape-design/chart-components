@@ -20,9 +20,13 @@ export default class BaseChartWrapper extends ComponentWrapper {
 
   /**
    * Finds chart's legend when defined.
+   * @param axisId Optional axis ID to target a specific legend (e.g. "primary", "secondary").
    */
-  public findLegend(): null | BaseChartLegendWrapper {
-    return this.findComponent(`.${BaseChartLegendWrapper.rootSelector}`, BaseChartLegendWrapper);
+  public findLegend({ axisId }: { axisId?: string } = {}): null | BaseChartLegendWrapper {
+    const selector = axisId
+      ? `.${BaseChartLegendWrapper.rootSelector}[data-axisid="${axisId}"]`
+      : `.${BaseChartLegendWrapper.rootSelector}`;
+    return this.findComponent(selector, BaseChartLegendWrapper);
   }
 
   /**
@@ -66,8 +70,12 @@ export default class BaseChartWrapper extends ComponentWrapper {
 
   /**
    * Finds visible title of the y axis.
+   * @param axisId Optional axis ID to target a specific y axis title (e.g. "secondary").
    */
-  public findYAxisTitle(): null | ElementWrapper {
+  public findYAxisTitle({ axisId }: { axisId?: string } = {}): null | ElementWrapper {
+    if (axisId) {
+      return this.find(`.highcharts-axis.awsui-axis-${axisId} > .highcharts-axis-title`);
+    }
     return (
       this.findByClassName(testClasses["axis-y-title"]) ??
       this.find(`.highcharts-axis.${testClasses["axis-y"]} > .highcharts-axis-title`)
