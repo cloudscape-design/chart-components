@@ -116,10 +116,11 @@ export const InternalCartesianChart = forwardRef(
             title: { text: xAxisProps.title },
             plotLines: xPlotLines,
           })),
-          yAxis: castArray(props.yAxis)?.map((yAxisProps) => ({
+          yAxis: castArray(props.yAxis)?.map((yAxisProps, index) => ({
             ...yAxisProps,
             title: { text: yAxisProps.title },
             plotLines: yPlotLines,
+            ...(index === 1 ? { opposite: true } : {}),
           })),
         }}
         tooltip={tooltip}

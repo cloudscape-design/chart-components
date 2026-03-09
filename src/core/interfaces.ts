@@ -244,7 +244,9 @@ export interface ErrorBarSeriesOptions extends Omit<BaseCartesianSeriesOptions, 
   linkedTo: string;
 }
 
-export interface XThresholdSeriesOptions extends BaseCartesianLineLikeOptions {
+// X-threshold series render as vertical plot lines spanning the full chart height,
+// so they are not associated with a specific y-axis and omit yAxis.
+export interface XThresholdSeriesOptions extends Omit<BaseCartesianLineLikeOptions, "yAxis"> {
   type: "x-threshold";
   value: number;
 }
@@ -290,7 +292,9 @@ interface BaseSeriesOptions {
   color?: string;
 }
 
-type BaseCartesianSeriesOptions = BaseSeriesOptions;
+interface BaseCartesianSeriesOptions extends BaseSeriesOptions {
+  yAxis?: string;
+}
 
 interface BaseCartesianLineLikeOptions extends BaseCartesianSeriesOptions {
   dashStyle?: Highcharts.DashStyleValue;

@@ -204,6 +204,9 @@ export function getVisibleLegendItems(options: Highcharts.Options) {
   const valueAxes = (isInverted ? castArray(options.xAxis) : castArray(options.yAxis)) ?? [];
   const defaultOpposite = valueAxes.length > 0 ? (valueAxes[0].opposite ?? false) : false;
 
+  const primaryAxis = valueAxes.find((a) => !(a.opposite ?? false));
+  const secondaryAxis = valueAxes.find((a) => a.opposite === true);
+
   const primaryItems: LegendItemOptions[] = [];
   const secondaryItems: LegendItemOptions[] = [];
   const addLegendItem = (item: LegendItemOptions) => {
@@ -236,7 +239,7 @@ export function getVisibleLegendItems(options: Highcharts.Options) {
     }
   });
 
-  return { primaryItems, secondaryItems };
+  return { primaryItems, secondaryItems, primaryAxisId: primaryAxis?.id, secondaryAxisId: secondaryAxis?.id };
 }
 
 function isSecondaryLegendItem(
@@ -262,13 +265,14 @@ export function getLegendsProps(
   // While Highcharts supports more than two axes, this
   // implementation supports at most two, in which case one
   // of them must be set as opposite (secondary).
-  const { primaryItems, secondaryItems } = getVisibleLegendItems(options);
+  const { primaryItems, secondaryItems, primaryAxisId, secondaryAxisId } = getVisibleLegendItems(options);
   return {
     primary:
       primaryItems.length === 0
         ? undefined
         : ({
             isSecondary: false,
+            axisId: primaryAxisId,
             title: legendOptions?.title,
             actions: legendOptions?.actions,
             alignment: legendOptions?.position === "side" ? "vertical" : "horizontal",
@@ -279,6 +283,7 @@ export function getLegendsProps(
         ? undefined
         : ({
             isSecondary: true,
+            axisId: secondaryAxisId,
             title: legendOptions?.secondaryLegendTitle,
             actions: legendOptions?.secondaryLegendActions,
             alignment: legendOptions?.position === "side" ? "vertical" : "horizontal",
