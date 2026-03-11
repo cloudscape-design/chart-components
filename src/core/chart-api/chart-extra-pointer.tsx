@@ -132,6 +132,17 @@ export class ChartExtraPointer {
       if (!this.tooltipHovered) {
         this.handlers.onHoverLost();
         this.applyCursorStyle();
+      } else {
+        // Safety net: same as in onChartMouseout — if the mouse moves outside the plot area
+        // while tooltipHovered is true, schedule a deferred check to break the deadlock in case
+        // onMouseLeaveTooltip never fires (e.g. tooltip unmounts before mouseleave propagates).
+        this.hoverLostCall.call(() => {
+          if (this.tooltipHovered && !this.hoveredPoint && !this.hoveredGroup) {
+            this.tooltipHovered = false;
+            this.handlers.onHoverLost();
+            this.applyCursorStyle();
+          }
+        }, HOVER_LOST_DELAY);
       }
     }
   };
@@ -145,6 +156,18 @@ export class ChartExtraPointer {
     if (!this.tooltipHovered) {
       this.handlers.onHoverLost();
       this.applyCursorStyle();
+    } else {
+      // Safety net: When the mouse exits the chart while tooltipHovered is true,
+      // schedule a deferred check. Normally, onMouseLeaveTooltip() will fire and
+      // handle cleanup. But if it doesn't (browser quirk, React re-render race,
+      // tooltip at viewport edge), this ensures the tooltip is eventually dismissed.
+      this.hoverLostCall.call(() => {
+        if (this.tooltipHovered && !this.hoveredPoint && !this.hoveredGroup) {
+          this.tooltipHovered = false;
+          this.handlers.onHoverLost();
+          this.applyCursorStyle();
+        }
+      }, HOVER_LOST_DELAY);
     }
   };
 
