@@ -25,6 +25,12 @@ export class ChartExtraPointer {
   private hoveredPoint: null | Highcharts.Point = null;
   private hoveredGroup: null | Highcharts.Point[] = null;
   private tooltipHovered = false;
+  // When the mouse exits the tooltip through its arrow/padding area back into the chart's plot area,
+  // the mousemove handler immediately finds the nearest group (the same one the tooltip was showing for)
+  // and re-triggers the tooltip. This creates an infinite show/hide loop that makes the tooltip appear stuck.
+  // This flag suppresses re-hovering for a short window after leaving the tooltip to break the cycle.
+  private recentlyLeftTooltip = false;
+  private recentlyLeftTooltipTimer: ReturnType<typeof setTimeout> | null = null;
   private hoverLostCall = new DebouncedCall();
 
   constructor(context: ChartExtraContext, handlers: ChartExtraPointerHandlers) {
@@ -40,6 +46,10 @@ export class ChartExtraPointer {
   public onChartDestroy = () => {
     this.context.chartOrNull?.container?.removeEventListener("mousemove", this.onChartMousemove);
     this.context.chartOrNull?.container?.removeEventListener("mouseleave", this.onChartMouseout);
+    if (this.recentlyLeftTooltipTimer !== null) {
+      clearTimeout(this.recentlyLeftTooltipTimer);
+      this.recentlyLeftTooltipTimer = null;
+    }
   };
 
   // This event is triggered by Highcharts when the cursor is over a Highcharts point. We leave this to
@@ -80,6 +90,10 @@ export class ChartExtraPointer {
     this.tooltipHovered = false;
     this.hoverLostCall.cancelPrevious();
     if (!this.hoveredPoint && !this.hoveredGroup) {
+      // Suppress re-hovering briefly to prevent an infinite show/hide loop when the mouse exits
+      // the tooltip through its arrow/padding area back into the chart's plot area. Without this,
+      // onChartMousemove immediately re-matches the same group and re-shows the tooltip.
+      this.setRecentlyLeftTooltip();
       this.handlers.onHoverLost();
       this.applyCursorStyle();
     }
@@ -201,6 +215,9 @@ export class ChartExtraPointer {
   };
 
   private setHoveredPoint = (point: Highcharts.Point) => {
+    if (this.recentlyLeftTooltip) {
+      return;
+    }
     if (isPointVisible(point)) {
       this.hoveredPoint = point;
       this.hoveredGroup = null;
@@ -210,6 +227,9 @@ export class ChartExtraPointer {
   };
 
   private setHoveredGroup = (group: Highcharts.Point[]) => {
+    if (this.recentlyLeftTooltip) {
+      return;
+    }
     if (!this.hoveredPoint || !isPointVisible(this.hoveredPoint)) {
       const availablePoints = group.filter(isPointVisible);
       this.hoveredPoint = null;
@@ -217,6 +237,17 @@ export class ChartExtraPointer {
       this.handlers.onGroupHover(availablePoints);
       this.applyCursorStyle();
     }
+  };
+
+  private setRecentlyLeftTooltip = () => {
+    this.recentlyLeftTooltip = true;
+    if (this.recentlyLeftTooltipTimer !== null) {
+      clearTimeout(this.recentlyLeftTooltipTimer);
+    }
+    this.recentlyLeftTooltipTimer = setTimeout(() => {
+      this.recentlyLeftTooltip = false;
+      this.recentlyLeftTooltipTimer = null;
+    }, HOVER_LOST_DELAY);
   };
 
   // The function calls the on-hover-lost handler in a short delay to give time for the hover to
