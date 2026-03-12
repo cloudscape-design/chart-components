@@ -30,6 +30,7 @@ export class ChartExtraPointer {
   // and re-triggers the tooltip. This creates an infinite show/hide loop that makes the tooltip appear stuck.
   // This flag suppresses re-hovering for a short window after leaving the tooltip to break the cycle.
   private recentlyLeftTooltip = false;
+  private recentlyLeftTooltipX: number | null = null;
   private recentlyLeftTooltipTimer: ReturnType<typeof setTimeout> | null = null;
   private hoverLostCall = new DebouncedCall();
 
@@ -70,6 +71,9 @@ export class ChartExtraPointer {
   // Wo do, hover, clear the point and group hover state so that if the pointer leaves chart from the tooltip,
   // the on-hover-lost handler is still called.
   public onMouseEnterTooltip = () => {
+    // Save the X of the currently hovered group/point before clearing, so that
+    // setRecentlyLeftTooltip can scope the re-hover suppression to this X only.
+    this.recentlyLeftTooltipX = this.hoveredGroup?.[0]?.x ?? this.hoveredPoint?.x ?? null;
     this.tooltipHovered = true;
     this.hoveredPoint = null;
     this.hoveredGroup = null;
@@ -215,7 +219,9 @@ export class ChartExtraPointer {
   };
 
   private setHoveredPoint = (point: Highcharts.Point) => {
-    if (this.recentlyLeftTooltip) {
+    // Only suppress re-hover for the same X position that was just dismissed,
+    // allowing adjacent groups to still show their tooltip without flickering.
+    if (this.recentlyLeftTooltip && point.x === this.recentlyLeftTooltipX) {
       return;
     }
     if (isPointVisible(point)) {
@@ -227,7 +233,9 @@ export class ChartExtraPointer {
   };
 
   private setHoveredGroup = (group: Highcharts.Point[]) => {
-    if (this.recentlyLeftTooltip) {
+    // Only suppress re-hover for the same X position that was just dismissed,
+    // allowing adjacent groups to still show their tooltip without flickering.
+    if (this.recentlyLeftTooltip && group[0]?.x === this.recentlyLeftTooltipX) {
       return;
     }
     if (!this.hoveredPoint || !isPointVisible(this.hoveredPoint)) {
