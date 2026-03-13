@@ -206,38 +206,38 @@ export interface BaseTooltipPointFormatted {
   subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
 }
 
-export interface AreaSeriesOptions extends BaseCartesianLineLikeOptions {
+export interface AreaSeriesOptions extends BaseCartesianLineLikeYAxisOptions {
   type: "area";
   data: readonly PointDataItemType[];
 }
 
-export interface AreaSplineSeriesOptions extends BaseCartesianLineLikeOptions {
+export interface AreaSplineSeriesOptions extends BaseCartesianLineLikeYAxisOptions {
   type: "areaspline";
   data: readonly PointDataItemType[];
 }
 
-export interface ColumnSeriesOptions extends BaseCartesianSeriesOptions {
+export interface ColumnSeriesOptions extends BaseCartesianYAxisSeriesOptions {
   type: "column";
   data: readonly PointDataItemType[];
 }
 
-export interface LineSeriesOptions extends BaseCartesianLineLikeOptions {
+export interface LineSeriesOptions extends BaseCartesianLineLikeYAxisOptions {
   type: "line";
   data: readonly PointDataItemType[];
 }
 
-export interface SplineSeriesOptions extends BaseCartesianLineLikeOptions {
+export interface SplineSeriesOptions extends BaseCartesianLineLikeYAxisOptions {
   type: "spline";
   data: readonly PointDataItemType[];
 }
 
-export interface ScatterSeriesOptions extends BaseCartesianSeriesOptions {
+export interface ScatterSeriesOptions extends BaseCartesianYAxisSeriesOptions {
   type: "scatter";
   data: readonly PointDataItemType[];
   marker?: PointMarkerOptions;
 }
 
-export interface ErrorBarSeriesOptions extends Omit<BaseCartesianSeriesOptions, "name"> {
+export interface ErrorBarSeriesOptions extends Omit<BaseCartesianYAxisSeriesOptions, "name"> {
   type: "errorbar";
   name?: string;
   data: readonly RangeDataItemOptions[];
@@ -249,7 +249,7 @@ export interface XThresholdSeriesOptions extends BaseCartesianLineLikeOptions {
   value: number;
 }
 
-export interface YThresholdSeriesOptions extends BaseCartesianLineLikeOptions {
+export interface YThresholdSeriesOptions extends BaseCartesianLineLikeYAxisOptions {
   type: "y-threshold";
   value: number;
 }
@@ -290,11 +290,17 @@ interface BaseSeriesOptions {
   color?: string;
 }
 
-interface BaseCartesianSeriesOptions extends BaseSeriesOptions {
-  yAxis?: number;
+type BaseCartesianSeriesOptions = BaseSeriesOptions;
+
+interface BaseCartesianYAxisSeriesOptions extends BaseCartesianSeriesOptions {
+  yAxis?: string;
 }
 
 interface BaseCartesianLineLikeOptions extends BaseCartesianSeriesOptions {
+  dashStyle?: Highcharts.DashStyleValue;
+}
+
+interface BaseCartesianLineLikeYAxisOptions extends BaseCartesianYAxisSeriesOptions {
   dashStyle?: Highcharts.DashStyleValue;
 }
 

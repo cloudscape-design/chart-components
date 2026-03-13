@@ -78,8 +78,8 @@ export interface CartesianChartProps
    * with a custom value formatter.
    *
    * Use a single object for a single y axis, or a tuple of two objects for a dual-axis chart.
-   * When using a tuple, the second axis is automatically rendered on the opposite (right) side.
-   * Series can reference the secondary axis by setting `yAxis: 1`.
+   * When using a tuple, both axes must have an `id`. The second axis is automatically rendered on the opposite (right) side.
+   * Series reference their axis by setting `yAxis` to the axis `id`.
    *
    * Supported options:
    * * `title` (optional, string) - Axis title.
@@ -96,7 +96,7 @@ export interface CartesianChartProps
    * * `valueFormatter` (optional, function) - Takes axis tick as input and returns a formatted string. This formatter also
    * applies to the tooltip points values.
    */
-  yAxis?: CartesianChartProps.YAxisOptions | [CartesianChartProps.YAxisOptions, CartesianChartProps.YAxisOptions];
+  yAxis?: CartesianChartProps.YAxisOptions | [CartesianChartProps.YAxisWithId, CartesianChartProps.YAxisWithId];
 
   /**
    * Specifies which series to show using their IDs. By default, all series are visible and managed by the component.
@@ -145,6 +145,7 @@ export namespace CartesianChartProps {
   export type YThresholdSeriesOptions = CoreTypes.YThresholdSeriesOptions;
 
   interface AxisOptions {
+    id?: string;
     title?: string;
     type?: "linear" | "datetime" | "category" | "logarithmic";
     min?: number;
@@ -158,6 +159,10 @@ export namespace CartesianChartProps {
 
   export interface YAxisOptions extends AxisOptions {
     reversedStacks?: boolean;
+  }
+
+  export interface YAxisWithId extends YAxisOptions {
+    id: string;
   }
 
   export interface TooltipOptions {

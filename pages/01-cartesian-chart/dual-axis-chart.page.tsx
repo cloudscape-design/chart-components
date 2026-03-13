@@ -46,32 +46,21 @@ const baseline = [
   { x: 1601011800000, y: 148910 },
 ];
 
-const primarySeries: CartesianChartProps.SeriesOptions[] = Array.from({ length: 3 }, (_, i) => {
-  const letter = String.fromCharCode(65 + i);
-  return {
-    type: "line" as const,
-    name: `Events ${letter}`,
-    yAxis: 0,
-    data: baseline.map(({ x, y }) => ({
-      x,
-      y: y + randomInt(-100000 * ((i % 3) + 1), 100000 * ((i % 3) + 1)),
-    })),
-  };
-});
+const eventsData = baseline.map(({ x, y }) => ({ x, y: y + randomInt(-50000, 50000) }));
+const percentageData = baseline.map(({ x, y }) => ({ x, y: (y / 10000) * randomInt(3, 10) }));
 
-const secondarySeries: CartesianChartProps.SeriesOptions[] = Array.from({ length: 3 }, (_, i) => {
-  const letter = String.fromCharCode(65 + i);
-  return {
-    type: "line" as const,
-    name: `Percentage ${letter}`,
-    yAxis: 1,
-    dashStyle: "Dash" as const,
-    data: baseline.map(({ x, y }) => ({
-      x,
-      y: (y / 10000) * randomInt(3 + (i % 5), 10 + (i % 10)),
-    })),
-  };
-});
+const dualAxisProps = {
+  chartHeight: 400,
+  xAxis: {
+    title: "Time (UTC)",
+    type: "datetime" as const,
+    valueFormatter: dateFormatter,
+  },
+  yAxis: [
+    { id: "events", title: "Events" },
+    { id: "percentage", title: "Percentage (%)" },
+  ] as [CartesianChartProps.YAxisWithId, CartesianChartProps.YAxisWithId],
+};
 
 export default function () {
   const { chartProps } = useChartSettings();
@@ -82,20 +71,10 @@ export default function () {
     >
       <CartesianChart
         {...chartProps.cartesian}
-        chartHeight={400}
-        series={[...primarySeries, ...secondarySeries]}
-        xAxis={{
-          title: "Time (UTC)",
-          type: "datetime",
-          valueFormatter: dateFormatter,
-        }}
-        yAxis={[
-          {
-            title: "Events",
-          },
-          {
-            title: "Percentage (%)",
-          },
+        {...dualAxisProps}
+        series={[
+          { type: "line", name: "Events", yAxis: "events", data: eventsData },
+          { type: "line", name: "Percentage", yAxis: "percentage", dashStyle: "Dash", data: percentageData },
         ]}
       />
     </Page>

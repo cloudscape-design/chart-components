@@ -57,7 +57,7 @@ export const transformCartesianSeries = (
         type: "line",
         id: s.id,
         name: s.name,
-        yAxis: s.yAxis,
+        ...(s.type === "y-threshold" && { yAxis: s.yAxis }),
         data,
         custom,
         enableMouseTracking,

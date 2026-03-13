@@ -130,7 +130,7 @@ function transformThresholdSeries<
     id: s.id,
     name: s.name,
     color: s.color,
-    yAxis: s.yAxis,
+    ...(s.type === "y-threshold" && { yAxis: s.yAxis }),
     value: s.value,
     dashStyle: s.dashStyle,
   } as S;
@@ -189,22 +189,23 @@ function transformXAxisOptions(axis?: CartesianChartProps.XAxisOptions): Cartesi
 }
 
 function transformYAxisOptions(
-  axis?: CartesianChartProps.YAxisOptions | [CartesianChartProps.YAxisOptions, CartesianChartProps.YAxisOptions],
-): CartesianChartProps.YAxisOptions | [CartesianChartProps.YAxisOptions, CartesianChartProps.YAxisOptions] {
+  axis?: CartesianChartProps.YAxisOptions | [CartesianChartProps.YAxisWithId, CartesianChartProps.YAxisWithId],
+): CartesianChartProps.YAxisOptions | [CartesianChartProps.YAxisWithId, CartesianChartProps.YAxisWithId] {
   if (Array.isArray(axis)) {
     return [transformSingleYAxisOptions(axis[0]), transformSingleYAxisOptions(axis[1])];
   }
   return transformSingleYAxisOptions(axis);
 }
 
-function transformSingleYAxisOptions(axis?: CartesianChartProps.YAxisOptions): CartesianChartProps.YAxisOptions {
-  return { ...transformAxisOptions(axis), reversedStacks: axis?.reversedStacks };
+function transformSingleYAxisOptions<T extends CartesianChartProps.YAxisOptions>(axis?: T): T {
+  return { ...transformAxisOptions(axis), reversedStacks: axis?.reversedStacks } as T;
 }
 
 function transformAxisOptions<O extends CartesianChartProps.XAxisOptions | CartesianChartProps.YAxisOptions>(
   axis?: O,
 ): O {
   return {
+    id: axis?.id,
     type: axis?.type,
     title: axis?.title,
     min: axis?.min,

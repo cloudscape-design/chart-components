@@ -162,23 +162,29 @@ describe("CartesianChart: series", () => {
     renderCartesianChart({
       highcharts,
       series: [
-        { type: "line", name: "Primary", data: [{ x: 1, y: 1 }], yAxis: 0 },
-        { type: "line", name: "Secondary", data: [{ x: 1, y: 2 }], yAxis: 1 },
+        { type: "line", name: "Primary", data: [{ x: 1, y: 1 }], yAxis: "primary" },
+        { type: "line", name: "Secondary", data: [{ x: 1, y: 2 }], yAxis: "secondary" },
       ],
-      yAxis: [{ title: "Primary" }, { title: "Secondary" }],
+      yAxis: [
+        { id: "primary", title: "Primary" },
+        { id: "secondary", title: "Secondary" },
+      ],
     });
-    expect(hc.getChartSeries(0).options.yAxis).toBe(0);
-    expect(hc.getChartSeries(1).options.yAxis).toBe(1);
+    expect(hc.getChartSeries(0).options.yAxis).toBe("primary");
+    expect(hc.getChartSeries(1).options.yAxis).toBe("secondary");
   });
 
   test("dual yAxis renders two axes with opposite on the secondary", () => {
     renderCartesianChart({
       highcharts,
       series: [
-        { type: "line", name: "Primary", data: [{ x: 1, y: 1 }], yAxis: 0 },
-        { type: "line", name: "Secondary", data: [{ x: 1, y: 2 }], yAxis: 1 },
+        { type: "line", name: "Primary", data: [{ x: 1, y: 1 }], yAxis: "primary" },
+        { type: "line", name: "Secondary", data: [{ x: 1, y: 2 }], yAxis: "secondary" },
       ],
-      yAxis: [{ title: "Primary" }, { title: "Secondary" }],
+      yAxis: [
+        { id: "primary", title: "Primary" },
+        { id: "secondary", title: "Secondary" },
+      ],
     });
     const chart = hc.getChart();
     expect(chart.yAxis).toHaveLength(2);
