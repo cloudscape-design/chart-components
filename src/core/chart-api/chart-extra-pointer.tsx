@@ -110,8 +110,9 @@ export class ChartExtraPointer {
       this.setHoveredGroup(matchedGroup);
     }
     // If the plotX, plotY are outside of the series area (e.g. if the pointer is above axis titles or ticks),
-    // we clear the group hover state and trigger the on-hover-lost after a short delay.
+    // we clear the point and group hover state and trigger the on-hover-lost after a short delay.
     else {
+      this.hoveredPoint = null;
       this.hoveredGroup = null;
       this.clearHover();
     }
@@ -120,6 +121,7 @@ export class ChartExtraPointer {
   // This event is triggered when the pointer leaves the chart area. Here, it is technically not necessary to add
   // a delay before calling the on-hover-lost handler, but it is done for consistency in the UX.
   private onChartMouseout = () => {
+    this.hoveredPoint = null;
     this.hoveredGroup = null;
     this.clearHover();
   };
