@@ -199,4 +199,56 @@ describe("CartesianChart: series", () => {
     });
     expect(hc.getChartSeries(0).options.yAxis).toBeUndefined();
   });
+
+  test("findSecondaryLegend returns null for single-axis chart", () => {
+    renderCartesianChart({
+      highcharts,
+      series: [{ type: "line", name: "Line", data: [{ x: 1, y: 1 }] }],
+    });
+    expect(getChart().findSecondaryLegend()).toBeNull();
+  });
+
+  test("findSecondaryLegend returns secondary legend for dual-axis chart", () => {
+    renderCartesianChart({
+      highcharts,
+      series: [
+        { type: "line", name: "Primary", data: [{ x: 1, y: 1 }], yAxis: "primary" },
+        { type: "line", name: "Secondary", data: [{ x: 1, y: 2 }], yAxis: "secondary" },
+      ],
+      yAxis: [
+        { id: "primary", title: "Primary" },
+        { id: "secondary", title: "Secondary" },
+      ],
+    });
+    const secondaryLegend = getChart().findSecondaryLegend();
+    expect(secondaryLegend).not.toBeNull();
+    expect(secondaryLegend!.findItems()).toHaveLength(1);
+    expect(secondaryLegend!.findItems()[0].getElement().textContent).toBe("Secondary");
+  });
+
+  test("findSecondaryYAxisTitle returns null for single-axis chart", () => {
+    renderCartesianChart({
+      highcharts,
+      series: [{ type: "line", name: "Line", data: [{ x: 1, y: 1 }] }],
+      yAxis: { title: "Only axis" },
+    });
+    expect(getChart().findSecondaryYAxisTitle()).toBeNull();
+  });
+
+  test("findSecondaryYAxisTitle returns secondary axis title for dual-axis chart", () => {
+    renderCartesianChart({
+      highcharts,
+      series: [
+        { type: "line", name: "Primary", data: [{ x: 1, y: 1 }], yAxis: "primary" },
+        { type: "line", name: "Secondary", data: [{ x: 1, y: 2 }], yAxis: "secondary" },
+      ],
+      yAxis: [
+        { id: "primary", title: "Primary axis" },
+        { id: "secondary", title: "Secondary axis" },
+      ],
+    });
+    const secondaryTitle = getChart().findSecondaryYAxisTitle();
+    expect(secondaryTitle).not.toBeNull();
+    expect(secondaryTitle!.getElement().textContent).toBe("Secondary axis");
+  });
 });
