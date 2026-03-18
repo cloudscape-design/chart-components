@@ -50,33 +50,22 @@ const baseline = [
   { x: 1601013600000, y: 293910 },
 ];
 
-const dataA = baseline.map(({ x, y }) => ({ x, y, z: 100 + randomInt(100, 200) }));
 const dataB = baseline.map(({ x, y }) => ({
   x: x + randomInt(-10000000, 10000000),
   y: y === null ? null : y + randomInt(-100000, 100000),
   z: 100 + randomInt(-50, 300),
 }));
-const dataC = baseline.map(({ x, y }) => ({
-  x: x + randomInt(-10000000, 10000000),
-  y: y === null ? null : y + randomInt(-150000, 50000),
-  z: 100 + randomInt(-50, 500),
-}));
 
 const series: Highcharts.SeriesOptionsType[] = [
-  {
-    name: "Series A",
-    type: "bubble",
-    data: dataA,
-  },
   {
     name: "Series B",
     type: "bubble",
     data: dataB,
-  },
-  {
-    name: "Series C",
-    type: "bubble",
-    data: dataC,
+    color: "#3759ce",
+    marker: {
+      fillOpacity: 0.08,
+      lineWidth: 1.5,
+    },
   },
 ];
 

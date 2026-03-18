@@ -63,9 +63,9 @@ export class ChartExtraHighlight {
     });
     for (const s of this.context.chart().series) {
       this.setSeriesState(s, includedSeries.has(s) ? "" : "inactive");
-      // For column series we ensure only one group/stack that matches selected X is highlighted.
+      // For column and bubble series we ensure only one group/stack that matches selected X is highlighted.
       // See: https://github.com/highcharts/highcharts/issues/23076.
-      if (s.type === "column") {
+      if (s.type === "column" || s.type === "bubble") {
         for (const d of s.data) {
           this.setPointState(d, includedPoints.has(d) ? "" : "inactive");
         }
@@ -87,8 +87,8 @@ export class ChartExtraHighlight {
         }
         this.setPointState(point, "hover");
       }
-      // For column series we ensure only one group/stack that matches selected X is highlighted.
-      else if (s.type === "column") {
+      // For column and bubble series we ensure only the hovered point is highlighted.
+      else if (s.type === "column" || s.type === "bubble") {
         for (const d of s.data) {
           this.setPointState(d, d === point ? "hover" : "inactive");
         }
@@ -128,6 +128,12 @@ export class ChartExtraHighlight {
     point.setState(state, true);
     this.updateStoredPointState(point, state);
     (point.setState as PointSetStateWithLock)[SET_STATE_LOCK] = true;
+
+    // For bubble series, Highcharts does not visually apply the inactive opacity to individual point
+    // graphics the way it does for column bars. We apply it directly on the SVG element.
+    if (point.series.type === "bubble" && point.graphic) {
+      point.graphic.attr({ opacity: state === "inactive" ? Styles.seriesOpacityInactive : 1 });
+    }
   }
 
   // Restores series and points highlight state after chart's re-render.

@@ -232,7 +232,12 @@ class HighlightCursorCartesian {
   }
 
   private isPointEligibleForMarker = (point: Highcharts.Point) => {
-    return !isXThreshold(point.series) && point.series.type !== "column" && point.series.type !== "errorbar";
+    return (
+      !isXThreshold(point.series) &&
+      point.series.type !== "column" &&
+      point.series.type !== "errorbar" &&
+      point.series.type !== "bubble"
+    );
   };
 }
 
