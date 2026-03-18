@@ -273,6 +273,7 @@ export function getLegendsProps(
             actions: legendOptions?.actions,
             alignment: legendOptions?.position === "side" ? "vertical" : "horizontal",
             horizontalAlignment: secondaryItems.length === 0 ? legendOptions?.horizontalAlignment : "start",
+            enableHorizontalScroll: legendOptions?.enableHorizontalScroll,
           } as const),
     secondary:
       secondaryItems.length === 0
@@ -283,6 +284,7 @@ export function getLegendsProps(
             actions: legendOptions?.secondaryLegendActions,
             alignment: legendOptions?.position === "side" ? "vertical" : "horizontal",
             horizontalAlignment: "end",
+            enableHorizontalScroll: legendOptions?.enableHorizontalScroll,
           } as const),
   };
 }

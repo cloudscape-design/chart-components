@@ -102,6 +102,12 @@
   -webkit-box-orient: vertical;
 }
 
+.list-horizontal-scroll {
+  .item-label {
+    overflow: visible;
+  }
+}
+
 .actions {
   display: flex;
   align-items: center;

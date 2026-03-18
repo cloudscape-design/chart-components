@@ -121,6 +121,7 @@ export default function () {
             "legendBottomMaxHeight",
             "showLegendTitle",
             "showLegendActions",
+            "legendHorizontalScroll",
           ]}
         />
       }
