@@ -465,6 +465,11 @@ export namespace CoreChartProps {
      */
     secondaryLegendActions?: React.ReactNode;
     /**
+     * When set to true, enables horizontal scrolling for legend items with long text.
+     * By default, long text is truncated with ellipsis.
+     */
+    enableHorizontalScroll?: boolean;
+    /**
      * This property only applies when there are no secondary items and `position="bottom"`.
      */
     horizontalAlignment?: LegendOptionsHorizontalAlignment;
@@ -560,6 +565,7 @@ export interface CoreLegendProps {
   ariaLabel?: string;
   actions?: React.ReactNode;
   alignment?: "horizontal" | "vertical";
+  enableHorizontalScroll?: boolean;
   horizontalAlignment?: CoreChartProps.LegendOptionsHorizontalAlignment;
   onClearHighlight?: NonCancelableEventHandler;
   onItemHighlight?: NonCancelableEventHandler<CoreLegendProps.ItemHighlightDetail>;

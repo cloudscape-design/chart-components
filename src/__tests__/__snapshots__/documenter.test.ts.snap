@@ -1621,6 +1621,11 @@ Supported Highcharts versions: 12.",
               "type": "boolean",
             },
             {
+              "name": "enableHorizontalScroll",
+              "optional": true,
+              "type": "boolean",
+            },
+            {
               "inlineType": {
                 "name": "CoreChartProps.LegendOptionsHorizontalAlignment",
                 "type": "union",

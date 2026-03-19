@@ -17,6 +17,7 @@ export const CoreLegend = ({
   onClearHighlight,
   onVisibleItemsChange,
   getLegendTooltipContent,
+  enableHorizontalScroll,
   horizontalAlignment = "start",
 }: CoreLegendProps) => {
   const i18n = useInternalI18n("[charts]");
@@ -67,6 +68,7 @@ export const CoreLegend = ({
       legendTitle={title}
       alignment={alignment}
       horizontalAlignment={horizontalAlignment}
+      enableHorizontalScroll={enableHorizontalScroll}
       ariaLabel={ariaLabel}
       someHighlighted={items.some((item) => item.highlighted)}
       onToggleItem={onToggleItem}

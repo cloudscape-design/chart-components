@@ -39,6 +39,7 @@ export interface ChartLegendProps {
   actions?: React.ReactNode;
   someHighlighted: boolean;
   alignment: LegendAlignment;
+  enableHorizontalScroll?: boolean;
   horizontalAlignment: LegendHorizontalAlignment;
   onToggleItem: (itemId: string) => void;
   onSelectItem: (itemId: string) => void;
@@ -61,6 +62,7 @@ export const ChartLegend = ({
   onItemHighlightExit,
   getTooltipContent,
   horizontalAlignment,
+  enableHorizontalScroll,
 }: ChartLegendProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const elementsByIndexRef = useRef<Record<number, HTMLElement>>([]);
@@ -238,6 +240,7 @@ export const ChartLegend = ({
           ref={containerRef}
           className={clsx(styles.list, {
             [styles[`list-bottom-${horizontalAlignment}`]]: !isVertical,
+            [styles["list-horizontal-scroll"]]: enableHorizontalScroll,
             [styles["list-bottom"]]: !isVertical,
             [styles["list-side"]]: isVertical,
           })}
@@ -303,6 +306,7 @@ export const ChartLegend = ({
         {tooltipContent && (
           <InternalChartTooltip
             trackRef={tooltipTrack}
+            triggerClampRef={containerRef}
             trackKey={tooltipTarget.id}
             container={null}
             dismissButton={false}

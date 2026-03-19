@@ -63,52 +63,58 @@ const baseline = [
   { x: 1601011800000, y: 148910 },
 ];
 
-const generatePrimaryAxisData = (letter: string, index: number) => {
+const generatePrimaryAxisData = (letter: string, index: number, useLongNames: boolean = false) => {
   return baseline.map(({ x, y }) => ({
-    name: `Events ${letter}`,
+    name: useLongNames
+      ? `Events ${letter} - Extended Series Name with Additional Details for Horizontal Scrolling`
+      : `Events ${letter}`,
     x,
     y: y === null ? null : y + randomInt(-100000 * ((index % 3) + 1), 100000 * ((index % 3) + 1)),
   }));
 };
 
-const generateSecondaryAxisData = (letter: string, index: number) => {
+const generateSecondaryAxisData = (letter: string, index: number, useLongNames: boolean = false) => {
   return baseline.map(({ x, y }) => ({
-    name: `Percentage ${letter}`,
+    name: useLongNames
+      ? `Percentage ${letter} - Extended Metric with Comprehensive Description for Testing`
+      : `Percentage ${letter}`,
     x,
     y: y === null ? null : (y / 10000) * randomInt(3 + (index % 5), 10 + (index % 10)),
   }));
 };
 
-const primarySeriesData: Record<string, ReturnType<typeof generatePrimaryAxisData>> = {};
-for (let i = 0; i < 10; i++) {
-  const letter = String.fromCharCode(65 + i);
-  primarySeriesData[`data${letter}`] = generatePrimaryAxisData(letter, i);
-}
-
-const secondarySeriesData: Record<string, ReturnType<typeof generatePrimaryAxisData>> = {};
-for (let i = 0; i < 10; i++) {
-  const letter = String.fromCharCode(65 + i);
-  secondarySeriesData[`data${letter}`] = generateSecondaryAxisData(letter, i);
-}
-
-const series: Highcharts.SeriesOptionsType[] = [
-  ...Object.values(primarySeriesData),
-  ...Object.values(secondarySeriesData),
-].map((data, index) => {
-  const name = data[0].name;
-  const isPercentage = name.startsWith("Percentage");
-  return {
-    name,
-    type: "line",
-    data: data,
-    yAxis: isPercentage ? 1 : 0,
-    color: colors[index % colors.length],
-    dashStyle: isPercentage ? "Dash" : "Solid",
-  };
-});
-
 export default function () {
   const { chartProps } = useChartSettings();
+  const useLongNames = chartProps.core.legend?.enableHorizontalScroll ?? false;
+
+  const primarySeriesData: Record<string, ReturnType<typeof generatePrimaryAxisData>> = {};
+  for (let i = 0; i < 10; i++) {
+    const letter = String.fromCharCode(65 + i);
+    primarySeriesData[`data${letter}`] = generatePrimaryAxisData(letter, i, useLongNames);
+  }
+
+  const secondarySeriesData: Record<string, ReturnType<typeof generatePrimaryAxisData>> = {};
+  for (let i = 0; i < 10; i++) {
+    const letter = String.fromCharCode(65 + i);
+    secondarySeriesData[`data${letter}`] = generateSecondaryAxisData(letter, i, useLongNames);
+  }
+
+  const series: Highcharts.SeriesOptionsType[] = [
+    ...Object.values(primarySeriesData),
+    ...Object.values(secondarySeriesData),
+  ].map((data, index) => {
+    const name = data[0].name;
+    const isPercentage = name.startsWith("Percentage");
+    return {
+      name,
+      type: "line",
+      data: data,
+      yAxis: isPercentage ? 1 : 0,
+      color: colors[index % colors.length],
+      dashStyle: isPercentage ? "Dash" : "Solid",
+    };
+  });
+
   return (
     <Page
       title="Core dual-axis chart demo"
@@ -121,6 +127,7 @@ export default function () {
             "legendBottomMaxHeight",
             "showLegendTitle",
             "showLegendActions",
+            "legendHorizontalScroll",
           ]}
         />
       }
