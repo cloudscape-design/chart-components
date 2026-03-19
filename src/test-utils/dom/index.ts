@@ -49,6 +49,24 @@ declare module "@cloudscape-design/test-utils-core/dist/dom" {
      * @returns {PieChartWrapper[]}
      */
     findAllPieHighcharts(selector?: string): Array<PieChartWrapper>;
+
+    /**
+     * Returns the wrapper of the closest parent CartesianChart for the current element,
+     * or the element itself if it is a CartesianChart.
+     * If no matching CartesianChart is found, returns `null`.
+     *
+     * @returns {CartesianChartWrapper | null}
+     */
+    findClosestCartesianHighcharts(): CartesianChartWrapper | null;
+
+    /**
+     * Returns the wrapper of the closest parent PieChart for the current element,
+     * or the element itself if it is a PieChart itself.
+     * If no matching PieChart is found, returns `null`.
+     *
+     * @returns {PieChartWrapper | null}
+     */
+    findClosestPieHighcharts(): PieChartWrapper | null;
   }
 }
 
@@ -63,6 +81,12 @@ ElementWrapper.prototype.findAllCartesianHighcharts = function (selector) {
 };
 ElementWrapper.prototype.findAllPieHighcharts = function (selector) {
   return this.findAllComponents(PieChartWrapper, selector);
+};
+ElementWrapper.prototype.findClosestCartesianHighcharts = function () {
+  return this.findClosestComponent(CartesianChartWrapper);
+};
+ElementWrapper.prototype.findClosestPieHighcharts = function () {
+  return this.findClosestComponent(PieChartWrapper);
 };
 
 function getComponentSelector(wrapper: { rootSelector: string }, selector?: string) {
