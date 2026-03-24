@@ -68,10 +68,10 @@ function getPointProps(point: Highcharts.Point, selected: boolean, className?: s
 
 function getBubblePointProps(point: Highcharts.Point, selected: boolean, className?: string) {
   const { pointStyle, haloStyle } = getDefaultPointProps(point, selected, className);
-  const size = Math.max(4, (point.graphic?.getBBox().width ?? 8) / 2 - 2);
+  const size = Math.max(4, (point.graphic?.getBBox().width ?? 8) / 2 - (selected ? 1 : 2));
   pointStyle.fill = point.color;
   pointStyle.stroke = selected ? colorTextBodyDefault : colorBackgroundContainerContent;
-  haloStyle.r = size + 4;
+  haloStyle.r = size + 5;
   return { size, pointStyle, haloStyle };
 }
 

@@ -5,7 +5,7 @@ import type Highcharts from "highcharts";
 
 import { colorChartsErrorBarMarker } from "@cloudscape-design/design-tokens";
 
-import { PointDataItemType, RangeDataItemOptions } from "../core/interfaces";
+import { PointDataItemType, RangeDataItemOptions, ZPointDataItemOptions } from "../core/interfaces";
 import { createThresholdMetadata, getOptionsId } from "../core/utils";
 import * as Styles from "../internal/chart-styles";
 import { Writeable } from "../internal/utils/utils";
@@ -61,6 +61,9 @@ export const transformCartesianSeries = (
       // We simplify that, and only expose a single color prop that sets both of those.
       const colors = { stemColor: color, whiskerColor: color };
       return { ...s, data: s.data as Writeable<RangeDataItemOptions[]>, ...colors };
+    }
+    if (s.type === "bubble") {
+      return { ...s, data: s.data as Writeable<ZPointDataItemOptions[]>, ...shared };
     }
     return { ...s, data: s.data as Writeable<PointDataItemType[]>, ...shared };
   }

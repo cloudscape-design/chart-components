@@ -114,6 +114,8 @@ export function getSeriesMarkerType(series?: Highcharts.Series): ChartSeriesMark
     case "column":
     case "pie":
       return "large-square";
+    case "bubble":
+      return "circle";
     case "errorbar":
     default:
       return "large-square";
