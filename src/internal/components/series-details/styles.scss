@@ -46,7 +46,7 @@ $font-weight-bold: cs.$font-weight-heading-s;
 
 .sub-items {
   &:not(.expandable) {
-    padding-inline-start: calc(marker.$marker-size + marker.$marker-margin-right);
+    padding-inline-start: calc(marker.$marker-inline-size);
   }
 
   &.expandable {
