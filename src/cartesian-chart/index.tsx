@@ -5,7 +5,7 @@ import { forwardRef } from "react";
 
 import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
 
-import { PointDataItemType, RangeDataItemOptions } from "../core/interfaces";
+import { PointDataItemType, RangeDataItemOptions, ZPointDataItemOptions } from "../core/interfaces";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import useBaseComponent from "../internal/base-component/use-base-component";
 import { applyDisplayName } from "../internal/utils/apply-display-name";
@@ -83,6 +83,8 @@ function transformSeries(
         return transformColumnSeries(s, untransformedSeries);
       case "scatter":
         return transformScatterSeries(s, untransformedSeries);
+      case "bubble":
+        return transformBubbleSeries(s, untransformedSeries);
       case "errorbar":
         return transformErrorBarSeries(s, untransformedSeries, stacking);
       case "x-threshold":
@@ -163,6 +165,17 @@ function transformScatterSeries<S extends CartesianChartProps.ScatterSeriesOptio
   return { type: s.type, id: s.id, name: s.name, color: s.color, linkedTo: s.linkedTo, data, marker } as S;
 }
 
+function transformBubbleSeries<S extends CartesianChartProps.BubbleSeriesOptions>(
+  s: S,
+  allSeries: readonly CartesianChartProps.SeriesOptions[],
+): null | S {
+  if (!validateLinkedTo(s, allSeries)) {
+    return null;
+  }
+  const data = transformBubbleData(s.data);
+  return { type: s.type, id: s.id, name: s.name, color: s.color, data } as S;
+}
+
 function transformThresholdSeries<
   S extends CartesianChartProps.XThresholdSeriesOptions | CartesianChartProps.YThresholdSeriesOptions,
 >(s: S): null | S {
@@ -197,6 +210,10 @@ function transformErrorBarSeries(
 
 function transformPointData(data: readonly PointDataItemType[]): readonly PointDataItemType[] {
   return data.map((d) => (d && typeof d === "object" ? { x: d.x, y: d.y } : d));
+}
+
+function transformBubbleData(data: readonly ZPointDataItemOptions[]): readonly ZPointDataItemOptions[] {
+  return data.map((d) => ({ x: d.x, y: d.y, z: d.z }));
 }
 
 function transformRangeData(data: readonly RangeDataItemOptions[]): readonly RangeDataItemOptions[] {

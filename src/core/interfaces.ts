@@ -237,6 +237,11 @@ export interface ScatterSeriesOptions extends BaseCartesianSeriesOptions, Linkab
   marker?: PointMarkerOptions;
 }
 
+export interface BubbleSeriesOptions extends BaseCartesianSeriesOptions, LinkableSeries {
+  type: "bubble";
+  data: readonly ZPointDataItemOptions[];
+}
+
 export interface ErrorBarSeriesOptions extends Omit<BaseCartesianSeriesOptions, "name"> {
   type: "errorbar";
   name?: string;
@@ -276,6 +281,12 @@ export type PointDataItemType = null | number | PointDataItemOptions;
 export interface PointDataItemOptions {
   x?: number;
   y: number | null;
+}
+
+export interface ZPointDataItemOptions {
+  x?: number;
+  y: number | null;
+  z: number | null;
 }
 
 export interface RangeDataItemOptions {

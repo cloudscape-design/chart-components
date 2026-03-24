@@ -315,6 +315,7 @@ Supported types:
 * [column](https://api.highcharts.com/highcharts/series.column).
 * [errorbar](https://api.highcharts.com/highcharts/series.errorbar) - requires "highcharts/highcharts-more" module.
 * [line](https://api.highcharts.com/highcharts/series.line).
+* [bubble](https://api.highcharts.com/highcharts/series.bubble) - requires "highcharts/highcharts-more" module.
 * [scatter](https://api.highcharts.com/highcharts/series.scatter).
 * [spline](https://api.highcharts.com/highcharts/series.spline).
 * x-threshold - The line-like series to represent x-axis threshold (vertical, when \`inverted=false\`).

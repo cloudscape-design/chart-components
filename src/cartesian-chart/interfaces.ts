@@ -32,6 +32,7 @@ export interface CartesianChartProps
    * * [column](https://api.highcharts.com/highcharts/series.column).
    * * [errorbar](https://api.highcharts.com/highcharts/series.errorbar) - requires "highcharts/highcharts-more" module.
    * * [line](https://api.highcharts.com/highcharts/series.line).
+   * * [bubble](https://api.highcharts.com/highcharts/series.bubble) - requires "highcharts/highcharts-more" module.
    * * [scatter](https://api.highcharts.com/highcharts/series.scatter).
    * * [spline](https://api.highcharts.com/highcharts/series.spline).
    * * x-threshold - The line-like series to represent x-axis threshold (vertical, when `inverted=false`).
@@ -122,6 +123,7 @@ export namespace CartesianChartProps {
   export type SeriesOptions =
     | AreaSeriesOptions
     | AreaSplineSeriesOptions
+    | BubbleSeriesOptions
     | ColumnSeriesOptions
     | ErrorBarSeriesOptions
     | LineSeriesOptions
@@ -132,6 +134,7 @@ export namespace CartesianChartProps {
 
   export type AreaSeriesOptions = CoreTypes.AreaSeriesOptions;
   export type AreaSplineSeriesOptions = CoreTypes.AreaSplineSeriesOptions;
+  export type BubbleSeriesOptions = CoreTypes.BubbleSeriesOptions;
   export type ColumnSeriesOptions = CoreTypes.ColumnSeriesOptions;
   export type ErrorBarSeriesOptions = CoreTypes.ErrorBarSeriesOptions;
   export type LineSeriesOptions = CoreTypes.LineSeriesOptions;
@@ -178,6 +181,7 @@ export namespace CartesianChartProps {
   export interface TooltipPointItem {
     x: number;
     y: number | null;
+    z?: number | null;
     errorRanges: { low: number; high: number; series: CartesianChartProps.ErrorBarSeriesOptions }[];
     series: NonErrorBarSeriesOptions;
   }

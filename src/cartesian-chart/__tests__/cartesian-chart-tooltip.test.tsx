@@ -67,8 +67,9 @@ describe("CartesianChart: tooltip", () => {
           { type: "line", name: "\nLine", data: [{ x, y: 6 }] },
           { type: "scatter", name: "\nScatter", data: [{ x, y: 7 }] },
           { type: "spline", name: "\nSpline", data: [{ x, y: 8 }] },
+          { type: "bubble", name: "\nBubble", data: [{ x, y: 9, z: 5 }] },
           { type: "x-threshold", name: "\nX threshold", value: x },
-          { type: "y-threshold", name: "\nY threshold", value: 9 },
+          { type: "y-threshold", name: "\nY threshold", value: 10 },
         ],
       });
 
@@ -77,9 +78,9 @@ describe("CartesianChart: tooltip", () => {
       await waitFor(() => expect(getTooltip()).not.toBe(null));
 
       expect(getTooltipHeader().getElement().textContent).toBe(x === 0.01 ? "0.01" : x.toString());
-      expect(getAllTooltipSeries()).toHaveLength(8); // Error bar is not counted as a series
+      expect(getAllTooltipSeries()).toHaveLength(9); // Error bar is not counted as a series
       expect(getTooltipBody().getElement().textContent).toBe(
-        `Area1\nArea spline2\nColumn3\nError bar4 - 5\nLine6\nScatter7\nSpline8\nX threshold\nY threshold9`,
+        `Area1\nArea spline2\nColumn3\nError bar4 - 5\nLine6\nScatter7\nSpline8\nBubble9\nX threshold\nY threshold10`,
       );
     },
   );
