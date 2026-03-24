@@ -5,7 +5,7 @@ import { forwardRef } from "react";
 
 import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
 
-import { PointDataItemType, RangeDataItemOptions } from "../core/interfaces";
+import { PointDataItemType, RangeDataItemOptions, ZPointDataItemOptions } from "../core/interfaces";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import useBaseComponent from "../internal/base-component/use-base-component";
 import { applyDisplayName } from "../internal/utils/apply-display-name";
@@ -82,6 +82,8 @@ function transformSeries(
         return transformColumnSeries(s);
       case "scatter":
         return transformScatterSeries(s);
+      case "bubble":
+        return transformBubbleSeries(s);
       case "errorbar":
         return transformErrorBarSeries(s, untransformedSeries, stacking);
       case "x-threshold":
@@ -120,6 +122,11 @@ function transformScatterSeries<S extends CartesianChartProps.ScatterSeriesOptio
   const data = transformPointData(s.data);
   const marker = s.marker ?? {};
   return { type: s.type, id: s.id, name: s.name, color: s.color, data, marker } as S;
+}
+
+function transformBubbleSeries(s: CartesianChartProps.BubbleSeriesOptions): CartesianChartProps.BubbleSeriesOptions {
+  const data = transformBubbleData(s.data);
+  return { type: s.type, id: s.id, name: s.name, color: s.color, data };
 }
 
 function transformThresholdSeries<
@@ -162,6 +169,10 @@ function transformErrorBarSeries(
 
 function transformPointData(data: readonly PointDataItemType[]): readonly PointDataItemType[] {
   return data.map((d) => (d && typeof d === "object" ? { x: d.x, y: d.y } : d));
+}
+
+function transformBubbleData(data: readonly ZPointDataItemOptions[]): readonly ZPointDataItemOptions[] {
+  return data.map((d) => ({ x: d.x, y: d.y, z: d.z }));
 }
 
 function transformRangeData(data: readonly RangeDataItemOptions[]): readonly RangeDataItemOptions[] {
