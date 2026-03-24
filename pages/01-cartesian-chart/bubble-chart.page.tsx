@@ -50,6 +50,7 @@ export default function () {
         series={series}
         xAxis={{ title: "Time (UTC)", type: "datetime", valueFormatter: dateFormatter }}
         yAxis={{ title: "Events" }}
+        zAxis={{ title: "Average size", valueFormatter: (value) => `${value}kB` }}
         chartHeight={400}
       />
     </Page>

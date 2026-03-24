@@ -96,6 +96,15 @@ export interface CartesianChartProps
   yAxis?: CartesianChartProps.YAxisOptions;
 
   /**
+   * Title for the Z axis, used as the label for the Z value in bubble chart tooltips.
+   *
+   * Supported options:
+   * * `title` (optional, string) - Axis title.
+   * * `valueFormatter` (optional, function) - Takes axis tick as input and returns a formatted string for tooltip points values.
+   */
+  zAxis?: CartesianChartProps.ZAxisOptions;
+
+  /**
    * Specifies which series to show using their IDs. By default, all series are visible and managed by the component.
    * If a series doesn't have an ID, its name is used. When using this property, manage state updates with `onVisibleSeriesChange`.
    */
@@ -150,6 +159,11 @@ export namespace CartesianChartProps {
     max?: number;
     tickInterval?: number;
     categories?: string[];
+    valueFormatter?: (value: null | number) => string;
+  }
+
+  export interface ZAxisOptions {
+    title?: string;
     valueFormatter?: (value: null | number) => string;
   }
 
