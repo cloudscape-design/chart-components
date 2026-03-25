@@ -562,8 +562,12 @@ applies to the tooltip header.",
     },
     {
       "description": "Defines options of the chart's y axis.
-This property corresponds to [xAxis](https://api.highcharts.com/highcharts/yAxis), and extends it
+This property corresponds to [yAxis](https://api.highcharts.com/highcharts/yAxis), and extends it
 with a custom value formatter.
+
+Use a single object for a single y axis, or a tuple of two objects for a dual-axis chart.
+When using a tuple, both axes must have an \`id\`. The second axis is automatically rendered on the opposite (right) side.
+Series reference their axis by setting \`yAxis\` to the axis \`id\`.
 
 Supported options:
 * \`title\` (optional, string) - Axis title.
@@ -580,75 +584,16 @@ Supported options:
 * \`valueFormatter\` (optional, function) - Takes axis tick as input and returns a formatted string. This formatter also
 applies to the tooltip points values.",
       "inlineType": {
-        "name": "CartesianChartProps.YAxisOptions",
-        "properties": [
-          {
-            "name": "categories",
-            "optional": true,
-            "type": "Array<string>",
-          },
-          {
-            "name": "max",
-            "optional": true,
-            "type": "number",
-          },
-          {
-            "name": "min",
-            "optional": true,
-            "type": "number",
-          },
-          {
-            "name": "reversedStacks",
-            "optional": true,
-            "type": "boolean",
-          },
-          {
-            "name": "tickInterval",
-            "optional": true,
-            "type": "number",
-          },
-          {
-            "name": "title",
-            "optional": true,
-            "type": "string",
-          },
-          {
-            "inlineType": {
-              "name": ""category" | "datetime" | "linear" | "logarithmic"",
-              "type": "union",
-              "values": [
-                "category",
-                "datetime",
-                "linear",
-                "logarithmic",
-              ],
-            },
-            "name": "type",
-            "optional": true,
-            "type": "string",
-          },
-          {
-            "inlineType": {
-              "name": "(value: number | null) => string",
-              "parameters": [
-                {
-                  "name": "value",
-                  "type": "number | null",
-                },
-              ],
-              "returnType": "string",
-              "type": "function",
-            },
-            "name": "valueFormatter",
-            "optional": true,
-            "type": "((value: number | null) => string)",
-          },
+        "name": "CartesianChartProps.YAxisOptions | [CartesianChartProps.YAxisOptions, CartesianChartProps.YAxisOptions]",
+        "type": "union",
+        "values": [
+          "CartesianChartProps.YAxisOptions",
+          "[CartesianChartProps.YAxisOptions, CartesianChartProps.YAxisOptions]",
         ],
-        "type": "object",
       },
       "name": "yAxis",
       "optional": true,
-      "type": "CartesianChartProps.YAxisOptions",
+      "type": "CartesianChartProps.YAxisOptions | [CartesianChartProps.YAxisOptions, CartesianChartProps.YAxisOptions]",
     },
   ],
   "regions": [
@@ -1769,7 +1714,7 @@ not overridden, but merged with Cloudscape event handlers so that both are getti
           "type": "union",
           "valueDescriptions": undefined,
           "values": [
-            "Omit<Highcharts.Options, "xAxis" | "yAxis">",
+            "Omit<Highcharts.Options, "yAxis" | "xAxis">",
             "{ xAxis?: CoreChartProps.XAxisOptions | Array<CoreChartProps.XAxisOptions> | undefined; yAxis?: CoreChartProps.YAxisOptions | Array<CoreChartProps.YAxisOptions> | undefined; }",
           ],
         },

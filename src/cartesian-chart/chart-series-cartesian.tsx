@@ -53,7 +53,17 @@ export const transformCartesianSeries = (
         color: s.color ?? Styles.thresholdSeries.color,
         dashStyle: s.dashStyle ?? Styles.thresholdSeries.dashStyle,
       };
-      return { type: "line", id: s.id, name: s.name, data, custom, enableMouseTracking, ...style, ...shared };
+      return {
+        type: "line",
+        id: s.id,
+        name: s.name,
+        ...(s.type === "y-threshold" && { yAxis: s.yAxis }),
+        data,
+        custom,
+        enableMouseTracking,
+        ...style,
+        ...shared,
+      };
     }
     if (s.type === "errorbar") {
       const color = s.color ?? colorChartsErrorBarMarker;
