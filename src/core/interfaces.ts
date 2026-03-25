@@ -420,6 +420,10 @@ export interface CoreChartProps
    * Specifies the options for each item in the chart.
    */
   getItemOptions?: CoreChartProps.GetItemOptions;
+  /**
+   * Z-axis options for bubble series tooltip formatting.
+   */
+  zAxis?: CoreChartProps.ZAxisOptions;
 }
 
 export namespace CoreChartProps {
@@ -448,6 +452,11 @@ export namespace CoreChartProps {
   };
   export type XAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: null | number) => string };
   export type YAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: null | number) => string };
+
+  export interface ZAxisOptions {
+    title?: string;
+    valueFormatter?: (value: null | number) => string;
+  }
 
   export interface ChartItemOptions {
     /**

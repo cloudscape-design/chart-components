@@ -70,6 +70,7 @@ export function InternalCoreChart({
   visibleItems,
   __internalRootRef,
   getItemOptions,
+  zAxis,
   ...rest
 }: CoreChartProps & InternalBaseComponentProps) {
   const highcharts = rest.highcharts as null | typeof Highcharts;
@@ -394,6 +395,7 @@ export function InternalCoreChart({
           i18nStrings={i18nStrings}
           getTooltipContent={rest.getTooltipContent}
           api={api}
+          zAxis={zAxis}
         />
       )}
     </div>

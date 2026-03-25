@@ -33,6 +33,7 @@ const CartesianChart = forwardRef(
     const series = transformSeries(props.series, stacking);
     const xAxis = transformXAxisOptions(props.xAxis);
     const yAxis = transformYAxisOptions(props.yAxis);
+    const zAxis = transformZAxisOptions(props.zAxis);
     const tooltip = transformTooltip(props.tooltip);
     const legend = transformLegend(props.legend);
 
@@ -53,6 +54,7 @@ const CartesianChart = forwardRef(
         series={series}
         xAxis={xAxis}
         yAxis={yAxis}
+        zAxis={zAxis}
         tooltip={tooltip}
         legend={legend}
         {...getDataAttributes(props)}
@@ -185,6 +187,10 @@ function transformXAxisOptions(axis?: CartesianChartProps.XAxisOptions): Cartesi
 
 function transformYAxisOptions(axis?: CartesianChartProps.YAxisOptions): CartesianChartProps.YAxisOptions {
   return { ...transformAxisOptions(axis), reversedStacks: axis?.reversedStacks };
+}
+
+function transformZAxisOptions(axis?: CartesianChartProps.ZAxisOptions): CartesianChartProps.ZAxisOptions {
+  return transformAxisOptions(axis);
 }
 
 function transformAxisOptions<O extends CartesianChartProps.XAxisOptions | CartesianChartProps.YAxisOptions>(

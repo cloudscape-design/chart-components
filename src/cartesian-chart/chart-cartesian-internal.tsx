@@ -6,7 +6,6 @@ import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 
 import { InternalCoreChart } from "../core/chart-core";
-import { getFormatter } from "../core/formatters";
 import { CoreChartProps, ErrorBarSeriesOptions } from "../core/interfaces";
 import { getOptionsId, isXThreshold } from "../core/utils";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
@@ -84,31 +83,9 @@ export const InternalCartesianChart = forwardRef(
         x: props.x,
         items: props.items.map(transformItem),
       });
-      const defaultBubblePoint = (
-        coreProps: CoreChartProps.TooltipPointProps,
-      ): CartesianChartProps.TooltipPointFormatted => {
-        if (coreProps.item.point.series.type !== "bubble") {
-          return {};
-        }
-        const yAxisTitle = castArray(props.yAxis)?.[0]?.title;
-        const yFormatter = coreProps.item.point.series.yAxis
-          ? getFormatter(coreProps.item.point.series.yAxis)
-          : (v: unknown) => String(v);
-        const zValue = coreProps.item.point.options.z;
-        return {
-          // The y value will be explicitly listed as a sub-item so it shouldn't be listed here.
-          value: "",
-          subItems: [
-            { key: yAxisTitle, value: yFormatter(coreProps.item.point.y) },
-            { key: props.zAxis?.title, value: props.zAxis?.valueFormatter?.(zValue ?? null) ?? zValue },
-          ],
-        };
-      };
 
       return {
-        point: tooltip.point
-          ? (coreProps) => tooltip.point!(transformSeriesProps(coreProps))
-          : (coreProps) => defaultBubblePoint(coreProps),
+        point: tooltip.point ? (coreProps) => tooltip.point!(transformSeriesProps(coreProps)) : undefined,
         header: tooltip.header ? (coreProps) => tooltip.header!(transformSlotProps(coreProps)) : undefined,
         body: tooltip.body ? (coreProps) => tooltip.body!(transformSlotProps(coreProps)) : undefined,
         footer: tooltip.footer ? (coreProps) => tooltip.footer!(transformSlotProps(coreProps)) : undefined,
@@ -145,6 +122,11 @@ export const InternalCartesianChart = forwardRef(
             ...yAxisProps,
             title: { text: yAxisProps.title },
             plotLines: yPlotLines,
+          })),
+          zAxis: castArray(props.zAxis)?.map((zAxisProps) => ({
+            ...zAxisProps,
+            title: { text: zAxisProps.title },
+            // TODO: should I also include zPlotLines?
           })),
         }}
         tooltip={tooltip}
