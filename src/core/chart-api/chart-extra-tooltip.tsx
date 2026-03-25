@@ -12,7 +12,7 @@ import AsyncStore from "../../internal/utils/async-store";
 import { SVGRendererPool, SVGRendererSingle } from "../../internal/utils/renderer-utils";
 import { DebouncedCall, isEqualArrays } from "../../internal/utils/utils";
 import { Rect } from "../interfaces";
-import { getGroupRect, getPointRect, getSeriesId, isXThreshold, safeRect } from "../utils";
+import { getGroupRect, getPointRect, getSeriesId, isPointVisible, isXThreshold, safeRect } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
 import testClasses from "../test-classes/styles.css.js";
@@ -232,7 +232,12 @@ class HighlightCursorCartesian {
   }
 
   private isPointEligibleForMarker = (point: Highcharts.Point) => {
-    return !isXThreshold(point.series) && point.series.type !== "column" && point.series.type !== "errorbar";
+    return (
+      isPointVisible(point) &&
+      !isXThreshold(point.series) &&
+      point.series.type !== "column" &&
+      point.series.type !== "errorbar"
+    );
   };
 }
 

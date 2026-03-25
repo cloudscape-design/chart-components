@@ -37,7 +37,7 @@ export class ChartExtraHighlight {
     for (const s of this.context.chart().series) {
       // In pie charts it is the points, not series, that are shown in the legend, and can be highlighted.
       if (s.type === "pie") {
-        for (const p of s.data) {
+        for (const p of getSeriesData(s.data)) {
           if (itemIds.includes(getPointId(p))) {
             this.setPointState(p, "hover");
           }
@@ -66,7 +66,7 @@ export class ChartExtraHighlight {
       // For column series we ensure only one group/stack that matches selected X is highlighted.
       // See: https://github.com/highcharts/highcharts/issues/23076.
       if (s.type === "column") {
-        for (const d of s.data) {
+        for (const d of getSeriesData(s.data)) {
           this.setPointState(d, includedPoints.has(d) ? "" : "inactive");
         }
       }
@@ -82,14 +82,14 @@ export class ChartExtraHighlight {
       // For pie charts it is important that the hover actions comes last, as otherwise the segment's highlight "halo"
       // is removed whenever any segment is made inactive.
       if (s.type === "pie") {
-        for (const d of s.data) {
+        for (const d of getSeriesData(s.data)) {
           this.setPointState(d, "inactive");
         }
         this.setPointState(point, "hover");
       }
       // For column series we ensure only one group/stack that matches selected X is highlighted.
       else if (s.type === "column") {
-        for (const d of s.data) {
+        for (const d of getSeriesData(s.data)) {
           this.setPointState(d, d === point ? "hover" : "inactive");
         }
       }
@@ -107,7 +107,7 @@ export class ChartExtraHighlight {
   public clearChartItemsHighlight = () => {
     for (const s of this.context.chart().series ?? []) {
       this.setSeriesState(s, "");
-      for (const p of s.data) {
+      for (const p of getSeriesData(s.data)) {
         this.setPointState(p, "");
       }
     }
