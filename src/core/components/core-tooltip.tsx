@@ -15,7 +15,15 @@ import { useDebouncedValue } from "../../internal/utils/use-debounced-value";
 import { ChartAPI } from "../chart-api";
 import { getFormatter } from "../formatters";
 import { BaseI18nStrings, CoreChartProps } from "../interfaces";
-import { getPointColor, getPointId, getSeriesColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../utils";
+import {
+  getPointColor,
+  getPointId,
+  getSeriesColor,
+  getSeriesId,
+  getSeriesMarkerType,
+  isPointVisible,
+  isXThreshold,
+} from "../utils";
 
 import styles from "../styles.css.js";
 
@@ -302,6 +310,9 @@ function findTooltipSeriesItems(
   const matchedSeries = new Set<Highcharts.Series>();
   const matchedItems: MatchedItem[] = [];
   for (const point of group) {
+    if (!isPointVisible(point)) {
+      continue;
+    }
     // We only support errorbar series that are linked to other series. In tooltip content we add
     // linked error bars to series detail slot.
     if (point.series.type === "errorbar") {
