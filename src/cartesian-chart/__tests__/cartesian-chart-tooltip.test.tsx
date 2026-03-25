@@ -80,7 +80,7 @@ describe("CartesianChart: tooltip", () => {
       expect(getTooltipHeader().getElement().textContent).toBe(x === 0.01 ? "0.01" : x.toString());
       expect(getAllTooltipSeries()).toHaveLength(9); // Error bar is not counted as a series
       expect(getTooltipBody().getElement().textContent).toBe(
-        `Area1\nArea spline2\nColumn3\nError bar4 - 5\nLine6\nScatter7\nSpline8\nBubble9\nX threshold\nY threshold10`,
+        `Area1\nArea spline2\nColumn3\nError bar4 - 5\nLine6\nScatter7\nSpline8\nBubble95\nX threshold\nY threshold10`,
       );
     },
   );
