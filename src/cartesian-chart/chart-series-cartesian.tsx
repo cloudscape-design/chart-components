@@ -10,6 +10,7 @@ import { createThresholdMetadata, getOptionsId } from "../core/utils";
 import * as Styles from "../internal/chart-styles";
 import { Writeable } from "../internal/utils/utils";
 import { CartesianChartProps } from "./interfaces";
+import { getMasterSeries, isThreshold } from "./utils";
 
 // The utility transforms cartesian chart component's series to Highcharts series. This includes transforming
 // custom x- and y-threshold series types, that are represented as a combination of invisible line series, and plot lines.
@@ -33,6 +34,17 @@ export const transformCartesianSeries = (
       yPlotLines.push({ id: seriesId, value: s.value, ...style, dashStyle: s.dashStyle ?? style.dashStyle });
     }
   }
+
+  // Assign linked series color to its respective master series color or color index.
+  const autoColorSeries = originalSeries.filter((s) => !isThreshold(s) && !s.linkedTo && !s.color);
+  const getColorProps = (s: CartesianChartProps.SeriesOptions) => {
+    const masterSeries = getMasterSeries(originalSeries, s);
+    if (!masterSeries) {
+      return {};
+    }
+    return { color: s.color ?? masterSeries.color, colorIndex: autoColorSeries.indexOf(masterSeries) };
+  };
+
   // The threshold series require data points to enable keyboard navigation and hover effects.
   const thresholdX = getThresholdX(originalSeries, visibleSeries);
   const thresholdY = getThresholdY(originalSeries, visibleSeries);
@@ -40,8 +52,9 @@ export const transformCartesianSeries = (
     // Highcharts does not properly update data on re-render. When the fake empty series is replaced with the real series,
     // the properties are merged together, so the showInLegend=false is not overridden.
     // That is why we explicitly override this property for all real series.
-    const shared = { showInLegend: true };
-    if (s.type === "x-threshold" || s.type === "y-threshold") {
+    const isLinked = !isThreshold(s) && s.linkedTo !== undefined;
+    const shared = { showInLegend: !isLinked };
+    if (isThreshold(s)) {
       const data =
         s.type === "x-threshold"
           ? thresholdY.map((y) => ({ x: s.value, y }))
@@ -62,7 +75,7 @@ export const transformCartesianSeries = (
       const colors = { stemColor: color, whiskerColor: color };
       return { ...s, data: s.data as Writeable<RangeDataItemOptions[]>, ...colors };
     }
-    return { ...s, data: s.data as Writeable<PointDataItemType[]>, ...shared };
+    return { ...s, data: s.data as Writeable<PointDataItemType[]>, ...shared, ...getColorProps(s) };
   }
   const series = originalSeries.map(transformSeriesToHighcharts);
   // We inject a fake empty series so that the empty state still shows axes, if defined.
@@ -108,12 +121,7 @@ function getVisibleDataSeries(series: readonly CartesianChartProps.SeriesOptions
     | CartesianChartProps.ErrorBarSeriesOptions
   >[] = [];
   for (const s of series) {
-    if (
-      s.type !== "x-threshold" &&
-      s.type !== "y-threshold" &&
-      s.type !== "errorbar" &&
-      visibleSeries.includes(getOptionsId(s))
-    ) {
+    if (!isThreshold(s) && s.type !== "errorbar" && visibleSeries.includes(getOptionsId(s))) {
       dataSeries.push(s);
     }
   }

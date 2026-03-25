@@ -163,7 +163,7 @@ describe("CartesianChart: errorbar series", () => {
       });
       expect(warnOnce).toHaveBeenCalledWith(
         "CartesianChart",
-        'The `linkedTo` property of "errorbar" series points to a missing, or unsupported series.',
+        "The `linkedTo` property points to a missing or unsupported series.",
       );
       expect(hc.getChart().series).toHaveLength(1);
     });
@@ -183,7 +183,7 @@ describe("CartesianChart: errorbar series", () => {
         });
         expect(warnOnce).toHaveBeenCalledWith(
           "CartesianChart",
-          'The `linkedTo` property of "errorbar" series points to a missing, or unsupported series.',
+          "The `linkedTo` property points to a missing or unsupported series.",
         );
         expect(hc.getChart().series).toHaveLength(4);
       },

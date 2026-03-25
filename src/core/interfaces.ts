@@ -206,32 +206,32 @@ export interface BaseTooltipPointFormatted {
   subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
 }
 
-export interface AreaSeriesOptions extends BaseCartesianLineLikeOptions {
+export interface AreaSeriesOptions extends BaseCartesianLineLikeOptions, LinkableSeries {
   type: "area";
   data: readonly PointDataItemType[];
 }
 
-export interface AreaSplineSeriesOptions extends BaseCartesianLineLikeOptions {
+export interface AreaSplineSeriesOptions extends BaseCartesianLineLikeOptions, LinkableSeries {
   type: "areaspline";
   data: readonly PointDataItemType[];
 }
 
-export interface ColumnSeriesOptions extends BaseCartesianSeriesOptions {
+export interface ColumnSeriesOptions extends BaseCartesianSeriesOptions, LinkableSeries {
   type: "column";
   data: readonly PointDataItemType[];
 }
 
-export interface LineSeriesOptions extends BaseCartesianLineLikeOptions {
+export interface LineSeriesOptions extends BaseCartesianLineLikeOptions, LinkableSeries {
   type: "line";
   data: readonly PointDataItemType[];
 }
 
-export interface SplineSeriesOptions extends BaseCartesianLineLikeOptions {
+export interface SplineSeriesOptions extends BaseCartesianLineLikeOptions, LinkableSeries {
   type: "spline";
   data: readonly PointDataItemType[];
 }
 
-export interface ScatterSeriesOptions extends BaseCartesianSeriesOptions {
+export interface ScatterSeriesOptions extends BaseCartesianSeriesOptions, LinkableSeries {
   type: "scatter";
   data: readonly PointDataItemType[];
   marker?: PointMarkerOptions;
@@ -291,6 +291,17 @@ interface BaseSeriesOptions {
 }
 
 type BaseCartesianSeriesOptions = BaseSeriesOptions;
+
+export interface LinkableSeries {
+  /**
+   * Links this series to another series by ID, or `":previous"` for the immediately preceding series.
+   * A linked series does not appear as a separate item in the legend or series filter, and its visibility
+   * follows the series it is linked to. It still renders in the chart and appears as a separate row in the tooltip.
+   *
+   * Use this to attach projected, forecast, or supplementary series to a primary series without cluttering the legend.
+   */
+  linkedTo?: string;
+}
 
 interface BaseCartesianLineLikeOptions extends BaseCartesianSeriesOptions {
   dashStyle?: Highcharts.DashStyleValue;

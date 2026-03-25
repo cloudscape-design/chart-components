@@ -4,6 +4,7 @@
 import type Highcharts from "highcharts";
 
 import * as Styles from "../../internal/chart-styles";
+import { getLinkedSeries, getMasterSeries } from "../../internal/utils/chart-series";
 import { getSeriesData } from "../../internal/utils/series-data";
 import { getPointId, getSeriesId } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
@@ -34,19 +35,22 @@ export class ChartExtraHighlight {
 
   // The method highlights specified series or points (by id). It is used when hovering over the legend items.
   public highlightChartItems = (itemIds: readonly string[]) => {
+    const itemIdsSet = new Set(itemIds);
     for (const s of this.context.chart().series) {
       // In pie charts it is the points, not series, that are shown in the legend, and can be highlighted.
       if (s.type === "pie") {
         for (const p of getSeriesData(s.data)) {
-          if (itemIds.includes(getPointId(p))) {
+          if (itemIdsSet.has(getPointId(p))) {
             this.setPointState(p, "hover");
           }
         }
       } else {
-        this.setSeriesState(s, itemIds.includes(getSeriesId(s)) ? "" : "inactive");
+        const seriesActive = itemIdsSet.has(getSeriesId(s));
+        const masterSeriesActive = s.linkedParent ? itemIdsSet.has(getSeriesId(s.linkedParent)) : false;
+        this.setSeriesState(s, seriesActive || masterSeriesActive ? "" : "inactive");
       }
     }
-    setPlotLinesState(this.context.chart(), (lineId) => itemIds.includes(lineId));
+    setPlotLinesState(this.context.chart(), (lineId) => itemIdsSet.has(lineId));
   };
 
   // This method is similar to the above, but it takes a group of points. The cartesian chart points
@@ -58,8 +62,10 @@ export class ChartExtraHighlight {
     const includedSeriesIds = new Set<string>();
     points.forEach((point) => {
       includedPoints.add(point);
-      includedSeries.add(point.series);
-      includedSeriesIds.add(getSeriesId(point.series));
+      getLinkedSeries(point).forEach((s) => {
+        includedSeries.add(s);
+        includedSeriesIds.add(getSeriesId(s));
+      });
     });
     for (const s of this.context.chart().series) {
       this.setSeriesState(s, includedSeries.has(s) ? "" : "inactive");
@@ -77,10 +83,12 @@ export class ChartExtraHighlight {
   // This method is similar to the above, but it takes a single point. This is used for point highlighting
   // in cartesian charts, and for pie chart segments.
   public highlightChartPoint = (point: Highcharts.Point) => {
+    const masterSeries = getMasterSeries(point);
+    const linkedSeries = new Set(getLinkedSeries(point));
     for (const s of this.context.chart().series) {
-      this.setSeriesState(s, point.series === s ? "hover" : "inactive");
       // For pie charts it is important that the hover actions comes last, as otherwise the segment's highlight "halo"
       // is removed whenever any segment is made inactive.
+      this.setSeriesState(s, linkedSeries.has(s) ? "hover" : "inactive");
       if (s.type === "pie") {
         for (const d of getSeriesData(s.data)) {
           this.setPointState(d, "inactive");
@@ -94,13 +102,8 @@ export class ChartExtraHighlight {
         }
       }
     }
-    // Highlight linked series when target series is highlighted.
-    this.context
-      .chart()
-      .series.filter((series) => series === point.series)
-      .forEach((series) => series.linkedSeries.forEach((linked) => this.setSeriesState(linked, "hover")));
     // Highlight threshold series plot lines.
-    setPlotLinesState(this.context.chart(), (lineId) => lineId === getSeriesId(point.series));
+    setPlotLinesState(this.context.chart(), (lineId) => lineId === getSeriesId(masterSeries));
   };
 
   // Removes dimmed state from all series and points.

@@ -12,6 +12,7 @@ import { applyDisplayName } from "../internal/utils/apply-display-name";
 import { SomeRequired } from "../internal/utils/utils";
 import { InternalCartesianChart } from "./chart-cartesian-internal";
 import { CartesianChartProps } from "./interfaces";
+import { getMasterSeries, isErrorBar, isThreshold } from "./utils";
 
 export type { CartesianChartProps };
 
@@ -77,11 +78,11 @@ function transformSeries(
       case "areaspline":
       case "line":
       case "spline":
-        return transformLineLikeSeries(s);
+        return transformLineLikeSeries(s, untransformedSeries);
       case "column":
-        return transformColumnSeries(s);
+        return transformColumnSeries(s, untransformedSeries);
       case "scatter":
-        return transformScatterSeries(s);
+        return transformScatterSeries(s, untransformedSeries);
       case "errorbar":
         return transformErrorBarSeries(s, untransformedSeries, stacking);
       case "x-threshold":
@@ -100,32 +101,79 @@ function transformSeries(
   return transformedSeries;
 }
 
+function validateLinkedTo(
+  series: CartesianChartProps.SeriesOptions,
+  allSeries: readonly CartesianChartProps.SeriesOptions[],
+): boolean {
+  if (isThreshold(series) || series.linkedTo === undefined) {
+    return true;
+  }
+  // The incorrectly linked series will not appear in our custom legend and tooltip, so we remove them
+  // from the series array. We also do not support linking series to errorbar or threshold series.
+  const masterSeries = getMasterSeries(allSeries, series);
+  if (!masterSeries || isErrorBar(masterSeries) || isThreshold(masterSeries)) {
+    warnOnce("CartesianChart", "The `linkedTo` property points to a missing or unsupported series.");
+    return false;
+  }
+  return true;
+}
+
 function transformLineLikeSeries<
   S extends
     | CartesianChartProps.AreaSeriesOptions
     | CartesianChartProps.AreaSplineSeriesOptions
     | CartesianChartProps.LineSeriesOptions
     | CartesianChartProps.SplineSeriesOptions,
->(s: S): null | S {
+>(s: S, allSeries: readonly CartesianChartProps.SeriesOptions[]): null | S {
+  if (!validateLinkedTo(s, allSeries)) {
+    return null;
+  }
   const data = transformPointData(s.data);
-  return { type: s.type, id: s.id, name: s.name, color: s.color, dashStyle: s.dashStyle, data } as S;
+  return {
+    type: s.type,
+    id: s.id,
+    name: s.name,
+    color: s.color,
+    dashStyle: s.dashStyle,
+    linkedTo: s.linkedTo,
+    data,
+  } as S;
 }
 
-function transformColumnSeries<S extends CartesianChartProps.ColumnSeriesOptions>(s: S): null | S {
+function transformColumnSeries<S extends CartesianChartProps.ColumnSeriesOptions>(
+  s: S,
+  allSeries: readonly CartesianChartProps.SeriesOptions[],
+): null | S {
+  if (!validateLinkedTo(s, allSeries)) {
+    return null;
+  }
   const data = transformPointData(s.data);
-  return { type: s.type, id: s.id, name: s.name, color: s.color, data } as S;
+  return { type: s.type, id: s.id, name: s.name, color: s.color, linkedTo: s.linkedTo, data } as S;
 }
 
-function transformScatterSeries<S extends CartesianChartProps.ScatterSeriesOptions>(s: S): null | S {
+function transformScatterSeries<S extends CartesianChartProps.ScatterSeriesOptions>(
+  s: S,
+  allSeries: readonly CartesianChartProps.SeriesOptions[],
+): null | S {
+  if (!validateLinkedTo(s, allSeries)) {
+    return null;
+  }
   const data = transformPointData(s.data);
   const marker = s.marker ?? {};
-  return { type: s.type, id: s.id, name: s.name, color: s.color, data, marker } as S;
+  return { type: s.type, id: s.id, name: s.name, color: s.color, linkedTo: s.linkedTo, data, marker } as S;
 }
 
 function transformThresholdSeries<
   S extends CartesianChartProps.XThresholdSeriesOptions | CartesianChartProps.YThresholdSeriesOptions,
 >(s: S): null | S {
-  return { type: s.type, id: s.id, name: s.name, color: s.color, value: s.value, dashStyle: s.dashStyle } as S;
+  return {
+    type: s.type,
+    id: s.id,
+    name: s.name,
+    color: s.color,
+    value: s.value,
+    dashStyle: s.dashStyle,
+  } as S;
 }
 
 function transformErrorBarSeries(
@@ -139,21 +187,8 @@ function transformErrorBarSeries(
     warnOnce("CartesianChart", "Error bars are not supported for stacked series.");
     return null;
   }
-  // We only support error bars that are linked to some other series. It is only possible to link it
-  // using series ID (but not name), or by using ":previous" pseudo-selector.
-  // See: https://api.highcharts.com/highcharts/series.errorbar.linkedTo.
-  const linkedSeries =
-    series.linkedTo === ":previous"
-      ? allSeries[allSeries.indexOf(series) - 1]
-      : allSeries.find(({ id }) => id === series.linkedTo);
-  // The non-linked error bars are not supported: those will not appear in our custom legend and tooltip,
-  // so we remove them from the series array. We also do not support linking them to other error bars,
-  // or our custom threshold series.
-  if (!linkedSeries || ["errorbar", "x-threshold", "y-threshold"].includes(linkedSeries.type)) {
-    warnOnce(
-      "CartesianChart",
-      'The `linkedTo` property of "errorbar" series points to a missing, or unsupported series.',
-    );
+  // We only support error bars that are linked to some other series.
+  if (!validateLinkedTo(series, allSeries)) {
     return null;
   }
   const data = transformRangeData(series.data);

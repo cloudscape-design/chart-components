@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import type { Series } from "highcharts";
+import type { Point, Series } from "highcharts";
 
 // isInternal is currently not a publicly supported prop
 // https://github.com/highcharts/highcharts/issues/23278
@@ -21,4 +21,21 @@ export function getChartSeries(series: InternalSeries[]) {
   // navigator is causing duplicated unexpected datapoints and series entries in the chart.
 
   return series.filter((s) => !s.options.isInternal);
+}
+
+/**
+ * Returns point series or series it is linked to.
+ */
+export function getMasterSeries(point: Point): Series {
+  const masterSeries = point.series.linkedParent ?? point.series;
+  return masterSeries;
+}
+
+/**
+ * Returns point series and all series linked to it.
+ */
+export function getLinkedSeries(point: Point): Series[] {
+  const masterSeries = getMasterSeries(point);
+  const linkedSeries = [masterSeries, ...masterSeries.linkedSeries];
+  return linkedSeries;
 }
