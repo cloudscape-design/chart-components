@@ -651,6 +651,43 @@ applies to the tooltip points values.",
       "optional": true,
       "type": "CartesianChartProps.YAxisOptions",
     },
+    {
+      "description": "Title for the Z axis, used as the label for the Z value in bubble chart tooltips.
+
+Supported options:
+* \`title\` (optional, string) - Axis title.
+* \`valueFormatter\` (optional, function) - Takes axis tick as input and returns a formatted string for tooltip points values.",
+      "inlineType": {
+        "name": "CartesianChartProps.ZAxisOptions",
+        "properties": [
+          {
+            "name": "title",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "inlineType": {
+              "name": "(value: number | null) => string",
+              "parameters": [
+                {
+                  "name": "value",
+                  "type": "number | null",
+                },
+              ],
+              "returnType": "string",
+              "type": "function",
+            },
+            "name": "valueFormatter",
+            "optional": true,
+            "type": "((value: number | null) => string)",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "zAxis",
+      "optional": true,
+      "type": "CartesianChartProps.ZAxisOptions",
+    },
   ],
   "regions": [
     {
