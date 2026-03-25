@@ -123,11 +123,6 @@ export const InternalCartesianChart = forwardRef(
             title: { text: yAxisProps.title },
             plotLines: yPlotLines,
           })),
-          zAxis: castArray(props.zAxis)?.map((zAxisProps) => ({
-            ...zAxisProps,
-            title: { text: zAxisProps.title },
-            // TODO: should I also include zPlotLines?
-          })),
         }}
         tooltip={tooltip}
         getTooltipContent={getTooltipContent}
