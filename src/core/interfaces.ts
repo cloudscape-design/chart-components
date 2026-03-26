@@ -452,11 +452,10 @@ export namespace CoreChartProps {
   };
   export type XAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: null | number) => string };
   export type YAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: null | number) => string };
-
-  export interface ZAxisOptions {
+  export type ZAxisOptions = Highcharts.ZAxisOptions & {
     title?: string;
     valueFormatter?: (value: null | number) => string;
-  }
+  };
 
   export interface ChartItemOptions {
     /**

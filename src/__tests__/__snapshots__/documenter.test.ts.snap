@@ -1936,6 +1936,27 @@ When set to "side", displays the title along the axis line.",
         "type": "ReadonlyArray<string>",
         "visualRefreshTag": undefined,
       },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "Z-axis options for bubble series tooltip formatting.",
+        "i18nTag": undefined,
+        "inlineType": {
+          "name": "CoreChartProps.ZAxisOptions",
+          "type": "union",
+          "valueDescriptions": undefined,
+          "values": [
+            "Highcharts.ZAxisOptions",
+            "{ title?: string | undefined; valueFormatter?: ((value: number | null) => string) | undefined; }",
+          ],
+        },
+        "name": "zAxis",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "CoreChartProps.ZAxisOptions",
+        "visualRefreshTag": undefined,
+      },
     ],
     "regions": [
       {

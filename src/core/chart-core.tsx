@@ -70,7 +70,6 @@ export function InternalCoreChart({
   visibleItems,
   __internalRootRef,
   getItemOptions,
-  zAxis,
   ...rest
 }: CoreChartProps & InternalBaseComponentProps) {
   const highcharts = rest.highcharts as null | typeof Highcharts;
@@ -395,7 +394,13 @@ export function InternalCoreChart({
           i18nStrings={i18nStrings}
           getTooltipContent={rest.getTooltipContent}
           api={api}
-          zAxis={zAxis}
+          zAxis={
+            !options?.zAxis
+              ? undefined
+              : Array.isArray(options?.zAxis)
+                ? { ...options?.zAxis[0], title: options?.zAxis[0]?.title?.text ?? "" }
+                : { ...options?.zAxis, title: (options?.zAxis as CoreChartProps.ZAxisOptions).title?.text ?? "" }
+          }
         />
       )}
     </div>
