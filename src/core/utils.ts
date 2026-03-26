@@ -73,6 +73,17 @@ export function isYThreshold(
   return typeof s.options.custom === "object" && s.options.custom.awsui?.type === "y-threshold";
 }
 
+export interface BubbleOptions {
+  custom: {
+    awsui: {
+      bubbleAxis?: string;
+    };
+  };
+}
+export function createBubbleMetadata(options: { bubbleAxis?: string }): BubbleOptions {
+  return { custom: { awsui: options } };
+}
+
 // We check point.series explicitly because Highcharts can destroy point objects, replacing the
 // contents with { destroyed: true }, violating the point's TS contract.
 // See: https://github.com/highcharts/highcharts/issues/23175.

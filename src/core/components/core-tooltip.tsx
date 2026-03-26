@@ -15,7 +15,15 @@ import { useDebouncedValue } from "../../internal/utils/use-debounced-value";
 import { ChartAPI } from "../chart-api";
 import { getFormatter } from "../formatters";
 import { BaseI18nStrings, CoreChartProps } from "../interfaces";
-import { getPointColor, getPointId, getSeriesColor, getSeriesId, getSeriesMarkerType, isXThreshold } from "../utils";
+import {
+  BubbleOptions,
+  getPointColor,
+  getPointId,
+  getSeriesColor,
+  getSeriesId,
+  getSeriesMarkerType,
+  isXThreshold,
+} from "../utils";
 
 import styles from "../styles.css.js";
 
@@ -48,12 +56,12 @@ export function ChartTooltip({
   i18nStrings,
   debounce = false,
   seriesSorting = "as-added",
-  zAxis,
+  bubbleAxis,
 }: CoreChartProps.TooltipOptions & {
   i18nStrings?: BaseI18nStrings;
   getTooltipContent?: CoreChartProps.GetTooltipContent;
+  bubbleAxis?: readonly CoreChartProps.BubbleAxisOptions[];
   api: ChartAPI;
-  zAxis?: CoreChartProps.ChartOptions["zAxis"];
 }) {
   const [expandedSeries, setExpandedSeries] = useState<ExpandedSeriesState>({});
   const tooltip = useSelector(api.tooltipStore, (s) => s);
@@ -85,7 +93,7 @@ export function ChartTooltip({
     expandedSeries,
     setExpandedSeries,
     seriesSorting,
-    zAxis,
+    bubbleAxis,
     hideTooltip: () => {
       api.hideTooltip();
     },
@@ -138,7 +146,7 @@ function getTooltipContent(
     renderers?: CoreChartProps.TooltipContentRenderer;
     hideTooltip: () => void;
     seriesSorting: NonNullable<CoreChartProps.TooltipOptions["seriesSorting"]>;
-    zAxis?: CoreChartProps.ChartOptions["zAxis"];
+    bubbleAxis?: readonly CoreChartProps.BubbleAxisOptions[];
   } & ExpandedSeriesStateProps,
 ): null | RenderedTooltipContent {
   if (props.point && props.point.series.type === "pie") {
@@ -160,12 +168,12 @@ function getTooltipContentCartesian(
     setExpandedSeries,
     hideTooltip,
     seriesSorting,
-    zAxis,
+    bubbleAxis,
   }: CoreChartProps.GetTooltipContentProps & {
     renderers?: CoreChartProps.TooltipContentRenderer;
     hideTooltip: () => void;
     seriesSorting: NonNullable<CoreChartProps.TooltipOptions["seriesSorting"]>;
-    zAxis?: CoreChartProps.ChartOptions["zAxis"];
+    bubbleAxis?: readonly CoreChartProps.BubbleAxisOptions[];
   } & ExpandedSeriesStateProps,
 ): RenderedTooltipContent {
   // The cartesian tooltip might or might not have a selected point, but it always has a non-empty group.
@@ -186,19 +194,19 @@ function getTooltipContentCartesian(
   const detailItems: ChartSeriesDetailItem[] = matchedItems.map((item) => {
     const valueFormatter = getFormatter(item.point.series.yAxis);
     const itemY = isXThreshold(item.point.series) ? null : (item.point.y ?? null);
+    const bubbleSubItems = item.point.series.type === "bubble" ? getBubblePointDetails(item, bubbleAxis) : undefined;
     const customContent = renderers.point
       ? renderers.point({
           item,
           hideTooltip,
         })
-      : item.point.series.type === "bubble"
-        ? getDefaultBubblePoint(item, zAxis)
-        : undefined;
+      : undefined;
+    const defaultValue = bubbleSubItems ? null : valueFormatter(itemY);
     return {
       key: customContent?.key ?? item.point.series.name,
-      value: customContent?.value ?? valueFormatter(itemY),
+      value: customContent?.value ?? defaultValue,
       marker: getSeriesMarker(item.point.series),
-      subItems: customContent?.subItems,
+      subItems: customContent?.subItems ?? bubbleSubItems,
       expandableId: customContent?.expandable ? item.point.series.name : undefined,
       highlighted: item.point.x === point?.x && item.point.y === point?.y,
       description:
@@ -299,27 +307,26 @@ function getTooltipContentPie(
   };
 }
 
-function getDefaultBubblePoint(
-  item: MatchedItem,
-  zAxis?: CoreChartProps.ChartOptions["zAxis"],
-): CoreChartProps.TooltipPointFormatted {
+function getBubblePointDetails(item: MatchedItem, bubbleAxis?: readonly CoreChartProps.BubbleAxisOptions[]) {
+  const details: { key: React.ReactNode; value: React.ReactNode }[] = [];
+
+  const y = item.point.y;
   const yAxisTitle = item.point.series.yAxis?.options?.title?.text;
   const yFormatter = item.point.series.yAxis ? getFormatter(item.point.series.yAxis) : (v: unknown) => String(v);
-  const zValue = item.point.options.z;
-  let zAxisSubItem = null;
+  details.push({ key: yAxisTitle, value: yFormatter(y) });
+
+  const z = item.point.options.z ?? null;
+  const zAxis =
+    bubbleAxis?.find((a) => {
+      const custom = item.point.series.options.custom as BubbleOptions["custom"];
+      return a.id === custom?.awsui?.bubbleAxis;
+    }) ?? bubbleAxis?.[0];
   if (zAxis) {
-    zAxisSubItem = Array.isArray(zAxis)
-      ? { ...zAxis[0], title: zAxis[0]?.title?.text ?? "" }
-      : { ...zAxis, title: zAxis.title?.text ?? "" };
+    const zFormatter = zAxis.valueFormatter ?? ((v: unknown) => String(v));
+    details.push({ key: zAxis.title, value: zFormatter(z) });
   }
-  return {
-    // The y value will be explicitly listed as a sub-item so it shouldn't be listed here.
-    value: "",
-    subItems: [
-      { key: yAxisTitle, value: yFormatter(item.point.y) },
-      { key: zAxisSubItem?.title, value: zAxisSubItem?.valueFormatter?.(zValue ?? null) ?? zValue },
-    ],
-  };
+
+  return details;
 }
 
 function findTooltipSeriesItems(

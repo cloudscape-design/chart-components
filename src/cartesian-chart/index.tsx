@@ -9,7 +9,7 @@ import { PointDataItemType, RangeDataItemOptions, ZPointDataItemOptions } from "
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import useBaseComponent from "../internal/base-component/use-base-component";
 import { applyDisplayName } from "../internal/utils/apply-display-name";
-import { SomeRequired } from "../internal/utils/utils";
+import { castArray, SomeRequired } from "../internal/utils/utils";
 import { InternalCartesianChart } from "./chart-cartesian-internal";
 import { CartesianChartProps } from "./interfaces";
 
@@ -33,7 +33,7 @@ const CartesianChart = forwardRef(
     const series = transformSeries(props.series, stacking);
     const xAxis = transformXAxisOptions(props.xAxis);
     const yAxis = transformYAxisOptions(props.yAxis);
-    const zAxis = transformZAxisOptions(props.zAxis);
+    const bubbleAxis = transformBubbleAxisOptions(props.bubbleAxis);
     const tooltip = transformTooltip(props.tooltip);
     const legend = transformLegend(props.legend);
 
@@ -54,7 +54,7 @@ const CartesianChart = forwardRef(
         series={series}
         xAxis={xAxis}
         yAxis={yAxis}
-        zAxis={zAxis}
+        bubbleAxis={bubbleAxis}
         tooltip={tooltip}
         legend={legend}
         {...getDataAttributes(props)}
@@ -128,7 +128,7 @@ function transformScatterSeries<S extends CartesianChartProps.ScatterSeriesOptio
 
 function transformBubbleSeries(s: CartesianChartProps.BubbleSeriesOptions): CartesianChartProps.BubbleSeriesOptions {
   const data = transformBubbleData(s.data);
-  return { type: s.type, id: s.id, name: s.name, color: s.color, data };
+  return { type: s.type, id: s.id, name: s.name, color: s.color, data, bubbleAxis: s.bubbleAxis };
 }
 
 function transformThresholdSeries<
@@ -189,8 +189,17 @@ function transformYAxisOptions(axis?: CartesianChartProps.YAxisOptions): Cartesi
   return { ...transformAxisOptions(axis), reversedStacks: axis?.reversedStacks };
 }
 
-function transformZAxisOptions(axis?: CartesianChartProps.ZAxisOptions): CartesianChartProps.ZAxisOptions {
-  return transformAxisOptions(axis);
+function transformBubbleAxisOptions(
+  axis?: CartesianChartProps.BubbleAxisOptions | readonly CartesianChartProps.BubbleAxisOptions[],
+): undefined | CartesianChartProps.BubbleAxisOptions[] {
+  if (!axis) {
+    return undefined;
+  }
+  return castArray(axis as CartesianChartProps.BubbleAxisOptions[])?.map((a) => ({
+    id: a.id,
+    title: a.title,
+    valueFormatter: a.valueFormatter,
+  }));
 }
 
 function transformAxisOptions<O extends CartesianChartProps.XAxisOptions | CartesianChartProps.YAxisOptions>(

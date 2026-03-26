@@ -6,7 +6,7 @@ import type Highcharts from "highcharts";
 import { colorChartsErrorBarMarker } from "@cloudscape-design/design-tokens";
 
 import { PointDataItemType, RangeDataItemOptions, ZPointDataItemOptions } from "../core/interfaces";
-import { createThresholdMetadata, getOptionsId } from "../core/utils";
+import { createBubbleMetadata, createThresholdMetadata, getOptionsId } from "../core/utils";
 import * as Styles from "../internal/chart-styles";
 import { Writeable } from "../internal/utils/utils";
 import { CartesianChartProps } from "./interfaces";
@@ -63,7 +63,8 @@ export const transformCartesianSeries = (
       return { ...s, data: s.data as Writeable<RangeDataItemOptions[]>, ...colors };
     }
     if (s.type === "bubble") {
-      return { ...s, data: s.data as Writeable<ZPointDataItemOptions[]>, ...shared };
+      const { custom } = createBubbleMetadata(s);
+      return { ...s, data: s.data as Writeable<ZPointDataItemOptions[]>, ...shared, custom };
     }
     return { ...s, data: s.data as Writeable<PointDataItemType[]>, ...shared };
   }

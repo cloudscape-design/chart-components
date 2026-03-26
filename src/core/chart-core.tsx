@@ -393,8 +393,8 @@ export function InternalCoreChart({
           {...tooltipOptions}
           i18nStrings={i18nStrings}
           getTooltipContent={rest.getTooltipContent}
+          bubbleAxis={castArray(rest.bubbleAxis as CoreChartProps.BubbleAxisOptions[])}
           api={api}
-          zAxis={options?.zAxis}
         />
       )}
     </div>
