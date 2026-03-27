@@ -8,7 +8,7 @@ import { ChartSeriesMarker, ChartSeriesMarkerType } from "../../internal/compone
 import { ChartSeriesMarkerStatus } from "../../internal/components/series-marker/interfaces";
 import { fireNonCancelableEvent } from "../../internal/events";
 import AsyncStore from "../../internal/utils/async-store";
-import { getChartSeries } from "../../internal/utils/chart-series";
+import { getChartSeries, getMasterSeries } from "../../internal/utils/chart-series";
 import { isEqualArrays } from "../../internal/utils/utils";
 import { CoreChartProps } from "../interfaces";
 import { getChartLegendItems, getPointId, getSeriesId } from "../utils";
@@ -58,13 +58,14 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
 
   // Updates legend highlight state when chart's point is highlighted.
   public onHighlightPoint = (point: Highcharts.Point) => {
-    const visibleItems = point.series.type === "pie" ? [getPointId(point)] : [getSeriesId(point.series)];
+    const masterSeries = getMasterSeries(point);
+    const visibleItems = point.series.type === "pie" ? [getPointId(point)] : [getSeriesId(masterSeries)];
     this.onHighlightItems(visibleItems);
   };
 
   // Updates legend highlight state when chart's group of points is highlighted.
   public onHighlightGroup = (group: readonly Highcharts.Point[]) => {
-    const visibleItems = group.map((point) => getSeriesId(point.series));
+    const visibleItems = group.map((point) => getSeriesId(getMasterSeries(point)));
     this.onHighlightItems(visibleItems);
   };
 

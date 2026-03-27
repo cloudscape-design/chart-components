@@ -8,7 +8,7 @@ import { getChartSeries } from "../../internal/utils/chart-series";
 import { getSeriesData } from "../../internal/utils/series-data";
 import { ChartLabels } from "../i18n-utils";
 import { CoreChartProps, Rect } from "../interfaces";
-import { getGroupRect, isSeriesStacked } from "../utils";
+import { getGroupRect, isPointVisible, isSeriesStacked } from "../utils";
 
 // Chart API context is used for dependency injection for chart utilities.
 // It is initialized on chart render, and includes the chart instance, consumer
@@ -47,8 +47,8 @@ export namespace ChartExtraContext {
 
   export interface DerivedState {
     allX: number[];
-    getAllXInSeries: (series: Highcharts.Series) => number[];
     getPointsByX: (x: number) => Highcharts.Point[];
+    getSeriesPoints: (series: Highcharts.Series) => Highcharts.Point[];
     groupRects: { group: Highcharts.Point[]; rect: Rect }[];
   }
 }
@@ -74,7 +74,7 @@ export function createChartContext(): ChartExtraContext {
       throw new Error("Invariant violation: using chart API before initialization.");
     },
     chartOrNull: null,
-    derived: { allX: [], getAllXInSeries: () => [], getPointsByX: () => [], groupRects: [] },
+    derived: { allX: [], getPointsByX: () => [], getSeriesPoints: () => [], groupRects: [] },
   };
 }
 
@@ -114,16 +114,42 @@ function computeDerivedState(chart: Highcharts.Chart): ChartExtraContext.Derived
         }
       }
     }
-    allXInSeries.set(s, Array.from(seriesX).sort(compareX));
+    allXInSeries.set(s, Array.from(seriesX));
   }
   for (const [, points] of pointsByX) {
     sortPoints(points);
   }
   const allX = Array.from(allXSet).sort(compareX);
+
+  // For each series, compute the ordered list of points to navigate through. For a linked family
+  // (primary + its linked children), all members share the same flat list: points sorted by X,
+  // with family members interleaved in series order within the same X value.
+  const seriesPointsMap = new WeakMap<Highcharts.Series, Highcharts.Point[]>();
+  for (const s of getChartSeries(chart.series)) {
+    if (seriesPointsMap.has(s)) {
+      continue; // Already computed as part of a family.
+    }
+    const master = s.linkedParent ?? s;
+    const family = [master, ...master.linkedSeries];
+    const familyXSet = new Set(family.flatMap((m) => allXInSeries.get(m) ?? []));
+    const familyPoints: Highcharts.Point[] = [];
+    for (const x of Array.from(familyXSet).sort(compareX)) {
+      for (const member of family) {
+        const point = member.data.find((d) => d.x === x && isPointVisible(d) && d.y !== null);
+        if (point && familyXSet.has(x)) {
+          familyPoints.push(point);
+          familyXSet.delete(x); // We ignore points that share X coordinate.
+        }
+      }
+    }
+    for (const member of family) {
+      seriesPointsMap.set(member, familyPoints);
+    }
+  }
   return {
     allX,
-    getAllXInSeries: (s) => allXInSeries.get(s) ?? [],
     getPointsByX: (x) => pointsByX.get(x) ?? [],
+    getSeriesPoints: (s) => seriesPointsMap.get(s) ?? [],
     // Group rects are computed for every available x coordinate, each including at least one point with matching x value.
     // They enclose all matching points of the group and are used to match hover position and place the tooltip or focus outline.
     groupRects: allX.map((x) => ({
