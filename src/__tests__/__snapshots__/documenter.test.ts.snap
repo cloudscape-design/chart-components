@@ -325,6 +325,25 @@ Supported types:
       "type": "ReadonlyArray<CartesianChartProps.SeriesOptions>",
     },
     {
+      "description": "Title for the size axis, used as the label for the Z value in bubble chart tooltips.
+
+Supported options:
+* \`id\` (optional, string) - Axis id.
+* \`title\` (string) - Axis title.
+* \`valueFormatter\` (optional, function) - Takes axis tick as input and returns a formatted string for tooltip points values.",
+      "inlineType": {
+        "name": "CartesianChartProps.SizeAxisOptions | ReadonlyArray<CartesianChartProps.SizeAxisOptions>",
+        "type": "union",
+        "values": [
+          "CartesianChartProps.SizeAxisOptions",
+          "ReadonlyArray<CartesianChartProps.SizeAxisOptions>",
+        ],
+      },
+      "name": "sizeAxis",
+      "optional": true,
+      "type": "CartesianChartProps.SizeAxisOptions | ReadonlyArray<CartesianChartProps.SizeAxisOptions>",
+    },
+    {
       "defaultValue": "undefined",
       "description": "Enables series stacking behavior. Use it for column- or area- series.
 This property corresponds to "normal" stacking type in Highcharts ([plotOptions.series.stacking](https://api.highcharts.com/highcharts/plotOptions.series.stacking)).",
@@ -650,43 +669,6 @@ applies to the tooltip points values.",
       "name": "yAxis",
       "optional": true,
       "type": "CartesianChartProps.YAxisOptions",
-    },
-    {
-      "description": "Title for the Z axis, used as the label for the Z value in bubble chart tooltips.
-
-Supported options:
-* \`title\` (optional, string) - Axis title.
-* \`valueFormatter\` (optional, function) - Takes axis tick as input and returns a formatted string for tooltip points values.",
-      "inlineType": {
-        "name": "CartesianChartProps.ZAxisOptions",
-        "properties": [
-          {
-            "name": "title",
-            "optional": true,
-            "type": "string",
-          },
-          {
-            "inlineType": {
-              "name": "(value: number | null) => string",
-              "parameters": [
-                {
-                  "name": "value",
-                  "type": "number | null",
-                },
-              ],
-              "returnType": "string",
-              "type": "function",
-            },
-            "name": "valueFormatter",
-            "optional": true,
-            "type": "((value: number | null) => string)",
-          },
-        ],
-        "type": "object",
-      },
-      "name": "zAxis",
-      "optional": true,
-      "type": "CartesianChartProps.ZAxisOptions",
     },
   ],
   "regions": [
@@ -1808,13 +1790,34 @@ not overridden, but merged with Cloudscape event handlers so that both are getti
           "valueDescriptions": undefined,
           "values": [
             "Omit<Highcharts.Options, "xAxis" | "yAxis" | "zAxis">",
-            "{ xAxis?: CoreChartProps.XAxisOptions | Array<CoreChartProps.XAxisOptions> | undefined; yAxis?: CoreChartProps.YAxisOptions | Array<CoreChartProps.YAxisOptions> | undefined; zAxis?: CoreChartProps.ZAxisOptions | ... 1 more ... | undefined; }",
+            "{ xAxis?: CoreChartProps.XAxisOptions | Array<CoreChartProps.XAxisOptions> | undefined; yAxis?: CoreChartProps.YAxisOptions | Array<CoreChartProps.YAxisOptions> | undefined; }",
           ],
         },
         "name": "options",
         "optional": false,
         "systemTags": undefined,
         "type": "CoreChartProps.ChartOptions",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": undefined,
+        "i18nTag": undefined,
+        "inlineType": {
+          "name": "CoreChartProps.SizeAxisOptions | ReadonlyArray<CoreChartProps.SizeAxisOptions>",
+          "type": "union",
+          "valueDescriptions": undefined,
+          "values": [
+            "CoreChartProps.SizeAxisOptions",
+            "ReadonlyArray<CoreChartProps.SizeAxisOptions>",
+          ],
+        },
+        "name": "sizeAxis",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "CoreChartProps.SizeAxisOptions | ReadonlyArray<CoreChartProps.SizeAxisOptions>",
         "visualRefreshTag": undefined,
       },
       {
