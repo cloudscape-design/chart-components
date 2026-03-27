@@ -16,7 +16,7 @@ import { ChartAPI } from "../chart-api";
 import { getFormatter, numberFormatter } from "../formatters";
 import { BaseI18nStrings, CoreChartProps } from "../interfaces";
 import {
-  BubbleOptions,
+  getBubbleSeriesSizeAxis,
   getPointColor,
   getPointId,
   getSeriesColor,
@@ -308,7 +308,7 @@ function getTooltipContentPie(
   };
 }
 
-function getBubblePointDetails(item: MatchedItem, sizeAxis?: readonly CoreChartProps.SizeAxisOptions[]) {
+function getBubblePointDetails(item: MatchedItem, sizeAxis: readonly CoreChartProps.SizeAxisOptions[] = []) {
   const subItems: { key: React.ReactNode; value: React.ReactNode }[] = [];
 
   const y = item.point.y;
@@ -316,20 +316,17 @@ function getBubblePointDetails(item: MatchedItem, sizeAxis?: readonly CoreChartP
   const yFormatter = item.point.series.yAxis ? getFormatter(item.point.series.yAxis) : (v: unknown) => String(v);
   subItems.push({ key: yAxisTitle, value: yFormatter(y) });
 
-  // maps Highcharts' `z` prop (bubble size) to our custom size axis for title/formatter support,
-  // which Highcharts doesn't provide for bubble series by default.
-  const z = item.point.options.z ?? null;
-  const matchedSizeAxis =
-    sizeAxis?.find((a) => {
-      const custom = item.point.series.options.custom as BubbleOptions["custom"];
-      return a.id === custom?.awsui?.sizeAxis;
-    }) ?? sizeAxis?.[0];
+  // Size axis is a custom abstraction built to support bubble series title and formatter for z (size) values.
+  // We match size axes by ID if provided, or take the first defined axis instead.
+  const matchedSizeAxis = sizeAxis.find((a) => a.id === getBubbleSeriesSizeAxis(item.point.series)) ?? sizeAxis[0];
   if (matchedSizeAxis) {
-    const sizeValue = item.point.options.z;
-    subItems.push({
-      key: matchedSizeAxis.title,
-      value: matchedSizeAxis.valueFormatter?.(z) ?? numberFormatter(sizeValue ?? 0),
-    });
+    // Highcharts bubble size is represented by point.z value, which is however not present in the internal point type -
+    // so we take it from point's options instead.
+    const size = item.point.options.z ?? null;
+    const sizeAxisTitle = matchedSizeAxis.title;
+    const defaultFormatter = (value: null | number) => (typeof value === "number" ? numberFormatter(value) : "");
+    const sizeFormatter = matchedSizeAxis.valueFormatter ?? defaultFormatter;
+    subItems.push({ key: sizeAxisTitle, value: sizeFormatter(size) });
   }
 
   return subItems;

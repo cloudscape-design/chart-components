@@ -384,6 +384,7 @@ describe("CartesianChart: bubble tooltip", () => {
     await waitFor(() => {
       expect(getTooltip()).not.toBe(null);
       const series = getTooltipSeries(0);
+      expect(series.findValue().getElement().textContent).toBe("");
       expect(series.findSubItems()).toHaveLength(2);
       expect(series.findSubItems()[0].findKey().getElement().textContent).toBe("Events");
       expect(series.findSubItems()[0].findValue().getElement().textContent).toBe("9");
