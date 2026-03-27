@@ -96,7 +96,7 @@ export interface CartesianChartProps
   yAxis?: CartesianChartProps.YAxisOptions;
 
   /**
-   * Title for the size axis, used as the label for the Z value in bubble chart tooltips.
+   * Title for the size axis, used as the label for the size value in bubble chart tooltips.
    *
    * Supported options:
    * * `id` (optional, string) - Axis id.

@@ -199,19 +199,10 @@ export interface BaseFilterOptions {
 }
 
 export interface BaseTooltipPointFormatted {
-  // Point's name. Defaults to series.name.
   key?: React.ReactNode;
-  // Point's y value, formatted with yAxis.valueFormatter if available.
-  // For bubble series it is set to `null`.
   value?: React.ReactNode;
-  // Optional point's description, undefined by default. It is rendered under point's value and details.
   description?: React.ReactNode;
-  // Renders point as expandable section with custom sub items. It is used for series drill-down, e.g.
-  // to represent composite series, represented as a single entity in the plot.
   expandable?: boolean;
-  // For bubble series, it is defined as:
-  // 1. {yAxis.title} - {yAxis.valueFormatter(point.y)}
-  // 2. {zAxis.title} - {zAxis.valueFormatter(point.z)}
   subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
 }
 
