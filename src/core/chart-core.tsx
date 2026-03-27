@@ -393,6 +393,7 @@ export function InternalCoreChart({
           {...tooltipOptions}
           i18nStrings={i18nStrings}
           getTooltipContent={rest.getTooltipContent}
+          sizeAxis={castArray(rest.sizeAxis as CoreChartProps.SizeAxisOptions[])}
           api={api}
         />
       )}

@@ -239,7 +239,8 @@ export interface ScatterSeriesOptions extends BaseCartesianSeriesOptions, Linkab
 
 export interface BubbleSeriesOptions extends BaseCartesianSeriesOptions, LinkableSeries {
   type: "bubble";
-  data: readonly ZPointDataItemOptions[];
+  sizeAxis?: string;
+  data: readonly SizePointDataItemOptions[];
 }
 
 export interface ErrorBarSeriesOptions extends Omit<BaseCartesianSeriesOptions, "name"> {
@@ -283,10 +284,10 @@ export interface PointDataItemOptions {
   y: number | null;
 }
 
-export interface ZPointDataItemOptions {
+export interface SizePointDataItemOptions {
   x?: number;
   y: number | null;
-  z: number | null;
+  size: number | null;
 }
 
 export interface RangeDataItemOptions {
@@ -431,6 +432,8 @@ export interface CoreChartProps
    * Specifies the options for each item in the chart.
    */
   getItemOptions?: CoreChartProps.GetItemOptions;
+
+  sizeAxis?: CoreChartProps.SizeAxisOptions | readonly CoreChartProps.SizeAxisOptions[];
 }
 
 export namespace CoreChartProps {
@@ -453,12 +456,18 @@ export namespace CoreChartProps {
 
   // The extended version of Highcharts.Options. The axes types are extended with Cloudscape value formatter.
   // We use a custom formatter because we cannot use the built-in Highcharts formatter for our tooltip.
-  export type ChartOptions = Omit<Highcharts.Options, "xAxis" | "yAxis"> & {
+  export type ChartOptions = Omit<Highcharts.Options, "xAxis" | "yAxis" | "zAxis"> & {
     xAxis?: XAxisOptions | XAxisOptions[];
     yAxis?: YAxisOptions | YAxisOptions[];
   };
   export type XAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: null | number) => string };
   export type YAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: null | number) => string };
+
+  export interface SizeAxisOptions {
+    id?: string;
+    title: string;
+    valueFormatter?: (value: null | number) => string;
+  }
 
   export interface ChartItemOptions {
     /**

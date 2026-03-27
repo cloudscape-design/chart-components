@@ -80,7 +80,7 @@ describe("CartesianChart: tooltip", () => {
       expect(getTooltipHeader().getElement().textContent).toBe(x === 0.01 ? "0.01" : x.toString());
       expect(getAllTooltipSeries()).toHaveLength(9); // Error bar is not counted as a series
       expect(getTooltipBody().getElement().textContent).toBe(
-        `Area1\nArea spline2\nColumn3\nError bar4 - 5\nLine6\nScatter7\nSpline8\nBubble95\nX threshold\nY threshold10`,
+        `Area1\nArea spline2\nColumn3\nError bar4 - 5\nLine6\nScatter7\nSpline8\nBubble9\nX threshold\nY threshold10`,
       );
     },
   );
@@ -295,6 +295,100 @@ describe("CartesianChart: tooltip", () => {
       expect(getTooltipHeader().getElement().textContent).toBe("header 1 2 Line 3 4 Threshold");
       expect(getTooltipBody().getElement().textContent).toBe("body 1 2 Line 3 4 Threshold");
       expect(getTooltipFooter().getElement().textContent).toBe("footer 1 2 Line 3 4 Threshold");
+    });
+  });
+});
+
+describe("CartesianChart: bubble tooltip", () => {
+  const bubbleSeries: CartesianChartProps.SeriesOptions[] = [
+    {
+      type: "bubble",
+      name: "Bubble",
+      data: [
+        { x: 1, y: 9, size: 5 },
+        { x: 2, y: 4, size: 3 },
+      ],
+    },
+  ];
+
+  test("renders bubble tooltip with y sub-item only when no sizeAxis and no yAxis title", async () => {
+    renderCartesianChart({
+      highcharts,
+      series: bubbleSeries,
+    });
+
+    act(() => hc.highlightChartPoint(0, 0));
+
+    await waitFor(() => {
+      expect(getTooltip()).not.toBe(null);
+      const series = getTooltipSeries(0);
+      // Value is empty because y is shown as a sub-item instead
+      expect(series.findValue().getElement().textContent).toBe("");
+      // Without sizeAxis, only y sub-item is shown
+      expect(series.findSubItems()).toHaveLength(1);
+      expect(series.findSubItems()[0].findKey().getElement().textContent).toBe("");
+      expect(series.findSubItems()[0].findValue().getElement().textContent).toBe("9");
+    });
+  });
+
+  test("renders bubble tooltip with y sub-item only when sizeAxis is not provided", async () => {
+    renderCartesianChart({
+      highcharts,
+      series: bubbleSeries,
+      yAxis: { title: "Events" },
+    });
+
+    act(() => hc.highlightChartPoint(0, 0));
+
+    await waitFor(() => {
+      expect(getTooltip()).not.toBe(null);
+      const series = getTooltipSeries(0);
+      // Without sizeAxis, only y sub-item is shown
+      expect(series.findSubItems()).toHaveLength(1);
+      expect(series.findSubItems()[0].findKey().getElement().textContent).toBe("Events");
+      expect(series.findSubItems()[0].findValue().getElement().textContent).toBe("9");
+    });
+  });
+
+  test("renders bubble tooltip with sizeAxis title and default formatter", async () => {
+    renderCartesianChart({
+      highcharts,
+      series: bubbleSeries,
+      yAxis: { title: "Events" },
+      sizeAxis: { title: "Size" },
+    });
+
+    act(() => hc.highlightChartPoint(0, 0));
+
+    await waitFor(() => {
+      expect(getTooltip()).not.toBe(null);
+      const series = getTooltipSeries(0);
+      expect(series.findSubItems()).toHaveLength(2);
+      expect(series.findSubItems()[0].findKey().getElement().textContent).toBe("Events");
+      expect(series.findSubItems()[1].findKey().getElement().textContent).toBe("Size");
+      // Without valueFormatter, z value is shown as raw number
+      expect(series.findSubItems()[1].findValue().getElement().textContent).toBe("5");
+    });
+  });
+
+  test("renders bubble tooltip with custom sizeAxis valueFormatter", async () => {
+    renderCartesianChart({
+      highcharts,
+      series: bubbleSeries,
+      yAxis: { title: "Events" },
+      sizeAxis: { title: "Average size", valueFormatter: (value) => `${value}kB` },
+    });
+
+    act(() => hc.highlightChartPoint(0, 0));
+
+    await waitFor(() => {
+      expect(getTooltip()).not.toBe(null);
+      const series = getTooltipSeries(0);
+      expect(series.findSubItems()).toHaveLength(2);
+      expect(series.findSubItems()[0].findKey().getElement().textContent).toBe("Events");
+      expect(series.findSubItems()[0].findValue().getElement().textContent).toBe("9");
+      expect(series.findSubItems()[1].findKey().getElement().textContent).toBe("Average size");
+      expect(series.findSubItems()[1].findValue().getElement().textContent).toBe("5kB");
     });
   });
 });
