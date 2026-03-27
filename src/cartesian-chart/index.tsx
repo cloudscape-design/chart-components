@@ -233,9 +233,6 @@ function transformYAxisOptions(axis?: CartesianChartProps.YAxisOptions): Cartesi
 function transformSizeAxisOptions(
   axis?: CartesianChartProps.SizeAxisOptions | readonly CartesianChartProps.SizeAxisOptions[],
 ): undefined | CartesianChartProps.SizeAxisOptions[] {
-  if (!axis) {
-    return undefined;
-  }
   return castArray(axis as CartesianChartProps.SizeAxisOptions[])?.map((a) => ({
     id: a.id,
     title: a.title,

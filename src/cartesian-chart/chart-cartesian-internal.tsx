@@ -63,7 +63,7 @@ export const InternalCartesianChart = forwardRef(
         return {
           x: item.point.x,
           y: isXThreshold(item.point.series) ? null : (item.point.y ?? null),
-          z: item.point.options.z ?? undefined,
+          size: item.point.options.z ?? undefined,
           series,
           errorRanges: item.errorRanges.map((point) => ({
             low: point.options.low ?? 0,

@@ -96,12 +96,12 @@ export interface CartesianChartProps
   yAxis?: CartesianChartProps.YAxisOptions;
 
   /**
-   * Title for the size axis, used as the label for the size value in bubble chart tooltips.
+   * One or multiple axes to provide size details formatting for bubble series.
    *
    * Supported options:
-   * * `id` (optional, string) - Axis id.
-   * * `title` (string) - Axis title.
-   * * `valueFormatter` (optional, function) - Takes axis tick as input and returns a formatted string for tooltip points values.
+   * * `id` (optional, string) - Use it to connect axes with respective series when multiple size axes are present. The axis id must correspond `sizeAxis` property of the bubble series.
+   * * `title` (string) - Axis title, shown in the tooltip details for bubble series.
+   * * `valueFormatter` (optional, function) - Value formatter for `size` values of the bubble series data.
    */
   sizeAxis?: CartesianChartProps.SizeAxisOptions | readonly CartesianChartProps.SizeAxisOptions[];
 
@@ -197,7 +197,7 @@ export namespace CartesianChartProps {
   export interface TooltipPointItem {
     x: number;
     y: number | null;
-    z?: number | null;
+    size?: number | null;
     errorRanges: { low: number; high: number; series: CartesianChartProps.ErrorBarSeriesOptions }[];
     series: NonErrorBarSeriesOptions;
   }
