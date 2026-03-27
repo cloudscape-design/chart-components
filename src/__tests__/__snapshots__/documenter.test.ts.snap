@@ -325,7 +325,7 @@ Supported types:
       "type": "ReadonlyArray<CartesianChartProps.SeriesOptions>",
     },
     {
-      "description": "Title for the size axis, used as the label for the Z value in bubble chart tooltips.
+      "description": "Title for the size axis, used as the label for the size value in bubble chart tooltips.
 
 Supported options:
 * \`id\` (optional, string) - Axis id.
