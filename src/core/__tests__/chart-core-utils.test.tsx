@@ -37,6 +37,7 @@ describe("CoreChart: utils", () => {
     ["triangle-down", { type: "scatter", symbol: "triangle-down", options: {} }],
     ["circle", { type: "scatter", symbol: "circle", options: {} }],
     ["circle", { type: "scatter", symbol: "unknown", options: {} }],
+    ["circle", { type: "bubble", options: {} }],
   ])('getSeriesMarkerType returns "%s" for series %j', (markerType, series) => {
     expect(getSeriesMarkerType(series as any)).toBe(markerType);
   });

@@ -73,6 +73,24 @@ export function isYThreshold(
   return typeof s.options.custom === "object" && s.options.custom.awsui?.type === "y-threshold";
 }
 
+// We extend bubble series by introducing sizeAxis - which is used to define title and formatter for bubble series size values.
+// In case there are multiple such axes - the bubble series can target a specific one by setting sizeAxis to the respective size
+// axis id. As there is no such prop in Highcharts series type - we pass it using the custom options object.
+export interface BubbleOptions {
+  custom: {
+    awsui: {
+      sizeAxis?: string;
+    };
+  };
+}
+export function createBubbleMetadata(options: { sizeAxis?: string }): BubbleOptions {
+  return { custom: { awsui: options } };
+}
+export function getBubbleSeriesSizeAxis(series: Highcharts.Series): undefined | string {
+  const { custom } = series.options as Highcharts.SeriesOptionsType & BubbleOptions;
+  return custom?.awsui?.sizeAxis;
+}
+
 // We check point.series explicitly because Highcharts can destroy point objects, replacing the
 // contents with { destroyed: true }, violating the point's TS contract.
 // See: https://github.com/highcharts/highcharts/issues/23175.
@@ -114,6 +132,8 @@ export function getSeriesMarkerType(series?: Highcharts.Series): ChartSeriesMark
     case "column":
     case "pie":
       return "large-square";
+    case "bubble":
+      return "circle";
     case "errorbar":
     default:
       return "large-square";

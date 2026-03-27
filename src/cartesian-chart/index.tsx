@@ -5,11 +5,11 @@ import { forwardRef } from "react";
 
 import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
 
-import { PointDataItemType, RangeDataItemOptions } from "../core/interfaces";
+import { PointDataItemType, RangeDataItemOptions, SizePointDataItemOptions } from "../core/interfaces";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import useBaseComponent from "../internal/base-component/use-base-component";
 import { applyDisplayName } from "../internal/utils/apply-display-name";
-import { SomeRequired } from "../internal/utils/utils";
+import { castArray, SomeRequired } from "../internal/utils/utils";
 import { InternalCartesianChart } from "./chart-cartesian-internal";
 import { CartesianChartProps } from "./interfaces";
 import { getMasterSeries, isErrorBar, isThreshold } from "./utils";
@@ -34,6 +34,7 @@ const CartesianChart = forwardRef(
     const series = transformSeries(props.series, stacking);
     const xAxis = transformXAxisOptions(props.xAxis);
     const yAxis = transformYAxisOptions(props.yAxis);
+    const sizeAxis = transformSizeAxisOptions(props.sizeAxis);
     const tooltip = transformTooltip(props.tooltip);
     const legend = transformLegend(props.legend);
 
@@ -54,6 +55,7 @@ const CartesianChart = forwardRef(
         series={series}
         xAxis={xAxis}
         yAxis={yAxis}
+        sizeAxis={sizeAxis}
         tooltip={tooltip}
         legend={legend}
         {...getDataAttributes(props)}
@@ -83,6 +85,8 @@ function transformSeries(
         return transformColumnSeries(s, untransformedSeries);
       case "scatter":
         return transformScatterSeries(s, untransformedSeries);
+      case "bubble":
+        return transformBubbleSeries(s, untransformedSeries);
       case "errorbar":
         return transformErrorBarSeries(s, untransformedSeries, stacking);
       case "x-threshold":
@@ -163,6 +167,17 @@ function transformScatterSeries<S extends CartesianChartProps.ScatterSeriesOptio
   return { type: s.type, id: s.id, name: s.name, color: s.color, linkedTo: s.linkedTo, data, marker } as S;
 }
 
+function transformBubbleSeries<S extends CartesianChartProps.BubbleSeriesOptions>(
+  s: S,
+  allSeries: readonly CartesianChartProps.SeriesOptions[],
+): null | S {
+  if (!validateLinkedTo(s, allSeries)) {
+    return null;
+  }
+  const data = transformBubbleData(s.data);
+  return { type: s.type, id: s.id, name: s.name, color: s.color, data, sizeAxis: s.sizeAxis } as S;
+}
+
 function transformThresholdSeries<
   S extends CartesianChartProps.XThresholdSeriesOptions | CartesianChartProps.YThresholdSeriesOptions,
 >(s: S): null | S {
@@ -199,6 +214,10 @@ function transformPointData(data: readonly PointDataItemType[]): readonly PointD
   return data.map((d) => (d && typeof d === "object" ? { x: d.x, y: d.y } : d));
 }
 
+function transformBubbleData(data: readonly SizePointDataItemOptions[]): readonly SizePointDataItemOptions[] {
+  return data.map((d) => ({ x: d.x, y: d.y, size: d.size }));
+}
+
 function transformRangeData(data: readonly RangeDataItemOptions[]): readonly RangeDataItemOptions[] {
   return data.map((d) => ({ x: d.x, low: d.low, high: d.high }));
 }
@@ -209,6 +228,16 @@ function transformXAxisOptions(axis?: CartesianChartProps.XAxisOptions): Cartesi
 
 function transformYAxisOptions(axis?: CartesianChartProps.YAxisOptions): CartesianChartProps.YAxisOptions {
   return { ...transformAxisOptions(axis), reversedStacks: axis?.reversedStacks };
+}
+
+function transformSizeAxisOptions(
+  axis?: CartesianChartProps.SizeAxisOptions | readonly CartesianChartProps.SizeAxisOptions[],
+): undefined | CartesianChartProps.SizeAxisOptions[] {
+  return castArray(axis as CartesianChartProps.SizeAxisOptions[])?.map((a) => ({
+    id: a.id,
+    title: a.title,
+    valueFormatter: a.valueFormatter,
+  }));
 }
 
 function transformAxisOptions<O extends CartesianChartProps.XAxisOptions | CartesianChartProps.YAxisOptions>(
