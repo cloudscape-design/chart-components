@@ -7,7 +7,7 @@ import { CoreChartProps } from "./interfaces";
 
 // Takes value formatter from the axis options (InternalXAxisOptions.valueFormatter or InternalYAxisOptions.valueFormatter),
 // or provides a default formatter for numeric and datetime values.
-export function getFormatter(axis?: Highcharts.Axis) {
+export function getFormatter(axis?: Highcharts.Axis | CoreChartProps.SizeAxisOptions) {
   return (value: unknown): string => {
     if (typeof value === "string") {
       return value;
@@ -17,6 +17,10 @@ export function getFormatter(axis?: Highcharts.Axis) {
     }
     if (!axis) {
       return `${value}`;
+    }
+    // Handle non-Highcharts size axes.
+    if (!("options" in axis)) {
+      return (axis.valueFormatter ?? numberFormatter)(value);
     }
     if (axis.options.type === "category") {
       return axis.categories?.[value] ?? value.toString();
@@ -102,7 +106,7 @@ function secondFormatter(value: number) {
   });
 }
 
-export function numberFormatter(value: number): string {
+function numberFormatter(value: number): string {
   const format = (num: number) => parseFloat(num.toFixed(2)).toString(); // trims unnecessary decimals
 
   const absValue = Math.abs(value);

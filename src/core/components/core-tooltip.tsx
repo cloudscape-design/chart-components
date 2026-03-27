@@ -13,7 +13,7 @@ import { useSelector } from "../../internal/utils/async-store";
 import { getChartSeries } from "../../internal/utils/chart-series";
 import { useDebouncedValue } from "../../internal/utils/use-debounced-value";
 import { ChartAPI } from "../chart-api";
-import { getFormatter, numberFormatter } from "../formatters";
+import { getFormatter } from "../formatters";
 import { BaseI18nStrings, CoreChartProps } from "../interfaces";
 import {
   getBubbleSeriesSizeAxis,
@@ -324,8 +324,7 @@ function getBubblePointDetails(item: MatchedItem, sizeAxis: readonly CoreChartPr
     // so we take it from point's options instead.
     const size = item.point.options.z ?? null;
     const sizeAxisTitle = matchedSizeAxis.title;
-    const defaultFormatter = (value: null | number) => (typeof value === "number" ? numberFormatter(value) : "");
-    const sizeFormatter = matchedSizeAxis.valueFormatter ?? defaultFormatter;
+    const sizeFormatter = getFormatter(matchedSizeAxis);
     subItems.push({ key: sizeAxisTitle, value: sizeFormatter(size) });
   }
 

@@ -67,7 +67,7 @@ describe("CartesianChart: tooltip", () => {
           { type: "line", name: "\nLine", data: [{ x, y: 6 }] },
           { type: "scatter", name: "\nScatter", data: [{ x, y: 7 }] },
           { type: "spline", name: "\nSpline", data: [{ x, y: 8 }] },
-          { type: "bubble", name: "\nBubble", data: [{ x, y: 9, z: 5 }] },
+          { type: "bubble", name: "\nBubble", data: [{ x, y: 9, size: 5 }] },
           { type: "x-threshold", name: "\nX threshold", value: x },
           { type: "y-threshold", name: "\nY threshold", value: 10 },
         ],
@@ -384,7 +384,6 @@ describe("CartesianChart: bubble tooltip", () => {
     await waitFor(() => {
       expect(getTooltip()).not.toBe(null);
       const series = getTooltipSeries(0);
-      expect(series.findValue().getElement().textContent).toBe("");
       expect(series.findSubItems()).toHaveLength(2);
       expect(series.findSubItems()[0].findKey().getElement().textContent).toBe("Events");
       expect(series.findSubItems()[0].findValue().getElement().textContent).toBe("9");

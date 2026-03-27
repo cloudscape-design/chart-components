@@ -49,11 +49,7 @@ export default function () {
         yAxis={{ title: "Events" }}
         sizeAxis={[
           { id: "time-axis", title: "Time to fix", valueFormatter: (value) => `${value! * timeScale} minutes` },
-          {
-            id: "cost-axis",
-            title: "Cost impact",
-            valueFormatter: (value) => moneyFormatter(value! * costScale),
-          },
+          { id: "cost-axis", title: "Cost impact", valueFormatter: (value) => moneyFormatter(value! * costScale) },
         ]}
         chartHeight={400}
       />
