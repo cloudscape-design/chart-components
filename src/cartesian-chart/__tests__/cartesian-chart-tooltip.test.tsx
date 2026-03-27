@@ -391,4 +391,41 @@ describe("CartesianChart: bubble tooltip", () => {
       expect(series.findSubItems()[1].findValue().getElement().textContent).toBe("5kB");
     });
   });
+
+  test("renders bubble tooltip with custom expandable sub-items", async () => {
+    renderCartesianChart({
+      highcharts,
+      series: bubbleSeries,
+      yAxis: { title: "Events" },
+      tooltip: {
+        point: ({ item }) => ({
+          key: item.series.name,
+          value: String(item.y ?? 0),
+          expandable: true,
+          subItems: [
+            { key: "Chrome", value: "60%" },
+            { key: "Safari", value: "25%" },
+            { key: "Others", value: "15%" },
+          ],
+        }),
+      },
+    });
+
+    act(() => hc.highlightChartPoint(0, 0));
+
+    await waitFor(() => {
+      expect(getTooltip()).not.toBe(null);
+      const series = getTooltipSeries(0);
+      expect(series.findKey().getElement().textContent).toBe("Bubble");
+      expect(series.findValue().getElement().textContent).toBe("9");
+
+      expect(series.findSubItems()).toHaveLength(3);
+      expect(series.findSubItems()[0].findKey().getElement().textContent).toBe("Chrome");
+      expect(series.findSubItems()[0].findValue().getElement().textContent).toBe("60%");
+      expect(series.findSubItems()[1].findKey().getElement().textContent).toBe("Safari");
+      expect(series.findSubItems()[1].findValue().getElement().textContent).toBe("25%");
+      expect(series.findSubItems()[2].findKey().getElement().textContent).toBe("Others");
+      expect(series.findSubItems()[2].findValue().getElement().textContent).toBe("15%");
+    });
+  });
 });
