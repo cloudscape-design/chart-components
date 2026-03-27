@@ -394,13 +394,7 @@ export function InternalCoreChart({
           i18nStrings={i18nStrings}
           getTooltipContent={rest.getTooltipContent}
           api={api}
-          zAxis={
-            !options?.zAxis
-              ? undefined
-              : Array.isArray(options?.zAxis)
-                ? { ...options?.zAxis[0], title: options?.zAxis[0]?.title?.text ?? "" }
-                : { ...options?.zAxis, title: (options?.zAxis as CoreChartProps.ZAxisOptions).title?.text ?? "" }
-          }
+          zAxis={options?.zAxis}
         />
       )}
     </div>

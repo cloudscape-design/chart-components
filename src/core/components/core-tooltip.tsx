@@ -53,7 +53,7 @@ export function ChartTooltip({
   i18nStrings?: BaseI18nStrings;
   getTooltipContent?: CoreChartProps.GetTooltipContent;
   api: ChartAPI;
-  zAxis?: CoreChartProps.ZAxisOptions;
+  zAxis?: CoreChartProps.ChartOptions["zAxis"];
 }) {
   const [expandedSeries, setExpandedSeries] = useState<ExpandedSeriesState>({});
   const tooltip = useSelector(api.tooltipStore, (s) => s);
@@ -138,7 +138,7 @@ function getTooltipContent(
     renderers?: CoreChartProps.TooltipContentRenderer;
     hideTooltip: () => void;
     seriesSorting: NonNullable<CoreChartProps.TooltipOptions["seriesSorting"]>;
-    zAxis?: CoreChartProps.ZAxisOptions;
+    zAxis?: CoreChartProps.ChartOptions["zAxis"];
   } & ExpandedSeriesStateProps,
 ): null | RenderedTooltipContent {
   if (props.point && props.point.series.type === "pie") {
@@ -165,7 +165,7 @@ function getTooltipContentCartesian(
     renderers?: CoreChartProps.TooltipContentRenderer;
     hideTooltip: () => void;
     seriesSorting: NonNullable<CoreChartProps.TooltipOptions["seriesSorting"]>;
-    zAxis?: CoreChartProps.ZAxisOptions;
+    zAxis?: CoreChartProps.ChartOptions["zAxis"];
   } & ExpandedSeriesStateProps,
 ): RenderedTooltipContent {
   // The cartesian tooltip might or might not have a selected point, but it always has a non-empty group.
@@ -301,17 +301,23 @@ function getTooltipContentPie(
 
 function getDefaultBubblePoint(
   item: MatchedItem,
-  zAxis?: CoreChartProps.ZAxisOptions,
+  zAxis?: CoreChartProps.ChartOptions["zAxis"],
 ): CoreChartProps.TooltipPointFormatted {
   const yAxisTitle = item.point.series.yAxis?.options?.title?.text;
   const yFormatter = item.point.series.yAxis ? getFormatter(item.point.series.yAxis) : (v: unknown) => String(v);
   const zValue = item.point.options.z;
+  let zAxisSubItem = null;
+  if (zAxis) {
+    zAxisSubItem = Array.isArray(zAxis)
+      ? { ...zAxis[0], title: zAxis[0]?.title?.text ?? "" }
+      : { ...zAxis, title: zAxis.title?.text ?? "" };
+  }
   return {
     // The y value will be explicitly listed as a sub-item so it shouldn't be listed here.
     value: "",
     subItems: [
       { key: yAxisTitle, value: yFormatter(item.point.y) },
-      { key: zAxis?.title, value: zAxis?.valueFormatter?.(zValue ?? null) ?? zValue },
+      { key: zAxisSubItem?.title, value: zAxisSubItem?.valueFormatter?.(zValue ?? null) ?? zValue },
     ],
   };
 }

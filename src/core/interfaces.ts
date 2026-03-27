@@ -420,10 +420,6 @@ export interface CoreChartProps
    * Specifies the options for each item in the chart.
    */
   getItemOptions?: CoreChartProps.GetItemOptions;
-  /**
-   * Z-axis options for bubble series tooltip formatting.
-   */
-  zAxis?: CoreChartProps.ZAxisOptions;
 }
 
 export namespace CoreChartProps {
@@ -446,14 +442,14 @@ export namespace CoreChartProps {
 
   // The extended version of Highcharts.Options. The axes types are extended with Cloudscape value formatter.
   // We use a custom formatter because we cannot use the built-in Highcharts formatter for our tooltip.
-  export type ChartOptions = Omit<Highcharts.Options, "xAxis" | "yAxis"> & {
+  export type ChartOptions = Omit<Highcharts.Options, "xAxis" | "yAxis" | "zAxis"> & {
     xAxis?: XAxisOptions | XAxisOptions[];
     yAxis?: YAxisOptions | YAxisOptions[];
+    zAxis?: ZAxisOptions | ZAxisOptions[];
   };
   export type XAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: null | number) => string };
   export type YAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: null | number) => string };
   export type ZAxisOptions = Highcharts.ZAxisOptions & {
-    title?: string;
     valueFormatter?: (value: null | number) => string;
   };
 
