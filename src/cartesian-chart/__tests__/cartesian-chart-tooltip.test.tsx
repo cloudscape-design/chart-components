@@ -301,7 +301,7 @@ describe("CartesianChart: tooltip", () => {
 
 describe("CartesianChart: bubble tooltip", () => {
   const bubbleSeries: CartesianChartProps.SeriesOptions[] = [
-    { type: "bubble", name: "Bubble", data: [{ x: 1, y: 9, z: 5 }] },
+    { type: "bubble", name: "Bubble", data: [{ x: 1, y: 9, size: 5 }] },
   ];
 
   test("renders bubble tooltip with y and z sub-items when no zAxis and no yAxis title", async () => {
@@ -352,7 +352,7 @@ describe("CartesianChart: bubble tooltip", () => {
       highcharts,
       series: bubbleSeries,
       yAxis: { title: "Events" },
-      zAxis: { title: "Size" },
+      sizeAxis: { title: "Size" },
     });
 
     act(() => hc.highlightChartPoint(0, 0));
@@ -373,7 +373,7 @@ describe("CartesianChart: bubble tooltip", () => {
       highcharts,
       series: bubbleSeries,
       yAxis: { title: "Events" },
-      zAxis: { title: "Average size", valueFormatter: (value) => `${value}kB` },
+      sizeAxis: { title: "Average size", valueFormatter: (value) => `${value}kB` },
     });
 
     act(() => hc.highlightChartPoint(0, 0));

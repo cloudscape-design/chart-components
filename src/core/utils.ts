@@ -76,11 +76,11 @@ export function isYThreshold(
 export interface BubbleOptions {
   custom: {
     awsui: {
-      bubbleAxis?: string;
+      sizeAxis?: string;
     };
   };
 }
-export function createBubbleMetadata(options: { bubbleAxis?: string }): BubbleOptions {
+export function createBubbleMetadata(options: { sizeAxis?: string }): BubbleOptions {
   return { custom: { awsui: options } };
 }
 

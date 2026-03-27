@@ -248,8 +248,8 @@ export interface ScatterSeriesOptions extends BaseCartesianSeriesOptions {
 
 export interface BubbleSeriesOptions extends BaseCartesianSeriesOptions {
   type: "bubble";
-  bubbleAxis?: string;
-  data: readonly ZPointDataItemOptions[];
+  sizeAxis?: string;
+  data: readonly SizePointDataItemOptions[];
 }
 
 export interface ErrorBarSeriesOptions extends Omit<BaseCartesianSeriesOptions, "name"> {
@@ -293,10 +293,10 @@ export interface PointDataItemOptions {
   y: number | null;
 }
 
-export interface ZPointDataItemOptions {
+export interface SizePointDataItemOptions {
   x?: number;
   y: number | null;
-  z: number | null;
+  size: number | null;
 }
 
 export interface RangeDataItemOptions {
@@ -431,7 +431,7 @@ export interface CoreChartProps
    */
   getItemOptions?: CoreChartProps.GetItemOptions;
 
-  bubbleAxis?: CoreChartProps.BubbleAxisOptions | readonly CoreChartProps.BubbleAxisOptions[];
+  sizeAxis?: CoreChartProps.SizeAxisOptions | readonly CoreChartProps.SizeAxisOptions[];
 }
 
 export namespace CoreChartProps {
@@ -461,7 +461,7 @@ export namespace CoreChartProps {
   export type XAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: null | number) => string };
   export type YAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: null | number) => string };
 
-  export interface BubbleAxisOptions {
+  export interface SizeAxisOptions {
     id?: string;
     title: string;
     valueFormatter?: (value: null | number) => string;

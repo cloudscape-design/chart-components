@@ -26,15 +26,15 @@ const baseline = [
 const series: CartesianChartProps.SeriesOptions[] = [
   {
     name: "Time to fix",
-    bubbleAxis: "time-axis",
+    sizeAxis: "time-axis",
     type: "bubble",
-    data: baseline.map(({ x, y, timeToFix: z }) => ({ x, y, z })),
+    data: baseline.map(({ x, y, timeToFix: size }) => ({ x, y, size })),
   },
   {
     name: "Cost impact",
-    bubbleAxis: "cost-axis",
+    sizeAxis: "cost-axis",
     type: "bubble",
-    data: baseline.map(({ x, y, costImpact: z }) => ({ x, y, z })),
+    data: baseline.map(({ x, y, costImpact: size }) => ({ x, y, size })),
   },
 ];
 
@@ -47,7 +47,7 @@ export default function () {
         series={series}
         xAxis={{ title: "Time (UTC)", type: "datetime", valueFormatter: dateFormatter }}
         yAxis={{ title: "Events" }}
-        bubbleAxis={[
+        sizeAxis={[
           { id: "time-axis", title: "Time to fix", valueFormatter: (value) => `${value! * timeScale} minutes` },
           {
             id: "cost-axis",

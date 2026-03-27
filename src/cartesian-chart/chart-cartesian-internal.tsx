@@ -124,7 +124,7 @@ export const InternalCartesianChart = forwardRef(
             plotLines: yPlotLines,
           })),
         }}
-        bubbleAxis={props.bubbleAxis}
+        sizeAxis={props.sizeAxis}
         tooltip={tooltip}
         getTooltipContent={getTooltipContent}
         visibleItems={props.visibleSeries}

@@ -103,7 +103,7 @@ export interface CartesianChartProps
    * * `title` (string) - Axis title.
    * * `valueFormatter` (optional, function) - Takes axis tick as input and returns a formatted string for tooltip points values.
    */
-  bubbleAxis?: CartesianChartProps.BubbleAxisOptions | readonly CartesianChartProps.BubbleAxisOptions[];
+  sizeAxis?: CartesianChartProps.SizeAxisOptions | readonly CartesianChartProps.SizeAxisOptions[];
 
   /**
    * Specifies which series to show using their IDs. By default, all series are visible and managed by the component.
@@ -163,7 +163,7 @@ export namespace CartesianChartProps {
     valueFormatter?: (value: null | number) => string;
   }
 
-  export interface BubbleAxisOptions {
+  export interface SizeAxisOptions {
     id?: string;
     title: string;
     valueFormatter?: (value: null | number) => string;
