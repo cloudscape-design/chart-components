@@ -309,25 +309,27 @@ function getTooltipContentPie(
 }
 
 function getBubblePointDetails(item: MatchedItem, sizeAxis?: readonly CoreChartProps.SizeAxisOptions[]) {
-  const details: { key: React.ReactNode; value: React.ReactNode }[] = [];
+  const subItems: { key: React.ReactNode; value: React.ReactNode }[] = [];
 
   const y = item.point.y;
   const yAxisTitle = item.point.series.yAxis?.options?.title?.text;
   const yFormatter = item.point.series.yAxis ? getFormatter(item.point.series.yAxis) : (v: unknown) => String(v);
-  details.push({ key: yAxisTitle, value: yFormatter(y) });
+  subItems.push({ key: yAxisTitle, value: yFormatter(y) });
 
+  // maps Highcharts' `z` prop (bubble size) to our custom size axis for title/formatter support,
+  // which Highcharts doesn't provide for bubble series by default.
   const z = item.point.options.z ?? null;
-  const zAxis =
+  const matchedSizeAxis =
     sizeAxis?.find((a) => {
       const custom = item.point.series.options.custom as BubbleOptions["custom"];
       return a.id === custom?.awsui?.sizeAxis;
     }) ?? sizeAxis?.[0];
-  if (zAxis) {
-    const zFormatter = zAxis.valueFormatter ?? ((v: unknown) => String(v));
-    details.push({ key: zAxis.title, value: zFormatter(z) });
+  if (matchedSizeAxis) {
+    const sizeValue = item.point.options.z;
+    subItems.push({ key: matchedSizeAxis.title, value: matchedSizeAxis.valueFormatter?.(z) ?? sizeValue });
   }
 
-  return details;
+  return subItems;
 }
 
 function findTooltipSeriesItems(

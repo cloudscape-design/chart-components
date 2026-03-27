@@ -1789,7 +1789,7 @@ not overridden, but merged with Cloudscape event handlers so that both are getti
           "type": "union",
           "valueDescriptions": undefined,
           "values": [
-            "Omit<Highcharts.Options, "xAxis" | "yAxis" | "zAxis">",
+            "Omit<Highcharts.Options, "xAxis" | "yAxis">",
             "{ xAxis?: CoreChartProps.XAxisOptions | Array<CoreChartProps.XAxisOptions> | undefined; yAxis?: CoreChartProps.YAxisOptions | Array<CoreChartProps.YAxisOptions> | undefined; }",
           ],
         },

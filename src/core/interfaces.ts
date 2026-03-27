@@ -287,7 +287,7 @@ export interface PointDataItemOptions {
 export interface SizePointDataItemOptions {
   x?: number;
   y: number | null;
-  size: number | null;
+  size: number;
 }
 
 export interface RangeDataItemOptions {
@@ -456,7 +456,7 @@ export namespace CoreChartProps {
 
   // The extended version of Highcharts.Options. The axes types are extended with Cloudscape value formatter.
   // We use a custom formatter because we cannot use the built-in Highcharts formatter for our tooltip.
-  export type ChartOptions = Omit<Highcharts.Options, "xAxis" | "yAxis" | "zAxis"> & {
+  export type ChartOptions = Omit<Highcharts.Options, "xAxis" | "yAxis"> & {
     xAxis?: XAxisOptions | XAxisOptions[];
     yAxis?: YAxisOptions | YAxisOptions[];
   };

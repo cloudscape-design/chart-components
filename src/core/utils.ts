@@ -81,6 +81,7 @@ export interface BubbleOptions {
   };
 }
 export function createBubbleMetadata(options: { sizeAxis?: string }): BubbleOptions {
+  // The custom.awsui.sizeAxis is our way of extending Highcharts' bubble series options type in order to propagate an extra prop that connects bubble series with size axes.
   return { custom: { awsui: options } };
 }
 

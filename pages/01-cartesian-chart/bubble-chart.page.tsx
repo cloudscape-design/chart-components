@@ -11,15 +11,15 @@ const timeScale = 10;
 const costScale = 1000;
 
 const baseline = [
-  { x: 1600984800000, y: 5802, timeToFix: 50 / timeScale, costImpact: null },
+  { x: 1600984800000, y: 5802, timeToFix: 50 / timeScale, costImpact: 0 },
   { x: 1600985700000, y: 10240, timeToFix: 234 / timeScale, costImpact: 30_000 / costScale },
   { x: 1600986600000, y: 10492, timeToFix: 553 / timeScale, costImpact: 50_000 / costScale },
-  { x: 1600987500000, y: 9403, timeToFix: 33 / timeScale, costImpact: null },
+  { x: 1600987500000, y: 9403, timeToFix: 33 / timeScale, costImpact: 0 },
   { x: 1600988400000, y: 12502, timeToFix: 44 / timeScale, costImpact: 100_000 / costScale },
   { x: 1600989300000, y: 15921, timeToFix: 22 / timeScale, costImpact: 10_000 / costScale },
   { x: 1600990200000, y: 19308, timeToFix: 111 / timeScale, costImpact: 20_000 / costScale },
   { x: 1600991100000, y: 16259, timeToFix: 343 / timeScale, costImpact: 20_000 / costScale },
-  { x: 1600992000000, y: 27402, timeToFix: 11 / timeScale, costImpact: null },
+  { x: 1600992000000, y: 27402, timeToFix: 11 / timeScale, costImpact: 0 },
   { x: 1600992900000, y: 2628, timeToFix: 3 / timeScale, costImpact: 80_000 / costScale },
 ];
 
