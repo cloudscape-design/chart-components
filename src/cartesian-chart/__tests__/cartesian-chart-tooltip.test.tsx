@@ -80,7 +80,7 @@ describe("CartesianChart: tooltip", () => {
       expect(getTooltipHeader().getElement().textContent).toBe(x === 0.01 ? "0.01" : x.toString());
       expect(getAllTooltipSeries()).toHaveLength(9); // Error bar is not counted as a series
       expect(getTooltipBody().getElement().textContent).toBe(
-        `Area1\nArea spline2\nColumn3\nError bar4 - 5\nLine6\nScatter7\nSpline8\nBubble95\nX threshold\nY threshold10`,
+        `Area1\nArea spline2\nColumn3\nError bar4 - 5\nLine6\nScatter7\nSpline8\nBubble9\nX threshold\nY threshold10`,
       );
     },
   );
@@ -301,10 +301,17 @@ describe("CartesianChart: tooltip", () => {
 
 describe("CartesianChart: bubble tooltip", () => {
   const bubbleSeries: CartesianChartProps.SeriesOptions[] = [
-    { type: "bubble", name: "Bubble", data: [{ x: 1, y: 9, size: 5 }] },
+    {
+      type: "bubble",
+      name: "Bubble",
+      data: [
+        { x: 1, y: 9, size: 5 },
+        { x: 2, y: 4, size: 3 },
+      ],
+    },
   ];
 
-  test("renders bubble tooltip with y and z sub-items when no zAxis and no yAxis title", async () => {
+  test("renders bubble tooltip with y sub-item only when no sizeAxis and no yAxis title", async () => {
     renderCartesianChart({
       highcharts,
       series: bubbleSeries,
@@ -317,16 +324,14 @@ describe("CartesianChart: bubble tooltip", () => {
       const series = getTooltipSeries(0);
       // Value is empty because y is shown as a sub-item instead
       expect(series.findValue().getElement().textContent).toBe("");
-      expect(series.findSubItems()).toHaveLength(2);
-      // No axis titles provided
+      // Without sizeAxis, only y sub-item is shown
+      expect(series.findSubItems()).toHaveLength(1);
       expect(series.findSubItems()[0].findKey().getElement().textContent).toBe("");
       expect(series.findSubItems()[0].findValue().getElement().textContent).toBe("9");
-      expect(series.findSubItems()[1].findKey().getElement().textContent).toBe("");
-      expect(series.findSubItems()[1].findValue().getElement().textContent).toBe("5");
     });
   });
 
-  test("renders bubble tooltip with raw z value when zAxis is not provided", async () => {
+  test("renders bubble tooltip with y sub-item only when sizeAxis is not provided", async () => {
     renderCartesianChart({
       highcharts,
       series: bubbleSeries,
@@ -338,16 +343,14 @@ describe("CartesianChart: bubble tooltip", () => {
     await waitFor(() => {
       expect(getTooltip()).not.toBe(null);
       const series = getTooltipSeries(0);
-      expect(series.findSubItems()).toHaveLength(2);
+      // Without sizeAxis, only y sub-item is shown
+      expect(series.findSubItems()).toHaveLength(1);
       expect(series.findSubItems()[0].findKey().getElement().textContent).toBe("Events");
       expect(series.findSubItems()[0].findValue().getElement().textContent).toBe("9");
-      // Without zAxis, z value is shown as raw number with no title
-      expect(series.findSubItems()[1].findKey().getElement().textContent).toBe("");
-      expect(series.findSubItems()[1].findValue().getElement().textContent).toBe("5");
     });
   });
 
-  test("renders bubble tooltip with zAxis title and default formatter", async () => {
+  test("renders bubble tooltip with sizeAxis title and default formatter", async () => {
     renderCartesianChart({
       highcharts,
       series: bubbleSeries,
@@ -368,7 +371,7 @@ describe("CartesianChart: bubble tooltip", () => {
     });
   });
 
-  test("renders bubble tooltip with custom zAxis valueFormatter", async () => {
+  test("renders bubble tooltip with custom sizeAxis valueFormatter", async () => {
     renderCartesianChart({
       highcharts,
       series: bubbleSeries,
