@@ -102,7 +102,7 @@ function secondFormatter(value: number) {
   });
 }
 
-function numberFormatter(value: number): string {
+export function numberFormatter(value: number): string {
   const format = (num: number) => parseFloat(num.toFixed(2)).toString(); // trims unnecessary decimals
 
   const absValue = Math.abs(value);

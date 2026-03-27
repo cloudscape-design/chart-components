@@ -13,7 +13,7 @@ import { useSelector } from "../../internal/utils/async-store";
 import { getChartSeries } from "../../internal/utils/chart-series";
 import { useDebouncedValue } from "../../internal/utils/use-debounced-value";
 import { ChartAPI } from "../chart-api";
-import { getFormatter } from "../formatters";
+import { getFormatter, numberFormatter } from "../formatters";
 import { BaseI18nStrings, CoreChartProps } from "../interfaces";
 import {
   BubbleOptions,
@@ -326,7 +326,10 @@ function getBubblePointDetails(item: MatchedItem, sizeAxis?: readonly CoreChartP
     }) ?? sizeAxis?.[0];
   if (matchedSizeAxis) {
     const sizeValue = item.point.options.z;
-    subItems.push({ key: matchedSizeAxis.title, value: matchedSizeAxis.valueFormatter?.(z) ?? sizeValue });
+    subItems.push({
+      key: matchedSizeAxis.title,
+      value: matchedSizeAxis.valueFormatter?.(z) ?? numberFormatter(sizeValue ?? 0),
+    });
   }
 
   return subItems;
