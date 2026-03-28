@@ -169,7 +169,16 @@ export class ChartAPI {
   public renderMarker = this.chartExtraLegend.renderMarker.bind(this.chartExtraLegend);
 
   // Callbacks assigned to the tooltip.
-  public onMouseEnterTooltip = this.chartExtraPointer.onMouseEnterTooltip.bind(this.chartExtraPointer);
+  // We guard onMouseEnterTooltip with a tooltip visibility check to prevent tooltipHovered from
+  // getting stuck as true. This can happen when the mouse enters the tooltip DOM element between
+  // the programmatic hide (reactive state set to visible:false) and the React unmount of the tooltip
+  // component. Without this guard, onMouseLeaveTooltip never fires (component unmounted), leaving
+  // tooltipHovered=true and blocking future tooltip dismissals.
+  public onMouseEnterTooltip = () => {
+    if (this.chartExtraTooltip.get().visible) {
+      this.chartExtraPointer.onMouseEnterTooltip();
+    }
+  };
   public onMouseLeaveTooltip = this.chartExtraPointer.onMouseLeaveTooltip.bind(this.chartExtraPointer);
   public onDismissTooltip = (outsideClick?: boolean) => {
     const { pinned, point, group } = this.chartExtraTooltip.get();
@@ -446,6 +455,9 @@ export class ChartAPI {
 
       // Update tooltip and legend state.
       this.chartExtraTooltip.hideTooltip();
+      // Reset the tooltipHovered flag to prevent it from getting stuck as true when the tooltip
+      // React component unmounts before the mouseleave event fires (e.g. when exiting to the left).
+      this.chartExtraPointer.resetTooltipHovered();
       this.chartExtraLegend.onClearHighlight();
 
       // Notify the consumer that a clear-highlight action was made.

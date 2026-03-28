@@ -25,6 +25,13 @@ export class ChartExtraPointer {
   private hoveredPoint: null | Highcharts.Point = null;
   private hoveredGroup: null | Highcharts.Point[] = null;
   private tooltipHovered = false;
+  // When the mouse exits the tooltip through its arrow/padding area back into the chart's plot area,
+  // the mousemove handler immediately finds the nearest group (the same one the tooltip was showing for)
+  // and re-triggers the tooltip. This creates an infinite show/hide loop that makes the tooltip appear stuck.
+  // This flag suppresses re-hovering for a short window after leaving the tooltip to break the cycle.
+  private recentlyLeftTooltip = false;
+  private recentlyLeftTooltipX: number | null = null;
+  private recentlyLeftTooltipTimer: ReturnType<typeof setTimeout> | null = null;
   private hoverLostCall = new DebouncedCall();
 
   constructor(context: ChartExtraContext, handlers: ChartExtraPointerHandlers) {
@@ -34,12 +41,16 @@ export class ChartExtraPointer {
 
   public onChartLoad = (chart: Highcharts.Chart) => {
     chart.container.addEventListener("mousemove", this.onChartMousemove);
-    chart.container.addEventListener("mouseout", this.onChartMouseout);
+    chart.container.addEventListener("mouseleave", this.onChartMouseout);
   };
 
   public onChartDestroy = () => {
     this.context.chartOrNull?.container?.removeEventListener("mousemove", this.onChartMousemove);
-    this.context.chartOrNull?.container?.removeEventListener("mouseout", this.onChartMouseout);
+    this.context.chartOrNull?.container?.removeEventListener("mouseleave", this.onChartMouseout);
+    if (this.recentlyLeftTooltipTimer !== null) {
+      clearTimeout(this.recentlyLeftTooltipTimer);
+      this.recentlyLeftTooltipTimer = null;
+    }
   };
 
   // This event is triggered by Highcharts when the cursor is over a Highcharts point. We leave this to
@@ -60,16 +71,36 @@ export class ChartExtraPointer {
   // Wo do, hover, clear the point and group hover state so that if the pointer leaves chart from the tooltip,
   // the on-hover-lost handler is still called.
   public onMouseEnterTooltip = () => {
+    // Save the X of the currently hovered group/point before clearing, so that
+    // setRecentlyLeftTooltip can scope the re-hover suppression to this X only.
+    this.recentlyLeftTooltipX = this.hoveredGroup?.[0]?.x ?? this.hoveredPoint?.x ?? null;
     this.tooltipHovered = true;
     this.hoveredPoint = null;
     this.hoveredGroup = null;
   };
 
-  // When the pointer leaves the tooltip it can hover another point or group. If that does not happen,
-  // the on-hover-lost handler is called after a short delay.
+  // Reset the tooltip hovered state. This is called when the tooltip is programmatically hidden
+  // (e.g. via clearHighlightActions) to prevent tooltipHovered from getting stuck as true.
+  // This can happen when the tooltip React component unmounts before the mouseleave event fires,
+  // leaving tooltipHovered=true and causing subsequent onChartMouseout calls to skip onHoverLost.
+  public resetTooltipHovered = () => {
+    this.tooltipHovered = false;
+  };
+
+  // When the pointer leaves the tooltip, we immediately check if any point or group is still hovered.
+  // If not, we fire onHoverLost immediately to prevent the tooltip from staying visible when the mouse
+  // exits the chart area through the tooltip (e.g., moving left).
   public onMouseLeaveTooltip = () => {
     this.tooltipHovered = false;
-    this.clearHover();
+    this.hoverLostCall.cancelPrevious();
+    if (!this.hoveredPoint && !this.hoveredGroup) {
+      // Suppress re-hovering briefly to prevent an infinite show/hide loop when the mouse exits
+      // the tooltip through its arrow/padding area back into the chart's plot area. Without this,
+      // onChartMousemove immediately re-matches the same group and re-shows the tooltip.
+      this.setRecentlyLeftTooltip();
+      this.handlers.onHoverLost();
+      this.applyCursorStyle();
+    }
   };
 
   // The mouse-move handler takes all move events inside the chart, and its purpose is to capture hover for groups
@@ -110,18 +141,52 @@ export class ChartExtraPointer {
       this.setHoveredGroup(matchedGroup);
     }
     // If the plotX, plotY are outside of the series area (e.g. if the pointer is above axis titles or ticks),
-    // we clear the group hover state and trigger the on-hover-lost after a short delay.
+    // we immediately clear all hover state. Unlike transitions between points/groups within the plot area,
+    // there is no need to debounce here as the cursor has definitively left the data region.
     else {
+      this.hoveredPoint = null;
       this.hoveredGroup = null;
-      this.clearHover();
+      this.hoverLostCall.cancelPrevious();
+      if (!this.tooltipHovered) {
+        this.handlers.onHoverLost();
+        this.applyCursorStyle();
+      } else {
+        // Safety net: same as in onChartMouseout — if the mouse moves outside the plot area
+        // while tooltipHovered is true, schedule a deferred check to break the deadlock in case
+        // onMouseLeaveTooltip never fires (e.g. tooltip unmounts before mouseleave propagates).
+        this.hoverLostCall.call(() => {
+          if (this.tooltipHovered && !this.hoveredPoint && !this.hoveredGroup) {
+            this.tooltipHovered = false;
+            this.handlers.onHoverLost();
+            this.applyCursorStyle();
+          }
+        }, HOVER_LOST_DELAY);
+      }
     }
   };
 
-  // This event is triggered when the pointer leaves the chart area. Here, it is technically not necessary to add
-  // a delay before calling the on-hover-lost handler, but it is done for consistency in the UX.
+  // This event is triggered when the pointer leaves the chart container entirely.
+  // We immediately clear all hover state since the cursor has definitively left the chart.
   private onChartMouseout = () => {
+    this.hoveredPoint = null;
     this.hoveredGroup = null;
-    this.clearHover();
+    this.hoverLostCall.cancelPrevious();
+    if (!this.tooltipHovered) {
+      this.handlers.onHoverLost();
+      this.applyCursorStyle();
+    } else {
+      // Safety net: When the mouse exits the chart while tooltipHovered is true,
+      // schedule a deferred check. Normally, onMouseLeaveTooltip() will fire and
+      // handle cleanup. But if it doesn't (browser quirk, React re-render race,
+      // tooltip at viewport edge), this ensures the tooltip is eventually dismissed.
+      this.hoverLostCall.call(() => {
+        if (this.tooltipHovered && !this.hoveredPoint && !this.hoveredGroup) {
+          this.tooltipHovered = false;
+          this.handlers.onHoverLost();
+          this.applyCursorStyle();
+        }
+      }, HOVER_LOST_DELAY);
+    }
   };
 
   // This event is triggered by Highcharts when there is a click inside the chart plot. It might or might not include
@@ -154,6 +219,11 @@ export class ChartExtraPointer {
   };
 
   private setHoveredPoint = (point: Highcharts.Point) => {
+    // Only suppress re-hover for the same X position that was just dismissed,
+    // allowing adjacent groups to still show their tooltip without flickering.
+    if (this.recentlyLeftTooltip && point.x === this.recentlyLeftTooltipX) {
+      return;
+    }
     if (isPointVisible(point)) {
       this.hoveredPoint = point;
       this.hoveredGroup = null;
@@ -163,6 +233,11 @@ export class ChartExtraPointer {
   };
 
   private setHoveredGroup = (group: Highcharts.Point[]) => {
+    // Only suppress re-hover for the same X position that was just dismissed,
+    // allowing adjacent groups to still show their tooltip without flickering.
+    if (this.recentlyLeftTooltip && group[0]?.x === this.recentlyLeftTooltipX) {
+      return;
+    }
     if (!this.hoveredPoint || !isPointVisible(this.hoveredPoint)) {
       const availablePoints = group.filter(isPointVisible);
       this.hoveredPoint = null;
@@ -170,6 +245,17 @@ export class ChartExtraPointer {
       this.handlers.onGroupHover(availablePoints);
       this.applyCursorStyle();
     }
+  };
+
+  private setRecentlyLeftTooltip = () => {
+    this.recentlyLeftTooltip = true;
+    if (this.recentlyLeftTooltipTimer !== null) {
+      clearTimeout(this.recentlyLeftTooltipTimer);
+    }
+    this.recentlyLeftTooltipTimer = setTimeout(() => {
+      this.recentlyLeftTooltip = false;
+      this.recentlyLeftTooltipTimer = null;
+    }, HOVER_LOST_DELAY);
   };
 
   // The function calls the on-hover-lost handler in a short delay to give time for the hover to
