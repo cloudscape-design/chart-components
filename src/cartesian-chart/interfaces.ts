@@ -79,7 +79,7 @@ export interface CartesianChartProps
    * with a custom value formatter.
    *
    * Use a single object for a single y axis, or a tuple of two objects for a dual-axis chart.
-   * When using a tuple, both axes must have an `id`. The second axis is automatically rendered on the opposite (right) side.
+   * When using a tuple, both axes must have an `id`. The second axis is automatically rendered on the opposite (inline-end) side.
    * Series reference their axis by setting `yAxis` to the axis `id`.
    *
    * Supported options:
