@@ -74,7 +74,7 @@ export interface CartesianChartProps
 
   /**
    * Defines options of the chart's y axis.
-   * This property corresponds to [xAxis](https://api.highcharts.com/highcharts/yAxis), and extends it
+   * This property corresponds to [yAxis](https://api.highcharts.com/highcharts/yAxis), and extends it
    * with a custom value formatter.
    *
    * Supported options:
