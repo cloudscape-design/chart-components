@@ -63,6 +63,7 @@ export const InternalCartesianChart = forwardRef(
         return {
           x: item.point.x,
           y: isXThreshold(item.point.series) ? null : (item.point.y ?? null),
+          size: item.point.options.z ?? undefined,
           series,
           errorRanges: item.errorRanges.map((point) => ({
             low: point.options.low ?? 0,
@@ -82,11 +83,12 @@ export const InternalCartesianChart = forwardRef(
         x: props.x,
         items: props.items.map(transformItem),
       });
+
       return {
-        point: tooltip.point ? (props) => tooltip.point!(transformSeriesProps(props)) : undefined,
-        header: tooltip.header ? (props) => tooltip.header!(transformSlotProps(props)) : undefined,
-        body: tooltip.body ? (props) => tooltip.body!(transformSlotProps(props)) : undefined,
-        footer: tooltip.footer ? (props) => tooltip.footer!(transformSlotProps(props)) : undefined,
+        point: tooltip.point ? (coreProps) => tooltip.point!(transformSeriesProps(coreProps)) : undefined,
+        header: tooltip.header ? (coreProps) => tooltip.header!(transformSlotProps(coreProps)) : undefined,
+        body: tooltip.body ? (coreProps) => tooltip.body!(transformSlotProps(coreProps)) : undefined,
+        footer: tooltip.footer ? (coreProps) => tooltip.footer!(transformSlotProps(coreProps)) : undefined,
       };
     };
 
@@ -122,6 +124,7 @@ export const InternalCartesianChart = forwardRef(
             plotLines: yPlotLines,
           })),
         }}
+        sizeAxis={props.sizeAxis}
         tooltip={tooltip}
         getTooltipContent={getTooltipContent}
         visibleItems={props.visibleSeries}

@@ -32,6 +32,7 @@ export interface CartesianChartProps
    * * [column](https://api.highcharts.com/highcharts/series.column).
    * * [errorbar](https://api.highcharts.com/highcharts/series.errorbar) - requires "highcharts/highcharts-more" module.
    * * [line](https://api.highcharts.com/highcharts/series.line).
+   * * [bubble](https://api.highcharts.com/highcharts/series.bubble) - requires "highcharts/highcharts-more" module.
    * * [scatter](https://api.highcharts.com/highcharts/series.scatter).
    * * [spline](https://api.highcharts.com/highcharts/series.spline).
    * * x-threshold - The line-like series to represent x-axis threshold (vertical, when `inverted=false`).
@@ -95,6 +96,16 @@ export interface CartesianChartProps
   yAxis?: CartesianChartProps.YAxisOptions;
 
   /**
+   * One or multiple axes to provide size details formatting for bubble series.
+   *
+   * Supported options:
+   * * `id` (optional, string) - Use it to connect axes with respective series when multiple size axes are present. The axis id must correspond `sizeAxis` property of the bubble series.
+   * * `title` (string) - Axis title, shown in the tooltip details for bubble series.
+   * * `valueFormatter` (optional, function) - Value formatter for `size` values of the bubble series data.
+   */
+  sizeAxis?: CartesianChartProps.SizeAxisOptions | readonly CartesianChartProps.SizeAxisOptions[];
+
+  /**
    * Specifies which series to show using their IDs. By default, all series are visible and managed by the component.
    * If a series doesn't have an ID, its name is used. When using this property, manage state updates with `onVisibleSeriesChange`.
    */
@@ -122,6 +133,7 @@ export namespace CartesianChartProps {
   export type SeriesOptions =
     | AreaSeriesOptions
     | AreaSplineSeriesOptions
+    | BubbleSeriesOptions
     | ColumnSeriesOptions
     | ErrorBarSeriesOptions
     | LineSeriesOptions
@@ -132,6 +144,7 @@ export namespace CartesianChartProps {
 
   export type AreaSeriesOptions = CoreTypes.AreaSeriesOptions;
   export type AreaSplineSeriesOptions = CoreTypes.AreaSplineSeriesOptions;
+  export type BubbleSeriesOptions = CoreTypes.BubbleSeriesOptions;
   export type ColumnSeriesOptions = CoreTypes.ColumnSeriesOptions;
   export type ErrorBarSeriesOptions = CoreTypes.ErrorBarSeriesOptions;
   export type LineSeriesOptions = CoreTypes.LineSeriesOptions;
@@ -147,6 +160,12 @@ export namespace CartesianChartProps {
     max?: number;
     tickInterval?: number;
     categories?: string[];
+    valueFormatter?: (value: null | number) => string;
+  }
+
+  export interface SizeAxisOptions {
+    id?: string;
+    title: string;
     valueFormatter?: (value: null | number) => string;
   }
 
@@ -178,6 +197,7 @@ export namespace CartesianChartProps {
   export interface TooltipPointItem {
     x: number;
     y: number | null;
+    size?: number | null;
     errorRanges: { low: number; high: number; series: CartesianChartProps.ErrorBarSeriesOptions }[];
     series: NonErrorBarSeriesOptions;
   }

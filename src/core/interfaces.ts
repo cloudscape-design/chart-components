@@ -237,6 +237,12 @@ export interface ScatterSeriesOptions extends BaseCartesianSeriesOptions, Linkab
   marker?: PointMarkerOptions;
 }
 
+export interface BubbleSeriesOptions extends BaseCartesianSeriesOptions, LinkableSeries {
+  type: "bubble";
+  sizeAxis?: string;
+  data: readonly SizePointDataItemOptions[];
+}
+
 export interface ErrorBarSeriesOptions extends Omit<BaseCartesianSeriesOptions, "name"> {
   type: "errorbar";
   name?: string;
@@ -276,6 +282,12 @@ export type PointDataItemType = null | number | PointDataItemOptions;
 export interface PointDataItemOptions {
   x?: number;
   y: number | null;
+}
+
+export interface SizePointDataItemOptions {
+  x?: number;
+  y: number | null;
+  size: number;
 }
 
 export interface RangeDataItemOptions {
@@ -420,6 +432,8 @@ export interface CoreChartProps
    * Specifies the options for each item in the chart.
    */
   getItemOptions?: CoreChartProps.GetItemOptions;
+
+  sizeAxis?: CoreChartProps.SizeAxisOptions | readonly CoreChartProps.SizeAxisOptions[];
 }
 
 export namespace CoreChartProps {
@@ -448,6 +462,12 @@ export namespace CoreChartProps {
   };
   export type XAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: null | number) => string };
   export type YAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: null | number) => string };
+
+  export interface SizeAxisOptions {
+    id?: string;
+    title: string;
+    valueFormatter?: (value: null | number) => string;
+  }
 
   export interface ChartItemOptions {
     /**
