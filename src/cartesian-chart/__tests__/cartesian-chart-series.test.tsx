@@ -236,20 +236,24 @@ describe("CartesianChart: series", () => {
     expect(getChart().findYAxisTitle({ axisId: "secondary" })).toBeNull();
   });
 
-  test("findYAxisTitle with axisId returns secondary axis title for dual-axis chart", () => {
-    renderCartesianChart({
-      highcharts,
-      series: [
-        { type: "line", name: "Primary", data: [{ x: 1, y: 1 }], yAxis: "primary" },
-        { type: "line", name: "Secondary", data: [{ x: 1, y: 2 }], yAxis: "secondary" },
-      ],
-      yAxis: [
-        { id: "primary", title: "Primary axis" },
-        { id: "secondary", title: "Secondary axis" },
-      ],
-    });
-    const secondaryTitle = getChart().findYAxisTitle({ axisId: "secondary" });
-    expect(secondaryTitle).not.toBeNull();
-    expect(secondaryTitle!.getElement().textContent).toBe("Secondary axis");
-  });
+  test.each([{ verticalAxisTitlePlacement: "side" as const }, { verticalAxisTitlePlacement: "top" as const }])(
+    "findYAxisTitle with axisId returns secondary axis title for dual-axis chart, verticalAxisTitlePlacement=$verticalAxisTitlePlacement",
+    ({ verticalAxisTitlePlacement }) => {
+      renderCartesianChart({
+        highcharts,
+        series: [
+          { type: "line", name: "Primary", data: [{ x: 1, y: 1 }], yAxis: "primary" },
+          { type: "line", name: "Secondary", data: [{ x: 1, y: 2 }], yAxis: "secondary" },
+        ],
+        yAxis: [
+          { id: "primary", title: "Primary axis" },
+          { id: "secondary", title: "Secondary axis" },
+        ],
+        verticalAxisTitlePlacement,
+      });
+      const secondaryTitle = getChart().findYAxisTitle({ axisId: "secondary" });
+      expect(secondaryTitle).not.toBeNull();
+      expect(secondaryTitle!.getElement().textContent).toBe("Secondary axis");
+    },
+  );
 });

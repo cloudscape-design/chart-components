@@ -11,6 +11,7 @@ import { CoreChartProps, CoreI18nStrings } from "../interfaces";
 
 export function ChartLegend({
   api,
+  axisId,
   title,
   actions,
   alignment,
@@ -23,6 +24,7 @@ export function ChartLegend({
   horizontalAlignment = "start",
 }: {
   api: ChartAPI;
+  axisId?: string;
   title?: string;
   className?: string;
   isSecondary: boolean;
@@ -81,6 +83,7 @@ export function ChartLegend({
   }
   return (
     <ChartLegendComponent
+      axisId={axisId}
       ariaLabel={ariaLabel}
       className={className}
       legendTitle={title}

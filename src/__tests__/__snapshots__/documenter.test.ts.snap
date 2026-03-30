@@ -523,6 +523,11 @@ applies to the tooltip header.",
             "type": "Array<string>",
           },
           {
+            "name": "id",
+            "optional": true,
+            "type": "string",
+          },
+          {
             "name": "max",
             "optional": true,
             "type": "number",
@@ -604,16 +609,16 @@ Supported options:
 * \`valueFormatter\` (optional, function) - Takes axis tick as input and returns a formatted string. This formatter also
 applies to the tooltip points values.",
       "inlineType": {
-        "name": "CartesianChartProps.YAxisOptions | [CartesianChartProps.YAxisOptions, CartesianChartProps.YAxisOptions]",
+        "name": "CartesianChartProps.YAxisOptions | [CartesianChartProps.YAxisWithId, CartesianChartProps.YAxisWithId]",
         "type": "union",
         "values": [
           "CartesianChartProps.YAxisOptions",
-          "[CartesianChartProps.YAxisOptions, CartesianChartProps.YAxisOptions]",
+          "[CartesianChartProps.YAxisWithId, CartesianChartProps.YAxisWithId]",
         ],
       },
       "name": "yAxis",
       "optional": true,
-      "type": "CartesianChartProps.YAxisOptions | [CartesianChartProps.YAxisOptions, CartesianChartProps.YAxisOptions]",
+      "type": "CartesianChartProps.YAxisOptions | [CartesianChartProps.YAxisWithId, CartesianChartProps.YAxisWithId]",
     },
   ],
   "regions": [
