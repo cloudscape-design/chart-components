@@ -2,11 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import highcharts from "highcharts";
+import Highcharts from "highcharts";
 import { range } from "lodash";
 import { vi } from "vitest";
 
 import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 
+import "highcharts/highcharts-more";
 import "highcharts/modules/accessibility";
 import { CoreChartTestProps, createChartWrapper, renderChart } from "./common";
 
@@ -53,6 +55,18 @@ const seriesShort3: Highcharts.SeriesOptionsType[] = [
     data: [
       { x: 1, y: 31 },
       { x: 2, y: 32 },
+    ],
+  },
+];
+const seriesShort4: Highcharts.SeriesOptionsType[] = [
+  ...seriesShort3,
+  {
+    type: "bubble",
+    name: "Bubble series 1",
+    data: [
+      { x: 1, y: 21, z: 31 },
+      { x: 3, y: 23, z: 32 },
+      { x: 4, y: 24, z: 33 },
     ],
   },
 ];
@@ -601,21 +615,26 @@ describe("CoreChart: navigation, cartesian charts", () => {
     const { wrapper } = renderChart({
       ...commonProps(),
       options: {
-        series: seriesShort2,
+        series: seriesShort4,
         xAxis: { title: { text: "X" }, valueFormatter: (value) => `x${value}` },
         yAxis: { title: { text: "Y" }, valueFormatter: (value) => `y${value}` },
       },
+      sizeAxis: { title: "Size axis", valueFormatter: (value) => `size${value}` },
     });
 
     focusApplication();
     keyDown(KeyCode.home);
 
     expect(describeFocusedElement()).toBe("button:x1[true,false]");
-    expect(wrapper.findTooltip()!.getElement().textContent).toBe("x1Line series 1y11Line series 2y21");
+    expect(wrapper.findTooltip()!.getElement().textContent).toBe(
+      "x1Line series 1y11Line series 2y21Line series 3y31Bubble series 1Yy21Size axissize31",
+    );
 
     keyDown(KeyCode.down);
 
     expect(describeFocusedElement()).toBe("button:x1 y11, Line series 1[true,false]");
-    expect(wrapper.findTooltip()!.getElement().textContent).toBe("x1Line series 1y11Line series 2y21");
+    expect(wrapper.findTooltip()!.getElement().textContent).toBe(
+      "x1Line series 1y11Line series 2y21Line series 3y31Bubble series 1Yy21Size axissize31",
+    );
   });
 });
