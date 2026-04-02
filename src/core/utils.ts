@@ -368,11 +368,26 @@ export function getChartAccessibleDescription(chart: Highcharts.Chart) {
   return chart.options.lang?.accessibility?.chartContainerLabel ?? "";
 }
 
-export function getPointAccessibleDescription(point: Highcharts.Point, labels: ChartLabels) {
+export function getPointAccessibleDescription(
+  point: Highcharts.Point,
+  labels: ChartLabels,
+  additionalProps?: {
+    sizeAxis?: CoreChartProps.SizeAxisOptions[];
+  },
+) {
   if (point.series.xAxis && point.series.yAxis) {
     const formattedX = getFormatter(point.series.xAxis)(point.x);
     const formattedY = getFormatter(point.series.yAxis)(point.y);
-    return `${formattedX} ${formattedY}, ${point.series.name}`;
+    let formattedSize = "";
+    if (point.series.type === "bubble") {
+      const matchedSizeAxis =
+        additionalProps?.sizeAxis?.find((a) => a.id === getBubbleSeriesSizeAxis(point.series)) ??
+        additionalProps?.sizeAxis?.[0];
+      const size = point.options.z ?? null;
+      const sizeFormatter = getFormatter(matchedSizeAxis);
+      formattedSize = sizeFormatter(size);
+    }
+    return `${formattedX} ${formattedY}${formattedSize ? " " + formattedSize : ""}, ${point.series.name}`;
   } else if (point.series.type === "pie") {
     const segmentLabel = labels.chartSegmentLabel ? `${labels.chartSegmentLabel} ` : "";
     return `${segmentLabel}${point.name}, ${point.y}. ${point.series.name}`;
