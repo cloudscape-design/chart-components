@@ -31,7 +31,7 @@ jobs:
           cache: "npm"
       - name: "Get reference run id"
         run: |
-          echo "RUN_ID=`gh run --repo $GITHUB_REPOSITORY --branch 'main' list --workflow "Visual Regressions" --json databaseId --jq .[0].databaseId`" >> $GITHUB_ENV
+          echo "RUN_ID=`gh run --repo $GITHUB_REPOSITORY --branch "main" list --workflow "Visual Regressions" --json databaseId --jq .[0].databaseId`" >> $GITHUB_ENV
           echo "Reference snapshots created in run ${RUN_ID}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
