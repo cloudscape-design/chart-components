@@ -100,16 +100,16 @@ export function leaveLegendItem(index: number, wrapper: BaseChartWrapper = creat
 }
 
 export function selectSecondaryLegendItem(index: number, wrapper: ExtendedTestWrapper = createChartWrapper()) {
-  act(() => wrapper.findSecondaryLegend()!.findItems()[index].click());
+  act(() => wrapper.findLegend({ axisId: "secondary" })!.findItems()[index].click());
 }
 
 export function toggleSecondaryLegendItem(index: number, wrapper: ExtendedTestWrapper = createChartWrapper()) {
   const modifier = Math.random() > 0.5 ? { metaKey: true } : { ctrlKey: true };
-  act(() => wrapper.findSecondaryLegend()!.findItems()[index].click(modifier));
+  act(() => wrapper.findLegend({ axisId: "secondary" })!.findItems()[index].click(modifier));
 }
 
 export function hoverSecondaryLegendItem(index: number, wrapper: ExtendedTestWrapper = createChartWrapper()) {
   act(() => {
-    fireEvent.mouseOver(wrapper.findSecondaryLegend()!.findItems()[index].getElement());
+    fireEvent.mouseOver(wrapper.findLegend({ axisId: "secondary" })!.findItems()[index].getElement());
   });
 }

@@ -235,7 +235,7 @@ export function InternalCoreChart({
       // Depending on the chart.inverted the y-axis can be rendered as vertical, and needs to respect page direction.
       reversed: inverted && isRtl ? !yAxisOptions.reversed : yAxisOptions.reversed,
       opposite: !inverted && isRtl ? !yAxisOptions.opposite : yAxisOptions.opposite,
-      className: yAxisClassName(inverted, yAxisOptions.className),
+      className: yAxisClassName(inverted, yAxisOptions.className, yAxisOptions.id),
       title: axisTitle(yAxisOptions.title ?? {}, inverted || verticalAxisTitlePlacement === "side"),
       labels: axisLabels(yAxisOptions.labels ?? {}),
       plotLines: yAxisPlotLines(yAxisOptions.plotLines, emphasizeBaseline),
@@ -409,11 +409,12 @@ function xAxisClassName(inverted: boolean, customClassName?: string) {
   );
 }
 
-function yAxisClassName(inverted: boolean, customClassName?: string) {
+function yAxisClassName(inverted: boolean, customClassName?: string, axisId?: string) {
   return clsx(
     testClasses["axis-y"],
     inverted ? testClasses["axis-horizontal"] : testClasses["axis-vertical"],
     customClassName,
+    axisId && `awsui-axis-${axisId}`,
   );
 }
 
