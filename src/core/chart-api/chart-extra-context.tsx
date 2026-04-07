@@ -135,7 +135,7 @@ function computeDerivedState(chart: Highcharts.Chart): ChartExtraContext.Derived
     const familyPoints: Highcharts.Point[] = [];
     for (const x of Array.from(familyXSet).sort(compareX)) {
       for (const member of family) {
-        const point = member.data.find((d) => d.x === x && isPointVisible(d) && d.y !== null);
+        const point = getSeriesData(member.data).find((d) => d.x === x && isPointVisible(d) && d.y !== null);
         if (point && familyXSet.has(x)) {
           familyPoints.push(point);
           familyXSet.delete(x); // We ignore points that share X coordinate.
