@@ -16,7 +16,6 @@ import { ChartAPI } from "../chart-api";
 import { getFormatter } from "../formatters";
 import { BaseI18nStrings, CoreChartProps } from "../interfaces";
 import {
-  getBubbleSeriesSizeAxis,
   getPointColor,
   getPointId,
   getSeriesColor,
@@ -24,6 +23,7 @@ import {
   getSeriesMarkerType,
   isPointVisible,
   isXThreshold,
+  matchSizeAxis,
 } from "../utils";
 
 import styles from "../styles.css.js";
@@ -318,7 +318,7 @@ function getBubblePointDetails(item: MatchedItem, sizeAxis: readonly CoreChartPr
 
   // Size axis is a custom abstraction built to support bubble series title and formatter for z (size) values.
   // We match size axes by ID if provided, or take the first defined axis instead.
-  const matchedSizeAxis = sizeAxis.find((a) => a.id === getBubbleSeriesSizeAxis(item.point.series)) ?? sizeAxis[0];
+  const matchedSizeAxis = matchSizeAxis(sizeAxis, item.point.series);
   if (matchedSizeAxis) {
     // Highcharts bubble size is represented by point.z value, which is however not present in the internal point type -
     // so we take it from point's options instead.

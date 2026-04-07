@@ -368,11 +368,28 @@ export function getChartAccessibleDescription(chart: Highcharts.Chart) {
   return chart.options.lang?.accessibility?.chartContainerLabel ?? "";
 }
 
-export function getPointAccessibleDescription(point: Highcharts.Point, labels: ChartLabels) {
+export function matchSizeAxis(sizeAxis: readonly CoreChartProps.SizeAxisOptions[], series: Highcharts.Series) {
+  return sizeAxis.find((a) => a.id === getBubbleSeriesSizeAxis(series)) ?? sizeAxis[0];
+}
+
+export function getPointAccessibleDescription(
+  point: Highcharts.Point,
+  labels: ChartLabels,
+  additionalProps?: {
+    sizeAxis?: readonly CoreChartProps.SizeAxisOptions[];
+  },
+) {
   if (point.series.xAxis && point.series.yAxis) {
     const formattedX = getFormatter(point.series.xAxis)(point.x);
     const formattedY = getFormatter(point.series.yAxis)(point.y);
-    return `${formattedX} ${formattedY}, ${point.series.name}`;
+    let formattedSize = "";
+    if (additionalProps?.sizeAxis && point.series.type === "bubble") {
+      const matchedSizeAxis = matchSizeAxis(additionalProps.sizeAxis, point.series);
+      const size = point.options.z ?? null;
+      const sizeFormatter = getFormatter(matchedSizeAxis);
+      formattedSize = sizeFormatter(size);
+    }
+    return `${formattedX} ${formattedY}${formattedSize ? " " + formattedSize : ""}, ${point.series.name}`;
   } else if (point.series.type === "pie") {
     const segmentLabel = labels.chartSegmentLabel ? `${labels.chartSegmentLabel} ` : "";
     return `${segmentLabel}${point.name}, ${point.y}. ${point.series.name}`;
