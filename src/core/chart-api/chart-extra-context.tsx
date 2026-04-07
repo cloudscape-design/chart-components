@@ -8,7 +8,7 @@ import { getChartSeries } from "../../internal/utils/chart-series";
 import { getSeriesData } from "../../internal/utils/series-data";
 import { ChartLabels } from "../i18n-utils";
 import { CoreChartProps, Rect } from "../interfaces";
-import { getGroupRect, isPointVisible, isSeriesStacked } from "../utils";
+import { getGroupRect, isSeriesStacked } from "../utils";
 
 // Chart API context is used for dependency injection for chart utilities.
 // It is initialized on chart render, and includes the chart instance, consumer
@@ -135,7 +135,7 @@ function computeDerivedState(chart: Highcharts.Chart): ChartExtraContext.Derived
     const familyPoints: Highcharts.Point[] = [];
     for (const x of Array.from(familyXSet).sort(compareX)) {
       for (const member of family) {
-        const point = getSeriesData(member.data).find((d) => d.x === x && isPointVisible(d) && d.y !== null);
+        const point = getSeriesData(member.data).find((d) => d.x === x && d.y !== null);
         if (point && familyXSet.has(x)) {
           familyPoints.push(point);
           familyXSet.delete(x); // We ignore points that share X coordinate.
