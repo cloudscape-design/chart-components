@@ -18,7 +18,7 @@ const allSeries: CartesianChartProps.SeriesOptions[] = [
   { type: "line", name: "Line", data: [{ x: 1, y: 6 }], color: "5" },
   { type: "scatter", name: "Scatter", data: [{ x: 1, y: 7 }], color: "6" },
   { type: "spline", name: "Spline", data: [{ x: 1, y: 8 }], color: "7" },
-  { type: "bubble", name: "Bubble", data: [{ x: 1, y: 9, z: 5 }], color: "8" },
+  { type: "bubble", name: "Bubble", data: [{ x: 1, y: 9, size: 5 }], color: "8" },
   { type: "x-threshold", name: "X threshold", value: 1, color: "9" },
   { type: "y-threshold", name: "Y threshold", value: 9, color: "10" },
 ];

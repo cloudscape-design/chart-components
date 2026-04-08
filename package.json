@@ -118,7 +118,7 @@
     "stylelint-config-recommended-scss": "^14.1.0",
     "stylelint-prettier": "^5.0.2",
     "typescript": "^5.9.2",
-    "vite": "^6.4.1",
+    "vite": "^6.4.2",
     "vitest": "^3.0.7"
   },
   "//": "ensure that typedoc uses latest typescript. It prints a warning, but works",

@@ -213,7 +213,10 @@ export function InternalCoreChart({
       keyboardNavigation: options.accessibility?.keyboardNavigation ?? { enabled: !keyboardNavigation },
       point: {
         // Point description formatter is overridden to respect custom axes value formatters.
-        descriptionFormatter: (point) => getPointAccessibleDescription(point, labels),
+        descriptionFormatter: (point) =>
+          getPointAccessibleDescription(point, labels, {
+            sizeAxis: castArray(rest.sizeAxis as CoreChartProps.SizeAxisOptions[]),
+          }),
         ...options.accessibility?.point,
       },
     },
