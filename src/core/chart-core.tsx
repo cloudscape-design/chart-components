@@ -245,6 +245,7 @@ export function InternalCoreChart({
       // We use reversed stack by default so that the order of points in the tooltip and series in the legend
       // correspond the order of stacks.
       reversedStacks: yAxisOptions.reversedStacks ?? true,
+      stackLabels: { ...yAxisOptions.stackLabels, style: yAxisOptions.labels?.style },
     })),
     plotOptions: {
       ...options.plotOptions,

@@ -265,7 +265,7 @@ function transformYAxisOptions(
 }
 
 function transformSingleYAxisOptions<T extends CartesianChartProps.YAxisOptions>(axis?: T): T {
-  return { ...transformAxisOptions(axis), reversedStacks: axis?.reversedStacks } as T;
+  return { ...transformAxisOptions(axis), reversedStacks: axis?.reversedStacks, stackLabels: axis?.stackLabels } as T;
 }
 
 function transformSizeAxisOptions(

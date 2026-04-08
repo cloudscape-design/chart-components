@@ -178,6 +178,7 @@ export namespace CartesianChartProps {
 
   export interface YAxisOptions extends AxisOptions {
     reversedStacks?: boolean;
+    stackLabels?: { enabled?: boolean };
   }
 
   export interface YAxisWithId extends YAxisOptions {
