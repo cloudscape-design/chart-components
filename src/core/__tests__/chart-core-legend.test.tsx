@@ -657,6 +657,72 @@ describe("CoreChart: secondary legend", () => {
     );
   });
 
+  test("updates legend partition when a series moves from primary to secondary y-axis", () => {
+    const seriesOnPrimary: Highcharts.SeriesOptionsType[] = [
+      { type: "line", name: "Primary 1", data: [1, 2, 3], yAxis: 0 },
+      { type: "line", name: "Movable", data: [4, 5, 6], yAxis: 0 },
+      { type: "line", name: "Secondary 1", data: [10, 20, 30], yAxis: 1 },
+    ];
+    const seriesOnSecondary: Highcharts.SeriesOptionsType[] = [
+      { type: "line", name: "Primary 1", data: [1, 2, 3], yAxis: 0 },
+      { type: "line", name: "Movable", data: [4, 5, 6], yAxis: 1 },
+      { type: "line", name: "Secondary 1", data: [10, 20, 30], yAxis: 1 },
+    ];
+
+    const { rerender } = renderChart({ highcharts, options: { series: seriesOnPrimary, yAxis: yAxes } });
+
+    // Initially, "Movable" is on primary legend.
+    const initialPrimaryItems = createChartWrapper()
+      .findLegend()!
+      .findItems()
+      .map((w) => w.getElement().textContent);
+    const initialSecondaryItems = createChartWrapper()
+      .findLegend({ axisId: "secondary" })!
+      .findItems()
+      .map((w) => w.getElement().textContent);
+    expect(initialPrimaryItems).toEqual(["Primary 1", "Movable"]);
+    expect(initialSecondaryItems).toEqual(["Secondary 1"]);
+
+    // After moving "Movable" to the secondary axis, the legend partitions should reflect the new axis.
+    rerender({ highcharts, options: { series: seriesOnSecondary, yAxis: yAxes } });
+
+    const updatedPrimaryItems = createChartWrapper()
+      .findLegend()!
+      .findItems()
+      .map((w) => w.getElement().textContent);
+    const updatedSecondaryItems = createChartWrapper()
+      .findLegend({ axisId: "secondary" })!
+      .findItems()
+      .map((w) => w.getElement().textContent);
+    expect(updatedPrimaryItems).toEqual(["Primary 1"]);
+    expect(updatedSecondaryItems).toEqual(["Movable", "Secondary 1"]);
+  });
+
+  test("legend disappears and reappears on the correct side when the only series moves axes", () => {
+    const onlyOnPrimary: Highcharts.SeriesOptionsType[] = [{ type: "line", name: "Solo", data: [1, 2, 3], yAxis: 0 }];
+    const onlyOnSecondary: Highcharts.SeriesOptionsType[] = [{ type: "line", name: "Solo", data: [1, 2, 3], yAxis: 1 }];
+
+    const { rerender } = renderChart({ highcharts, options: { series: onlyOnPrimary, yAxis: yAxes } });
+
+    expect(
+      createChartWrapper()
+        .findLegend()!
+        .findItems()
+        .map((w) => w.getElement().textContent),
+    ).toEqual(["Solo"]);
+    expect(createChartWrapper().findLegend({ axisId: "secondary" })).toBe(null);
+
+    rerender({ highcharts, options: { series: onlyOnSecondary, yAxis: yAxes } });
+
+    expect(createChartWrapper().findLegend()).toBe(null);
+    expect(
+      createChartWrapper()
+        .findLegend({ axisId: "secondary" })!
+        .findItems()
+        .map((w) => w.getElement().textContent),
+    ).toEqual(["Solo"]);
+  });
+
   describe("Event handlers", () => {
     test("calls onLegendItemHighlight when hovering secondary legend item", () => {
       const onLegendItemHighlight = vi.fn();
