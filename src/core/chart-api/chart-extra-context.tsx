@@ -97,7 +97,7 @@ function computeDerivedState(chart: Highcharts.Chart): ChartExtraContext.Derived
   };
   const compareX = (a: number, b: number) => a - b;
 
-  for (const s of getChartSeries(chart.series)) {
+  for (const s of getChartSeries(chart)) {
     const seriesX = new Set<number>();
     if (s.visible) {
       for (const d of getSeriesData(s)) {
@@ -124,7 +124,7 @@ function computeDerivedState(chart: Highcharts.Chart): ChartExtraContext.Derived
   // (primary + its linked children), all members share the same flat list: points sorted by X,
   // with family members interleaved in series order within the same X value.
   const seriesPointsMap = new WeakMap<Highcharts.Series, Highcharts.Point[]>();
-  for (const s of getChartSeries(chart.series)) {
+  for (const s of getChartSeries(chart)) {
     if (seriesPointsMap.has(s)) {
       continue; // Already computed as part of a family.
     }

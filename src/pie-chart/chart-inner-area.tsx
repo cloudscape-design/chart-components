@@ -5,7 +5,7 @@ import { useRef } from "react";
 import type Highcharts from "highcharts";
 
 import * as Styles from "../internal/chart-styles";
-import { getChartSeries } from "../internal/utils/highcharts";
+import { getChartSeries, getSeriesData } from "../internal/utils/highcharts";
 import { PieChartProps } from "./interfaces";
 
 import testClasses from "./test-classes/styles.css.js";
@@ -20,7 +20,7 @@ export function useInnerArea(series: readonly PieChartProps.SeriesOptions[], inn
   const innerAreaRef = useRef(new ChartInnerDescriptions());
   const onChartRender: Highcharts.ChartRenderCallbackFunction = function () {
     innerAreaRef.current.destroy();
-    if (hasDonutSeries && findVisibleSeries(this.series).length > 0) {
+    if (hasDonutSeries && findVisibleSeries(getChartSeries(this)).length > 0) {
       innerAreaRef.current.create(innerAreaProps, this);
     }
   };
@@ -32,8 +32,8 @@ class ChartInnerDescriptions {
   private descriptionElement: null | Highcharts.SVGElement = null;
 
   public create({ innerAreaTitle, innerAreaDescription }: InnerAreaProps, chart: Highcharts.Chart) {
-    const centerX = chart.plotLeft + getChartSeries(chart.series)[0].center[0];
-    const centerY = chart.plotTop + getChartSeries(chart.series)[0].center[1];
+    const centerX = chart.plotLeft + getChartSeries(chart)[0].center[0];
+    const centerY = chart.plotTop + getChartSeries(chart)[0].center[1];
 
     if (innerAreaTitle) {
       this.titleElement = chart.renderer
@@ -70,5 +70,5 @@ class ChartInnerDescriptions {
 }
 
 function findVisibleSeries(series: Highcharts.Series[]) {
-  return series.filter((s) => s.visible && s.data.some((d) => d.y !== null && d.visible));
+  return series.filter((s) => s.visible && getSeriesData(s).some((d) => d.y !== null && d.visible));
 }

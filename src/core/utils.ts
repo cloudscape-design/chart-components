@@ -5,7 +5,7 @@ import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
 import { ChartSeriesMarkerStatus } from "../internal/components/series-marker/interfaces";
-import { getChartSeries } from "../internal/utils/highcharts";
+import { getChartSeries, getSeriesData } from "../internal/utils/highcharts";
 import { castArray } from "../internal/utils/utils";
 import { getFormatter } from "./formatters";
 import { ChartLabels } from "./i18n-utils";
@@ -201,11 +201,11 @@ export function getChartLegendItems({
       });
     }
   };
-  for (const s of getChartSeries(chart.series)) {
+  for (const s of getChartSeries(chart)) {
     const valueAxis = isInverted ? s.xAxis : s.yAxis;
     const isSecondary = valueAxis?.options?.opposite ?? false;
     addSeriesItem(s, isSecondary);
-    s.data.forEach((p) => addPointItem(p, isSecondary));
+    getSeriesData(s, { includeHiddenPoints: true }).forEach((p) => addPointItem(p, isSecondary));
   }
   return legendItems;
 }

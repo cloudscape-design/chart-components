@@ -369,7 +369,7 @@ export class ChartAPI {
   private resetColorCounter() {
     const chart = this.context.chart();
     if ("colorCounter" in chart && typeof chart.colorCounter === "number") {
-      chart.colorCounter = getChartSeries(chart.series).length;
+      chart.colorCounter = getChartSeries(chart).length;
     }
   }
 

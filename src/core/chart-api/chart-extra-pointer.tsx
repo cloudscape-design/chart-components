@@ -77,7 +77,7 @@ export class ChartExtraPointer {
   private onChartMousemove = (event: MouseEvent) => {
     const chart = this.context.chart();
     // In pie charts there is no support for groups - only a single point can be hovered at a time.
-    if (getChartSeries(chart.series).some((s) => s.type === "pie")) {
+    if (getChartSeries(chart).some((s) => s.type === "pie")) {
       return;
     }
     // The plotX and plotY are pointer coordinates, normalized against the chart plot.
