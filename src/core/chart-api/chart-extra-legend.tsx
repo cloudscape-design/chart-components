@@ -106,7 +106,8 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
         a.name === b.name &&
         a.marker === b.marker &&
         a.visible === b.visible &&
-        a.highlighted === b.highlighted
+        a.highlighted === b.highlighted &&
+        a.isSecondary === b.isSecondary
       );
     }
     if (!isEqualArrays(this.get().items, nextItems, isLegendItemsEqual)) {
