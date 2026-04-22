@@ -8,7 +8,7 @@ import { ChartSeriesMarker, ChartSeriesMarkerType } from "../../internal/compone
 import { ChartSeriesMarkerStatus } from "../../internal/components/series-marker/interfaces";
 import { fireNonCancelableEvent } from "../../internal/events";
 import AsyncStore from "../../internal/utils/async-store";
-import { getChartSeries, getMasterSeries } from "../../internal/utils/chart-series";
+import { getChartSeries, getMasterSeries } from "../../internal/utils/highcharts";
 import { isEqualArrays } from "../../internal/utils/utils";
 import { CoreChartProps } from "../interfaces";
 import { getChartLegendItems, getPointId, getSeriesId } from "../utils";

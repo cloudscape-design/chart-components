@@ -5,7 +5,7 @@ import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
 import { ChartSeriesMarkerStatus } from "../internal/components/series-marker/interfaces";
-import { getChartSeries } from "../internal/utils/chart-series";
+import { getChartSeries } from "../internal/utils/highcharts";
 import { castArray } from "../internal/utils/utils";
 import { getFormatter } from "./formatters";
 import { ChartLabels } from "./i18n-utils";

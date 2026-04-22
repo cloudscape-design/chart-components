@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import AsyncStore from "../../internal/utils/async-store";
-import { getChartSeries } from "../../internal/utils/chart-series";
+import { getChartSeries } from "../../internal/utils/highcharts";
 import { castArray, isEqualArrays } from "../../internal/utils/utils";
 import { ChartExtraContext } from "./chart-extra-context";
 

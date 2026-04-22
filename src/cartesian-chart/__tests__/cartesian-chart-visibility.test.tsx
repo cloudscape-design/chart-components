@@ -8,7 +8,7 @@ import { vi } from "vitest";
 import "@cloudscape-design/components/test-utils/dom";
 import { CartesianChartProps } from "../../../lib/components/cartesian-chart";
 import { toggleLegendItem } from "../../core/__tests__/common";
-import { getChartSeries } from "../../internal/utils/chart-series";
+import { getChartSeries } from "../../internal/utils/highcharts";
 import { getChart, ref, renderCartesianChart, renderStatefulCartesianChart } from "./common";
 
 function getVisibilityState() {

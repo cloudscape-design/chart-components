@@ -4,8 +4,7 @@
 import type Highcharts from "highcharts";
 
 import { NonCancelableEventHandler } from "../../internal/events";
-import { getChartSeries } from "../../internal/utils/chart-series";
-import { getSeriesData } from "../../internal/utils/series-data";
+import { getChartSeries, getSeriesData } from "../../internal/utils/highcharts";
 import { ChartLabels } from "../i18n-utils";
 import { CoreChartProps, Rect } from "../interfaces";
 import { getGroupRect, isSeriesStacked } from "../utils";
@@ -101,7 +100,7 @@ function computeDerivedState(chart: Highcharts.Chart): ChartExtraContext.Derived
   for (const s of getChartSeries(chart.series)) {
     const seriesX = new Set<number>();
     if (s.visible) {
-      for (const d of getSeriesData(s.data)) {
+      for (const d of getSeriesData(s)) {
         // Points with y=null represent the absence of value, there is no need to include them and those
         // should have no impact on computed rects or navigation.
 
@@ -135,7 +134,7 @@ function computeDerivedState(chart: Highcharts.Chart): ChartExtraContext.Derived
     const familyPoints: Highcharts.Point[] = [];
     for (const x of Array.from(familyXSet).sort(compareX)) {
       for (const member of family) {
-        const point = getSeriesData(member.data).find((d) => d.x === x && d.y !== null);
+        const point = getSeriesData(member).find((d) => d.x === x && d.y !== null);
         if (point && familyXSet.has(x)) {
           familyPoints.push(point);
           familyXSet.delete(x); // We ignore points that share X coordinate.

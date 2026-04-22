@@ -9,7 +9,7 @@ import "@cloudscape-design/components/test-utils/dom";
 import { PieChartProps } from "../../../lib/components/pie-chart";
 import createWrapper from "../../../lib/components/test-utils/dom";
 import { toggleLegendItem } from "../../core/__tests__/common";
-import { getChartSeries } from "../../internal/utils/chart-series";
+import { getChartSeries } from "../../internal/utils/highcharts";
 import { ref, renderPieChart, renderStatefulPieChart } from "./common";
 
 const getChart = () => createWrapper().findPieHighcharts()!;

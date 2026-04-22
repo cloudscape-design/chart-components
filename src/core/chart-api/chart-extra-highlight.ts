@@ -4,8 +4,7 @@
 import type Highcharts from "highcharts";
 
 import * as Styles from "../../internal/chart-styles";
-import { getLinkedSeries, getMasterSeries } from "../../internal/utils/chart-series";
-import { getSeriesData } from "../../internal/utils/series-data";
+import { getLinkedSeries, getMasterSeries, getSeriesData } from "../../internal/utils/highcharts";
 import { getPointId, getSeriesId } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
@@ -39,7 +38,7 @@ export class ChartExtraHighlight {
     for (const s of this.context.chart().series) {
       // In pie charts it is the points, not series, that are shown in the legend, and can be highlighted.
       if (s.type === "pie") {
-        for (const p of getSeriesData(s.data)) {
+        for (const p of getSeriesData(s)) {
           if (itemIdsSet.has(getPointId(p))) {
             this.setPointState(p, "hover");
           }
@@ -72,7 +71,7 @@ export class ChartExtraHighlight {
       // For column series we ensure only one group/stack that matches selected X is highlighted.
       // See: https://github.com/highcharts/highcharts/issues/23076.
       if (s.type === "column") {
-        for (const d of getSeriesData(s.data)) {
+        for (const d of getSeriesData(s)) {
           this.setPointState(d, includedPoints.has(d) ? "" : "inactive");
         }
       }
@@ -90,14 +89,14 @@ export class ChartExtraHighlight {
       // is removed whenever any segment is made inactive.
       this.setSeriesState(s, linkedSeries.has(s) ? "hover" : "inactive");
       if (s.type === "pie") {
-        for (const d of getSeriesData(s.data)) {
+        for (const d of getSeriesData(s)) {
           this.setPointState(d, "inactive");
         }
         this.setPointState(point, "hover");
       }
       // For column series we ensure only one group/stack that matches selected X is highlighted.
       else if (s.type === "column") {
-        for (const d of getSeriesData(s.data)) {
+        for (const d of getSeriesData(s)) {
           this.setPointState(d, d === point ? "hover" : "inactive");
         }
       }
@@ -110,7 +109,7 @@ export class ChartExtraHighlight {
   public clearChartItemsHighlight = () => {
     for (const s of this.context.chart().series ?? []) {
       this.setSeriesState(s, "");
-      for (const p of getSeriesData(s.data)) {
+      for (const p of getSeriesData(s)) {
         this.setPointState(p, "");
       }
     }
@@ -144,7 +143,7 @@ export class ChartExtraHighlight {
       if (prevState === "inactive") {
         inactiveSeriesIds.add(getSeriesId(s));
       }
-      for (const p of getSeriesData(s.data)) {
+      for (const p of getSeriesData(s)) {
         const prevState = this.pointState.get(getSeriesId(s))?.get(this.getPointKey(p));
         if (prevState) {
           this.setPointState(p, prevState);
@@ -187,7 +186,7 @@ export class ChartExtraHighlight {
         (overridden as SeriesSetStateWithLock)[SET_STATE_LOCK] = true;
         s.setState = overridden;
       }
-      for (const d of getSeriesData(s.data)) {
+      for (const d of getSeriesData(s)) {
         if ((d.setState as PointSetStateWithLock)[SET_STATE_LOCK] === undefined) {
           const original = d.setState;
           // The overridden setState method does nothing unless setState[SET_STATE_LOCK] === false.

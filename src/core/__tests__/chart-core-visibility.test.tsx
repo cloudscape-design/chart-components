@@ -5,7 +5,7 @@ import highcharts from "highcharts";
 import { vi } from "vitest";
 
 import "@cloudscape-design/components/test-utils/dom";
-import { getChartSeries } from "../../internal/utils/chart-series";
+import { getChartSeries } from "../../internal/utils/highcharts";
 import { createChartWrapper, renderChart, renderStatefulChart, selectLegendItem, toggleLegendItem } from "./common";
 
 const onVisibleItemsChange = vi.fn();

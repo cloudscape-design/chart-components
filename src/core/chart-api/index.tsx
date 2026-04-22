@@ -6,8 +6,7 @@ import type Highcharts from "highcharts";
 
 import { fireNonCancelableEvent } from "../../internal/events";
 import { ReadonlyAsyncStore } from "../../internal/utils/async-store";
-import { getChartSeries } from "../../internal/utils/chart-series";
-import { getSeriesData } from "../../internal/utils/series-data";
+import { getChartSeries, getSeriesData } from "../../internal/utils/highcharts";
 import { Writeable } from "../../internal/utils/utils";
 import { CoreChartProps } from "../interfaces";
 import {
@@ -332,7 +331,7 @@ export class ChartAPI {
   private showMarkersForIsolatedPoints() {
     let shouldRedraw = false;
     for (const s of this.context.chart().series) {
-      const seriesData = getSeriesData(s.data);
+      const seriesData = getSeriesData(s);
       for (let i = 0; i < seriesData.length; i++) {
         const isEligibleSeries = !isXThreshold(s) && s.type !== "scatter" && !seriesData[i].options.marker?.enabled;
         if (

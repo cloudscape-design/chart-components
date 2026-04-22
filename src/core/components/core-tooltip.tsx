@@ -10,8 +10,7 @@ import LiveRegion from "@cloudscape-design/components/live-region";
 
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../internal/components/series-details";
 import { useSelector } from "../../internal/utils/async-store";
-import { getChartSeries } from "../../internal/utils/chart-series";
-import { isPointVisible } from "../../internal/utils/series-data";
+import { getChartSeries, isPointVisible } from "../../internal/utils/highcharts";
 import { useDebouncedValue } from "../../internal/utils/use-debounced-value";
 import { ChartAPI } from "../chart-api";
 import { getFormatter } from "../formatters";

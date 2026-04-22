@@ -4,7 +4,7 @@
 import type Highcharts from "highcharts";
 
 import AsyncStore from "../../internal/utils/async-store";
-import { getChartSeries } from "../../internal/utils/chart-series";
+import { getChartSeries } from "../../internal/utils/highcharts";
 import { ChartExtraContext } from "./chart-extra-context";
 
 // The reactive state is used to propagate updates to the corresponding no-data React component.
