@@ -4,7 +4,7 @@
 import type Highcharts from "highcharts";
 
 import { NonCancelableEventHandler } from "../../internal/events";
-import { getChartSeries, getSeriesData } from "../../internal/utils/highcharts";
+import { getChartSeries, getSeriesData, SafeChart, SafeSeries } from "../../internal/utils/highcharts";
 import { ChartLabels } from "../i18n-utils";
 import { CoreChartProps, Rect } from "../interfaces";
 import { getGroupRect, isSeriesStacked } from "../utils";
@@ -19,8 +19,8 @@ export interface ChartExtraContext {
   handlers: ChartExtraContext.Handlers;
   state: ChartExtraContext.State;
   derived: ChartExtraContext.DerivedState;
-  chartOrNull: null | Highcharts.Chart;
-  chart: () => Highcharts.Chart;
+  chartOrNull: null | SafeChart;
+  chart: () => SafeChart;
 }
 
 export namespace ChartExtraContext {
@@ -47,7 +47,7 @@ export namespace ChartExtraContext {
   export interface DerivedState {
     allX: number[];
     getPointsByX: (x: number) => Highcharts.Point[];
-    getSeriesPoints: (series: Highcharts.Series) => Highcharts.Point[];
+    getSeriesPoints: (series: SafeSeries) => Highcharts.Point[];
     groupRects: { group: Highcharts.Point[]; rect: Rect }[];
   }
 }
@@ -79,15 +79,15 @@ export function createChartContext(): ChartExtraContext {
 
 // The update method is called on every chart render, before any other initialization code.
 // This ensures the context state is up to date and can be used for subsequent computations.
-export function updateChartContext(context: ChartExtraContext, chart: Highcharts.Chart) {
+export function updateChartContext(context: ChartExtraContext, chart: SafeChart) {
   context.chart = () => chart;
   context.chartOrNull = chart;
   context.derived = computeDerivedState(chart);
 }
 
-function computeDerivedState(chart: Highcharts.Chart): ChartExtraContext.DerivedState {
+function computeDerivedState(chart: SafeChart): ChartExtraContext.DerivedState {
   const allXSet = new Set<number>();
-  const allXInSeries = new WeakMap<Highcharts.Series, number[]>();
+  const allXInSeries = new WeakMap<SafeSeries, number[]>();
   const pointsByX = new Map<number, Highcharts.Point[]>();
   const getXPoints = (x: number) => pointsByX.get(x) ?? [];
   const addPoint = (point: Highcharts.Point) => {
@@ -123,7 +123,7 @@ function computeDerivedState(chart: Highcharts.Chart): ChartExtraContext.Derived
   // For each series, compute the ordered list of points to navigate through. For a linked family
   // (primary + its linked children), all members share the same flat list: points sorted by X,
   // with family members interleaved in series order within the same X value.
-  const seriesPointsMap = new WeakMap<Highcharts.Series, Highcharts.Point[]>();
+  const seriesPointsMap = new WeakMap<SafeSeries, Highcharts.Point[]>();
   for (const s of getChartSeries(chart)) {
     if (seriesPointsMap.has(s)) {
       continue; // Already computed as part of a family.

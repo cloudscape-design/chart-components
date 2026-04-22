@@ -10,7 +10,7 @@ import LiveRegion from "@cloudscape-design/components/live-region";
 
 import ChartSeriesDetails, { ChartSeriesDetailItem } from "../../internal/components/series-details";
 import { useSelector } from "../../internal/utils/async-store";
-import { getChartSeries, getSeriesData, isPointVisible } from "../../internal/utils/highcharts";
+import { getChartSeries, getSeriesData, isPointVisible, SafeSeries } from "../../internal/utils/highcharts";
 import { useDebouncedValue } from "../../internal/utils/use-debounced-value";
 import { ChartAPI } from "../chart-api";
 import { getFormatter } from "../formatters";
@@ -180,7 +180,7 @@ function getTooltipContentCartesian(
   // By design, every point of the group has the same x value.
   const x = group[0].x;
   const chart = group[0].series.chart;
-  const getSeriesMarker = (series: Highcharts.Series) => {
+  const getSeriesMarker = (series: SafeSeries) => {
     const itemOptions = api.context.settings.getItemOptions?.(getSeriesId(series));
     return api.renderMarker({
       type: getSeriesMarkerType(series),
@@ -331,14 +331,14 @@ function getBubblePointDetails(item: MatchedItem, sizeAxis: readonly CoreChartPr
 }
 
 function findTooltipSeriesItems(
-  series: readonly Highcharts.Series[],
+  series: readonly SafeSeries[],
   group: readonly Highcharts.Point[],
   seriesSorting: NonNullable<CoreChartProps.TooltipOptions["seriesSorting"]>,
 ): MatchedItem[] {
-  const seriesOrder = series.reduce((d, s, i) => d.set(s, i), new Map<Highcharts.Series, number>());
-  const getSeriesIndex = (s: Highcharts.Series) => seriesOrder.get(s) ?? -1;
+  const seriesOrder = series.reduce((d, s, i) => d.set(s, i), new Map<SafeSeries, number>());
+  const getSeriesIndex = (s: SafeSeries) => seriesOrder.get(s) ?? -1;
   const seriesErrors = new Map<string, Highcharts.Point[]>();
-  const matchedSeries = new Set<Highcharts.Series>();
+  const matchedSeries = new Set<SafeSeries>();
   const matchedItems: MatchedItem[] = [];
   for (const point of group) {
     if (!isPointVisible(point)) {

@@ -5,11 +5,12 @@ import type Highcharts from "highcharts";
 
 import { colorBackgroundContainerContent, colorTextBodyDefault } from "@cloudscape-design/design-tokens";
 
+import { SafeChart, SafeSeries } from "../../utils/highcharts";
 import { SVGRendererPool } from "../../utils/renderer-utils";
 import { ChartSeriesMarkerType } from "./interfaces";
 
 interface RenderMarkerOptions {
-  chart: Highcharts.Chart;
+  chart: SafeChart;
   pool: SVGRendererPool;
   point: Highcharts.Point;
   selected: boolean;
@@ -98,7 +99,7 @@ function getDefaultPointProps(point: Highcharts.Point, selected: boolean, classN
   return { size, pointStyle, haloStyle };
 }
 
-function getSeriesMarkerType(series: Highcharts.Series): ChartSeriesMarkerType {
+function getSeriesMarkerType(series: SafeSeries): ChartSeriesMarkerType {
   const seriesSymbol = "symbol" in series && typeof series.symbol === "string" ? series.symbol : "circle";
   if (series.type === "scatter") {
     switch (seriesSymbol) {

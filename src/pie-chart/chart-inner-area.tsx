@@ -5,7 +5,7 @@ import { useRef } from "react";
 import type Highcharts from "highcharts";
 
 import * as Styles from "../internal/chart-styles";
-import { getChartSeries, getSeriesData } from "../internal/utils/highcharts";
+import { getChartSeries, getSeriesData, SafeChart, SafeSeries } from "../internal/utils/highcharts";
 import { PieChartProps } from "./interfaces";
 
 import testClasses from "./test-classes/styles.css.js";
@@ -31,7 +31,7 @@ class ChartInnerDescriptions {
   private titleElement: null | Highcharts.SVGElement = null;
   private descriptionElement: null | Highcharts.SVGElement = null;
 
-  public create({ innerAreaTitle, innerAreaDescription }: InnerAreaProps, chart: Highcharts.Chart) {
+  public create({ innerAreaTitle, innerAreaDescription }: InnerAreaProps, chart: SafeChart) {
     const centerX = chart.plotLeft + getChartSeries(chart)[0].center[0];
     const centerY = chart.plotTop + getChartSeries(chart)[0].center[1];
 
@@ -69,6 +69,6 @@ class ChartInnerDescriptions {
   }
 }
 
-function findVisibleSeries(series: Highcharts.Series[]) {
+function findVisibleSeries(series: SafeSeries[]) {
   return series.filter((s) => s.visible && getSeriesData(s).some((d) => d.y !== null && d.visible));
 }

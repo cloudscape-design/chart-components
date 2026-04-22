@@ -3,7 +3,7 @@
 
 import type Highcharts from "highcharts";
 
-import { getChartSeries, isPointVisible } from "../../internal/utils/highcharts";
+import { getChartSeries, isPointVisible, SafeChart } from "../../internal/utils/highcharts";
 import { DebouncedCall } from "../../internal/utils/utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
@@ -31,7 +31,7 @@ export class ChartExtraPointer {
     this.handlers = handlers;
   }
 
-  public onChartLoad = (chart: Highcharts.Chart) => {
+  public onChartLoad = (chart: SafeChart) => {
     chart.container.addEventListener("mousemove", this.onChartMousemove);
     chart.container.addEventListener("mouseout", this.onChartMouseout);
   };

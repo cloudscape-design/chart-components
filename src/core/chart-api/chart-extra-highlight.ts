@@ -4,13 +4,20 @@
 import type Highcharts from "highcharts";
 
 import * as Styles from "../../internal/chart-styles";
-import { getLinkedSeries, getMasterSeries, getSeriesData } from "../../internal/utils/highcharts";
+import {
+  getChartSeries,
+  getLinkedSeries,
+  getMasterSeries,
+  getSeriesData,
+  SafeChart,
+  SafeSeries,
+} from "../../internal/utils/highcharts";
 import { getPointId, getSeriesId } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
 const SET_STATE_LOCK = Symbol("awsui-set-state-lock");
 
-type SeriesSetStateWithLock = Highcharts.Series["setState"] & { [SET_STATE_LOCK]: boolean };
+type SeriesSetStateWithLock = SafeSeries["setState"] & { [SET_STATE_LOCK]: boolean };
 type PointSetStateWithLock = Highcharts.Point["setState"] & { [SET_STATE_LOCK]: boolean };
 
 // Chart helper that mutes Highcharts default highlighting behavior and offers custom methods
@@ -35,7 +42,7 @@ export class ChartExtraHighlight {
   // The method highlights specified series or points (by id). It is used when hovering over the legend items.
   public highlightChartItems = (itemIds: readonly string[]) => {
     const itemIdsSet = new Set(itemIds);
-    for (const s of this.context.chart().series) {
+    for (const s of getChartSeries(this.context.chart())) {
       // In pie charts it is the points, not series, that are shown in the legend, and can be highlighted.
       if (s.type === "pie") {
         for (const p of getSeriesData(s)) {
@@ -57,7 +64,7 @@ export class ChartExtraHighlight {
   // highlight state when chart elements are hovered or focused.
   public highlightChartGroup = (points: readonly Highcharts.Point[]) => {
     const includedPoints = new Set<Highcharts.Point>();
-    const includedSeries = new Set<Highcharts.Series>();
+    const includedSeries = new Set<SafeSeries>();
     const includedSeriesIds = new Set<string>();
     points.forEach((point) => {
       includedPoints.add(point);
@@ -66,7 +73,7 @@ export class ChartExtraHighlight {
         includedSeriesIds.add(getSeriesId(s));
       });
     });
-    for (const s of this.context.chart().series) {
+    for (const s of getChartSeries(this.context.chart())) {
       this.setSeriesState(s, includedSeries.has(s) ? "" : "inactive");
       // For column series we ensure only one group/stack that matches selected X is highlighted.
       // See: https://github.com/highcharts/highcharts/issues/23076.
@@ -84,7 +91,7 @@ export class ChartExtraHighlight {
   public highlightChartPoint = (point: Highcharts.Point) => {
     const masterSeries = getMasterSeries(point);
     const linkedSeries = new Set(getLinkedSeries(point));
-    for (const s of this.context.chart().series) {
+    for (const s of getChartSeries(this.context.chart())) {
       // For pie charts it is important that the hover actions comes last, as otherwise the segment's highlight "halo"
       // is removed whenever any segment is made inactive.
       this.setSeriesState(s, linkedSeries.has(s) ? "hover" : "inactive");
@@ -107,7 +114,7 @@ export class ChartExtraHighlight {
 
   // Removes dimmed state from all series and points.
   public clearChartItemsHighlight = () => {
-    for (const s of this.context.chart().series ?? []) {
+    for (const s of getChartSeries(this.context.chart())) {
       this.setSeriesState(s, "");
       for (const p of getSeriesData(s)) {
         this.setPointState(p, "");
@@ -117,7 +124,7 @@ export class ChartExtraHighlight {
   };
 
   // Makes the specified series active or dimmed.
-  private setSeriesState(series: Highcharts.Series, state: "" | Highcharts.SeriesStateValue) {
+  private setSeriesState(series: SafeSeries, state: "" | Highcharts.SeriesStateValue) {
     (series.setState as SeriesSetStateWithLock)[SET_STATE_LOCK] = false;
     series.setState(state, false);
     this.updateStoredSeriesState(series, state);
@@ -135,7 +142,7 @@ export class ChartExtraHighlight {
   // Restores series and points highlight state after chart's re-render.
   private restoreHighlightState() {
     const inactiveSeriesIds = new Set<string>();
-    for (const s of this.context.chart().series) {
+    for (const s of getChartSeries(this.context.chart())) {
       const prevState = this.seriesState.get(getSeriesId(s));
       if (prevState) {
         this.setSeriesState(s, prevState);
@@ -153,7 +160,7 @@ export class ChartExtraHighlight {
     setPlotLinesState(this.context.chart(), (lineId) => !inactiveSeriesIds.has(lineId));
   }
 
-  private updateStoredSeriesState(series: Highcharts.Series, state: "" | Highcharts.SeriesStateValue) {
+  private updateStoredSeriesState(series: SafeSeries, state: "" | Highcharts.SeriesStateValue) {
     this.seriesState.set(getSeriesId(series), state);
   }
 
@@ -172,13 +179,13 @@ export class ChartExtraHighlight {
   // We replace `setState` method on Highcharts series and points with a custom implementation, that
   // prevents Highcharts from altering it. Instead, every state change is explicitly done by the helper.
   private overrideStateSetters = () => {
-    for (const s of this.context.chart().series) {
+    for (const s of getChartSeries(this.context.chart())) {
       // We ensure the replacement is done only once by assigning a custom property to the function.
       // If the property is present - it means the method was already replaced.
       if ((s.setState as SeriesSetStateWithLock)[SET_STATE_LOCK] === undefined) {
         const original = s.setState;
         // The overridden setState method does nothing unless setState[SET_STATE_LOCK] === false.
-        const overridden: Highcharts.Series["setState"] = (...args) => {
+        const overridden: SafeSeries["setState"] = (...args) => {
           if ((overridden as SeriesSetStateWithLock)[SET_STATE_LOCK] === false) {
             original.call(s, ...args);
           }
@@ -205,13 +212,13 @@ export class ChartExtraHighlight {
 
 // The cartesian chart thresholds are represented with invisible series and visible plot lines.
 // When the corresponding series are highlighted, we need to make the not matching plot lines dimmed.
-function setPlotLinesState(chart: Highcharts.Chart, isActive: (lineId: string) => boolean) {
+function setPlotLinesState(chart: SafeChart, isActive: (lineId: string) => boolean) {
   iteratePlotLines(chart, (lineId, line) =>
     line.svgElem?.attr({ opacity: !isActive(lineId) ? Styles.dimmedPlotLineOpacity : 1 }),
   );
 }
 
-function iteratePlotLines(chart: Highcharts.Chart, cb: (lineId: string, line: Highcharts.PlotLineOrBand) => void) {
+function iteratePlotLines(chart: SafeChart, cb: (lineId: string, line: Highcharts.PlotLineOrBand) => void) {
   chart.axes?.forEach((axis) => {
     // The Highcharts `Axis.plotLinesAndBands` API is not covered with TS.
     if ("plotLinesAndBands" in axis && Array.isArray(axis.plotLinesAndBands)) {

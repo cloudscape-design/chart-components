@@ -8,7 +8,7 @@ import { ChartSeriesMarker, ChartSeriesMarkerType } from "../../internal/compone
 import { ChartSeriesMarkerStatus } from "../../internal/components/series-marker/interfaces";
 import { fireNonCancelableEvent } from "../../internal/events";
 import AsyncStore from "../../internal/utils/async-store";
-import { getChartSeries, getMasterSeries, getSeriesData } from "../../internal/utils/highcharts";
+import { getChartSeries, getMasterSeries, getSeriesData, SafeChart } from "../../internal/utils/highcharts";
 import { isEqualArrays } from "../../internal/utils/utils";
 import { CoreChartProps } from "../interfaces";
 import { getChartLegendItems, getPointId, getSeriesId } from "../utils";
@@ -141,7 +141,7 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
 }
 
 function updateItemsVisibility(
-  chart: Highcharts.Chart,
+  chart: SafeChart,
   legendItems: readonly CoreChartProps.LegendItem[],
   visibleItems?: readonly string[],
 ) {

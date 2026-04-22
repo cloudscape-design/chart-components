@@ -9,7 +9,7 @@ import { getIsRtl } from "@cloudscape-design/component-toolkit/internal";
 import * as Styles from "../../internal/chart-styles";
 import { renderMarker } from "../../internal/components/series-marker/render-marker";
 import AsyncStore from "../../internal/utils/async-store";
-import { isPointVisible } from "../../internal/utils/highcharts";
+import { getChartSeries, isPointVisible } from "../../internal/utils/highcharts";
 import { SVGRendererPool, SVGRendererSingle } from "../../internal/utils/renderer-utils";
 import { DebouncedCall, isEqualArrays } from "../../internal/utils/utils";
 import { Rect } from "../interfaces";
@@ -128,7 +128,8 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     this.lastGroup = props.group;
 
     const chartType =
-      this.context.chart().series.find((s) => s.type === "pie" || s.type === "solidgauge")?.type ?? "cartesian";
+      getChartSeries(this.context.chart()).find((s) => s.type === "pie" || s.type === "solidgauge")?.type ??
+      "cartesian";
     if (chartType === "pie") {
       return this.updateTooltipCursorPie(props.group[0]);
     } else if (chartType === "solidgauge") {
@@ -148,7 +149,7 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     const pointRect = point ? getPointRect(point) : getGroupRect(group.slice(0, 1));
     const groupRect = getGroupRect(group);
     // The cursor is not shown when column series are present (a UX decision).
-    const hasColumnSeries = this.context.chart().series.some((s) => s.type === "column");
+    const hasColumnSeries = getChartSeries(this.context.chart()).some((s) => s.type === "column");
     this.cursor.create(groupRect, point, group, !hasColumnSeries);
     this.targetTrack.rect(this.context.chart().renderer, { ...pointRect, ...this.commonTrackAttrs });
     this.groupTrack.rect(this.context.chart().renderer, { ...groupRect, ...this.commonTrackAttrs });

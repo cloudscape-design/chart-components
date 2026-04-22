@@ -330,7 +330,7 @@ export class ChartAPI {
   // See: https://github.com/highcharts/highcharts/issues/1210.
   private showMarkersForIsolatedPoints() {
     let shouldRedraw = false;
-    for (const s of this.context.chart().series) {
+    for (const s of getChartSeries(this.context.chart())) {
       const seriesData = getSeriesData(s);
       for (let i = 0; i < seriesData.length; i++) {
         const isEligibleSeries = !isXThreshold(s) && s.type !== "scatter" && !seriesData[i].options.marker?.enabled;

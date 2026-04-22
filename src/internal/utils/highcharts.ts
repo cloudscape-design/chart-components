@@ -3,6 +3,14 @@
 
 import type { Chart, Point, Series } from "highcharts";
 
+// The chart.series array can include internal series, that are unwanted.
+// Use getChartSeries to access chart series instead.
+export type SafeChart = Omit<Chart, "series">;
+
+// The series.data array can include missing or destroyed points.
+// Use getSeriesData to access series data points instead.
+export type SafeSeries = Omit<Series, "data">;
+
 // isInternal is currently not a publicly supported prop
 // https://github.com/highcharts/highcharts/issues/23278
 interface InternalSeries extends Series {
@@ -18,8 +26,8 @@ interface InternalSeries extends Series {
  * We are adding datapoints and doing other calculations and using Highstock version with a
  * navigator is causing duplicated unexpected datapoints and series entries in the chart.
  */
-export function getChartSeries(chart: Chart) {
-  return chart.series.filter((s: InternalSeries) => !s.options.isInternal);
+export function getChartSeries(chart: SafeChart) {
+  return (chart as Chart).series?.filter((s: InternalSeries) => !s.options.isInternal) ?? [];
 }
 
 /**
@@ -46,14 +54,14 @@ export function getLinkedSeries(point: Point): Series[] {
  * the actual point is removed, but a reference to it is still preserved somewhere.
  * See: https://github.com/highcharts/highcharts/issues/23175.
  */
-export function isPointValid(point?: Highcharts.Point): point is Highcharts.Point {
+export function isPointValid(point?: Point): point is Point {
   return Boolean(point && point.series);
 }
 
 /**
  * This method checks if the point is valid and also visible in the plot.
  */
-export function isPointVisible(point?: Highcharts.Point) {
+export function isPointVisible(point?: Point) {
   return isPointValid(point) && point.visible && point.series.visible;
 }
 
@@ -63,6 +71,6 @@ export function isPointVisible(point?: Highcharts.Point) {
  * This can create issues when iterating over the data (using Array.filter() or Array.map() methods is safe, but index access or Array.find()
  * can cause a crash if accessing point's properties without checking).
  */
-export const getSeriesData = (series: Series, options: { includeHiddenPoints?: boolean } = {}): Array<Point> => {
-  return series.data.filter((p) => (options.includeHiddenPoints ? isPointValid(p) : isPointVisible(p)));
+export const getSeriesData = (series: SafeSeries, options: { includeHiddenPoints?: boolean } = {}): Array<Point> => {
+  return (series as Series).data.filter((p) => (options.includeHiddenPoints ? isPointValid(p) : isPointVisible(p)));
 };
