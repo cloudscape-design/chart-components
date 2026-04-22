@@ -12,8 +12,9 @@ import {
 
 import * as Styles from "../../internal/chart-styles";
 import { SVGRendererPool } from "../../internal/utils/renderer-utils";
+import { isPointVisible } from "../../internal/utils/series-data";
 import { Rect } from "../interfaces";
-import { getGroupRect, getPointRect, isPointVisible, isXThreshold } from "../utils";
+import { getGroupRect, getPointRect, isXThreshold } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
 // In charts with many data points one can navigate faster by using Page Down/Up keys that

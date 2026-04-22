@@ -10,9 +10,10 @@ import * as Styles from "../../internal/chart-styles";
 import { renderMarker } from "../../internal/components/series-marker/render-marker";
 import AsyncStore from "../../internal/utils/async-store";
 import { SVGRendererPool, SVGRendererSingle } from "../../internal/utils/renderer-utils";
+import { isPointVisible } from "../../internal/utils/series-data";
 import { DebouncedCall, isEqualArrays } from "../../internal/utils/utils";
 import { Rect } from "../interfaces";
-import { getGroupRect, getPointRect, getSeriesId, isPointVisible, isXThreshold, safeRect } from "../utils";
+import { getGroupRect, getPointRect, getSeriesId, isXThreshold, safeRect } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
 import testClasses from "../test-classes/styles.css.js";

@@ -4,8 +4,8 @@
 import type Highcharts from "highcharts";
 
 import { getChartSeries } from "../../internal/utils/chart-series";
+import { isPointVisible } from "../../internal/utils/series-data";
 import { DebouncedCall } from "../../internal/utils/utils";
-import { isPointVisible } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
 const HOVER_LOST_DELAY = 25;
