@@ -26,14 +26,14 @@ interface InternalSeries extends Series {
  * We are adding datapoints and doing other calculations and using Highstock version with a
  * navigator is causing duplicated unexpected datapoints and series entries in the chart.
  */
-export function getChartSeries(chart: SafeChart) {
+export function getChartSeries(chart: SafeChart): SafeSeries[] {
   return (chart as Chart).series?.filter((s: InternalSeries) => !s.options.isInternal) ?? [];
 }
 
 /**
  * Returns point series or series it is linked to.
  */
-export function getMasterSeries(point: Point): Series {
+export function getMasterSeries(point: Point): SafeSeries {
   const masterSeries = point.series.linkedParent ?? point.series;
   return masterSeries;
 }
@@ -41,7 +41,7 @@ export function getMasterSeries(point: Point): Series {
 /**
  * Returns point series and all series linked to it.
  */
-export function getLinkedSeries(point: Point): Series[] {
+export function getLinkedSeries(point: Point): SafeSeries[] {
   const masterSeries = getMasterSeries(point);
   const linkedSeries = [masterSeries, ...masterSeries.linkedSeries];
   return linkedSeries;
