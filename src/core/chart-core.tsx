@@ -106,6 +106,7 @@ export function InternalCoreChart({
     legendPosition,
     verticalAxisTitlePlacement,
     legendBottomMaxHeight: legendOptions?.bottomMaxHeight,
+    renderingReady: api.renderingReady,
   };
 
   // AWSUI-61678

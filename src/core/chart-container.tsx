@@ -1,12 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 
-import { useResizeObserver } from "@cloudscape-design/component-toolkit/internal";
+import { useResizeObserver, useStableCallback } from "@cloudscape-design/component-toolkit/internal";
 
 import * as Styles from "../internal/chart-styles";
+import { ReadonlyAsyncStore } from "../internal/utils/async-store";
 import { DebouncedCall } from "../internal/utils/utils";
 
 import styles from "./styles.css.js";
@@ -38,6 +39,7 @@ interface ChartContainerProps {
   chartHeight?: number;
   chartMinHeight?: number;
   chartMinWidth?: number;
+  renderingReady: ReadonlyAsyncStore<boolean>;
 }
 
 export function ChartContainer({
@@ -57,8 +59,9 @@ export function ChartContainer({
   chartHeight,
   chartMinHeight,
   chartMinWidth,
+  renderingReady,
 }: ChartContainerProps) {
-  const { refs, measures } = useContainerQueries();
+  const { refs, measures } = useContainerQueries(renderingReady);
 
   // The vertical axis title is rendered above the chart, and is technically not a part of the chart plot.
   // However, we want to include it to the chart's height computations as it does belong to the chart logically.
@@ -125,15 +128,29 @@ export function ChartContainer({
   );
 }
 
+interface MeasuresState {
+  chart: number;
+  header: number;
+  footer: number;
+}
+
 // This hook combines 3 resize observer and does a small optimization to batch their updates in a single set-state.
-function useContainerQueries() {
-  const [measuresState, setMeasuresState] = useState({ ready: false, chart: 0, header: 0, footer: 0 });
-  const measuresRef = useRef({ ready: false, chart: 0, header: 0, footer: 0 });
+function useContainerQueries(renderingReady: ReadonlyAsyncStore<boolean>) {
+  const [measuresState, setMeasuresState] = useState<MeasuresState>({ chart: 0, header: 0, footer: 0 });
+  const measuresRef = useRef<MeasuresState>({ chart: 0, header: 0, footer: 0 });
   const measureDebounce = useRef(new DebouncedCall()).current;
+  const queueMeasure = useStableCallback(() =>
+    measureDebounce.call(() => {
+      if (renderingReady.get()) {
+        setMeasuresState({ ...measuresRef.current });
+      }
+    }, 0),
+  );
   const setMeasure = (type: "chart" | "header" | "footer", value: number) => {
     measuresRef.current[type] = value;
-    measureDebounce.call(() => setMeasuresState({ ...measuresRef.current }), 0);
+    queueMeasure();
   };
+  useEffect(() => renderingReady.subscribe((state) => state, queueMeasure), [renderingReady, queueMeasure]);
 
   const chartMeasureRef = useRef<HTMLDivElement>(null);
   const getChart = useCallback(() => chartMeasureRef.current, []);

@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import type Highcharts from "highcharts";
 
 import { fireNonCancelableEvent } from "../../internal/events";
-import { ReadonlyAsyncStore } from "../../internal/utils/async-store";
+import AsyncStore, { ReadonlyAsyncStore } from "../../internal/utils/async-store";
 import { getChartSeries } from "../../internal/utils/chart-series";
 import { getSeriesData } from "../../internal/utils/series-data";
 import { Writeable } from "../../internal/utils/utils";
@@ -65,6 +65,8 @@ export function useChartAPI(
   // Run cleanup code when the component unmounts.
   useEffect(() => () => api.onChartDestroy(), [api]);
 
+  api.startRendering();
+
   return api;
 }
 
@@ -82,6 +84,7 @@ export class ChartAPI {
   private chartExtraLegend = new ChartExtraLegend(this.context);
   private chartExtraNodata = new ChartExtraNodata(this.context);
   private chartExtraAxisTitles = new ChartExtraAxisTitles(this.context);
+  private renderingReadyStore = new AsyncStore(false);
 
   constructor(
     settings: ChartExtraContext.Settings,
@@ -97,6 +100,14 @@ export class ChartAPI {
   // Using any of the helper methods before the chart is initialized will result in an exception.
   public get ready() {
     return !!this.context.chartOrNull;
+  }
+
+  public get renderingReady() {
+    return this.renderingReadyStore as ReadonlyAsyncStore<boolean>;
+  }
+
+  public startRendering() {
+    this.renderingReadyStore.set(() => false);
   }
 
   // The Highcharts options to be merged with the rest of the configuration defined in the chart-core.
@@ -116,6 +127,7 @@ export class ChartAPI {
       chartAPI.handleDestroyedPoints();
       chartAPI.resetColorCounter();
       chartAPI.showMarkersForIsolatedPoints();
+      chartAPI.renderingReadyStore.set(() => true);
     };
     const onChartClick: Highcharts.ChartClickCallbackFunction = function () {
       chartAPI.chartExtraPointer.onChartClick(this.hoverPoint);
