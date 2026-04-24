@@ -11,8 +11,8 @@ import {
 } from "@cloudscape-design/component-toolkit/internal";
 
 import * as Styles from "../../internal/chart-styles";
+import { isPointVisible, SafeSeries } from "../../internal/utils/highcharts";
 import { SVGRendererPool } from "../../internal/utils/renderer-utils";
-import { isPointVisible } from "../../internal/utils/series-data";
 import { Rect } from "../interfaces";
 import { getGroupRect, getPointRect, isXThreshold } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
@@ -423,7 +423,7 @@ export class ChartExtraNavigation {
 
   // Returns all series data points to navigate by. When a series is linked with other series - the method returns
   // all points from the linked series.
-  private getSeriesPoints(series: Highcharts.Series): Highcharts.Point[] {
+  private getSeriesPoints(series: SafeSeries): Highcharts.Point[] {
     return this.context.derived.getSeriesPoints(series);
   }
 

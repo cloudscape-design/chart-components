@@ -4,8 +4,7 @@
 import type Highcharts from "highcharts";
 
 import { NonCancelableEventHandler } from "../../internal/events";
-import { getChartSeries } from "../../internal/utils/chart-series";
-import { getSeriesData } from "../../internal/utils/series-data";
+import { getChartSeries, getSeriesData, SafeChart, SafeSeries } from "../../internal/utils/highcharts";
 import { ChartLabels } from "../i18n-utils";
 import { CoreChartProps, Rect } from "../interfaces";
 import { getGroupRect, isSeriesStacked } from "../utils";
@@ -20,8 +19,8 @@ export interface ChartExtraContext {
   handlers: ChartExtraContext.Handlers;
   state: ChartExtraContext.State;
   derived: ChartExtraContext.DerivedState;
-  chartOrNull: null | Highcharts.Chart;
-  chart: () => Highcharts.Chart;
+  chartOrNull: null | SafeChart;
+  chart: () => SafeChart;
 }
 
 export namespace ChartExtraContext {
@@ -48,7 +47,7 @@ export namespace ChartExtraContext {
   export interface DerivedState {
     allX: number[];
     getPointsByX: (x: number) => Highcharts.Point[];
-    getSeriesPoints: (series: Highcharts.Series) => Highcharts.Point[];
+    getSeriesPoints: (series: SafeSeries) => Highcharts.Point[];
     groupRects: { group: Highcharts.Point[]; rect: Rect }[];
   }
 }
@@ -80,15 +79,15 @@ export function createChartContext(): ChartExtraContext {
 
 // The update method is called on every chart render, before any other initialization code.
 // This ensures the context state is up to date and can be used for subsequent computations.
-export function updateChartContext(context: ChartExtraContext, chart: Highcharts.Chart) {
+export function updateChartContext(context: ChartExtraContext, chart: SafeChart) {
   context.chart = () => chart;
   context.chartOrNull = chart;
   context.derived = computeDerivedState(chart);
 }
 
-function computeDerivedState(chart: Highcharts.Chart): ChartExtraContext.DerivedState {
+function computeDerivedState(chart: SafeChart): ChartExtraContext.DerivedState {
   const allXSet = new Set<number>();
-  const allXInSeries = new WeakMap<Highcharts.Series, number[]>();
+  const allXInSeries = new WeakMap<SafeSeries, number[]>();
   const pointsByX = new Map<number, Highcharts.Point[]>();
   const getXPoints = (x: number) => pointsByX.get(x) ?? [];
   const addPoint = (point: Highcharts.Point) => {
@@ -98,10 +97,10 @@ function computeDerivedState(chart: Highcharts.Chart): ChartExtraContext.Derived
   };
   const compareX = (a: number, b: number) => a - b;
 
-  for (const s of getChartSeries(chart.series)) {
+  for (const s of getChartSeries(chart)) {
     const seriesX = new Set<number>();
     if (s.visible) {
-      for (const d of getSeriesData(s.data)) {
+      for (const d of getSeriesData(s)) {
         // Points with y=null represent the absence of value, there is no need to include them and those
         // should have no impact on computed rects or navigation.
 
@@ -124,8 +123,8 @@ function computeDerivedState(chart: Highcharts.Chart): ChartExtraContext.Derived
   // For each series, compute the ordered list of points to navigate through. For a linked family
   // (primary + its linked children), all members share the same flat list: points sorted by X,
   // with family members interleaved in series order within the same X value.
-  const seriesPointsMap = new WeakMap<Highcharts.Series, Highcharts.Point[]>();
-  for (const s of getChartSeries(chart.series)) {
+  const seriesPointsMap = new WeakMap<SafeSeries, Highcharts.Point[]>();
+  for (const s of getChartSeries(chart)) {
     if (seriesPointsMap.has(s)) {
       continue; // Already computed as part of a family.
     }
@@ -135,7 +134,7 @@ function computeDerivedState(chart: Highcharts.Chart): ChartExtraContext.Derived
     const familyPoints: Highcharts.Point[] = [];
     for (const x of Array.from(familyXSet).sort(compareX)) {
       for (const member of family) {
-        const point = getSeriesData(member.data).find((d) => d.x === x && d.y !== null);
+        const point = getSeriesData(member).find((d) => d.x === x && d.y !== null);
         if (point && familyXSet.has(x)) {
           familyPoints.push(point);
           familyXSet.delete(x); // We ignore points that share X coordinate.

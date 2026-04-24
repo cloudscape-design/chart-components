@@ -3,8 +3,7 @@
 
 import type Highcharts from "highcharts";
 
-import { getChartSeries } from "../../internal/utils/chart-series";
-import { isPointVisible } from "../../internal/utils/series-data";
+import { getChartSeries, isPointVisible, SafeChart } from "../../internal/utils/highcharts";
 import { DebouncedCall } from "../../internal/utils/utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
@@ -32,7 +31,7 @@ export class ChartExtraPointer {
     this.handlers = handlers;
   }
 
-  public onChartLoad = (chart: Highcharts.Chart) => {
+  public onChartLoad = (chart: SafeChart) => {
     chart.container.addEventListener("mousemove", this.onChartMousemove);
     chart.container.addEventListener("mouseout", this.onChartMouseout);
   };
@@ -78,7 +77,7 @@ export class ChartExtraPointer {
   private onChartMousemove = (event: MouseEvent) => {
     const chart = this.context.chart();
     // In pie charts there is no support for groups - only a single point can be hovered at a time.
-    if (getChartSeries(chart.series).some((s) => s.type === "pie")) {
+    if (getChartSeries(chart).some((s) => s.type === "pie")) {
       return;
     }
     // The plotX and plotY are pointer coordinates, normalized against the chart plot.
