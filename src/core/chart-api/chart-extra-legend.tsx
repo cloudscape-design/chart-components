@@ -8,7 +8,7 @@ import { ChartSeriesMarker, ChartSeriesMarkerType } from "../../internal/compone
 import { ChartSeriesMarkerStatus } from "../../internal/components/series-marker/interfaces";
 import { fireNonCancelableEvent } from "../../internal/events";
 import AsyncStore from "../../internal/utils/async-store";
-import { getChartSeries, getMasterSeries } from "../../internal/utils/chart-series";
+import { getChartSeries, getMasterSeries, getSeriesData, SafeChart } from "../../internal/utils/highcharts";
 import { isEqualArrays } from "../../internal/utils/utils";
 import { CoreChartProps } from "../interfaces";
 import { getChartLegendItems, getPointId, getSeriesId } from "../utils";
@@ -141,7 +141,7 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
 }
 
 function updateItemsVisibility(
-  chart: Highcharts.Chart,
+  chart: SafeChart,
   legendItems: readonly CoreChartProps.LegendItem[],
   visibleItems?: readonly string[],
 ) {
@@ -155,11 +155,11 @@ function updateItemsVisibility(
     return nextVisible;
   };
 
-  for (const series of getChartSeries(chart.series)) {
+  for (const series of getChartSeries(chart)) {
     if (availableItemsSet.has(getSeriesId(series))) {
       series.setVisible(getVisibleAndCount(getSeriesId(series), series.visible), false);
     }
-    for (const point of series.data) {
+    for (const point of getSeriesData(series, { includeHiddenPoints: true })) {
       if (typeof point.setVisible === "function" && availableItemsSet.has(getPointId(point))) {
         point.setVisible(getVisibleAndCount(getPointId(point), point.visible), false);
       }

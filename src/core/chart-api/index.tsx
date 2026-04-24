@@ -6,8 +6,7 @@ import type Highcharts from "highcharts";
 
 import { fireNonCancelableEvent } from "../../internal/events";
 import AsyncStore, { ReadonlyAsyncStore } from "../../internal/utils/async-store";
-import { getChartSeries } from "../../internal/utils/chart-series";
-import { getSeriesData } from "../../internal/utils/series-data";
+import { getChartSeries, getSeriesData } from "../../internal/utils/highcharts";
 import { Writeable } from "../../internal/utils/utils";
 import { CoreChartProps } from "../interfaces";
 import {
@@ -343,8 +342,8 @@ export class ChartAPI {
   // See: https://github.com/highcharts/highcharts/issues/1210.
   private showMarkersForIsolatedPoints() {
     let shouldRedraw = false;
-    for (const s of this.context.chart().series) {
-      const seriesData = getSeriesData(s.data);
+    for (const s of getChartSeries(this.context.chart())) {
+      const seriesData = getSeriesData(s);
       for (let i = 0; i < seriesData.length; i++) {
         const isEligibleSeries = !isXThreshold(s) && s.type !== "scatter" && !seriesData[i].options.marker?.enabled;
         if (
@@ -382,7 +381,7 @@ export class ChartAPI {
   private resetColorCounter() {
     const chart = this.context.chart();
     if ("colorCounter" in chart && typeof chart.colorCounter === "number") {
-      chart.colorCounter = getChartSeries(chart.series).length;
+      chart.colorCounter = getChartSeries(chart).length;
     }
   }
 

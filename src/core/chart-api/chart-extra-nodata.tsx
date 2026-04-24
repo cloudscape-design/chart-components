@@ -1,10 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import type Highcharts from "highcharts";
-
 import AsyncStore from "../../internal/utils/async-store";
-import { getChartSeries } from "../../internal/utils/chart-series";
+import { getChartSeries, getSeriesData, SafeChart } from "../../internal/utils/highcharts";
 import { ChartExtraContext } from "./chart-extra-context";
 
 // The reactive state is used to propagate updates to the corresponding no-data React component.
@@ -48,18 +46,18 @@ export class ChartExtraNodata extends AsyncStore<ReactiveNodataState> {
   }
 }
 
-function findAllSeriesWithData(chart: Highcharts.Chart) {
+function findAllSeriesWithData(chart: SafeChart) {
   // When a series becomes hidden, Highcharts no longer computes the data array, so the series.data is empty.
   // That is why we assert the data from series.options instead.
-  return getChartSeries(chart.series).filter((s) => {
+  return getChartSeries(chart).filter((s) => {
     const data = "data" in s.options && s.options.data && Array.isArray(s.options.data) ? s.options.data : [];
     return data.some((i) => i !== null && (typeof i === "object" && "y" in i ? i.y !== null : true));
   });
 }
 
-function findAllVisibleSeries(chart: Highcharts.Chart) {
+function findAllVisibleSeries(chart: SafeChart) {
   const allSeriesWithData = findAllSeriesWithData(chart);
   return allSeriesWithData.filter(
-    (s) => s.visible && (s.type !== "pie" || s.data.some((d) => d.y !== null && d.visible)),
+    (s) => s.visible && (s.type !== "pie" || getSeriesData(s).some((d) => d.y !== null && d.visible)),
   );
 }

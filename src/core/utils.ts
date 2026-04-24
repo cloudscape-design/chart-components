@@ -5,7 +5,7 @@ import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
 import { ChartSeriesMarkerStatus } from "../internal/components/series-marker/interfaces";
-import { getChartSeries } from "../internal/utils/chart-series";
+import { getChartSeries, getSeriesData, SafeChart, SafeSeries } from "../internal/utils/highcharts";
 import { castArray } from "../internal/utils/utils";
 import { getFormatter } from "./formatters";
 import { ChartLabels } from "./i18n-utils";
@@ -25,7 +25,7 @@ export interface LegendItemSpec {
 // The below functions extract unique identifier from series, point, or options. The identifier can be item's ID or name.
 // We expect that items requiring referencing (e.g. in order to control their visibility) have the unique identifier defined.
 // Otherwise, we return a randomized id that is to ensure no accidental matches.
-export function getSeriesId(series: Highcharts.Series): string {
+export function getSeriesId(series: SafeSeries): string {
   return getOptionsId(series.options);
 }
 export function getPointId(point: Highcharts.Point): string {
@@ -40,7 +40,7 @@ function noIdPlaceholder(): string {
 }
 
 // There are more possible values that series.stacking can take, but we only explicitly support "normal".
-export function isSeriesStacked(series: Highcharts.Series) {
+export function isSeriesStacked(series: SafeSeries) {
   return (series.options as any).stacking === "normal";
 }
 
@@ -62,14 +62,10 @@ export function createThresholdMetadata<T extends "x-threshold" | "y-threshold">
 ): ThresholdOptions<T> {
   return { custom: { awsui: { type, threshold: value } } };
 }
-export function isXThreshold(
-  s: Highcharts.Series,
-): s is Highcharts.Series & { options: ThresholdOptions<"x-threshold"> } {
+export function isXThreshold(s: SafeSeries): s is SafeSeries & { options: ThresholdOptions<"x-threshold"> } {
   return typeof s.options.custom === "object" && s.options.custom.awsui?.type === "x-threshold";
 }
-export function isYThreshold(
-  s: Highcharts.Series,
-): s is Highcharts.Series & { options: ThresholdOptions<"y-threshold"> } {
+export function isYThreshold(s: SafeSeries): s is SafeSeries & { options: ThresholdOptions<"y-threshold"> } {
   return typeof s.options.custom === "object" && s.options.custom.awsui?.type === "y-threshold";
 }
 
@@ -86,12 +82,12 @@ export interface BubbleOptions {
 export function createBubbleMetadata(options: { sizeAxis?: string }): BubbleOptions {
   return { custom: { awsui: options } };
 }
-export function getBubbleSeriesSizeAxis(series: Highcharts.Series): undefined | string {
+export function getBubbleSeriesSizeAxis(series: SafeSeries): undefined | string {
   const { custom } = series.options as Highcharts.SeriesOptionsType & BubbleOptions;
   return custom?.awsui?.sizeAxis;
 }
 
-export function getSeriesMarkerType(series?: Highcharts.Series): ChartSeriesMarkerType {
+export function getSeriesMarkerType(series?: SafeSeries): ChartSeriesMarkerType {
   if (!series) {
     return "large-square";
   }
@@ -135,7 +131,7 @@ export function getSeriesMarkerType(series?: Highcharts.Series): ChartSeriesMark
 
 // Highcharts supports color objects to represent gradients and more, but we only support string
 // colors in our markers. In case a non-string color is defined, we use black color as as fallback.
-export function getSeriesColor(series?: Highcharts.Series): string {
+export function getSeriesColor(series?: SafeSeries): string {
   return typeof series?.color === "string" ? series.color : "black";
 }
 export function getPointColor(point?: Highcharts.Point): string {
@@ -153,13 +149,13 @@ export function getChartLegendItems({
   getItemOptions = () => ({}),
   itemMarkerStatusAriaLabel,
 }: {
-  chart: Highcharts.Chart;
+  chart: SafeChart;
   getItemOptions?: CoreChartProps.GetItemOptions;
   itemMarkerStatusAriaLabel?: ChartLabels["itemMarkerLabel"];
 }): readonly LegendItemSpec[] {
   const legendItems: LegendItemSpec[] = [];
   const isInverted = chart.inverted ?? false;
-  const addSeriesItem = (series: Highcharts.Series, isSecondary: boolean) => {
+  const addSeriesItem = (series: SafeSeries, isSecondary: boolean) => {
     // The pie series is not shown in the legend. Instead, we show pie segments.
     if (series.type === "pie") {
       return;
@@ -201,11 +197,11 @@ export function getChartLegendItems({
       });
     }
   };
-  for (const s of getChartSeries(chart.series)) {
+  for (const s of getChartSeries(chart)) {
     const valueAxis = isInverted ? s.xAxis : s.yAxis;
     const isSecondary = valueAxis?.options?.opposite ?? false;
     addSeriesItem(s, isSecondary);
-    s.data.forEach((p) => addPointItem(p, isSecondary));
+    getSeriesData(s, { includeHiddenPoints: true }).forEach((p) => addPointItem(p, isSecondary));
   }
   return legendItems;
 }
@@ -357,11 +353,11 @@ export function safeRect(rect: Rect): Rect {
   return { ...rect, width: Math.max(0.1, rect.width), height: Math.max(0.1, rect.height) };
 }
 
-export function getChartAccessibleDescription(chart: Highcharts.Chart) {
+export function getChartAccessibleDescription(chart: SafeChart) {
   return chart.options.lang?.accessibility?.chartContainerLabel ?? "";
 }
 
-export function matchSizeAxis(sizeAxis: readonly CoreChartProps.SizeAxisOptions[], series: Highcharts.Series) {
+export function matchSizeAxis(sizeAxis: readonly CoreChartProps.SizeAxisOptions[], series: SafeSeries) {
   return sizeAxis.find((a) => a.id === getBubbleSeriesSizeAxis(series)) ?? sizeAxis[0];
 }
 
@@ -439,7 +435,7 @@ function getPointRectFromCoordinates(point: Highcharts.Point) {
   return getChartRect({ x: plotX, y: plotY, width: 0, height: 0 }, chart, true);
 }
 
-function getChartRect(rect: Rect, chart: Highcharts.Chart, canBeInverted: boolean): Rect {
+function getChartRect(rect: Rect, chart: SafeChart, canBeInverted: boolean): Rect {
   return canBeInverted && chart.inverted
     ? {
         x: chart.plotWidth + chart.plotLeft - (rect.y + rect.height),

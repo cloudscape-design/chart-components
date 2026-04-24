@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import AsyncStore from "../../internal/utils/async-store";
-import { getChartSeries } from "../../internal/utils/chart-series";
+import { getChartSeries, SafeChart } from "../../internal/utils/highcharts";
 import { castArray, isEqualArrays } from "../../internal/utils/utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
@@ -29,9 +29,9 @@ export class ChartExtraAxisTitles extends AsyncStore<ReactiveAxisTitlesState> {
   };
 }
 
-function getVerticalAxesTitles(chart: Highcharts.Chart) {
+function getVerticalAxesTitles(chart: SafeChart) {
   const isInverted = !!chart.options.chart?.inverted;
-  const hasSeries = getChartSeries(chart.series).filter((s) => s.type !== "pie").length > 0;
+  const hasSeries = getChartSeries(chart).filter((s) => s.type !== "pie").length > 0;
 
   // We extract multiple titles as there can be multiple axes. This supports up to 2 axes by
   // using space-between placement of the labels in the corresponding component.
