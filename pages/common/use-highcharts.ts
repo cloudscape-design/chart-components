@@ -11,7 +11,8 @@ export function useHighcharts({
   xrange = false,
   solidgauge = false,
   boost = false,
-}: { more?: boolean; xrange?: boolean; solidgauge?: boolean; boost?: boolean } = {}) {
+  heatmap = false,
+}: { more?: boolean; xrange?: boolean; solidgauge?: boolean; boost?: boolean; heatmap?: boolean } = {}) {
   const [highcharts, setHighcharts] = useState<null | typeof Highcharts>(null);
 
   useEffect(() => {
@@ -33,6 +34,9 @@ export function useHighcharts({
       if (boost) {
         await import("highcharts/modules/boost");
       }
+      if (heatmap) {
+        await import("highcharts/modules/heatmap");
+      }
 
       if (isDevelopment) {
         await import("highcharts/modules/debugger");
@@ -42,7 +46,7 @@ export function useHighcharts({
     };
 
     load();
-  }, [more, xrange, solidgauge, boost]);
+  }, [more, xrange, solidgauge, boost, heatmap]);
 
   return highcharts;
 }

@@ -149,8 +149,10 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     const pointRect = point ? getPointRect(point) : getGroupRect(group.slice(0, 1));
     const groupRect = getGroupRect(group);
     // The cursor is not shown when column series are present (a UX decision).
-    const hasColumnSeries = getChartSeries(this.context.chart()).some((s) => s.type === "column");
-    this.cursor.create(groupRect, point, group, !hasColumnSeries);
+    const hideCursorLine = getChartSeries(this.context.chart()).some(
+      (s) => s.type === "column" || s.type === "heatmap",
+    );
+    this.cursor.create(groupRect, point, group, !hideCursorLine);
     this.targetTrack.rect(this.context.chart().renderer, { ...pointRect, ...this.commonTrackAttrs });
     this.groupTrack.rect(this.context.chart().renderer, { ...groupRect, ...this.commonTrackAttrs });
   };
@@ -238,7 +240,8 @@ class HighlightCursorCartesian {
       isPointVisible(point) &&
       !isXThreshold(point.series) &&
       point.series.type !== "column" &&
-      point.series.type !== "errorbar"
+      point.series.type !== "errorbar" &&
+      point.series.type !== "heatmap"
     );
   };
 }
