@@ -104,9 +104,8 @@ export function ChartContainer({
             measures,
             fitHeight,
             hasLegend,
-            legendPosition,
             chartMinWidth,
-            effectiveChartHeight,
+            legendPosition,
           })}
         >
           {verticalAxisTitle}
@@ -148,7 +147,6 @@ function getChartPlotWrapperStyles({
   hasLegend: boolean;
   fitHeight?: boolean;
   chartMinWidth?: number;
-  effectiveChartHeight: number;
   legendPosition: "bottom" | "side";
   measures: { header: number; footer: number; chart: number };
 }): React.CSSProperties {
