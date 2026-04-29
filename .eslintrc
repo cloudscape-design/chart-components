@@ -124,6 +124,10 @@
             "selector": "MemberExpression[property.name='data'][object.type='TSAsExpression'][object.typeAnnotation.typeName.name='Series']",
             "message": "Direct (x as Series).data access is unsafe due to Highcharts cropThreshold sparse arrays. Use getSeriesData() instead.",
           },
+          {
+            "selector": "MemberExpression[property.name='series'][object.type='TSAsExpression'][object.typeAnnotation.typeName.name='Chart']",
+            "message": "Direct (x as Chart).series access may include internal series. Use getChartSeries() instead.",
+          },
         ],
       },
     },

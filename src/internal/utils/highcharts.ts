@@ -27,6 +27,7 @@ interface InternalSeries extends Series {
  * navigator is causing duplicated unexpected datapoints and series entries in the chart.
  */
 export function getChartSeries(chart: SafeChart): SafeSeries[] {
+  // eslint-disable-next-line no-restricted-syntax -- This is the safe wrapper itself.
   return (chart as Chart).series?.filter((s: InternalSeries) => !s.options.isInternal) ?? [];
 }
 
@@ -66,17 +67,10 @@ export function isPointVisible(point?: Point) {
 }
 
 /**
- * Returns the series data points, filtering out undefined/destroyed entries.
- *
- * @warning **Never access `series.data` directly.** Highcharts' `cropThreshold` optimization
- * (default: 300 for line, 50 for column/bar) makes `series.data` a sparse array when the dataset
- * exceeds the threshold and axis extremes are narrower than the full data range. Elements before
- * `cropStart` are left as `undefined`, causing crashes on property access (e.g., `.find(d => d.x)`).
- *
- * The `SafeSeries` type omits `.data` to enforce this at compile time. If you see a cast to
- * `Series` to access `.data`, it is almost certainly a bug — use this function instead.
- *
- * See: https://api.highcharts.com/highcharts/plotOptions.series.cropThreshold
+ * The series may include undefined points. See: https://api.highcharts.com/class-reference/Highcharts.Series.html#data,
+ * and https://github.com/highcharts/highcharts/issues/11116.
+ * This can create issues when iterating over the data (using Array.filter() or Array.map() methods is safe, but index access or Array.find()
+ * can cause a crash if accessing point's properties without checking).
  */
 export const getSeriesData = (series: SafeSeries, options: { includeHiddenPoints?: boolean } = {}): Array<Point> => {
   // eslint-disable-next-line no-restricted-syntax -- This is the safe wrapper itself.
