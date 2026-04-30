@@ -27,6 +27,7 @@ interface InternalSeries extends Series {
  * navigator is causing duplicated unexpected datapoints and series entries in the chart.
  */
 export function getChartSeries(chart: SafeChart): SafeSeries[] {
+  // eslint-disable-next-line no-restricted-syntax -- This is the safe wrapper itself.
   return (chart as Chart).series?.filter((s: InternalSeries) => !s.options.isInternal) ?? [];
 }
 
@@ -72,5 +73,6 @@ export function isPointVisible(point?: Point) {
  * can cause a crash if accessing point's properties without checking).
  */
 export const getSeriesData = (series: SafeSeries, options: { includeHiddenPoints?: boolean } = {}): Array<Point> => {
+  // eslint-disable-next-line no-restricted-syntax -- This is the safe wrapper itself.
   return (series as Series).data.filter((p) => (options.includeHiddenPoints ? isPointValid(p) : isPointVisible(p)));
 };
