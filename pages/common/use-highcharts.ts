@@ -12,7 +12,13 @@ export function useHighcharts({
   solidgauge = false,
   boost = false,
   heatmap = false,
-}: { more?: boolean; xrange?: boolean; solidgauge?: boolean; boost?: boolean; heatmap?: boolean } = {}) {
+}: {
+  more?: boolean;
+  xrange?: boolean;
+  solidgauge?: boolean;
+  boost?: boolean;
+  heatmap?: boolean;
+} = {}) {
   const [highcharts, setHighcharts] = useState<null | typeof Highcharts>(null);
 
   useEffect(() => {
