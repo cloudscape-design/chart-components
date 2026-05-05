@@ -1,7 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { useState } from "react";
 import { range } from "lodash";
+
+import Button from "@cloudscape-design/components/button";
+import SpaceBetween from "@cloudscape-design/components/space-between";
 
 const addDays = (date: Date, days: number) => {
   const result = new Date(date);
@@ -15,7 +19,7 @@ const subYears = (date: Date, years: number) => {
   return result;
 };
 
-import { CartesianChart } from "../../lib/components";
+import { CartesianChart, CartesianChartProps } from "../../lib/components";
 import { dateFormatter } from "../common/formatters";
 import { useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
@@ -77,6 +81,12 @@ export default function () {
           <CategoryDatetime />
         </PageSection>
       </div>
+      <PageSection title="Datetime X, linear Y — Zoom (uncontrolled)">
+        <DatetimeLinearWithZoom />
+      </PageSection>
+      <PageSection title="Datetime X, linear Y — Zoom (controlled)">
+        <DatetimeLinearWithControlledZoom />
+      </PageSection>
     </Page>
   );
 }
@@ -686,5 +696,73 @@ function CategoryDatetime() {
         type: "datetime",
       }}
     />
+  );
+}
+
+const zoomSeriesData = range(0, 100).map((i) => ({
+  x: addDays(new Date(), i).getTime(),
+  y: Math.floor((pseudoRandom() + i / 50) * 100),
+}));
+
+const zoomSeries: CartesianChartProps.SeriesOptions[] = [
+  { type: "area", name: "Requests", data: zoomSeriesData },
+  {
+    type: "spline",
+    name: "Avg latency",
+    data: zoomSeriesData.map((d) => ({ x: d.x, y: d.y * 0.6 + Math.floor(pseudoRandom() * 20) })),
+  },
+  { type: "y-threshold", name: "SLA limit", value: 150 },
+];
+
+// Uncontrolled zoom: two accessible interaction methods are available out of the box —
+// (1) drag-to-zoom with the mouse, and (2) the "Zoom" button that enters a unified zoom mode.
+// In zoom mode a vertical cursor is moved with the mouse OR the Left/Right arrow keys (and UAP
+// direction buttons for touch); a single click / Enter / Space sets the start point, and a second
+// click / Enter / Space sets the end point to zoom — a single-pointer, no-modifier interaction that
+// satisfies WCAG 2.5.7 (Dragging Movements). Escape or "Exit zoom" cancels. The cursor position is
+// announced to screen readers as it moves. Zoom state is managed internally; a "Reset" button
+// appears once zoomed.
+function DatetimeLinearWithZoom() {
+  const { chartProps } = useChartSettings();
+  return (
+    <CartesianChart
+      {...chartProps.cartesian}
+      chartHeight={400}
+      legend={{ enabled: true }}
+      zoom={{ enabled: true }}
+      series={zoomSeries}
+      xAxis={{ title: "Time", type: "datetime", valueFormatter: dateFormatter }}
+      yAxis={{ title: "Count", type: "linear" }}
+    />
+  );
+}
+
+// Controlled zoom: the consumer owns the zoom range via `zoomRange` + `onZoomRangeChange`.
+// Here we hide the built-in buttons and drive zoom entirely through custom UI and ref methods.
+function DatetimeLinearWithControlledZoom() {
+  const { chartProps } = useChartSettings();
+  const [zoomRange, setZoomRange] = useState<CartesianChartProps.ZoomRange | null>(null);
+  const start = zoomSeriesData[20].x;
+  const end = zoomSeriesData[60].x;
+  return (
+    <SpaceBetween size="s">
+      <SpaceBetween size="xs" direction="horizontal">
+        <Button onClick={() => setZoomRange({ x: { startValue: start, endValue: end } })}>Zoom to middle range</Button>
+        <Button onClick={() => setZoomRange(null)} disabled={!zoomRange}>
+          Reset zoom
+        </Button>
+      </SpaceBetween>
+      <CartesianChart
+        {...chartProps.cartesian}
+        chartHeight={400}
+        legend={{ enabled: true }}
+        zoom={{ enabled: true, hideButtons: true }}
+        zoomRange={zoomRange}
+        onZoomRangeChange={({ detail }) => setZoomRange(detail.zoomRange)}
+        series={zoomSeries}
+        xAxis={{ title: "Time", type: "datetime", valueFormatter: dateFormatter }}
+        yAxis={{ title: "Count", type: "linear" }}
+      />
+    </SpaceBetween>
   );
 }

@@ -131,3 +131,12 @@ $side-legend-max-inline-size: 30%;
   // We hide the native focus outline to render a custom one around the chart plot instead.
   outline: none;
 }
+
+// stylelint-disable-next-line selector-class-pattern
+:global(.highcharts-navigator-mask-inside) {
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+}

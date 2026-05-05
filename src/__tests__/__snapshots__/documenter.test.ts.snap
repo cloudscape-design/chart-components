@@ -21,8 +21,71 @@ exports[`definition for cartesian-chart matches the snapshot > cartesian-chart 1
       "detailType": "{ visibleSeries: Array<string>; }",
       "name": "onVisibleSeriesChange",
     },
+    {
+      "cancelable": false,
+      "description": "Called when the zoom range changes due to user interaction.
+In controlled mode, update \`zoomRange\` in this handler.",
+      "detailInlineType": {
+        "name": "CartesianChartProps.ZoomChangeDetail",
+        "properties": [
+          {
+            "inlineType": {
+              "name": "CartesianChartProps.ZoomRange",
+              "properties": [
+                {
+                  "inlineType": {
+                    "name": "{ startValue: number; endValue: number; }",
+                    "properties": [
+                      {
+                        "name": "endValue",
+                        "optional": false,
+                        "type": "number",
+                      },
+                      {
+                        "name": "startValue",
+                        "optional": false,
+                        "type": "number",
+                      },
+                    ],
+                    "type": "object",
+                  },
+                  "name": "x",
+                  "optional": true,
+                  "type": "{ startValue: number; endValue: number; }",
+                },
+              ],
+              "type": "object",
+            },
+            "name": "zoomRange",
+            "optional": false,
+            "type": "CartesianChartProps.ZoomRange | null",
+          },
+        ],
+        "type": "object",
+      },
+      "detailType": "CartesianChartProps.ZoomChangeDetail",
+      "name": "onZoomRangeChange",
+    },
   ],
   "functions": [
+    {
+      "description": "Enters zoom mode. In zoom mode, popovers are disabled and clicks on the chart set zoom range points.",
+      "name": "enterZoomMode",
+      "parameters": [],
+      "returnType": "void",
+    },
+    {
+      "description": "Exits zoom mode without applying zoom. Returns to the idle state.",
+      "name": "exitZoomMode",
+      "parameters": [],
+      "returnType": "void",
+    },
+    {
+      "description": "Resets the zoom to show the full data range.",
+      "name": "resetZoom",
+      "parameters": [],
+      "returnType": "void",
+    },
     {
       "description": "Controls series visibility and works with both controlled and uncontrolled visibility modes.",
       "name": "setVisibleSeries",
@@ -143,7 +206,27 @@ Supported Highcharts versions: 12.",
             "type": "string",
           },
           {
+            "name": "enterZoomModeButtonAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "enterZoomModeButtonText",
+            "optional": true,
+            "type": "string",
+          },
+          {
             "name": "errorText",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "exitZoomModeButtonAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "exitZoomModeButtonText",
             "optional": true,
             "type": "string",
           },
@@ -159,6 +242,16 @@ Supported Highcharts versions: 12.",
           },
           {
             "name": "recoveryText",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "resetZoomButtonAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "resetZoomButtonText",
             "optional": true,
             "type": "string",
           },
@@ -186,6 +279,109 @@ Supported Highcharts versions: 12.",
             "name": "yAxisRoleDescription",
             "optional": true,
             "type": "string",
+          },
+          {
+            "name": "zoomControlsAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "zoomCursorNextButtonAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "inlineType": {
+              "name": "(value: string) => string",
+              "parameters": [
+                {
+                  "name": "value",
+                  "type": "string",
+                },
+              ],
+              "returnType": "string",
+              "type": "function",
+            },
+            "name": "zoomCursorPositionAnnouncementText",
+            "optional": true,
+            "type": "((value: string) => string)",
+          },
+          {
+            "name": "zoomCursorPreviousButtonAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "inlineType": {
+              "name": "(value: string) => string",
+              "parameters": [
+                {
+                  "name": "value",
+                  "type": "string",
+                },
+              ],
+              "returnType": "string",
+              "type": "function",
+            },
+            "name": "zoomModeEnteredAnnouncementText",
+            "optional": true,
+            "type": "((value: string) => string)",
+          },
+          {
+            "inlineType": {
+              "name": "(startValue: string, endValue: string) => string",
+              "parameters": [
+                {
+                  "name": "startValue",
+                  "type": "string",
+                },
+                {
+                  "name": "endValue",
+                  "type": "string",
+                },
+              ],
+              "returnType": "string",
+              "type": "function",
+            },
+            "name": "zoomRangeChangeAnnouncementText",
+            "optional": true,
+            "type": "((startValue: string, endValue: string) => string)",
+          },
+          {
+            "inlineType": {
+              "name": "(startValue: string, endValue: string) => string",
+              "parameters": [
+                {
+                  "name": "startValue",
+                  "type": "string",
+                },
+                {
+                  "name": "endValue",
+                  "type": "string",
+                },
+              ],
+              "returnType": "string",
+              "type": "function",
+            },
+            "name": "zoomSelectionAnnouncementText",
+            "optional": true,
+            "type": "((startValue: string, endValue: string) => string)",
+          },
+          {
+            "inlineType": {
+              "name": "(value: string) => string",
+              "parameters": [
+                {
+                  "name": "value",
+                  "type": "string",
+                },
+              ],
+              "returnType": "string",
+              "type": "function",
+            },
+            "name": "zoomStartPointAnnouncementText",
+            "optional": true,
+            "type": "((value: string) => string)",
           },
         ],
         "type": "object",
@@ -619,6 +815,78 @@ applies to the tooltip points values.",
       "name": "yAxis",
       "optional": true,
       "type": "CartesianChartProps.YAxisOptions | [CartesianChartProps.YAxisWithId, CartesianChartProps.YAxisWithId]",
+    },
+    {
+      "description": "Enables zoom functionality on the chart. When enabled, users can zoom into a range
+on the x-axis using three interaction methods:
+
+1. **Drag-to-zoom** — Click and drag on the chart plot area to select a range.
+2. **Zoom mode (click-based)** — A "Zoom" button appears in the top-right corner of the chart.
+   Clicking it enters zoom mode where popovers are disabled. The first click on the chart sets
+   the start point, and the second click sets the end point, zooming to that range. Direction
+   buttons appear at the selection line for fine-tuning. Press Escape or click "Exit zoom" to cancel.
+3. **Keyboard zoom** — While focused on a data point, hold Shift and press Left/Right arrow keys
+   to extend a selection range. Release Shift or press Enter to zoom. Press Escape to cancel.
+
+After zooming, a "Reset" button appears to restore the full data range.
+
+Supported options:
+* \`enabled\` (optional, boolean) — Enables zoom functionality.
+* \`hideButtons\` (optional, boolean) — Hides the built-in zoom control buttons (Zoom, Exit zoom, Reset).
+  Use this when providing custom zoom UI via ref methods (\`enterZoomMode\`, \`exitZoomMode\`, \`resetZoom\`).",
+      "inlineType": {
+        "name": "CartesianChartProps.ZoomOptions",
+        "properties": [
+          {
+            "name": "enabled",
+            "optional": true,
+            "type": "boolean",
+          },
+          {
+            "name": "hideButtons",
+            "optional": true,
+            "type": "boolean",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "zoom",
+      "optional": true,
+      "type": "CartesianChartProps.ZoomOptions",
+    },
+    {
+      "description": "The current zoom range. When provided, the component operates in controlled mode.
+Pass \`null\` to reset to full range. When omitted, zoom state is managed internally.",
+      "inlineType": {
+        "name": "CartesianChartProps.ZoomRange",
+        "properties": [
+          {
+            "inlineType": {
+              "name": "{ startValue: number; endValue: number; }",
+              "properties": [
+                {
+                  "name": "endValue",
+                  "optional": false,
+                  "type": "number",
+                },
+                {
+                  "name": "startValue",
+                  "optional": false,
+                  "type": "number",
+                },
+              ],
+              "type": "object",
+            },
+            "name": "x",
+            "optional": true,
+            "type": "{ startValue: number; endValue: number; }",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "zoomRange",
+      "optional": true,
+      "type": "CartesianChartProps.ZoomRange | null",
     },
   ],
   "regions": [

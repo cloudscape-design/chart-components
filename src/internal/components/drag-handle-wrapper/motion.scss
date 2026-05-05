@@ -1,0 +1,17 @@
+/*
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+*/
+
+// Simplified motion — no animations for now.
+.direction-button-wrapper {
+  &-motion-entering,
+  &-motion-entered {
+    opacity: 1;
+  }
+
+  &-motion-exiting,
+  &-motion-exited {
+    opacity: 0;
+  }
+}
