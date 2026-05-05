@@ -77,6 +77,9 @@ export default function () {
           <CategoryDatetime />
         </PageSection>
       </div>
+      <PageSection title="Datetime X, linear Y — Zoom with navigator">
+        <DatetimeLinearWithZoom />
+      </PageSection>
     </Page>
   );
 }
@@ -685,6 +688,39 @@ function CategoryDatetime() {
         title: "Y values",
         type: "datetime",
       }}
+    />
+  );
+}
+
+// Zoom + navigator demo: uses Highcharts built-in navigator with drag-to-zoom.
+// Reset zoom button is rendered internally by CartesianChart.
+function DatetimeLinearWithZoom() {
+  const { chartProps } = useChartSettings({ stock: true });
+
+  const now = new Date();
+  const seriesData = range(0, 100).map((i) => ({
+    x: addDays(now, i).getTime(),
+    y: Math.floor((pseudoRandom() + i / 50) * 100),
+  }));
+
+  return (
+    <CartesianChart
+      {...chartProps.cartesian}
+      chartHeight={400}
+      legend={{ enabled: true }}
+      zoom={{ type: "x" }}
+      chartNavigator={{ enabled: true, height: 50, ariaLabel: "Drag handles to adjust the visible time range" }}
+      series={[
+        { type: "area", name: "Requests", data: seriesData },
+        {
+          type: "spline",
+          name: "Avg latency",
+          data: seriesData.map((d) => ({ x: d.x, y: d.y * 0.6 + Math.floor(pseudoRandom() * 20) })),
+        },
+        { type: "y-threshold", name: "SLA limit", value: 150 },
+      ]}
+      xAxis={{ title: "Time", type: "datetime", valueFormatter: dateFormatter }}
+      yAxis={{ title: "Count", type: "linear" }}
     />
   );
 }

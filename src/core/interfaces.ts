@@ -160,6 +160,13 @@ export interface WithCartesianI18nStrings {
    * * `chartRoleDescription` (optional, string) - Accessible role description of the chart plot area, e.g. "interactive chart".
    * * `xAxisRoleDescription` (optional, string) - Accessible role description of the x axis, e.g. "x axis".
    * * `yAxisRoleDescription` (optional, string) - Accessible role description of the y axis, e.g. "y axis".
+   * * `resetZoomText` (optional, string) - Label for the reset zoom button, e.g. "Reset zoom".
+   * * `zoomLiveAnnouncementText` (optional, string) - Screen reader announcement when the chart is zoomed, e.g. "Chart zoomed in. Use the reset zoom button to restore the full range.".
+   * * `zoomResetLiveAnnouncementText` (optional, string) - Screen reader announcement when zoom is reset, e.g. "Zoom reset. Showing all data.".
+   * * `navigatorAriaLabel` (optional, string) - Accessible label for the navigator region, e.g. "Use handles to adjust the time range".
+   * * `navigatorHandleAriaLabel` (optional, string) - Accessible label for navigator drag handles, e.g. "Navigator handle".
+   * * `navigatorChangeAnnouncementText` (optional, function) - Screen reader announcement when the navigator range changes. Receives `axisRangeDescription` (string) and returns the announcement text, e.g. `(range) => \`Range changed: ${range}\``.
+   * * `zoomControlsAriaLabel` (optional, string) - Accessible label for the zoom controls region, e.g. "Chart zoom controls".
    */
   i18nStrings?: CartesianI18nStrings;
 }
@@ -187,6 +194,13 @@ export interface WithPieI18nStrings {
 export interface CartesianI18nStrings extends BaseI18nStrings {
   xAxisRoleDescription?: string;
   yAxisRoleDescription?: string;
+  resetZoomText?: string;
+  zoomLiveAnnouncementText?: string;
+  zoomResetLiveAnnouncementText?: string;
+  navigatorAriaLabel?: string;
+  navigatorHandleAriaLabel?: string;
+  navigatorChangeAnnouncementText?: (axisRangeDescription: string) => string;
+  zoomControlsAriaLabel?: string;
 }
 
 export interface PieI18nStrings extends BaseI18nStrings {
