@@ -1,9 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 
 import { useControllableState } from "@cloudscape-design/component-toolkit";
+import LiveRegion from "@cloudscape-design/components/live-region";
 
 import { InternalCoreChart } from "../core/chart-core";
 import { CoreChartProps, ErrorBarSeriesOptions } from "../core/interfaces";
@@ -24,6 +25,9 @@ interface InternalCartesianChartProps extends InternalBaseComponentProps, Cartes
 export const InternalCartesianChart = forwardRef(
   ({ tooltip, ...props }: InternalCartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
     const apiRef = useRef<null | CoreChartProps.ChartAPI>(null);
+    const [isZoomed, setIsZoomed] = useState(false);
+    const [liveAnnouncement, setLiveAnnouncement] = useState("");
+    const resetButtonRef = useRef<HTMLButtonElement>(null);
 
     // When visibleSeries and onVisibleSeriesChange are provided - the series visibility can be controlled from the outside.
     // Otherwise - the component handles series visibility using its internal state.
@@ -33,7 +37,6 @@ export const InternalCartesianChart = forwardRef(
       changeHandlerName: "onVisibleSeriesChange",
     });
     const allSeriesIds = props.series.map((s) => getOptionsId(s));
-    // We keep local visible series state to compute threshold series data, that depends on series visibility.
     const [visibleSeriesLocal, setVisibleSeriesLocal] = useState(props.visibleSeries ?? allSeriesIds);
     const visibleSeriesState = props.visibleSeries ?? visibleSeriesLocal;
     const onVisibleSeriesChange: CoreChartProps["onVisibleItemsChange"] = ({ detail: { items } }) => {
@@ -44,6 +47,44 @@ export const InternalCartesianChart = forwardRef(
         setVisibleSeriesLocal(visibleSeries);
       }
     };
+
+    // i18n defaults for zoom and navigator.
+    const i18n = {
+      resetZoomText: props.i18nStrings?.resetZoomText ?? "Reset zoom",
+      zoomLiveAnnouncementText:
+        props.i18nStrings?.zoomLiveAnnouncementText ??
+        "Chart zoomed in. Use the reset zoom button to restore the full range.",
+      zoomResetLiveAnnouncementText:
+        props.i18nStrings?.zoomResetLiveAnnouncementText ?? "Zoom reset. Showing all data.",
+      navigatorAriaLabel:
+        props.i18nStrings?.navigatorAriaLabel ?? "Use handles to adjust the time range displayed in the chart",
+      navigatorHandleAriaLabel: props.i18nStrings?.navigatorHandleAriaLabel ?? "Navigator handle",
+      navigatorChangeAnnouncementText:
+        props.i18nStrings?.navigatorChangeAnnouncementText ??
+        ((axisRangeDescription: string) => `Range changed: ${axisRangeDescription}`),
+      zoomControlsAriaLabel: props.i18nStrings?.zoomControlsAriaLabel ?? "Chart zoom controls",
+    };
+
+    const resetZoom = useCallback(() => {
+      apiRef.current?.chart.xAxis[0].setExtremes(undefined, undefined);
+      setIsZoomed(false);
+      setLiveAnnouncement(i18n.zoomResetLiveAnnouncementText);
+      fireNonCancelableEvent(props.onZoomChange, null);
+    }, [i18n.zoomResetLiveAnnouncementText, props.onZoomChange]);
+
+    const announceZoom = useCallback(
+      (zoomed: boolean) => {
+        setLiveAnnouncement(zoomed ? i18n.zoomLiveAnnouncementText : "");
+      },
+      [i18n.zoomLiveAnnouncementText],
+    );
+
+    // Focus the reset button when it appears after a zoom action.
+    useEffect(() => {
+      if (isZoomed && resetButtonRef.current) {
+        resetButtonRef.current.focus();
+      }
+    }, [isZoomed]);
 
     // We convert cartesian tooltip options to the core chart's getTooltipContent callback,
     // ensuring no internal types are exposed to the consumer-defined render functions.
@@ -101,22 +142,105 @@ export const InternalCartesianChart = forwardRef(
       showAllSeries: () => apiRef.current?.setItemsVisible(allSeriesIds),
     }));
 
+    const zoomEnabled = !!props.zoom?.type;
+    const navigatorEnabled = !!props.chartNavigator?.enabled;
+
+    // Navigator slot: reset zoom button + Cloudscape LiveRegion for zoom announcements.
+    const navigatorSlot =
+      zoomEnabled || navigatorEnabled ? (
+        <div role="region" aria-label={i18n.zoomControlsAriaLabel}>
+          <LiveRegion>{liveAnnouncement}</LiveRegion>
+          {zoomEnabled && isZoomed && (
+            <div style={{ marginBlockStart: 4 }}>
+              <button ref={resetButtonRef} onClick={resetZoom} aria-label={i18n.resetZoomText} type="button">
+                {i18n.resetZoomText}
+              </button>
+            </div>
+          )}
+        </div>
+      ) : null;
+
+    // Highcharts Stock options (navigator, scrollbar, rangeSelector) passed through the options object.
+    const stockOptions = navigatorEnabled
+      ? {
+          navigator: {
+            enabled: true,
+            height: props.chartNavigator!.height ?? 40,
+            adaptToUpdatedData: true,
+            accessibility: { enabled: true },
+          },
+          scrollbar: { enabled: false },
+          rangeSelector: { enabled: false },
+          lang: {
+            accessibility: {
+              navigator: {
+                groupLabel: i18n.navigatorAriaLabel,
+                handleLabel: i18n.navigatorHandleAriaLabel,
+                changeAnnouncement: i18n.navigatorChangeAnnouncementText("{axisRangeDescription}"),
+              },
+            },
+          },
+        }
+      : { navigator: { enabled: false }, scrollbar: { enabled: false }, rangeSelector: { enabled: false } };
+
     return (
       <InternalCoreChart
         {...props}
+        navigator={navigatorSlot}
         callback={(api) => (apiRef.current = api)}
         options={{
           chart: {
             inverted: props.inverted,
+            ...(zoomEnabled
+              ? {
+                  zooming: { type: props.zoom!.type ?? "x" },
+                  // Hide the default Highcharts "Reset zoom" button — we render our own accessible one.
+                  resetZoomButton: { theme: { style: { display: "none" } } },
+                }
+              : {}),
           },
           plotOptions: {
             series: { stacking: props.stacking },
           },
-          series,
+          accessibility: {
+            enabled: true,
+            keyboardNavigation: { enabled: true },
+          },
+          series: series.map((s) => ({
+            ...s,
+            showInNavigator: navigatorEnabled,
+          })),
           xAxis: castArray(props.xAxis)?.map((xAxisProps) => ({
             ...xAxisProps,
             title: { text: xAxisProps.title },
             plotLines: xPlotLines,
+            ...(zoomEnabled || navigatorEnabled
+              ? {
+                  events: {
+                    afterSetExtremes(e: {
+                      min: number;
+                      max: number;
+                      trigger?: string;
+                      userMin?: number;
+                      userMax?: number;
+                    }) {
+                      if (e.trigger === "navigator" || e.trigger === "zoom") {
+                        const zoomed = !!(e.userMin || e.userMax);
+                        setIsZoomed(zoomed);
+                        announceZoom(zoomed);
+                        if (zoomed) {
+                          fireNonCancelableEvent(props.onZoomChange, {
+                            startValue: e.min,
+                            endValue: e.max,
+                          });
+                        } else {
+                          fireNonCancelableEvent(props.onZoomChange, null);
+                        }
+                      }
+                    },
+                  },
+                }
+              : {}),
           })),
           yAxis: castArray(props.yAxis)?.map((yAxisProps, index) => ({
             ...yAxisProps,
@@ -124,6 +248,7 @@ export const InternalCartesianChart = forwardRef(
             plotLines: yPlotLines,
             ...(index === 1 ? { opposite: true } : {}),
           })),
+          ...stockOptions,
         }}
         sizeAxis={props.sizeAxis}
         tooltip={tooltip}

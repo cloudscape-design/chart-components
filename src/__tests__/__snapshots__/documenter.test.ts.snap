@@ -21,6 +21,15 @@ exports[`definition for cartesian-chart matches the snapshot > cartesian-chart 1
       "detailType": "{ visibleSeries: Array<string>; }",
       "name": "onVisibleSeriesChange",
     },
+    {
+      "cancelable": false,
+      "description": "Called when the visible zoom range changes due to user interaction (drag-to-zoom,
+navigator handles, or reset zoom).
+
+The detail contains \`startValue\` and \`endValue\` (epoch timestamps for datetime axes),
+or \`null\` when zoom is reset to the full range.",
+      "name": "onZoomChange",
+    },
   ],
   "functions": [
     {
@@ -80,6 +89,40 @@ minimum width, the horizontal scrollbar is automatically added.",
       "name": "chartMinWidth",
       "optional": true,
       "type": "number",
+    },
+    {
+      "description": "Enables the built-in Highcharts navigator — a mini chart below the main chart that
+provides drag handles for panning and zooming. Requires the Highcharts Stock module
+(\`highcharts/modules/stock\`) to be loaded before passing the \`highcharts\` instance.
+
+Supported options:
+* \`enabled\` (boolean) - Enables or disables the navigator.
+* \`height\` (optional, number) - Height of the navigator area in pixels. Defaults to 40.
+* \`ariaLabel\` (optional, string) - Accessible label for the navigator region.",
+      "inlineType": {
+        "name": "CartesianChartProps.NavigatorOptions",
+        "properties": [
+          {
+            "name": "ariaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "enabled",
+            "optional": false,
+            "type": "boolean",
+          },
+          {
+            "name": "height",
+            "optional": true,
+            "type": "number",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "chartNavigator",
+      "optional": true,
+      "type": "CartesianChartProps.NavigatorOptions",
     },
     {
       "defaultValue": "true",
@@ -158,7 +201,38 @@ Supported Highcharts versions: 12.",
             "type": "string",
           },
           {
+            "name": "navigatorAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "inlineType": {
+              "name": "(axisRangeDescription: string) => string",
+              "parameters": [
+                {
+                  "name": "axisRangeDescription",
+                  "type": "string",
+                },
+              ],
+              "returnType": "string",
+              "type": "function",
+            },
+            "name": "navigatorChangeAnnouncementText",
+            "optional": true,
+            "type": "((axisRangeDescription: string) => string)",
+          },
+          {
+            "name": "navigatorHandleAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
             "name": "recoveryText",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "resetZoomText",
             "optional": true,
             "type": "string",
           },
@@ -184,6 +258,21 @@ Supported Highcharts versions: 12.",
           },
           {
             "name": "yAxisRoleDescription",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "zoomControlsAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "zoomLiveAnnouncementText",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "zoomResetLiveAnnouncementText",
             "optional": true,
             "type": "string",
           },
@@ -619,6 +708,35 @@ applies to the tooltip points values.",
       "name": "yAxis",
       "optional": true,
       "type": "CartesianChartProps.YAxisOptions | [CartesianChartProps.YAxisWithId, CartesianChartProps.YAxisWithId]",
+    },
+    {
+      "description": "Enables drag-to-zoom on the x-axis. When enabled, users can click and drag on the chart
+to select a range, which zooms the chart to that range. Highcharts shows a "Reset zoom"
+button to restore the original view.
+
+Supported options:
+* \`type\` (optional, "x") - The axis to zoom on. Currently only "x" is supported.",
+      "inlineType": {
+        "name": "CartesianChartProps.ZoomOptions",
+        "properties": [
+          {
+            "inlineType": {
+              "name": "x",
+              "type": "union",
+              "values": [
+                "x",
+              ],
+            },
+            "name": "type",
+            "optional": true,
+            "type": "string",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "zoom",
+      "optional": true,
+      "type": "CartesianChartProps.ZoomOptions",
     },
   ],
   "regions": [

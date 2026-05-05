@@ -110,6 +110,37 @@ export interface CartesianChartProps
   sizeAxis?: CartesianChartProps.SizeAxisOptions | readonly CartesianChartProps.SizeAxisOptions[];
 
   /**
+   * Enables drag-to-zoom on the x-axis. When enabled, users can click and drag on the chart
+   * to select a range, which zooms the chart to that range. Highcharts shows a "Reset zoom"
+   * button to restore the original view.
+   *
+   * Supported options:
+   * * `type` (optional, "x") - The axis to zoom on. Currently only "x" is supported.
+   */
+  zoom?: CartesianChartProps.ZoomOptions;
+
+  /**
+   * Enables the built-in Highcharts navigator — a mini chart below the main chart that
+   * provides drag handles for panning and zooming. Requires the Highcharts Stock module
+   * (`highcharts/modules/stock`) to be loaded before passing the `highcharts` instance.
+   *
+   * Supported options:
+   * * `enabled` (boolean) - Enables or disables the navigator.
+   * * `height` (optional, number) - Height of the navigator area in pixels. Defaults to 40.
+   * * `ariaLabel` (optional, string) - Accessible label for the navigator region.
+   */
+  chartNavigator?: CartesianChartProps.NavigatorOptions;
+
+  /**
+   * Called when the visible zoom range changes due to user interaction (drag-to-zoom,
+   * navigator handles, or reset zoom).
+   *
+   * The detail contains `startValue` and `endValue` (epoch timestamps for datetime axes),
+   * or `null` when zoom is reset to the full range.
+   */
+  onZoomChange?: NonCancelableEventHandler<CartesianChartProps.ZoomChangeDetail | null>;
+
+  /**
    * Specifies which series to show using their IDs. By default, all series are visible and managed by the component.
    * If a series doesn't have an ID, its name is used. When using this property, manage state updates with `onVisibleSeriesChange`.
    */
@@ -217,6 +248,21 @@ export namespace CartesianChartProps {
   export type FilterOptions = CoreTypes.BaseFilterOptions;
 
   export type NoDataOptions = CoreTypes.BaseNoDataOptions;
+
+  export interface ZoomOptions {
+    type?: "x";
+  }
+
+  export interface NavigatorOptions {
+    enabled: boolean;
+    height?: number;
+    ariaLabel?: string;
+  }
+
+  export interface ZoomChangeDetail {
+    startValue: number;
+    endValue: number;
+  }
 }
 
 // Internal types
