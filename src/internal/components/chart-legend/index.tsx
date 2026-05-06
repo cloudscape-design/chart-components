@@ -98,6 +98,11 @@ export const ChartLegend = ({
         hideTooltip(true);
         elementsByIdRef.current[tooltipItemId]?.focus();
       }
+      if (event.keyCode === KeyCode.tab) {
+        event.preventDefault();
+        hideTooltip(true);
+        elementsByIdRef.current[tooltipItemId]?.focus();
+      }
     };
     document.addEventListener("keydown", onDocumentKeyDown, true);
     return () => {
