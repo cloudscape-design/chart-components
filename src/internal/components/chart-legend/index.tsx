@@ -6,6 +6,7 @@ import clsx from "clsx";
 
 import {
   circleIndex,
+  getAllFocusables,
   handleKey,
   KeyCode,
   SingleTabStopNavigationAPI,
@@ -27,6 +28,32 @@ const TOOLTIP_SHOW_DELAY = 300;
 const TOOLTIP_BLUR_DELAY = 50;
 const HIGHLIGHT_LOST_DELAY = 50;
 const SCROLL_DELAY = 100;
+
+// Selector for "real" interactive elements inside the popover. Skips the popover's
+// internal TabTrap helpers (rendered as <div tabindex="0">) so Tab from the trigger
+// lands on the dismiss button or the first content control.
+const TOOLTIP_INTERACTIVE_SELECTOR = "button, a[href], input, select, textarea";
+
+function focusFirstInteractiveInTooltip(tooltipEl: HTMLElement): boolean {
+  const first = getAllFocusables(tooltipEl).find((el) => el.matches(TOOLTIP_INTERACTIVE_SELECTOR));
+  if (first) {
+    first.focus();
+    return true;
+  }
+  return false;
+}
+
+function focusStaysInTooltipScope(
+  next: EventTarget | null,
+  tooltipEl: HTMLElement | null,
+  triggerEl: HTMLElement | undefined,
+): boolean {
+  if (!next) {
+    return false;
+  }
+  const node = next as Node;
+  return !!(tooltipEl?.contains(node) || triggerEl?.contains(node));
+}
 
 export type LegendAlignment = "horizontal" | "vertical";
 export type LegendHorizontalAlignment = "start" | "center" | "end";
@@ -74,11 +101,15 @@ export const ChartLegend = ({
   const scrollIntoViewControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [tooltipItemId, setTooltipItemId] = useState<string | null>(null);
+  const [dismissButtonVisible, setDismissButtonVisible] = useState<boolean>(false);
   const { showTooltip, hideTooltip } = useMemo(() => {
     const control = new DebouncedCall();
     return {
-      showTooltip(itemId: string) {
-        control.call(() => setTooltipItemId(itemId), TOOLTIP_SHOW_DELAY);
+      showTooltip(itemId: string, mode: "keyboard" | "mouse") {
+        control.call(() => {
+          setTooltipItemId(itemId);
+          setDismissButtonVisible(mode === "keyboard");
+        }, TOOLTIP_SHOW_DELAY);
       },
       hideTooltip(lock = false) {
         control.call(() => setTooltipItemId(null), TOOLTIP_BLUR_DELAY);
@@ -98,17 +129,19 @@ export const ChartLegend = ({
         hideTooltip(true);
         elementsByIdRef.current[tooltipItemId]?.focus();
       }
-      if (event.keyCode === KeyCode.tab) {
-        event.preventDefault();
-        hideTooltip(true);
-        elementsByIdRef.current[tooltipItemId]?.focus();
-      }
     };
     document.addEventListener("keydown", onDocumentKeyDown, true);
     return () => {
       document.removeEventListener("keydown", onDocumentKeyDown, true);
     };
-  }, [items, tooltipItemId, hideTooltip]);
+  }, [tooltipItemId, hideTooltip]);
+
+  useEffect(() => {
+    if (tooltipItemId && dismissButtonVisible) {
+      elementsByIdRef.current[tooltipItemId]?.focus({ preventScroll: true });
+    }
+  }, [tooltipItemId, dismissButtonVisible]);
+
   const isMouseInContainer = useRef<boolean>(false);
 
   // Scrolling to the highlighted legend item.
@@ -146,7 +179,7 @@ export const ChartLegend = ({
     setSelectedIndex(index);
     navigationAPI.current!.updateFocusTarget();
     showHighlight(itemId);
-    showTooltip(itemId);
+    showTooltip(itemId, "keyboard");
   }
 
   function onBlur(event: React.FocusEvent) {
@@ -164,6 +197,12 @@ export const ChartLegend = ({
   }
 
   function onKeyDown(event: React.KeyboardEvent<HTMLElement>) {
+    if (event.keyCode === KeyCode.tab && !event.shiftKey && tooltipRef.current) {
+      if (focusFirstInteractiveInTooltip(tooltipRef.current)) {
+        event.preventDefault();
+        return;
+      }
+    }
     if (
       event.keyCode === KeyCode.right ||
       event.keyCode === KeyCode.left ||
@@ -222,25 +261,25 @@ export const ChartLegend = ({
   const tooltipPosition = isVertical ? "left" : "bottom";
 
   return (
-    <SingleTabStopNavigationProvider
-      ref={navigationAPI}
-      navigationActive={true}
-      getNextFocusTarget={() => getNextFocusTarget()}
-      onUnregisterActive={(element: HTMLElement) => onUnregisterActive(element, navigationAPI)}
+    <div
+      role="toolbar"
+      aria-label={legendTitle || ariaLabel}
+      className={clsx(testClasses.root, styles.root, className)}
+      data-axisid={axisId}
+      onMouseEnter={() => (isMouseInContainer.current = true)}
+      onMouseLeave={() => (isMouseInContainer.current = false)}
     >
-      <div
-        role="toolbar"
-        aria-label={legendTitle || ariaLabel}
-        className={clsx(testClasses.root, styles.root, className)}
-        data-axisid={axisId}
-        onMouseEnter={() => (isMouseInContainer.current = true)}
-        onMouseLeave={() => (isMouseInContainer.current = false)}
+      {legendTitle && (
+        <Box fontWeight="bold" className={testClasses.title} textAlign={getBoxTextAlignment(horizontalAlignment)}>
+          {legendTitle}
+        </Box>
+      )}
+      <SingleTabStopNavigationProvider
+        ref={navigationAPI}
+        navigationActive={true}
+        getNextFocusTarget={() => getNextFocusTarget()}
+        onUnregisterActive={(element: HTMLElement) => onUnregisterActive(element, navigationAPI)}
       >
-        {legendTitle && (
-          <Box fontWeight="bold" className={testClasses.title} textAlign={getBoxTextAlignment(horizontalAlignment)}>
-            {legendTitle}
-          </Box>
-        )}
         <div
           // The list element is not focusable. However, the focus lands on it regardless, when testing in Firefox.
           // Setting the tab index to -1 does fix the problem.
@@ -266,7 +305,7 @@ export const ChartLegend = ({
             const handlers = {
               onMouseEnter: () => {
                 showHighlight(item.id);
-                showTooltip(item.id);
+                showTooltip(item.id, "mouse");
               },
               onMouseLeave: () => {
                 clearHighlight();
@@ -311,33 +350,43 @@ export const ChartLegend = ({
             );
           })}
         </div>
-        {tooltipContent && (
-          <InternalChartTooltip
-            trackRef={tooltipTrack}
-            triggerClampRef={containerRef}
-            trackKey={tooltipTarget.id}
-            container={null}
-            dismissButton={false}
-            onDismiss={() => {}}
-            position={tooltipPosition}
-            title={tooltipContent.header}
-            onMouseEnter={() => showTooltip(tooltipTarget.id)}
-            onMouseLeave={() => hideTooltip()}
-            onBlur={() => hideTooltip()}
-            footer={
-              tooltipContent.footer && (
-                <>
-                  <hr aria-hidden={true} />
-                  {tooltipContent.footer}
-                </>
-              )
+      </SingleTabStopNavigationProvider>
+      {tooltipContent && (
+        <InternalChartTooltip
+          ref={tooltipRef}
+          trackRef={tooltipTrack}
+          triggerClampRef={containerRef}
+          trackKey={tooltipTarget.id}
+          container={null}
+          dismissButton={dismissButtonVisible}
+          onDismiss={() => {
+            hideTooltip(true);
+            elementsByIdRef.current[tooltipTarget.id]?.focus();
+          }}
+          position={tooltipPosition}
+          title={tooltipContent.header}
+          onMouseEnter={() => showTooltip(tooltipTarget.id, dismissButtonVisible ? "keyboard" : "mouse")}
+          onMouseLeave={() => hideTooltip()}
+          onBlur={(event) => {
+            const trigger = elementsByIdRef.current[tooltipTarget.id];
+            if (focusStaysInTooltipScope(event.relatedTarget, tooltipRef.current, trigger)) {
+              return;
             }
-          >
-            {tooltipContent.body}
-          </InternalChartTooltip>
-        )}
-      </div>
-    </SingleTabStopNavigationProvider>
+            hideTooltip();
+          }}
+          footer={
+            tooltipContent.footer && (
+              <>
+                <hr aria-hidden={true} />
+                {tooltipContent.footer}
+              </>
+            )
+          }
+        >
+          {tooltipContent.body}
+        </InternalChartTooltip>
+      )}
+    </div>
   );
 };
 
