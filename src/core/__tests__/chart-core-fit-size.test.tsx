@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { useEffect, useRef } from "react";
-import { waitFor } from "@testing-library/react";
+import { render as rtlRender, waitFor } from "@testing-library/react";
 import highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import { vi } from "vitest";
 
 import { circleIndex } from "@cloudscape-design/component-toolkit/internal";
 
+import { ChartContainer } from "../../../lib/components/core/chart-container";
 import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
 import { objectContainingDeep, renderChart } from "./common";
 
@@ -29,7 +30,7 @@ vi.mock("@cloudscape-design/component-toolkit/internal", async () => {
       useEffect(() => {
         cb({ contentBoxHeight: mockSizes[index] });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, []);
+      }, [mockSizes[index]]);
     },
   };
 });
@@ -144,5 +145,62 @@ describe("CoreChart: fit-size", () => {
     rerender({ highcharts, fitHeight, chartMinWidth: 333 });
 
     expect(wrapper.findByClassName(testClasses["chart-plot-wrapper"])!.getElement().style.minInlineSize).toBe("333px");
+  });
+
+  test("hides chart plot wrapper while waiting for footer measurement with fitHeight and bottom legend", async () => {
+    // Hidden when fitHeight + bottom legend + footer not yet measured
+    mockSizes[0] = 100;
+    mockSizes[1] = 0;
+    mockSizes[2] = 0;
+    queryMeasurementIndex = 0;
+
+    const { container, rerender } = rtlRender(
+      <ChartContainer
+        chart={() => <div>chart</div>}
+        verticalAxisTitlePlacement="side"
+        legendPosition="bottom"
+        fitHeight={true}
+        primaryLegend={<div>Legend</div>}
+      />,
+    );
+
+    await waitFor(() => {
+      const plotWrapper = container.querySelector(`.${testClasses["chart-plot-wrapper"]}`);
+      expect(plotWrapper!.style.visibility).toBe("hidden");
+    });
+
+    // Visible once footer is measured
+    mockSizes[2] = 20;
+    rerender(
+      <ChartContainer
+        chart={() => <div>chart</div>}
+        verticalAxisTitlePlacement="side"
+        legendPosition="bottom"
+        fitHeight={true}
+        primaryLegend={<div>Legend</div>}
+      />,
+    );
+
+    await waitFor(() => {
+      const plotWrapper = container.querySelector(`.${testClasses["chart-plot-wrapper"]}`);
+      expect(plotWrapper!.style.visibility).toBe("");
+    });
+
+    // Visible with side legend even when footer not measured
+    mockSizes[2] = 0;
+    rerender(
+      <ChartContainer
+        chart={() => <div>chart</div>}
+        verticalAxisTitlePlacement="side"
+        legendPosition="side"
+        fitHeight={true}
+        primaryLegend={<div>Legend</div>}
+      />,
+    );
+
+    await waitFor(() => {
+      const plotWrapper = container.querySelector(`.${testClasses["chart-plot-wrapper"]}`);
+      expect(plotWrapper!.style.visibility).toBe("");
+    });
   });
 });

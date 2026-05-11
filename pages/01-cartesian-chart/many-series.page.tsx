@@ -18,6 +18,7 @@ export default function () {
       settings={
         <PageSettingsForm
           selectedSettings={[
+            "containerHeight",
             "verticalAxisTitlePlacement",
             "showLegend",
             "showLegendTitle",
@@ -102,22 +103,25 @@ series.push({ type: "x-threshold", name: "X Threshold", value: 1601000100000 });
 series.push({ type: "y-threshold", name: "Y Threshold", value: 1_500_000 });
 
 function Component() {
-  const { chartProps } = useChartSettings();
+  const { chartProps, settings } = useChartSettings();
   return (
-    <CartesianChart
-      {...chartProps.cartesian}
-      stacking="normal"
-      chartHeight={400}
-      ariaLabel="Area chart"
-      series={series}
-      xAxis={{
-        type: "datetime",
-        title: "Time (UTC)",
-        min: domain[0].getTime(),
-        max: domain[domain.length - 1].getTime(),
-        valueFormatter: dateFormatter,
-      }}
-      yAxis={{ title: "Bytes transferred" }}
-    />
+    <div style={{ height: settings.containerHeight }}>
+      <CartesianChart
+        {...chartProps.cartesian}
+        fitHeight={true}
+        stacking="normal"
+        chartHeight={400}
+        ariaLabel="Area chart"
+        series={series}
+        xAxis={{
+          type: "datetime",
+          title: "Time (UTC)",
+          min: domain[0].getTime(),
+          max: domain[domain.length - 1].getTime(),
+          valueFormatter: dateFormatter,
+        }}
+        yAxis={{ title: "Bytes transferred" }}
+      />
+    </div>
   );
 }

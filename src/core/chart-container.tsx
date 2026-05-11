@@ -68,7 +68,7 @@ export function ChartContainer({
   const withMinHeight = (height: number) => Math.max(chartMinHeight ?? DEFAULT_CHART_MIN_HEIGHT, height) - heightOffset;
   const measuredChartHeight = withMinHeight(measures.chart - measures.header - measures.footer);
   const effectiveChartHeight = fitHeight ? measuredChartHeight : withMinHeight(chartHeight ?? DEFAULT_CHART_HEIGHT);
-  const hasLegend = primaryLegend || secondaryLegend;
+  const hasLegend = !!(primaryLegend || secondaryLegend);
   return (
     <div
       ref={refs.chart}
@@ -99,8 +99,14 @@ export function ChartContainer({
         </div>
       ) : (
         <div
-          style={chartMinWidth !== undefined ? { minInlineSize: chartMinWidth } : {}}
           className={clsx(styles["chart-plot-wrapper"], testClasses["chart-plot-wrapper"])}
+          style={getChartPlotWrapperStyles({
+            measures,
+            fitHeight,
+            hasLegend,
+            chartMinWidth,
+            legendPosition,
+          })}
         >
           {verticalAxisTitle}
           {chart(effectiveChartHeight)}
@@ -125,10 +131,38 @@ export function ChartContainer({
   );
 }
 
+/**
+ * Computes the styles for the chart plot wrapper in the bottom/no-legend layout case.
+ * When fitHeight is enabled with a bottom legend, the chart height depends on the footer measurement.
+ * Without this, the chart briefly renders at full container height then visibly shrinks once the
+ * legend is measured, causing a layout shift. We hide the chart until the footer measurement
+ * completes to prevent this flash.
+ */
+function getChartPlotWrapperStyles({
+  measures,
+  fitHeight,
+  hasLegend,
+  chartMinWidth,
+  legendPosition,
+}: {
+  hasLegend: boolean;
+  fitHeight?: boolean;
+  chartMinWidth?: number;
+  legendPosition: "bottom" | "side";
+  measures: { header: number; footer: number; chart: number };
+}): React.CSSProperties {
+  const needsFooterMeasure =
+    fitHeight && hasLegend && legendPosition !== "side" && measures.footer === 0 && measures.chart > 0;
+  return {
+    ...(needsFooterMeasure && { visibility: "hidden" }),
+    ...(chartMinWidth !== undefined && { minInlineSize: chartMinWidth }),
+  };
+}
+
 // This hook combines 3 resize observer and does a small optimization to batch their updates in a single set-state.
 function useContainerQueries() {
-  const [measuresState, setMeasuresState] = useState({ ready: false, chart: 0, header: 0, footer: 0 });
-  const measuresRef = useRef({ ready: false, chart: 0, header: 0, footer: 0 });
+  const [measuresState, setMeasuresState] = useState({ chart: 0, header: 0, footer: 0 });
+  const measuresRef = useRef({ chart: 0, header: 0, footer: 0 });
   const measureDebounce = useRef(new DebouncedCall()).current;
   const setMeasure = (type: "chart" | "header" | "footer", value: number) => {
     measuresRef.current[type] = value;
