@@ -6,7 +6,6 @@ import clsx from "clsx";
 
 import {
   circleIndex,
-  getAllFocusables,
   handleKey,
   KeyCode,
   SingleTabStopNavigationAPI,
@@ -28,20 +27,6 @@ const TOOLTIP_SHOW_DELAY = 300;
 const TOOLTIP_BLUR_DELAY = 50;
 const HIGHLIGHT_LOST_DELAY = 50;
 const SCROLL_DELAY = 100;
-
-// Selector for "real" interactive elements inside the popover. Skips the popover's
-// internal TabTrap helpers (rendered as <div tabindex="0">) so Tab from the trigger
-// lands on the dismiss button or the first content control.
-const TOOLTIP_INTERACTIVE_SELECTOR = "button, a[href], input, select, textarea";
-
-function focusFirstInteractiveInTooltip(tooltipEl: HTMLElement): boolean {
-  const first = getAllFocusables(tooltipEl).find((el) => el.matches(TOOLTIP_INTERACTIVE_SELECTOR));
-  if (first) {
-    first.focus();
-    return true;
-  }
-  return false;
-}
 
 function focusStaysInTooltipScope(
   next: EventTarget | null,
@@ -97,19 +82,16 @@ export const ChartLegend = ({
   const elementsByIndexRef = useRef<Record<number, HTMLElement>>([]);
   const elementsByIdRef = useRef<Record<string, HTMLElement>>({});
   const tooltipRef = useRef<HTMLElement>(null);
+  const tabTrapRef = useRef<HTMLDivElement>(null);
   const highlightControl = useMemo(() => new DebouncedCall(), []);
   const scrollIntoViewControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [tooltipItemId, setTooltipItemId] = useState<string | null>(null);
-  const [dismissButtonVisible, setDismissButtonVisible] = useState<boolean>(false);
   const { showTooltip, hideTooltip } = useMemo(() => {
     const control = new DebouncedCall();
     return {
-      showTooltip(itemId: string, mode: "keyboard" | "mouse") {
-        control.call(() => {
-          setTooltipItemId(itemId);
-          setDismissButtonVisible(mode === "keyboard");
-        }, TOOLTIP_SHOW_DELAY);
+      showTooltip(itemId: string) {
+        control.call(() => setTooltipItemId(itemId), TOOLTIP_SHOW_DELAY);
       },
       hideTooltip(lock = false) {
         control.call(() => setTooltipItemId(null), TOOLTIP_BLUR_DELAY);
@@ -136,11 +118,14 @@ export const ChartLegend = ({
     };
   }, [tooltipItemId, hideTooltip]);
 
+  // Workaround: PopoverBody auto-focuses the dismiss button on mount.
+  // We re-focus the legend trigger here, relying on React's child-before-parent effect ordering.
+  // Remove this once InternalChartTooltip supports a `disableAutoFocus` prop.
   useEffect(() => {
-    if (tooltipItemId && dismissButtonVisible) {
+    if (tooltipItemId) {
       elementsByIdRef.current[tooltipItemId]?.focus({ preventScroll: true });
     }
-  }, [tooltipItemId, dismissButtonVisible]);
+  }, [tooltipItemId]);
 
   const isMouseInContainer = useRef<boolean>(false);
 
@@ -179,14 +164,21 @@ export const ChartLegend = ({
     setSelectedIndex(index);
     navigationAPI.current!.updateFocusTarget();
     showHighlight(itemId);
-    showTooltip(itemId, "keyboard");
+    showTooltip(itemId);
   }
 
   function onBlur(event: React.FocusEvent) {
     navigationAPI.current!.updateFocusTarget();
 
-    // Hide tooltip and clear highlight unless focus moves inside tooltip;
-    if (tooltipRef.current && event.relatedTarget && !tooltipRef.current.contains(event.relatedTarget)) {
+    // Hide tooltip and clear highlight unless focus moves inside tooltip or to the tab trap;
+    const next = event.relatedTarget as Node | null;
+    if (next && tooltipRef.current?.contains(next)) {
+      return;
+    }
+    if (next && tabTrapRef.current?.contains(next)) {
+      return;
+    }
+    if (next) {
       clearHighlight();
       hideTooltip();
     }
@@ -197,12 +189,6 @@ export const ChartLegend = ({
   }
 
   function onKeyDown(event: React.KeyboardEvent<HTMLElement>) {
-    if (event.keyCode === KeyCode.tab && !event.shiftKey && tooltipRef.current) {
-      if (focusFirstInteractiveInTooltip(tooltipRef.current)) {
-        event.preventDefault();
-        return;
-      }
-    }
     if (
       event.keyCode === KeyCode.right ||
       event.keyCode === KeyCode.left ||
@@ -305,7 +291,7 @@ export const ChartLegend = ({
             const handlers = {
               onMouseEnter: () => {
                 showHighlight(item.id);
-                showTooltip(item.id, "mouse");
+                showTooltip(item.id);
               },
               onMouseLeave: () => {
                 clearHighlight();
@@ -352,20 +338,28 @@ export const ChartLegend = ({
         </div>
       </SingleTabStopNavigationProvider>
       {tooltipContent && (
+        <div
+          ref={tabTrapRef}
+          tabIndex={0}
+          onFocus={() => tooltipRef.current?.querySelector<HTMLElement>("button")?.focus()}
+          style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }}
+        />
+      )}
+      {tooltipContent && (
         <InternalChartTooltip
           ref={tooltipRef}
           trackRef={tooltipTrack}
           triggerClampRef={containerRef}
           trackKey={tooltipTarget.id}
           container={null}
-          dismissButton={dismissButtonVisible}
+          dismissButton={true}
           onDismiss={() => {
             hideTooltip(true);
             elementsByIdRef.current[tooltipTarget.id]?.focus();
           }}
           position={tooltipPosition}
           title={tooltipContent.header}
-          onMouseEnter={() => showTooltip(tooltipTarget.id, dismissButtonVisible ? "keyboard" : "mouse")}
+          onMouseEnter={() => showTooltip(tooltipTarget.id)}
           onMouseLeave={() => hideTooltip()}
           onBlur={(event) => {
             const trigger = elementsByIdRef.current[tooltipTarget.id];
