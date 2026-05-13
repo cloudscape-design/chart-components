@@ -1,10 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 
 import { useControllableState } from "@cloudscape-design/component-toolkit";
-import LiveRegion from "@cloudscape-design/components/live-region";
 
 import { InternalCoreChart } from "../core/chart-core";
 import { CoreChartProps, ErrorBarSeriesOptions } from "../core/interfaces";
@@ -26,8 +25,6 @@ export const InternalCartesianChart = forwardRef(
   ({ tooltip, ...props }: InternalCartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
     const apiRef = useRef<null | CoreChartProps.ChartAPI>(null);
     const [isZoomed, setIsZoomed] = useState(false);
-    const [liveAnnouncement, setLiveAnnouncement] = useState("");
-    const resetButtonRef = useRef<HTMLButtonElement>(null);
 
     // When visibleSeries and onVisibleSeriesChange are provided - the series visibility can be controlled from the outside.
     // Otherwise - the component handles series visibility using its internal state.
@@ -37,6 +34,7 @@ export const InternalCartesianChart = forwardRef(
       changeHandlerName: "onVisibleSeriesChange",
     });
     const allSeriesIds = props.series.map((s) => getOptionsId(s));
+    // We keep local visible series state to compute threshold series data, that depends on series visibility.
     const [visibleSeriesLocal, setVisibleSeriesLocal] = useState(props.visibleSeries ?? allSeriesIds);
     const visibleSeriesState = props.visibleSeries ?? visibleSeriesLocal;
     const onVisibleSeriesChange: CoreChartProps["onVisibleItemsChange"] = ({ detail: { items } }) => {
@@ -47,44 +45,6 @@ export const InternalCartesianChart = forwardRef(
         setVisibleSeriesLocal(visibleSeries);
       }
     };
-
-    // i18n defaults for zoom and navigator.
-    const i18n = {
-      resetZoomText: props.i18nStrings?.resetZoomText ?? "Reset zoom",
-      zoomLiveAnnouncementText:
-        props.i18nStrings?.zoomLiveAnnouncementText ??
-        "Chart zoomed in. Use the reset zoom button to restore the full range.",
-      zoomResetLiveAnnouncementText:
-        props.i18nStrings?.zoomResetLiveAnnouncementText ?? "Zoom reset. Showing all data.",
-      navigatorAriaLabel:
-        props.i18nStrings?.navigatorAriaLabel ?? "Use handles to adjust the time range displayed in the chart",
-      navigatorHandleAriaLabel: props.i18nStrings?.navigatorHandleAriaLabel ?? "Navigator handle",
-      navigatorChangeAnnouncementText:
-        props.i18nStrings?.navigatorChangeAnnouncementText ??
-        ((axisRangeDescription: string) => `Range changed: ${axisRangeDescription}`),
-      zoomControlsAriaLabel: props.i18nStrings?.zoomControlsAriaLabel ?? "Chart zoom controls",
-    };
-
-    const resetZoom = useCallback(() => {
-      apiRef.current?.chart.xAxis[0].setExtremes(undefined, undefined);
-      setIsZoomed(false);
-      setLiveAnnouncement(i18n.zoomResetLiveAnnouncementText);
-      fireNonCancelableEvent(props.onZoomChange, null);
-    }, [i18n.zoomResetLiveAnnouncementText, props.onZoomChange]);
-
-    const announceZoom = useCallback(
-      (zoomed: boolean) => {
-        setLiveAnnouncement(zoomed ? i18n.zoomLiveAnnouncementText : "");
-      },
-      [i18n.zoomLiveAnnouncementText],
-    );
-
-    // Focus the reset button when it appears after a zoom action.
-    useEffect(() => {
-      if (isZoomed && resetButtonRef.current) {
-        resetButtonRef.current.focus();
-      }
-    }, [isZoomed]);
 
     // We convert cartesian tooltip options to the core chart's getTooltipContent callback,
     // ensuring no internal types are exposed to the consumer-defined render functions.
@@ -136,111 +96,170 @@ export const InternalCartesianChart = forwardRef(
     // Converting x-, and y-threshold series to Highcharts series and plot lines.
     const { series, xPlotLines, yPlotLines } = transformCartesianSeries(props.series, visibleSeriesState);
 
+    // Sync listeners registered via ref.subscribe().
+    const syncListenersRef = useRef<CartesianChartProps.SyncListeners | null>(null);
+
     // Cartesian chart imperative API.
     useImperativeHandle(ref, () => ({
       setVisibleSeries: (visibleSeriesIds) => apiRef.current?.setItemsVisible(visibleSeriesIds),
       showAllSeries: () => apiRef.current?.setItemsVisible(allSeriesIds),
-    }));
-
-    const zoomEnabled = !!props.zoom?.type;
-    const navigatorEnabled = !!props.chartNavigator?.enabled;
-
-    // Navigator slot: reset zoom button + Cloudscape LiveRegion for zoom announcements.
-    const navigatorSlot =
-      zoomEnabled || navigatorEnabled ? (
-        <div role="region" aria-label={i18n.zoomControlsAriaLabel}>
-          <LiveRegion>{liveAnnouncement}</LiveRegion>
-          {zoomEnabled && isZoomed && (
-            <div style={{ marginBlockStart: 4 }}>
-              <button ref={resetButtonRef} onClick={resetZoom} aria-label={i18n.resetZoomText} type="button">
-                {i18n.resetZoomText}
-              </button>
-            </div>
-          )}
-        </div>
-      ) : null;
-
-    // Highcharts Stock options (navigator, scrollbar, rangeSelector) passed through the options object.
-    const stockOptions = navigatorEnabled
-      ? {
-          navigator: {
-            enabled: true,
-            height: props.chartNavigator!.height ?? 40,
-            adaptToUpdatedData: true,
-            accessibility: { enabled: true },
-          },
-          scrollbar: { enabled: false },
-          rangeSelector: { enabled: false },
-          lang: {
-            accessibility: {
-              navigator: {
-                groupLabel: i18n.navigatorAriaLabel,
-                handleLabel: i18n.navigatorHandleAriaLabel,
-                changeAnnouncement: i18n.navigatorChangeAnnouncementText("{axisRangeDescription}"),
-              },
-            },
-          },
+      setCrosshair: (xValue: number) => {
+        const chart = apiRef.current?.chart;
+        if (!chart || !chart.series.length) {
+          return;
         }
-      : { navigator: { enabled: false }, scrollbar: { enabled: false }, rangeSelector: { enabled: false } };
+        const points = chart.series
+          .filter((s) => s.visible && s.points?.length)
+          .map((s) => {
+            let nearest = s.points[0];
+            for (const p of s.points) {
+              if (Math.abs(p.x - xValue) < Math.abs(nearest.x - xValue)) {
+                nearest = p;
+              }
+            }
+            return nearest;
+          })
+          .filter(Boolean);
+        if (points.length) {
+          chart.xAxis[0].drawCrosshair(undefined, points[0]);
+        }
+      },
+      clearCrosshair: () => {
+        const chart = apiRef.current?.chart;
+        if (!chart) {
+          return;
+        }
+        chart.xAxis[0].hideCrosshair();
+      },
+      setZoomRange: (startValue: number, endValue: number) => {
+        apiRef.current?.chart.xAxis[0].setExtremes(startValue, endValue);
+      },
+      resetZoom: () => {
+        apiRef.current?.chart.xAxis[0].setExtremes(undefined, undefined);
+        setIsZoomed(false);
+        fireNonCancelableEvent(props.onZoomChange, null);
+      },
+      highlightSeries: (seriesId: string) => {
+        apiRef.current?.highlightItems([seriesId]);
+      },
+      clearHighlight: () => {
+        apiRef.current?.clearChartHighlight();
+      },
+      subscribe: (listeners: CartesianChartProps.SyncListeners) => {
+        syncListenersRef.current = listeners;
+        return () => {
+          syncListenersRef.current = null;
+        };
+      },
+    }));
 
     return (
       <InternalCoreChart
         {...props}
-        navigator={navigatorSlot}
-        callback={(api) => (apiRef.current = api)}
+        navigator={
+          props.zoom?.type && isZoomed && !props.zoom.hideResetButton ? (
+            <div role="region" aria-label={props.i18nStrings?.zoomControlsAriaLabel ?? "Chart zoom controls"}>
+              <button
+                className={testClasses["reset-zoom-button"]}
+                onClick={() => {
+                  apiRef.current?.chart.xAxis[0].setExtremes(undefined, undefined);
+                  setIsZoomed(false);
+                  fireNonCancelableEvent(props.onZoomChange, null);
+                }}
+                aria-label={props.i18nStrings?.resetZoomText ?? "Reset zoom"}
+                type="button"
+              >
+                {props.i18nStrings?.resetZoomText ?? "Reset zoom"}
+              </button>
+            </div>
+          ) : undefined
+        }
+        callback={(api) => {
+          apiRef.current = api;
+          // Crosshair sync: mousemove on chart container.
+          const chart = api.chart;
+          const container = chart.container;
+          container.addEventListener("mousemove", (e: MouseEvent) => {
+            if (!syncListenersRef.current?.onCrosshairChange) {
+              return;
+            }
+            const normalized = chart.pointer?.normalize(e);
+            if (!normalized) {
+              return;
+            }
+            const { chartX, chartY } = normalized;
+            const { plotLeft, plotTop, plotWidth, plotHeight } = chart;
+            if (
+              chartX >= plotLeft &&
+              chartX <= plotLeft + plotWidth &&
+              chartY >= plotTop &&
+              chartY <= plotTop + plotHeight
+            ) {
+              syncListenersRef.current.onCrosshairChange({ xValue: chart.xAxis[0].toValue(chartX, false) });
+            }
+          });
+          container.addEventListener("mouseleave", () => {
+            syncListenersRef.current?.onCrosshairChange?.(null);
+          });
+        }}
+        onLegendItemHighlight={({ detail }) => {
+          syncListenersRef.current?.onHighlightChange?.({ seriesId: detail.item.id });
+        }}
+        onClearHighlight={() => {
+          syncListenersRef.current?.onHighlightChange?.(null);
+        }}
+        onHighlight={({ detail }) => {
+          if (detail.isApiCall) {
+            return;
+          }
+          const seriesId = detail.point?.series?.userOptions?.id ?? detail.point?.series?.name;
+          if (seriesId) {
+            syncListenersRef.current?.onHighlightChange?.({ seriesId });
+          }
+        }}
+        onVisibleItemsChange={(event) => {
+          // Existing visibility handling.
+          onVisibleSeriesChange(event);
+          // Notify sync listeners.
+          const visible = event.detail.items.filter((i) => i.visible).map((i) => i.id);
+          syncListenersRef.current?.onVisibleSeriesChange?.({ visibleSeries: visible });
+        }}
         options={{
           chart: {
             inverted: props.inverted,
-            ...(zoomEnabled
+            ...(props.zoom?.type
               ? {
-                  zooming: { type: props.zoom!.type ?? "x" },
-                  // Hide the default Highcharts "Reset zoom" button — we render our own accessible one.
+                  zooming: { type: props.zoom.type ?? "x" },
                   resetZoomButton: { theme: { style: { display: "none" } } },
                 }
               : {}),
           },
           plotOptions: {
-            series: { stacking: props.stacking },
+            series: {
+              stacking: props.stacking,
+            },
           },
-          accessibility: {
-            enabled: true,
-            keyboardNavigation: { enabled: true },
-          },
-          series: series.map((s) => ({
-            ...s,
-            showInNavigator: navigatorEnabled,
-          })),
+          navigator: props.chartNavigator?.enabled
+            ? { enabled: true, height: props.chartNavigator.height ?? 40, adaptToUpdatedData: true }
+            : { enabled: false },
+          scrollbar: { enabled: false },
+          rangeSelector: { enabled: false },
+          series: series.map((s) => ({ ...s, showInNavigator: !!props.chartNavigator?.enabled })),
           xAxis: castArray(props.xAxis)?.map((xAxisProps) => ({
             ...xAxisProps,
             title: { text: xAxisProps.title },
             plotLines: xPlotLines,
-            ...(zoomEnabled || navigatorEnabled
-              ? {
-                  events: {
-                    afterSetExtremes(e: {
-                      min: number;
-                      max: number;
-                      trigger?: string;
-                      userMin?: number;
-                      userMax?: number;
-                    }) {
-                      if (e.trigger === "navigator" || e.trigger === "zoom") {
-                        const zoomed = !!(e.userMin || e.userMax);
-                        setIsZoomed(zoomed);
-                        announceZoom(zoomed);
-                        if (zoomed) {
-                          fireNonCancelableEvent(props.onZoomChange, {
-                            startValue: e.min,
-                            endValue: e.max,
-                          });
-                        } else {
-                          fireNonCancelableEvent(props.onZoomChange, null);
-                        }
-                      }
-                    },
-                  },
+            crosshair: true,
+            events: {
+              afterSetExtremes(e: { min: number; max: number; trigger?: string; userMin?: number; userMax?: number }) {
+                if (e.trigger === "navigator" || e.trigger === "zoom") {
+                  const isReset = !e.userMin && !e.userMax;
+                  setIsZoomed(!isReset);
+                  syncListenersRef.current?.onZoomChange?.(isReset ? null : { startValue: e.min, endValue: e.max });
+                  fireNonCancelableEvent(props.onZoomChange, isReset ? null : { startValue: e.min, endValue: e.max });
                 }
-              : {}),
+              },
+            },
           })),
           yAxis: castArray(props.yAxis)?.map((yAxisProps, index) => ({
             ...yAxisProps,
@@ -248,13 +267,11 @@ export const InternalCartesianChart = forwardRef(
             plotLines: yPlotLines,
             ...(index === 1 ? { opposite: true } : {}),
           })),
-          ...stockOptions,
         }}
         sizeAxis={props.sizeAxis}
         tooltip={tooltip}
         getTooltipContent={getTooltipContent}
         visibleItems={props.visibleSeries}
-        onVisibleItemsChange={onVisibleSeriesChange}
         className={testClasses.root}
       />
     );

@@ -110,9 +110,19 @@ export interface CartesianChartProps
   sizeAxis?: CartesianChartProps.SizeAxisOptions | readonly CartesianChartProps.SizeAxisOptions[];
 
   /**
+   * Specifies which series to show using their IDs. By default, all series are visible and managed by the component.
+   * If a series doesn't have an ID, its name is used. When using this property, manage state updates with `onVisibleSeriesChange`.
+   */
+  visibleSeries?: readonly string[];
+
+  /**
+   * A callback function, triggered when series visibility changes as a result of user interaction with the legend or filter.
+   */
+  onVisibleSeriesChange?: NonCancelableEventHandler<{ visibleSeries: string[] }>;
+
+  /**
    * Enables drag-to-zoom on the x-axis. When enabled, users can click and drag on the chart
-   * to select a range, which zooms the chart to that range. Highcharts shows a "Reset zoom"
-   * button to restore the original view.
+   * to select a range, which zooms the chart to that range.
    *
    * Supported options:
    * * `type` (optional, "x") - The axis to zoom on. Currently only "x" is supported.
@@ -127,7 +137,6 @@ export interface CartesianChartProps
    * Supported options:
    * * `enabled` (boolean) - Enables or disables the navigator.
    * * `height` (optional, number) - Height of the navigator area in pixels. Defaults to 40.
-   * * `ariaLabel` (optional, string) - Accessible label for the navigator region.
    */
   chartNavigator?: CartesianChartProps.NavigatorOptions;
 
@@ -139,17 +148,6 @@ export interface CartesianChartProps
    * or `null` when zoom is reset to the full range.
    */
   onZoomChange?: NonCancelableEventHandler<CartesianChartProps.ZoomChangeDetail | null>;
-
-  /**
-   * Specifies which series to show using their IDs. By default, all series are visible and managed by the component.
-   * If a series doesn't have an ID, its name is used. When using this property, manage state updates with `onVisibleSeriesChange`.
-   */
-  visibleSeries?: readonly string[];
-
-  /**
-   * A callback function, triggered when series visibility changes as a result of user interaction with the legend or filter.
-   */
-  onVisibleSeriesChange?: NonCancelableEventHandler<{ visibleSeries: string[] }>;
 }
 
 export namespace CartesianChartProps {
@@ -163,6 +161,35 @@ export namespace CartesianChartProps {
      * Use this when implementing clear-filter actions in no-match states.
      */
     showAllSeries(): void;
+    /**
+     * Programmatically shows the crosshair at the given x-value. Use this to synchronize crosshair across charts.
+     */
+    setCrosshair(xValue: number): void;
+    /**
+     * Clears the programmatically set crosshair.
+     */
+    clearCrosshair(): void;
+    /**
+     * Programmatically zooms the chart to the given x-axis range. Use this to synchronize zoom across charts.
+     */
+    setZoomRange(startValue: number, endValue: number): void;
+    /**
+     * Resets the zoom to show the full data range.
+     */
+    resetZoom(): void;
+    /**
+     * Programmatically highlights a series by ID. Use this to synchronize highlight across charts.
+     */
+    highlightSeries(seriesId: string): void;
+    /**
+     * Clears any programmatic series highlight.
+     */
+    clearHighlight(): void;
+    /**
+     * Subscribes to chart sync events. Returns an unsubscribe function.
+     * Used internally by `useChartSync`.
+     */
+    subscribe(listeners: CartesianChartProps.SyncListeners): () => void;
   }
 
   export type SeriesOptions =
@@ -251,17 +278,28 @@ export namespace CartesianChartProps {
 
   export interface ZoomOptions {
     type?: "x";
+    /**
+     * When set to `true`, hides the built-in reset zoom button.
+     * Use this when you want to provide your own reset UI or control zoom programmatically via `ref.resetZoom()`.
+     */
+    hideResetButton?: boolean;
   }
 
   export interface NavigatorOptions {
     enabled: boolean;
     height?: number;
-    ariaLabel?: string;
   }
 
   export interface ZoomChangeDetail {
     startValue: number;
     endValue: number;
+  }
+
+  export interface SyncListeners {
+    onCrosshairChange?: (detail: { xValue: number } | null) => void;
+    onHighlightChange?: (detail: { seriesId: string } | null) => void;
+    onZoomChange?: (detail: { startValue: number; endValue: number } | null) => void;
+    onVisibleSeriesChange?: (detail: { visibleSeries: string[] }) => void;
   }
 }
 

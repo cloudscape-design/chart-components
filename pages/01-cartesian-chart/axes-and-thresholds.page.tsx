@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { useRef } from "react";
 import { range } from "lodash";
 
 const addDays = (date: Date, days: number) => {
@@ -15,7 +16,7 @@ const subYears = (date: Date, years: number) => {
   return result;
 };
 
-import { CartesianChart } from "../../lib/components";
+import { CartesianChart, CartesianChartProps, useChartSync } from "../../lib/components";
 import { dateFormatter } from "../common/formatters";
 import { useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
@@ -77,8 +78,9 @@ export default function () {
           <CategoryDatetime />
         </PageSection>
       </div>
-      <PageSection title="Datetime X, linear Y — Zoom with navigator">
-        <DatetimeLinearWithZoom />
+
+      <PageSection title="Widget synchronization">
+        <WidgetSync />
       </PageSection>
     </Page>
   );
@@ -692,35 +694,62 @@ function CategoryDatetime() {
   );
 }
 
-// Zoom + navigator demo: uses Highcharts built-in navigator with drag-to-zoom.
-// Reset zoom button is rendered internally by CartesianChart.
-function DatetimeLinearWithZoom() {
+function WidgetSync() {
   const { chartProps } = useChartSettings({ stock: true });
+  const ref1 = useRef<CartesianChartProps.Ref>(null);
+  const ref2 = useRef<CartesianChartProps.Ref>(null);
+  useChartSync([ref1, ref2]);
 
-  const now = new Date();
-  const seriesData = range(0, 100).map((i) => ({
-    x: addDays(now, i).getTime(),
-    y: Math.floor((pseudoRandom() + i / 50) * 100),
+  const baseDate = subYears(new Date(), 1);
+  const seriesA = range(0, 30).map((i) => ({
+    x: addDays(baseDate, i * 7).getTime(),
+    y: Math.round(pseudoRandom() * 80 + 20),
+  }));
+  const seriesB = range(0, 30).map((i) => ({
+    x: addDays(baseDate, i * 7).getTime(),
+    y: Math.round(pseudoRandom() * 50 + 10),
+  }));
+  const seriesA2 = range(0, 30).map((i) => ({
+    x: addDays(baseDate, i * 7).getTime(),
+    y: Math.round(pseudoRandom() * 60 + 30),
+  }));
+  const seriesB2 = range(0, 30).map((i) => ({
+    x: addDays(baseDate, i * 7).getTime(),
+    y: Math.round(pseudoRandom() * 40 + 5),
   }));
 
   return (
-    <CartesianChart
-      {...chartProps.cartesian}
-      chartHeight={400}
-      legend={{ enabled: true }}
-      zoom={{ type: "x" }}
-      chartNavigator={{ enabled: true, height: 50, ariaLabel: "Drag handles to adjust the visible time range" }}
-      series={[
-        { type: "area", name: "Requests", data: seriesData },
-        {
-          type: "spline",
-          name: "Avg latency",
-          data: seriesData.map((d) => ({ x: d.x, y: d.y * 0.6 + Math.floor(pseudoRandom() * 20) })),
-        },
-        { type: "y-threshold", name: "SLA limit", value: 150 },
-      ]}
-      xAxis={{ title: "Time", type: "datetime", valueFormatter: dateFormatter }}
-      yAxis={{ title: "Count", type: "linear" }}
-    />
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
+      <div>
+        <CartesianChart
+          {...chartProps.cartesian}
+          ref={ref1}
+          chartHeight={250}
+          xAxis={{ type: "datetime", title: "Time", valueFormatter: dateFormatter }}
+          yAxis={{ title: "CPU (%)" }}
+          series={[
+            { type: "line", name: "Instance A", data: seriesA, id: "inst-a" },
+            { type: "line", name: "Instance B", data: seriesB, id: "inst-b" },
+          ]}
+          zoom={{ type: "x" }}
+          chartNavigator={{ enabled: true }}
+        />
+      </div>
+      <div>
+        <CartesianChart
+          {...chartProps.cartesian}
+          ref={ref2}
+          chartHeight={250}
+          xAxis={{ type: "datetime", title: "Time", valueFormatter: dateFormatter }}
+          yAxis={{ title: "Network (MB/s)" }}
+          series={[
+            { type: "line", name: "Instance A", data: seriesA2, id: "inst-a" },
+            { type: "line", name: "Instance B", data: seriesB2, id: "inst-b" },
+          ]}
+          zoom={{ type: "x" }}
+          chartNavigator={{ enabled: true }}
+        />
+      </div>
+    </div>
   );
 }

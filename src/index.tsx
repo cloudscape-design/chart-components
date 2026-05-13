@@ -3,5 +3,7 @@
 
 export { default as CartesianChart } from "./cartesian-chart";
 export type { CartesianChartProps } from "./cartesian-chart";
+export { useChartSync } from "./cartesian-chart/use-chart-sync";
+export type { UseChartSyncOptions } from "./cartesian-chart/use-chart-sync";
 export { default as PieChart } from "./pie-chart";
 export type { PieChartProps } from "./pie-chart";

@@ -33,6 +33,46 @@ or \`null\` when zoom is reset to the full range.",
   ],
   "functions": [
     {
+      "description": "Clears the programmatically set crosshair.",
+      "name": "clearCrosshair",
+      "parameters": [],
+      "returnType": "void",
+    },
+    {
+      "description": "Clears any programmatic series highlight.",
+      "name": "clearHighlight",
+      "parameters": [],
+      "returnType": "void",
+    },
+    {
+      "description": "Programmatically highlights a series by ID. Use this to synchronize highlight across charts.",
+      "name": "highlightSeries",
+      "parameters": [
+        {
+          "name": "seriesId",
+          "type": "string",
+        },
+      ],
+      "returnType": "void",
+    },
+    {
+      "description": "Resets the zoom to show the full data range.",
+      "name": "resetZoom",
+      "parameters": [],
+      "returnType": "void",
+    },
+    {
+      "description": "Programmatically shows the crosshair at the given x-value. Use this to synchronize crosshair across charts.",
+      "name": "setCrosshair",
+      "parameters": [
+        {
+          "name": "xValue",
+          "type": "number",
+        },
+      ],
+      "returnType": "void",
+    },
+    {
       "description": "Controls series visibility and works with both controlled and uncontrolled visibility modes.",
       "name": "setVisibleSeries",
       "parameters": [
@@ -44,11 +84,38 @@ or \`null\` when zoom is reset to the full range.",
       "returnType": "void",
     },
     {
+      "description": "Programmatically zooms the chart to the given x-axis range. Use this to synchronize zoom across charts.",
+      "name": "setZoomRange",
+      "parameters": [
+        {
+          "name": "startValue",
+          "type": "number",
+        },
+        {
+          "name": "endValue",
+          "type": "number",
+        },
+      ],
+      "returnType": "void",
+    },
+    {
       "description": "Functions similarly to \`setVisibleSeries\`, but applies to all series and doesn't require series IDs as input.
 Use this when implementing clear-filter actions in no-match states.",
       "name": "showAllSeries",
       "parameters": [],
       "returnType": "void",
+    },
+    {
+      "description": "Subscribes to chart sync events. Returns an unsubscribe function.
+Used internally by \`useChartSync\`.",
+      "name": "subscribe",
+      "parameters": [
+        {
+          "name": "listeners",
+          "type": "CartesianChartProps.SyncListeners",
+        },
+      ],
+      "returnType": "() => void",
     },
   ],
   "name": "CartesianChart",
@@ -97,16 +164,10 @@ provides drag handles for panning and zooming. Requires the Highcharts Stock mod
 
 Supported options:
 * \`enabled\` (boolean) - Enables or disables the navigator.
-* \`height\` (optional, number) - Height of the navigator area in pixels. Defaults to 40.
-* \`ariaLabel\` (optional, string) - Accessible label for the navigator region.",
+* \`height\` (optional, number) - Height of the navigator area in pixels. Defaults to 40.",
       "inlineType": {
         "name": "CartesianChartProps.NavigatorOptions",
         "properties": [
-          {
-            "name": "ariaLabel",
-            "optional": true,
-            "type": "string",
-          },
           {
             "name": "enabled",
             "optional": false,
@@ -711,14 +772,18 @@ applies to the tooltip points values.",
     },
     {
       "description": "Enables drag-to-zoom on the x-axis. When enabled, users can click and drag on the chart
-to select a range, which zooms the chart to that range. Highcharts shows a "Reset zoom"
-button to restore the original view.
+to select a range, which zooms the chart to that range.
 
 Supported options:
 * \`type\` (optional, "x") - The axis to zoom on. Currently only "x" is supported.",
       "inlineType": {
         "name": "CartesianChartProps.ZoomOptions",
         "properties": [
+          {
+            "name": "hideResetButton",
+            "optional": true,
+            "type": "boolean",
+          },
           {
             "inlineType": {
               "name": "x",
