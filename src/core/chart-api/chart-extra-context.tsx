@@ -87,7 +87,7 @@ export function updateChartContext(context: ChartExtraContext, chart: SafeChart)
 
 function computeDerivedState(chart: SafeChart): ChartExtraContext.DerivedState {
   const allXSet = new Set<number>();
-  const allXInSeries = new WeakMap<SafeSeries, number[]>();
+  const allPointsInSeries = new WeakMap<SafeSeries, Highcharts.Point[]>();
   const pointsByX = new Map<number, Highcharts.Point[]>();
   const getXPoints = (x: number) => pointsByX.get(x) ?? [];
   const addPoint = (point: Highcharts.Point) => {
@@ -98,7 +98,7 @@ function computeDerivedState(chart: SafeChart): ChartExtraContext.DerivedState {
   const compareX = (a: number, b: number) => a - b;
 
   for (const s of getChartSeries(chart)) {
-    const seriesX = new Set<number>();
+    const seriesPoints = new Array<Highcharts.Point>();
     if (s.visible) {
       for (const d of getSeriesData(s)) {
         // Points with y=null represent the absence of value, there is no need to include them and those
@@ -107,13 +107,13 @@ function computeDerivedState(chart: SafeChart): ChartExtraContext.DerivedState {
         // Although "d" can't be undefined according to Highcharts API, it does become undefined for chart containing more datapoints
         // than the cropThreshold for that series (specific cases of re-rendering the chart with updated options listening to setExteme updates)
         if (d.visible && d.y !== null) {
-          seriesX.add(d.x);
+          seriesPoints.push(d);
           allXSet.add(d.x);
           addPoint(d);
         }
       }
     }
-    allXInSeries.set(s, Array.from(seriesX));
+    allPointsInSeries.set(s, seriesPoints);
   }
   for (const [, points] of pointsByX) {
     sortPoints(points);
@@ -130,15 +130,15 @@ function computeDerivedState(chart: SafeChart): ChartExtraContext.DerivedState {
     }
     const master = s.linkedParent ?? s;
     const family = [master, ...master.linkedSeries];
-    const familyXSet = new Set(family.flatMap((m) => allXInSeries.get(m) ?? []));
-    const familyPoints: Highcharts.Point[] = [];
-    for (const x of Array.from(familyXSet).sort(compareX)) {
-      for (const member of family) {
-        const point = getSeriesData(member).find((d) => d.x === x && d.y !== null);
-        if (point && familyXSet.has(x)) {
-          familyPoints.push(point);
-          familyXSet.delete(x); // We ignore points that share X coordinate.
-        }
+    const allFamilyPoints = family
+      .flatMap((m) => allPointsInSeries.get(m) ?? [])
+      .sort(({ x: x1 }, { x: x2 }) => compareX(x1, x2));
+    const usedXSet = new Set<number>();
+    const familyPoints = new Array<Highcharts.Point>();
+    for (const point of allFamilyPoints) {
+      if (!usedXSet.has(point.x)) {
+        familyPoints.push(point);
+        usedXSet.add(point.x); // We ignore points that share X coordinate.
       }
     }
     for (const member of family) {
