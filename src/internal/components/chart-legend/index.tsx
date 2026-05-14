@@ -6,6 +6,7 @@ import clsx from "clsx";
 
 import {
   circleIndex,
+  getAllFocusables,
   handleKey,
   KeyCode,
   SingleTabStopNavigationAPI,
@@ -27,18 +28,6 @@ const TOOLTIP_SHOW_DELAY = 300;
 const TOOLTIP_BLUR_DELAY = 50;
 const HIGHLIGHT_LOST_DELAY = 50;
 const SCROLL_DELAY = 100;
-
-function focusStaysInTooltipScope(
-  next: EventTarget | null,
-  tooltipEl: HTMLElement | null,
-  triggerEl: HTMLElement | undefined,
-): boolean {
-  if (!next) {
-    return false;
-  }
-  const node = next as Node;
-  return !!(tooltipEl?.contains(node) || triggerEl?.contains(node));
-}
 
 export type LegendAlignment = "horizontal" | "vertical";
 export type LegendHorizontalAlignment = "start" | "center" | "end";
@@ -82,7 +71,7 @@ export const ChartLegend = ({
   const elementsByIndexRef = useRef<Record<number, HTMLElement>>([]);
   const elementsByIdRef = useRef<Record<string, HTMLElement>>({});
   const tooltipRef = useRef<HTMLElement>(null);
-  const tabTrapRef = useRef<HTMLDivElement>(null);
+  const tooltipWrapperRef = useRef<HTMLDivElement>(null);
   const highlightControl = useMemo(() => new DebouncedCall(), []);
   const scrollIntoViewControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
@@ -117,15 +106,6 @@ export const ChartLegend = ({
       document.removeEventListener("keydown", onDocumentKeyDown, true);
     };
   }, [tooltipItemId, hideTooltip]);
-
-  // Workaround: PopoverBody auto-focuses the dismiss button on mount.
-  // We re-focus the legend trigger here, relying on React's child-before-parent effect ordering.
-  // Remove this once InternalChartTooltip supports a `disableAutoFocus` prop.
-  useEffect(() => {
-    if (tooltipItemId) {
-      elementsByIdRef.current[tooltipItemId]?.focus({ preventScroll: true });
-    }
-  }, [tooltipItemId]);
 
   const isMouseInContainer = useRef<boolean>(false);
 
@@ -170,12 +150,10 @@ export const ChartLegend = ({
   function onBlur(event: React.FocusEvent) {
     navigationAPI.current!.updateFocusTarget();
 
-    // Hide tooltip and clear highlight unless focus moves inside tooltip or to the tab trap;
+    // Hide tooltip and clear highlight unless focus moves inside the tooltip wrapper
+    // (which contains the tooltip itself and its entry/exit tab traps).
     const next = event.relatedTarget as Node | null;
-    if (next && tooltipRef.current?.contains(next)) {
-      return;
-    }
-    if (next && tabTrapRef.current?.contains(next)) {
+    if (next && tooltipWrapperRef.current?.contains(next)) {
       return;
     }
     if (next) {
@@ -338,47 +316,44 @@ export const ChartLegend = ({
         </div>
       </SingleTabStopNavigationProvider>
       {tooltipContent && (
-        <div
-          ref={tabTrapRef}
-          tabIndex={0}
-          onFocus={() => tooltipRef.current?.querySelector<HTMLElement>("button")?.focus()}
-          style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }}
-        />
-      )}
-      {tooltipContent && (
-        <InternalChartTooltip
-          ref={tooltipRef}
-          trackRef={tooltipTrack}
-          triggerClampRef={containerRef}
-          trackKey={tooltipTarget.id}
-          container={null}
-          dismissButton={true}
-          onDismiss={() => {
-            hideTooltip(true);
-            elementsByIdRef.current[tooltipTarget.id]?.focus();
-          }}
-          position={tooltipPosition}
-          title={tooltipContent.header}
-          onMouseEnter={() => showTooltip(tooltipTarget.id)}
-          onMouseLeave={() => hideTooltip()}
-          onBlur={(event) => {
-            const trigger = elementsByIdRef.current[tooltipTarget.id];
-            if (focusStaysInTooltipScope(event.relatedTarget, tooltipRef.current, trigger)) {
-              return;
+        <div ref={tooltipWrapperRef}>
+          {/* [1] skips FocusLock's leading TabTrap to target the dismiss button. */}
+          <div tabIndex={0} onFocus={() => tooltipRef.current && getAllFocusables(tooltipRef.current)[1]?.focus()} />
+          <InternalChartTooltip
+            ref={tooltipRef}
+            trackRef={tooltipTrack}
+            triggerClampRef={containerRef}
+            trackKey={tooltipTarget.id}
+            container={null}
+            dismissButton={true}
+            disableDismissAutoFocus={true}
+            onDismiss={() => {
+              hideTooltip(true);
+              elementsByIdRef.current[tooltipTarget.id]?.focus();
+            }}
+            position={tooltipPosition}
+            title={tooltipContent.header}
+            onMouseEnter={() => showTooltip(tooltipTarget.id)}
+            onMouseLeave={() => hideTooltip()}
+            onBlur={(event) => {
+              if (tooltipWrapperRef.current?.contains(event.relatedTarget as Node)) {
+                return;
+              }
+              hideTooltip();
+            }}
+            footer={
+              tooltipContent.footer && (
+                <>
+                  <hr aria-hidden={true} />
+                  {tooltipContent.footer}
+                </>
+              )
             }
-            hideTooltip();
-          }}
-          footer={
-            tooltipContent.footer && (
-              <>
-                <hr aria-hidden={true} />
-                {tooltipContent.footer}
-              </>
-            )
-          }
-        >
-          {tooltipContent.body}
-        </InternalChartTooltip>
+          >
+            {tooltipContent.body}
+          </InternalChartTooltip>
+          <div tabIndex={0} onFocus={() => tooltipRef.current && getAllFocusables(tooltipRef.current)[1]?.focus()} />
+        </div>
       )}
     </div>
   );
