@@ -6,6 +6,7 @@ import clsx from "clsx";
 
 import {
   circleIndex,
+  getAllFocusables,
   handleKey,
   KeyCode,
   SingleTabStopNavigationAPI,
@@ -70,6 +71,7 @@ export const ChartLegend = ({
   const elementsByIndexRef = useRef<Record<number, HTMLElement>>([]);
   const elementsByIdRef = useRef<Record<string, HTMLElement>>({});
   const tooltipRef = useRef<HTMLElement>(null);
+  const tooltipWrapperRef = useRef<HTMLDivElement>(null);
   const highlightControl = useMemo(() => new DebouncedCall(), []);
   const scrollIntoViewControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
@@ -103,7 +105,8 @@ export const ChartLegend = ({
     return () => {
       document.removeEventListener("keydown", onDocumentKeyDown, true);
     };
-  }, [items, tooltipItemId, hideTooltip]);
+  }, [tooltipItemId, hideTooltip]);
+
   const isMouseInContainer = useRef<boolean>(false);
 
   // Scrolling to the highlighted legend item.
@@ -147,8 +150,13 @@ export const ChartLegend = ({
   function onBlur(event: React.FocusEvent) {
     navigationAPI.current!.updateFocusTarget();
 
-    // Hide tooltip and clear highlight unless focus moves inside tooltip;
-    if (tooltipRef.current && event.relatedTarget && !tooltipRef.current.contains(event.relatedTarget)) {
+    // Hide tooltip and clear highlight unless focus moves inside the tooltip wrapper
+    // (which contains the tooltip itself and its entry/exit tab traps).
+    const next = event.relatedTarget as Node | null;
+    if (next && tooltipWrapperRef.current?.contains(next)) {
+      return;
+    }
+    if (next) {
       clearHighlight();
       hideTooltip();
     }
@@ -217,25 +225,25 @@ export const ChartLegend = ({
   const tooltipPosition = isVertical ? "left" : "bottom";
 
   return (
-    <SingleTabStopNavigationProvider
-      ref={navigationAPI}
-      navigationActive={true}
-      getNextFocusTarget={() => getNextFocusTarget()}
-      onUnregisterActive={(element: HTMLElement) => onUnregisterActive(element, navigationAPI)}
+    <div
+      role="toolbar"
+      aria-label={legendTitle || ariaLabel}
+      className={clsx(testClasses.root, styles.root, className)}
+      data-axisid={axisId}
+      onMouseEnter={() => (isMouseInContainer.current = true)}
+      onMouseLeave={() => (isMouseInContainer.current = false)}
     >
-      <div
-        role="toolbar"
-        aria-label={legendTitle || ariaLabel}
-        className={clsx(testClasses.root, styles.root, className)}
-        data-axisid={axisId}
-        onMouseEnter={() => (isMouseInContainer.current = true)}
-        onMouseLeave={() => (isMouseInContainer.current = false)}
+      {legendTitle && (
+        <Box fontWeight="bold" className={testClasses.title} textAlign={getBoxTextAlignment(horizontalAlignment)}>
+          {legendTitle}
+        </Box>
+      )}
+      <SingleTabStopNavigationProvider
+        ref={navigationAPI}
+        navigationActive={true}
+        getNextFocusTarget={() => getNextFocusTarget()}
+        onUnregisterActive={(element: HTMLElement) => onUnregisterActive(element, navigationAPI)}
       >
-        {legendTitle && (
-          <Box fontWeight="bold" className={testClasses.title} textAlign={getBoxTextAlignment(horizontalAlignment)}>
-            {legendTitle}
-          </Box>
-        )}
         <div
           // The list element is not focusable. However, the focus lands on it regardless, when testing in Firefox.
           // Setting the tab index to -1 does fix the problem.
@@ -306,19 +314,27 @@ export const ChartLegend = ({
             );
           })}
         </div>
-        {tooltipContent && (
+      </SingleTabStopNavigationProvider>
+      {tooltipContent && (
+        <div ref={tooltipWrapperRef}>
+          {/* [1] skips FocusLock's leading TabTrap to target the dismiss button. */}
+          <div tabIndex={0} onFocus={() => tooltipRef.current && getAllFocusables(tooltipRef.current)[1]?.focus()} />
           <InternalChartTooltip
+            ref={tooltipRef}
             trackRef={tooltipTrack}
             triggerClampRef={containerRef}
             trackKey={tooltipTarget.id}
             container={null}
-            dismissButton={false}
-            onDismiss={() => {}}
+            dismissButton={true}
+            disableDismissAutoFocus={true}
+            onDismiss={() => {
+              hideTooltip(true);
+              elementsByIdRef.current[tooltipTarget.id]?.focus();
+            }}
             position={tooltipPosition}
             title={tooltipContent.header}
             onMouseEnter={() => showTooltip(tooltipTarget.id)}
             onMouseLeave={() => hideTooltip()}
-            onBlur={() => hideTooltip()}
             footer={
               tooltipContent.footer && (
                 <>
@@ -330,9 +346,10 @@ export const ChartLegend = ({
           >
             {tooltipContent.body}
           </InternalChartTooltip>
-        )}
-      </div>
-    </SingleTabStopNavigationProvider>
+          <div tabIndex={0} onFocus={() => tooltipRef.current && getAllFocusables(tooltipRef.current)[1]?.focus()} />
+        </div>
+      )}
+    </div>
   );
 };
 
