@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import type { Chart, Point, Series } from "highcharts";
+import type { Chart, Point, Series, SeriesZonesOptionsObject } from "highcharts";
 
 // The chart.series array can include internal series, that are unwanted.
 // Use getChartSeries to access chart series instead.
@@ -10,6 +10,10 @@ export type SafeChart = Omit<Chart, "series">;
 // The series.data array can include missing or destroyed points.
 // Use getSeriesData to access series data points instead.
 export type SafeSeries = Omit<Series, "data">;
+
+// This point object without getZone API.
+// Use getPointZone to get point's zone instead.
+export type SafePoint = Omit<Point, "getZone">;
 
 // isInternal is currently not a publicly supported prop
 // https://github.com/highcharts/highcharts/issues/23278
@@ -76,3 +80,21 @@ export const getSeriesData = (series: SafeSeries, options: { includeHiddenPoints
   // eslint-disable-next-line no-restricted-syntax -- This is the safe wrapper itself.
   return (series as Series).data.filter((p) => (options.includeHiddenPoints ? isPointValid(p) : isPointVisible(p)));
 };
+
+/**
+ * Returns point's zone safely. The Point.getZone() API can crash on series with no zones,
+ * see: https://github.com/highcharts/highcharts/issues/24633.
+ *
+ * It is not clear how to check the presence of zones safely, as zones are not represented in the public Series API.
+ */
+export function getPointZone(point: SafePoint): null | SeriesZonesOptionsObject {
+  try {
+    const seriesZones = "zones" in point.series ? point.series.zones : undefined;
+    if (seriesZones && Array.isArray(seriesZones) && seriesZones.length > 0) {
+      return (point as Point).getZone();
+    }
+  } catch {
+    // no-op
+  }
+  return null;
+}

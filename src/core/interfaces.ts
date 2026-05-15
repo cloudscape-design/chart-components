@@ -206,27 +206,27 @@ export interface BaseTooltipPointFormatted {
   subItems?: ReadonlyArray<{ key: React.ReactNode; value: React.ReactNode }>;
 }
 
-export interface AreaSeriesOptions extends BaseCartesianLineLikeOptions, LinkableSeries {
+export interface AreaSeriesOptions extends BaseCartesianLineLikeOptions, LinkableSeries, WithZones {
   type: "area";
   data: readonly PointDataItemType[];
 }
 
-export interface AreaSplineSeriesOptions extends BaseCartesianLineLikeOptions, LinkableSeries {
+export interface AreaSplineSeriesOptions extends BaseCartesianLineLikeOptions, LinkableSeries, WithZones {
   type: "areaspline";
   data: readonly PointDataItemType[];
 }
 
-export interface ColumnSeriesOptions extends BaseCartesianSeriesOptions, LinkableSeries {
+export interface ColumnSeriesOptions extends BaseCartesianSeriesOptions, LinkableSeries, WithZones {
   type: "column";
   data: readonly PointDataItemType[];
 }
 
-export interface LineSeriesOptions extends BaseCartesianLineLikeOptions, LinkableSeries {
+export interface LineSeriesOptions extends BaseCartesianLineLikeOptions, LinkableSeries, WithZones {
   type: "line";
   data: readonly PointDataItemType[];
 }
 
-export interface SplineSeriesOptions extends BaseCartesianLineLikeOptions, LinkableSeries {
+export interface SplineSeriesOptions extends BaseCartesianLineLikeOptions, LinkableSeries, WithZones {
   type: "spline";
   data: readonly PointDataItemType[];
 }
@@ -317,6 +317,17 @@ export interface LinkableSeries {
    * Use this to attach projected, forecast, or supplementary series to a primary series without cluttering the legend.
    */
   linkedTo?: string;
+}
+
+export interface WithZones {
+  zoneAxis?: "x" | "y";
+  zones?: readonly SeriesZone[];
+}
+
+export interface SeriesZone {
+  value?: number;
+  color?: string;
+  dashStyle?: Highcharts.DashStyleValue;
 }
 
 interface BaseCartesianLineLikeOptions extends BaseCartesianSeriesOptions {

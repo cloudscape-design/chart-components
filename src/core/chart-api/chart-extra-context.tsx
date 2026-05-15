@@ -120,30 +120,18 @@ function computeDerivedState(chart: SafeChart): ChartExtraContext.DerivedState {
   }
   const allX = Array.from(allXSet).sort(compareX);
 
-  // For each series, compute the ordered list of points to navigate through. For a linked family
-  // (primary + its linked children), all members share the same flat list: points sorted by X,
-  // with family members interleaved in series order within the same X value.
   const seriesPointsMap = new WeakMap<SafeSeries, Highcharts.Point[]>();
   for (const s of getChartSeries(chart)) {
-    if (seriesPointsMap.has(s)) {
-      continue; // Already computed as part of a family.
-    }
-    const master = s.linkedParent ?? s;
-    const family = [master, ...master.linkedSeries];
-    const allFamilyPoints = family
-      .flatMap((m) => allPointsInSeries.get(m) ?? [])
-      .sort(({ x: x1 }, { x: x2 }) => compareX(x1, x2));
+    const allSeriesPoints = (allPointsInSeries.get(s) ?? []).sort(({ x: x1 }, { x: x2 }) => compareX(x1, x2));
     const usedXSet = new Set<number>();
-    const familyPoints = new Array<Highcharts.Point>();
-    for (const point of allFamilyPoints) {
+    const navigableSeriesPoints = new Array<Highcharts.Point>();
+    for (const point of allSeriesPoints) {
       if (!usedXSet.has(point.x)) {
-        familyPoints.push(point);
+        navigableSeriesPoints.push(point);
         usedXSet.add(point.x); // We ignore points that share X coordinate.
       }
     }
-    for (const member of family) {
-      seriesPointsMap.set(member, familyPoints);
-    }
+    seriesPointsMap.set(s, navigableSeriesPoints);
   }
   return {
     allX,

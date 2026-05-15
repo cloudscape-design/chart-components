@@ -5,7 +5,14 @@ import type Highcharts from "highcharts";
 
 import { ChartSeriesMarkerType } from "../internal/components/series-marker";
 import { ChartSeriesMarkerStatus } from "../internal/components/series-marker/interfaces";
-import { getChartSeries, getSeriesData, SafeChart, SafeSeries } from "../internal/utils/highcharts";
+import {
+  getChartSeries,
+  getPointZone,
+  getSeriesData,
+  SafeChart,
+  SafePoint,
+  SafeSeries,
+} from "../internal/utils/highcharts";
 import { castArray } from "../internal/utils/utils";
 import { getFormatter } from "./formatters";
 import { ChartLabels } from "./i18n-utils";
@@ -28,7 +35,7 @@ export interface LegendItemSpec {
 export function getSeriesId(series: SafeSeries): string {
   return getOptionsId(series.options);
 }
-export function getPointId(point: Highcharts.Point): string {
+export function getPointId(point: SafePoint): string {
   return getOptionsId(point.options);
 }
 export function getOptionsId(options: { id?: string; name?: string }): string {
@@ -87,14 +94,22 @@ export function getBubbleSeriesSizeAxis(series: SafeSeries): undefined | string 
   return custom?.awsui?.sizeAxis;
 }
 
-export function getSeriesMarkerType(series?: SafeSeries): ChartSeriesMarkerType {
+export function getPointMarkerType(point?: SafePoint): ChartSeriesMarkerType {
+  const pointZone = point && getPointZone(point);
+  return getSeriesMarkerType(point?.series, pointZone?.dashStyle);
+}
+
+export function getSeriesMarkerType(series?: SafeSeries, dashStyle?: Highcharts.DashStyleValue): ChartSeriesMarkerType {
   if (!series) {
     return "large-square";
   }
   const seriesSymbol = "symbol" in series && typeof series.symbol === "string" ? series.symbol : "circle";
   // In Highcharts, dashStyle supports different types of dashes: https://jsfiddle.net/gh/get/library/pure/highcharts/highcharts/tree/master/samples/highcharts/plotoptions/series-dashstyle-all/
   // Return a dashed legend symbol for all of these dashes, excluding the default "Solid" option
-  if ("dashStyle" in series.options && series.options.dashStyle && series.options.dashStyle !== "Solid") {
+  if (
+    (dashStyle && dashStyle !== "Solid") ||
+    ("dashStyle" in series.options && series.options.dashStyle && series.options.dashStyle !== "Solid")
+  ) {
     return "dashed";
   }
   switch (series.type) {
@@ -134,8 +149,11 @@ export function getSeriesMarkerType(series?: SafeSeries): ChartSeriesMarkerType 
 export function getSeriesColor(series?: SafeSeries): string {
   return typeof series?.color === "string" ? series.color : "black";
 }
-export function getPointColor(point?: Highcharts.Point): string {
-  return typeof point?.color === "string" ? point.color : "black";
+export function getPointColor(point?: SafePoint): string {
+  const pointZone = point && getPointZone(point);
+  const zoneColor = typeof pointZone?.color === "string" ? pointZone.color : undefined;
+  const pointColor = typeof point?.color === "string" ? point.color : undefined;
+  return zoneColor ?? pointColor ?? "black";
 }
 
 // The custom legend implementation does not rely on the Highcharts legend. When Highcharts legend is disabled,
@@ -183,7 +201,7 @@ export function getChartLegendItems({
       });
     }
   };
-  const addPointItem = (point: Highcharts.Point, isSecondary: boolean) => {
+  const addPointItem = (point: SafePoint, isSecondary: boolean) => {
     if (point?.series?.type === "pie") {
       const pointId = getPointId(point);
       legendItems.push({
@@ -306,7 +324,7 @@ export function getLegendsProps(
 // This function returns coordinates of a rectangle, including the target point.
 // There are differences in how the rectangle is computed, but in all cases it is supposed to
 // enclose the point's visual representation in the chart, with no extra offsets.
-export function getPointRect(point: Highcharts.Point): Rect {
+export function getPointRect(point: SafePoint): Rect {
   if (!point.series) {
     return { x: 0, y: 0, width: 0, height: 0 };
   }
@@ -324,7 +342,7 @@ export function getPointRect(point: Highcharts.Point): Rect {
 // The group rect is only used for cartesian charts. It returns coordinates of a rectangle,
 // which includes all given points, but also stretched vertically or horizontally (in inverted charts)
 // to the entire chart's height or width.
-export function getGroupRect(points: readonly Highcharts.Point[]): Rect {
+export function getGroupRect(points: readonly SafePoint[]): Rect {
   if (points.length === 0 || !points[0].series) {
     return { x: 0, y: 0, width: 0, height: 0 };
   }
@@ -362,7 +380,7 @@ export function matchSizeAxis(sizeAxis: readonly CoreChartProps.SizeAxisOptions[
 }
 
 export function getPointAccessibleDescription(
-  point: Highcharts.Point,
+  point: SafePoint,
   labels: ChartLabels,
   additionalProps?: {
     sizeAxis?: readonly CoreChartProps.SizeAxisOptions[];
@@ -387,14 +405,14 @@ export function getPointAccessibleDescription(
   }
 }
 
-export function getGroupAccessibleDescription(group: readonly Highcharts.Point[]) {
+export function getGroupAccessibleDescription(group: readonly SafePoint[]) {
   const firstPoint = group[0];
   return getFormatter(firstPoint.series.xAxis)(firstPoint.x);
 }
 
 // The area-, line-, or scatter series markers are rendered as single graphic elements,
 // and we can use their respective b-boxes to compute rects.
-function getDefaultPointRect(point: Highcharts.Point): Rect {
+function getDefaultPointRect(point: SafePoint): Rect {
   const chart = point.series.chart;
   if (point.graphic) {
     const box = point.graphic.getBBox();
@@ -405,7 +423,7 @@ function getDefaultPointRect(point: Highcharts.Point): Rect {
 
 // The column series graphic elements are rectangles, and they are inverted if the chart is inverted,
 // so that rect's width becomes height and vice-versa.
-function getColumnPointRect(point: Highcharts.Point): Rect {
+function getColumnPointRect(point: SafePoint): Rect {
   const chart = point.series.chart;
   if (point.graphic) {
     return getChartRect(point.graphic.getBBox(), chart, true);
@@ -415,7 +433,7 @@ function getColumnPointRect(point: Highcharts.Point): Rect {
 
 // The errorbar series point rect cannot be computed from the respective graphic element (it gives wrong position).
 // Instead, we have to rely on the internal "whiskers" element b-box, which can be inverted, too.
-function getErrorBarPointRect(point: Highcharts.Point): Rect {
+function getErrorBarPointRect(point: SafePoint): Rect {
   const chart = point.series.chart;
   if ("whiskers" in point) {
     return getChartRect((point.whiskers as Highcharts.SVGElement).getBBox(), chart, true);
@@ -428,7 +446,7 @@ function getErrorBarPointRect(point: Highcharts.Point): Rect {
 // size is small, and thereby give it 0 width and height, which is alright as there is a
 // small offset that we use for focus outline anyways.
 // See: https://www.highcharts.com/blog/news/175-highcharts-performance-boost/
-function getPointRectFromCoordinates(point: Highcharts.Point) {
+function getPointRectFromCoordinates(point: SafePoint) {
   const chart = point.series.chart;
   const plotX = point.plotX ?? 0;
   const plotY = point.plotY ?? 0;
