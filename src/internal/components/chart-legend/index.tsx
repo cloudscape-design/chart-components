@@ -335,12 +335,6 @@ export const ChartLegend = ({
             title={tooltipContent.header}
             onMouseEnter={() => showTooltip(tooltipTarget.id)}
             onMouseLeave={() => hideTooltip()}
-            onBlur={(event) => {
-              if (tooltipWrapperRef.current?.contains(event.relatedTarget as Node)) {
-                return;
-              }
-              hideTooltip();
-            }}
             footer={
               tooltipContent.footer && (
                 <>
