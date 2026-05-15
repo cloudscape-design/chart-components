@@ -5,7 +5,7 @@ import { forwardRef } from "react";
 
 import { warnOnce } from "@cloudscape-design/component-toolkit/internal";
 
-import { PointDataItemType, RangeDataItemOptions, SizePointDataItemOptions } from "../core/interfaces";
+import { PointDataItemType, RangeDataItemOptions, SizePointDataItemOptions, WithZones } from "../core/interfaces";
 import { getDataAttributes } from "../internal/base-component/get-data-attributes";
 import useBaseComponent from "../internal/base-component/use-base-component";
 import { applyDisplayName } from "../internal/utils/apply-display-name";
@@ -141,6 +141,7 @@ function transformLineLikeSeries<
     dashStyle: s.dashStyle,
     yAxis: s.yAxis,
     linkedTo: s.linkedTo,
+    ...transformZones(s),
     data,
   } as S;
 }
@@ -153,7 +154,16 @@ function transformColumnSeries<S extends CartesianChartProps.ColumnSeriesOptions
     return null;
   }
   const data = transformPointData(s.data);
-  return { type: s.type, id: s.id, name: s.name, color: s.color, yAxis: s.yAxis, linkedTo: s.linkedTo, data } as S;
+  return {
+    type: s.type,
+    id: s.id,
+    name: s.name,
+    color: s.color,
+    yAxis: s.yAxis,
+    linkedTo: s.linkedTo,
+    ...transformZones(s),
+    data,
+  } as S;
 }
 
 function transformScatterSeries<S extends CartesianChartProps.ScatterSeriesOptions>(
@@ -249,6 +259,12 @@ function transformBubbleData(data: readonly SizePointDataItemOptions[]): readonl
 
 function transformRangeData(data: readonly RangeDataItemOptions[]): readonly RangeDataItemOptions[] {
   return data.map((d) => ({ x: d.x, low: d.low, high: d.high }));
+}
+
+function transformZones(series: WithZones) {
+  const zoneAxis = series.zoneAxis === "x" || series.zoneAxis === "y" ? series.zoneAxis : undefined;
+  const zones = series.zones?.map(({ value, color, dashStyle }) => ({ value, color, dashStyle }));
+  return { zoneAxis, zones };
 }
 
 function transformXAxisOptions(axis?: CartesianChartProps.XAxisOptions): CartesianChartProps.XAxisOptions {

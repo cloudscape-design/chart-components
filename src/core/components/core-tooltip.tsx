@@ -18,7 +18,7 @@ import { BaseI18nStrings, CoreChartProps } from "../interfaces";
 import {
   getPointColor,
   getPointId,
-  getSeriesColor,
+  getPointMarkerType,
   getSeriesId,
   getSeriesMarkerType,
   isXThreshold,
@@ -180,11 +180,11 @@ function getTooltipContentCartesian(
   // By design, every point of the group has the same x value.
   const x = group[0].x;
   const chart = group[0].series.chart;
-  const getSeriesMarker = (series: SafeSeries) => {
-    const itemOptions = api.context.settings.getItemOptions?.(getSeriesId(series));
+  const getPointMarker = (point: Highcharts.Point) => {
+    const itemOptions = api.context.settings.getItemOptions?.(getSeriesId(point.series));
     return api.renderMarker({
-      type: getSeriesMarkerType(series),
-      color: getSeriesColor(series),
+      type: getPointMarkerType(point),
+      color: getPointColor(point),
       visible: true,
       status: itemOptions?.status,
       ariaLabel: api.context.settings.labels.itemMarkerLabel?.(itemOptions?.status),
@@ -205,7 +205,7 @@ function getTooltipContentCartesian(
     return {
       key: customContent?.key ?? item.point.series.name,
       value: customContent?.value ?? defaultValue,
-      marker: getSeriesMarker(item.point.series),
+      marker: getPointMarker(item.point),
       subItems: customContent?.subItems ?? bubbleSubItems,
       expandableId: customContent?.expandable ? item.point.series.name : undefined,
       highlighted: item.point.x === point?.x && item.point.y === point?.y,
