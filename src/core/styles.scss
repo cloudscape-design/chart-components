@@ -131,3 +131,24 @@ $side-legend-max-inline-size: 30%;
   // We hide the native focus outline to render a custom one around the chart plot instead.
   outline: none;
 }
+
+// Highcharts built-in navigator accessibility: focus rings on handles and outline.
+// The navigator handles are SVG elements that receive keyboard focus via the Highcharts
+// accessibility module. We add visible focus indicators for WCAG 2.4.7 compliance.
+// stylelint-disable-next-line selector-class-pattern
+:global(.highcharts-navigator-handle) {
+  &:focus {
+    outline: 2px solid cs.$color-border-item-focused;
+    outline-offset: 2px;
+    border-radius: cs.$border-radius-control-default-focus-ring;
+  }
+}
+
+// stylelint-disable-next-line selector-class-pattern
+:global(.highcharts-navigator-mask-inside) {
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
