@@ -5,7 +5,7 @@ import type Highcharts from "highcharts";
 
 import { colorChartsErrorBarMarker } from "@cloudscape-design/design-tokens";
 
-import { PointDataItemType, RangeDataItemOptions } from "../core/interfaces";
+import { RangeDataItemOptions } from "../core/interfaces";
 import { createBubbleMetadata, createThresholdMetadata, getOptionsId } from "../core/utils";
 import * as Styles from "../internal/chart-styles";
 import { Writeable } from "../internal/utils/utils";
@@ -90,7 +90,7 @@ export const transformCartesianSeries = (
       const { custom } = createBubbleMetadata(s);
       return { ...s, data: s.data.map((p) => ({ x: p.x, y: p.y, z: p.size })), ...shared, custom, ...getColorProps(s) };
     }
-    return { ...s, data: s.data as Writeable<PointDataItemType[]>, ...shared, ...getColorProps(s) };
+    return { ...s, data: s.data, ...shared, ...getColorProps(s) } as Highcharts.SeriesOptionsType;
   }
   const series = originalSeries.map(transformSeriesToHighcharts);
   // We inject a fake empty series so that the empty state still shows axes, if defined.

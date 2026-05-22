@@ -212,6 +212,8 @@ export namespace CartesianChartProps {
   }
   export type TooltipPointFormatted = CoreTypes.BaseTooltipPointFormatted;
 
+  export type SeriesZone = CoreTypes.SeriesZone;
+
   export type LegendOptions = CoreTypes.BaseLegendOptions;
 
   export type FilterOptions = CoreTypes.BaseFilterOptions;

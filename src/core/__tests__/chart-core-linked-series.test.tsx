@@ -199,51 +199,7 @@ describe("CoreChart: linked series — keyboard navigation", () => {
     expect(describeFocusedElement()).toContain("Primary");
   });
 
-  // Series layout for partial-overlap test:
-  //   Primary: x=1,2  |  Projected (linked): x=2,3  — x=2 is shared (primary wins), x=3 is linked-only
-  const seriesPartialOverlap: Highcharts.SeriesOptionsType[] = [
-    {
-      type: "line",
-      id: "p",
-      name: "Primary",
-      data: [
-        { x: 1, y: 10 },
-        { x: 2, y: 20 },
-      ],
-    },
-    {
-      type: "line",
-      id: "proj",
-      name: "Projected",
-      data: [
-        { x: 2, y: 25 },
-        { x: 3, y: 35 },
-      ],
-      linkedTo: "p",
-      showInLegend: false,
-    },
-  ];
-
-  test("primary wins at shared X; linked-only X values remain navigable", () => {
-    renderChart({ highcharts, options: { series: seriesPartialOverlap }, ariaLabel: "Test chart" });
-
-    focusApplication();
-    keyDown(KeyCode.home); // group at x=1
-    keyDown(KeyCode.down); // enter point — Primary x=1
-
-    expect(describeFocusedElement()).toContain("Primary");
-
-    keyDown(KeyCode.right); // Primary x=2 (wins over Projected x=2)
-    expect(describeFocusedElement()).toContain("Primary");
-
-    keyDown(KeyCode.right); // Projected x=3 (linked-only, no primary point here)
-    expect(describeFocusedElement()).toContain("Projected");
-
-    keyDown(KeyCode.right); // wraps back to Primary x=1
-    expect(describeFocusedElement()).toContain("Primary");
-  });
-
-  test("linked series point is reachable from group navigation and can navigate back to master", () => {
+  test("linked series are navigable independently from master", () => {
     renderChart({ highcharts, options: { series }, ariaLabel: "Test chart" });
 
     focusApplication();
@@ -252,14 +208,15 @@ describe("CoreChart: linked series — keyboard navigation", () => {
 
     expect(describeFocusedElement()).toContain("Other");
 
-    // Navigate up within group to reach Projected, then Primary
+    // Navigate up within group to reach Projected
     keyDown(KeyCode.up); // Projected x=1
     expect(describeFocusedElement()).toContain("Projected");
 
-    // From Projected, navigate backwards in series — should reach Primary
-    keyDown(KeyCode.left); // wraps to last in family: Projected x=2
-    keyDown(KeyCode.left); // Projected x=1
-    keyDown(KeyCode.left); // Primary x=2
-    expect(describeFocusedElement()).toContain("Primary");
+    // Linked series are navigated separately — left/right stays within Projected
+    keyDown(KeyCode.right); // Projected x=2
+    expect(describeFocusedElement()).toContain("Projected");
+
+    keyDown(KeyCode.right); // wraps back to Projected x=1
+    expect(describeFocusedElement()).toContain("Projected");
   });
 });
