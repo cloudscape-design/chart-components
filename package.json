@@ -84,7 +84,7 @@
     "@types/react-dom": "^18.0.10",
     "@typescript-eslint/eslint-plugin": "^8.24.1",
     "@typescript-eslint/parser": "^8.24.1",
-    "@vitejs/plugin-react": "^4.2.1",
+    "@vitejs/plugin-react": "^6.0.2",
     "@vitest/coverage-v8": "^4.1.8",
     "@vitest/eslint-plugin": "^1.1.31",
     "chokidar-cli": "^3.0.0",
@@ -118,7 +118,7 @@
     "stylelint-config-recommended-scss": "^14.1.0",
     "stylelint-prettier": "^5.0.2",
     "typescript": "^5.9.2",
-    "vite": "^6.4.2",
+    "vite": "^8.0.16",
     "vitest": "^4.1.8"
   },
   "//": "ensure that typedoc uses latest typescript. It prints a warning, but works",
