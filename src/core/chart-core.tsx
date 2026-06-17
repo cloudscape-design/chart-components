@@ -155,6 +155,11 @@ export function InternalCoreChart({
   const inverted = !!options.chart?.inverted;
   const isRtl = getIsRtl(rootRef?.current);
 
+  // Respect Highcharts global defaults set via Highcharts.setOptions(...) for the area
+  // series family, layered under explicit per-chart options but over Cloudscape's built-in
+  // defaults — so consumers can theme e.g. area fillOpacity through setOptions.
+  const globalPlotOptions = highcharts.getOptions().plotOptions ?? {};
+
   // The Highcharts options takes all provided Highcharts options and custom properties and merges them together, so that
   // the Cloudscape features and custom Highcharts extensions co-exist.
   // For certain options we provide Cloudscape styling, but in all cases this can be explicitly overridden.
@@ -261,10 +266,10 @@ export function InternalCoreChart({
           inactive: { opacity: Styles.seriesOpacityInactive, ...options.plotOptions?.series?.states?.inactive },
         },
       },
-      area: { ...Styles.areaSeries, ...options.plotOptions?.area },
-      areaspline: { ...Styles.areaSeries, ...options.plotOptions?.areaspline },
-      arearange: { ...Styles.areaSeries, ...options.plotOptions?.arearange },
-      areasplinerange: { ...Styles.areaSeries, ...options.plotOptions?.areasplinerange },
+      area: { ...Styles.areaSeries, ...globalPlotOptions.area, ...options.plotOptions?.area },
+      areaspline: { ...Styles.areaSeries, ...globalPlotOptions.areaspline, ...options.plotOptions?.areaspline },
+      arearange: { ...Styles.areaSeries, ...globalPlotOptions.arearange, ...options.plotOptions?.arearange },
+      areasplinerange: { ...Styles.areaSeries, ...globalPlotOptions.areasplinerange, ...options.plotOptions?.areasplinerange },
       line: { ...Styles.lineSeries, ...options.plotOptions?.line },
       spline: { ...Styles.lineSeries, ...options.plotOptions?.spline },
       column: { ...Styles.columnSeries, ...options.plotOptions?.column },
