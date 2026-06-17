@@ -45,6 +45,47 @@ describe("CoreChart: options", () => {
     expect(HighchartsReact).toHaveBeenCalledWith(objectContainingDeep({ options: { colors } }), expect.anything());
   });
 
+  test("uses the Cloudscape default area fillOpacity when not overridden", () => {
+    renderChart({ highcharts });
+
+    expect(HighchartsReact).toHaveBeenCalledWith(
+      objectContainingDeep({ options: { plotOptions: { area: { fillOpacity: 0.4 } } } }),
+      expect.anything(),
+    );
+  });
+
+  test("global Highcharts.setOptions fillOpacity overrides the Cloudscape default", () => {
+    highcharts.setOptions({ plotOptions: { area: { fillOpacity: 0.1 }, areaspline: { fillOpacity: 0.1 } } });
+    try {
+      renderChart({ highcharts });
+
+      expect(HighchartsReact).toHaveBeenCalledWith(
+        objectContainingDeep({
+          options: { plotOptions: { area: { fillOpacity: 0.1 }, areaspline: { fillOpacity: 0.1 } } },
+        }),
+        expect.anything(),
+      );
+    } finally {
+      // Restore the mutated global default so it doesn't leak into other tests.
+      delete (highcharts.getOptions().plotOptions!.area as { fillOpacity?: number }).fillOpacity;
+      delete (highcharts.getOptions().plotOptions!.areaspline as { fillOpacity?: number }).fillOpacity;
+    }
+  });
+
+  test("explicit per-chart area fillOpacity wins over the global setOptions default", () => {
+    highcharts.setOptions({ plotOptions: { area: { fillOpacity: 0.1 } } });
+    try {
+      renderChart({ highcharts, options: { plotOptions: { area: { fillOpacity: 0.55 } } } });
+
+      expect(HighchartsReact).toHaveBeenCalledWith(
+        objectContainingDeep({ options: { plotOptions: { area: { fillOpacity: 0.55 } } } }),
+        expect.anything(),
+      );
+    } finally {
+      delete (highcharts.getOptions().plotOptions!.area as { fillOpacity?: number }).fillOpacity;
+    }
+  });
+
   test("propagates highcharts credits", () => {
     const credits = { enabled: true, text: "credits-text", custom: "custom" };
     renderChart({ highcharts, options: { credits } });

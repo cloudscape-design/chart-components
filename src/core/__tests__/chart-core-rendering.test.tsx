@@ -31,6 +31,17 @@ describe("CoreChart: rendering", () => {
     expect(wrapper.findFallback()).toBe(null);
   });
 
+  test("rendered area series picks up area fillOpacity set via global Highcharts.setOptions", () => {
+    highcharts.setOptions({ plotOptions: { area: { fillOpacity: 0.1 } } });
+    try {
+      renderChart({ highcharts, options: { series: [{ type: "area", name: "A", data: [1, 2, 3] }] } });
+      // The rendered series resolves the global default over Cloudscape's built-in 0.4.
+      expect(hc.getChartSeries(0).options.fillOpacity).toBe(0.1);
+    } finally {
+      delete (highcharts.getOptions().plotOptions!.area as { fillOpacity?: number }).fillOpacity;
+    }
+  });
+
   test("exposes chart api via callback prop", () => {
     const callback = vi.fn();
     renderChart({ highcharts, callback });
