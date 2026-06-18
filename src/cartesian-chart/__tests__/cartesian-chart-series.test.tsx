@@ -36,6 +36,23 @@ describe("CartesianChart: series", () => {
     }
   });
 
+  test.each(["area", "areaspline"] as const)(
+    "forwards %s series fillOpacity to Highcharts, overriding the default while preserving it otherwise",
+    (type) => {
+      renderCartesianChart({
+        highcharts,
+        series: [
+          { type, name: "Default", data: [{ x: 1, y: 1 }] },
+          { type, name: "Custom", data: [{ x: 1, y: 2 }], fillOpacity: 0.15 },
+        ],
+      });
+      // Default fill opacity (from plotOptions) is kept when the series omits it.
+      expect((hc.getChartSeries(0).options as { fillOpacity?: number }).fillOpacity).toBe(0.4);
+      // Explicit per-series value wins over the default.
+      expect((hc.getChartSeries(1).options as { fillOpacity?: number }).fillOpacity).toBe(0.15);
+    },
+  );
+
   test("renders threshold series only", () => {
     renderCartesianChart({
       highcharts,

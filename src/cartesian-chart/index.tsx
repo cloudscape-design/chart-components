@@ -78,6 +78,7 @@ function transformSeries(
     switch (s.type) {
       case "area":
       case "areaspline":
+        return transformAreaSeries(s, untransformedSeries);
       case "line":
       case "spline":
         return transformLineLikeSeries(s, untransformedSeries);
@@ -144,6 +145,17 @@ function transformLineLikeSeries<
     ...transformZones(s),
     data,
   } as S;
+}
+
+function transformAreaSeries<
+  S extends CartesianChartProps.AreaSeriesOptions | CartesianChartProps.AreaSplineSeriesOptions,
+>(s: S, allSeries: readonly CartesianChartProps.SeriesOptions[]): null | S {
+  const transformed = transformLineLikeSeries(s, allSeries);
+  // Only forward fillOpacity when set; spreading `undefined` would clear the default fill opacity.
+  if (transformed === null || s.fillOpacity === undefined) {
+    return transformed;
+  }
+  return { ...transformed, fillOpacity: s.fillOpacity } as S;
 }
 
 function transformColumnSeries<S extends CartesianChartProps.ColumnSeriesOptions>(

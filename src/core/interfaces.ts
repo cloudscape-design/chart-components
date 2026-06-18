@@ -209,11 +209,15 @@ export interface BaseTooltipPointFormatted {
 export interface AreaSeriesOptions extends BaseCartesianLineLikeOptions, LinkableSeries, WithZones {
   type: "area";
   data: readonly PointDataItemType[];
+  /** Opacity of the area fill, from 0 (transparent) to 1 (opaque). Defaults to 0.4. */
+  fillOpacity?: number;
 }
 
 export interface AreaSplineSeriesOptions extends BaseCartesianLineLikeOptions, LinkableSeries, WithZones {
   type: "areaspline";
   data: readonly PointDataItemType[];
+  /** Opacity of the area fill, from 0 (transparent) to 1 (opaque). Defaults to 0.4. */
+  fillOpacity?: number;
 }
 
 export interface ColumnSeriesOptions extends BaseCartesianSeriesOptions, LinkableSeries, WithZones {
