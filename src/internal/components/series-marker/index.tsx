@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { useUniqueId } from "@cloudscape-design/component-toolkit/internal";
-import { BaseComponentProps } from "@cloudscape-design/components/internal/base-component";
 import { colorBorderStatusWarning, colorTextInteractiveDisabled } from "@cloudscape-design/design-tokens";
 
 import { ChartSeriesMarkerStatus } from "./interfaces";
@@ -20,7 +19,7 @@ export type ChartSeriesMarkerType =
   | "triangle-down"
   | "circle";
 
-export interface ChartSeriesMarkerProps extends BaseComponentProps {
+export interface ChartSeriesMarkerProps {
   type: ChartSeriesMarkerType;
   color: string;
   visible?: boolean;
