@@ -5,10 +5,8 @@ import { forwardRef, memo, ReactNode, useEffect, useRef } from "react";
 import clsx from "clsx";
 
 import { useMergeRefs } from "@cloudscape-design/component-toolkit/internal";
-import { BaseComponentProps } from "@cloudscape-design/components/internal/base-component";
 import { InternalExpandableSection } from "@cloudscape-design/components/internal/do-not-use/expandable-section";
 
-import { getDataAttributes } from "../../base-component/get-data-attributes";
 import { scrollIntoViewNearestContainer } from "../../utils/dom";
 
 import styles from "./styles.css.js";
@@ -37,7 +35,7 @@ export interface ChartSeriesDetailItem extends ChartDetailPair {
 }
 export type ExpandedSeries = Set<string>;
 
-interface ChartSeriesDetailsProps extends BaseComponentProps {
+interface ChartSeriesDetailsProps {
   details: ReadonlyArray<ChartSeriesDetailItem>;
   expandedSeries?: ExpandedSeries;
   setExpandedState?: (seriesTitle: string, state: boolean) => void;
@@ -47,11 +45,9 @@ interface ChartSeriesDetailsProps extends BaseComponentProps {
 export default memo(forwardRef(ChartSeriesDetails));
 
 function ChartSeriesDetails(
-  { details, expandedSeries, setExpandedState, compactList, ...restProps }: ChartSeriesDetailsProps,
+  { details, expandedSeries, setExpandedState, compactList }: ChartSeriesDetailsProps,
   ref: React.Ref<HTMLDivElement>,
 ) {
-  const baseProps = getDataAttributes(restProps);
-  const className = clsx(baseProps.className, styles.root);
   const detailsRef = useRef<HTMLDivElement | null>(null);
   const mergedRef = useMergeRefs(ref, detailsRef);
   const selectedRef = useRef<HTMLDivElement>(null);
@@ -66,7 +62,7 @@ function ChartSeriesDetails(
   }, [selectedIndex]);
 
   return (
-    <div {...baseProps} className={className} ref={mergedRef}>
+    <div className={styles.root} ref={mergedRef}>
       <ul className={clsx(styles.list, compactList && styles.compact)}>
         {details.map(({ key, value, marker, isDimmed, subItems, expandableId, description, highlighted }, index) => (
           <li
