@@ -20,6 +20,9 @@ export default defineConfig({
     include: ["./src/**/__tests__/**/*.test.{ts,tsx}"],
     environment: "jsdom",
     setupFiles: ["./src/__tests__/setup.ts"],
+    // Highcharts-heavy tests (e.g. cartesian-chart zoom) render real charts and, under parallel
+    // load on slower CI runners, exceed the 5s default. Raise the ceiling to avoid flaky timeouts.
+    testTimeout: 15000,
     coverage: {
       enabled: true,
       provider: "v8",
