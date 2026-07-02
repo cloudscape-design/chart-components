@@ -722,7 +722,8 @@ const zoomSeries: CartesianChartProps.SeriesOptions[] = [
 // satisfies WCAG 2.5.7 (Dragging Movements). Escape or "Exit zoom" cancels. The cursor position is
 // announced to screen readers as it moves. Zoom state is managed internally; a "Reset" button
 // appears once zoomed. While zoomed, a persistent affordance marks the active range: a vertical
-// boundary line at each edge with a subtle band tint between them.
+// boundary line at each edge with a subtle band tint between them. The "Zoom" button stays visible
+// alongside "Reset" while zoomed, so a narrower range can be selected without resetting first.
 function DatetimeLinearWithZoom() {
   const { chartProps } = useChartSettings();
   return (
