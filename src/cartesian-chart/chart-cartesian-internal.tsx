@@ -6,6 +6,7 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRe
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 import Button from "@cloudscape-design/components/button";
 import LiveRegion from "@cloudscape-design/components/live-region";
+import SpaceBetween from "@cloudscape-design/components/space-between";
 import {
   colorBackgroundItemSelected,
   colorBorderItemFocused,
@@ -41,14 +42,18 @@ const ZOOM_RANGE_START_LINE_ID = "awsui-zoom-range-start";
 const ZOOM_RANGE_END_LINE_ID = "awsui-zoom-range-end";
 
 // Zoom mode state machine:
-// "idle" — normal chart, "Zoom" button visible.
+// "idle" — normal (unzoomed) chart, "Zoom" button visible.
 // "zoomMode" — zoom mode entered, "Exit zoom" button visible, popovers disabled. A vertical cursor
 //   follows the mouse or arrow keys, waiting for the first point (click / Enter / Space).
 // "selecting" — first point set, highlight band spans from the anchor to the cursor, waiting for the
 //   second point (click / Enter / Space) to complete the zoom.
-// "zoomed" — chart is zoomed, "Reset" button visible.
+// "zoomed" — chart is zoomed, "Zoom" and "Reset" buttons visible. The "Zoom" button stays available
+//   so users can refine the current zoom by selecting a new range without resetting first; doing so
+//   re-enters "zoomMode" and exiting (Escape / "Exit zoom") returns to "zoomed" with the range intact.
 // Both the mouse and the keyboard drive the same cursor, so the two interaction methods are unified
 // (matching the approved design) and each is a WCAG-compliant single-pointer / keyboard equivalent.
+// Whether the chart is actually zoomed is tracked separately by `zoomedExtremes`, since zoom mode can
+// now be entered on top of an existing zoom.
 type ZoomModeState = "idle" | "zoomMode" | "selecting" | "zoomed";
 
 // Fill for the keyboard/click zoom selection band. This matches the fill Highcharts applies to its
@@ -181,8 +186,11 @@ export const InternalCartesianChart = forwardRef(
     const [zoomMode, setZoomMode] = useState<ZoomModeState>("idle");
     const [zoomAnchor, setZoomAnchor] = useState<number | null>(null);
     // Extremes of the currently applied zoom, used to draw the persistent boundary affordance
-    // (two vertical lines + band tint). Null whenever the chart is not zoomed.
+    // (two vertical lines + band tint). Null whenever the chart is not zoomed. Mirrored to a ref so
+    // event handlers and callbacks can read the latest value without being re-created each change.
     const [zoomedExtremes, setZoomedExtremes] = useState<{ min: number; max: number } | null>(null);
+    const zoomedExtremesRef = useRef<{ min: number; max: number } | null>(null);
+    zoomedExtremesRef.current = zoomedExtremes;
     const zoomAnchorRef = useRef<number | null>(null);
     zoomAnchorRef.current = zoomAnchor;
 
@@ -354,10 +362,16 @@ export const InternalCartesianChart = forwardRef(
 
     const enterZoomMode = useCallback(() => {
       const chart = apiRef.current?.chart;
-      // Start the cursor at the first data point (or the current axis min) so keyboard users have an
-      // immediate, visible anchor without needing to hover first.
+      // Start the cursor at the first data point so keyboard users have an immediate, visible anchor
+      // without needing to hover first. When re-entering zoom mode on an already-zoomed chart, only
+      // consider points within the current visible extremes so the cursor starts on-screen.
       const xValues = chart ? getChartXValues(chart) : [];
-      const initialX = xValues[0] ?? chart?.xAxis[0].getExtremes().min ?? null;
+      const extremes = chart?.xAxis[0].getExtremes();
+      const visibleXValues =
+        extremes && extremes.min !== undefined && extremes.max !== undefined
+          ? xValues.filter((x) => x >= extremes.min && x <= extremes.max)
+          : xValues;
+      const initialX = visibleXValues[0] ?? extremes?.min ?? null;
       setZoomMode("zoomMode");
       setZoomAnchor(null);
       setCursorX(initialX);
@@ -365,7 +379,9 @@ export const InternalCartesianChart = forwardRef(
     }, [formatXValue, i18n]);
 
     const exitZoomMode = useCallback(() => {
-      setZoomMode("idle");
+      // Exiting zoom mode cancels the in-progress selection but preserves any zoom already applied:
+      // return to "zoomed" when extremes are still in effect, otherwise back to "idle".
+      setZoomMode(zoomedExtremesRef.current ? "zoomed" : "idle");
       setZoomAnchor(null);
       setCursorX(null);
       setLiveAnnouncement("");
@@ -461,17 +477,21 @@ export const InternalCartesianChart = forwardRef(
     // Declaratively draw the persistent zoom-range affordance (boundary lines + band tint) from
     // state. Like the cursor-overlay effect above, it runs after every render so the overlays are
     // re-applied whenever Highcharts updates the chart (which clears imperatively-added lines/bands).
+    // While a new selection is in progress (zoom mode re-entered on top of an existing zoom) the
+    // affordance is suppressed so the selection cursor/band read the same as a first-time zoom; it is
+    // restored when the interaction ends (see exitZoomMode returning to "zoomed").
+    const isSelectingZoom = zoomMode === "zoomMode" || zoomMode === "selecting";
     useEffect(() => {
       const xAxis = apiRef.current?.chart.xAxis[0];
       if (!xAxis) {
         return;
       }
-      if (zoomedExtremes) {
+      if (zoomedExtremes && !isSelectingZoom) {
         drawZoomRangeBoundaries(xAxis, zoomedExtremes.min, zoomedExtremes.max);
       } else {
         clearZoomRangeBoundaries(xAxis);
       }
-    }, [zoomedExtremes, chartReady]);
+    }, [zoomedExtremes, isSelectingZoom, chartReady]);
 
     // Zoom mode: click handling and mouse tracking on the chart container.
     useEffect(() => {
@@ -610,42 +630,47 @@ export const InternalCartesianChart = forwardRef(
           aria-label={i18n.zoomControlsAriaLabel}
         >
           <LiveRegion hidden={true}>{liveAnnouncement}</LiveRegion>
-          {zoomMode === "idle" && (
-            <span className={testClasses["zoom-button"]}>
-              <Button
-                variant="normal"
-                iconName="search"
-                onClick={enterZoomMode}
-                ariaLabel={i18n.enterZoomModeButtonAriaLabel}
-              >
-                {i18n.enterZoomModeButtonText}
-              </Button>
-            </span>
-          )}
-          {(zoomMode === "zoomMode" || zoomMode === "selecting") && (
-            <span className={testClasses["exit-zoom-button"]}>
-              <Button
-                variant="primary"
-                iconName="search"
-                onClick={exitZoomMode}
-                ariaLabel={i18n.exitZoomModeButtonAriaLabel}
-              >
-                {i18n.exitZoomModeButtonText}
-              </Button>
-            </span>
-          )}
-          {zoomMode === "zoomed" && (
-            <span className={testClasses["reset-zoom-button"]}>
-              <Button
-                ref={resetButtonRef}
-                variant="normal"
-                onClick={resetZoom}
-                ariaLabel={i18n.resetZoomButtonAriaLabel}
-              >
-                {i18n.resetZoomButtonText}
-              </Button>
-            </span>
-          )}
+          {/* Reset (shown while zoomed) and Zoom sit side by side; Reset leads so the Zoom button
+              keeps its position whether or not the chart is zoomed. During an active selection only
+              the "Exit zoom" button is shown. */}
+          <SpaceBetween size="xs" direction="horizontal">
+            {zoomMode === "zoomed" && (
+              <span className={testClasses["reset-zoom-button"]}>
+                <Button
+                  ref={resetButtonRef}
+                  variant="normal"
+                  onClick={resetZoom}
+                  ariaLabel={i18n.resetZoomButtonAriaLabel}
+                >
+                  {i18n.resetZoomButtonText}
+                </Button>
+              </span>
+            )}
+            {(zoomMode === "idle" || zoomMode === "zoomed") && (
+              <span className={testClasses["zoom-button"]}>
+                <Button
+                  variant="normal"
+                  iconName="search"
+                  onClick={enterZoomMode}
+                  ariaLabel={i18n.enterZoomModeButtonAriaLabel}
+                >
+                  {i18n.enterZoomModeButtonText}
+                </Button>
+              </span>
+            )}
+            {(zoomMode === "zoomMode" || zoomMode === "selecting") && (
+              <span className={testClasses["exit-zoom-button"]}>
+                <Button
+                  variant="primary"
+                  iconName="search"
+                  onClick={exitZoomMode}
+                  ariaLabel={i18n.exitZoomModeButtonAriaLabel}
+                >
+                  {i18n.exitZoomModeButtonText}
+                </Button>
+              </span>
+            )}
+          </SpaceBetween>
         </div>
       ) : null;
 
