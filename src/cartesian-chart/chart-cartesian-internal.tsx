@@ -6,7 +6,12 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRe
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 import Button from "@cloudscape-design/components/button";
 import LiveRegion from "@cloudscape-design/components/live-region";
-import { colorBorderItemFocused, colorChartsLineTick } from "@cloudscape-design/design-tokens";
+import {
+  colorBackgroundItemSelected,
+  colorBorderItemFocused,
+  colorBorderItemSelected,
+  colorChartsLineTick,
+} from "@cloudscape-design/design-tokens";
 
 import { InternalCoreChart } from "../core/chart-core";
 import { CoreChartProps, ErrorBarSeriesOptions } from "../core/interfaces";
@@ -29,6 +34,11 @@ interface InternalCartesianChartProps extends InternalBaseComponentProps, Cartes
 const ZOOM_SELECTION_BAND_ID = "awsui-zoom-selection";
 const ZOOM_ANCHOR_LINE_ID = "awsui-zoom-anchor";
 const ZOOM_CURSOR_LINE_ID = "awsui-zoom-cursor";
+// Overlays that mark the boundaries of the currently zoomed range: two vertical lines at the
+// zoomed min/max plus a subtle band tint between them, shown while the chart is zoomed.
+const ZOOM_RANGE_BAND_ID = "awsui-zoom-range";
+const ZOOM_RANGE_START_LINE_ID = "awsui-zoom-range-start";
+const ZOOM_RANGE_END_LINE_ID = "awsui-zoom-range-end";
 
 // Zoom mode state machine:
 // "idle" — normal chart, "Zoom" button visible.
@@ -78,6 +88,41 @@ function drawCursorLine(
     width: 1,
     zIndex: 6,
   });
+}
+
+// Type covering the subset of the Highcharts x-axis used to draw the zoom overlays.
+interface ZoomOverlayAxis {
+  removePlotBand(id: string): void;
+  addPlotBand(options: object): void;
+  removePlotLine(id: string): void;
+  addPlotLine(options: object): void;
+}
+
+// Fill for the zoom-range affordance band. This is the subtle selected-item background tint, laid
+// under the plot content between the two boundary lines so the zoomed region reads as "selected".
+const ZOOM_RANGE_FILL = colorBackgroundItemSelected;
+
+// Draws (or redraws) the persistent zoom-range affordance: a subtle band tint between the zoomed
+// min/max plus a vertical boundary line at each edge. Shown while the chart is zoomed to make the
+// active range explicit. Boundary lines reuse the selected-item border token to match the tint.
+function drawZoomRangeBoundaries(xAxis: ZoomOverlayAxis, min: number, max: number): void {
+  clearZoomRangeBoundaries(xAxis);
+  const from = Math.min(min, max);
+  const to = Math.max(min, max);
+  xAxis.addPlotBand({ id: ZOOM_RANGE_BAND_ID, from, to, color: ZOOM_RANGE_FILL, zIndex: 0 });
+  for (const [id, value] of [
+    [ZOOM_RANGE_START_LINE_ID, from],
+    [ZOOM_RANGE_END_LINE_ID, to],
+  ] as const) {
+    xAxis.addPlotLine({ id, value, color: colorBorderItemSelected, width: 1, zIndex: 3 });
+  }
+}
+
+// Removes the zoom-range affordance overlays. Safe to call when they are not present.
+function clearZoomRangeBoundaries(xAxis: ZoomOverlayAxis): void {
+  xAxis.removePlotBand(ZOOM_RANGE_BAND_ID);
+  xAxis.removePlotLine(ZOOM_RANGE_START_LINE_ID);
+  xAxis.removePlotLine(ZOOM_RANGE_END_LINE_ID);
 }
 
 // Returns the x value from `values` nearest to `target`, moved one step in `direction` when a step
@@ -135,6 +180,9 @@ export const InternalCartesianChart = forwardRef(
     const [chartReady, setChartReady] = useState(false);
     const [zoomMode, setZoomMode] = useState<ZoomModeState>("idle");
     const [zoomAnchor, setZoomAnchor] = useState<number | null>(null);
+    // Extremes of the currently applied zoom, used to draw the persistent boundary affordance
+    // (two vertical lines + band tint). Null whenever the chart is not zoomed.
+    const [zoomedExtremes, setZoomedExtremes] = useState<{ min: number; max: number } | null>(null);
     const zoomAnchorRef = useRef<number | null>(null);
     zoomAnchorRef.current = zoomAnchor;
 
@@ -239,6 +287,7 @@ export const InternalCartesianChart = forwardRef(
         if (props.zoomRange === undefined) {
           xAxis?.setExtremes(min, max);
           setZoomMode("zoomed");
+          setZoomedExtremes({ min, max });
         }
         setZoomAnchor(null);
         setCursorX(null);
@@ -252,6 +301,7 @@ export const InternalCartesianChart = forwardRef(
       if (props.zoomRange === undefined) {
         apiRef.current?.chart.xAxis[0].setExtremes(undefined, undefined);
         setZoomMode("idle");
+        setZoomedExtremes(null);
       }
       setZoomAnchor(null);
       fireNonCancelableEvent(props.onZoomRangeChange, { zoomRange: null });
@@ -280,10 +330,13 @@ export const InternalCartesianChart = forwardRef(
         // Reset to full range.
         xAxis.setExtremes(undefined, undefined);
         setZoomMode("idle");
+        setZoomedExtremes(null);
       } else if (props.zoomRange.x) {
         // Apply the controlled range.
-        xAxis.setExtremes(props.zoomRange.x.startValue, props.zoomRange.x.endValue);
+        const { startValue, endValue } = props.zoomRange.x;
+        xAxis.setExtremes(startValue, endValue);
         setZoomMode("zoomed");
+        setZoomedExtremes({ min: Math.min(startValue, endValue), max: Math.max(startValue, endValue) });
       }
     }, [chartReady, props.zoomRange]);
 
@@ -404,6 +457,21 @@ export const InternalCartesianChart = forwardRef(
         }
       }
     }, [zoomMode, cursorX, zoomAnchor, chartReady]);
+
+    // Declaratively draw the persistent zoom-range affordance (boundary lines + band tint) from
+    // state. Like the cursor-overlay effect above, it runs after every render so the overlays are
+    // re-applied whenever Highcharts updates the chart (which clears imperatively-added lines/bands).
+    useEffect(() => {
+      const xAxis = apiRef.current?.chart.xAxis[0];
+      if (!xAxis) {
+        return;
+      }
+      if (zoomedExtremes) {
+        drawZoomRangeBoundaries(xAxis, zoomedExtremes.min, zoomedExtremes.max);
+      } else {
+        clearZoomRangeBoundaries(xAxis);
+      }
+    }, [zoomedExtremes, chartReady]);
 
     // Zoom mode: click handling and mouse tracking on the chart container.
     useEffect(() => {
@@ -631,6 +699,7 @@ export const InternalCartesianChart = forwardRef(
                           const zoomed = !!(e.userMin || e.userMax);
                           if (zoomed) {
                             setZoomMode("zoomed");
+                            setZoomedExtremes({ min: e.min, max: e.max });
                             setLiveAnnouncement(
                               i18n.zoomRangeChangeAnnouncementText(formatXValue(e.min), formatXValue(e.max)),
                             );
@@ -638,6 +707,7 @@ export const InternalCartesianChart = forwardRef(
                               zoomRange: { x: { startValue: e.min, endValue: e.max } },
                             });
                           } else {
+                            setZoomedExtremes(null);
                             fireNonCancelableEvent(props.onZoomRangeChange, { zoomRange: null });
                           }
                         }

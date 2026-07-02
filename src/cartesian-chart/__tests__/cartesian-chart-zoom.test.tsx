@@ -30,12 +30,28 @@ const defaultProps = {
   yAxis: { title: "Y", type: "linear" as const },
 };
 
-function getXExtremes() {
+function getCurrentChart() {
   // Target the most recently rendered chart: highcharts.charts accumulates entries across tests
   // (disposed charts remain as holes), so the last defined entry is the one under test.
-  const chart = [...highcharts.charts].reverse().find((c) => c)!;
-  const { min, max } = chart.xAxis[0].getExtremes();
+  return [...highcharts.charts].reverse().find((c) => c)!;
+}
+
+function getXExtremes() {
+  const { min, max } = getCurrentChart().xAxis[0].getExtremes();
   return { min, max };
+}
+
+// Reads the persistent zoom-range affordance drawn on the x-axis: the two boundary plot lines and
+// the band tint between them. Returns their ids and the band's from/to so tests can assert on them.
+function getZoomRangeOverlays() {
+  const xAxis = getCurrentChart().xAxis[0] as unknown as {
+    plotLinesAndBands: { id?: string; options?: { from?: number; to?: number } }[];
+  };
+  const items = xAxis.plotLinesAndBands ?? [];
+  const startLine = items.find((i) => i.id === "awsui-zoom-range-start");
+  const endLine = items.find((i) => i.id === "awsui-zoom-range-end");
+  const band = items.find((i) => i.id === "awsui-zoom-range");
+  return { startLine, endLine, band };
 }
 
 const onZoomRangeChange = vi.fn();
@@ -161,6 +177,61 @@ describe("CartesianChart: zoom", () => {
     const button = getChart().findZoomButton()!;
     expect(button.getElement().textContent).toContain("Vergrößern");
     expect(button.getElement()).toHaveAttribute("aria-label", "Zoom-Modus aktivieren");
+  });
+
+  test("draws the zoom-range boundary lines and band when zoomed via ref", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    // Not zoomed yet — no affordance.
+    expect(getZoomRangeOverlays().band).toBeUndefined();
+    act(() => ref.current!.enterZoomMode());
+    // Keyboard-select a range: x=1 to x=3.
+    const chartEl = getChart().getElement();
+    const target = chartEl.querySelector('[role="application"]') ?? chartEl;
+    const press = (key: string) =>
+      act(() => target.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true })));
+    press("ArrowRight");
+    press("Enter");
+    press("ArrowRight");
+    press("ArrowRight");
+    press("Enter");
+
+    const { startLine, endLine, band } = getZoomRangeOverlays();
+    expect(startLine).toBeDefined();
+    expect(endLine).toBeDefined();
+    expect(band?.options).toMatchObject({ from: 1, to: 3 });
+  });
+
+  test("clears the zoom-range affordance when zoom is reset", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
+    act(() => {
+      const chart = highcharts.charts.find((c) => c)!;
+      chart.xAxis[0].setExtremes(1, 3);
+    });
+    act(() => ref.current!.resetZoom());
+    const { startLine, endLine, band } = getZoomRangeOverlays();
+    expect(startLine).toBeUndefined();
+    expect(endLine).toBeUndefined();
+    expect(band).toBeUndefined();
+  });
+
+  test("controlled zoomRange draws the boundary affordance", () => {
+    const { rerender } = renderCartesianChart({
+      ...defaultProps,
+      zoom: { enabled: true },
+      zoomRange: null,
+      onZoomRangeChange,
+    });
+    expect(getZoomRangeOverlays().band).toBeUndefined();
+    rerender({
+      ...defaultProps,
+      zoom: { enabled: true },
+      zoomRange: { x: { startValue: 1, endValue: 3 } },
+      onZoomRangeChange,
+    });
+    expect(getZoomRangeOverlays().band?.options).toMatchObject({ from: 1, to: 3 });
+    // Resetting via controlled null clears the affordance.
+    rerender({ ...defaultProps, zoom: { enabled: true }, zoomRange: null, onZoomRangeChange });
+    expect(getZoomRangeOverlays().band).toBeUndefined();
   });
 
   test("exposes a labelled zoom controls region", () => {
