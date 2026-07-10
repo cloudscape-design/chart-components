@@ -1,12 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { NonCancelableEventHandler } from "../../types/events";
+
+export type { NonCancelableCustomEvent, NonCancelableEventHandler } from "../../types/events";
+
 export type CancelableEventHandler<Detail = object> = (event: CustomEvent<Detail>) => void;
-
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export type NonCancelableEventHandler<Detail = {}> = (event: NonCancelableCustomEvent<Detail>) => void;
-
-export type NonCancelableCustomEvent<DetailType> = Omit<CustomEvent<DetailType>, "preventDefault">;
 
 export interface ClickDetail {
   button: number;

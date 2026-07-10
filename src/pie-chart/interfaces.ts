@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as CoreTypes from "../core/interfaces";
-import { NonCancelableEventHandler } from "../internal/events";
+import { NonCancelableEventHandler } from "../types/events";
 
 // PieChartProps is the type for PieChart React component properties. Unlike in Highcharts API,
 // we pass options directly to the component, instead of grouping them all into a single "options" property.

@@ -1167,7 +1167,7 @@ exports[`internal core API matches snapshot > internal-core-chart 1`] = `
           "properties": [
             {
               "inlineType": {
-                "name": "LegendItem",
+                "name": "CoreChartProps.LegendItem",
                 "properties": [
                   {
                     "name": "highlighted",
@@ -1204,7 +1204,7 @@ exports[`internal core API matches snapshot > internal-core-chart 1`] = `
               },
               "name": "item",
               "optional": false,
-              "type": "LegendItem",
+              "type": "CoreChartProps.LegendItem",
             },
           ],
           "type": "object",
@@ -1222,10 +1222,10 @@ exports[`internal core API matches snapshot > internal-core-chart 1`] = `
           "type": "union",
           "valueDescriptions": undefined,
           "values": [
-            "{ items: ReadonlyArray<LegendItem>; } & CoreChartProps.ApiInteraction",
-            "{ items: ReadonlyArray<LegendItem>; } & CoreChartProps.FilterInteraction",
-            "{ items: ReadonlyArray<LegendItem>; } & CoreChartProps.ToggleInteraction",
-            "{ items: ReadonlyArray<LegendItem>; } & CoreChartProps.SelectInteraction",
+            "{ items: ReadonlyArray<CoreChartProps.LegendItem>; } & CoreChartProps.ApiInteraction",
+            "{ items: ReadonlyArray<CoreChartProps.LegendItem>; } & CoreChartProps.FilterInteraction",
+            "{ items: ReadonlyArray<CoreChartProps.LegendItem>; } & CoreChartProps.ToggleInteraction",
+            "{ items: ReadonlyArray<CoreChartProps.LegendItem>; } & CoreChartProps.SelectInteraction",
           ],
         },
         "detailType": "CoreChartProps.VisibleItemsChangeDetail",
@@ -1455,20 +1455,20 @@ minimum width, the horizontal scrollbar is automatically added.",
 If not provided, no tooltip will be displayed.",
         "i18nTag": undefined,
         "inlineType": {
-          "name": "GetLegendTooltipContent",
+          "name": "CoreChartProps.GetLegendTooltipContent",
           "parameters": [
             {
               "name": "props",
-              "type": "GetLegendTooltipContentProps",
+              "type": "CoreChartProps.GetLegendTooltipContentProps",
             },
           ],
-          "returnType": "LegendTooltipContent",
+          "returnType": "CoreChartProps.LegendTooltipContent",
           "type": "function",
         },
         "name": "getLegendTooltipContent",
         "optional": true,
         "systemTags": undefined,
-        "type": "GetLegendTooltipContent",
+        "type": "CoreChartProps.GetLegendTooltipContent",
         "visualRefreshTag": undefined,
       },
       {

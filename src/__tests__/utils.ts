@@ -16,6 +16,7 @@ export function getAllComponents(): string[] {
         name !== "internal" &&
         name !== "internal-do-not-use" &&
         name !== "test-utils" &&
+        name !== "types" &&
         !name.includes(".") &&
         !name.includes("LICENSE") &&
         !name.includes("NOTICE"),

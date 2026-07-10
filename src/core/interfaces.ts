@@ -3,9 +3,9 @@
 
 import type Highcharts from "highcharts";
 
-import type * as InternalComponentTypes from "../internal/components/interfaces";
-import { ChartSeriesMarkerStatus } from "../internal/components/series-marker/interfaces";
-import { type NonCancelableEventHandler } from "../internal/events";
+import { type NonCancelableEventHandler } from "../types/events";
+
+export type ChartSeriesMarkerStatus = "warning" | "default";
 
 // All charts take `highcharts` instance, that can be served statically or dynamically.
 // Although it has to be of type Highcharts, the TS type we use is `null | object`, so
@@ -527,10 +527,23 @@ export namespace CoreChartProps {
 
   export type LegendOptionsHorizontalAlignment = "start" | "center";
 
-  export type LegendItem = InternalComponentTypes.LegendItem;
-  export type LegendTooltipContent = InternalComponentTypes.LegendTooltipContent;
-  export type GetLegendTooltipContent = InternalComponentTypes.GetLegendTooltipContent;
-  export type GetLegendTooltipContentProps = InternalComponentTypes.GetLegendTooltipContentProps;
+  export interface LegendItem {
+    id: string;
+    name: string;
+    marker: React.ReactNode;
+    visible: boolean;
+    highlighted: boolean;
+    isSecondary?: boolean;
+  }
+  export interface LegendTooltipContent {
+    header: React.ReactNode;
+    body: React.ReactNode;
+    footer?: React.ReactNode;
+  }
+  export type GetLegendTooltipContent = (props: GetLegendTooltipContentProps) => LegendTooltipContent;
+  export interface GetLegendTooltipContentProps {
+    legendItem: LegendItem;
+  }
 
   export interface TooltipOptions {
     enabled?: boolean;
@@ -624,8 +637,8 @@ export interface CoreLegendProps {
 }
 
 export namespace CoreLegendProps {
-  export type Item = InternalComponentTypes.LegendItem;
-  export type GetTooltipContent = InternalComponentTypes.GetLegendTooltipContent;
+  export type Item = CoreChartProps.LegendItem;
+  export type GetTooltipContent = CoreChartProps.GetLegendTooltipContent;
   export interface ItemHighlightDetail {
     item: Item;
   }
