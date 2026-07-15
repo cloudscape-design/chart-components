@@ -31,4 +31,3 @@ jobs:
     secrets: inherit
     with:
       artifact-name: dev-pages
-      deployment-path: dist
