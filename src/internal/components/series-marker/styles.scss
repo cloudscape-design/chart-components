@@ -8,13 +8,12 @@
 
 $marker-size: 16px;
 $marker-inline-size: 25px; // marker-inline-size is greater than marker-size, to have space for the (potential) status marker.
+$marker-margin-top: cs.$space-static-xxxs;
 $marker-margin-right: cs.$space-static-xxs;
 
 .marker {
   @include styles.styles-reset;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  margin-block-start: $marker-margin-top;
   border-start-start-radius: 2px;
   border-start-end-radius: 2px;
   border-end-start-radius: 2px;
