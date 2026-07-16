@@ -40,7 +40,6 @@ $font-weight-bold: cs.$font-weight-heading-s;
   > .key {
     @include styles.text-wrapping;
     display: inline-flex;
-    align-items: center;
     color: cs.$color-text-group-label;
   }
 }
