@@ -622,7 +622,7 @@ export const InternalCartesianChart = forwardRef(
         <div
           style={{
             position: "absolute",
-            top: 8,
+            top: -4,
             right: 8,
             zIndex: 10,
           }}
@@ -638,7 +638,7 @@ export const InternalCartesianChart = forwardRef(
               <span className={testClasses["reset-zoom-button"]}>
                 <Button
                   ref={resetButtonRef}
-                  variant="normal"
+                  variant="link"
                   onClick={resetZoom}
                   ariaLabel={i18n.resetZoomButtonAriaLabel}
                 >
