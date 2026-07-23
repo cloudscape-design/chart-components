@@ -633,7 +633,7 @@ export const InternalCartesianChart = forwardRef(
           {/* Reset (shown while zoomed) and Zoom sit side by side; Reset leads so the Zoom button
               keeps its position whether or not the chart is zoomed. During an active selection only
               the "Exit zoom" button is shown. */}
-          <SpaceBetween size="xs" direction="horizontal">
+          <SpaceBetween size="s" direction="horizontal">
             {zoomMode === "zoomed" && (
               <span className={testClasses["reset-zoom-button"]}>
                 <Button
