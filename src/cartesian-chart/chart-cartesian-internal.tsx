@@ -7,12 +7,7 @@ import { useControllableState } from "@cloudscape-design/component-toolkit";
 import Button from "@cloudscape-design/components/button";
 import LiveRegion from "@cloudscape-design/components/live-region";
 import SpaceBetween from "@cloudscape-design/components/space-between";
-import {
-  colorBackgroundItemSelected,
-  colorBorderItemFocused,
-  colorBorderItemSelected,
-  colorChartsLineTick,
-} from "@cloudscape-design/design-tokens";
+import { colorBackgroundItemSelected, colorBorderItemSelected } from "@cloudscape-design/design-tokens";
 
 import { InternalCoreChart } from "../core/chart-core";
 import { CoreChartProps, ErrorBarSeriesOptions } from "../core/interfaces";
@@ -40,6 +35,12 @@ const ZOOM_CURSOR_LINE_ID = "awsui-zoom-cursor";
 const ZOOM_RANGE_BAND_ID = "awsui-zoom-range";
 const ZOOM_RANGE_START_LINE_ID = "awsui-zoom-range-start";
 const ZOOM_RANGE_END_LINE_ID = "awsui-zoom-range-end";
+
+// Shared style for the vertical zoom divider lines: the range boundary lines shown while the chart
+// is zoomed and the selection anchor line shown while selecting. Both use the same dark-blue, 1px,
+// solid style so every divider/selection edge matches exactly across the design.
+const ZOOM_DIVIDER_COLOR = colorBorderItemSelected;
+const ZOOM_DIVIDER_WIDTH = 1;
 
 // Zoom mode state machine:
 // "idle" — normal (unzoomed) chart, "Zoom" button visible.
@@ -79,8 +80,8 @@ function drawSelectionBand(
 }
 
 // Draws (or redraws) the vertical zoom cursor line at the given x-axis value. The cursor is the
-// shared focus indicator that both the mouse and the keyboard move around while in zoom mode. It
-// reuses the same look as the standard chart hover cursor (see Styles.cursorLine).
+// selection line that both the mouse and the keyboard move around while in zoom mode. It uses the
+// shared zoom divider style so the selection line matches the range boundary dividers exactly.
 function drawCursorLine(
   xAxis: { removePlotLine(id: string): void; addPlotLine(options: object): void },
   value: number,
@@ -89,8 +90,8 @@ function drawCursorLine(
   xAxis.addPlotLine({
     id: ZOOM_CURSOR_LINE_ID,
     value,
-    color: colorChartsLineTick,
-    width: 1,
+    color: ZOOM_DIVIDER_COLOR,
+    width: ZOOM_DIVIDER_WIDTH,
     zIndex: 6,
   });
 }
@@ -109,7 +110,7 @@ const ZOOM_RANGE_FILL = colorBackgroundItemSelected;
 
 // Draws (or redraws) the persistent zoom-range affordance: a subtle band tint between the zoomed
 // min/max plus a vertical boundary line at each edge. Shown while the chart is zoomed to make the
-// active range explicit. Boundary lines reuse the selected-item border token to match the tint.
+// active range explicit. Boundary lines use the shared zoom divider style to match the tint.
 function drawZoomRangeBoundaries(xAxis: ZoomOverlayAxis, min: number, max: number): void {
   clearZoomRangeBoundaries(xAxis);
   const from = Math.min(min, max);
@@ -119,7 +120,7 @@ function drawZoomRangeBoundaries(xAxis: ZoomOverlayAxis, min: number, max: numbe
     [ZOOM_RANGE_START_LINE_ID, from],
     [ZOOM_RANGE_END_LINE_ID, to],
   ] as const) {
-    xAxis.addPlotLine({ id, value, color: colorBorderItemSelected, width: 1, zIndex: 3 });
+    xAxis.addPlotLine({ id, value, color: ZOOM_DIVIDER_COLOR, width: ZOOM_DIVIDER_WIDTH, zIndex: 3 });
   }
 }
 
@@ -460,9 +461,8 @@ export const InternalCartesianChart = forwardRef(
         xAxis.addPlotLine({
           id: ZOOM_ANCHOR_LINE_ID,
           value: zoomAnchor,
-          color: colorBorderItemFocused,
-          width: 2,
-          dashStyle: "Dash",
+          color: ZOOM_DIVIDER_COLOR,
+          width: ZOOM_DIVIDER_WIDTH,
           zIndex: 5,
         });
       }
