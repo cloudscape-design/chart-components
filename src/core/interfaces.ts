@@ -160,6 +160,15 @@ export interface WithCartesianI18nStrings {
    * * `chartRoleDescription` (optional, string) - Accessible role description of the chart plot area, e.g. "interactive chart".
    * * `xAxisRoleDescription` (optional, string) - Accessible role description of the x axis, e.g. "x axis".
    * * `yAxisRoleDescription` (optional, string) - Accessible role description of the y axis, e.g. "y axis".
+   * * `enterZoomModeButtonText` (optional, string) - Visible label for the "Zoom" button that enters zoom mode.
+   * * `enterZoomModeButtonAriaLabel` (optional, string) - Accessible label for the "Zoom" button.
+   * * `exitZoomModeButtonText` (optional, string) - Visible label for the "Exit zoom" button that exits zoom mode without zooming.
+   * * `exitZoomModeButtonAriaLabel` (optional, string) - Accessible label for the "Exit zoom" button.
+   * * `resetZoomButtonText` (optional, string) - Visible label for the "Reset" button that resets zoom to full range.
+   * * `resetZoomButtonAriaLabel` (optional, string) - Accessible label for the "Reset" button.
+   * * `zoomControlsAriaLabel` (optional, string) - Accessible label for the zoom controls region, e.g. "Chart zoom controls".
+   * * `zoomRangeChangeAnnouncementText` (optional, function) - Screen reader announcement when the zoom range changes. Receives the formatted start and end values.
+   * * `zoomSelectionAnnouncementText` (optional, function) - Screen reader announcement while adjusting the keyboard zoom selection. Receives the formatted start and end values.
    */
   i18nStrings?: CartesianI18nStrings;
 }
@@ -187,6 +196,34 @@ export interface WithPieI18nStrings {
 export interface CartesianI18nStrings extends BaseI18nStrings {
   xAxisRoleDescription?: string;
   yAxisRoleDescription?: string;
+  /** Visible label for the "Zoom" button that enters zoom mode. @defaultValue "Zoom" */
+  enterZoomModeButtonText?: string;
+  /** Accessible label for the "Zoom" button. @defaultValue "Enter zoom mode" */
+  enterZoomModeButtonAriaLabel?: string;
+  /** Visible label for the "Exit zoom" button that exits zoom mode without zooming. @defaultValue "Exit zoom" */
+  exitZoomModeButtonText?: string;
+  /** Accessible label for the "Exit zoom" button. @defaultValue "Exit zoom mode" */
+  exitZoomModeButtonAriaLabel?: string;
+  /** Visible label for the "Reset" button that resets zoom to full range. @defaultValue "Reset" */
+  resetZoomButtonText?: string;
+  /** Accessible label for the "Reset" button. @defaultValue "Reset zoom to show full data range" */
+  resetZoomButtonAriaLabel?: string;
+  /** Accessible label for the zoom controls region. @defaultValue "Chart zoom controls" */
+  zoomControlsAriaLabel?: string;
+  /** Accessible label for the button that moves the zoom cursor to the previous point. @defaultValue "Move zoom cursor left" */
+  zoomCursorPreviousButtonAriaLabel?: string;
+  /** Accessible label for the button that moves the zoom cursor to the next point. @defaultValue "Move zoom cursor right" */
+  zoomCursorNextButtonAriaLabel?: string;
+  /** Screen reader announcement when zoom mode is entered. Receives the formatted cursor value. @defaultValue (value) => \`Zoom mode. Cursor at ${value}. Use arrow keys to move, Enter to set the start point.\` */
+  zoomModeEnteredAnnouncementText?: (value: string) => string;
+  /** Screen reader announcement when the zoom cursor moves. Receives the formatted cursor value. @defaultValue (value) => value */
+  zoomCursorPositionAnnouncementText?: (value: string) => string;
+  /** Screen reader announcement when the zoom start point is set. Receives the formatted start value. @defaultValue (value) => \`Start point set at ${value}. Move the cursor and set the end point to zoom.\` */
+  zoomStartPointAnnouncementText?: (value: string) => string;
+  /** Screen reader announcement when the zoom range changes. Receives the formatted start and end values. @defaultValue (startValue, endValue) => \`Zoomed from ${startValue} to ${endValue}\` */
+  zoomRangeChangeAnnouncementText?: (startValue: string, endValue: string) => string;
+  /** Screen reader announcement while adjusting the keyboard zoom selection. Receives the formatted start and end values. @defaultValue (startValue, endValue) => \`Selecting zoom range from ${startValue} to ${endValue}\` */
+  zoomSelectionAnnouncementText?: (startValue: string, endValue: string) => string;
 }
 
 export interface PieI18nStrings extends BaseI18nStrings {
