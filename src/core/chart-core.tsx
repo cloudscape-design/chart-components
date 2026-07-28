@@ -4,7 +4,7 @@
 import { useEffect, useRef } from "react";
 import clsx from "clsx";
 import type Highcharts from "highcharts";
-import HighchartsReact from "highcharts-react-official";
+import { HighchartsReact } from "highcharts-react-official";
 
 import {
   getIsRtl,
