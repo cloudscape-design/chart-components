@@ -7,7 +7,11 @@ import { useControllableState } from "@cloudscape-design/component-toolkit";
 import Button from "@cloudscape-design/components/button";
 import LiveRegion from "@cloudscape-design/components/live-region";
 import SpaceBetween from "@cloudscape-design/components/space-between";
-import { colorBackgroundItemSelected, colorBorderItemSelected } from "@cloudscape-design/design-tokens";
+import {
+  colorBackgroundButtonNormalActive,
+  colorBackgroundItemSelected,
+  colorBorderItemSelected,
+} from "@cloudscape-design/design-tokens";
 
 import { InternalCoreChart } from "../core/chart-core";
 import { CoreChartProps, ErrorBarSeriesOptions } from "../core/interfaces";
@@ -35,6 +39,10 @@ const ZOOM_CURSOR_LINE_ID = "awsui-zoom-cursor";
 const ZOOM_RANGE_BAND_ID = "awsui-zoom-range";
 const ZOOM_RANGE_START_LINE_ID = "awsui-zoom-range-start";
 const ZOOM_RANGE_END_LINE_ID = "awsui-zoom-range-end";
+// Boundary lines drawn at the edges of the native drag-to-zoom selection, so dragging shows the same
+// dividers as a click/keyboard selection.
+const ZOOM_DRAG_START_LINE_ID = "awsui-zoom-drag-start";
+const ZOOM_DRAG_END_LINE_ID = "awsui-zoom-drag-end";
 
 // Shared style for the vertical zoom divider lines: the range boundary lines shown while the chart
 // is zoomed and the selection anchor line shown while selecting. Both use the same dark-blue, 1px,
@@ -57,13 +65,17 @@ const ZOOM_DIVIDER_WIDTH = 1;
 // now be entered on top of an existing zoom.
 type ZoomModeState = "idle" | "zoomMode" | "selecting" | "zoomed";
 
-// Fill for the keyboard/click zoom selection band. This matches the fill Highcharts applies to its
-// native drag-to-zoom selection marker (highlightColor80 at 0.25 opacity), so keyboard and
-// click-based selection look identical to standard mouse dragging.
-const ZOOM_SELECTION_FILL = "rgba(51, 78, 255, 0.25)";
+// Fill for the in-progress zoom selection band: the "active" step of the selected-item background
+// family, one shade stronger than the zoomed-range tint below, so the range being selected reads as
+// the more prominent of the two whenever both are on screen at once.
+//
+// The band is drawn above the plot content, so it is blended at half opacity to keep the series and
+// gridlines underneath visible. Highcharts has no opacity option for a plot band — it only forwards
+// `color` to the SVG `fill` — so the alpha is mixed into the color here rather than set separately.
+const ZOOM_SELECTION_FILL = `color-mix(in srgb, ${colorBackgroundButtonNormalActive} 50%, transparent)`;
 
-// Draws (or redraws) the zoom selection highlight band between two x-axis values. It intentionally
-// mirrors the native Highcharts drag-selection marker: a translucent fill with no border.
+// Draws (or redraws) the zoom selection highlight band between two x-axis values. The band is drawn
+// over the plot content with no border of its own: the vertical divider lines mark its edges.
 function drawSelectionBand(
   xAxis: { removePlotBand(id: string): void; addPlotBand(options: object): void },
   from: number,
@@ -102,6 +114,7 @@ interface ZoomOverlayAxis {
   addPlotBand(options: object): void;
   removePlotLine(id: string): void;
   addPlotLine(options: object): void;
+  toValue(pixel: number, paneCoordinates?: boolean): number;
 }
 
 // Fill for the zoom-range affordance band. This is the subtle selected-item background tint, laid
@@ -122,6 +135,33 @@ function drawZoomRangeBoundaries(xAxis: ZoomOverlayAxis, min: number, max: numbe
   ] as const) {
     xAxis.addPlotLine({ id, value, color: ZOOM_DIVIDER_COLOR, width: ZOOM_DIVIDER_WIDTH, zIndex: 3 });
   }
+}
+
+// Draws (or redraws) a vertical divider at each edge of the native drag-to-zoom selection. Highcharts
+// renders that selection as a filled rectangle with no border, so without these the drag would be the
+// only way of selecting a range that has no lines marking where it starts and ends.
+//
+// The edges come from the marker rectangle Highcharts computed for this drag frame rather than from
+// the raw pointer position, so the dividers line up with the fill they bound instead of drifting from
+// it once Highcharts clamps the marker to the plot area.
+function drawDragBoundaries(xAxis: ZoomOverlayAxis, startX: number, endX: number, plotLeft: number): void {
+  clearDragBoundaries(xAxis);
+  for (const [id, pixelX] of [
+    [ZOOM_DRAG_START_LINE_ID, startX],
+    [ZOOM_DRAG_END_LINE_ID, endX],
+  ] as const) {
+    // Plot lines are positioned by axis value, so convert from the marker's pixel edges. `toValue`
+    // expects a value relative to the plot area, hence subtracting plotLeft.
+    const value = xAxis.toValue(pixelX - plotLeft, true);
+    // Above the selection marker (zIndex 7) so the dividers stay visible on top of its fill.
+    xAxis.addPlotLine({ id, value, color: ZOOM_DIVIDER_COLOR, width: ZOOM_DIVIDER_WIDTH, zIndex: 8 });
+  }
+}
+
+// Removes the drag-selection dividers. Safe to call when they are not present.
+function clearDragBoundaries(xAxis: ZoomOverlayAxis): void {
+  xAxis.removePlotLine(ZOOM_DRAG_START_LINE_ID);
+  xAxis.removePlotLine(ZOOM_DRAG_END_LINE_ID);
 }
 
 // Removes the zoom-range affordance overlays. Safe to call when they are not present.
@@ -443,6 +483,10 @@ export const InternalCartesianChart = forwardRef(
       [applyZoom, formatXValue, i18n],
     );
 
+    // True while a range is being selected inside the chart (zoom mode entered, with or without a
+    // start point placed yet), as opposed to dragging or the settled idle/zoomed states.
+    const isSelectingZoom = zoomMode === "zoomMode" || zoomMode === "selecting";
+
     // Declaratively draw the zoom-mode overlays (cursor line, anchor line, selection band) from
     // state. Runs after every render so the overlays are re-applied whenever Highcharts updates the
     // chart (which clears imperatively-added plot lines/bands).
@@ -477,21 +521,71 @@ export const InternalCartesianChart = forwardRef(
     // Declaratively draw the persistent zoom-range affordance (boundary lines + band tint) from
     // state. Like the cursor-overlay effect above, it runs after every render so the overlays are
     // re-applied whenever Highcharts updates the chart (which clears imperatively-added lines/bands).
-    // While a new selection is in progress (zoom mode re-entered on top of an existing zoom) the
-    // affordance is suppressed so the selection cursor/band read the same as a first-time zoom; it is
-    // restored when the interaction ends (see exitZoomMode returning to "zoomed").
-    const isSelectingZoom = zoomMode === "zoomMode" || zoomMode === "selecting";
+    // The affordance stays visible while zoom mode is re-entered on top of an existing zoom: the
+    // selection band is the stronger shade of the same tint, so it reads as a range being picked
+    // inside the range already in view.
     useEffect(() => {
       const xAxis = apiRef.current?.chart.xAxis[0];
       if (!xAxis) {
         return;
       }
-      if (zoomedExtremes && !isSelectingZoom) {
+      if (zoomedExtremes) {
         drawZoomRangeBoundaries(xAxis, zoomedExtremes.min, zoomedExtremes.max);
       } else {
         clearZoomRangeBoundaries(xAxis);
       }
-    }, [zoomedExtremes, isSelectingZoom, chartReady]);
+    }, [zoomedExtremes, chartReady]);
+
+    // Drag-to-zoom: mirror the selection dividers onto the native drag selection. Highcharts draws
+    // that selection as a bare filled rectangle, so we track the drag ourselves and draw a vertical
+    // line at each edge, matching what a click/keyboard selection shows. Active whenever zoom is
+    // enabled and no in-chart selection is in progress, since dragging works outside zoom mode too.
+    useEffect(() => {
+      if (!zoomEnabled || !chartReady || !apiRef.current || isSelectingZoom) {
+        return;
+      }
+      const chart = apiRef.current.chart;
+      const highcharts = apiRef.current.highcharts;
+      const xAxis = chart.xAxis[0];
+
+      // Highcharts fires "getSelectionMarkerAttrs" once per drag frame with the rectangle it is about
+      // to give the selection marker, so the drag threshold and the clamping to the plot area are
+      // already applied by the time we see it. A plain click never reaches this event, so it never
+      // flashes a pair of dividers.
+      //
+      // Listeners run before the default handler that fills in `attrs`, so the rectangle is only
+      // readable once the event has finished dispatching — hence reading it back on a microtask.
+      const pointer = chart.pointer;
+      let disposed = false;
+      const removeDragListener = highcharts.addEvent(pointer, "getSelectionMarkerAttrs", (e: unknown) => {
+        const { attrs } = e as { attrs?: { x?: number; width?: number } };
+        Promise.resolve().then(() => {
+          if (disposed || typeof attrs?.x !== "number" || typeof attrs?.width !== "number") {
+            return;
+          }
+          drawDragBoundaries(xAxis, attrs.x, attrs.x + attrs.width, chart.plotLeft);
+        });
+      });
+
+      // The selection marker is destroyed when the drag ends, whether or not a zoom was applied.
+      const removeDropListener = highcharts.addEvent(chart, "selection", () => clearDragBoundaries(xAxis));
+      const onMouseUp = () => clearDragBoundaries(xAxis);
+      document.addEventListener("mouseup", onMouseUp);
+
+      return () => {
+        disposed = true;
+        document.removeEventListener("mouseup", onMouseUp);
+        // Highcharts may already have destroyed the chart by the time this runs (it nulls out the
+        // pointer and the axes), and reaching into the remains to detach listeners or clear plot
+        // lines throws. Nothing needs cleaning up in that case: the chart took the overlays with it.
+        if (!chart.pointer) {
+          return;
+        }
+        removeDragListener();
+        removeDropListener();
+        clearDragBoundaries(xAxis);
+      };
+    }, [zoomEnabled, chartReady, isSelectingZoom]);
 
     // Zoom mode: click handling and mouse tracking on the chart container.
     useEffect(() => {
@@ -514,6 +608,10 @@ export const InternalCartesianChart = forwardRef(
         if (!normalized || !isInsidePlotX(normalized.chartX)) {
           return;
         }
+        // The chart tracks the pointer to highlight the nearest group, which draws a cursor line of
+        // its own. Disabling the tooltip does not stop it, so clear the highlight here: otherwise it
+        // trails the zoom cursor as a second, grey line snapped to the nearest data point.
+        apiRef.current?.clearChartHighlight();
         moveCursorTo(xAxis.toValue(normalized.chartX, false));
       };
 
@@ -675,8 +773,7 @@ export const InternalCartesianChart = forwardRef(
       ) : null;
 
     // Disable tooltip in zoom mode (popovers disabled).
-    const effectiveTooltip =
-      zoomMode === "zoomMode" || zoomMode === "selecting" ? { ...tooltip, enabled: false } : tooltip;
+    const effectiveTooltip = isSelectingZoom ? { ...tooltip, enabled: false } : tooltip;
 
     return (
       <>
@@ -699,6 +796,10 @@ export const InternalCartesianChart = forwardRef(
               ...(zoomEnabled
                 ? {
                     zooming: { type: "x" },
+                    // Match the drag-to-zoom marker to the click/keyboard selection band, so both
+                    // ways of selecting a range look the same. Highcharts would otherwise use its
+                    // own highlight color here.
+                    selectionMarkerFill: ZOOM_SELECTION_FILL,
                     resetZoomButton: { theme: { style: { display: "none" } } },
                   }
                 : {}),

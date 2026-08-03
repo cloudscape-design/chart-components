@@ -44,14 +44,40 @@ function getXExtremes() {
 // Reads the persistent zoom-range affordance drawn on the x-axis: the two boundary plot lines and
 // the band tint between them. Returns their ids and the band's from/to so tests can assert on them.
 function getZoomRangeOverlays() {
-  const xAxis = getCurrentChart().xAxis[0] as unknown as {
-    plotLinesAndBands: { id?: string; options?: { from?: number; to?: number } }[];
-  };
-  const items = xAxis.plotLinesAndBands ?? [];
+  const items = getPlotLinesAndBands();
   const startLine = items.find((i) => i.id === "awsui-zoom-range-start");
   const endLine = items.find((i) => i.id === "awsui-zoom-range-end");
   const band = items.find((i) => i.id === "awsui-zoom-range");
   return { startLine, endLine, band };
+}
+
+function getPlotLinesAndBands() {
+  const xAxis = getCurrentChart().xAxis[0] as unknown as {
+    plotLinesAndBands: {
+      id?: string;
+      options?: { from?: number; to?: number; value?: number; color?: string };
+    }[];
+  };
+  return xAxis.plotLinesAndBands ?? [];
+}
+
+// Reads the dividers drawn at the edges of the native drag-to-zoom selection.
+function getDragBoundaries() {
+  const items = getPlotLinesAndBands();
+  return {
+    startLine: items.find((i) => i.id === "awsui-zoom-drag-start"),
+    endLine: items.find((i) => i.id === "awsui-zoom-drag-end"),
+  };
+}
+
+// Simulates a frame of the native drag-to-zoom by asking the pointer for the selection marker
+// rectangle it would draw, which is what the component listens to.
+function dragSelectionFrame({ chartX }: { chartX: number }) {
+  const pointer = getCurrentChart().pointer as unknown as {
+    getSelectionMarkerAttrs(chartX: number, chartY: number): { attrs: { x?: number; width?: number } };
+  };
+  const chart = getCurrentChart();
+  return pointer.getSelectionMarkerAttrs(chartX, chart.plotTop + 1).attrs;
 }
 
 const onZoomRangeChange = vi.fn();
@@ -171,18 +197,18 @@ describe("CartesianChart: zoom", () => {
     expect(getChart().findExitZoomButton()).toBe(null);
   });
 
-  test("clicking Zoom while zoomed re-enters zoom mode and suppresses the range affordance", () => {
+  test("clicking Zoom while zoomed re-enters zoom mode and keeps the range affordance", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
     keyboardZoomTo(1, 3);
     // Affordance present in the settled zoomed state.
     expect(getZoomRangeOverlays().band).toBeDefined();
-    // Re-enter zoom mode: Zoom is replaced by Exit zoom, and the persistent affordance is hidden
-    // so the new selection reads like a first-time zoom.
+    // Re-enter zoom mode: Zoom is replaced by Exit zoom. The affordance stays on screen so the
+    // range already in view remains visible while a narrower one is selected inside it.
     act(() => getChart().findZoomButton()!.click());
     expect(getChart().findExitZoomButton()).not.toBe(null);
     expect(getChart().findZoomButton()).toBe(null);
     expect(getChart().findResetZoomButton()).toBe(null);
-    expect(getZoomRangeOverlays().band).toBeUndefined();
+    expect(getZoomRangeOverlays().band).toBeDefined();
   });
 
   test("exiting a re-zoom returns to the zoomed state with the range intact", () => {
@@ -230,6 +256,40 @@ describe("CartesianChart: zoom", () => {
     expect(getChart().findZoomButton()).not.toBe(null);
     expect(getZoomRangeOverlays().band?.options).toMatchObject({ from: 1, to: 3 });
     expect(onZoomRangeChange).not.toHaveBeenCalled();
+  });
+
+  test("draws boundary dividers at the edges of a drag-to-zoom selection", async () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    const chart = getCurrentChart();
+    // No drag in progress: no dividers.
+    expect(getDragBoundaries().startLine).toBeUndefined();
+    expect(getDragBoundaries().endLine).toBeUndefined();
+
+    // Highcharts derives the selection rectangle from where the pointer went down, so seed that and
+    // then run a drag frame; the dividers follow the resulting rectangle's edges.
+    Object.assign(chart, { mouseDownX: chart.plotLeft + 10, mouseDownY: chart.plotTop + 1 });
+    let attrs!: { x?: number; width?: number };
+    act(() => {
+      attrs = dragSelectionFrame({ chartX: chart.plotLeft + 50 });
+    });
+    expect(attrs.x).toEqual(expect.any(Number));
+
+    await vi.waitFor(() => expect(getDragBoundaries().startLine).toBeDefined());
+    const { startLine, endLine } = getDragBoundaries();
+    expect(endLine).toBeDefined();
+    // The dividers map back to the axis values under the rectangle's left and right edges.
+    const toValue = (pixelX: number) => chart.xAxis[0].toValue(pixelX - chart.plotLeft, true);
+    expect(startLine!.options!.value).toBeCloseTo(toValue(attrs.x!), 5);
+    expect(endLine!.options!.value).toBeCloseTo(toValue(attrs.x! + attrs.width!), 5);
+    // Both use the same divider styling as the click/keyboard selection lines.
+    expect(startLine!.options!.color).toBe(endLine!.options!.color);
+
+    // Releasing the drag clears them again.
+    act(() => {
+      document.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
+    });
+    expect(getDragBoundaries().startLine).toBeUndefined();
+    expect(getDragBoundaries().endLine).toBeUndefined();
   });
 
   test("controlled zoomRange=null resets the extremes", () => {
