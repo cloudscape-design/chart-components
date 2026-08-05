@@ -167,8 +167,13 @@ export interface WithCartesianI18nStrings {
    * * `resetZoomButtonText` (optional, string) - Visible label for the "Reset" button that resets zoom to full range.
    * * `resetZoomButtonAriaLabel` (optional, string) - Accessible label for the "Reset" button.
    * * `zoomControlsAriaLabel` (optional, string) - Accessible label for the zoom controls region, e.g. "Chart zoom controls".
+   * * `zoomCursorPreviousButtonAriaLabel` (optional, string) - Accessible label for the button that moves the zoom cursor to the previous data point.
+   * * `zoomCursorNextButtonAriaLabel` (optional, string) - Accessible label for the button that moves the zoom cursor to the next data point.
+   * * `zoomModeEnteredAnnouncementText` (optional, function) - Screen reader announcement when zoom mode is entered. Receives the formatted cursor value.
+   * * `zoomCursorPositionAnnouncementText` (optional, function) - Screen reader announcement when the zoom cursor moves. Receives the formatted cursor value.
+   * * `zoomStartPointAnnouncementText` (optional, function) - Screen reader announcement when the start of the range is set. Receives the formatted start value.
    * * `zoomRangeChangeAnnouncementText` (optional, function) - Screen reader announcement when the zoom range changes. Receives the formatted start and end values.
-   * * `zoomSelectionAnnouncementText` (optional, function) - Screen reader announcement while adjusting the keyboard zoom selection. Receives the formatted start and end values.
+   * * `zoomSelectionAnnouncementText` (optional, function) - Screen reader announcement while the range is being selected. Receives the formatted start and end values.
    */
   i18nStrings?: CartesianI18nStrings;
 }

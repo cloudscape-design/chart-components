@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import type Highcharts from "highcharts";
 
 import { useControllableState } from "@cloudscape-design/component-toolkit";
 import Button from "@cloudscape-design/components/button";
@@ -17,13 +18,15 @@ import { InternalCoreChart } from "../core/chart-core";
 import { CoreChartProps, ErrorBarSeriesOptions } from "../core/interfaces";
 import { getOptionsId, isXThreshold } from "../core/utils";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
-import DirectionButton from "../internal/components/drag-handle-wrapper/direction-button";
-import PortalOverlay from "../internal/components/drag-handle-wrapper/portal-overlay";
+import DirectionButton from "../internal/components/zoom-cursor-buttons/direction-button";
+import PortalOverlay from "../internal/components/zoom-cursor-buttons/portal-overlay";
 import { fireNonCancelableEvent } from "../internal/events";
+import { getChartSeries, getSeriesData } from "../internal/utils/highcharts";
 import { castArray, SomeRequired } from "../internal/utils/utils";
 import { transformCartesianSeries } from "./chart-series-cartesian";
 import { CartesianChartProps, NonErrorBarSeriesOptions } from "./interfaces";
 
+import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
 
 interface InternalCartesianChartProps extends InternalBaseComponentProps, CartesianChartProps {
@@ -50,32 +53,29 @@ const ZOOM_DRAG_END_LINE_ID = "awsui-zoom-drag-end";
 const ZOOM_DIVIDER_COLOR = colorBorderItemSelected;
 const ZOOM_DIVIDER_WIDTH = 1;
 
-// Zoom mode state machine:
-// "idle" — normal (unzoomed) chart, "Zoom" button visible.
-// "zoomMode" — zoom mode entered, "Exit zoom" button visible, popovers disabled. A vertical cursor
-//   follows the mouse or arrow keys, waiting for the first point (click / Enter / Space).
-// "selecting" — first point set, highlight band spans from the anchor to the cursor, waiting for the
-//   second point (click / Enter / Space) to complete the zoom.
-// "zoomed" — chart is zoomed, "Zoom" and "Reset" buttons visible. The "Zoom" button stays available
-//   so users can refine the current zoom by selecting a new range without resetting first; doing so
-//   re-enters "zoomMode" and exiting (Escape / "Exit zoom") returns to "zoomed" with the range intact.
-// Both the mouse and the keyboard drive the same cursor, so the two interaction methods are unified
-// (matching the approved design) and each is a WCAG-compliant single-pointer / keyboard equivalent.
-// Whether the chart is actually zoomed is tracked separately by `zoomedExtremes`, since zoom mode can
-// now be entered on top of an existing zoom.
+// The states a chart with zooming enabled moves through:
+// "idle" — not zoomed, showing the "Zoom" button.
+// "zoomMode" — showing the "Exit zoom" button, with the tooltip suppressed. A vertical cursor follows
+//   the pointer and the arrow keys, waiting for the start of the range (click / Enter / Space).
+// "selecting" — the start of the range is set, and the highlight band spans from it to the cursor,
+//   waiting for the end of the range (click / Enter / Space) to apply the zoom.
+// "zoomed" — showing the "Reset" button, and the "Zoom" button next to it, so a narrower range can be
+//   selected without resetting first. Doing so returns to "zoomMode", and cancelling from there
+//   (Escape / "Exit zoom") comes back here with the zoomed range intact.
+//
+// The pointer and the keyboard drive the same cursor, so selecting a range never requires dragging,
+// satisfying WCAG 2.5.7 (Dragging movements). Whether a zoom is applied is tracked separately by
+// `zoomedExtremes`, since zoom mode can be entered on top of an existing zoom.
 type ZoomModeState = "idle" | "zoomMode" | "selecting" | "zoomed";
 
 // Fill for the in-progress zoom selection band: the "active" step of the selected-item background
-// family, one shade stronger than the zoomed-range tint below, so the range being selected reads as
-// the more prominent of the two whenever both are on screen at once.
-//
-// The band is drawn above the plot content, so it is blended at half opacity to keep the series and
-// gridlines underneath visible. Highcharts has no opacity option for a plot band — it only forwards
-// `color` to the SVG `fill` — so the alpha is mixed into the color here rather than set separately.
-const ZOOM_SELECTION_FILL = `color-mix(in srgb, ${colorBackgroundButtonNormalActive} 50%, transparent)`;
+// family, one shade stronger than the zoomed-range tint, so the range being selected reads as the more
+// prominent of the two whenever both are on screen at once.
+const ZOOM_SELECTION_FILL = colorBackgroundButtonNormalActive;
 
-// Draws (or redraws) the zoom selection highlight band between two x-axis values. The band is drawn
-// over the plot content with no border of its own: the vertical divider lines mark its edges.
+// Draws (or redraws) the zoom selection highlight band between two x-axis values. The band has no
+// border of its own: the vertical divider lines mark its edges. It is drawn above the plot content, so
+// the stylesheet gives it a partial fill opacity to keep the series and grid lines underneath visible.
 function drawSelectionBand(
   xAxis: { removePlotBand(id: string): void; addPlotBand(options: object): void },
   from: number,
@@ -87,6 +87,7 @@ function drawSelectionBand(
     from: Math.min(from, to),
     to: Math.max(from, to),
     color: ZOOM_SELECTION_FILL,
+    className: styles["zoom-selection-band"],
     zIndex: 4,
   });
 }
@@ -172,7 +173,7 @@ function clearZoomRangeBoundaries(xAxis: ZoomOverlayAxis): void {
 }
 
 // Returns the x value from `values` nearest to `target`, moved one step in `direction` when a step
-// is requested. Used to move the zoom cursor between real data points via arrow keys / UAP buttons.
+// is requested. Used to move the zoom cursor between data points.
 function stepXValue(values: number[], target: number, direction: -1 | 1): number {
   if (values.length === 0) {
     return target;
@@ -205,19 +206,35 @@ function normalizePointerEvent(
   return (chart.pointer as PointerWithNormalize).normalize?.(e);
 }
 
-function getChartXValues(chart: {
-  series: readonly { visible: boolean; points?: readonly { x: number }[] }[];
-}): number[] {
-  const xSet = new Set<number>();
-  for (const s of chart.series) {
-    if (!s.visible) {
-      continue;
-    }
-    for (const p of s.points ?? []) {
-      xSet.add(p.x);
+// Applies a controlled zoom range to the given x-axis, and returns the extremes that were set. A
+// missing range means the full data range, which Highcharts expresses as undefined extremes.
+function applyControlledZoomRange(
+  xAxis: Pick<Highcharts.Axis, "setExtremes">,
+  zoomRange: undefined | null | CartesianChartProps.ZoomRange,
+): { min: undefined | number; max: undefined | number } {
+  const x = zoomRange?.x;
+  const extremes = x
+    ? { min: Math.min(x.startValue, x.endValue), max: Math.max(x.startValue, x.endValue) }
+    : { min: undefined, max: undefined };
+  xAxis.setExtremes(extremes.min, extremes.max);
+  return extremes;
+}
+
+// Returns the x values of all visible data points that are within the axis extremes, sorted. The zoom
+// cursor moves between these, so it only ever lands on a point the user can see.
+function getVisibleXValues(chart: Highcharts.Chart): number[] {
+  const xValues = new Set<number>();
+  for (const series of getChartSeries(chart)) {
+    if (series.visible) {
+      for (const point of getSeriesData(series)) {
+        xValues.add(point.x);
+      }
     }
   }
-  return Array.from(xSet).sort((a, b) => a - b);
+  const { min, max } = chart.xAxis[0].getExtremes();
+  return Array.from(xValues)
+    .filter((x) => (min === undefined || x >= min) && (max === undefined || x <= max))
+    .sort((a, b) => a - b);
 }
 
 export const InternalCartesianChart = forwardRef(
@@ -244,14 +261,17 @@ export const InternalCartesianChart = forwardRef(
     const prevZoomModeRef = useRef<ZoomModeState>("idle");
 
     // Position of the vertical zoom cursor (x-axis value). Shared by mouse and keyboard. Rendered as
-    // React state so the UAP direction buttons re-position, and mirrored to a ref for event handlers.
+    // React state so the direction buttons re-position, and mirrored to a ref for the event handlers.
     const [cursorX, setCursorX] = useState<number | null>(null);
     const cursorXRef = useRef<number | null>(null);
     cursorXRef.current = cursorX;
-    // Invisible element the UAP direction buttons anchor to; positioned at the cursor line.
+    // Invisible element the direction buttons anchor to; positioned at the cursor line.
     const cursorTrackRef = useRef<HTMLDivElement | null>(null);
     // The direction buttons are shown whenever we are in zoom mode with a placed cursor.
     const inZoomSelection = (zoomMode === "zoomMode" || zoomMode === "selecting") && cursorX !== null;
+    // First and last point the cursor can reach, captured when zoom mode is entered. The direction that
+    // cannot move any further is disabled, rather than silently doing nothing.
+    const [cursorRange, setCursorRange] = useState<null | { first: number; last: number }>(null);
 
     useControllableState(props.visibleSeries, props.onVisibleSeriesChange, undefined, {
       componentName: "CartesianChart",
@@ -303,6 +323,9 @@ export const InternalCartesianChart = forwardRef(
     );
 
     const zoomEnabled = !!props.zoom?.enabled;
+    // Providing the zoomRange property puts the zoomed range under the consumer's control: the chart
+    // then reports the ranges the user selects, but only zooms when the property changes.
+    const isZoomRangeControlled = props.zoomRange !== undefined;
 
     // Formats an x-axis value for screen reader announcements, using the axis value formatter when provided,
     // then falling back to locale-aware datetime formatting, and finally to the raw string value.
@@ -365,57 +388,42 @@ export const InternalCartesianChart = forwardRef(
       prevZoomModeRef.current = zoomMode;
     }, [zoomMode, props.zoom?.hideButtons]);
 
-    // Controlled zoom range: apply external zoomRange prop to the chart.
+    // Controlled zoom range: the consumer owns the range, so the chart follows the zoomRange property.
     useEffect(() => {
-      if (!chartReady || !apiRef.current) {
-        return;
+      if (chartReady && apiRef.current && isZoomRangeControlled) {
+        const { min, max } = applyControlledZoomRange(apiRef.current.chart.xAxis[0], props.zoomRange);
+        setZoomMode(min === undefined ? "idle" : "zoomed");
+        setZoomedExtremes(min === undefined || max === undefined ? null : { min, max });
       }
-      const xAxis = apiRef.current.chart.xAxis[0];
-      if (props.zoomRange === undefined) {
-        // Uncontrolled mode — do nothing.
-        return;
-      }
-      if (props.zoomRange === null) {
-        // Reset to full range.
-        xAxis.setExtremes(undefined, undefined);
-        setZoomMode("idle");
-        setZoomedExtremes(null);
-      } else if (props.zoomRange.x) {
-        // Apply the controlled range.
-        const { startValue, endValue } = props.zoomRange.x;
-        xAxis.setExtremes(startValue, endValue);
-        setZoomMode("zoomed");
-        setZoomedExtremes({ min: Math.min(startValue, endValue), max: Math.max(startValue, endValue) });
-      }
-    }, [chartReady, props.zoomRange]);
+    }, [chartReady, isZoomRangeControlled, props.zoomRange]);
 
-    // Keep the cursor-tracking element (and therefore the UAP direction buttons) aligned with the
-    // cursor line at the bottom of the plot area.
+    // Keep the element the direction buttons are anchored to aligned with the cursor line, at the
+    // bottom of the plot area.
     useEffect(() => {
       const chart = apiRef.current?.chart;
       if (!chart || !cursorTrackRef.current || cursorX === null || !inZoomSelection) {
         return;
       }
-      const pixelX = chart.xAxis[0].toPixels(cursorX, false);
-      cursorTrackRef.current.style.insetInlineStart = `${pixelX}px`;
-      cursorTrackRef.current.style.insetBlockStart = `${chart.plotTop + chart.plotHeight}px`;
+      // toPixels returns a left-to-right offset, so it is applied as a physical inset: an inline inset
+      // would be measured from the opposite edge in right-to-left rendering.
+      cursorTrackRef.current.style.left = `${chart.xAxis[0].toPixels(cursorX, false)}px`;
+      cursorTrackRef.current.style.top = `${chart.plotTop + chart.plotHeight}px`;
     }, [cursorX, inZoomSelection]);
 
     const enterZoomMode = useCallback(() => {
       const chart = apiRef.current?.chart;
-      // Start the cursor at the first data point so keyboard users have an immediate, visible anchor
-      // without needing to hover first. When re-entering zoom mode on an already-zoomed chart, only
-      // consider points within the current visible extremes so the cursor starts on-screen.
-      const xValues = chart ? getChartXValues(chart) : [];
-      const extremes = chart?.xAxis[0].getExtremes();
-      const visibleXValues =
-        extremes && extremes.min !== undefined && extremes.max !== undefined
-          ? xValues.filter((x) => x >= extremes.min && x <= extremes.max)
-          : xValues;
-      const initialX = visibleXValues[0] ?? extremes?.min ?? null;
+      const visibleXValues = chart ? getVisibleXValues(chart) : [];
+      // Start the cursor on the first visible point so it has an immediate, visible anchor without the
+      // user having to hover the chart first.
+      const initialX = visibleXValues[0] ?? chart?.xAxis[0].getExtremes().min ?? null;
       setZoomMode("zoomMode");
       setZoomAnchor(null);
       setCursorX(initialX);
+      setCursorRange(
+        visibleXValues.length > 0
+          ? { first: visibleXValues[0], last: visibleXValues[visibleXValues.length - 1] }
+          : null,
+      );
       setLiveAnnouncement(initialX !== null ? i18n.zoomModeEnteredAnnouncementText(formatXValue(initialX)) : "");
     }, [formatXValue, i18n]);
 
@@ -428,8 +436,8 @@ export const InternalCartesianChart = forwardRef(
       setLiveAnnouncement("");
     }, []);
 
-    // Moves the zoom cursor to an absolute x value (shared by mouse hover, arrow keys, and UAP
-    // buttons). Only updates state — the cursor line and selection band are drawn declaratively by an
+    // Moves the zoom cursor to an absolute x value, shared by the pointer, the arrow keys, and the
+    // direction buttons. Only updates state — the cursor line and selection band are drawn declaratively by an
     // effect, so they survive Highcharts re-renders (e.g. when zoom mode toggles the tooltip).
     const moveCursorTo = useCallback(
       (value: number, options: { announce?: boolean } = {}) => {
@@ -448,15 +456,15 @@ export const InternalCartesianChart = forwardRef(
       [formatXValue, i18n],
     );
 
-    // Steps the zoom cursor one data point left (-1) or right (+1) via arrow keys / UAP buttons.
+    // Steps the zoom cursor one data point towards the inline start (-1) or end (+1), driven by the
+    // arrow keys and the direction buttons.
     const stepCursor = useCallback(
       (direction: -1 | 1) => {
         const chart = apiRef.current?.chart;
         if (!chart || cursorXRef.current === null) {
           return;
         }
-        const xValues = getChartXValues(chart);
-        const next = stepXValue(xValues, cursorXRef.current, direction);
+        const next = stepXValue(getVisibleXValues(chart), cursorXRef.current, direction);
         moveCursorTo(next, { announce: true });
       },
       [moveCursorTo],
@@ -602,6 +610,13 @@ export const InternalCartesianChart = forwardRef(
 
       const isInsidePlotX = (chartX: number) => chartX >= chart.plotLeft && chartX <= chart.plotLeft + chart.plotWidth;
 
+      // Show a grabbing cursor while a range is being selected, matching the affordance the chart uses
+      // for dragging elsewhere. The chart sets the cursor imperatively as the pointer moves, so this is
+      // re-applied on each move rather than left to the stylesheet.
+      const applyZoomModeCursor = () => {
+        container.style.cursor = zoomAnchorRef.current === null ? "grab" : "grabbing";
+      };
+
       // Mouse move: the cursor (and, while selecting, the highlight band) follows the pointer.
       const onMouseMove = (e: MouseEvent) => {
         const normalized = normalizePointerEvent(chart, e);
@@ -609,9 +624,11 @@ export const InternalCartesianChart = forwardRef(
           return;
         }
         // The chart tracks the pointer to highlight the nearest group, which draws a cursor line of
-        // its own. Disabling the tooltip does not stop it, so clear the highlight here: otherwise it
-        // trails the zoom cursor as a second, grey line snapped to the nearest data point.
+        // its own and sets the cursor style. Disabling the tooltip does not stop it, so clear the
+        // highlight here: otherwise it trails the zoom cursor as a second, grey line snapped to the
+        // nearest data point, and the pointer keeps the "pointer" style used to indicate a tooltip.
         apiRef.current?.clearChartHighlight();
+        applyZoomModeCursor();
         moveCursorTo(xAxis.toValue(normalized.chartX, false));
       };
 
@@ -660,12 +677,15 @@ export const InternalCartesianChart = forwardRef(
       }, 0);
       container.addEventListener("mousemove", onMouseMove);
       document.addEventListener("keydown", onKeyDown);
+      applyZoomModeCursor();
 
       return () => {
         clearTimeout(timeoutId);
         container.removeEventListener("click", onClick);
         container.removeEventListener("mousemove", onMouseMove);
         document.removeEventListener("keydown", onKeyDown);
+        // Hand the cursor back to the chart, which sets it as the pointer moves over the series.
+        container.style.cursor = "";
       };
     }, [zoomEnabled, chartReady, zoomMode, moveCursorTo, stepCursor, commitPoint, exitZoomMode]);
 
@@ -717,16 +737,7 @@ export const InternalCartesianChart = forwardRef(
     // The zoom mode button rendered inside the chart plot area (top-right corner).
     const zoomModeButton =
       zoomEnabled && !props.zoom?.hideButtons ? (
-        <div
-          style={{
-            position: "absolute",
-            top: -4,
-            right: 8,
-            zIndex: 10,
-          }}
-          role="region"
-          aria-label={i18n.zoomControlsAriaLabel}
-        >
+        <div className={styles["zoom-controls"]} role="region" aria-label={i18n.zoomControlsAriaLabel}>
           <LiveRegion hidden={true}>{liveAnnouncement}</LiveRegion>
           {/* Reset (shown while zoomed) and Zoom sit side by side; Reset leads so the Zoom button
               keeps its position whether or not the chart is zoomed. During an active selection only
@@ -772,7 +783,8 @@ export const InternalCartesianChart = forwardRef(
         </div>
       ) : null;
 
-    // Disable tooltip in zoom mode (popovers disabled).
+    // The tooltip is suppressed while a range is being selected: it would sit under the pointer and
+    // compete with the selection.
     const effectiveTooltip = isSelectingZoom ? { ...tooltip, enabled: false } : tooltip;
 
     return (
@@ -783,8 +795,8 @@ export const InternalCartesianChart = forwardRef(
           callback={(api) => {
             apiRef.current = api;
             setChartReady(true);
-            // Move the cursor-tracking element into the chart container so the UAP direction buttons
-            // can be positioned relative to the plot via the portal overlay.
+            // Move the cursor-tracking element into the chart container, so the direction buttons can be
+            // positioned relative to the plot through the portal overlay.
             if (cursorTrackRef.current && !api.chart.container.contains(cursorTrackRef.current)) {
               api.chart.container.style.position = "relative";
               api.chart.container.appendChild(cursorTrackRef.current);
@@ -821,21 +833,32 @@ export const InternalCartesianChart = forwardRef(
                         userMin?: number;
                         userMax?: number;
                       }) {
-                        if (e.trigger === "zoom") {
-                          const zoomed = !!(e.userMin || e.userMax);
-                          if (zoomed) {
-                            setZoomMode("zoomed");
-                            setZoomedExtremes({ min: e.min, max: e.max });
-                            setLiveAnnouncement(
-                              i18n.zoomRangeChangeAnnouncementText(formatXValue(e.min), formatXValue(e.max)),
-                            );
-                            fireNonCancelableEvent(props.onZoomRangeChange, {
-                              zoomRange: { x: { startValue: e.min, endValue: e.max } },
-                            });
-                          } else {
-                            setZoomedExtremes(null);
-                            fireNonCancelableEvent(props.onZoomRangeChange, { zoomRange: null });
-                          }
+                        if (e.trigger !== "zoom") {
+                          return;
+                        }
+                        const zoomed = !!(e.userMin || e.userMax);
+                        // Dragging across the plot makes Highcharts apply the extremes itself. In
+                        // controlled mode the range belongs to the consumer, so the drag is reported
+                        // and then undone, leaving the zoomRange property to drive the chart.
+                        if (isZoomRangeControlled) {
+                          fireNonCancelableEvent(props.onZoomRangeChange, {
+                            zoomRange: zoomed ? { x: { startValue: e.min, endValue: e.max } } : null,
+                          });
+                          applyControlledZoomRange(this, props.zoomRange);
+                          return;
+                        }
+                        if (zoomed) {
+                          setZoomMode("zoomed");
+                          setZoomedExtremes({ min: e.min, max: e.max });
+                          setLiveAnnouncement(
+                            i18n.zoomRangeChangeAnnouncementText(formatXValue(e.min), formatXValue(e.max)),
+                          );
+                          fireNonCancelableEvent(props.onZoomRangeChange, {
+                            zoomRange: { x: { startValue: e.min, endValue: e.max } },
+                          });
+                        } else {
+                          setZoomedExtremes(null);
+                          fireNonCancelableEvent(props.onZoomRangeChange, { zoomRange: null });
                         }
                       },
                     },
@@ -856,32 +879,26 @@ export const InternalCartesianChart = forwardRef(
           onVisibleItemsChange={onVisibleSeriesChange}
           className={testClasses.root}
         />
-        {/* Invisible element tracked by the UAP direction buttons overlay, positioned at the cursor. */}
-        <div
-          ref={cursorTrackRef}
-          aria-hidden="true"
-          style={{ position: "absolute", inlineSize: 1, blockSize: 1, pointerEvents: "none", opacity: 0 }}
-        />
-        {/* UAP direction buttons: keyboard/touch alternative for moving the zoom cursor. */}
+        {/* Zero-size element the buttons overlay is anchored to, kept in sync with the cursor line. */}
+        <div ref={cursorTrackRef} aria-hidden="true" className={styles["zoom-cursor-track"]} />
+        {/* Pointer and touch alternative for moving the zoom cursor, for users who cannot drag. */}
         <PortalOverlay track={cursorTrackRef} isDisabled={!inZoomSelection}>
-          <DirectionButton
-            direction="inline-start"
-            state="active"
-            show={inZoomSelection}
-            ariaLabel={i18n.zoomCursorPreviousButtonAriaLabel}
-            onClick={() => stepCursor(-1)}
-            forcedPosition={null}
-            forcedIndex={0}
-          />
-          <DirectionButton
-            direction="inline-end"
-            state="active"
-            show={inZoomSelection}
-            ariaLabel={i18n.zoomCursorNextButtonAriaLabel}
-            onClick={() => stepCursor(1)}
-            forcedPosition={null}
-            forcedIndex={1}
-          />
+          {inZoomSelection && (
+            <>
+              <DirectionButton
+                direction="inline-start"
+                ariaLabel={i18n.zoomCursorPreviousButtonAriaLabel}
+                disabled={cursorRange !== null && cursorX !== null && cursorX <= cursorRange.first}
+                onClick={() => stepCursor(-1)}
+              />
+              <DirectionButton
+                direction="inline-end"
+                ariaLabel={i18n.zoomCursorNextButtonAriaLabel}
+                disabled={cursorRange !== null && cursorX !== null && cursorX >= cursorRange.last}
+                onClick={() => stepCursor(1)}
+              />
+            </>
+          )}
         </PortalOverlay>
       </>
     );
