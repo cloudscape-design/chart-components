@@ -2,12 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ButtonWrapper } from "@cloudscape-design/components/test-utils/dom";
-import { ElementWrapper } from "@cloudscape-design/test-utils-core/dom";
+import { createWrapper, ElementWrapper } from "@cloudscape-design/test-utils-core/dom";
 
 import BaseChartWrapper from "../internal/base";
 import { CartesianChartTooltipWrapper } from "./tooltip";
 
 import testClasses from "../../../cartesian-chart/test-classes/styles.selectors.js";
+import zoomCursorClasses from "../../../internal/components/zoom-cursor-buttons/test-classes/styles.selectors.js";
 
 export default class CartesianChartWrapper extends BaseChartWrapper {
   static rootSelector: string = testClasses.root;
@@ -49,4 +50,26 @@ export default class CartesianChartWrapper extends BaseChartWrapper {
   public findResetZoomButton(): null | ButtonWrapper {
     return this.findComponent(`.${testClasses["reset-zoom-button"]} .${ButtonWrapper.rootSelector}`, ButtonWrapper);
   }
+
+  /**
+   * Finds the button that moves the zoom cursor to the previous data point.
+   * Visible while a zoom range is being selected.
+   */
+  public findZoomCursorPreviousButton(): null | ElementWrapper {
+    return findZoomCursorButton(zoomCursorClasses["direction-button-inline-start"]);
+  }
+
+  /**
+   * Finds the button that moves the zoom cursor to the next data point.
+   * Visible while a zoom range is being selected.
+   */
+  public findZoomCursorNextButton(): null | ElementWrapper {
+    return findZoomCursorButton(zoomCursorClasses["direction-button-inline-end"]);
+  }
+}
+
+// The zoom cursor buttons are rendered in a portal, so they are not descendants of the chart and are
+// searched for from the document root instead.
+function findZoomCursorButton(className: string): null | ElementWrapper {
+  return createWrapper().findByClassName(className);
 }
