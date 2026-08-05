@@ -13,6 +13,9 @@ import {
 
 import styles from "./styles.css.js";
 
+// Adapted from @cloudscape-design/components (src/internal/components/drag-handle-wrapper), which does
+// not export it. Renders its children in a portal, kept aligned with the tracked element, so the zoom
+// cursor buttons are not clipped by the chart's own overflow.
 export default function PortalOverlay({
   track,
   isDisabled,

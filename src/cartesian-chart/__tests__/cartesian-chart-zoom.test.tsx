@@ -9,6 +9,10 @@ import "@cloudscape-design/components/test-utils/dom";
 import { CartesianChartProps } from "../../../lib/components/cartesian-chart";
 import { getChart, ref, renderCartesianChart } from "./common";
 
+// Every test here renders a real chart, which takes ~2s in jsdom, and the zoom interactions re-render
+// it repeatedly. That leaves too little headroom under the 5s default when the suite runs in parallel.
+const TEST_TIMEOUT = 15_000;
+
 const series: CartesianChartProps.SeriesOptions[] = [
   {
     type: "line",
@@ -39,6 +43,16 @@ function getCurrentChart() {
 function getXExtremes() {
   const { min, max } = getCurrentChart().xAxis[0].getExtremes();
   return { min, max };
+}
+
+// Dispatches a keydown from an element inside the chart. The core keydown handler calls
+// target.closest, which a Document target would not satisfy.
+function pressChartKey(key: string) {
+  const chartElement = getChart().getElement();
+  const target = chartElement.querySelector('[role="application"]') ?? chartElement;
+  act(() => {
+    target.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
+  });
 }
 
 // Reads the persistent zoom-range affordance drawn on the x-axis: the two boundary plot lines and
@@ -86,7 +100,7 @@ afterEach(() => {
   onZoomRangeChange.mockReset();
 });
 
-describe("CartesianChart: zoom", () => {
+describe("CartesianChart: zoom", { timeout: TEST_TIMEOUT }, () => {
   test("does not render zoom controls when zoom is not enabled", () => {
     renderCartesianChart(defaultProps);
     expect(getChart().findZoomButton()).toBe(null);
@@ -164,14 +178,6 @@ describe("CartesianChart: zoom", () => {
     // In zoomed state the Reset button is shown.
     expect(getChart().findResetZoomButton()).not.toBe(null);
   });
-
-  // Dispatches a keydown from a real element inside the chart (the core handler calls
-  // target.closest, so a Document target would be rejected).
-  function pressChartKey(key: string) {
-    const chartEl = getChart().getElement();
-    const target = chartEl.querySelector('[role="application"]') ?? chartEl;
-    act(() => target.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true })));
-  }
 
   // Drives a full keyboard zoom to (startValue, endValue) over the default data points (x=0..4),
   // reaching the "zoomed" state through the real interaction (which sets extremes + the affordance).
@@ -398,29 +404,19 @@ describe("CartesianChart: zoom", () => {
   });
 });
 
-describe("CartesianChart: zoom keyboard", () => {
-  // Dispatch keydown from a real element inside the chart so the core keydown handler (which calls
-  // target.closest) receives a valid Element target instead of the Document.
-  function pressKey(key: string) {
-    const chartEl = getChart().getElement();
-    const target = chartEl.querySelector('[role="application"]') ?? chartEl;
-    act(() => {
-      target.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
-    });
-  }
-
+describe("CartesianChart: zoom keyboard", { timeout: TEST_TIMEOUT }, () => {
   test("arrow keys move the cursor and Enter sets start then end to zoom", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
     // Enter zoom mode — cursor starts at the first data point (x=0).
     act(() => getChart().findZoomButton()!.click());
 
     // Move the cursor right to x=1 and set the start point.
-    pressKey("ArrowRight");
-    pressKey("Enter");
+    pressChartKey("ArrowRight");
+    pressChartKey("Enter");
     // Move the cursor right to x=3 and set the end point → zoom applies.
-    pressKey("ArrowRight");
-    pressKey("ArrowRight");
-    pressKey("Enter");
+    pressChartKey("ArrowRight");
+    pressChartKey("ArrowRight");
+    pressChartKey("Enter");
 
     const { min, max } = getXExtremes();
     expect(min).toBe(1);
@@ -435,10 +431,10 @@ describe("CartesianChart: zoom keyboard", () => {
   test("Space also sets zoom points", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
     act(() => getChart().findZoomButton()!.click());
-    pressKey("ArrowRight"); // cursor at x=1
-    pressKey(" "); // set start
-    pressKey("ArrowRight"); // cursor at x=2
-    pressKey(" "); // set end → zoom
+    pressChartKey("ArrowRight"); // cursor at x=1
+    pressChartKey(" "); // set start
+    pressChartKey("ArrowRight"); // cursor at x=2
+    pressChartKey(" "); // set end → zoom
     const { min, max } = getXExtremes();
     expect(min).toBe(1);
     expect(max).toBe(2);
@@ -447,9 +443,9 @@ describe("CartesianChart: zoom keyboard", () => {
   test("Escape cancels an in-progress keyboard selection without zooming", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
     act(() => getChart().findZoomButton()!.click());
-    pressKey("ArrowRight");
-    pressKey("Enter"); // start point set, now selecting
-    pressKey("Escape"); // cancel
+    pressChartKey("ArrowRight");
+    pressChartKey("Enter"); // start point set, now selecting
+    pressChartKey("Escape"); // cancel
     const { min, max } = getXExtremes();
     expect(min).toBe(0);
     expect(max).toBe(4);
@@ -458,28 +454,68 @@ describe("CartesianChart: zoom keyboard", () => {
     expect(onZoomRangeChange).not.toHaveBeenCalled();
   });
 
-  test("renders UAP direction buttons in zoom mode", () => {
-    const { wrapper } = renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+  test("renders the zoom cursor buttons in zoom mode only", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    expect(getChart().findZoomCursorPreviousButton()).toBe(null);
+    expect(getChart().findZoomCursorNextButton()).toBe(null);
+
     act(() => getChart().findZoomButton()!.click());
-    const prev = document.querySelector('button[aria-label="Move zoom cursor left"]');
-    const next = document.querySelector('button[aria-label="Move zoom cursor right"]');
-    expect(prev).not.toBe(null);
-    expect(next).not.toBe(null);
-    void wrapper;
+    expect(getChart().findZoomCursorPreviousButton()).not.toBe(null);
+    expect(getChart().findZoomCursorNextButton()).not.toBe(null);
+
+    act(() => getChart().findExitZoomButton()!.click());
+    expect(getChart().findZoomCursorPreviousButton()).toBe(null);
+    expect(getChart().findZoomCursorNextButton()).toBe(null);
   });
 
-  test("direction buttons move the cursor", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
+  test("zoom cursor buttons move the cursor and are disabled at the ends of the range", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
     act(() => getChart().findZoomButton()!.click());
-    const next = document.querySelector('button[aria-label="Move zoom cursor right"]') as HTMLButtonElement;
-    // Move cursor to x=1 via the button, set start via keyboard.
-    act(() => next.click());
-    pressKey("Enter");
-    // Move cursor to x=2 via the button, set end → zoom.
-    act(() => next.click());
-    pressKey("Enter");
-    const { min, max } = getXExtremes();
-    expect(min).toBe(1);
-    expect(max).toBe(2);
+    // The cursor starts on the first point, so it cannot move any further towards the start.
+    expect(getChart().findZoomCursorPreviousButton()!.getElement()).toHaveProperty("disabled", true);
+
+    const next = () => getChart().findZoomCursorNextButton()!.getElement();
+    // Move the cursor to x=1 with the button, then set the start of the range.
+    act(() => next().click());
+    pressChartKey("Enter");
+    // Move the cursor to x=2 with the button, then set the end of the range, applying the zoom.
+    act(() => next().click());
+    pressChartKey("Enter");
+    expect(getXExtremes()).toEqual({ min: 1, max: 2 });
+  });
+
+  test("zoom cursor buttons step back towards the start of the range", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    act(() => getChart().findZoomButton()!.click());
+    // Move to the last point, where the cursor cannot move any further towards the end.
+    for (let i = 0; i < 4; i++) {
+      act(() => getChart().findZoomCursorNextButton()!.getElement().click());
+    }
+    expect(getChart().findZoomCursorNextButton()!.getElement()).toHaveProperty("disabled", true);
+
+    // Step back to x=3 and zoom from there to the last point.
+    act(() => getChart().findZoomCursorPreviousButton()!.getElement().click());
+    pressChartKey("Enter");
+    act(() => getChart().findZoomCursorNextButton()!.getElement().click());
+    pressChartKey("Enter");
+    expect(getXExtremes()).toEqual({ min: 3, max: 4 });
+  });
+
+  test("a range selected by dragging is reported but not applied when the range is controlled", () => {
+    renderCartesianChart({
+      ...defaultProps,
+      zoom: { enabled: true },
+      zoomRange: null,
+      onZoomRangeChange,
+    });
+    // Dragging across the plot makes Highcharts apply the extremes itself. The consumer owns the range
+    // here and ignores the event, so the chart must stay at the full range it was given.
+    act(() => {
+      getCurrentChart().xAxis[0].setExtremes(1, 3, true, false, { trigger: "zoom" });
+    });
+    expect(onZoomRangeChange).toHaveBeenCalledWith(
+      expect.objectContaining({ detail: { zoomRange: { x: { startValue: 1, endValue: 3 } } } }),
+    );
+    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
   });
 });

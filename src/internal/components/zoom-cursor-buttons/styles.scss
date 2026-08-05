@@ -1,0 +1,95 @@
+/*
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+*/
+
+@use "../../styles" as styles;
+@use "../../../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
+@use "@cloudscape-design/component-toolkit/internal/focus-visible" as focus-visible;
+
+$direction-button-size: cs.$space-static-xl;
+// Half of the gap between the two buttons: each is offset by this much from the tracked position.
+$direction-button-gap: cs.$space-static-xxs;
+
+.portal-overlay {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+
+  // Since the overlay takes up the exact width/height of the element below it, this prevents
+  // any clicks on this element from occluding clicks on the element below.
+  pointer-events: none;
+
+  // Similar to the expandToViewport dropdown, this needs to be higher than modal's z-index.
+  z-index: 7000;
+}
+
+.portal-overlay-disabled {
+  display: none;
+}
+
+.portal-overlay-contents {
+  pointer-events: auto;
+}
+
+.direction-button {
+  position: absolute;
+  box-sizing: border-box;
+  display: inline-block;
+  border-width: 0;
+  cursor: pointer;
+
+  // This skips the browser waiting for a double-tap interaction before activating.
+  touch-action: manipulation;
+
+  inline-size: $direction-button-size;
+  block-size: $direction-button-size;
+  padding-block: cs.$space-static-xxs;
+  padding-inline: cs.$space-static-xxs;
+  border-start-start-radius: 50%;
+  border-start-end-radius: 50%;
+  border-end-start-radius: 50%;
+  border-end-end-radius: 50%;
+
+  // The direction button color family is not part of the public design tokens, so the closest
+  // published tokens stand in for it: the layout toggle shares this button's dark, circular styling.
+  background-color: cs.$color-background-layout-toggle-default;
+  color: cs.$color-text-button-primary-default;
+  box-shadow: cs.$shadow-card;
+
+  &:hover {
+    background-color: cs.$color-background-layout-toggle-hover;
+  }
+
+  &:active {
+    background-color: cs.$color-background-layout-toggle-active;
+  }
+
+  @include focus-visible.when-visible {
+    @include styles.focus-highlight(2px);
+  }
+}
+
+.direction-button-disabled {
+  cursor: default;
+  background-color: cs.$color-background-button-normal-disabled;
+  color: cs.$color-text-button-normal-disabled;
+  // The disabled background is white, and these buttons float over the chart plot, so without a border
+  // the button would have no visible shape at all.
+  border: cs.$border-width-button solid cs.$color-border-button-normal-disabled;
+
+  &:hover,
+  &:active {
+    background-color: cs.$color-background-button-normal-disabled;
+  }
+}
+
+// The buttons sit side by side, centered on the tracked position, with a gap between them so they read
+// as two separate controls.
+.direction-button-inline-start {
+  inset-inline-end: $direction-button-gap;
+}
+
+.direction-button-inline-end {
+  inset-inline-start: $direction-button-gap;
+}

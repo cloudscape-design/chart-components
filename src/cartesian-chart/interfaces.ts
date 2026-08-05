@@ -110,25 +110,33 @@ export interface CartesianChartProps
   sizeAxis?: CartesianChartProps.SizeAxisOptions | readonly CartesianChartProps.SizeAxisOptions[];
 
   /**
-   * Enables zoom functionality on the chart. When enabled, users can zoom into a range
-   * on the x-axis using three interaction methods:
-   *
-   * 1. **Drag-to-zoom** — Click and drag on the chart plot area to select a range.
-   * 2. **Zoom mode (click-based)** — A "Zoom" button appears in the top-right corner of the chart.
-   *    Clicking it enters zoom mode where popovers are disabled. The first click on the chart sets
-   *    the start point, and the second click sets the end point, zooming to that range. Direction
-   *    buttons appear at the selection line for fine-tuning. Press Escape or click "Exit zoom" to cancel.
-   * 3. **Keyboard zoom** — While focused on a data point, hold Shift and press Left/Right arrow keys
-   *    to extend a selection range. Release Shift or press Enter to zoom. Press Escape to cancel.
-   *
-   * After zooming, a "Reset" button appears to restore the full data range.
+   * Zoom settings, allowing the users to zoom into a range of the x-axis. Zooming is possible by dragging
+   * across the chart plot, or by entering zoom mode with the "Zoom" button and selecting the range start and
+   * end with a click, Enter, or Space. In zoom mode the tooltip is suppressed, Escape or the "Exit zoom"
+   * button cancels the selection, and the "Reset" button restores the full data range once zoomed.
    *
    * Supported options:
-   * * `enabled` (optional, boolean) — Enables zoom functionality.
-   * * `hideButtons` (optional, boolean) — Hides the built-in zoom control buttons (Zoom, Exit zoom, Reset).
-   *   Use this when providing custom zoom UI via ref methods (`enterZoomMode`, `exitZoomMode`, `resetZoom`).
+   * * `enabled` (optional, boolean) - Enables zooming. Defaults to `false`.
+   * * `hideButtons` (optional, boolean) - Hides the built-in zoom buttons. Use it when providing custom
+   * controls, that use the `enterZoomMode`, `exitZoomMode`, and `resetZoom` methods of the component's ref.
    */
   zoom?: CartesianChartProps.ZoomOptions;
+
+  /**
+   * The zoomed range of the x-axis. By default, the range is managed by the component. When using this property,
+   * manage state updates with `onZoomRangeChange`, and use `null` to show the full data range.
+   *
+   * Supported options:
+   * * `x` (optional, object) - The zoomed x-axis range, as `startValue` and `endValue`. For datetime axes the
+   * values are timestamps in milliseconds.
+   */
+  zoomRange?: CartesianChartProps.ZoomRange | null;
+
+  /**
+   * A callback function, triggered when the zoomed range changes as a result of user interaction with the chart
+   * or the zoom controls. The detail's `zoomRange` is `null` when the zoom is reset to the full data range.
+   */
+  onZoomRangeChange?: NonCancelableEventHandler<CartesianChartProps.ZoomChangeDetail>;
 
   /**
    * Specifies which series to show using their IDs. By default, all series are visible and managed by the component.
@@ -140,18 +148,6 @@ export interface CartesianChartProps
    * A callback function, triggered when series visibility changes as a result of user interaction with the legend or filter.
    */
   onVisibleSeriesChange?: NonCancelableEventHandler<{ visibleSeries: string[] }>;
-
-  /**
-   * The current zoom range. When provided, the component operates in controlled mode.
-   * Pass `null` to reset to full range. When omitted, zoom state is managed internally.
-   */
-  zoomRange?: CartesianChartProps.ZoomRange | null;
-
-  /**
-   * Called when the zoom range changes due to user interaction.
-   * In controlled mode, update `zoomRange` in this handler.
-   */
-  onZoomRangeChange?: NonCancelableEventHandler<CartesianChartProps.ZoomChangeDetail>;
 }
 
 export namespace CartesianChartProps {
@@ -166,11 +162,12 @@ export namespace CartesianChartProps {
      */
     showAllSeries(): void;
     /**
-     * Enters zoom mode. In zoom mode, popovers are disabled and clicks on the chart set zoom range points.
+     * Enters zoom mode, in which the tooltip is suppressed and clicks on the chart set the start and end of
+     * the range to zoom into. Requires zooming to be enabled with the `zoom` property.
      */
     enterZoomMode(): void;
     /**
-     * Exits zoom mode without applying zoom. Returns to the idle state.
+     * Exits zoom mode, discarding the range being selected. Any range the chart is already zoomed into is kept.
      */
     exitZoomMode(): void;
     /**
@@ -266,24 +263,17 @@ export namespace CartesianChartProps {
   export type NoDataOptions = CoreTypes.BaseNoDataOptions;
 
   export interface ZoomOptions {
-    /**
-     * Enables zoom functionality. @defaultValue false
-     */
     enabled?: boolean;
-    /**
-     * When set to `true`, hides all built-in zoom control buttons (Zoom, Exit zoom, Reset).
-     * Use this when you want to provide your own zoom UI or control zoom programmatically via ref methods.
-     */
     hideButtons?: boolean;
   }
 
+  // The range is nested under the axis it applies to, leaving room for a "y" range should zooming
+  // along the y-axis be supported later, without a breaking change to the property shape.
   export interface ZoomRange {
-    /** Start value of the x-axis zoomed range. */
     x?: { startValue: number; endValue: number };
   }
 
   export interface ZoomChangeDetail {
-    /** The new zoom range, or `null` when zoom is reset to full range. */
     zoomRange: ZoomRange | null;
   }
 }
