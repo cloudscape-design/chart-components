@@ -45,7 +45,12 @@ export default function DirectionButton({ direction, ariaLabel, disabled, onClic
       // Keep the press from moving focus off the chart, which would end the zoom interaction.
       onPointerDown={(event) => event.preventDefault()}
     >
-      <Icon name={DIRECTION_ICONS[direction]} size="small" />
+      {/* The icon is wrapped, matching the upstream drag handle: the wrapper centers it in the round
+          button (an inline icon would otherwise sit on the text baseline), and takes itself out of
+          pointer events so clicks always land on the button rather than the glyph. */}
+      <span className={styles["direction-button-icon"]}>
+        <Icon name={DIRECTION_ICONS[direction]} size="small" />
+      </span>
     </button>
   );
 }

@@ -48,13 +48,16 @@ export default function PortalOverlay({
     let lastInlineSize: number | undefined;
     let lastBlockSize: number | undefined;
     const updateElement = () => {
-      if (track.current && ref.current && document.body.contains(ref.current)) {
+      // Read the document from the tracked element rather than the global, so positioning stays
+      // correct when the chart is rendered in another document (an iframe, or a test harness).
+      const ownerDocument = ref.current?.ownerDocument ?? document;
+      if (track.current && ref.current && ownerDocument.body.contains(ref.current)) {
         const isRtl = getIsRtl(ref.current);
         const { insetInlineStart, insetBlockStart, inlineSize, blockSize } = getLogicalBoundingClientRect(
           track.current,
         );
-        const newX = (insetInlineStart + getScrollInlineStart(document.documentElement)) * (isRtl ? -1 : 1);
-        const newY = insetBlockStart + document.documentElement.scrollTop;
+        const newX = (insetInlineStart + getScrollInlineStart(ownerDocument.documentElement)) * (isRtl ? -1 : 1);
+        const newY = insetBlockStart + ownerDocument.documentElement.scrollTop;
         if (lastX !== newX || lastY !== newY) {
           ref.current.style.translate = `${newX}px ${newY}px`;
           lastX = newX;
