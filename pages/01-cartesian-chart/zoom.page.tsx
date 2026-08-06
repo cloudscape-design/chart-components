@@ -38,6 +38,17 @@ const zoomSeries: CartesianChartProps.SeriesOptions[] = [
   { type: "y-threshold", name: "SLA limit", value: 150 },
 ];
 
+// Pin the axis to the data range, as the other cartesian pages do. Without explicit bounds Highcharts
+// derives the range from the data and pads it by 1% at each end, leaving a visible gap between the
+// plot edges and the start and end of the series.
+const zoomXAxis = {
+  title: "Time",
+  type: "datetime",
+  valueFormatter: dateFormatter,
+  min: zoomSeriesData[0].x,
+  max: zoomSeriesData[zoomSeriesData.length - 1].x,
+} as const;
+
 export default function () {
   return (
     <Page title="Zoom" subtitle="This page demonstrates zooming into a range of the x-axis.">
@@ -92,7 +103,7 @@ function UncontrolledZoom() {
       chartHeight={400}
       zoom={{ enabled: true }}
       series={zoomSeries}
-      xAxis={{ title: "Time", type: "datetime", valueFormatter: dateFormatter }}
+      xAxis={zoomXAxis}
       yAxis={{ title: "Count", type: "linear" }}
     />
   );
@@ -128,7 +139,7 @@ function ControlledZoom() {
         zoomRange={zoomRange}
         onZoomRangeChange={({ detail }) => setLastReported(detail.zoomRange)}
         series={zoomSeries}
-        xAxis={{ title: "Time", type: "datetime", valueFormatter: dateFormatter }}
+        xAxis={zoomXAxis}
         yAxis={{ title: "Count", type: "linear" }}
       />
     </SpaceBetween>

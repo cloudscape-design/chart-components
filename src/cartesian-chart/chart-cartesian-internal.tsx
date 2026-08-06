@@ -172,6 +172,17 @@ function clearZoomRangeBoundaries(xAxis: ZoomOverlayAxis): void {
   xAxis.removePlotLine(ZOOM_RANGE_END_LINE_ID);
 }
 
+// Returns the x value from `values` nearest to `target`. Used to snap the zoom cursor onto a data
+// point when it is driven by the pointer, which reports a continuous position anywhere in the plot,
+// including the axis padding before the first point and after the last. The keyboard moves between
+// data points, so without this the pointer could select a range the keyboard cannot express.
+function nearestXValue(values: number[], target: number): number {
+  if (values.length === 0) {
+    return target;
+  }
+  return values.reduce((nearest, x) => (Math.abs(x - target) < Math.abs(nearest - target) ? x : nearest));
+}
+
 // Returns the x value from `values` nearest to `target`, moved one step in `direction` when a step
 // is requested. Used to move the zoom cursor between data points.
 function stepXValue(values: number[], target: number, direction: -1 | 1): number {
@@ -257,6 +268,14 @@ export const InternalCartesianChart = forwardRef(
     // Ref to the reset button so we can move focus to it after a zoom is applied, keeping
     // keyboard users oriented on the newly available control.
     const resetButtonRef = useRef<{ focus(): void } | null>(null);
+    // Ref to the zoom button, so focus can land there when "Reset" is activated and unmounts. Without
+    // this, focus falls back to the body and keyboard users are returned to the top of the page.
+    const zoomButtonRef = useRef<{ focus(): void } | null>(null);
+    // Ref to the exit button, so focus lands on it when zoom mode is entered — it replaces the button
+    // that was just activated, and is otherwise not reachable by tabbing forward from the plot.
+    const exitZoomButtonRef = useRef<{ focus(): void } | null>(null);
+    // Set when the zoom is reset by its button, so the effect below knows to move focus to "Zoom".
+    const focusZoomButtonRef = useRef(false);
     // Tracks the previous zoom-mode state so focus is only moved on the transition into "zoomed".
     const prevZoomModeRef = useRef<ZoomModeState>("idle");
 
@@ -265,8 +284,21 @@ export const InternalCartesianChart = forwardRef(
     const [cursorX, setCursorX] = useState<number | null>(null);
     const cursorXRef = useRef<number | null>(null);
     cursorXRef.current = cursorX;
-    // Invisible element the direction buttons anchor to; positioned at the cursor line.
+    // Invisible element the direction buttons anchor to; positioned at the cursor line. It lives
+    // inside the Highcharts container, which React does not manage, so it is created imperatively
+    // rather than rendered: a React-owned node moved out of its rendered parent breaks unmounting.
     const cursorTrackRef = useRef<HTMLDivElement | null>(null);
+    if (!cursorTrackRef.current && typeof document !== "undefined") {
+      const track = document.createElement("div");
+      track.setAttribute("aria-hidden", "true");
+      track.className = styles["zoom-cursor-track"];
+      cursorTrackRef.current = track;
+    }
+    // Detach the track element when the component goes away, since React will not do it for us.
+    useEffect(() => {
+      const track = cursorTrackRef.current;
+      return () => track?.remove();
+    }, []);
     // The direction buttons are shown whenever we are in zoom mode with a placed cursor.
     const inZoomSelection = (zoomMode === "zoomMode" || zoomMode === "selecting") && cursorX !== null;
     // First and last point the cursor can reach, captured when zoom mode is entered. The direction that
@@ -318,6 +350,8 @@ export const InternalCartesianChart = forwardRef(
         zoomSelectionAnnouncementText:
           i18nStrings?.zoomSelectionAnnouncementText ??
           ((startValue: string, endValue: string) => `Selecting zoom range from ${startValue} to ${endValue}`),
+        zoomModeExitedAnnouncementText: i18nStrings?.zoomModeExitedAnnouncementText ?? "Zoom mode cancelled",
+        zoomResetAnnouncementText: i18nStrings?.zoomResetAnnouncementText ?? "Zoom reset. Showing the full data range.",
       }),
       [i18nStrings],
     );
@@ -326,6 +360,15 @@ export const InternalCartesianChart = forwardRef(
     // Providing the zoomRange property puts the zoomed range under the consumer's control: the chart
     // then reports the ranges the user selects, but only zooms when the property changes.
     const isZoomRangeControlled = props.zoomRange !== undefined;
+
+    // Zooming needs data points to select between, so the controls are hidden when every series is
+    // hidden — the chart is then showing its no-data state, and entering zoom mode would give a
+    // cursor with nothing to land on. Threshold series are excluded: they span the whole axis and
+    // define no points of their own, so a chart showing only thresholds is not zoomable either.
+    const hasZoomableData = props.series.some(
+      (s) => s.type !== "x-threshold" && s.type !== "y-threshold" && visibleSeriesState.includes(getOptionsId(s)),
+    );
+    const zoomControlsAvailable = zoomEnabled && hasZoomableData;
 
     // Formats an x-axis value for screen reader announcements, using the axis value formatter when provided,
     // then falling back to locale-aware datetime formatting, and finally to the raw string value.
@@ -360,6 +403,13 @@ export const InternalCartesianChart = forwardRef(
           xAxis?.setExtremes(min, max);
           setZoomMode("zoomed");
           setZoomedExtremes({ min, max });
+        } else {
+          // In controlled mode the extremes are the consumer's to apply, but the selection is over
+          // either way: leave the selection states, so the tooltip returns and the chart stops
+          // treating clicks as range points. The settled state depends on whether a range is
+          // currently applied — the consumer may ignore the event, or re-apply the same range, in
+          // which case the zoomRange effect would not run and nothing else would move us out.
+          setZoomMode(zoomedExtremesRef.current ? "zoomed" : "idle");
         }
         setZoomAnchor(null);
         setCursorX(null);
@@ -376,15 +426,43 @@ export const InternalCartesianChart = forwardRef(
         setZoomedExtremes(null);
       }
       setZoomAnchor(null);
+      // Returning to the full range is a change to what the chart shows, so it is announced rather
+      // than left silent.
+      setLiveAnnouncement(i18n.zoomResetAnnouncementText);
       fireNonCancelableEvent(props.onZoomRangeChange, { zoomRange: null });
-    }, [props.onZoomRangeChange, props.zoomRange]);
+    }, [i18n, props.onZoomRangeChange, props.zoomRange]);
+
+    // Resetting from the button removes that button, so focus is moved to "Zoom", which replaces it in
+    // the same position. Requested here and performed by the effect below, once the button has rendered.
+    const resetZoomFromButton = useCallback(() => {
+      focusZoomButtonRef.current = true;
+      resetZoom();
+    }, [resetZoom]);
 
     // Focus management: when the chart transitions into the zoomed state, move focus to the
     // "Reset" button so keyboard and screen reader users land on the control that just appeared.
     useEffect(() => {
-      if (prevZoomModeRef.current !== "zoomed" && zoomMode === "zoomed" && !props.zoom?.hideButtons) {
+      if (props.zoom?.hideButtons) {
+        prevZoomModeRef.current = zoomMode;
+        return;
+      }
+      if (prevZoomModeRef.current !== "zoomed" && zoomMode === "zoomed") {
         resetButtonRef.current?.focus();
       }
+      // Entering zoom mode: land on "Exit zoom", the control that just replaced the button the user
+      // activated. Leaving focus on the chart plot instead makes the exit unreachable by Tab, since
+      // the plot wrapper precedes the chart's own focusable data points in the DOM — tabbing forward
+      // walks into the series rather than out to the button. The keydown listener is scoped to an
+      // ancestor of this button, so the arrow keys still reach it from here.
+      if (prevZoomModeRef.current !== "zoomMode" && zoomMode === "zoomMode") {
+        exitZoomButtonRef.current?.focus();
+      }
+      // Leaving the zoomed state via the "Reset" button: that button is gone, so focus moves to the
+      // "Zoom" button now occupying its place, rather than being dropped to the document.
+      if (prevZoomModeRef.current === "zoomed" && zoomMode === "idle" && focusZoomButtonRef.current) {
+        zoomButtonRef.current?.focus();
+      }
+      focusZoomButtonRef.current = false;
       prevZoomModeRef.current = zoomMode;
     }, [zoomMode, props.zoom?.hideButtons]);
 
@@ -413,6 +491,11 @@ export const InternalCartesianChart = forwardRef(
     const enterZoomMode = useCallback(() => {
       const chart = apiRef.current?.chart;
       const visibleXValues = chart ? getVisibleXValues(chart) : [];
+      // Nothing to select between: entering zoom mode would show a cursor with nowhere to land. This
+      // also guards the ref method, which consumers can call regardless of what the chart is showing.
+      if (visibleXValues.length === 0) {
+        return;
+      }
       // Start the cursor on the first visible point so it has an immediate, visible anchor without the
       // user having to hover the chart first.
       const initialX = visibleXValues[0] ?? chart?.xAxis[0].getExtremes().min ?? null;
@@ -433,8 +516,10 @@ export const InternalCartesianChart = forwardRef(
       setZoomMode(zoomedExtremesRef.current ? "zoomed" : "idle");
       setZoomAnchor(null);
       setCursorX(null);
-      setLiveAnnouncement("");
-    }, []);
+      // Leaving zoom mode is announced, so it is clear the selection was abandoned. Clearing the
+      // announcement instead would leave the exit silent.
+      setLiveAnnouncement(i18n.zoomModeExitedAnnouncementText);
+    }, [i18n]);
 
     // Moves the zoom cursor to an absolute x value, shared by the pointer, the arrow keys, and the
     // direction buttons. Only updates state — the cursor line and selection band are drawn declaratively by an
@@ -494,6 +579,15 @@ export const InternalCartesianChart = forwardRef(
     // True while a range is being selected inside the chart (zoom mode entered, with or without a
     // start point placed yet), as opposed to dragging or the settled idle/zoomed states.
     const isSelectingZoom = zoomMode === "zoomMode" || zoomMode === "selecting";
+
+    // Series can be hidden while a range is being selected, leaving the cursor with nothing to land on
+    // and the chart in its no-data state. Leave zoom mode in that case, rather than keeping a selection
+    // the user can no longer complete. Any range already applied is preserved.
+    useEffect(() => {
+      if (isSelectingZoom && !hasZoomableData) {
+        exitZoomMode();
+      }
+    }, [isSelectingZoom, hasZoomableData, exitZoomMode]);
 
     // Declaratively draw the zoom-mode overlays (cursor line, anchor line, selection band) from
     // state. Runs after every render so the overlays are re-applied whenever Highcharts updates the
@@ -578,11 +672,14 @@ export const InternalCartesianChart = forwardRef(
       // The selection marker is destroyed when the drag ends, whether or not a zoom was applied.
       const removeDropListener = highcharts.addEvent(chart, "selection", () => clearDragBoundaries(xAxis));
       const onMouseUp = () => clearDragBoundaries(xAxis);
-      document.addEventListener("mouseup", onMouseUp);
+      // The release can land outside the chart, so this is bound at the document level — but the
+      // chart's own document, so it still fires when rendered inside an iframe.
+      const ownerDocument = chart.container.ownerDocument;
+      ownerDocument.addEventListener("mouseup", onMouseUp);
 
       return () => {
         disposed = true;
-        document.removeEventListener("mouseup", onMouseUp);
+        ownerDocument.removeEventListener("mouseup", onMouseUp);
         // Highcharts may already have destroyed the chart by the time this runs (it nulls out the
         // pointer and the axes), and reaching into the remains to detach listeners or clear plot
         // lines throws. Nothing needs cleaning up in that case: the chart took the overlays with it.
@@ -617,6 +714,12 @@ export const InternalCartesianChart = forwardRef(
         container.style.cursor = zoomAnchorRef.current === null ? "grab" : "grabbing";
       };
 
+      // Converts a pointer position to the x value of the nearest data point. The pointer reports a
+      // continuous position, so without snapping it could place the cursor between points, or in the
+      // axis padding outside the data altogether — neither of which the keyboard can reach. Both
+      // inputs therefore land on the same set of positions.
+      const pointerToXValue = (chartX: number) => nearestXValue(getVisibleXValues(chart), xAxis.toValue(chartX, false));
+
       // Mouse move: the cursor (and, while selecting, the highlight band) follows the pointer.
       const onMouseMove = (e: MouseEvent) => {
         const normalized = normalizePointerEvent(chart, e);
@@ -629,10 +732,10 @@ export const InternalCartesianChart = forwardRef(
         // nearest data point, and the pointer keeps the "pointer" style used to indicate a tooltip.
         apiRef.current?.clearChartHighlight();
         applyZoomModeCursor();
-        moveCursorTo(xAxis.toValue(normalized.chartX, false));
+        moveCursorTo(pointerToXValue(normalized.chartX));
       };
 
-      // Click: set the start or end point at the pointer position.
+      // Click: set the start or end point at the nearest data point.
       const onClick = (e: MouseEvent) => {
         const normalized = normalizePointerEvent(chart, e);
         if (!normalized) {
@@ -643,47 +746,105 @@ export const InternalCartesianChart = forwardRef(
         if (!isInsidePlotX(chartX) || !insideY) {
           return;
         }
-        const value = xAxis.toValue(chartX, false);
+        const value = pointerToXValue(chartX);
         moveCursorTo(value);
         commitPoint(value);
       };
 
       // Keyboard: arrows move the cursor, Enter/Space set a point, Escape cancels zoom mode.
+      // Scoped to the chart container rather than the document, so a second chart in zoom mode, or a
+      // dialog opened over this one, does not receive these keys. Propagation is stopped for the keys
+      // we consume: the chart's own keyboard navigation handles the same keys, and would otherwise
+      // move the focused point while the zoom cursor moves.
       const onKeyDown = (e: KeyboardEvent) => {
         switch (e.key) {
           case "ArrowRight":
             e.preventDefault();
+            e.stopPropagation();
             stepCursor(1);
             break;
           case "ArrowLeft":
             e.preventDefault();
+            e.stopPropagation();
             stepCursor(-1);
             break;
           case "Enter":
           case " ":
             e.preventDefault();
+            e.stopPropagation();
             commitPoint();
             break;
           case "Escape":
             e.preventDefault();
+            e.stopPropagation();
             exitZoomMode();
             break;
         }
       };
+
+      // The element the keydown listener is attached to. It has to cover three things that are
+      // siblings rather than nested: the Highcharts container, the `role="application"` element used
+      // for the chart's own keyboard navigation, and the zoom controls (which render into the chart's
+      // footer slot). Focus can be on any of them while a range is being selected, so the listener is
+      // attached to the nearest ancestor holding them all.
+      const findKeyboardScope = (): HTMLElement => {
+        let element = container.parentElement;
+        let applicationScope: null | HTMLElement = null;
+        while (element) {
+          const hasApplication = !!element.querySelector('[role="application"]');
+          const hasZoomControls = !!element.querySelector(`.${styles["zoom-controls"]}`);
+          if (hasApplication && hasZoomControls) {
+            return element;
+          }
+          // Remember the smallest scope covering keyboard navigation, in case the zoom controls are
+          // hidden and there is nothing wider to find.
+          if (hasApplication && !applicationScope) {
+            applicationScope = element;
+          }
+          element = element.parentElement;
+        }
+        return applicationScope ?? container;
+      };
+      const keyboardScope = findKeyboardScope();
+
+      // Entering zoom mode replaces the "Zoom" button with "Exit zoom", so the element that was
+      // clicked is unmounted and focus falls back to the body. Make the scope focusable and focus it,
+      // so the scoped listener below receives the keys. The tabindex is removed on cleanup, leaving
+      // the chart's own focus handling untouched outside zoom mode.
+      const hadTabIndex = keyboardScope.hasAttribute("tabindex");
+      if (!hadTabIndex) {
+        keyboardScope.setAttribute("tabindex", "-1");
+      }
+      // Keep the scope out of the focus ring visually: it is focused programmatically, and the zoom
+      // cursor is the visible indication of where the interaction is.
+      keyboardScope.style.outline = "none";
+      // Prefer the "Exit zoom" button, which lives inside this scope, so the keys still reach the
+      // listener while the user has a real, visible, tabbable control to act on. Tabbing forward from
+      // the plot wrapper walks into the chart's own data points instead of reaching the button, which
+      // would leave the exit unreachable. Falls back to the scope when the buttons are hidden.
+      if (!keyboardScope.contains(document.activeElement)) {
+        keyboardScope.focus({ preventScroll: true });
+      }
 
       // Delay the click listener so the button click that entered zoom mode doesn't set a point.
       const timeoutId = setTimeout(() => {
         container.addEventListener("click", onClick);
       }, 0);
       container.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("keydown", onKeyDown);
+      // Capture phase, so the keys are handled before the chart's own navigation listener on the
+      // application element inside this scope.
+      keyboardScope.addEventListener("keydown", onKeyDown, true);
       applyZoomModeCursor();
 
       return () => {
         clearTimeout(timeoutId);
         container.removeEventListener("click", onClick);
         container.removeEventListener("mousemove", onMouseMove);
-        document.removeEventListener("keydown", onKeyDown);
+        keyboardScope.removeEventListener("keydown", onKeyDown, true);
+        if (!hadTabIndex) {
+          keyboardScope.removeAttribute("tabindex");
+        }
+        keyboardScope.style.outline = "";
         // Hand the cursor back to the chart, which sets it as the pointer moves over the series.
         container.style.cursor = "";
       };
@@ -734,11 +895,12 @@ export const InternalCartesianChart = forwardRef(
       resetZoom,
     }));
 
-    // The zoom mode button rendered inside the chart plot area (top-right corner).
+    // The zoom mode button rendered inside the chart plot area (top-right corner). The live region is
+    // rendered separately, below, so announcements are made whether or not the built-in buttons are
+    // shown: a consumer using `hideButtons` with its own controls still needs them.
     const zoomModeButton =
-      zoomEnabled && !props.zoom?.hideButtons ? (
+      zoomControlsAvailable && !props.zoom?.hideButtons ? (
         <div className={styles["zoom-controls"]} role="region" aria-label={i18n.zoomControlsAriaLabel}>
-          <LiveRegion hidden={true}>{liveAnnouncement}</LiveRegion>
           {/* Reset (shown while zoomed) and Zoom sit side by side; Reset leads so the Zoom button
               keeps its position whether or not the chart is zoomed. During an active selection only
               the "Exit zoom" button is shown. */}
@@ -748,7 +910,7 @@ export const InternalCartesianChart = forwardRef(
                 <Button
                   ref={resetButtonRef}
                   variant="link"
-                  onClick={resetZoom}
+                  onClick={resetZoomFromButton}
                   ariaLabel={i18n.resetZoomButtonAriaLabel}
                 >
                   {i18n.resetZoomButtonText}
@@ -758,6 +920,7 @@ export const InternalCartesianChart = forwardRef(
             {(zoomMode === "idle" || zoomMode === "zoomed") && (
               <span className={testClasses["zoom-button"]}>
                 <Button
+                  ref={zoomButtonRef}
                   variant="normal"
                   iconName="search"
                   onClick={enterZoomMode}
@@ -770,6 +933,7 @@ export const InternalCartesianChart = forwardRef(
             {(zoomMode === "zoomMode" || zoomMode === "selecting") && (
               <span className={testClasses["exit-zoom-button"]}>
                 <Button
+                  ref={exitZoomButtonRef}
                   variant="primary"
                   iconName="search"
                   onClick={exitZoomMode}
@@ -789,14 +953,20 @@ export const InternalCartesianChart = forwardRef(
 
     return (
       <>
+        {/* Announcements are tied to zooming being enabled, not to the built-in buttons being shown,
+            so screen reader users get them when the consumer supplies its own controls too. */}
+        {zoomEnabled && <LiveRegion hidden={true}>{liveAnnouncement}</LiveRegion>}
         <InternalCoreChart
           {...props}
           navigator={zoomModeButton}
           callback={(api) => {
             apiRef.current = api;
             setChartReady(true);
-            // Move the cursor-tracking element into the chart container, so the direction buttons can be
-            // positioned relative to the plot through the portal overlay.
+            // Attach the cursor-tracking element to the chart container, so the direction buttons can be
+            // positioned relative to the plot through the portal overlay. The element is created and
+            // removed imperatively (see the effect above) rather than rendered by React: moving a
+            // React-owned node into a container React does not manage makes React unmount it from a
+            // parent that no longer holds it, which throws.
             if (cursorTrackRef.current && !api.chart.container.contains(cursorTrackRef.current)) {
               api.chart.container.style.position = "relative";
               api.chart.container.appendChild(cursorTrackRef.current);
@@ -841,6 +1011,14 @@ export const InternalCartesianChart = forwardRef(
                         // controlled mode the range belongs to the consumer, so the drag is reported
                         // and then undone, leaving the zoomRange property to drive the chart.
                         if (isZoomRangeControlled) {
+                          // Announce the range the drag selected, as the uncontrolled path does. The
+                          // extremes are the consumer's to apply, but the selection itself is
+                          // something the user just did and needs confirming either way.
+                          setLiveAnnouncement(
+                            zoomed
+                              ? i18n.zoomRangeChangeAnnouncementText(formatXValue(e.min), formatXValue(e.max))
+                              : i18n.zoomResetAnnouncementText,
+                          );
                           fireNonCancelableEvent(props.onZoomRangeChange, {
                             zoomRange: zoomed ? { x: { startValue: e.min, endValue: e.max } } : null,
                           });
@@ -858,6 +1036,9 @@ export const InternalCartesianChart = forwardRef(
                           });
                         } else {
                           setZoomedExtremes(null);
+                          // Highcharts also reports a drag that resets the range (a click-sized drag,
+                          // or its own reset). Announce that, rather than leaving it silent.
+                          setLiveAnnouncement(i18n.zoomResetAnnouncementText);
                           fireNonCancelableEvent(props.onZoomRangeChange, { zoomRange: null });
                         }
                       },
@@ -880,7 +1061,8 @@ export const InternalCartesianChart = forwardRef(
           className={testClasses.root}
         />
         {/* Zero-size element the buttons overlay is anchored to, kept in sync with the cursor line. */}
-        <div ref={cursorTrackRef} aria-hidden="true" className={styles["zoom-cursor-track"]} />
+        {/* The cursor-track element is not rendered here: it is created imperatively and appended
+            into the Highcharts container, which React does not manage. See the ref declaration. */}
         {/* Pointer and touch alternative for moving the zoom cursor, for users who cannot drag. */}
         <PortalOverlay track={cursorTrackRef} isDisabled={!inZoomSelection}>
           {inZoomSelection && (

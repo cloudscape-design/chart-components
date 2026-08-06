@@ -173,6 +173,8 @@ export interface WithCartesianI18nStrings {
    * * `zoomCursorPositionAnnouncementText` (optional, function) - Screen reader announcement when the zoom cursor moves. Receives the formatted cursor value.
    * * `zoomStartPointAnnouncementText` (optional, function) - Screen reader announcement when the start of the range is set. Receives the formatted start value.
    * * `zoomRangeChangeAnnouncementText` (optional, function) - Screen reader announcement when the zoom range changes. Receives the formatted start and end values.
+   * * `zoomModeExitedAnnouncementText` (optional, string) - Screen reader announcement when zoom mode is exited without zooming.
+   * * `zoomResetAnnouncementText` (optional, string) - Screen reader announcement when the zoom is reset to the full data range.
    * * `zoomSelectionAnnouncementText` (optional, function) - Screen reader announcement while the range is being selected. Receives the formatted start and end values.
    */
   i18nStrings?: CartesianI18nStrings;
@@ -227,6 +229,10 @@ export interface CartesianI18nStrings extends BaseI18nStrings {
   zoomStartPointAnnouncementText?: (value: string) => string;
   /** Screen reader announcement when the zoom range changes. Receives the formatted start and end values. @defaultValue (startValue, endValue) => \`Zoomed from ${startValue} to ${endValue}\` */
   zoomRangeChangeAnnouncementText?: (startValue: string, endValue: string) => string;
+  /** Screen reader announcement when zoom mode is exited without zooming. @defaultValue "Zoom mode cancelled" */
+  zoomModeExitedAnnouncementText?: string;
+  /** Screen reader announcement when the zoom is reset to the full data range. @defaultValue "Zoom reset. Showing the full data range." */
+  zoomResetAnnouncementText?: string;
   /** Screen reader announcement while adjusting the keyboard zoom selection. Receives the formatted start and end values. @defaultValue (startValue, endValue) => \`Selecting zoom range from ${startValue} to ${endValue}\` */
   zoomSelectionAnnouncementText?: (startValue: string, endValue: string) => string;
 }

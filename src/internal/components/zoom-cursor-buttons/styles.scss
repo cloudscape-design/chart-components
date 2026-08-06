@@ -35,7 +35,11 @@ $direction-button-gap: cs.$space-static-xxs;
 .direction-button {
   position: absolute;
   box-sizing: border-box;
-  display: inline-block;
+  // Flex-centered rather than inline-block: the icon is a glyph on the text baseline, which in a
+  // round, fixed-size button leaves it visibly off-centre.
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-width: 0;
   cursor: pointer;
 
@@ -44,8 +48,9 @@ $direction-button-gap: cs.$space-static-xxs;
 
   inline-size: $direction-button-size;
   block-size: $direction-button-size;
-  padding-block: cs.$space-static-xxs;
-  padding-inline: cs.$space-static-xxs;
+  // The flex centering above places the icon, so no padding is needed to position it.
+  padding-block: 0;
+  padding-inline: 0;
   border-start-start-radius: 50%;
   border-start-end-radius: 50%;
   border-end-start-radius: 50%;
@@ -67,7 +72,19 @@ $direction-button-gap: cs.$space-static-xxs;
 
   @include focus-visible.when-visible {
     @include styles.focus-highlight(2px);
+    // focus-highlight sets `position: relative` for its ::before ring. These buttons are positioned
+    // absolutely against the cursor track, so without restoring that they jump out of place the
+    // moment they take focus.
+    position: absolute;
   }
+}
+
+// Wrapper around the icon glyph. `display: flex` collapses its line box, so the glyph is centered by
+// the button's flex alignment rather than sitting on a baseline. Matches the upstream drag handle in
+// taking itself out of pointer events, so a click always targets the button.
+.direction-button-icon {
+  display: flex;
+  pointer-events: none;
 }
 
 .direction-button-disabled {
