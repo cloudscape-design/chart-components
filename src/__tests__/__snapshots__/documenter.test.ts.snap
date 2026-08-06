@@ -329,6 +329,11 @@ Supported Highcharts versions: 12.",
             "type": "((value: string) => string)",
           },
           {
+            "name": "zoomModeExitedAnnouncementText",
+            "optional": true,
+            "type": "string",
+          },
+          {
             "inlineType": {
               "name": "(startValue: string, endValue: string) => string",
               "parameters": [
@@ -347,6 +352,11 @@ Supported Highcharts versions: 12.",
             "name": "zoomRangeChangeAnnouncementText",
             "optional": true,
             "type": "((startValue: string, endValue: string) => string)",
+          },
+          {
+            "name": "zoomResetAnnouncementText",
+            "optional": true,
+            "type": "string",
           },
           {
             "inlineType": {
