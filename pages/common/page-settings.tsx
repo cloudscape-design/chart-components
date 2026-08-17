@@ -3,7 +3,7 @@
 
 import { createContext, Fragment, useContext, useRef, useState } from "react";
 
-import { useAppModes } from "@cloudscape-design/build-tools/lib/dev-pages-utils";
+import { type AppUrlParams, useAppModes } from "@cloudscape-design/build-tools/lib/dev-pages-utils";
 import Autosuggest from "@cloudscape-design/components/autosuggest";
 import Box from "@cloudscape-design/components/box";
 import Button from "@cloudscape-design/components/button";
@@ -114,7 +114,7 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
     useFallback: parseBoolean(defaultSettings.useFallback, urlParams.useFallback),
   } as PageSettings as SettingsType;
   const setSettings = (partial: Partial<SettingsType>) => {
-    setUrlParams(partial as any);
+    setUrlParams(partial as Partial<AppUrlParams & Partial<SettingsType>>);
   };
 
   const cartesianChartRef = useRef<CartesianChartProps.Ref>(null);
