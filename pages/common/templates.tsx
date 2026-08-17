@@ -1,8 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { forwardRef, useContext, useState } from "react";
+import { forwardRef, useState } from "react";
 
+import { useAppModes } from "@cloudscape-design/build-tools/lib/dev-pages-utils";
 import { useContainerQuery } from "@cloudscape-design/component-toolkit";
 import { useMergeRefs } from "@cloudscape-design/component-toolkit/internal";
 import AppLayout, { AppLayoutProps } from "@cloudscape-design/components/app-layout";
@@ -13,7 +14,6 @@ import Drawer from "@cloudscape-design/components/drawer";
 import Header from "@cloudscape-design/components/header";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
-import AppContext from "../app/app-context";
 import { IframeWrapper } from "../utils/iframe-wrapper";
 import { ScreenshotArea } from "./screenshot-area";
 
@@ -66,7 +66,7 @@ export function Page({
   splitPanelPreferences?: AppLayoutProps.SplitPanelPreferences;
   onSplitPanelToggle?: () => void;
 }) {
-  const { urlParams } = useContext(AppContext);
+  const { urlParams } = useAppModes();
   const [toolsOpen, setToolsOpen] = useState(!urlParams.screenshotMode);
   const drawers: AppLayoutProps.Drawer[] = [];
   if (settings) {
@@ -121,7 +121,7 @@ export function PageSection({
   children?: React.ReactNode;
   docs?: DocsSectionProps;
 }) {
-  const { urlParams } = useContext(AppContext);
+  const { urlParams } = useAppModes();
   if (urlParams.screenshotMode && !children) {
     return null;
   }
@@ -152,7 +152,7 @@ interface MigrationDemoExample {
 }
 
 export function MigrationDemo({ examples }: { examples: MigrationDemoExample[] }) {
-  const { urlParams } = useContext(AppContext);
+  const { urlParams } = useAppModes();
 
   return (
     <SpaceBetween size="s">

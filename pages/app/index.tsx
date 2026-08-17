@@ -1,9 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Suspense, useContext } from "react";
+import { Suspense } from "react";
 import { HashRouter, Route, Routes, useHref, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
+import { AppModesProvider, type AppUrlParams, useAppModes } from "@cloudscape-design/build-tools/lib/dev-pages-utils";
 import Alert from "@cloudscape-design/components/alert";
 import AppLayout from "@cloudscape-design/components/app-layout";
 import Box from "@cloudscape-design/components/box";
@@ -12,25 +13,39 @@ import enMessages from "@cloudscape-design/components/i18n/messages/all.en";
 import Link, { LinkProps } from "@cloudscape-design/components/link";
 import Spinner from "@cloudscape-design/components/spinner";
 import TopNavigation from "@cloudscape-design/components/top-navigation";
-import { Density, Mode } from "@cloudscape-design/global-styles";
+import {
+  applyDensity,
+  applyMode,
+  applyTheme,
+  Density,
+  disableMotion,
+  Mode,
+  Theme,
+} from "@cloudscape-design/global-styles";
 
-import AppContext, { AppContextProvider } from "./app-context";
 import { pages, pagesMap } from "./pages";
 
 import "@cloudscape-design/global-styles/index.css";
 
+function applyModes(params: AppUrlParams, target?: Element) {
+  applyMode(params.mode as Mode, target);
+  applyDensity(params.density as Density, target);
+  disableMotion(params.motionDisabled, target);
+  applyTheme((params.theme as Theme) ?? null, target);
+}
+
 export default function App() {
   return (
     <HashRouter>
-      <AppContextProvider>
+      <AppModesProvider applyModes={applyModes}>
         <AppBody />
-      </AppContextProvider>
+      </AppModesProvider>
     </HashRouter>
   );
 }
 
 function AppBody() {
-  const { urlParams } = useContext(AppContext);
+  const { urlParams } = useAppModes();
   const routes = (
     <>
       <Navigation />
@@ -70,7 +85,7 @@ function Page({ pageId }: { pageId: string }) {
 function Navigation() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { urlParams, setUrlParams } = useContext(AppContext);
+  const { urlParams, setUrlParams } = useAppModes();
   const isDarkMode = urlParams.mode === Mode.Dark;
   const isCompactMode = urlParams.density === Density.Compact;
   const isRtl = urlParams.direction === "rtl";
