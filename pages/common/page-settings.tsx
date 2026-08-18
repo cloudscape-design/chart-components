@@ -3,6 +3,7 @@
 
 import { createContext, Fragment, useContext, useRef, useState } from "react";
 
+import { type AppUrlParams, useAppModes } from "@cloudscape-design/build-tools/lib/dev-pages-utils";
 import Autosuggest from "@cloudscape-design/components/autosuggest";
 import Box from "@cloudscape-design/components/box";
 import Button from "@cloudscape-design/components/button";
@@ -16,7 +17,6 @@ import SpaceBetween from "@cloudscape-design/components/space-between";
 
 import { CartesianChartProps, PieChartProps } from "../../lib/components";
 import { CoreChartProps } from "../../src/core/interfaces";
-import AppContext, { AppContextType } from "../app/app-context";
 import { useHighcharts } from "./use-highcharts";
 
 export interface PageSettings {
@@ -45,8 +45,6 @@ export interface PageSettings {
   showCustomFooter: boolean;
   useFallback: boolean;
 }
-
-type PageContext<SettingsType> = React.Context<AppContextType<Partial<SettingsType>>>;
 
 const DEFAULT_SETTINGS: PageSettings = {
   height: 250,
@@ -95,7 +93,7 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
 } {
   const highchartsLib = useHighcharts(options);
   const defaultSettings = useContext(PageSettingsContext);
-  const { urlParams, setUrlParams } = useContext(AppContext as PageContext<SettingsType>);
+  const { urlParams, setUrlParams } = useAppModes<Partial<SettingsType>>();
   const settings = {
     ...defaultSettings,
     ...urlParams,
@@ -116,7 +114,7 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
     useFallback: parseBoolean(defaultSettings.useFallback, urlParams.useFallback),
   } as PageSettings as SettingsType;
   const setSettings = (partial: Partial<SettingsType>) => {
-    setUrlParams(partial as any);
+    setUrlParams(partial as Partial<AppUrlParams & Partial<SettingsType>>);
   };
 
   const cartesianChartRef = useRef<CartesianChartProps.Ref>(null);
