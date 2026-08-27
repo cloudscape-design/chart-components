@@ -1,0 +1,114 @@
+/*
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+*/
+
+@use "../../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
+
+$button-size: cs.$space-static-xl;
+
+// The zoom buttons render in the chart's header area, in normal flow, so they precede the plot both
+// visually and in the focus order, and never overlap the plot, its axis titles, or a side legend.
+.controls {
+  display: flex;
+  justify-content: flex-end;
+  padding-block-end: cs.$space-scaled-xxs;
+}
+
+// Covers the plot area and hosts every affordance drawn over it. Pointer events pass through, so
+// hovering and dragging still reach the chart; only the cursor buttons opt back in.
+.overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+// The overlay elements are positioned imperatively in physical pixels (see applyRect), because
+// Highcharts renders its SVG left-to-right regardless of page direction. They are hidden with
+// visibility rather than display so their layout box, and therefore their measurable size, survives.
+.band,
+.divider,
+.cursor,
+.cluster {
+  position: absolute;
+  visibility: hidden;
+}
+
+// Tints the range between the two selected points while a selection is in progress.
+.band {
+  background-color: cs.$color-background-item-selected;
+  opacity: 0.5;
+}
+
+// Marks a point that has been set: the start of a keyboard selection, or either end of a drag.
+.divider {
+  background-color: cs.$color-border-item-selected;
+}
+
+// The keyboard cursor. It is a slider, focused while zoom mode is active, and takes no pointer events
+// so that a drag starting on top of it still goes to the plot.
+.cursor {
+  background-color: cs.$color-border-item-selected;
+  pointer-events: none;
+
+  // Focus is moved here programmatically when zoom mode is entered, which does not always match
+  // :focus-visible, so the ring is bound to :focus. The cursor only exists during zoom mode, where
+  // the ring is always wanted.
+  &:focus {
+    outline: 2px solid cs.$color-border-item-focused;
+    outline-offset: 1px;
+  }
+}
+
+// Pointer-operated equivalents of the arrow keys and Enter, so a range can be selected without
+// dragging (WCAG 2.5.7). Laid out along the axis the cursor moves on: the flex direction is set
+// inline, because it follows the plot's physical orientation rather than the page's.
+.cluster {
+  display: flex;
+  align-items: center;
+  gap: cs.$space-static-xxs;
+  pointer-events: auto;
+}
+
+.button {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: $button-size;
+  block-size: $button-size;
+  padding-block: 0;
+  padding-inline: 0;
+  border-block: cs.$border-width-button solid cs.$color-border-button-normal-default;
+  border-inline: cs.$border-width-button solid cs.$color-border-button-normal-default;
+  border-start-start-radius: 50%;
+  border-start-end-radius: 50%;
+  border-end-start-radius: 50%;
+  border-end-end-radius: 50%;
+  background-color: cs.$color-background-button-normal-default;
+  color: cs.$color-text-button-normal-default;
+  box-shadow: cs.$shadow-card;
+  cursor: pointer;
+
+  &:hover {
+    border-block-color: cs.$color-border-button-normal-hover;
+    border-inline-color: cs.$color-border-button-normal-hover;
+    background-color: cs.$color-background-button-normal-hover;
+    color: cs.$color-text-button-normal-hover;
+  }
+
+  &:active {
+    border-block-color: cs.$color-border-button-normal-active;
+    border-inline-color: cs.$color-border-button-normal-active;
+    background-color: cs.$color-background-button-normal-active;
+    color: cs.$color-text-button-normal-active;
+  }
+
+  &:disabled {
+    border-block-color: cs.$color-border-button-normal-disabled;
+    border-inline-color: cs.$color-border-button-normal-disabled;
+    background-color: cs.$color-background-button-normal-disabled;
+    color: cs.$color-text-button-normal-disabled;
+    cursor: default;
+  }
+}
