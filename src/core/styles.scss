@@ -111,6 +111,12 @@ $side-legend-max-inline-size: 30%;
   flex: 1;
 }
 
+// The positioning context for the zoom overlay. It wraps the Highcharts container so that the overlay
+// elements can use the plot coordinates that Highcharts reports, without an extra offset computation.
+.chart-plot-anchor {
+  position: relative;
+}
+
 .bottom-legend-container {
   display: flex;
   overflow: auto;

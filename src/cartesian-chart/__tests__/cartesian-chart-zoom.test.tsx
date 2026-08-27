@@ -3,14 +3,18 @@
 
 import { act } from "react";
 import highcharts from "highcharts";
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from "vitest";
+
+import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 
 import "@cloudscape-design/components/test-utils/dom";
+// The error bar series type is only available with the highcharts-more module.
+import "highcharts/highcharts-more";
 import { CartesianChartProps } from "../../../lib/components/cartesian-chart";
 import { getChart, ref, renderCartesianChart } from "./common";
 
 // Every test here renders a real chart, which takes ~2s in jsdom, and the zoom interactions re-render
-// it repeatedly. That leaves too little headroom under the 5s default when the suite runs in parallel.
+// it multiple times.
 const TEST_TIMEOUT = 15_000;
 
 const series: CartesianChartProps.SeriesOptions[] = [
@@ -34,6 +38,61 @@ const defaultProps = {
   yAxis: { title: "Y", type: "linear" as const },
 };
 
+const onZoomRangeChange = vi.fn();
+
+// Pointer interactions are hit-tested against the plot area, so the chart needs a plot area with a
+// real size. Highcharts derives it from two browser APIs that jsdom does not implement faithfully:
+//
+// 1. SVGElement.getBBox, which jsdom does not provide at all, so all rendered text measures as
+//    undefined and every axis label offset becomes NaN.
+// 2. The computed font size of the axis labels, which Highcharts parses into label metrics. Our
+//    labels are styled with Cloudscape design tokens (`var(--font-size-body-s, 12px)`), and jsdom
+//    returns the declaration verbatim instead of resolving it, which parses to NaN.
+//
+// Both make chart.plotHeight NaN, and every plot-area hit test then fails. Browsers resolve both,
+// so the stubs below bring jsdom's geometry in line with the browser rather than papering over a
+// product defect. Drag zooming is additionally covered end-to-end in test/functional.
+const nativeGetComputedStyle = window.getComputedStyle.bind(window);
+const nativeGetBBox = (SVGElement.prototype as { getBBox?: () => DOMRect }).getBBox;
+
+function resolveCustomProperty(value: string) {
+  const customPropertyWithFallback = /^var\(\s*--[\w-]+\s*,\s*([^)]+)\)$/.exec(value.trim());
+  return customPropertyWithFallback ? customPropertyWithFallback[1].trim() : value;
+}
+
+beforeAll(() => {
+  (SVGElement.prototype as { getBBox?: () => object }).getBBox = () => ({ x: 0, y: 0, width: 20, height: 12 });
+  window.getComputedStyle = ((element: Element, pseudoElement?: null | string) => {
+    const style = nativeGetComputedStyle(element, pseudoElement);
+    return new Proxy(style, {
+      get(target, property) {
+        if (property === "getPropertyValue") {
+          return (name: string) => resolveCustomProperty(target.getPropertyValue(name));
+        }
+        const value = Reflect.get(target, property, target);
+        if (typeof value === "function") {
+          return value.bind(target);
+        }
+        return typeof value === "string" ? resolveCustomProperty(value) : value;
+      },
+    });
+  }) as typeof window.getComputedStyle;
+});
+
+afterAll(() => {
+  if (nativeGetBBox) {
+    (SVGElement.prototype as { getBBox?: unknown }).getBBox = nativeGetBBox;
+  } else {
+    delete (SVGElement.prototype as { getBBox?: unknown }).getBBox;
+  }
+  window.getComputedStyle = nativeGetComputedStyle;
+});
+
+afterEach(() => {
+  onZoomRangeChange.mockReset();
+  document.querySelectorAll("[data-testid='outside']").forEach((element) => element.remove());
+});
+
 function getCurrentChart() {
   // Target the most recently rendered chart: highcharts.charts accumulates entries across tests
   // (disposed charts remain as holes), so the last defined entry is the one under test.
@@ -45,113 +104,137 @@ function getXExtremes() {
   return { min, max };
 }
 
-// Dispatches a keydown from an element inside the chart. The core keydown handler calls
-// target.closest, which a Document target would not satisfy.
-function pressChartKey(key: string) {
-  const chartElement = getChart().getElement();
-  const target = chartElement.querySelector('[role="application"]') ?? chartElement;
-  act(() => {
-    target.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
-  });
+// The zoom affordances are DOM elements laid over the plot, positioned imperatively and hidden with
+// `visibility` so their layout box survives. The overlay is the cursor's parent, and its children are
+// in a fixed order (see zoom-overlay.tsx).
+function getOverlay() {
+  const cursor = getChart().findZoomCursor()!.getElement() as HTMLElement;
+  const overlay = cursor.parentElement!;
+  const [band, startDivider, endDivider] = Array.from(overlay.children) as HTMLElement[];
+  return { overlay, band, startDivider, endDivider, cursor };
 }
 
-// Drives a keyboard zoom over the default data points, from the first point to two steps along.
-function zoomViaKeyboard() {
-  act(() => getChart().findZoomButton()!.click());
-  pressChartKey("ArrowRight");
-  pressChartKey("Enter");
-  pressChartKey("ArrowRight");
-  pressChartKey("Enter");
+function isVisible(element: HTMLElement) {
+  return element.style.visibility === "visible";
 }
 
-// Moves the pointer to a chart-relative x position over the plot, which drives the zoom cursor.
-function movePointerTo(chartX: number) {
-  const chart = getCurrentChart();
-  act(() => {
-    chart.container.dispatchEvent(
-      new MouseEvent("mousemove", { bubbles: true, clientX: chartX, clientY: chart.plotTop + 5 }),
-    );
-  });
+function enterZoomMode() {
+  getChart().findZoomButton()!.click();
 }
 
-// Reads the persistent zoom-range affordance drawn on the x-axis: the two boundary plot lines and
-// the band tint between them. Returns their ids and the band's from/to so tests can assert on them.
-function getZoomRangeOverlays() {
-  const items = getPlotLinesAndBands();
-  const startLine = items.find((i) => i.id === "awsui-zoom-range-start");
-  const endLine = items.find((i) => i.id === "awsui-zoom-range-end");
-  const band = items.find((i) => i.id === "awsui-zoom-range");
-  return { startLine, endLine, band };
+function pressCursorKey(keyCode: number) {
+  getChart().findZoomCursor()!.keydown(keyCode);
 }
 
-function getPlotLinesAndBands() {
-  const xAxis = getCurrentChart().xAxis[0] as unknown as {
-    plotLinesAndBands: {
-      id?: string;
-      options?: { from?: number; to?: number; value?: number; color?: string };
-    }[];
-  };
-  return xAxis.plotLinesAndBands ?? [];
+function pressCursorKeyTimes(keyCode: number, times: number) {
+  for (let i = 0; i < times; i++) {
+    pressCursorKey(keyCode);
+  }
 }
 
-// Reads the dividers drawn at the edges of the native drag-to-zoom selection.
-function getDragBoundaries() {
-  const items = getPlotLinesAndBands();
+function getCursorAttributes() {
+  const cursor = getChart().findZoomCursor()!.getElement();
   return {
-    startLine: items.find((i) => i.id === "awsui-zoom-drag-start"),
-    endLine: items.find((i) => i.id === "awsui-zoom-drag-end"),
+    min: cursor.getAttribute("aria-valuemin"),
+    max: cursor.getAttribute("aria-valuemax"),
+    now: cursor.getAttribute("aria-valuenow"),
+    text: cursor.getAttribute("aria-valuetext"),
   };
 }
 
-// Simulates a frame of the native drag-to-zoom by asking the pointer for the selection marker
-// rectangle it would draw, which is what the component listens to.
-function dragSelectionFrame({ chartX }: { chartX: number }) {
-  const pointer = getCurrentChart().pointer as unknown as {
-    getSelectionMarkerAttrs(chartX: number, chartY: number): { attrs: { x?: number; width?: number } };
-  };
+// Drives a full keyboard zoom over the visible points, by index: the cursor starts at the first
+// visible point, so stepping right N times lands on the N-th visible point.
+function keyboardZoomToIndexes(startIndex: number, endIndex: number) {
+  enterZoomMode();
+  pressCursorKeyTimes(KeyCode.right, startIndex);
+  pressCursorKey(KeyCode.enter);
+  pressCursorKeyTimes(KeyCode.right, endIndex - startIndex);
+  pressCursorKey(KeyCode.enter);
+}
+
+// Pointer events are dispatched on the Highcharts container and bubble to the plot wrapper that holds
+// the zoom handlers. In jsdom the container has no offset and no scaling, so a chart-relative pixel
+// (what Axis.toPixels returns) is also the client coordinate.
+function pointerEventAtValue(type: string, value: number, offsetX = 0, init: PointerEventInit = {}) {
   const chart = getCurrentChart();
-  return pointer.getSelectionMarkerAttrs(chartX, chart.plotTop + 1).attrs;
+  return new PointerEvent(type, {
+    bubbles: true,
+    cancelable: true,
+    pointerId: 1,
+    pointerType: "mouse",
+    button: 0,
+    buttons: 1,
+    clientX: chart.xAxis[0].toPixels(value, false) + offsetX,
+    clientY: chart.plotTop + chart.plotHeight / 2,
+    ...init,
+  });
 }
 
-const onZoomRangeChange = vi.fn();
+function dispatchPointer(type: string, value: number, offsetX = 0, init: PointerEventInit = {}) {
+  const event = pointerEventAtValue(type, value, offsetX, init);
+  act(() => {
+    getCurrentChart().container.dispatchEvent(event);
+  });
+}
 
-afterEach(() => {
-  onZoomRangeChange.mockReset();
-});
+function focusOutsideChart() {
+  const button = document.createElement("button");
+  button.setAttribute("data-testid", "outside");
+  document.body.appendChild(button);
+  act(() => button.focus());
+  return button;
+}
 
-describe("CartesianChart: zoom", { timeout: TEST_TIMEOUT }, () => {
-  test("does not render zoom controls when zoom is not enabled", () => {
+describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
+  test("renders no zoom affordances when zoom is not enabled", () => {
     renderCartesianChart(defaultProps);
     expect(getChart().findZoomButton()).toBe(null);
     expect(getChart().findExitZoomButton()).toBe(null);
     expect(getChart().findResetZoomButton()).toBe(null);
+    expect(getChart().findZoomCursor()).toBe(null);
   });
 
   test("renders the Zoom button in idle state when zoom is enabled", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
-    expect(getChart().findZoomButton()).not.toBe(null);
+    expect(getChart().findZoomButton()!.getElement()).toHaveTextContent("Zoom");
+    expect(getChart().findZoomButton()!.isDisabled()).toBe(false);
     expect(getChart().findExitZoomButton()).toBe(null);
     expect(getChart().findResetZoomButton()).toBe(null);
   });
 
-  test("does not render built-in buttons when hideButtons is set", () => {
+  test("labels the zoom controls region", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    const region = getChart().getElement().querySelector('[role="region"]')!;
+    expect(region).toHaveAttribute("aria-label", "Chart zoom controls");
+  });
+
+  test("hides the built-in buttons with hideButtons, keeping the cursor available", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true, hideButtons: true } });
     expect(getChart().findZoomButton()).toBe(null);
     expect(getChart().findExitZoomButton()).toBe(null);
-    expect(getChart().findResetZoomButton()).toBe(null);
+    expect(getChart().findZoomCursor()).not.toBe(null);
+  });
+
+  // The controls render in the chart's header area, in normal flow, so they precede the plot in the
+  // DOM and therefore in the focus order.
+  test("renders the zoom controls before the plot in DOM order", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    const zoomButton = getChart().findZoomButton()!.getElement();
+    const position = zoomButton.compareDocumentPosition(getCurrentChart().container);
+    expect(position & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   test("clicking Zoom enters zoom mode and shows the Exit zoom button", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
-    act(() => getChart().findZoomButton()!.click());
+    enterZoomMode();
     expect(getChart().findZoomButton()).toBe(null);
-    expect(getChart().findExitZoomButton()).not.toBe(null);
+    expect(getChart().findExitZoomButton()!.getElement()).toHaveTextContent("Exit zoom");
   });
 
   test("clicking Exit zoom returns to idle state", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
-    act(() => getChart().findZoomButton()!.click());
-    act(() => getChart().findExitZoomButton()!.click());
+    enterZoomMode();
+    getChart().findExitZoomButton()!.click();
     expect(getChart().findExitZoomButton()).toBe(null);
     expect(getChart().findZoomButton()).not.toBe(null);
   });
@@ -164,563 +247,628 @@ describe("CartesianChart: zoom", { timeout: TEST_TIMEOUT }, () => {
     expect(getChart().findZoomButton()).not.toBe(null);
   });
 
-  test("ref.resetZoom clears the extremes and fires onZoomRangeChange with null", () => {
+  test("ref.resetZoom restores the full range after a zoom", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
-    // Programmatically zoom via the chart, then reset.
-    act(() => {
-      const chart = highcharts.charts.find((c) => c)!;
-      chart.xAxis[0].setExtremes(1, 3);
-    });
+    keyboardZoomToIndexes(1, 3);
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+
+    onZoomRangeChange.mockReset();
     act(() => ref.current!.resetZoom());
-    const { min, max } = getXExtremes();
-    expect(min).toBe(0);
-    expect(max).toBe(4);
+    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
     expect(onZoomRangeChange).toHaveBeenCalledWith(expect.objectContaining({ detail: { zoomRange: null } }));
   });
 
-  test("controlled zoomRange applies extremes to the chart", () => {
-    const { rerender } = renderCartesianChart({
+  test("ref.resetZoom does not fire an event when the chart is not zoomed", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
+    act(() => ref.current!.resetZoom());
+    expect(onZoomRangeChange).not.toHaveBeenCalled();
+  });
+
+  test("controlled zoomRange applies extremes and shows the Reset button", () => {
+    const { rerender } = renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, zoomRange: null });
+    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
+    expect(getChart().findResetZoomButton()).toBe(null);
+
+    rerender({
+      ...defaultProps,
+      zoom: { enabled: true },
+      zoomRange: { x: { startValue: 1, endValue: 3 } },
+    });
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+    expect(getChart().findResetZoomButton()!.getElement()).toHaveTextContent("Reset");
+
+    rerender({ ...defaultProps, zoom: { enabled: true }, zoomRange: null });
+    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
+    expect(getChart().findResetZoomButton()).toBe(null);
+  });
+
+  test("controlled zoomRange is not changed by the interaction, which only fires the event", () => {
+    renderCartesianChart({
       ...defaultProps,
       zoom: { enabled: true },
       zoomRange: null,
       onZoomRangeChange,
     });
-    rerender({
-      ...defaultProps,
-      zoom: { enabled: true },
-      zoomRange: { x: { startValue: 1, endValue: 3 } },
-      onZoomRangeChange,
-    });
-    const { min, max } = getXExtremes();
-    expect(min).toBe(1);
-    expect(max).toBe(3);
-    // In zoomed state the Reset button is shown.
-    expect(getChart().findResetZoomButton()).not.toBe(null);
+    keyboardZoomToIndexes(1, 3);
+    // The consumer owns the range, so the chart still shows the full range, but the selection is over.
+    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
+    expect(getChart().findExitZoomButton()).toBe(null);
+    expect(onZoomRangeChange).toHaveBeenCalledWith(
+      expect.objectContaining({ detail: { zoomRange: { x: { startValue: 1, endValue: 3 } } } }),
+    );
   });
-
-  // Drives a full keyboard zoom to (startValue, endValue) over the default data points (x=0..4),
-  // reaching the "zoomed" state through the real interaction (which sets extremes + the affordance).
-  function keyboardZoomTo(startValue: number, endValue: number) {
-    act(() => getChart().findZoomButton()!.click());
-    // Cursor starts at the first visible data point (x=0 initially). Step to the start point.
-    for (let i = 0; i < startValue; i++) {
-      pressChartKey("ArrowRight");
-    }
-    pressChartKey("Enter");
-    for (let i = 0; i < endValue - startValue; i++) {
-      pressChartKey("ArrowRight");
-    }
-    pressChartKey("Enter");
-  }
 
   test("keeps the Zoom button visible alongside Reset while zoomed", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
-    keyboardZoomTo(1, 3);
-    // Both controls are available in the zoomed state.
-    expect(getChart().findResetZoomButton()).not.toBe(null);
+    keyboardZoomToIndexes(1, 4);
     expect(getChart().findZoomButton()).not.toBe(null);
-    expect(getChart().findExitZoomButton()).toBe(null);
+    expect(getChart().findResetZoomButton()).not.toBe(null);
   });
 
-  test("clicking Zoom while zoomed re-enters zoom mode and keeps the range affordance", () => {
+  test("re-entering zoom mode while zoomed keeps the range", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
-    keyboardZoomTo(1, 3);
-    // Affordance present in the settled zoomed state.
-    expect(getZoomRangeOverlays().band).toBeDefined();
-    // Re-enter zoom mode: Zoom is replaced by Exit zoom. The affordance stays on screen so the
-    // range already in view remains visible while a narrower one is selected inside it.
-    act(() => getChart().findZoomButton()!.click());
+    keyboardZoomToIndexes(1, 4);
+    enterZoomMode();
     expect(getChart().findExitZoomButton()).not.toBe(null);
-    expect(getChart().findZoomButton()).toBe(null);
+    // The Reset button steps aside while a new range is being selected.
     expect(getChart().findResetZoomButton()).toBe(null);
-    expect(getZoomRangeOverlays().band).toBeDefined();
+    expect(getXExtremes()).toEqual({ min: 1, max: 4 });
   });
 
   test("exiting a re-zoom returns to the zoomed state with the range intact", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
-    keyboardZoomTo(1, 3);
-    act(() => getChart().findZoomButton()!.click());
-    act(() => getChart().findExitZoomButton()!.click());
-    // Back to zoomed (not idle): Reset and Zoom shown, extremes preserved, affordance restored.
+    keyboardZoomToIndexes(1, 4);
+    enterZoomMode();
+    getChart().findExitZoomButton()!.click();
     expect(getChart().findResetZoomButton()).not.toBe(null);
     expect(getChart().findZoomButton()).not.toBe(null);
-    const { min, max } = getXExtremes();
-    expect(min).toBe(1);
-    expect(max).toBe(3);
-    expect(getZoomRangeOverlays().band?.options).toMatchObject({ from: 1, to: 3 });
-  });
-
-  test("re-zooming to a narrower range updates the extremes and affordance", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
-    // First zoom to the range (1, 4) so the visible window contains points 1..4.
-    keyboardZoomTo(1, 4);
     expect(getXExtremes()).toEqual({ min: 1, max: 4 });
-    // Re-enter zoom mode: the cursor starts at the first visible point (x=1) thanks to the
-    // in-view initial cursor. Select a narrower range (2, 3) within the current window.
-    act(() => getChart().findZoomButton()!.click());
-    pressChartKey("ArrowRight"); // x=2
-    pressChartKey("Enter"); // start
-    pressChartKey("ArrowRight"); // x=3
-    pressChartKey("Enter"); // end → zoom
-    expect(getXExtremes()).toEqual({ min: 2, max: 3 });
-    expect(getZoomRangeOverlays().band?.options).toMatchObject({ from: 2, to: 3 });
-    expect(getChart().findResetZoomButton()).not.toBe(null);
-    expect(getChart().findZoomButton()).not.toBe(null);
   });
 
-  test("Escape during a re-zoom returns to the zoomed state without changing the range", () => {
+  test("re-zooming narrows the range from the visible window", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
-    keyboardZoomTo(1, 3);
-    onZoomRangeChange.mockClear();
-    act(() => getChart().findZoomButton()!.click());
-    pressChartKey("ArrowRight");
-    pressChartKey("Escape");
-    // Range unchanged and back in the zoomed state; no new zoom event fired by the cancel.
-    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
-    expect(getChart().findResetZoomButton()).not.toBe(null);
-    expect(getChart().findZoomButton()).not.toBe(null);
-    expect(getZoomRangeOverlays().band?.options).toMatchObject({ from: 1, to: 3 });
-    expect(onZoomRangeChange).not.toHaveBeenCalled();
-  });
+    keyboardZoomToIndexes(1, 4);
+    expect(getXExtremes()).toEqual({ min: 1, max: 4 });
 
-  test("draws boundary dividers at the edges of a drag-to-zoom selection", async () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
-    const chart = getCurrentChart();
-    // No drag in progress: no dividers.
-    expect(getDragBoundaries().startLine).toBeUndefined();
-    expect(getDragBoundaries().endLine).toBeUndefined();
-
-    // Highcharts derives the selection rectangle from where the pointer went down, so seed that and
-    // then run a drag frame; the dividers follow the resulting rectangle's edges.
-    Object.assign(chart, { mouseDownX: chart.plotLeft + 10, mouseDownY: chart.plotTop + 1 });
-    let attrs!: { x?: number; width?: number };
-    act(() => {
-      attrs = dragSelectionFrame({ chartX: chart.plotLeft + 50 });
-    });
-    expect(attrs.x).toEqual(expect.any(Number));
-
-    await vi.waitFor(() => expect(getDragBoundaries().startLine).toBeDefined());
-    const { startLine, endLine } = getDragBoundaries();
-    expect(endLine).toBeDefined();
-    // The dividers map back to the axis values under the rectangle's left and right edges.
-    const toValue = (pixelX: number) => chart.xAxis[0].toValue(pixelX - chart.plotLeft, true);
-    expect(startLine!.options!.value).toBeCloseTo(toValue(attrs.x!), 5);
-    expect(endLine!.options!.value).toBeCloseTo(toValue(attrs.x! + attrs.width!), 5);
-    // Both use the same divider styling as the click/keyboard selection lines.
-    expect(startLine!.options!.color).toBe(endLine!.options!.color);
-
-    // Releasing the drag clears them again.
-    act(() => {
-      document.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
-    });
-    expect(getDragBoundaries().startLine).toBeUndefined();
-    expect(getDragBoundaries().endLine).toBeUndefined();
-  });
-
-  test("snaps a click to the nearest data point", () => {
-    // No min/max here, so Highcharts applies its default axis padding and the plot extends slightly
-    // beyond the first and last points — the strip the keyboard cursor can never reach.
-    renderCartesianChart({
-      ...defaultProps,
-      xAxis: { title: "X", type: "linear" as const },
-      zoom: { enabled: true },
-      onZoomRangeChange,
-    });
-    const chart = getCurrentChart();
-    act(() => getChart().findZoomButton()!.click());
-
-    // Move the pointer into that leading padding: the raw value there is below the first point (x=0).
-    const leadingEdgeX = chart.plotLeft + 1;
-    expect(chart.xAxis[0].toValue(leadingEdgeX, false)).toBeLessThan(0);
-    // Committing with the keyboard uses wherever the pointer left the cursor, so this asserts on the
-    // position the pointer produced.
-    movePointerTo(leadingEdgeX);
-    pressChartKey("Enter");
-    // Then move between two points, nearer x=2 than x=3, and commit.
-    movePointerTo(chart.xAxis[0].toPixels(2.4, false));
-    pressChartKey("Enter");
-
-    // Both ends land on real data points, so a pointer selection is expressible by the keyboard too.
-    expect(onZoomRangeChange).toHaveBeenLastCalledWith(
-      expect.objectContaining({ detail: { zoomRange: { x: { startValue: 0, endValue: 2 } } } }),
-    );
-  });
-
-  test("hides the zoom controls when no series with data points are visible", () => {
-    // Zooming needs points to select between, so the controls are not offered in the no-data state.
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, visibleSeries: [] });
-    expect(getChart().findZoomButton()).toBe(null);
-    // The ref method is guarded too, since it bypasses the buttons entirely.
-    act(() => ref.current!.enterZoomMode());
-    expect(getChart().findExitZoomButton()).toBe(null);
-  });
-
-  test("does not offer zooming for threshold-only charts", () => {
-    // Thresholds span the whole axis and contribute no points of their own.
-    renderCartesianChart({
-      ...defaultProps,
-      series: [{ type: "y-threshold", name: "SLA limit", value: 20 }],
-      zoom: { enabled: true },
-    });
-    expect(getChart().findZoomButton()).toBe(null);
-  });
-
-  test("leaves zoom mode when the last visible series is hidden mid-selection", () => {
-    const { rerender } = renderCartesianChart({
-      ...defaultProps,
-      zoom: { enabled: true },
-      visibleSeries: ["Requests"],
-    });
-    act(() => getChart().findZoomButton()!.click());
-    expect(getChart().findExitZoomButton()).not.toBe(null);
-
-    // Hiding everything mid-selection leaves the cursor with nothing to land on, so zoom mode ends
-    // rather than stranding the user in a selection they cannot complete.
-    rerender({ ...defaultProps, zoom: { enabled: true }, visibleSeries: [] });
-    expect(getChart().findExitZoomButton()).toBe(null);
-  });
-
-  test("announces when the built-in buttons are hidden", async () => {
-    // A consumer using hideButtons with its own controls still needs the announcements.
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true, hideButtons: true } });
-    act(() => ref.current!.enterZoomMode());
-    // The live region applies its text after an internal delay that can exceed waitFor's default
-    // timeout, so allow longer here.
-    await vi.waitFor(
-      () =>
-        expect([...document.querySelectorAll("[aria-live]")].map((n) => n.textContent).join("")).toContain("Zoom mode"),
-      { timeout: 5000 },
-    );
-  });
-
-  test("leaves the selection states after completing a selection in controlled mode", () => {
-    // The consumer owns the extremes and may ignore the event or re-apply the same range, in which
-    // case the zoomRange effect does not run. The selection is over regardless, so the chart must
-    // not stay in zoom mode with the tooltip suppressed and clicks still setting range points.
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, zoomRange: null, onZoomRangeChange });
-    act(() => getChart().findZoomButton()!.click());
-    pressChartKey("Enter");
-    pressChartKey("ArrowRight");
-    pressChartKey("Enter");
-
-    expect(getChart().findExitZoomButton()).toBe(null);
-    expect(getChart().findZoomButton()).not.toBe(null);
-    // The range is still only reported — applying it remains the consumer's job.
-    expect(onZoomRangeChange).toHaveBeenLastCalledWith(
-      expect.objectContaining({ detail: { zoomRange: { x: { startValue: 0, endValue: 1 } } } }),
-    );
-    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
-  });
-
-  test("controlled zoomRange=null resets the extremes", () => {
-    const { rerender } = renderCartesianChart({
-      ...defaultProps,
-      zoom: { enabled: true },
-      zoomRange: { x: { startValue: 1, endValue: 3 } },
-      onZoomRangeChange,
-    });
-    rerender({ ...defaultProps, zoom: { enabled: true }, zoomRange: null, onZoomRangeChange });
-    const { min, max } = getXExtremes();
-    expect(min).toBe(0);
-    expect(max).toBe(4);
-  });
-
-  test("Escape exits zoom mode", () => {
-    const { wrapper } = renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
-    act(() => getChart().findZoomButton()!.click());
-    expect(getChart().findExitZoomButton()).not.toBe(null);
-    // Dispatch from a real element in the chart so the core keydown handler (which calls
-    // target.closest) receives a valid Element target.
-    const target = wrapper.getElement().querySelector('[role="application"]') ?? wrapper.getElement();
-    act(() => {
-      target.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
-    });
-    expect(getChart().findZoomButton()).not.toBe(null);
-  });
-
-  test("applies i18nStrings overrides to the zoom controls", () => {
-    renderCartesianChart({
-      ...defaultProps,
-      zoom: { enabled: true },
-      i18nStrings: {
-        enterZoomModeButtonText: "Vergrößern",
-        enterZoomModeButtonAriaLabel: "Zoom-Modus aktivieren",
-      },
-    });
-    const button = getChart().findZoomButton()!;
-    expect(button.getElement().textContent).toContain("Vergrößern");
-    expect(button.getElement()).toHaveAttribute("aria-label", "Zoom-Modus aktivieren");
-  });
-
-  test("draws the zoom-range boundary lines and band when zoomed via ref", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
-    // Not zoomed yet — no affordance.
-    expect(getZoomRangeOverlays().band).toBeUndefined();
-    act(() => ref.current!.enterZoomMode());
-    // Keyboard-select a range: x=1 to x=3.
-    const chartEl = getChart().getElement();
-    const target = chartEl.querySelector('[role="application"]') ?? chartEl;
-    const press = (key: string) =>
-      act(() => target.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true })));
-    press("ArrowRight");
-    press("Enter");
-    press("ArrowRight");
-    press("ArrowRight");
-    press("Enter");
-
-    const { startLine, endLine, band } = getZoomRangeOverlays();
-    expect(startLine).toBeDefined();
-    expect(endLine).toBeDefined();
-    expect(band?.options).toMatchObject({ from: 1, to: 3 });
-  });
-
-  test("clears the zoom-range affordance when zoom is reset", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
-    act(() => {
-      const chart = highcharts.charts.find((c) => c)!;
-      chart.xAxis[0].setExtremes(1, 3);
-    });
-    act(() => ref.current!.resetZoom());
-    const { startLine, endLine, band } = getZoomRangeOverlays();
-    expect(startLine).toBeUndefined();
-    expect(endLine).toBeUndefined();
-    expect(band).toBeUndefined();
-  });
-
-  test("controlled zoomRange draws the boundary affordance", () => {
-    const { rerender } = renderCartesianChart({
-      ...defaultProps,
-      zoom: { enabled: true },
-      zoomRange: null,
-      onZoomRangeChange,
-    });
-    expect(getZoomRangeOverlays().band).toBeUndefined();
-    rerender({
-      ...defaultProps,
-      zoom: { enabled: true },
-      zoomRange: { x: { startValue: 1, endValue: 3 } },
-      onZoomRangeChange,
-    });
-    expect(getZoomRangeOverlays().band?.options).toMatchObject({ from: 1, to: 3 });
-    // Resetting via controlled null clears the affordance.
-    rerender({ ...defaultProps, zoom: { enabled: true }, zoomRange: null, onZoomRangeChange });
-    expect(getZoomRangeOverlays().band).toBeUndefined();
-  });
-
-  test("exposes a labelled zoom controls region", () => {
-    const { wrapper } = renderCartesianChart({
-      ...defaultProps,
-      zoom: { enabled: true },
-      i18nStrings: { zoomControlsAriaLabel: "Custom zoom region" },
-    });
-    const el = wrapper.getElement().querySelector('[role="region"][aria-label="Custom zoom region"]');
-    expect(el).not.toBe(null);
-  });
-});
-
-describe("CartesianChart: zoom keyboard", { timeout: TEST_TIMEOUT }, () => {
-  test("arrow keys move the cursor and Enter sets start then end to zoom", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
-    // Enter zoom mode — cursor starts at the first data point (x=0).
-    act(() => getChart().findZoomButton()!.click());
-
-    // Move the cursor right to x=1 and set the start point.
-    pressChartKey("ArrowRight");
-    pressChartKey("Enter");
-    // Move the cursor right to x=3 and set the end point → zoom applies.
-    pressChartKey("ArrowRight");
-    pressChartKey("ArrowRight");
-    pressChartKey("Enter");
-
-    const { min, max } = getXExtremes();
-    expect(min).toBe(1);
-    expect(max).toBe(3);
-    expect(onZoomRangeChange).toHaveBeenLastCalledWith(
-      expect.objectContaining({ detail: { zoomRange: { x: { startValue: 1, endValue: 3 } } } }),
-    );
-    // After zooming, the Reset button is shown.
-    expect(getChart().findResetZoomButton()).not.toBe(null);
-  });
-
-  test("Space also sets zoom points", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
-    act(() => getChart().findZoomButton()!.click());
-    pressChartKey("ArrowRight"); // cursor at x=1
-    pressChartKey(" "); // set start
-    pressChartKey("ArrowRight"); // cursor at x=2
-    pressChartKey(" "); // set end → zoom
-    const { min, max } = getXExtremes();
-    expect(min).toBe(1);
-    expect(max).toBe(2);
-  });
-
-  test("Escape cancels an in-progress keyboard selection without zooming", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
-    act(() => getChart().findZoomButton()!.click());
-    pressChartKey("ArrowRight");
-    pressChartKey("Enter"); // start point set, now selecting
-    pressChartKey("Escape"); // cancel
-    const { min, max } = getXExtremes();
-    expect(min).toBe(0);
-    expect(max).toBe(4);
-    // Back to idle: the Zoom button is shown again.
-    expect(getChart().findZoomButton()).not.toBe(null);
-    expect(onZoomRangeChange).not.toHaveBeenCalled();
-  });
-
-  test("announces a range selected by dragging, in both controlled and uncontrolled mode", async () => {
-    const announcement = () =>
-      [...document.querySelectorAll("[aria-live]")].map((n) => n.textContent?.trim()).join(" ");
-
-    // Uncontrolled: Highcharts applies the extremes and we observe them.
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
-    act(() => getCurrentChart().xAxis[0].setExtremes(1, 3, true, false, { trigger: "zoom" }));
-    await vi.waitFor(() => expect(announcement()).toContain("Zoomed from 1 to 3"), { timeout: 5000 });
-
-    // Controlled: the extremes are the consumer's to apply, but the drag still needs confirming —
-    // this path previously fired the event without announcing anything.
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, zoomRange: null, onZoomRangeChange });
-    act(() => getCurrentChart().xAxis[0].setExtremes(1, 2, true, false, { trigger: "zoom" }));
-    await vi.waitFor(() => expect(announcement()).toContain("Zoomed from 1 to 2"), { timeout: 5000 });
+    onZoomRangeChange.mockReset();
+    // The visible window now holds x=1..4, and the cursor starts at its first point (x=1).
+    keyboardZoomToIndexes(0, 1);
+    expect(getXExtremes()).toEqual({ min: 1, max: 2 });
     expect(onZoomRangeChange).toHaveBeenCalledWith(
       expect.objectContaining({ detail: { zoomRange: { x: { startValue: 1, endValue: 2 } } } }),
     );
   });
 
-  test("ignores zoom keys dispatched outside the chart", () => {
+  test("Escape during a re-zoom returns to the zoomed state without changing the range", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
-    act(() => getChart().findZoomButton()!.click());
+    keyboardZoomToIndexes(1, 4);
 
-    // A key press that did not originate inside the chart must not drive the zoom cursor: another
-    // chart in zoom mode, or a dialog opened over this one, would otherwise move this chart's cursor.
-    const outside = document.createElement("button");
-    document.body.appendChild(outside);
-    act(() => {
-      outside.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
-      outside.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
-      outside.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
-      outside.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
-    });
-    // Still in zoom mode, with nothing selected and no zoom applied.
-    expect(getChart().findExitZoomButton()).not.toBe(null);
+    onZoomRangeChange.mockReset();
+    enterZoomMode();
+    pressCursorKey(KeyCode.right);
+    pressCursorKey(KeyCode.enter);
+    pressCursorKey(KeyCode.escape);
+    expect(getXExtremes()).toEqual({ min: 1, max: 4 });
+    expect(getChart().findResetZoomButton()).not.toBe(null);
     expect(onZoomRangeChange).not.toHaveBeenCalled();
-    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
+  });
 
-    // Escape from outside must not exit zoom mode either.
-    act(() => {
-      outside.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+  // Zooming to two adjacent points leaves no room for another zoom, so the button is disabled rather
+  // than doing nothing when pressed.
+  test("disables the Zoom button once zoomed to the minimum range", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    keyboardZoomToIndexes(0, 1);
+    expect(getXExtremes()).toEqual({ min: 0, max: 1 });
+    expect(getChart().findZoomButton()!.isDisabled()).toBe(true);
+    // Resetting makes zooming available again.
+    getChart().findResetZoomButton()!.click();
+    expect(getChart().findZoomButton()!.isDisabled()).toBe(false);
+  });
+
+  test("disables the Zoom button when no series with data points are visible", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, visibleSeries: [] });
+    expect(getChart().findZoomButton()!.isDisabled()).toBe(true);
+    act(() => ref.current!.enterZoomMode());
+    expect(getChart().findExitZoomButton()).toBe(null);
+  });
+
+  test("disables the Zoom button for threshold-only charts", () => {
+    renderCartesianChart({
+      ...defaultProps,
+      series: [{ type: "x-threshold", name: "Peak", value: 2 }],
+      zoom: { enabled: true },
     });
+    expect(getChart().findZoomButton()!.isDisabled()).toBe(true);
+  });
+
+  test("leaves zoom mode when the last series is hidden mid-selection", () => {
+    // The series visibility stays controlled for the lifetime of the component: switching from
+    // uncontrolled to controlled is not supported and the update would be ignored.
+    const { rerender } = renderCartesianChart({
+      ...defaultProps,
+      zoom: { enabled: true },
+      visibleSeries: ["Requests"],
+    });
+    enterZoomMode();
     expect(getChart().findExitZoomButton()).not.toBe(null);
 
-    outside.remove();
+    rerender({ ...defaultProps, zoom: { enabled: true }, visibleSeries: [] });
+    expect(getChart().findExitZoomButton()).toBe(null);
+    expect(getChart().findZoomButton()!.isDisabled()).toBe(true);
   });
 
-  test("announces exiting zoom mode and resetting the zoom", async () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
-    // The live region is rendered in a portal outside the chart, and its text is applied after a
-    // short delay, so it is searched for from the document root and awaited.
-    const announcement = () => [...document.querySelectorAll("[aria-live]")].map((n) => n.textContent?.trim()).join("");
-
-    // Leaving zoom mode is a state change, so it is announced rather than left silent.
-    act(() => getChart().findZoomButton()!.click());
-    act(() => getChart().findExitZoomButton()!.click());
-    await vi.waitFor(() => expect(announcement()).toBe("Zoom mode cancelled"));
-
-    // So is returning to the full data range.
-    zoomViaKeyboard();
-    act(() => getChart().findResetZoomButton()!.click());
-    await vi.waitFor(() => expect(announcement()).toBe("Zoom reset. Showing the full data range."));
-  });
-
-  test("moves focus to the Exit zoom button when zoom mode is entered", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
-    act(() => getChart().findZoomButton()!.click());
-    // The activated button is replaced by "Exit zoom", so focus lands there. Leaving focus on the plot
-    // would make the exit unreachable: tabbing forward walks into the chart's own data points.
-    expect(document.activeElement).toBe(getChart().findExitZoomButton()!.getElement());
-
-    // The keys must still drive the cursor from there, rather than only working on the plot.
-    pressChartKey("ArrowRight");
-    pressChartKey("Enter");
-    pressChartKey("ArrowRight");
-    pressChartKey("Enter");
-    expect(getXExtremes()).toEqual({ min: 1, max: 2 });
-  });
-
-  test("moves focus to the Zoom button when Reset is activated", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
-    zoomViaKeyboard();
-    // Applying the zoom lands focus on the newly shown Reset button.
-    expect(document.activeElement).toBe(getChart().findResetZoomButton()!.getElement());
-
-    // Reset removes that button, so focus moves to Zoom, which takes its place — rather than being
-    // dropped to the body, which would send keyboard users back to the top of the page.
-    act(() => getChart().findResetZoomButton()!.click());
-    expect(document.activeElement).toBe(getChart().findZoomButton()!.getElement());
-  });
-
-  test("renders the zoom cursor buttons in zoom mode only", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
-    expect(getChart().findZoomCursorPreviousButton()).toBe(null);
-    expect(getChart().findZoomCursorNextButton()).toBe(null);
-
-    act(() => getChart().findZoomButton()!.click());
-    expect(getChart().findZoomCursorPreviousButton()).not.toBe(null);
-    expect(getChart().findZoomCursorNextButton()).not.toBe(null);
-
-    act(() => getChart().findExitZoomButton()!.click());
-    expect(getChart().findZoomCursorPreviousButton()).toBe(null);
-    expect(getChart().findZoomCursorNextButton()).toBe(null);
-  });
-
-  test("zoom cursor buttons move the cursor and are disabled at the ends of the range", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
-    act(() => getChart().findZoomButton()!.click());
-    // The cursor starts on the first point, so it cannot move any further towards the start.
-    expect(getChart().findZoomCursorPreviousButton()!.getElement()).toHaveProperty("disabled", true);
-
-    const next = () => getChart().findZoomCursorNextButton()!.getElement();
-    // Move the cursor to x=1 with the button, then set the start of the range.
-    act(() => next().click());
-    pressChartKey("Enter");
-    // Move the cursor to x=2 with the button, then set the end of the range, applying the zoom.
-    act(() => next().click());
-    pressChartKey("Enter");
-    expect(getXExtremes()).toEqual({ min: 1, max: 2 });
-  });
-
-  test("zoom cursor buttons step back towards the start of the range", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
-    act(() => getChart().findZoomButton()!.click());
-    // Move to the last point, where the cursor cannot move any further towards the end.
-    for (let i = 0; i < 4; i++) {
-      act(() => getChart().findZoomCursorNextButton()!.getElement().click());
-    }
-    expect(getChart().findZoomCursorNextButton()!.getElement()).toHaveProperty("disabled", true);
-
-    // Step back to x=3 and zoom from there to the last point.
-    act(() => getChart().findZoomCursorPreviousButton()!.getElement().click());
-    pressChartKey("Enter");
-    act(() => getChart().findZoomCursorNextButton()!.getElement().click());
-    pressChartKey("Enter");
-    expect(getXExtremes()).toEqual({ min: 3, max: 4 });
-  });
-
-  test("a range selected by dragging is reported but not applied when the range is controlled", () => {
+  test("supports i18n overrides for the zoom controls", () => {
     renderCartesianChart({
       ...defaultProps,
       zoom: { enabled: true },
-      zoomRange: null,
-      onZoomRangeChange,
+      i18nStrings: {
+        enterZoomModeButtonText: "Vergrößern",
+        exitZoomModeButtonText: "Abbrechen",
+        resetZoomButtonText: "Zurücksetzen",
+        zoomControlsAriaLabel: "Zoom-Steuerung",
+      },
     });
-    // Dragging across the plot makes Highcharts apply the extremes itself. The consumer owns the range
-    // here and ignores the event, so the chart must stay at the full range it was given.
-    act(() => {
-      getCurrentChart().xAxis[0].setExtremes(1, 3, true, false, { trigger: "zoom" });
-    });
+    expect(getChart().getElement().querySelector('[role="region"]')).toHaveAttribute("aria-label", "Zoom-Steuerung");
+    expect(getChart().findZoomButton()!.getElement()).toHaveTextContent("Vergrößern");
+
+    enterZoomMode();
+    expect(getChart().findExitZoomButton()!.getElement()).toHaveTextContent("Abbrechen");
+
+    getChart().findExitZoomButton()!.click();
+    keyboardZoomToIndexes(1, 3);
+    expect(getChart().findResetZoomButton()!.getElement()).toHaveTextContent("Zurücksetzen");
+  });
+
+  test("announces the zoom range change, including with hideButtons", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true, hideButtons: true } });
+    act(() => ref.current!.enterZoomMode());
+    pressCursorKey(KeyCode.right);
+    pressCursorKey(KeyCode.enter);
+    pressCursorKeyTimes(KeyCode.right, 2);
+    pressCursorKey(KeyCode.enter);
+    expect(getChart().getElement()).toHaveTextContent("Zoomed from 1 to 3");
+  });
+});
+
+describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT }, () => {
+  test("selects a range with arrow keys and Enter", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
+    keyboardZoomToIndexes(1, 3);
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
     expect(onZoomRangeChange).toHaveBeenCalledWith(
       expect.objectContaining({ detail: { zoomRange: { x: { startValue: 1, endValue: 3 } } } }),
     );
+  });
+
+  test("selects a range with Space", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    enterZoomMode();
+    pressCursorKey(KeyCode.right);
+    pressCursorKey(KeyCode.space);
+    pressCursorKeyTimes(KeyCode.right, 2);
+    pressCursorKey(KeyCode.space);
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+  });
+
+  test("moves the cursor to the range edges with Home and End", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    enterZoomMode();
+    pressCursorKey(KeyCode.end);
+    expect(getCursorAttributes().now).toBe("4");
+    pressCursorKey(KeyCode.enter);
+    pressCursorKey(KeyCode.home);
+    expect(getCursorAttributes().now).toBe("0");
+    pressCursorKey(KeyCode.enter);
     expect(getXExtremes()).toEqual({ min: 0, max: 4 });
+  });
+
+  test("steps the cursor with PageUp and PageDown", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    enterZoomMode();
+    // With five points a page step is a single point.
+    pressCursorKey(KeyCode.pageUp);
+    expect(getCursorAttributes().now).toBe("1");
+    pressCursorKey(KeyCode.pageDown);
+    expect(getCursorAttributes().now).toBe("0");
+  });
+
+  test("ignores vertical arrow keys on a horizontal axis", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    enterZoomMode();
+    pressCursorKey(KeyCode.up);
+    pressCursorKey(KeyCode.down);
+    expect(getCursorAttributes().now).toBe("0");
+  });
+
+  test("Escape cancels the selection", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
+    enterZoomMode();
+    pressCursorKey(KeyCode.right);
+    pressCursorKey(KeyCode.enter);
+    pressCursorKey(KeyCode.escape);
+    expect(getChart().findZoomButton()).not.toBe(null);
+    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
+    expect(onZoomRangeChange).not.toHaveBeenCalled();
+  });
+
+  // A range of a single point has no width, so the chart cannot display it and the user cannot zoom
+  // out of it. The start point stays set instead.
+  test("rejects a selection of a single point", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
+    enterZoomMode();
+    pressCursorKey(KeyCode.enter);
+    pressCursorKey(KeyCode.enter);
+    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
+    expect(onZoomRangeChange).not.toHaveBeenCalled();
+    // Still selecting, and completing the range from here works.
+    expect(getChart().findExitZoomButton()).not.toBe(null);
+    pressCursorKey(KeyCode.right);
+    pressCursorKey(KeyCode.enter);
+    expect(getXExtremes()).toEqual({ min: 0, max: 1 });
+  });
+
+  test("entering zoom mode moves focus to the cursor", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    enterZoomMode();
+    expect(document.activeElement).toBe(getChart().findZoomCursor()!.getElement());
+  });
+
+  test("exposes the cursor position on the slider", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    enterZoomMode();
+    const cursor = getChart().findZoomCursor()!.getElement();
+    expect(cursor).toHaveAttribute("role", "slider");
+    expect(cursor).toHaveAttribute("aria-orientation", "horizontal");
+    expect(cursor).toHaveAttribute("aria-label", "Zoom range cursor");
+    expect(getCursorAttributes()).toEqual({ min: "0", max: "4", now: "0", text: "0" });
+
+    pressCursorKey(KeyCode.right);
+    expect(getCursorAttributes()).toEqual({ min: "0", max: "4", now: "1", text: "1" });
+
+    // Once the start point is set, the value text describes the range being selected.
+    pressCursorKey(KeyCode.enter);
+    pressCursorKey(KeyCode.right);
+    expect(getCursorAttributes()).toEqual({
+      min: "0",
+      max: "4",
+      now: "2",
+      text: "Selecting zoom range from 1 to 2",
+    });
+  });
+
+  test("moves focus to Reset after zooming, and back to Zoom after resetting", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    keyboardZoomToIndexes(1, 3);
+    expect(document.activeElement).toBe(getChart().findResetZoomButton()!.getElement());
+
+    getChart().findResetZoomButton()!.click();
+    expect(document.activeElement).toBe(getChart().findZoomButton()!.getElement());
+  });
+
+  test("moves focus to the Zoom button when the selection is cancelled", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    enterZoomMode();
+    pressCursorKey(KeyCode.escape);
+    expect(document.activeElement).toBe(getChart().findZoomButton()!.getElement());
+  });
+
+  // Focus leaving the chart abandons the selection, so the chart is never left in an active zoom
+  // state the user cannot see the focus for.
+  test("exits zoom mode when focus leaves the chart", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    enterZoomMode();
+    expect(getChart().findExitZoomButton()).not.toBe(null);
+
+    focusOutsideChart();
+    expect(getChart().findExitZoomButton()).toBe(null);
+    expect(getChart().findZoomButton()).not.toBe(null);
+  });
+
+  test("keeps zoom mode when focus moves within the chart", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    enterZoomMode();
+    act(() => (getChart().findExitZoomButton()!.getElement() as HTMLElement).focus());
+    expect(getChart().findExitZoomButton()).not.toBe(null);
+  });
+
+  // Once zoomed, the cursor may only travel inside the visible window. Highcharts keeps the
+  // out-of-range points in the series (below cropThreshold), so the stops are recomputed from the
+  // current extremes rather than from the full data.
+  test("confines the cursor to the zoomed window", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    keyboardZoomToIndexes(1, 3);
+    enterZoomMode();
+    expect(getCursorAttributes()).toEqual({ min: "1", max: "3", now: "1", text: "1" });
+
+    pressCursorKeyTimes(KeyCode.right, 5);
+    expect(getCursorAttributes().now).toBe("3");
+    pressCursorKeyTimes(KeyCode.left, 5);
+    expect(getCursorAttributes().now).toBe("1");
+  });
+});
+
+describe("CartesianChart: zoom cursor buttons", { timeout: TEST_TIMEOUT }, () => {
+  test("renders the cursor buttons outside the tab order", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    const buttons = [
+      getChart().findZoomCursorPreviousButton()!,
+      getChart().findZoomCursorCommitButton()!,
+      getChart().findZoomCursorNextButton()!,
+    ];
+    for (const button of buttons) {
+      expect(button.getElement()).toHaveAttribute("tabindex", "-1");
+    }
+    expect(buttons.map((button) => button.getElement().getAttribute("aria-label"))).toEqual([
+      "Move zoom cursor left",
+      "Set zoom point",
+      "Move zoom cursor right",
+    ]);
+  });
+
+  test("selects a full range with the cursor buttons only", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
+    enterZoomMode();
+    getChart().findZoomCursorNextButton()!.click();
+    getChart().findZoomCursorCommitButton()!.click();
+    getChart().findZoomCursorNextButton()!.click();
+    getChart().findZoomCursorCommitButton()!.click();
+    expect(getXExtremes()).toEqual({ min: 1, max: 2 });
+    expect(onZoomRangeChange).toHaveBeenCalledWith(
+      expect.objectContaining({ detail: { zoomRange: { x: { startValue: 1, endValue: 2 } } } }),
+    );
+  });
+
+  test("keeps clicking the cursor buttons out of the focus order", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    enterZoomMode();
+    getChart().findZoomCursorNextButton()!.click();
+    // The cursor keeps the focus, so arrow keys continue to work after using the buttons.
+    expect(document.activeElement).toBe(getChart().findZoomCursor()!.getElement());
+    pressCursorKey(KeyCode.right);
+    expect(getCursorAttributes().now).toBe("2");
+  });
+
+  test("keeps the cursor buttons enabled at the range edges", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    enterZoomMode();
+    const previousButton = getChart().findZoomCursorPreviousButton()!.getElement() as HTMLButtonElement;
+    expect(previousButton.disabled).toBe(false);
+    getChart().findZoomCursorPreviousButton()!.click();
+    expect(getCursorAttributes().now).toBe("0");
+    expect(previousButton.disabled).toBe(false);
+  });
+});
+
+describe("CartesianChart: zoom overlay", { timeout: TEST_TIMEOUT }, () => {
+  // The overlay must draw nothing while idle: a highlight left on the chart after a zoom looks like a
+  // pending selection, and on an empty chart it looks like a rendering artifact.
+  test("draws nothing while idle", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    const { band, startDivider, endDivider, cursor } = getOverlay();
+    for (const element of [band, startDivider, endDivider, cursor]) {
+      expect(isVisible(element)).toBe(false);
+    }
+  });
+
+  test("draws nothing after a committed zoom", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    keyboardZoomToIndexes(1, 3);
+    const { band, startDivider, endDivider, cursor } = getOverlay();
+    for (const element of [band, startDivider, endDivider, cursor]) {
+      expect(isVisible(element)).toBe(false);
+    }
+  });
+
+  test("shows the cursor while selecting, and the band once the start point is set", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    enterZoomMode();
+    expect(isVisible(getOverlay().cursor)).toBe(true);
+    expect(isVisible(getOverlay().band)).toBe(false);
+
+    pressCursorKey(KeyCode.enter);
+    expect(isVisible(getOverlay().startDivider)).toBe(true);
+
+    pressCursorKey(KeyCode.right);
+    expect(isVisible(getOverlay().band)).toBe(true);
+  });
+});
+
+describe("CartesianChart: zoom pointer interaction", { timeout: TEST_TIMEOUT }, () => {
+  test("dragging across the plot zooms into the dragged range", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointermove", 3);
+    dispatchPointer("pointerup", 3);
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+    expect(onZoomRangeChange).toHaveBeenCalledWith(
+      expect.objectContaining({ detail: { zoomRange: { x: { startValue: 1, endValue: 3 } } } }),
+    );
+  });
+
+  test("draws the drag boundaries while dragging", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointermove", 3);
+    const { band, startDivider, endDivider } = getOverlay();
+    expect(isVisible(band)).toBe(true);
+    expect(isVisible(startDivider)).toBe(true);
+    expect(isVisible(endDivider)).toBe(true);
+
+    dispatchPointer("pointerup", 3);
+    expect(isVisible(getOverlay().band)).toBe(false);
+  });
+
+  // A press with a small amount of travel is a click, not a drag: zooming on it would make the chart
+  // impossible to click.
+  test("does not zoom on a press that does not pass the drag threshold", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointermove", 1, 5);
+    dispatchPointer("pointerup", 1, 5);
+    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
+    expect(onZoomRangeChange).not.toHaveBeenCalled();
+  });
+
+  // A drag that stays within one data point would produce a range with no width.
+  test("does not zoom on a drag covering a single data point", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointermove", 1, 20);
+    dispatchPointer("pointerup", 1, 20);
+    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
+    expect(onZoomRangeChange).not.toHaveBeenCalled();
+    expect(isVisible(getOverlay().band)).toBe(false);
+  });
+
+  test("abandons the drag on pointercancel", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointermove", 3);
+    dispatchPointer("pointercancel", 3);
+    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
+    expect(onZoomRangeChange).not.toHaveBeenCalled();
+    expect(isVisible(getOverlay().band)).toBe(false);
+  });
+
+  test("clicking twice in zoom mode selects the range", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
+    enterZoomMode();
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointerup", 1);
+    expect(isVisible(getOverlay().startDivider)).toBe(true);
+
+    dispatchPointer("pointerdown", 3);
+    dispatchPointer("pointerup", 3);
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+    expect(onZoomRangeChange).toHaveBeenCalledWith(
+      expect.objectContaining({ detail: { zoomRange: { x: { startValue: 1, endValue: 3 } } } }),
+    );
+  });
+
+  test("ignores presses of non-primary mouse buttons", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
+    dispatchPointer("pointerdown", 1, 0, { button: 2, buttons: 2 });
+    dispatchPointer("pointermove", 3);
+    dispatchPointer("pointerup", 3);
+    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
+    expect(onZoomRangeChange).not.toHaveBeenCalled();
+  });
+});
+
+describe("CartesianChart: zoom with other series types", { timeout: TEST_TIMEOUT }, () => {
+  // Highcharts computes a minRange of its own (five times the closest data range) when the axis has no
+  // explicit bounds, and silently widens any narrower range. Grouped column charts hit this most
+  // visibly, because zooming into a couple of categories appeared to do nothing.
+  test("zooms into two adjacent points without explicit axis bounds", () => {
+    renderCartesianChart({
+      highcharts,
+      series: [
+        {
+          type: "column",
+          name: "A",
+          data: [
+            { x: 0, y: 1 },
+            { x: 1, y: 2 },
+            { x: 2, y: 3 },
+            { x: 3, y: 4 },
+            { x: 4, y: 5 },
+          ],
+        },
+        {
+          type: "column",
+          name: "B",
+          data: [
+            { x: 0, y: 2 },
+            { x: 1, y: 3 },
+            { x: 2, y: 4 },
+            { x: 3, y: 5 },
+            { x: 4, y: 6 },
+          ],
+        },
+      ],
+      xAxis: { title: "X", type: "linear" as const },
+      yAxis: { title: "Y", type: "linear" as const },
+      zoom: { enabled: true },
+      onZoomRangeChange,
+    });
+    keyboardZoomToIndexes(1, 2);
+    expect(getXExtremes()).toEqual({ min: 1, max: 2 });
+    expect(onZoomRangeChange).toHaveBeenCalledWith(
+      expect.objectContaining({ detail: { zoomRange: { x: { startValue: 1, endValue: 2 } } } }),
+    );
+  });
+
+  // Error bar data items may omit x, in which case Highcharts assigns index-based x values that have
+  // nothing to do with the x values of the series they are linked to. They must not become cursor stops.
+  test("ignores error bar series when collecting cursor stops", () => {
+    renderCartesianChart({
+      highcharts,
+      series: [
+        {
+          type: "line",
+          id: "line",
+          name: "Line",
+          data: [
+            { x: 0, y: 10 },
+            { x: 10, y: 20 },
+            { x: 20, y: 30 },
+            { x: 30, y: 25 },
+            { x: 40, y: 40 },
+          ],
+        },
+        {
+          type: "errorbar",
+          linkedTo: "line",
+          name: "Error",
+          data: [
+            { low: 8, high: 12 },
+            { low: 18, high: 22 },
+            { low: 28, high: 32 },
+            { low: 23, high: 27 },
+            { low: 38, high: 42 },
+          ],
+        },
+      ],
+      xAxis: { title: "X", type: "linear" as const },
+      yAxis: { title: "Y", type: "linear" as const },
+      zoom: { enabled: true },
+      onZoomRangeChange,
+    } as any);
+    enterZoomMode();
+    // The index-based x values of the error bars (0..4) do not add stops of their own.
+    expect(getCursorAttributes()).toEqual({ min: "0", max: "40", now: "0", text: "0" });
+    pressCursorKey(KeyCode.right);
+    expect(getCursorAttributes().now).toBe("10");
+
+    pressCursorKey(KeyCode.enter);
+    pressCursorKeyTimes(KeyCode.right, 2);
+    pressCursorKey(KeyCode.enter);
+    expect(getXExtremes()).toEqual({ min: 10, max: 30 });
+    expect(onZoomRangeChange).toHaveBeenCalledWith(
+      expect.objectContaining({ detail: { zoomRange: { x: { startValue: 10, endValue: 30 } } } }),
+    );
+  });
+
+  test("zooms an inverted chart with the keyboard", () => {
+    renderCartesianChart({
+      ...defaultProps,
+      inverted: true,
+      zoom: { enabled: true },
+      onZoomRangeChange,
+    });
+    enterZoomMode();
+    const cursor = getChart().findZoomCursor()!.getElement();
+    expect(cursor).toHaveAttribute("aria-orientation", "vertical");
+
+    // On an inverted chart the x axis runs vertically, so the vertical arrows drive the cursor, which
+    // starts at the visual start of the plot: the top, where the smallest x value is rendered.
+    expect(getCursorAttributes().now).toBe("0");
+    pressCursorKey(KeyCode.down);
+    expect(getCursorAttributes().now).toBe("1");
+    pressCursorKey(KeyCode.enter);
+    pressCursorKeyTimes(KeyCode.down, 2);
+    expect(getCursorAttributes().now).toBe("3");
+    pressCursorKey(KeyCode.enter);
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
   });
 });
