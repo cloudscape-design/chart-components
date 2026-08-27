@@ -22,6 +22,7 @@ import { castArray } from "../internal/utils/utils";
 import { useChartAPI } from "./chart-api";
 import { ChartExtraContext } from "./chart-api/chart-extra-context";
 import { ChartContainer } from "./chart-container";
+import { useChartZoom } from "./chart-zoom/use-chart-zoom";
 import { ChartApplication } from "./components/core-application";
 import { ChartFilters } from "./components/core-filters";
 import { ChartLegend } from "./components/core-legend";
@@ -52,6 +53,9 @@ export function InternalCoreChart({
   tooltip: tooltipOptions,
   noData: noDataOptions,
   navigator,
+  zoom: zoomOptions,
+  zoomRange,
+  onZoomRangeChange,
   legend: legendOptions,
   fallback = <Spinner />,
   callback,
@@ -74,11 +78,26 @@ export function InternalCoreChart({
 }: CoreChartProps & InternalBaseComponentProps) {
   const highcharts = rest.highcharts as null | typeof Highcharts;
   const labels = useChartI18n({ ariaLabel, ariaDescription, i18nStrings });
+  const rootRef = useRef<HTMLDivElement>(null);
+  const inverted = !!options.chart?.inverted;
+  const isRtl = getIsRtl(rootRef.current);
+  const zoom = useChartZoom({
+    zoom: zoomOptions,
+    zoomRange,
+    onZoomRangeChange,
+    i18nStrings,
+    series: options.series,
+    inverted,
+    isRtl,
+    rootRef,
+  });
   const context: ChartExtraContext["settings"] = {
     chartId: useUniqueId(),
     noDataEnabled: !!noDataOptions,
     legendEnabled: legendOptions?.enabled !== false,
-    tooltipEnabled: tooltipOptions?.enabled !== false,
+    // While a zoom range is being selected the pointer sets the range boundaries, so a tooltip following
+    // it would only obstruct the plot.
+    tooltipEnabled: tooltipOptions?.enabled !== false && !zoom.tooltipSuppressed,
     keyboardNavigationEnabled: keyboardNavigation,
     labels,
     getItemOptions: getItemOptions ?? (() => ({})),
@@ -87,8 +106,31 @@ export function InternalCoreChart({
   const state = { visibleItems };
   const api = useChartAPI(context, handlers, state);
 
+  // The chart API is handed out once, when Highcharts initializes, while the zoom actions are re-created on
+  // every render. The mirror ref lets the handed-out methods delegate to the current ones.
+  const zoomRef = useRef(zoom);
+  zoomRef.current = zoom;
+  const zoomApi = useRef({
+    enterZoomMode: () => zoomRef.current.enterZoomMode(),
+    exitZoomMode: () => zoomRef.current.exitZoomMode(),
+    resetZoom: () => zoomRef.current.resetZoom(),
+  }).current;
+
+  // The zoom needs to dismiss a highlighted point when a selection starts, and the API only exists once
+  // the context above is built.
+  useEffect(() => {
+    zoom.clearHighlightRef.current = () => api.clearChartHighlight({ isApiCall: false });
+  });
+
+  // The zoom is reconciled from here, and not from an effect inside its own hook, because it must observe
+  // the chart as the API leaves it: the API applies the visibleItems property to the series from an effect
+  // of its own, and an effect declared inside useChartZoom would run before that and still see the previous
+  // set of visible series. No dependencies, because any render can move the plot or change the data.
+  useEffect(() => {
+    zoom.reconcileAfterRender();
+  });
+
   const rootClassName = clsx(testClasses.root, styles.root, fitHeight && styles["root-fit-height"], className);
-  const rootRef = useRef<HTMLDivElement>(null);
   const mergedRootRef = useMergeRefs(rootRef, __internalRootRef);
   const rootProps = { ref: mergedRootRef, className: rootClassName, ...getDataAttributes(rest) };
   const legendPosition = legendOptions?.position ?? "bottom";
@@ -152,8 +194,6 @@ export function InternalCoreChart({
   }
 
   const apiOptions = api.getOptions();
-  const inverted = !!options.chart?.inverted;
-  const isRtl = getIsRtl(rootRef?.current);
 
   // The Highcharts options takes all provided Highcharts options and custom properties and merges them together, so that
   // the Cloudscape features and custom Highcharts extensions co-exist.
@@ -222,7 +262,7 @@ export function InternalCoreChart({
     },
     // We use the rtl adjusted axes (instead of the original options.xAxis/yAxis) to ensure the chart renders
     // with the correct axis orientation for RTL layouts, matching what was used for legend positioning above.
-    xAxis: castArray(options.xAxis)?.map((xAxisOptions) => ({
+    xAxis: castArray(options.xAxis)?.map((xAxisOptions, index) => ({
       ...Styles.xAxisOptions,
       ...xAxisOptions,
       // Depending on the chart.inverted the x-axis can be rendered as vertical, and needs to respect page direction.
@@ -231,6 +271,10 @@ export function InternalCoreChart({
       className: xAxisClassName(inverted, xAxisOptions.className),
       title: axisTitle(xAxisOptions.title ?? {}, !inverted || verticalAxisTitlePlacement === "side"),
       labels: axisLabels(xAxisOptions.labels ?? {}),
+      // The zoom applies to the primary x-axis only: it is the axis the cursor and the drag selection
+      // are measured against. The extremes are declared in the options, rather than imperatively set,
+      // because Highcharts re-initializes the axes on every React re-render.
+      ...(index === 0 ? zoom.getXAxisZoomOptions(xAxisOptions) : {}),
     })),
     yAxis: castArray(options.yAxis)?.map((yAxisOptions) => ({
       ...Styles.yAxisOptions,
@@ -310,6 +354,9 @@ export function InternalCoreChart({
                 },
                 render(event) {
                   apiOptions.onChartRender.call(this, event);
+                  // The zoom overlay is positioned against the plot, and the cached axis values depend on the
+                  // visible range, so both need to be refreshed whenever Highcharts re-draws.
+                  zoom.onChartRender(this);
                   return options.chart?.events?.render?.call(this, event);
                 },
                 click(event) {
@@ -346,18 +393,28 @@ export function InternalCoreChart({
             },
           };
           return (
-            <>
+            // The anchor establishes the positioning context for the zoom overlay, which is drawn on top of the
+            // plot with DOM elements. Highcharts re-initializes its SVG on every React re-render, so imperatively
+            // added plot bands would not survive.
+            <div className={styles["chart-plot-anchor"]} {...zoom.plotProps}>
               <ChartApplication api={api} keyboardNavigation={keyboardNavigation} ariaLabel={ariaLabel} />
               <HighchartsReact
                 highcharts={highcharts}
                 options={highchartsOptions}
                 callback={(chart: Highcharts.Chart) =>
-                  callback?.({ chart, highcharts: highcharts as typeof Highcharts, ...api.publicApi })
+                  callback?.({
+                    chart,
+                    highcharts: highcharts as typeof Highcharts,
+                    ...api.publicApi,
+                    ...zoomApi,
+                  })
                 }
               />
-            </>
+              {zoom.overlay}
+            </div>
           );
         }}
+        zoomControls={zoom.controls}
         navigator={navigator}
         primaryLegend={
           context.legendEnabled && legendProps.primary ? (
@@ -400,6 +457,8 @@ export function InternalCoreChart({
           api={api}
         />
       )}
+
+      {zoom.liveRegion}
     </div>
   );
 }

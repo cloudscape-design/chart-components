@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ButtonWrapper } from "@cloudscape-design/components/test-utils/dom";
-import { createWrapper, ElementWrapper } from "@cloudscape-design/test-utils-core/dom";
+import { ElementWrapper } from "@cloudscape-design/test-utils-core/dom";
 
 import BaseChartWrapper from "../internal/base";
 import { CartesianChartTooltipWrapper } from "./tooltip";
 
 import testClasses from "../../../cartesian-chart/test-classes/styles.selectors.js";
-import zoomCursorClasses from "../../../internal/components/zoom-cursor-buttons/test-classes/styles.selectors.js";
+import coreTestClasses from "../../../core/test-classes/styles.selectors.js";
 
 export default class CartesianChartWrapper extends BaseChartWrapper {
   static rootSelector: string = testClasses.root;
@@ -29,18 +29,18 @@ export default class CartesianChartWrapper extends BaseChartWrapper {
 
   /**
    * Finds the "Zoom" button that enters zoom mode.
-   * Visible when zoom is enabled and the chart is in idle state (not zoomed, not in zoom mode).
+   * Visible when zoom is enabled and no range is being selected.
    */
   public findZoomButton(): null | ButtonWrapper {
-    return this.findComponent(`.${testClasses["zoom-button"]} .${ButtonWrapper.rootSelector}`, ButtonWrapper);
+    return this.findComponent(`.${coreTestClasses["zoom-button"]} .${ButtonWrapper.rootSelector}`, ButtonWrapper);
   }
 
   /**
    * Finds the "Exit zoom" button that exits zoom mode without applying zoom.
-   * Visible when the chart is in zoom mode (waiting for start/end point selection).
+   * Visible while a zoom range is being selected.
    */
   public findExitZoomButton(): null | ButtonWrapper {
-    return this.findComponent(`.${testClasses["exit-zoom-button"]} .${ButtonWrapper.rootSelector}`, ButtonWrapper);
+    return this.findComponent(`.${coreTestClasses["exit-zoom-button"]} .${ButtonWrapper.rootSelector}`, ButtonWrapper);
   }
 
   /**
@@ -48,28 +48,38 @@ export default class CartesianChartWrapper extends BaseChartWrapper {
    * Visible when the chart is zoomed in.
    */
   public findResetZoomButton(): null | ButtonWrapper {
-    return this.findComponent(`.${testClasses["reset-zoom-button"]} .${ButtonWrapper.rootSelector}`, ButtonWrapper);
+    return this.findComponent(`.${coreTestClasses["reset-zoom-button"]} .${ButtonWrapper.rootSelector}`, ButtonWrapper);
+  }
+
+  /**
+   * Finds the zoom range cursor. It is a slider, holding the keyboard focus while a range is being selected.
+   * Present whenever zoom is enabled, and only shown while a range is being selected.
+   */
+  public findZoomCursor(): null | ElementWrapper {
+    return this.findByClassName(coreTestClasses["zoom-cursor"]);
   }
 
   /**
    * Finds the button that moves the zoom cursor to the previous data point.
-   * Visible while a zoom range is being selected.
+   * Present whenever zoom is enabled, and only shown while a range is being selected.
    */
   public findZoomCursorPreviousButton(): null | ElementWrapper {
-    return findZoomCursorButton(zoomCursorClasses["direction-button-inline-start"]);
+    return this.findByClassName(coreTestClasses["zoom-cursor-previous-button"]);
   }
 
   /**
    * Finds the button that moves the zoom cursor to the next data point.
-   * Visible while a zoom range is being selected.
+   * Present whenever zoom is enabled, and only shown while a range is being selected.
    */
   public findZoomCursorNextButton(): null | ElementWrapper {
-    return findZoomCursorButton(zoomCursorClasses["direction-button-inline-end"]);
+    return this.findByClassName(coreTestClasses["zoom-cursor-next-button"]);
   }
-}
 
-// The zoom cursor buttons are rendered in a portal, so they are not descendants of the chart and are
-// searched for from the document root instead.
-function findZoomCursorButton(className: string): null | ElementWrapper {
-  return createWrapper().findByClassName(className);
+  /**
+   * Finds the button that sets the start or the end of the zoom range at the cursor.
+   * Present whenever zoom is enabled, and only shown while a range is being selected.
+   */
+  public findZoomCursorCommitButton(): null | ElementWrapper {
+    return this.findByClassName(coreTestClasses["zoom-cursor-commit-button"]);
+  }
 }

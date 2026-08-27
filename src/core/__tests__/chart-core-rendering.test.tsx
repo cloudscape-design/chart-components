@@ -43,6 +43,9 @@ describe("CoreChart: rendering", () => {
       highlightChartPoint: expect.any(Function),
       highlightChartGroup: expect.any(Function),
       clearChartHighlight: expect.any(Function),
+      enterZoomMode: expect.any(Function),
+      exitZoomMode: expect.any(Function),
+      resetZoom: expect.any(Function),
     });
   });
 
