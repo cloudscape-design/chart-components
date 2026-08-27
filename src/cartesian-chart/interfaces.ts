@@ -262,20 +262,12 @@ export namespace CartesianChartProps {
 
   export type NoDataOptions = CoreTypes.BaseNoDataOptions;
 
-  export interface ZoomOptions {
-    enabled?: boolean;
-    hideButtons?: boolean;
-  }
+  // Zooming is implemented by the core chart, so the types are shared with it rather than duplicated.
+  export type ZoomOptions = CoreTypes.CoreChartProps.ZoomOptions;
 
-  // The range is nested under the axis it applies to, leaving room for a "y" range should zooming
-  // along the y-axis be supported later, without a breaking change to the property shape.
-  export interface ZoomRange {
-    x?: { startValue: number; endValue: number };
-  }
+  export type ZoomRange = CoreTypes.CoreChartProps.ZoomRange;
 
-  export interface ZoomChangeDetail {
-    zoomRange: ZoomRange | null;
-  }
+  export type ZoomChangeDetail = CoreTypes.CoreChartProps.ZoomChangeDetail;
 }
 
 // Internal types
