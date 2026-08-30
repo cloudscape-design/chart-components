@@ -4,7 +4,7 @@
 import { useEffect, useRef } from "react";
 import { render as rtlRender, waitFor } from "@testing-library/react";
 import highcharts from "highcharts";
-import HighchartsReact from "highcharts-react-official";
+import { HighchartsReact } from "highcharts-react-official";
 import { vi } from "vitest";
 
 import { circleIndex } from "@cloudscape-design/component-toolkit/internal";
@@ -13,7 +13,7 @@ import { ChartContainer } from "../../../lib/components/core/chart-container";
 import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
 import { objectContainingDeep, renderChart } from "./common";
 
-vi.mock("highcharts-react-official", () => ({ __esModule: true, default: vi.fn(() => null) }));
+vi.mock("highcharts-react-official", () => ({ HighchartsReact: vi.fn(() => null) }));
 
 // In chart container we use three container queries, that run in the following order: chart, header, footer.
 let queryMeasurementIndex = 0;
