@@ -25,15 +25,12 @@ export const InternalCartesianChart = forwardRef(
   ({ tooltip, ...props }: InternalCartesianChartProps, ref: React.Ref<CartesianChartProps.Ref>) => {
     const apiRef = useRef<null | CoreChartProps.ChartAPI>(null);
 
-    // When visibleSeries and onVisibleSeriesChange are provided - the series visibility can be controlled from the outside.
-    // Otherwise - the component handles series visibility using its internal state.
     useControllableState(props.visibleSeries, props.onVisibleSeriesChange, undefined, {
       componentName: "CartesianChart",
       propertyName: "visibleSeries",
       changeHandlerName: "onVisibleSeriesChange",
     });
     const allSeriesIds = props.series.map((s) => getOptionsId(s));
-    // We keep local visible series state to compute threshold series data, that depends on series visibility.
     const [visibleSeriesLocal, setVisibleSeriesLocal] = useState(props.visibleSeries ?? allSeriesIds);
     const visibleSeriesState = props.visibleSeries ?? visibleSeriesLocal;
     const onVisibleSeriesChange: CoreChartProps["onVisibleItemsChange"] = ({ detail: { items } }) => {
@@ -45,17 +42,10 @@ export const InternalCartesianChart = forwardRef(
       }
     };
 
-    // We convert cartesian tooltip options to the core chart's getTooltipContent callback,
-    // ensuring no internal types are exposed to the consumer-defined render functions.
+    // Tooltip content transformation.
     const getTooltipContent: CoreChartProps["getTooltipContent"] = () => {
-      // We use point.series.userOptions to get the series options that were passed down to Highcharts,
-      // assuming Highcharts makes no modifications for those. These options are not referentially equal
-      // to the ones we get from the consumer due to the internal validation/transformation we run on them.
-      // See: https://api.highcharts.com/class-reference/Highcharts.Chart#userOptions.
       const transformItem = (item: CoreChartProps.TooltipContentItem): CartesianChartProps.TooltipPointItem => {
         const userOptions = item.point.series.userOptions as NonErrorBarSeriesOptions;
-        // Restore original threshold type from custom metadata, since transformCartesianSeries
-        // replaces "x-threshold" and "y-threshold" with "line" for Highcharts compatibility.
         const originalType = item.point.series.userOptions.custom?.awsui?.type;
         const series = originalType
           ? ({ ...userOptions, type: originalType } as NonErrorBarSeriesOptions)
@@ -74,15 +64,10 @@ export const InternalCartesianChart = forwardRef(
       };
       const transformSeriesProps = (
         props: CoreChartProps.TooltipPointProps,
-      ): CartesianChartProps.TooltipPointRenderProps => ({
-        item: transformItem(props.item),
-      });
+      ): CartesianChartProps.TooltipPointRenderProps => ({ item: transformItem(props.item) });
       const transformSlotProps = (
         props: CoreChartProps.TooltipSlotProps,
-      ): CartesianChartProps.TooltipSlotRenderProps => ({
-        x: props.x,
-        items: props.items.map(transformItem),
-      });
+      ): CartesianChartProps.TooltipSlotRenderProps => ({ x: props.x, items: props.items.map(transformItem) });
 
       return {
         point: tooltip.point ? (coreProps) => tooltip.point!(transformSeriesProps(coreProps)) : undefined,
@@ -92,26 +77,27 @@ export const InternalCartesianChart = forwardRef(
       };
     };
 
-    // Converting x-, and y-threshold series to Highcharts series and plot lines.
     const { series, xPlotLines, yPlotLines } = transformCartesianSeries(props.series, visibleSeriesState);
 
-    // Cartesian chart imperative API.
+    // The zoom actions are implemented by the core chart, and are no-ops when zooming is not enabled.
     useImperativeHandle(ref, () => ({
       setVisibleSeries: (visibleSeriesIds) => apiRef.current?.setItemsVisible(visibleSeriesIds),
       showAllSeries: () => apiRef.current?.setItemsVisible(allSeriesIds),
+      enterZoomMode: () => apiRef.current?.enterZoomMode(),
+      exitZoomMode: () => apiRef.current?.exitZoomMode(),
+      resetZoom: () => apiRef.current?.resetZoom(),
     }));
 
     return (
       <InternalCoreChart
         {...props}
-        callback={(api) => (apiRef.current = api)}
+        callback={(api) => {
+          apiRef.current = api;
+        }}
         options={{
-          chart: {
-            inverted: props.inverted,
-          },
-          plotOptions: {
-            series: { stacking: props.stacking },
-          },
+          chart: { inverted: props.inverted },
+          plotOptions: { series: { stacking: props.stacking } },
+          accessibility: { enabled: true, keyboardNavigation: { enabled: true } },
           series,
           xAxis: castArray(props.xAxis)?.map((xAxisProps) => ({
             ...xAxisProps,

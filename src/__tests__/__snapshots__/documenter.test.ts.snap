@@ -21,8 +21,72 @@ exports[`definition for cartesian-chart matches the snapshot > cartesian-chart 1
       "detailType": "{ visibleSeries: Array<string>; }",
       "name": "onVisibleSeriesChange",
     },
+    {
+      "cancelable": false,
+      "description": "A callback function, triggered when the zoomed range changes as a result of user interaction with the chart
+or the zoom controls. The detail's \`zoomRange\` is \`null\` when the zoom is reset to the full data range.",
+      "detailInlineType": {
+        "name": "ZoomChangeDetail",
+        "properties": [
+          {
+            "inlineType": {
+              "name": "ZoomRange",
+              "properties": [
+                {
+                  "inlineType": {
+                    "name": "{ startValue: number; endValue: number; }",
+                    "properties": [
+                      {
+                        "name": "endValue",
+                        "optional": false,
+                        "type": "number",
+                      },
+                      {
+                        "name": "startValue",
+                        "optional": false,
+                        "type": "number",
+                      },
+                    ],
+                    "type": "object",
+                  },
+                  "name": "x",
+                  "optional": true,
+                  "type": "{ startValue: number; endValue: number; }",
+                },
+              ],
+              "type": "object",
+            },
+            "name": "zoomRange",
+            "optional": false,
+            "type": "ZoomRange | null",
+          },
+        ],
+        "type": "object",
+      },
+      "detailType": "ZoomChangeDetail",
+      "name": "onZoomRangeChange",
+    },
   ],
   "functions": [
+    {
+      "description": "Enters zoom mode, in which the tooltip is suppressed and clicks on the chart set the start and end of
+the range to zoom into. Requires zooming to be enabled with the \`zoom\` property.",
+      "name": "enterZoomMode",
+      "parameters": [],
+      "returnType": "void",
+    },
+    {
+      "description": "Exits zoom mode, discarding the range being selected. Any range the chart is already zoomed into is kept.",
+      "name": "exitZoomMode",
+      "parameters": [],
+      "returnType": "void",
+    },
+    {
+      "description": "Resets the zoom to show the full data range.",
+      "name": "resetZoom",
+      "parameters": [],
+      "returnType": "void",
+    },
     {
       "description": "Controls series visibility and works with both controlled and uncontrolled visibility modes.",
       "name": "setVisibleSeries",
@@ -143,7 +207,27 @@ Supported Highcharts versions: 12.",
             "type": "string",
           },
           {
+            "name": "enterZoomModeButtonAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "enterZoomModeButtonText",
+            "optional": true,
+            "type": "string",
+          },
+          {
             "name": "errorText",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "exitZoomModeButtonAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "exitZoomModeButtonText",
             "optional": true,
             "type": "string",
           },
@@ -159,6 +243,16 @@ Supported Highcharts versions: 12.",
           },
           {
             "name": "recoveryText",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "resetZoomButtonAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "resetZoomButtonText",
             "optional": true,
             "type": "string",
           },
@@ -186,6 +280,129 @@ Supported Highcharts versions: 12.",
             "name": "yAxisRoleDescription",
             "optional": true,
             "type": "string",
+          },
+          {
+            "name": "zoomControlsAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "zoomCursorAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "zoomCursorCommitButtonAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "name": "zoomCursorNextButtonAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "inlineType": {
+              "name": "(value: string) => string",
+              "parameters": [
+                {
+                  "name": "value",
+                  "type": "string",
+                },
+              ],
+              "returnType": "string",
+              "type": "function",
+            },
+            "name": "zoomCursorPositionAnnouncementText",
+            "optional": true,
+            "type": "((value: string) => string)",
+          },
+          {
+            "name": "zoomCursorPreviousButtonAriaLabel",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "inlineType": {
+              "name": "(value: string) => string",
+              "parameters": [
+                {
+                  "name": "value",
+                  "type": "string",
+                },
+              ],
+              "returnType": "string",
+              "type": "function",
+            },
+            "name": "zoomModeEnteredAnnouncementText",
+            "optional": true,
+            "type": "((value: string) => string)",
+          },
+          {
+            "name": "zoomModeExitedAnnouncementText",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "inlineType": {
+              "name": "(startValue: string, endValue: string) => string",
+              "parameters": [
+                {
+                  "name": "startValue",
+                  "type": "string",
+                },
+                {
+                  "name": "endValue",
+                  "type": "string",
+                },
+              ],
+              "returnType": "string",
+              "type": "function",
+            },
+            "name": "zoomRangeChangeAnnouncementText",
+            "optional": true,
+            "type": "((startValue: string, endValue: string) => string)",
+          },
+          {
+            "name": "zoomResetAnnouncementText",
+            "optional": true,
+            "type": "string",
+          },
+          {
+            "inlineType": {
+              "name": "(startValue: string, endValue: string) => string",
+              "parameters": [
+                {
+                  "name": "startValue",
+                  "type": "string",
+                },
+                {
+                  "name": "endValue",
+                  "type": "string",
+                },
+              ],
+              "returnType": "string",
+              "type": "function",
+            },
+            "name": "zoomSelectionAnnouncementText",
+            "optional": true,
+            "type": "((startValue: string, endValue: string) => string)",
+          },
+          {
+            "inlineType": {
+              "name": "(value: string) => string",
+              "parameters": [
+                {
+                  "name": "value",
+                  "type": "string",
+                },
+              ],
+              "returnType": "string",
+              "type": "function",
+            },
+            "name": "zoomStartPointAnnouncementText",
+            "optional": true,
+            "type": "((value: string) => string)",
           },
         ],
         "type": "object",
@@ -619,6 +836,74 @@ applies to the tooltip points values.",
       "name": "yAxis",
       "optional": true,
       "type": "CartesianChartProps.YAxisOptions | [CartesianChartProps.YAxisWithId, CartesianChartProps.YAxisWithId]",
+    },
+    {
+      "description": "Zoom settings, allowing the users to zoom into a range of the x-axis. Zooming is possible by dragging
+across the chart plot, or by entering zoom mode with the "Zoom" button and selecting the range start and
+end with a click, Enter, or Space. In zoom mode the tooltip is suppressed, Escape or the "Exit zoom"
+button cancels the selection, and the "Reset" button restores the full data range once zoomed.
+
+Supported options:
+* \`enabled\` (optional, boolean) - Enables zooming. Defaults to \`false\`.
+* \`hideButtons\` (optional, boolean) - Hides the built-in zoom buttons. Use it when providing custom
+controls, that use the \`enterZoomMode\`, \`exitZoomMode\`, and \`resetZoom\` methods of the component's ref.",
+      "inlineType": {
+        "name": "ZoomOptions",
+        "properties": [
+          {
+            "name": "enabled",
+            "optional": true,
+            "type": "boolean",
+          },
+          {
+            "name": "hideButtons",
+            "optional": true,
+            "type": "boolean",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "zoom",
+      "optional": true,
+      "type": "ZoomOptions",
+    },
+    {
+      "description": "The zoomed range of the x-axis. By default, the range is managed by the component. When using this property,
+manage state updates with \`onZoomRangeChange\`, and use \`null\` to show the full data range.
+
+Supported options:
+* \`x\` (optional, object) - The zoomed x-axis range, as \`startValue\` and \`endValue\`. For datetime axes the
+values are timestamps in milliseconds.",
+      "inlineType": {
+        "name": "ZoomRange",
+        "properties": [
+          {
+            "inlineType": {
+              "name": "{ startValue: number; endValue: number; }",
+              "properties": [
+                {
+                  "name": "endValue",
+                  "optional": false,
+                  "type": "number",
+                },
+                {
+                  "name": "startValue",
+                  "optional": false,
+                  "type": "number",
+                },
+              ],
+              "type": "object",
+            },
+            "name": "x",
+            "optional": true,
+            "type": "{ startValue: number; endValue: number; }",
+          },
+        ],
+        "type": "object",
+      },
+      "name": "zoomRange",
+      "optional": true,
+      "type": "ZoomRange | null",
     },
   ],
   "regions": [
@@ -1230,6 +1515,53 @@ exports[`internal core API matches snapshot > internal-core-chart 1`] = `
         },
         "detailType": "CoreChartProps.VisibleItemsChangeDetail",
         "name": "onVisibleItemsChange",
+        "systemTags": undefined,
+      },
+      {
+        "cancelable": false,
+        "deprecatedTag": undefined,
+        "description": "A callback function, triggered when the zoomed range changes as a result of user interaction with the chart
+or the zoom controls. The detail's \`zoomRange\` is \`null\` when the zoom is reset to the full data range.",
+        "detailInlineType": {
+          "name": "ZoomChangeDetail",
+          "properties": [
+            {
+              "inlineType": {
+                "name": "ZoomRange",
+                "properties": [
+                  {
+                    "inlineType": {
+                      "name": "{ startValue: number; endValue: number; }",
+                      "properties": [
+                        {
+                          "name": "endValue",
+                          "optional": false,
+                          "type": "number",
+                        },
+                        {
+                          "name": "startValue",
+                          "optional": false,
+                          "type": "number",
+                        },
+                      ],
+                      "type": "object",
+                    },
+                    "name": "x",
+                    "optional": true,
+                    "type": "{ startValue: number; endValue: number; }",
+                  },
+                ],
+                "type": "object",
+              },
+              "name": "zoomRange",
+              "optional": false,
+              "type": "ZoomRange | null",
+            },
+          ],
+          "type": "object",
+        },
+        "detailType": "ZoomChangeDetail",
+        "name": "onZoomRangeChange",
         "systemTags": undefined,
       },
     ],
@@ -1887,6 +2219,85 @@ When set to "side", displays the title along the axis line.",
         "optional": true,
         "systemTags": undefined,
         "type": "ReadonlyArray<string>",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "Zoom settings, allowing the users to zoom into a range of the x-axis. Zooming is possible by dragging
+across the chart plot, or by entering zoom mode with the "Zoom" button and selecting the range start and
+end with a click, a tap, Enter, or Space.
+
+Supported options:
+* \`enabled\` (optional, boolean) - Enables zooming. Defaults to \`false\`.
+* \`hideButtons\` (optional, boolean) - Hides the built-in zoom buttons. Use it when providing custom
+controls, that use the \`enterZoomMode\`, \`exitZoomMode\`, and \`resetZoom\` methods of the component's ref.",
+        "i18nTag": undefined,
+        "inlineType": {
+          "name": "ZoomOptions",
+          "properties": [
+            {
+              "name": "enabled",
+              "optional": true,
+              "type": "boolean",
+            },
+            {
+              "name": "hideButtons",
+              "optional": true,
+              "type": "boolean",
+            },
+          ],
+          "type": "object",
+        },
+        "name": "zoom",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "ZoomOptions",
+        "visualRefreshTag": undefined,
+      },
+      {
+        "analyticsTag": undefined,
+        "defaultValue": undefined,
+        "deprecatedTag": undefined,
+        "description": "The zoomed range of the x-axis. By default, the range is managed by the component. When using this property,
+manage state updates with \`onZoomRangeChange\`, and use \`null\` to show the full data range.
+
+Supported options:
+* \`x\` (optional, object) - The zoomed x-axis range, as \`startValue\` and \`endValue\`. For datetime axes the
+values are timestamps in milliseconds.",
+        "i18nTag": undefined,
+        "inlineType": {
+          "name": "ZoomRange",
+          "properties": [
+            {
+              "inlineType": {
+                "name": "{ startValue: number; endValue: number; }",
+                "properties": [
+                  {
+                    "name": "endValue",
+                    "optional": false,
+                    "type": "number",
+                  },
+                  {
+                    "name": "startValue",
+                    "optional": false,
+                    "type": "number",
+                  },
+                ],
+                "type": "object",
+              },
+              "name": "x",
+              "optional": true,
+              "type": "{ startValue: number; endValue: number; }",
+            },
+          ],
+          "type": "object",
+        },
+        "name": "zoomRange",
+        "optional": true,
+        "systemTags": undefined,
+        "type": "ZoomRange | null",
         "visualRefreshTag": undefined,
       },
     ],
