@@ -119,7 +119,7 @@
     "stylelint-prettier": "^5.0.2",
     "typescript": "^5.9.2",
     "vite": "^8.0.16",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.11"
   },
   "//": "ensure that typedoc uses latest typescript. It prints a warning, but works",
   "overrides": {
