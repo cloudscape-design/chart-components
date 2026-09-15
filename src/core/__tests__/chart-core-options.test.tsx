@@ -3,14 +3,14 @@
 
 import type Highcharts from "highcharts";
 import highcharts from "highcharts";
-import HighchartsReact from "highcharts-react-official";
+import { HighchartsReact } from "highcharts-react-official";
 import { vi } from "vitest";
 
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import { objectContainingDeep, renderChart } from "./common";
 import { ChartRendererStub } from "./highcharts-utils";
 
-vi.mock("highcharts-react-official", () => ({ __esModule: true, default: vi.fn(() => null) }));
+vi.mock("highcharts-react-official", () => ({ HighchartsReact: vi.fn(() => null) }));
 
 const rendererStub = new ChartRendererStub();
 const chartStub = {
