@@ -60,7 +60,7 @@
   "peerDependencies": {
     "@cloudscape-design/components": "^3",
     "@cloudscape-design/design-tokens": "^3",
-    "highcharts": "^12.2.0",
+    "highcharts": "^12.6.2",
     "react": ">=16.0.0"
   },
   "devDependencies": {
