@@ -226,8 +226,16 @@ export function getChartLegendItems({
 
 export type LegendItemOptions = Highcharts.SeriesOptionsType | Highcharts.PointOptionsType;
 
+export function isChartOptionsInverted(options: Highcharts.Options) {
+  return (
+    options.chart?.inverted === true ||
+    options.chart?.type === "bar" ||
+    options.series?.some((series) => "type" in series && series.type === "bar") === true
+  );
+}
+
 export function getVisibleLegendItems(options: Highcharts.Options) {
-  const isInverted = options.chart?.inverted ?? false;
+  const isInverted = isChartOptionsInverted(options);
   const valueAxes = (isInverted ? castArray(options.xAxis) : castArray(options.yAxis)) ?? [];
   const defaultOpposite = valueAxes.length > 0 ? (valueAxes[0].opposite ?? false) : false;
 
