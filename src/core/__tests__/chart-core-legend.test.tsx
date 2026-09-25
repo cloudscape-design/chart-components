@@ -113,6 +113,20 @@ describe("CoreChart: legend", () => {
     expect(createChartWrapper().findLegend()).not.toBe(null);
   });
 
+  test("renders legend for a bar chart with one series on the opposite value axis", () => {
+    renderChart({
+      highcharts,
+      fitHeight: true,
+      options: {
+        chart: { type: "bar" },
+        yAxis: [{ opposite: false }, { opposite: true }],
+        series: [{ type: "column", name: "Series 1", yAxis: 1, data: [1, 2, 3] }],
+      },
+    });
+
+    expect(getItems().map((item) => item.getElement().textContent)).toEqual(["Series 1"]);
+  });
+
   test("renders expected legend items", () => {
     renderChart({ highcharts, options: { series }, visibleItems: ["L1", "P1"] });
 

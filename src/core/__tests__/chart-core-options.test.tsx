@@ -38,6 +38,18 @@ describe("CoreChart: options", () => {
     );
   });
 
+  test.each([{ chart: { type: "bar" as const } }, { series: [{ type: "bar" as const, data: [1, 2, 3] }] }])(
+    "derives chart inversion from bar chart options, options=%j",
+    (options) => {
+      renderChart({ highcharts, options });
+
+      expect(HighchartsReact).toHaveBeenCalledWith(
+        objectContainingDeep({ options: { chart: { inverted: true } } }),
+        expect.anything(),
+      );
+    },
+  );
+
   test("propagates highcharts colors", () => {
     const colors = ["black", "red", "gold"];
     renderChart({ highcharts, options: { colors } });

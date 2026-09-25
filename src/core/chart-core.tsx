@@ -32,7 +32,7 @@ import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
 import { getFormatter } from "./formatters";
 import { useChartI18n } from "./i18n-utils";
 import { CoreChartProps } from "./interfaces";
-import { getLegendsProps, getPointAccessibleDescription } from "./utils";
+import { getLegendsProps, getPointAccessibleDescription, isChartOptionsInverted } from "./utils";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
@@ -152,7 +152,7 @@ export function InternalCoreChart({
   }
 
   const apiOptions = api.getOptions();
-  const inverted = !!options.chart?.inverted;
+  const inverted = isChartOptionsInverted(options);
   const isRtl = getIsRtl(rootRef?.current);
 
   // The Highcharts options takes all provided Highcharts options and custom properties and merges them together, so that
@@ -175,6 +175,7 @@ export function InternalCoreChart({
       animation: false,
       ...Styles.chart,
       ...options.chart,
+      ...(inverted && { inverted: true }),
       className: clsx(testClasses["chart-plot"], options.chart?.className),
       // The debug errors are enabled by default in development mode, but this only works
       // if the Highcharts debugger module is loaded.
