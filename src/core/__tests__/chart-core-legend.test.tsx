@@ -113,14 +113,17 @@ describe("CoreChart: legend", () => {
     expect(createChartWrapper().findLegend()).not.toBe(null);
   });
 
-  test("renders legend for a bar chart with one series on the opposite value axis", () => {
+  test.each([
+    { source: "chart type", chart: { type: "bar" as const }, seriesType: "column" as const },
+    { source: "series type", chart: undefined, seriesType: "bar" as const },
+  ])("renders legend when implicit inversion comes from $source", ({ chart, seriesType }) => {
     renderChart({
       highcharts,
       fitHeight: true,
       options: {
-        chart: { type: "bar" },
+        chart,
         yAxis: [{ opposite: false }, { opposite: true }],
-        series: [{ type: "column", name: "Series 1", yAxis: 1, data: [1, 2, 3] }],
+        series: [{ type: seriesType, name: "Series 1", yAxis: 1, data: [1, 2, 3] }],
       },
     });
 
