@@ -113,6 +113,23 @@ describe("CoreChart: legend", () => {
     expect(createChartWrapper().findLegend()).not.toBe(null);
   });
 
+  test.each([
+    { source: "chart type", chart: { type: "bar" as const }, seriesType: "column" as const },
+    { source: "series type", chart: undefined, seriesType: "bar" as const },
+  ])("renders legend when implicit inversion comes from $source", ({ chart, seriesType }) => {
+    renderChart({
+      highcharts,
+      fitHeight: true,
+      options: {
+        chart,
+        yAxis: [{ opposite: false }, { opposite: true }],
+        series: [{ type: seriesType, name: "Series 1", yAxis: 1, data: [1, 2, 3] }],
+      },
+    });
+
+    expect(getItems().map((item) => item.getElement().textContent)).toEqual(["Series 1"]);
+  });
+
   test("renders expected legend items", () => {
     renderChart({ highcharts, options: { series }, visibleItems: ["L1", "P1"] });
 

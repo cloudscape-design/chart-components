@@ -227,7 +227,12 @@ export function getChartLegendItems({
 export type LegendItemOptions = Highcharts.SeriesOptionsType | Highcharts.PointOptionsType;
 
 export function getVisibleLegendItems(options: Highcharts.Options) {
-  const isInverted = options.chart?.inverted ?? false;
+  // Highcharts implicitly inverts the chart when its type or any series type is "bar", even if chart.inverted is unset.
+  const isInverted =
+    options.chart?.inverted === true ||
+    options.chart?.type === "bar" ||
+    options.series?.some((series) => "type" in series && series.type === "bar") === true;
+
   const valueAxes = (isInverted ? castArray(options.xAxis) : castArray(options.yAxis)) ?? [];
   const defaultOpposite = valueAxes.length > 0 ? (valueAxes[0].opposite ?? false) : false;
 
