@@ -3,13 +3,29 @@
 
 import clsx from "clsx";
 
-import Button from "@cloudscape-design/components/button";
+import Button, { ButtonProps } from "@cloudscape-design/components/button";
 import SpaceBetween from "@cloudscape-design/components/space-between";
+import { colorBackgroundButtonPrimaryActive, colorBorderButtonPrimaryActive } from "@cloudscape-design/design-tokens";
 
 import { ResolvedZoomI18n } from "./zoom-i18n";
 
 import testClasses from "../test-classes/styles.css.js";
 import styles from "./styles.css.js";
+
+const exitButtonStyle: ButtonProps.Style = {
+  root: {
+    background: {
+      default: colorBackgroundButtonPrimaryActive,
+      hover: colorBackgroundButtonPrimaryActive,
+      active: colorBackgroundButtonPrimaryActive,
+    },
+    borderColor: {
+      default: colorBorderButtonPrimaryActive,
+      hover: colorBorderButtonPrimaryActive,
+      active: colorBorderButtonPrimaryActive,
+    },
+  },
+};
 
 // Cloudscape buttons expose only a focus method, which is all the zoom controls need to move focus
 // between them as they appear and disappear.
@@ -79,7 +95,14 @@ export default function ZoomControls({
           </span>
         ) : (
           <span className={testClasses["exit-zoom-button"]}>
-            <Button variant="normal" onClick={onExitZoomMode} ariaLabel={i18n.exitZoomModeButtonAriaLabel}>
+            <Button
+              variant="primary"
+              // Filled with the primary button's pressed color in every state, the same as the cursor step
+              // buttons (see .button in styles.scss), so the controls of the active interaction read as one set.
+              style={exitButtonStyle}
+              onClick={onExitZoomMode}
+              ariaLabel={i18n.exitZoomModeButtonAriaLabel}
+            >
               {i18n.exitZoomModeButtonText}
             </Button>
           </span>

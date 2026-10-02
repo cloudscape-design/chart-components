@@ -35,9 +35,10 @@ $button-size: cs.$space-static-xl;
   visibility: hidden;
 }
 
-// Tints the range between the two selected points while a selection is in progress.
+// Tints the range between the two selected points while a selection is in progress. A shade deeper than the
+// tint of an applied zoom (see zoom-affordance.ts), so a re-zoom selection still shows over a zoomed plot.
 .band {
-  background-color: cs.$color-background-item-selected;
+  background-color: cs.$color-background-toggle-button-normal-pressed;
   opacity: 0.5;
 }
 
@@ -97,6 +98,8 @@ $button-size: cs.$space-static-xl;
   pointer-events: auto;
 }
 
+// The step buttons share the filled look of the "Exit zoom" button (see zoom-controls.tsx), so the controls
+// of an active zoom interaction read as one set, and stand out against the plot they sit on.
 .button {
   box-sizing: border-box;
   display: flex;
@@ -106,36 +109,22 @@ $button-size: cs.$space-static-xl;
   block-size: $button-size;
   padding-block: 0;
   padding-inline: 0;
-  border-block: cs.$border-width-button solid cs.$color-border-button-normal-default;
-  border-inline: cs.$border-width-button solid cs.$color-border-button-normal-default;
+  border-block: cs.$border-width-button solid cs.$color-border-button-primary-active;
+  border-inline: cs.$border-width-button solid cs.$color-border-button-primary-active;
   border-start-start-radius: 50%;
   border-start-end-radius: 50%;
   border-end-start-radius: 50%;
   border-end-end-radius: 50%;
-  background-color: cs.$color-background-button-normal-default;
-  color: cs.$color-text-button-normal-default;
+  background-color: cs.$color-background-button-primary-active;
+  color: cs.$color-text-button-primary-active;
   box-shadow: cs.$shadow-card;
   cursor: pointer;
 
-  &:hover {
-    border-block-color: cs.$color-border-button-normal-hover;
-    border-inline-color: cs.$color-border-button-normal-hover;
-    background-color: cs.$color-background-button-normal-hover;
-    color: cs.$color-text-button-normal-hover;
-  }
-
-  &:active {
-    border-block-color: cs.$color-border-button-normal-active;
-    border-inline-color: cs.$color-border-button-normal-active;
-    background-color: cs.$color-background-button-normal-active;
-    color: cs.$color-text-button-normal-active;
-  }
-
   &:disabled {
-    border-block-color: cs.$color-border-button-normal-disabled;
-    border-inline-color: cs.$color-border-button-normal-disabled;
-    background-color: cs.$color-background-button-normal-disabled;
-    color: cs.$color-text-button-normal-disabled;
+    border-block-color: cs.$color-border-button-primary-disabled;
+    border-inline-color: cs.$color-border-button-primary-disabled;
+    background-color: cs.$color-background-button-primary-disabled;
+    color: cs.$color-text-button-primary-disabled;
     cursor: default;
   }
 }
