@@ -102,7 +102,7 @@ export type ZoomEvent =
   | { type: "stepCursor"; offset: number }
   // Home and End.
   | { type: "moveCursorToEdge"; edge: "first" | "last" }
-  // Enter, Space, the commit button, and a click on the plot.
+  // Enter, Space, and a click or tap on the plot.
   | { type: "commitPoint" }
   | { type: "pointerDown"; press: ZoomPress }
   | {
@@ -329,8 +329,8 @@ function resetZoom({ zoomed, moveFocus }: { zoomed: boolean; moveFocus: boolean 
   return transition(IDLE_ZOOM_STATE, effects);
 }
 
-// Sets the range start on the first commit and applies the zoom on the second, which is what a click, a tap
-// on the commit button, and Enter all do.
+// Sets the range start on the first commit and applies the zoom on the second, which is what a click or a tap
+// on the plot, and Enter, all do.
 function commitPoint(selection: ZoomSelection, { valuesCount }: ZoomContext): ZoomTransition {
   const selecting: ZoomState = { type: "selecting", selection };
   if (valuesCount === 0) {

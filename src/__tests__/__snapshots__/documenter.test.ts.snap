@@ -292,11 +292,6 @@ Supported Highcharts versions: 12.",
             "type": "string",
           },
           {
-            "name": "zoomCursorCommitButtonAriaLabel",
-            "optional": true,
-            "type": "string",
-          },
-          {
             "name": "zoomCursorNextButtonAriaLabel",
             "optional": true,
             "type": "string",

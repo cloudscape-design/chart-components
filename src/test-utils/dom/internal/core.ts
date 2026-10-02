@@ -87,14 +87,6 @@ export default class CoreChartWrapper extends BaseChartWrapper {
   public findZoomCursorNextButton(): null | ElementWrapper {
     return this.findByClassName(testClasses["zoom-cursor-next-button"]);
   }
-
-  /**
-   * Finds the button that sets the start or the end of the zoom range at the cursor.
-   * Present whenever zoom is enabled, and only shown while a range is being selected.
-   */
-  public findZoomCursorCommitButton(): null | ElementWrapper {
-    return this.findByClassName(testClasses["zoom-cursor-commit-button"]);
-  }
 }
 
 export class CoreChartLegendWrapper extends BaseChartLegendWrapper {

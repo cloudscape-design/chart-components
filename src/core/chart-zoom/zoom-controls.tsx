@@ -79,12 +79,7 @@ export default function ZoomControls({
           </span>
         ) : (
           <span className={testClasses["exit-zoom-button"]}>
-            <Button
-              variant="normal"
-              iconName="close"
-              onClick={onExitZoomMode}
-              ariaLabel={i18n.exitZoomModeButtonAriaLabel}
-            >
+            <Button variant="normal" onClick={onExitZoomMode} ariaLabel={i18n.exitZoomModeButtonAriaLabel}>
               {i18n.exitZoomModeButtonText}
             </Button>
           </span>

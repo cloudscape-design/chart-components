@@ -16,7 +16,6 @@ export interface ZoomI18nStrings {
   zoomCursorAriaLabel?: string;
   zoomCursorPreviousButtonAriaLabel?: string;
   zoomCursorNextButtonAriaLabel?: string;
-  zoomCursorCommitButtonAriaLabel?: string;
   zoomModeEnteredAnnouncementText?: (value: string) => string;
   zoomCursorPositionAnnouncementText?: (value: string) => string;
   zoomStartPointAnnouncementText?: (value: string) => string;
@@ -47,8 +46,6 @@ export function useZoomI18n(i18nStrings: undefined | ZoomI18nStrings): ResolvedZ
       zoomCursorAriaLabel: i18nStrings?.zoomCursorAriaLabel ?? "Zoom range cursor",
       zoomCursorPreviousButtonAriaLabel: i18nStrings?.zoomCursorPreviousButtonAriaLabel ?? "Move zoom cursor left",
       zoomCursorNextButtonAriaLabel: i18nStrings?.zoomCursorNextButtonAriaLabel ?? "Move zoom cursor right",
-      // The pointer equivalent of pressing Enter, so a range can be selected by tapping alone.
-      zoomCursorCommitButtonAriaLabel: i18nStrings?.zoomCursorCommitButtonAriaLabel ?? "Set zoom point",
       zoomModeEnteredAnnouncementText:
         i18nStrings?.zoomModeEnteredAnnouncementText ??
         ((value: string) => `Zoom mode. Cursor at ${value}. Use arrow keys to move, Enter to set the start point.`),

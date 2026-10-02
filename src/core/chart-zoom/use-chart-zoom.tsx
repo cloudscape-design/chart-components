@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type Highcharts from "highcharts";
 
 import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
@@ -10,6 +10,7 @@ import LiveRegion from "@cloudscape-design/components/live-region";
 import { fireNonCancelableEvent, NonCancelableEventHandler } from "../../internal/events";
 import { getFormatter } from "../formatters";
 import { ZoomChangeDetail, ZoomOptions, ZoomRange } from "./interfaces";
+import { getZoomAffordanceOptions } from "./zoom-affordance";
 import ZoomControls, { FocusableRef } from "./zoom-controls";
 import {
   applyPosition,
@@ -138,6 +139,16 @@ export function useChartZoom({
   // Where focus must go once the current render commits. Focus is moved after the render, because the
   // element to focus often only appears as a result of the state change that requested the move.
   const pendingFocusRef = useRef<null | ZoomFocusTarget>(null);
+  // True between a press made in zoom mode and the click that follows it. That click has already set a
+  // range boundary, and must not reach Highcharts as well: the press that sets the second boundary ends
+  // zoom mode, so by the time the click arrives the tooltip is no longer suppressed, and Highcharts would
+  // pin the point under the pointer.
+  const swallowClickRef = useRef(false);
+  // Removes the document listeners that follow the current press, see trackPress.
+  const stopTrackingPressRef = useRef<null | (() => void)>(null);
+  // The latest press handlers, read by the document listeners, which outlive the render that added them.
+  const pressHandlersRef = useRef({ move: onPressMove, end: onPressEnd });
+  pressHandlersRef.current = { move: onPressMove, end: onPressEnd };
   const clearHighlightRef = useRef<() => void>(() => {});
   const zoomButtonRef = useRef<FocusableRef>(null);
   const resetButtonRef = useRef<FocusableRef>(null);
@@ -158,6 +169,9 @@ export function useChartZoom({
   const zoomed = extremes !== null;
   const active = interaction === "cursor";
   const minRange = useMemo(() => (enabled ? getSeriesMinRange(series) : undefined), [enabled, series]);
+
+  // A press still in progress when the chart unmounts must not leave its document listeners behind.
+  useEffect(() => () => stopTrackingPress(), []);
 
   function getValues(): number[] {
     if (valuesStaleRef.current) {
@@ -196,6 +210,12 @@ export function useChartZoom({
       // overlay instead, so that stepping through a large series does not re-render, and therefore does not
       // re-initialize the chart, per step.
       setInteraction(nextInteraction);
+      // The chart keeps tracking the hovered point while the tooltip is suppressed. Once the interaction
+      // ends the tooltip is shown again, and would open on that point, which after a zoom sits at the edge
+      // of the new range, only to be closed by the next chart render.
+      if (nextInteraction === "idle") {
+        clearHighlightRef.current();
+      }
     }
     for (const effect of effects) {
       runEffect(effect);
@@ -450,15 +470,15 @@ export function useChartZoom({
     exitZoomMode({ withFocus: false });
   }
 
-  function getChartCoordinates(chart: Highcharts.Chart, event: React.PointerEvent) {
-    const position = chart.pointer.getChartPosition();
-    return {
-      chartX: (event.clientX - position.left) / position.scaleX,
-      chartY: (event.clientY - position.top) / position.scaleY,
-    };
+  // Highcharts measures the chart position against the document rather than the viewport, so the pointer
+  // position has to be converted by Highcharts itself to account for the page scroll.
+  function getChartCoordinates(chart: Highcharts.Chart, event: PointerEvent) {
+    const { chartX, chartY } = chart.pointer.normalize(event);
+    return { chartX, chartY };
   }
 
   function onPlotPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    swallowClickRef.current = false;
     const chart = chartRef.current;
     const xAxis = getXAxis();
     const values = getValues();
@@ -473,11 +493,13 @@ export function useChartZoom({
     if (event.target instanceof Node && overlayRefs.cluster.current?.contains(event.target)) {
       return;
     }
-    const { chartX, chartY } = getChartCoordinates(chart, event);
+    const { chartX, chartY } = getChartCoordinates(chart, event.nativeEvent);
     if (!isInsidePlot(chart, chartX, chartY)) {
       return;
     }
     const inZoomMode = getInteraction(stateRef.current) === "cursor";
+    swallowClickRef.current = inZoomMode;
+    trackPress(event.currentTarget, event.pointerId);
     const index = findNearestIndex(values, pixelToValue(xAxis, chartX, chartY));
     dispatch({
       type: "pointerDown",
@@ -489,7 +511,6 @@ export function useChartZoom({
         currentIndex: index,
       },
     });
-    capturePointer(event.currentTarget, event.pointerId);
     if (inZoomMode) {
       // In zoom mode the press belongs to the range selection: it must not move focus off the cursor,
       // which would end the selection. Outside zoom mode the press is left alone, so that clicking the
@@ -498,11 +519,37 @@ export function useChartZoom({
     }
   }
 
-  function onPlotPointerMove(event: React.PointerEvent<HTMLDivElement>) {
+  // Follows a press on the document until it ends. Listening on the plot wrapper alone loses the press as
+  // soon as the pointer passes over anything rendered outside of it: the tooltip, which with a dense series
+  // sits right next to the pointer, or the page around the chart. The press then never turns into a drag,
+  // or a drag never ends, leaving its boundaries drawn over the plot.
+  function trackPress(plot: HTMLDivElement, pointerId: number) {
+    stopTrackingPress();
+    const document = plot.ownerDocument;
+    const onMove = (event: PointerEvent) => event.pointerId === pointerId && pressHandlersRef.current.move(event, plot);
+    const onUp = (event: PointerEvent) =>
+      event.pointerId === pointerId && pressHandlersRef.current.end(event, plot, "pointerUp");
+    const onCancel = (event: PointerEvent) =>
+      event.pointerId === pointerId && pressHandlersRef.current.end(event, plot, "pointerCancel");
+    document.addEventListener("pointermove", onMove);
+    document.addEventListener("pointerup", onUp);
+    document.addEventListener("pointercancel", onCancel);
+    stopTrackingPressRef.current = () => {
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerup", onUp);
+      document.removeEventListener("pointercancel", onCancel);
+    };
+  }
+
+  function stopTrackingPress() {
+    stopTrackingPressRef.current?.();
+    stopTrackingPressRef.current = null;
+  }
+
+  function onPressMove(event: PointerEvent, plot: HTMLDivElement) {
     const chart = chartRef.current;
     const xAxis = getXAxis();
     const state = stateRef.current;
-    // The pointer moves over the plot constantly, and only a press or a selection has any use for it.
     if (!chart || !xAxis || state.type === "idle") {
       return;
     }
@@ -520,16 +567,34 @@ export function useChartZoom({
       passedThreshold: distance >= DRAG_THRESHOLD,
       insidePlot: isInsidePlot(chart, chartX, chartY),
     });
+    // The pointer is only captured once the press has turned into a drag. Capturing it on press would
+    // retarget the click that follows to the plot wrapper, and Highcharts, which listens for clicks on its
+    // own container, would then never see it: clicking the chart would no longer pin a point.
+    if (stateRef.current.type === "dragging") {
+      capturePointer(plot, event.pointerId);
+    }
   }
 
-  function onPlotPointerUp(event: React.PointerEvent<HTMLDivElement>) {
-    releasePointer(event.currentTarget, event.pointerId);
-    dispatch({ type: "pointerUp", pointerId: event.pointerId });
+  // Hovering the plot in zoom mode moves the cursor, and during a selection the band, along with the
+  // pointer. A press is followed on the document instead, so its moves are not handled twice.
+  function onPlotPointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    if (!stopTrackingPressRef.current) {
+      onPressMove(event.nativeEvent, event.currentTarget);
+    }
   }
 
-  function onPlotPointerCancel(event: React.PointerEvent<HTMLDivElement>) {
-    releasePointer(event.currentTarget, event.pointerId);
-    dispatch({ type: "pointerCancel", pointerId: event.pointerId });
+  function onPressEnd(event: PointerEvent, plot: HTMLDivElement, type: "pointerUp" | "pointerCancel") {
+    stopTrackingPress();
+    releasePointer(plot, event.pointerId);
+    dispatch({ type, pointerId: event.pointerId });
+  }
+
+  // Runs in the capture phase, before the click reaches the Highcharts container inside the plot wrapper.
+  function onPlotClickCapture(event: React.MouseEvent<HTMLDivElement>) {
+    if (swallowClickRef.current) {
+      swallowClickRef.current = false;
+      event.stopPropagation();
+    }
   }
 
   // Called from the chart's render event, which Highcharts fires from within the effect that updates the
@@ -570,8 +635,7 @@ export function useChartZoom({
       ? {
           onPointerDown: onPlotPointerDown,
           onPointerMove: onPlotPointerMove,
-          onPointerUp: onPlotPointerUp,
-          onPointerCancel: onPlotPointerCancel,
+          onClickCapture: onPlotClickCapture,
           // A drag across the plot must not select the text around it.
           style: { userSelect: "none" },
         }
@@ -584,6 +648,8 @@ export function useChartZoom({
             // axis without one, falling back to the bounds the consumer defined.
             min: extremes ? extremes.min : (xAxisOptions.min ?? null),
             max: extremes ? extremes.max : (xAxisOptions.max ?? null),
+            // While zoomed, the range is marked with a band and a boundary line at each end.
+            ...getZoomAffordanceOptions(xAxisOptions, extremes),
           }
         : {},
     onChartRender,
@@ -612,7 +678,6 @@ export function useChartZoom({
         onKeyDown={onCursorKeyDown}
         onBlur={onCursorBlur}
         onStep={stepCursor}
-        onCommit={() => dispatch({ type: "commitPoint" })}
       />
     ) : null,
     liveRegion: enabled ? <LiveRegion hidden={true}>{announcement}</LiveRegion> : null,
@@ -630,7 +695,12 @@ function extremesFromRange(zoomRange: undefined | null | ZoomRange): null | Zoom
 // How far the pointer has travelled from where it went down, along the axis the selection runs on. Movement
 // across the axis is ignored: it does not change the range, and counting it would turn a shaky click into a
 // drag.
-function travelledAlongAxis(xAxis: Highcharts.Axis, event: React.PointerEvent, clientX: number, clientY: number) {
+function travelledAlongAxis(
+  xAxis: Highcharts.Axis,
+  event: { clientX: number; clientY: number },
+  clientX: number,
+  clientY: number,
+) {
   return isXAxisHorizontal(xAxis) ? Math.abs(event.clientX - clientX) : Math.abs(event.clientY - clientY);
 }
 
@@ -638,7 +708,9 @@ function travelledAlongAxis(xAxis: Highcharts.Axis, event: React.PointerEvent, c
 // then. Both calls are feature-detected, because the pointer capture API is missing from jsdom, which is
 // what consumers test their charts in; without it a drag simply ends where it leaves the plot.
 function capturePointer(element: HTMLElement, pointerId: number) {
-  element.setPointerCapture?.(pointerId);
+  if (element.hasPointerCapture?.(pointerId) === false) {
+    element.setPointerCapture?.(pointerId);
+  }
 }
 
 function releasePointer(element: HTMLElement, pointerId: number) {

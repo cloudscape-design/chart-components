@@ -105,8 +105,8 @@ export default function () {
                 `Keyboard boundaries (3, 5): after zooming, entering zoom mode again places the cursor on the first
                 visible point, and the cursor cannot be driven outside the zoomed range.`,
                 "Committed zoom (4): nothing of the selection stays drawn over the plot once the zoom is applied.",
-                `Touch (6): with the browser's device emulation, or on a phone, the commit button next to the cursor
-                sets both boundaries, so a range can be selected by tapping alone.`,
+                `Touch (6): with the browser's device emulation, or on a phone, tapping the plot in zoom mode sets
+                each boundary where the tap lands, so a range can be selected by tapping alone.`,
                 `Focus (8, 10): clicking the controls does not move the focus to them; clicking the button after the
                 chart, or anywhere outside it, cancels a selection in progress.`,
                 `Focus target (9): entering zoom mode with the keyboard focuses the cursor, not "Exit zoom", so the
