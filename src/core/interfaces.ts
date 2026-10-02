@@ -175,7 +175,6 @@ export interface WithCartesianI18nStrings {
    * * `zoomCursorAriaLabel` (optional, string) - Accessible label for the zoom range cursor.
    * * `zoomCursorPreviousButtonAriaLabel` (optional, string) - Accessible label for the button that moves the zoom cursor to the previous data point.
    * * `zoomCursorNextButtonAriaLabel` (optional, string) - Accessible label for the button that moves the zoom cursor to the next data point.
-   * * `zoomCursorCommitButtonAriaLabel` (optional, string) - Accessible label for the button that sets the start or the end of the zoom range.
    * * `zoomModeEnteredAnnouncementText` (optional, function) - Screen reader announcement when zoom mode is entered. Receives the formatted cursor value.
    * * `zoomCursorPositionAnnouncementText` (optional, function) - Screen reader announcement when the zoom cursor moves. Receives the formatted cursor value.
    * * `zoomStartPointAnnouncementText` (optional, function) - Screen reader announcement when the start of the range is set. Receives the formatted start value.
@@ -230,8 +229,6 @@ export interface CartesianI18nStrings extends BaseI18nStrings {
   zoomCursorPreviousButtonAriaLabel?: string;
   /** Accessible label for the button that moves the zoom cursor to the next point. @defaultValue "Move zoom cursor right" */
   zoomCursorNextButtonAriaLabel?: string;
-  /** Accessible label for the button that sets the start or the end of the zoom range. @defaultValue "Set zoom point" */
-  zoomCursorCommitButtonAriaLabel?: string;
   /** Screen reader announcement when zoom mode is entered. Receives the formatted cursor value. @defaultValue (value) => \`Zoom mode. Cursor at ${value}. Use arrow keys to move, Enter to set the start point.\` */
   zoomModeEnteredAnnouncementText?: (value: string) => string;
   /** Screen reader announcement when the zoom cursor moves. Receives the formatted cursor value. @defaultValue (value) => value */

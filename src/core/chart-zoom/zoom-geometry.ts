@@ -13,8 +13,8 @@ export interface OverlayRect {
   height: number;
 }
 
-// Thickness of the cursor and boundary lines drawn over the plot.
-const DIVIDER_THICKNESS = 2;
+// Thickness of the cursor and boundary lines drawn over the plot, matching the chart's own cursor line.
+const DIVIDER_THICKNESS = 1;
 // Distance between the cursor button cluster and the plot edge it is anchored to.
 const CLUSTER_OFFSET = 8;
 
@@ -80,8 +80,8 @@ export function getBandRect(
 }
 
 // The cursor button cluster, centered on the cursor and pinned to a plot edge: the bottom edge when the
-// x axis is horizontal, the inline start edge when it is vertical. The cluster is kept inside the plot so
-// it cannot be clipped by the chart container's own overflow.
+// x axis is horizontal, the inline start edge when it is vertical. It is never shifted along the axis, so
+// it stays aligned with a cursor at the first or the last point by extending past the plot edge.
 export function getClusterRect(
   chart: Highcharts.Chart,
   xAxis: Highcharts.Axis,
@@ -92,7 +92,7 @@ export function getClusterRect(
   const { width, height } = clusterSize;
   if (isXAxisHorizontal(xAxis)) {
     return {
-      left: clamp(pixel - width / 2, chart.plotLeft, chart.plotLeft + Math.max(0, chart.plotWidth - width)),
+      left: pixel - width / 2,
       top: chart.plotTop + Math.max(0, chart.plotHeight - height - CLUSTER_OFFSET),
       width,
       height,
@@ -100,7 +100,7 @@ export function getClusterRect(
   }
   return {
     left: chart.plotLeft + CLUSTER_OFFSET,
-    top: clamp(pixel - height / 2, chart.plotTop, chart.plotTop + Math.max(0, chart.plotHeight - height)),
+    top: pixel - height / 2,
     width,
     height,
   };
@@ -152,8 +152,4 @@ export function applyPosition(element: null | HTMLElement, rect: null | OverlayR
   element.style.visibility = "visible";
   element.style.left = `${rect.left}px`;
   element.style.top = `${rect.top}px`;
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
 }

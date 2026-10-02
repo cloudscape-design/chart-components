@@ -38,23 +38,13 @@ interface ZoomOverlayProps {
   onKeyDown: React.KeyboardEventHandler;
   onBlur: React.FocusEventHandler;
   onStep: (direction: PixelDirection) => void;
-  onCommit: () => void;
 }
 
 // Everything drawn on top of the plot while a zoom interaction is in progress: the selected range, the
 // boundaries of the selection, the keyboard cursor, and the cursor's pointer controls. The overlay covers
 // the plot but lets pointer events through, so hovering and dragging the chart keep working; only the
 // buttons opt back in.
-export default function ZoomOverlay({
-  refs,
-  i18n,
-  vertical,
-  isRtl,
-  onKeyDown,
-  onBlur,
-  onStep,
-  onCommit,
-}: ZoomOverlayProps) {
+export default function ZoomOverlay({ refs, i18n, vertical, isRtl, onKeyDown, onBlur, onStep }: ZoomOverlayProps) {
   return (
     <div className={styles.overlay}>
       <div ref={refs.band} className={styles.band} />
@@ -72,7 +62,7 @@ export default function ZoomOverlay({
         tabIndex={0}
         aria-label={i18n.zoomCursorAriaLabel}
         aria-orientation={vertical ? "vertical" : "horizontal"}
-        className={clsx(styles.cursor, testClasses["zoom-cursor"])}
+        className={clsx(styles.cursor, vertical && styles["cursor-vertical"], testClasses["zoom-cursor"])}
         onKeyDown={onKeyDown}
         onBlur={onBlur}
       />
@@ -91,13 +81,6 @@ export default function ZoomOverlay({
           testClassName={testClasses["zoom-cursor-previous-button"]}
           onClick={() => onStep(-1)}
         />
-        {/* The pointer equivalent of Enter, without which a range cannot be selected by touch alone. */}
-        <ZoomCursorButton
-          iconName="check"
-          ariaLabel={i18n.zoomCursorCommitButtonAriaLabel}
-          testClassName={testClasses["zoom-cursor-commit-button"]}
-          onClick={onCommit}
-        />
         <ZoomCursorButton
           buttonRef={refs.nextButton}
           iconName={stepIconName(1, vertical, isRtl)}
@@ -111,7 +94,7 @@ export default function ZoomOverlay({
 }
 
 interface ZoomCursorButtonProps {
-  buttonRef?: React.RefObject<HTMLButtonElement>;
+  buttonRef: React.RefObject<HTMLButtonElement>;
   iconName: IconProps.Name;
   ariaLabel: string;
   testClassName: string;

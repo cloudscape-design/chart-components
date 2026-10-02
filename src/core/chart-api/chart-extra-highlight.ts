@@ -12,6 +12,7 @@ import {
   SafeChart,
   SafeSeries,
 } from "../../internal/utils/highcharts";
+import { isZoomAffordanceId } from "../chart-zoom/zoom-affordance";
 import { getPointId, getSeriesId } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
@@ -225,7 +226,9 @@ function iteratePlotLines(chart: SafeChart, cb: (lineId: string, line: Highchart
       axis.plotLinesAndBands.forEach((line: Highcharts.PlotLineOrBand) => {
         // We explicitly do not touch plot lines that have no ID, assuming those are decorative.
         // Only plot lines that define ID can be dimmed when certain series get highlighted.
-        if (line.options.id) {
+        // The zoom range affordance is excluded too: its ID marks the zoomed range rather than a series,
+        // so dimming it would make the range tint flicker on every highlight.
+        if (line.options.id && !isZoomAffordanceId(line.options.id)) {
           cb(line.options.id, line);
         }
       });

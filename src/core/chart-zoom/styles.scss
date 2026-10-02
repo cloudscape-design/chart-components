@@ -4,6 +4,7 @@
 */
 
 @use "../../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
+@use "@cloudscape-design/component-toolkit/internal/focus-visible" as focus-visible;
 
 $button-size: cs.$space-static-xl;
 
@@ -51,12 +52,38 @@ $button-size: cs.$space-static-xl;
   background-color: cs.$color-border-item-selected;
   pointer-events: none;
 
-  // Focus is moved here programmatically when zoom mode is entered, which does not always match
-  // :focus-visible, so the ring is bound to :focus. The cursor only exists during zoom mode, where
-  // the ring is always wanted.
   &:focus {
-    outline: 2px solid cs.$color-border-item-focused;
-    outline-offset: 1px;
+    outline: none;
+  }
+
+  // The same outline the chart draws around a focused x group outside zoom mode (see FocusOutline and
+  // focusOutlineOffsets.group): a 2px rounded stroke 4px outside the line, shown only during keyboard
+  // interaction. That outline is an SVG stroke centered on its rect, so its outer edge sits one pixel further,
+  // and it wraps the group's point markers, which are 5px wider than the cursor line.
+  &::before {
+    content: "";
+    position: absolute;
+    inset-block: -5px;
+    inset-inline: -7.5px;
+    border-block: 2px solid transparent;
+    border-inline: 2px solid transparent;
+    border-start-start-radius: 5px;
+    border-start-end-radius: 5px;
+    border-end-start-radius: 5px;
+    border-end-end-radius: 5px;
+  }
+
+  // The physical orientation flips in inverted charts, where the cursor runs across the plot.
+  &.cursor-vertical::before {
+    inset-block: -7.5px;
+    inset-inline: -5px;
+  }
+
+  @include focus-visible.when-visible {
+    &::before {
+      border-block-color: cs.$color-border-item-focused;
+      border-inline-color: cs.$color-border-item-focused;
+    }
   }
 }
 
