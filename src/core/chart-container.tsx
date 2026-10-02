@@ -27,6 +27,9 @@ interface ChartContainerProps {
   verticalAxisTitlePlacement: "top" | "side";
   header?: React.ReactNode;
   filter?: React.ReactNode;
+  // The zoom controls belong to the header area: they precede the plot both visually and in the focus
+  // order, so they cannot overlap the plot, its axis titles, or a legend placed to the side.
+  zoomControls?: React.ReactNode;
   navigator?: React.ReactNode;
   primaryLegend?: React.ReactNode;
   secondaryLegend?: React.ReactNode;
@@ -46,6 +49,7 @@ export function ChartContainer({
   verticalAxisTitlePlacement,
   header,
   filter,
+  zoomControls,
   footer,
   primaryLegend,
   secondaryLegend,
@@ -80,6 +84,7 @@ export function ChartContainer({
       <div ref={refs.header}>
         {header}
         {filter}
+        {zoomControls}
       </div>
 
       {hasLegend && legendPosition === "side" ? (

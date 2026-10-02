@@ -3,6 +3,12 @@
 
 import { range } from "lodash";
 
+import { CartesianChart } from "../../lib/components";
+import { dateFormatter } from "../common/formatters";
+import { useChartSettings } from "../common/page-settings";
+import { Page, PageSection } from "../common/templates";
+import pseudoRandom from "../utils/pseudo-random";
+
 const addDays = (date: Date, days: number) => {
   const result = new Date(date);
   result.setDate(result.getDate() + days);
@@ -14,12 +20,6 @@ const subYears = (date: Date, years: number) => {
   result.setFullYear(result.getFullYear() - years);
   return result;
 };
-
-import { CartesianChart } from "../../lib/components";
-import { dateFormatter } from "../common/formatters";
-import { useChartSettings } from "../common/page-settings";
-import { Page, PageSection } from "../common/templates";
-import pseudoRandom from "../utils/pseudo-random";
 
 export default function () {
   return (
