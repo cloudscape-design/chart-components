@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { forwardRef, useImperativeHandle, useRef } from "react";
-import { renderToStaticMarkup } from "react-dom/server";
 import type Highcharts from "highcharts";
 
 import { useControllableState } from "@cloudscape-design/component-toolkit";
@@ -13,7 +12,7 @@ import { getOptionsId } from "../core/utils";
 import { InternalBaseComponentProps } from "../internal/base-component/use-base-component";
 import * as Styles from "../internal/chart-styles";
 import { fireNonCancelableEvent } from "../internal/events";
-import { SomeRequired, Writeable } from "../internal/utils/utils";
+import { escapeHtml, SomeRequired, Writeable } from "../internal/utils/utils";
 import { useInnerArea } from "./chart-inner-area";
 import { PieChartProps } from "./interfaces";
 
@@ -101,13 +100,11 @@ export const InternalPieChart = forwardRef(
         const title = segmentTitle ? segmentTitle(segmentProps) : this.name;
         const description = segmentDescription?.(segmentProps);
         if (title || description) {
-          return renderToStaticMarkup(
-            <text>
-              {title ? <tspan>{title}</tspan> : null}
-              <br />
-              {description ? <tspan style={Styles.segmentDescriptionCss}>{description}</tspan> : null}
-            </text>,
-          );
+          const titleMarkup = title ? `<tspan>${escapeHtml(title)}</tspan>` : "";
+          const descriptionMarkup = description
+            ? `<tspan style="${escapeHtml(Styles.segmentDescriptionStyle)}">${escapeHtml(description)}</tspan>`
+            : "";
+          return `<text>${titleMarkup}<br/>${descriptionMarkup}</text>`;
         }
         return null;
       },

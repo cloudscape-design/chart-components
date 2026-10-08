@@ -32,6 +32,13 @@ export function isEqualArrays<T>(a: readonly T[], b: readonly T[], eq: (a: T, b:
   return true;
 }
 
+const htmlEscapes: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#x27;" };
+
+// Highcharts parses formatter output as markup, so interpolated values must be escaped.
+export function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (char) => htmlEscapes[char]);
+}
+
 export class DebouncedCall {
   private locked = false;
   private lockTimeoutRef = setTimeout(() => {}, 0);
