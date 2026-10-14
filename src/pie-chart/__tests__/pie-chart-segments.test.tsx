@@ -64,6 +64,21 @@ describe("PieChart: segments", () => {
     expect(getChart().getElement().querySelector("b")).toBeNull();
   });
 
+  test("renders script tags in segment titles and descriptions as text", () => {
+    const script = `<script>window.__segmentLabelXss = true</script>`;
+    renderPieChart({
+      highcharts,
+      series: commonSeries,
+      segmentTitle: () => script,
+      segmentDescription: () => script,
+    });
+
+    const element = getChart().getElement();
+    expect(element.querySelector("script")).toBeNull();
+    expect(element.textContent).toContain(script);
+    expect((window as { __segmentLabelXss?: boolean }).__segmentLabelXss).toBeUndefined();
+  });
+
   test("renders no titles if set to null", () => {
     renderPieChart({
       highcharts,
