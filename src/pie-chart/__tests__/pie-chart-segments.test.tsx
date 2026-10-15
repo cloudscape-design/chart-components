@@ -50,6 +50,35 @@ describe("PieChart: segments", () => {
     expect(getChart().getElement().textContent).toContain("Custom title");
   });
 
+  test("renders segment titles and descriptions containing markup characters as text", () => {
+    renderPieChart({
+      highcharts,
+      series: commonSeries,
+      segmentTitle: () => `<b>R&D</b> "quoted"`,
+      segmentDescription: () => `it's < 5 & > 1`,
+    });
+
+    const text = getChart().getElement().textContent;
+    expect(text).toContain(`<b>R&D</b> "quoted"`);
+    expect(text).toContain(`it's < 5 & > 1`);
+    expect(getChart().getElement().querySelector("b")).toBeNull();
+  });
+
+  test("renders script tags in segment titles and descriptions as text", () => {
+    const script = `<script>window.__segmentLabelXss = true</script>`;
+    renderPieChart({
+      highcharts,
+      series: commonSeries,
+      segmentTitle: () => script,
+      segmentDescription: () => script,
+    });
+
+    const element = getChart().getElement();
+    expect(element.querySelector("script")).toBeNull();
+    expect(element.textContent).toContain(script);
+    expect((window as { __segmentLabelXss?: boolean }).__segmentLabelXss).toBeUndefined();
+  });
+
   test("renders no titles if set to null", () => {
     renderPieChart({
       highcharts,

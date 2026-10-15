@@ -188,11 +188,6 @@ export const innerAreaDescriptionCss: Highcharts.CSSObject = {
   color: colorTextBodySecondary,
 };
 
-export const segmentDescriptionCss: React.CSSProperties = {
-  fontFamily: fontFamilyBase,
-  fontWeight: "normal",
-  fontSize: fontSizeBodyS,
-  color: colorTextBodySecondary,
-};
+export const segmentDescriptionStyle = `font-family:${fontFamilyBase};font-weight:normal;font-size:${fontSizeBodyS};color:${colorTextBodySecondary}`;
 
 export const tooltipSnap = 4;
