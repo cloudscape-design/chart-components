@@ -110,6 +110,35 @@ export interface CartesianChartProps
   sizeAxis?: CartesianChartProps.SizeAxisOptions | readonly CartesianChartProps.SizeAxisOptions[];
 
   /**
+   * Zoom settings, allowing the users to zoom into a range of the x-axis. Zooming is possible by dragging
+   * across the chart plot, or by entering zoom mode with the "Zoom" button and selecting the range start and
+   * end with a click, Enter, or Space. In zoom mode the tooltip is suppressed, Escape or the "Exit zoom"
+   * button cancels the selection, and the "Reset" button restores the full data range once zoomed.
+   *
+   * Supported options:
+   * * `enabled` (optional, boolean) - Enables zooming. Defaults to `false`.
+   * * `hideButtons` (optional, boolean) - Hides the built-in zoom buttons. Use it when providing custom
+   * controls, that use the `enterZoomMode`, `exitZoomMode`, and `resetZoom` methods of the component's ref.
+   */
+  zoom?: CartesianChartProps.ZoomOptions;
+
+  /**
+   * The zoomed range of the x-axis. By default, the range is managed by the component. When using this property,
+   * manage state updates with `onZoomRangeChange`, and use `null` to show the full data range.
+   *
+   * Supported options:
+   * * `x` (optional, object) - The zoomed x-axis range, as `startValue` and `endValue`. For datetime axes the
+   * values are timestamps in milliseconds.
+   */
+  zoomRange?: CartesianChartProps.ZoomRange | null;
+
+  /**
+   * A callback function, triggered when the zoomed range changes as a result of user interaction with the chart
+   * or the zoom controls. The detail's `zoomRange` is `null` when the zoom is reset to the full data range.
+   */
+  onZoomRangeChange?: NonCancelableEventHandler<CartesianChartProps.ZoomChangeDetail>;
+
+  /**
    * Specifies which series to show using their IDs. By default, all series are visible and managed by the component.
    * If a series doesn't have an ID, its name is used. When using this property, manage state updates with `onVisibleSeriesChange`.
    */
@@ -132,6 +161,19 @@ export namespace CartesianChartProps {
      * Use this when implementing clear-filter actions in no-match states.
      */
     showAllSeries(): void;
+    /**
+     * Enters zoom mode, in which the tooltip is suppressed and clicks on the chart set the start and end of
+     * the range to zoom into. Requires zooming to be enabled with the `zoom` property.
+     */
+    enterZoomMode(): void;
+    /**
+     * Exits zoom mode, discarding the range being selected. Any range the chart is already zoomed into is kept.
+     */
+    exitZoomMode(): void;
+    /**
+     * Resets the zoom to show the full data range.
+     */
+    resetZoom(): void;
   }
 
   export type SeriesOptions =
@@ -219,6 +261,13 @@ export namespace CartesianChartProps {
   export type FilterOptions = CoreTypes.BaseFilterOptions;
 
   export type NoDataOptions = CoreTypes.BaseNoDataOptions;
+
+  // Zooming is implemented by the core chart, so the types are shared with it rather than duplicated.
+  export type ZoomOptions = CoreTypes.CoreChartProps.ZoomOptions;
+
+  export type ZoomRange = CoreTypes.CoreChartProps.ZoomRange;
+
+  export type ZoomChangeDetail = CoreTypes.CoreChartProps.ZoomChangeDetail;
 }
 
 // Internal types

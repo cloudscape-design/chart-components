@@ -7,3 +7,5 @@ dist
 /src/test-utils/selectors/**/*.ts
 !/src/test-utils/selectors/index.ts
 .DS_STORE
+.idea
+.vscode
