@@ -3,13 +3,13 @@
 
 import type Highcharts from "highcharts";
 import highcharts from "highcharts";
-import HighchartsReact from "highcharts-react-official";
+import { HighchartsReact } from "highcharts-react-official";
 import { vi } from "vitest";
 
 import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
 import { objectContainingDeep, renderChart } from "./common";
 
-vi.mock("highcharts-react-official", () => ({ __esModule: true, default: vi.fn(() => null) }));
+vi.mock("highcharts-react-official", () => ({ HighchartsReact: vi.fn(() => null) }));
 
 const series: Highcharts.SeriesOptionsType[] = [
   { type: "line", name: "Line 1", data: [1, 2, 3] },
