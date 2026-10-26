@@ -93,6 +93,13 @@ function focusApplication() {
 function keyDown(keyCode: number) {
   createChartWrapper().findApplication()!.keydown(keyCode);
 }
+function blurAndZoom(min: number, max: number) {
+  act(() => void vi.runOnlyPendingTimers());
+  createChartWrapper().findApplication()!.blur();
+  act(() => {
+    highcharts.charts.filter(Boolean).at(-1)!.xAxis[0].setExtremes(min, max);
+  });
+}
 function describeFocusedElement() {
   const el = document.activeElement!;
   const role = el.getAttribute("role") ?? el.tagName.toLowerCase();
@@ -121,6 +128,7 @@ describe("CoreChart: navigation, cartesian charts", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.useRealTimers();
   });
 
   test("focuses chart application", () => {
@@ -653,6 +661,41 @@ describe("CoreChart: navigation, cartesian charts", () => {
 
     keyDown(KeyCode.end);
     expect(describeFocusedElement()).toBe("button:3 13, Line series 1[true,false]");
+  });
+
+  test.each([
+    { name: "group", keys: [KeyCode.home] },
+    { name: "point", keys: [KeyCode.enter, KeyCode.down, KeyCode.home] },
+  ])("falls back to the chart when the $name focused before zooming is outside the x-axis extremes", ({ keys }) => {
+    vi.useFakeTimers();
+    renderChart({ ...commonProps(), options: { series: seriesShort2, xAxis: { minRange: 1 } } });
+
+    focusApplication();
+    keys.forEach(keyDown);
+    expect(describeFocusedElement()).toMatch(/^button:1/);
+
+    blurAndZoom(2, 3);
+    focusApplication();
+
+    expect(describeFocusedElement()).toBe("application:Test chart");
+  });
+
+  test("restores the point focused before zooming when it is within the x-axis extremes", () => {
+    vi.useFakeTimers();
+    const { wrapper } = renderChart({ ...commonProps(), options: { series: seriesShort2, xAxis: { minRange: 1 } } });
+
+    focusApplication();
+    keyDown(KeyCode.enter);
+    keyDown(KeyCode.down);
+    keyDown(KeyCode.end);
+    expect(describeFocusedElement()).toBe("button:3 13, Line series 1[true,false]");
+
+    blurAndZoom(2, 3);
+    expect(wrapper.findTooltip()).toBe(null);
+    focusApplication();
+
+    expect(describeFocusedElement()).toBe("button:3 13, Line series 1[true,false]");
+    expect(wrapper.findTooltip()).not.toBe(null);
   });
 
   test("formats accessible point description", () => {

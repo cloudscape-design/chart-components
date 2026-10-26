@@ -150,9 +150,10 @@ export class ChartExtraNavigation {
       if (!this.focusedState || this.focusedState.type === "chart") {
         this.focusChart();
       } else if (this.focusedState.type === "group") {
-        this.focusGroup(this.focusedState.group);
+        this.focusGroup(this.focusedState.group.filter(this.isNavigable));
       } else {
-        this.focusPoint(this.focusedState.point, this.focusedState.group);
+        const { point, group } = this.focusedState;
+        this.focusPoint(this.isNavigable(point) ? point : null, group.filter(this.isNavigable));
       }
     }
   };
@@ -429,6 +430,11 @@ export class ChartExtraNavigation {
 
   private getPointsByX = (x: number): Highcharts.Point[] => {
     return this.context.derived.getPointsByX(x);
+  };
+
+  // A point saved before the chart was zoomed can fall outside the x-axis extremes, which removes it from the derived state.
+  private isNavigable = (point: Highcharts.Point): boolean => {
+    return this.getPointsByX(point.x).includes(point);
   };
 
   private findMatchingGroup = (point: Highcharts.Point): Highcharts.Point[] => {
