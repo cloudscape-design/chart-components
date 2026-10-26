@@ -106,7 +106,7 @@ function computeDerivedState(chart: SafeChart): ChartExtraContext.DerivedState {
 
         // Although "d" can't be undefined according to Highcharts API, it does become undefined for chart containing more datapoints
         // than the cropThreshold for that series (specific cases of re-rendering the chart with updated options listening to setExteme updates)
-        if (d.visible && d.y !== null) {
+        if (d.visible && d.y !== null && isPointWithinXExtremes(d)) {
           seriesPoints.push(d);
           allXSet.add(d.x);
           addPoint(d);
@@ -144,6 +144,19 @@ function computeDerivedState(chart: SafeChart): ChartExtraContext.DerivedState {
       rect: getGroupRect(getXPoints(x)),
     })),
   };
+}
+
+// Highcharts only crops series.points to the visible x range, and only once the series exceeds
+// cropThreshold. Below that threshold every point stays in the series, so a zoomed-in chart would
+// otherwise let keyboard navigation and the tooltip reach points that are not on screen.
+function isPointWithinXExtremes(point: Highcharts.Point): boolean {
+  // Series without an x axis (pie) are never cropped by x.
+  const xAxis = point.series.xAxis;
+  if (!xAxis) {
+    return true;
+  }
+  const { min, max } = xAxis.getExtremes();
+  return (typeof min !== "number" || point.x >= min) && (typeof max !== "number" || point.x <= max);
 }
 
 // The points are sorted to ensure consistent navigation, including inverted chart orientation.

@@ -1,0 +1,130 @@
+/*
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+*/
+
+@use "../../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
+@use "@cloudscape-design/component-toolkit/internal/focus-visible" as focus-visible;
+
+$button-size: cs.$space-static-xl;
+
+// The zoom buttons render in the chart's header area, in normal flow, so they precede the plot both
+// visually and in the focus order, and never overlap the plot, its axis titles, or a side legend.
+.controls {
+  display: flex;
+  justify-content: flex-end;
+  padding-block-end: cs.$space-scaled-xxs;
+}
+
+// Covers the plot area and hosts every affordance drawn over it. Pointer events pass through, so
+// hovering and dragging still reach the chart; only the cursor buttons opt back in.
+.overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+// The overlay elements are positioned imperatively in physical pixels (see applyRect), because
+// Highcharts renders its SVG left-to-right regardless of page direction. They are hidden with
+// visibility rather than display so their layout box, and therefore their measurable size, survives.
+.band,
+.divider,
+.cursor,
+.cluster {
+  position: absolute;
+  visibility: hidden;
+}
+
+// Tints the range between the two selected points while a selection is in progress. A shade deeper than the
+// tint of an applied zoom (see zoom-affordance.ts), so a re-zoom selection still shows over a zoomed plot.
+.band {
+  background-color: cs.$color-background-toggle-button-normal-pressed;
+  opacity: 0.5;
+}
+
+// Marks a point that has been set: the start of a keyboard selection, or either end of a drag.
+.divider {
+  background-color: cs.$color-border-item-selected;
+}
+
+// The keyboard cursor. It is a slider, focused while zoom mode is active, and takes no pointer events
+// so that a drag starting on top of it still goes to the plot.
+.cursor {
+  background-color: cs.$color-border-item-selected;
+  pointer-events: none;
+
+  &:focus {
+    outline: none;
+  }
+
+  // The same outline the chart draws around a focused x group outside zoom mode (see FocusOutline and
+  // focusOutlineOffsets.group): a 2px rounded stroke 4px outside the line, shown only during keyboard
+  // interaction. That outline is an SVG stroke centered on its rect, so its outer edge sits one pixel further,
+  // and it wraps the group's point markers, which are 5px wider than the cursor line.
+  &::before {
+    content: "";
+    position: absolute;
+    inset-block: -5px;
+    inset-inline: -7.5px;
+    border-block: 2px solid transparent;
+    border-inline: 2px solid transparent;
+    border-start-start-radius: 5px;
+    border-start-end-radius: 5px;
+    border-end-start-radius: 5px;
+    border-end-end-radius: 5px;
+  }
+
+  // The physical orientation flips in inverted charts, where the cursor runs across the plot.
+  &.cursor-vertical::before {
+    inset-block: -7.5px;
+    inset-inline: -5px;
+  }
+
+  @include focus-visible.when-visible {
+    &::before {
+      border-block-color: cs.$color-border-item-focused;
+      border-inline-color: cs.$color-border-item-focused;
+    }
+  }
+}
+
+// Pointer-operated equivalents of the arrow keys and Enter, so a range can be selected without
+// dragging (WCAG 2.5.7). Laid out along the axis the cursor moves on: the flex direction is set
+// inline, because it follows the plot's physical orientation rather than the page's.
+.cluster {
+  display: flex;
+  align-items: center;
+  gap: cs.$space-static-xxs;
+  pointer-events: auto;
+}
+
+// The step buttons share the filled look of the "Exit zoom" button (see zoom-controls.tsx), so the controls
+// of an active zoom interaction read as one set, and stand out against the plot they sit on.
+.button {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: $button-size;
+  block-size: $button-size;
+  padding-block: 0;
+  padding-inline: 0;
+  border-block: cs.$border-width-button solid cs.$color-border-button-primary-active;
+  border-inline: cs.$border-width-button solid cs.$color-border-button-primary-active;
+  border-start-start-radius: 50%;
+  border-start-end-radius: 50%;
+  border-end-start-radius: 50%;
+  border-end-end-radius: 50%;
+  background-color: cs.$color-background-button-primary-active;
+  color: cs.$color-text-button-primary-active;
+  box-shadow: cs.$shadow-card;
+  cursor: pointer;
+
+  &:disabled {
+    border-block-color: cs.$color-border-button-primary-disabled;
+    border-inline-color: cs.$color-border-button-primary-disabled;
+    background-color: cs.$color-background-button-primary-disabled;
+    color: cs.$color-text-button-primary-disabled;
+    cursor: default;
+  }
+}
