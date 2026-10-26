@@ -79,15 +79,6 @@ export function InternalCoreChart({
 }: CoreChartProps & InternalBaseComponentProps & InternalZoomProps) {
   const highcharts = rest.highcharts as null | typeof Highcharts;
   const labels = useChartI18n({ ariaLabel, ariaDescription, i18nStrings });
-  const rootRef = useRef<HTMLDivElement>(null);
-  const zoom = useChartZoom({
-    zoom: zoomOptions,
-    zoomRange,
-    onZoomRangeChange,
-    series: options.series,
-    chartType: options.chart?.type,
-    rootRef,
-  });
   const context: ChartExtraContext["settings"] = {
     chartId: useUniqueId(),
     noDataEnabled: !!noDataOptions,
@@ -100,8 +91,17 @@ export function InternalCoreChart({
   const handlers = { onHighlight, onClearHighlight, onVisibleItemsChange };
   const state = { visibleItems };
   const api = useChartAPI(context, handlers, state);
+  const zoom = useChartZoom({
+    zoom: zoomOptions,
+    zoomRange,
+    onZoomRangeChange,
+    series: options.series,
+    chartType: options.chart?.type,
+    focusChart: api.focusChart,
+  });
 
   const rootClassName = clsx(testClasses.root, styles.root, fitHeight && styles["root-fit-height"], className);
+  const rootRef = useRef<HTMLDivElement>(null);
   const mergedRootRef = useMergeRefs(rootRef, __internalRootRef);
   const rootProps = { ref: mergedRootRef, className: rootClassName, ...getDataAttributes(rest) };
   const legendPosition = legendOptions?.position ?? "bottom";
@@ -235,8 +235,8 @@ export function InternalCoreChart({
     },
     // We use the rtl adjusted axes (instead of the original options.xAxis/yAxis) to ensure the chart renders
     // with the correct axis orientation for RTL layouts, matching what was used for legend positioning above.
-    // A chart with zoom enabled always declares an x-axis, which is where the zoomed range is applied.
-    xAxis: castArray(options.xAxis ?? (zoom.enabled ? {} : undefined))?.map((xAxisOptions, index) => ({
+    // A chart with zoom always declares an x-axis, which is where the zoomed range is applied.
+    xAxis: castArray(options.xAxis ?? (zoom.managesXAxis ? {} : undefined))?.map((xAxisOptions, index) => ({
       ...Styles.xAxisOptions,
       ...xAxisOptions,
       // Depending on the chart.inverted the x-axis can be rendered as vertical, and needs to respect page direction.

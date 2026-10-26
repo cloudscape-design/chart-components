@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type Highcharts from "highcharts";
 
+import { useStableCallback } from "@cloudscape-design/component-toolkit/internal";
 import LiveRegion from "@cloudscape-design/components/live-region";
 
 import { fireNonCancelableEvent } from "../../internal/events";
@@ -11,7 +12,7 @@ import { InternalZoomProps, ZoomRange } from "./interfaces";
 import { getZoomAffordanceOptions } from "./zoom-affordance";
 import ZoomControls from "./zoom-controls";
 import { useZoomI18n } from "./zoom-i18n";
-import { getSeriesMinRange, hasColumnLikeSeries, SeriesOptionsLike } from "./zoom-values";
+import { hasColumnLikeSeries } from "./zoom-values";
 
 interface ZoomExtremes {
   min: number;
@@ -19,18 +20,20 @@ interface ZoomExtremes {
 }
 
 interface UseChartZoomProps extends InternalZoomProps {
-  // Series options, used to derive the axis minRange. Taken from the options rather than from the chart,
-  // because the value is needed to render the chart in the first place.
-  series: undefined | readonly SeriesOptionsLike[];
+  // Series options, used to tell whether the chart draws bars.
+  series: undefined | readonly object[];
   // The default series type, which applies to the series that do not declare one.
   chartType?: string;
-  // The chart's root element, used to move focus to the chart once the reset button is gone.
-  rootRef: React.RefObject<HTMLElement>;
+  // Moves focus to the chart, once the reset button that held it is removed.
+  focusChart: () => void;
 }
 
 export interface ChartZoom {
   // True when zooming is enabled with the zoom property.
   enabled: boolean;
+  // True once zoom has been enabled. Highcharts merges option updates into the previous options, so the
+  // zoom keeps declaring the options it sets after it is disabled, to give the consumer's values back.
+  managesXAxis: boolean;
   // Merges the zoomed range into the first x axis' options.
   getXAxisZoomOptions: (xAxisOptions: Highcharts.XAxisOptions) => Highcharts.XAxisOptions;
   // Plot options for error bar series, merged under the ones the consumer declared.
@@ -47,42 +50,54 @@ export function useChartZoom({
   onZoomRangeChange,
   series,
   chartType,
-  rootRef,
+  focusChart,
 }: UseChartZoomProps): ChartZoom {
   const i18n = useZoomI18n();
   const enabled = zoom?.enabled ?? false;
   const [announcement, setAnnouncement] = useState("");
-  // Set when the reset button is pressed. The button is removed once the consumer applies the reset, and
-  // focus would then fall to the document body, so it is moved to the chart instead.
-  const focusAfterResetRef = useRef(false);
+  // Set when the reset button is pressed, and handled once the consumer applies the reset: the reset is
+  // announced then, and not before, and focus is moved to the chart, because the button is removed with it.
+  const resetRequestedRef = useRef(false);
+  const [managesXAxis, setManagesXAxis] = useState(enabled);
+  if (enabled && !managesXAxis) {
+    setManagesXAxis(true);
+  }
 
-  const extremes = extremesFromRange(zoomRange);
-  const zoomed = extremes !== null;
-  const minRange = useMemo(() => (enabled ? getSeriesMinRange(series) : undefined), [enabled, series]);
+  const extremes = enabled ? extremesFromRange(zoomRange) : null;
   const columnLike = useMemo(() => hasColumnLikeSeries(series, chartType), [series, chartType]);
+  const onFocusChart = useStableCallback(focusChart);
+  const resetAnnouncement = i18n.zoomResetAnnouncementText;
+  const zoomedMin = extremes?.min;
+  const zoomedMax = extremes?.max;
 
   useEffect(() => {
-    if (!zoomed && focusAfterResetRef.current) {
-      focusAfterResetRef.current = false;
-      rootRef.current?.querySelector<HTMLElement>('[role="application"]')?.focus();
+    const resetRequested = resetRequestedRef.current;
+    resetRequestedRef.current = false;
+    if (zoomedMin !== undefined || zoomedMax !== undefined) {
+      // A new zoom clears the previous reset announcement, so that the next reset is announced again.
+      setAnnouncement("");
+    } else if (resetRequested) {
+      setAnnouncement(resetAnnouncement);
+      onFocusChart();
     }
-  }, [zoomed, rootRef]);
+  }, [zoomedMin, zoomedMax, resetAnnouncement, onFocusChart]);
 
   function resetZoom() {
-    focusAfterResetRef.current = true;
-    setAnnouncement(i18n.zoomResetAnnouncementText);
+    resetRequestedRef.current = true;
     fireNonCancelableEvent(onZoomRangeChange, { zoomRange: null });
   }
 
   return {
     enabled,
+    managesXAxis,
     getXAxisZoomOptions: (xAxisOptions) =>
-      enabled
+      managesXAxis
         ? {
-            // A minRange the consumer declared takes precedence over the one derived from the data.
-            minRange: xAxisOptions.minRange ?? minRange,
-            // Highcharts reads null as "no bound", so the zoomed range can be cleared by rendering the
-            // axis without one, falling back to the bounds the consumer defined.
+            // Highcharts widens any range narrower than five times the closest point distance unless the
+            // axis declares a minRange. Zero lets the chart show the range it is given.
+            minRange: enabled ? (xAxisOptions.minRange ?? 0) : xAxisOptions.minRange,
+            // Highcharts reads null as "no bound", so the zoomed range is cleared by rendering the axis
+            // without one, falling back to the bounds the consumer defined.
             min: extremes ? extremes.min : (xAxisOptions.min ?? null),
             max: extremes ? extremes.max : (xAxisOptions.max ?? null),
             // While zoomed, the range is marked with a band and a boundary line at each end.
@@ -92,8 +107,8 @@ export function useChartZoom({
     // Error bars are drawn like columns, so Highcharts pads the axis by half a point range on each side for
     // them, and the plot then shows more than the zoomed range. Without bars in the chart there is nothing
     // that needs that room, so the error bars are placed on their x values instead, which removes the padding.
-    errorBarOptions: enabled && !columnLike ? { pointPlacement: "on" } : {},
-    controls: enabled && zoomed && !zoom?.hideButtons ? <ZoomControls i18n={i18n} onResetZoom={resetZoom} /> : null,
+    errorBarOptions: managesXAxis ? { pointPlacement: enabled && !columnLike ? "on" : undefined } : {},
+    controls: extremes && !zoom?.hideButtons ? <ZoomControls i18n={i18n} onResetZoom={resetZoom} /> : null,
     liveRegion: enabled ? <LiveRegion hidden={true}>{announcement}</LiveRegion> : null,
   };
 }

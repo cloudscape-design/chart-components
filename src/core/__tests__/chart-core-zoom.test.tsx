@@ -188,6 +188,30 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
     expect(getXExtremes()).toEqual({ min: 1, max: 2 });
   });
 
+  test("restores the consumer x-axis options when zoom is disabled", () => {
+    const options = { series, xAxis: { min: 0, max: 4, plotLines: [{ id: "line", value: 2 }] } };
+    const { wrapper, rerender } = renderZoomChart({ ...defaultProps, options, zoomRange: zoomedRange });
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+
+    rerender({ ...defaultProps, options, zoom: { enabled: false }, zoomRange: zoomedRange });
+    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
+    expect(getZoomRangeAffordance().ids).toEqual(["line"]);
+    expect(getCurrentChart().xAxis[0].options.minRange).toBeUndefined();
+    expect(wrapper.findZoomControls()).toBe(null);
+  });
+
+  test("restores the x-axis when zoom is disabled on a chart that declares none", () => {
+    const options = { series };
+    const { rerender } = renderZoomChart({ ...defaultProps, options, zoomRange: zoomedRange });
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+
+    rerender({ ...defaultProps, options, zoom: undefined, zoomRange: zoomedRange });
+    const { min, max } = getXExtremes();
+    expect(min).toBeLessThanOrEqual(0);
+    expect(max).toBeGreaterThanOrEqual(4);
+    expect(getZoomRangeAffordance().present).toBe(false);
+  });
+
   test("keeps the x-axis minRange declared by the consumer", () => {
     renderZoomChart({ ...defaultProps, options: { series, xAxis: { min: 0, max: 4, minRange: 3 } } });
     expect(getCurrentChart().xAxis[0].options.minRange).toBe(3);
@@ -258,6 +282,26 @@ describe("CoreChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
     expect(document.activeElement).toBe(wrapper.findApplication()!.getElement());
   });
 
+  test("announces the reset only once the consumer applies it, and again on the next reset", () => {
+    const { wrapper, rerender } = renderZoomChart({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
+    const announcement = "Zoom reset. Showing the full data range.";
+
+    wrapper.findResetZoomButton()!.click();
+    expect(onZoomRangeChange).toHaveBeenCalledTimes(1);
+    expect(wrapper.getElement()).not.toHaveTextContent(announcement);
+
+    wrapper.findResetZoomButton()!.click();
+    rerender({ ...defaultProps, zoomRange: null, onZoomRangeChange });
+    expect(wrapper.getElement()).toHaveTextContent(announcement);
+
+    rerender({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
+    expect(wrapper.getElement()).not.toHaveTextContent(announcement);
+
+    wrapper.findResetZoomButton()!.click();
+    rerender({ ...defaultProps, zoomRange: null, onZoomRangeChange });
+    expect(wrapper.getElement()).toHaveTextContent(announcement);
+  });
+
   test("resolves the zoom strings from the I18nProvider", () => {
     const { wrapper } = renderZoomChart(
       { ...defaultProps, zoomRange: zoomedRange },
@@ -299,6 +343,27 @@ describe("CoreChart: zoom with error bars", { timeout: TEST_TIMEOUT }, () => {
     // edges are not cut in half.
     return (getCurrentChart().xAxis[0] as unknown as { minPointOffset: number }).minPointOffset;
   }
+
+  test("gives the error bars their padding back when zoom is disabled", () => {
+    const data = [0, 10, 20, 30, 40].map((x) => ({ x, y: x + 10 }));
+    const options: CoreChartProps.ChartOptions = {
+      series: [
+        { type: "line", id: "parent", name: "Parent", data },
+        {
+          type: "errorbar",
+          linkedTo: "parent",
+          name: "Error",
+          data: data.map(({ x, y }) => ({ x, low: y - 2, high: y + 2 })),
+        },
+      ],
+    };
+    const getOffset = () => (getCurrentChart().xAxis[0] as unknown as { minPointOffset: number }).minPointOffset;
+    const { rerender } = renderZoomChart({ ...defaultProps, options });
+    expect(getOffset()).toBe(0);
+
+    rerender({ ...defaultProps, options, zoom: undefined });
+    expect(getOffset()).toBeGreaterThan(0);
+  });
 
   test("ends the zoomed plot on the zoomed range for error bars on a line", () => {
     expect(renderErrorBarsOn("line")).toBe(0);

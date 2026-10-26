@@ -185,6 +185,9 @@ export class ChartAPI {
     }
   };
 
+  // Moves focus to the chart, when keyboard navigation is enabled.
+  public focusChart = () => this.chartExtraNavigation.focusChartApplication();
+
   // Hide the tooltip from an action initiated by the tooltip's content
   public hideTooltip = () => {
     this.chartExtraTooltip.hideTooltip();
