@@ -383,9 +383,9 @@ export class ChartExtraNavigation {
 
   private focusGroup(group: readonly Highcharts.Point[]) {
     // When the chart is re-focused, the group that was focused before might no longer be valid if its
-    // points are no longer visible or were destroyed by Highcharts. In that case we focus the chart as
-    // a fallback.
-    const visiblePoints = group.filter(isPointVisible);
+    // points are no longer visible, are outside the x-axis extremes, or were destroyed by Highcharts. In that
+    // case we focus the chart as a fallback.
+    const visiblePoints = group.filter((point) => isPointVisible(point) && this.isNavigable(point));
     if (visiblePoints.length === 0) {
       this.focusChart();
     }
@@ -404,8 +404,9 @@ export class ChartExtraNavigation {
 
   private focusPoint(point: null | Highcharts.Point, group: readonly Highcharts.Point[]) {
     // When the chart is re-focused, the point that was focused before might no longer be valid it became
-    // hidden or was destroyed by Highcharts. In that case we focus the point's parent group as a fallback.
-    if (!point || !isPointVisible(point)) {
+    // hidden, moved outside the x-axis extremes, or was destroyed by Highcharts. In that case we focus the
+    // point's parent group as a fallback.
+    if (!point || !isPointVisible(point) || !this.isNavigable(point)) {
       this.focusGroup(group);
     }
     // When focusing a point we draw the focus outline around its corresponding rect, but with different offsets,
@@ -429,6 +430,10 @@ export class ChartExtraNavigation {
 
   private getPointsByX = (x: number): Highcharts.Point[] => {
     return this.context.derived.getPointsByX(x);
+  };
+
+  private isNavigable = (point: Highcharts.Point): boolean => {
+    return this.getPointsByX(point.x).includes(point);
   };
 
   private findMatchingGroup = (point: Highcharts.Point): Highcharts.Point[] => {
