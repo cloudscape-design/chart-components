@@ -326,6 +326,40 @@ describe("CoreChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
     expect(document.activeElement).toBe(wrapper.findApplication()!.getElement());
   });
 
+  test("keeps focus where the user moved it while the reset was pending", () => {
+    const { wrapper, rerender } = renderZoomChart({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
+    const otherButton = document.createElement("button");
+    document.body.appendChild(otherButton);
+
+    wrapper.findResetZoomButton()!.focus();
+    wrapper.findResetZoomButton()!.click();
+    otherButton.focus();
+    rerender({ ...defaultProps, zoomRange: null, onZoomRangeChange });
+
+    expect(wrapper.getElement()).toHaveTextContent("Zoom reset. Showing the full data range.");
+    expect(document.activeElement).toBe(otherButton);
+    otherButton.remove();
+  });
+
+  test("does not submit an enclosing form when Reset is pressed", () => {
+    const onSubmit = vi.fn((event: Event) => event.preventDefault());
+    const form = document.createElement("form");
+    form.addEventListener("submit", onSubmit);
+    document.body.appendChild(form);
+    render(
+      <TestI18nProvider messages={zoomMessages}>
+        <ZoomCoreChart options={{}} {...defaultProps} zoomRange={zoomedRange} onZoomRangeChange={onZoomRangeChange} />
+      </TestI18nProvider>,
+      { container: form },
+    );
+
+    createChartWrapper().findResetZoomButton()!.click();
+
+    expect(onZoomRangeChange).toHaveBeenCalledTimes(1);
+    expect(onSubmit).not.toHaveBeenCalled();
+    form.remove();
+  });
+
   test("announces the reset only once the consumer applies it, and again on the next reset", () => {
     const { wrapper, rerender } = renderZoomChart({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
     const announcement = "Zoom reset. Showing the full data range.";

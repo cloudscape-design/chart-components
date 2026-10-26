@@ -56,7 +56,7 @@ export function useChartZoom({
   const enabled = zoom?.enabled ?? false;
   const [announcement, setAnnouncement] = useState("");
   // Set when the reset button is pressed, and handled once the consumer applies the reset: the reset is
-  // announced then, and not before, and focus is moved to the chart, because the button is removed with it.
+  // announced then, and not before. Focus is moved to the chart only if it was lost with the removed button.
   const resetRequestedRef = useRef(false);
   const [managesXAxis, setManagesXAxis] = useState(enabled);
   if (enabled && !managesXAxis) {
@@ -78,7 +78,9 @@ export function useChartZoom({
       setAnnouncement("");
     } else if (resetRequested) {
       setAnnouncement(resetAnnouncement);
-      onFocusChart();
+      if (!document.activeElement || document.activeElement === document.body) {
+        onFocusChart();
+      }
     }
   }, [zoomedMin, zoomedMax, resetAnnouncement, onFocusChart]);
 

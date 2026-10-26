@@ -22,6 +22,7 @@ export default function ZoomControls({ i18n, onResetZoom }: ZoomControlsProps) {
     <div role="region" aria-label={i18n.zoomControlsAriaLabel} className={styles.controls}>
       <Button
         variant="link"
+        formAction="none"
         onClick={onResetZoom}
         ariaLabel={i18n.resetZoomButtonAriaLabel}
         className={testClasses["reset-zoom-button"]}
