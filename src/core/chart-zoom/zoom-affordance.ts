@@ -10,25 +10,24 @@ import { colorBackgroundItemSelected, colorBorderItemSelected } from "@cloudscap
 // sight. It is declared as axis options rather than drawn with Axis.addPlotBand, because Highcharts
 // re-initializes the axes on every React re-render and discards anything added imperatively.
 //
-// The ids share a prefix so the affordance can be told apart from the consumer's own plot lines, which the
-// highlight logic dims by id (see isZoomAffordanceId).
-const ZOOM_AFFORDANCE_ID_PREFIX = "awsui-zoom-range";
-const ZOOM_RANGE_BAND_ID = ZOOM_AFFORDANCE_ID_PREFIX;
-const ZOOM_RANGE_START_LINE_ID = `${ZOOM_AFFORDANCE_ID_PREFIX}-start`;
-const ZOOM_RANGE_END_LINE_ID = `${ZOOM_AFFORDANCE_ID_PREFIX}-end`;
+// The ids tell the affordance apart from the consumer's own plot lines, which the highlight logic dims by id
+// (see isZoomAffordanceId).
+const ZOOM_RANGE_BAND_ID = "awsui-zoom-range";
+const ZOOM_RANGE_START_LINE_ID = "awsui-zoom-range-start";
+const ZOOM_RANGE_END_LINE_ID = "awsui-zoom-range-end";
+const ZOOM_AFFORDANCE_IDS = new Set([ZOOM_RANGE_BAND_ID, ZOOM_RANGE_START_LINE_ID, ZOOM_RANGE_END_LINE_ID]);
 
 // The band sits below the plot content, so the tint goes under the series instead of washing them out, and the
 // boundary lines above it, matching the z index of the cartesian thresholds' plot lines.
 const BAND_Z_INDEX = 0;
 const LINE_Z_INDEX = 3;
-// Matches the thickness of the zoom cursor and the selection dividers, see DIVIDER_THICKNESS.
 const LINE_WIDTH = 1;
 
 // True for the ids of the zoom affordance's own band and lines. Used to leave them out of the by-id plot line
 // handling that applies to the lines a consumer declared: the affordance marks the zoomed range rather than a
 // series, so it must not dim when a series is highlighted.
 export function isZoomAffordanceId(id: string): boolean {
-  return id.startsWith(ZOOM_AFFORDANCE_ID_PREFIX);
+  return ZOOM_AFFORDANCE_IDS.has(id);
 }
 
 // The axis bands and lines to render while the chart is zoomed to `extremes`, or just the ones the consumer

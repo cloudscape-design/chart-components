@@ -179,6 +179,22 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
     });
   });
 
+  test("dims a consumer plot line whose ID only starts like the zoom affordance IDs", () => {
+    let chartApi: CoreChartProps.ChartAPI | null = null;
+    renderZoomChart({
+      ...defaultProps,
+      options: { series, xAxis: { min: 0, max: 4, plotLines: [{ id: "awsui-zoom-range-deployment", value: 2 }] } },
+      callback: (api) => (chartApi = api),
+    });
+
+    act(() => chartApi!.highlightItems(["L1"]));
+    const xAxis = getCurrentChart().xAxis[0] as unknown as {
+      plotLinesAndBands: { options: { id?: string }; svgElem?: { opacity?: number } }[];
+    };
+    const line = xAxis.plotLinesAndBands.find((item) => item.options.id === "awsui-zoom-range-deployment")!;
+    expect(line.svgElem?.opacity).toBe(0.4);
+  });
+
   test("allows a zoom range of two adjacent points without explicit axis bounds", () => {
     renderZoomChart({
       ...defaultProps,
@@ -217,9 +233,13 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
     expect(getCurrentChart().xAxis[0].options.minRange).toBe(3);
   });
 
-  test("turns off the Highcharts drag-to-zoom while zoom is enabled", () => {
-    renderZoomChart({ ...defaultProps, options: { ...defaultProps.options, chart: { zooming: { type: "x" } } } });
+  test("turns off the Highcharts drag-to-zoom and pinch-to-zoom while zoom is enabled", () => {
+    renderZoomChart({
+      ...defaultProps,
+      options: { ...defaultProps.options, chart: { zooming: { type: "x", pinchType: "x" } } },
+    });
     expect(getCurrentChart().options.chart?.zooming?.type).toBeUndefined();
+    expect(getCurrentChart().options.chart?.zooming?.pinchType).toBeUndefined();
   });
 
   test("keeps the Highcharts drag-to-zoom of the consumer when zoom is not enabled", () => {

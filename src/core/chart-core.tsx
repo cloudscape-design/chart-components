@@ -318,7 +318,9 @@ export function InternalCoreChart({
               height: options.chart?.height ?? height,
               // Highcharts' own drag-to-zoom is not accessible, and would compete with the zoom for the same
               // range, so it is turned off while the zoom property is enabled.
-              ...(zoom.enabled ? { zooming: { ...options.chart?.zooming, type: undefined } } : {}),
+              ...(zoom.enabled
+                ? { zooming: { ...options.chart?.zooming, type: undefined, pinchType: undefined } }
+                : {}),
               // We override certain chart events to inject additional behaviors, but it is still possible to define
               // custom callbacks. The Cloudscape behaviors can be disabled or altered via components API. For instance,
               // if no-data props are not provided - the related on-render computations will be skipped.
