@@ -22,6 +22,8 @@ import { castArray } from "../internal/utils/utils";
 import { useChartAPI } from "./chart-api";
 import { ChartExtraContext } from "./chart-api/chart-extra-context";
 import { ChartContainer } from "./chart-container";
+import { InternalZoomProps } from "./chart-zoom/interfaces";
+import { useChartZoom } from "./chart-zoom/use-chart-zoom";
 import { ChartApplication } from "./components/core-application";
 import { ChartFilters } from "./components/core-filters";
 import { ChartLegend } from "./components/core-legend";
@@ -52,6 +54,9 @@ export function InternalCoreChart({
   tooltip: tooltipOptions,
   noData: noDataOptions,
   navigator,
+  zoom: zoomOptions,
+  zoomRange,
+  onZoomRangeChange,
   legend: legendOptions,
   fallback = <Spinner />,
   callback,
@@ -71,9 +76,18 @@ export function InternalCoreChart({
   __internalRootRef,
   getItemOptions,
   ...rest
-}: CoreChartProps & InternalBaseComponentProps) {
+}: CoreChartProps & InternalBaseComponentProps & InternalZoomProps) {
   const highcharts = rest.highcharts as null | typeof Highcharts;
   const labels = useChartI18n({ ariaLabel, ariaDescription, i18nStrings });
+  const rootRef = useRef<HTMLDivElement>(null);
+  const zoom = useChartZoom({
+    zoom: zoomOptions,
+    zoomRange,
+    onZoomRangeChange,
+    series: options.series,
+    chartType: options.chart?.type,
+    rootRef,
+  });
   const context: ChartExtraContext["settings"] = {
     chartId: useUniqueId(),
     noDataEnabled: !!noDataOptions,
@@ -88,7 +102,6 @@ export function InternalCoreChart({
   const api = useChartAPI(context, handlers, state);
 
   const rootClassName = clsx(testClasses.root, styles.root, fitHeight && styles["root-fit-height"], className);
-  const rootRef = useRef<HTMLDivElement>(null);
   const mergedRootRef = useMergeRefs(rootRef, __internalRootRef);
   const rootProps = { ref: mergedRootRef, className: rootClassName, ...getDataAttributes(rest) };
   const legendPosition = legendOptions?.position ?? "bottom";
@@ -222,7 +235,8 @@ export function InternalCoreChart({
     },
     // We use the rtl adjusted axes (instead of the original options.xAxis/yAxis) to ensure the chart renders
     // with the correct axis orientation for RTL layouts, matching what was used for legend positioning above.
-    xAxis: castArray(options.xAxis)?.map((xAxisOptions) => ({
+    // A chart with zoom enabled always declares an x-axis, which is where the zoomed range is applied.
+    xAxis: castArray(options.xAxis ?? (zoom.enabled ? {} : undefined))?.map((xAxisOptions, index) => ({
       ...Styles.xAxisOptions,
       ...xAxisOptions,
       // Depending on the chart.inverted the x-axis can be rendered as vertical, and needs to respect page direction.
@@ -231,6 +245,9 @@ export function InternalCoreChart({
       className: xAxisClassName(inverted, xAxisOptions.className),
       title: axisTitle(xAxisOptions.title ?? {}, !inverted || verticalAxisTitlePlacement === "side"),
       labels: axisLabels(xAxisOptions.labels ?? {}),
+      // The zoom applies to the primary x-axis only. The extremes are declared in the options, rather than
+      // imperatively set, because Highcharts re-initializes the axes on every React re-render.
+      ...(index === 0 ? zoom.getXAxisZoomOptions(xAxisOptions) : {}),
     })),
     yAxis: castArray(options.yAxis)?.map((yAxisOptions) => ({
       ...Styles.yAxisOptions,
@@ -268,7 +285,7 @@ export function InternalCoreChart({
       line: { ...Styles.lineSeries, ...options.plotOptions?.line },
       spline: { ...Styles.lineSeries, ...options.plotOptions?.spline },
       column: { ...Styles.columnSeries, ...options.plotOptions?.column },
-      errorbar: { ...Styles.errorbarSeries, ...options.plotOptions?.errorbar },
+      errorbar: { ...Styles.errorbarSeries, ...zoom.errorBarOptions, ...options.plotOptions?.errorbar },
       // Pie chart is shown in legend by default, that is required for standalone pie charts.
       pie: {
         showInLegend: true,
@@ -299,6 +316,9 @@ export function InternalCoreChart({
               // It is possible to override it by explicitly providing chart.height, but this will not be
               // compatible with any of the above settings.
               height: options.chart?.height ?? height,
+              // Highcharts' own drag-to-zoom is not accessible, and would compete with the zoom for the same
+              // range, so it is turned off while the zoom property is enabled.
+              ...(zoom.enabled ? { zooming: { ...options.chart?.zooming, type: undefined } } : {}),
               // We override certain chart events to inject additional behaviors, but it is still possible to define
               // custom callbacks. The Cloudscape behaviors can be disabled or altered via components API. For instance,
               // if no-data props are not provided - the related on-render computations will be skipped.
@@ -358,6 +378,7 @@ export function InternalCoreChart({
             </>
           );
         }}
+        zoomControls={zoom.controls}
         navigator={navigator}
         primaryLegend={
           context.legendEnabled && legendProps.primary ? (
@@ -400,6 +421,8 @@ export function InternalCoreChart({
           api={api}
         />
       )}
+
+      {zoom.liveRegion}
     </div>
   );
 }

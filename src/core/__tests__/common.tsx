@@ -4,7 +4,8 @@
 import { act, useState } from "react";
 import { fireEvent, render } from "@testing-library/react";
 
-import "@cloudscape-design/components/test-utils/dom";
+import { ButtonWrapper } from "@cloudscape-design/components/test-utils/dom";
+
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
 import { fireNonCancelableEvent } from "../../../lib/components/internal/events";
@@ -16,6 +17,9 @@ import CoreChartWrapper from "../../../lib/components/test-utils/dom/internal/co
 
 export class ExtendedTestWrapper extends CoreChartWrapper {
   findHighchartsTooltip = () => this.findByClassName("highcharts-tooltip");
+  findZoomControls = () => this.findByClassName(testClasses["zoom-controls"]);
+  findResetZoomButton = () =>
+    this.findComponent(`.${testClasses["reset-zoom-button"]} .${ButtonWrapper.rootSelector}`, ButtonWrapper);
 }
 
 export function StatefulChart(props: CoreChartProps) {
