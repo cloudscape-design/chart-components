@@ -150,10 +150,9 @@ export class ChartExtraNavigation {
       if (!this.focusedState || this.focusedState.type === "chart") {
         this.focusChart();
       } else if (this.focusedState.type === "group") {
-        this.focusGroup(this.focusedState.group.filter(this.isNavigable));
+        this.focusGroup(this.focusedState.group);
       } else {
-        const { point, group } = this.focusedState;
-        this.focusPoint(this.isNavigable(point) ? point : null, group.filter(this.isNavigable));
+        this.focusPoint(this.focusedState.point, this.focusedState.group);
       }
     }
   };
@@ -384,9 +383,9 @@ export class ChartExtraNavigation {
 
   private focusGroup(group: readonly Highcharts.Point[]) {
     // When the chart is re-focused, the group that was focused before might no longer be valid if its
-    // points are no longer visible or were destroyed by Highcharts. In that case we focus the chart as
-    // a fallback.
-    const visiblePoints = group.filter(isPointVisible);
+    // points are no longer visible, are outside the x-axis extremes, or were destroyed by Highcharts. In that
+    // case we focus the chart as a fallback.
+    const visiblePoints = group.filter((point) => isPointVisible(point) && this.isNavigable(point));
     if (visiblePoints.length === 0) {
       this.focusChart();
     }
@@ -405,8 +404,9 @@ export class ChartExtraNavigation {
 
   private focusPoint(point: null | Highcharts.Point, group: readonly Highcharts.Point[]) {
     // When the chart is re-focused, the point that was focused before might no longer be valid it became
-    // hidden or was destroyed by Highcharts. In that case we focus the point's parent group as a fallback.
-    if (!point || !isPointVisible(point)) {
+    // hidden, moved outside the x-axis extremes, or was destroyed by Highcharts. In that case we focus the
+    // point's parent group as a fallback.
+    if (!point || !isPointVisible(point) || !this.isNavigable(point)) {
       this.focusGroup(group);
     }
     // When focusing a point we draw the focus outline around its corresponding rect, but with different offsets,
@@ -432,7 +432,6 @@ export class ChartExtraNavigation {
     return this.context.derived.getPointsByX(x);
   };
 
-  // A point saved before the chart was zoomed can fall outside the x-axis extremes, which removes it from the derived state.
   private isNavigable = (point: Highcharts.Point): boolean => {
     return this.getPointsByX(point.x).includes(point);
   };
