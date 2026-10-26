@@ -242,6 +242,16 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
     expect(getCurrentChart().options.chart?.zooming?.pinchType).toBeUndefined();
   });
 
+  test("turns off the deprecated Highcharts zoomType and pinchType while zoom is enabled", () => {
+    renderZoomChart({
+      ...defaultProps,
+      options: { ...defaultProps.options, chart: { zoomType: "x", pinchType: "x" } },
+    });
+    const chart = getCurrentChart();
+    expect(chart.zooming.type).toBeUndefined();
+    expect(chart.zooming.pinchType).toBeUndefined();
+  });
+
   test("keeps the Highcharts drag-to-zoom of the consumer when zoom is not enabled", () => {
     renderZoomChart({
       ...defaultProps,
