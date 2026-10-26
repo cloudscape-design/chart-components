@@ -143,6 +143,34 @@ describe("CoreChart: options", () => {
     );
   });
 
+  test("propagates yAxis stackLabels", () => {
+    const xAxis = {
+      lineWidth: 99,
+      title: { style: { color: "axis-color" }, text: "x-axis" },
+      labels: { style: { color: "label-color" } },
+      custom: "custom",
+    } as const;
+    const stackLabels = { enabled: true };
+    const yAxis = {
+      lineWidth: 99,
+      title: { style: { color: "axis-color" }, text: "y-axis" },
+      labels: { style: { color: "label-color" } },
+      custom: "custom",
+      stackLabels: stackLabels,
+    } as const;
+
+    renderChart({ highcharts, options: { xAxis, yAxis } });
+
+    expect(HighchartsReact).toHaveBeenCalledWith(
+      objectContainingDeep({
+        options: {
+          yAxis: expect.arrayContaining([objectContainingDeep({ stackLabels })]),
+        },
+      }),
+      expect.anything(),
+    );
+  });
+
   test("propagates plotOptions.series", () => {
     const plotOptions = {
       custom: "custom",
