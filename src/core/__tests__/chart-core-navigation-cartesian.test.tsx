@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { act } from "react";
 import highcharts from "highcharts";
 import Highcharts from "highcharts";
 import { range } from "lodash";
@@ -609,6 +610,49 @@ describe("CoreChart: navigation, cartesian charts", () => {
     expect(describeFocusedElement()).toBe("button:Unpin tooltip");
     expect(wrapper.findTooltip()!.getElement().textContent).toBe("1Line series 1-1");
     expect(wrapper.findTooltip()!.findDismissButton()).not.toBe(null);
+  });
+
+  test("navigates only the groups within the x-axis bounds set by the consumer", () => {
+    renderChart({ ...commonProps(), options: { series: seriesShort2, xAxis: { min: 2, max: 3 } } });
+
+    focusApplication();
+    keyDown(KeyCode.home);
+    expect(describeFocusedElement()).toBe("button:2[true,false]");
+
+    keyDown(KeyCode.end);
+    expect(describeFocusedElement()).toBe("button:3[true,false]");
+  });
+
+  test("navigates only the groups within the x-axis extremes after the chart is zoomed", () => {
+    renderChart({ ...commonProps(), options: { series: seriesShort2, xAxis: { minRange: 1 } } });
+
+    act(() => {
+      highcharts.charts.filter(Boolean).at(-1)!.xAxis[0].setExtremes(2, 3);
+    });
+
+    focusApplication();
+    keyDown(KeyCode.home);
+    expect(describeFocusedElement()).toBe("button:2[true,false]");
+
+    keyDown(KeyCode.end);
+    expect(describeFocusedElement()).toBe("button:3[true,false]");
+  });
+
+  test("navigates only the points within the x-axis extremes after the chart is zoomed", () => {
+    renderChart({ ...commonProps(), options: { series: seriesShort2, xAxis: { minRange: 1 } } });
+
+    act(() => {
+      highcharts.charts.filter(Boolean).at(-1)!.xAxis[0].setExtremes(2, 3);
+    });
+
+    focusApplication();
+    keyDown(KeyCode.enter);
+    keyDown(KeyCode.down);
+    keyDown(KeyCode.home);
+    expect(describeFocusedElement()).toBe("button:2 12, Line series 1[true,false]");
+
+    keyDown(KeyCode.end);
+    expect(describeFocusedElement()).toBe("button:3 13, Line series 1[true,false]");
   });
 
   test("formats accessible point description", () => {

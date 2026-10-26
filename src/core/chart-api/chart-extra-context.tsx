@@ -100,13 +100,14 @@ function computeDerivedState(chart: SafeChart): ChartExtraContext.DerivedState {
   for (const s of getChartSeries(chart)) {
     const seriesPoints = new Array<Highcharts.Point>();
     if (s.visible) {
+      const isWithinXExtremes = getXExtremesFilter(s);
       for (const d of getSeriesData(s)) {
         // Points with y=null represent the absence of value, there is no need to include them and those
         // should have no impact on computed rects or navigation.
 
         // Although "d" can't be undefined according to Highcharts API, it does become undefined for chart containing more datapoints
         // than the cropThreshold for that series (specific cases of re-rendering the chart with updated options listening to setExteme updates)
-        if (d.visible && d.y !== null) {
+        if (d.visible && d.y !== null && isWithinXExtremes(d.x)) {
           seriesPoints.push(d);
           allXSet.add(d.x);
           addPoint(d);
@@ -144,6 +145,17 @@ function computeDerivedState(chart: SafeChart): ChartExtraContext.DerivedState {
       rect: getGroupRect(getXPoints(x)),
     })),
   };
+}
+
+// Highcharts only crops series points to the x extremes once a series exceeds its cropThreshold, so smaller
+// series keep points that are off screen. Navigation and the tooltip must not reach those points.
+function getXExtremesFilter(series: SafeSeries): (x: number) => boolean {
+  const extremes = series.xAxis?.getExtremes();
+  if (!extremes) {
+    return () => true;
+  }
+  const { min, max } = extremes;
+  return (x) => (typeof min !== "number" || x >= min) && (typeof max !== "number" || x <= max);
 }
 
 // The points are sorted to ensure consistent navigation, including inverted chart orientation.
