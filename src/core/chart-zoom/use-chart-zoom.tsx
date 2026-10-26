@@ -108,7 +108,7 @@ export function useChartZoom({
     // them, and the plot then shows more than the zoomed range. Without bars in the chart there is nothing
     // that needs that room, so the error bars are placed on their x values instead, which removes the padding.
     errorBarOptions: managesXAxis ? { pointPlacement: enabled && !columnLike ? "on" : undefined } : {},
-    controls: extremes && !zoom?.hideButtons ? <ZoomControls i18n={i18n} onResetZoom={resetZoom} /> : null,
+    controls: extremes && !zoom?.hideZoomControls ? <ZoomControls i18n={i18n} onResetZoom={resetZoom} /> : null,
     liveRegion: enabled ? <LiveRegion hidden={true}>{announcement}</LiveRegion> : null,
   };
 }

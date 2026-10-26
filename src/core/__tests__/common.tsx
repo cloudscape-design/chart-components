@@ -17,9 +17,7 @@ import CoreChartWrapper from "../../../lib/components/test-utils/dom/internal/co
 
 export class ExtendedTestWrapper extends CoreChartWrapper {
   findHighchartsTooltip = () => this.findByClassName("highcharts-tooltip");
-  findZoomControls = () => this.findByClassName(testClasses["zoom-controls"]);
-  findResetZoomButton = () =>
-    this.findComponent(`.${testClasses["reset-zoom-button"]} .${ButtonWrapper.rootSelector}`, ButtonWrapper);
+  findResetZoomButton = () => this.findComponent(`.${testClasses["reset-zoom-button"]}`, ButtonWrapper);
 }
 
 export function StatefulChart(props: CoreChartProps) {

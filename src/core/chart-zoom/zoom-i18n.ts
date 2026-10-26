@@ -14,15 +14,15 @@ export interface ResolvedZoomI18n {
 // format function is used with plain string keys until they are added there.
 type ZoomFormatFunction = (key: string, provided: undefined | string) => undefined | string;
 
-// Resolves the zoom strings from the I18nProvider messages of the "[charts]" namespace, falling back to the
-// English defaults.
+// Resolves the zoom strings from the I18nProvider messages of the "[charts]" namespace, falling back to
+// empty strings.
 export function useZoomI18n(): ResolvedZoomI18n {
   const i18n = useInternalI18n("[charts]") as unknown as ZoomFormatFunction;
-  const text = (key: keyof ResolvedZoomI18n, fallback: string) => i18n(`i18nStrings.${key}`, undefined) ?? fallback;
+  const text = (key: keyof ResolvedZoomI18n) => i18n(`i18nStrings.${key}`, undefined) ?? "";
   return {
-    resetZoomButtonText: text("resetZoomButtonText", "Reset"),
-    resetZoomButtonAriaLabel: text("resetZoomButtonAriaLabel", "Reset zoom to show full data range"),
-    zoomControlsAriaLabel: text("zoomControlsAriaLabel", "Chart zoom controls"),
-    zoomResetAnnouncementText: text("zoomResetAnnouncementText", "Zoom reset. Showing the full data range."),
+    resetZoomButtonText: text("resetZoomButtonText"),
+    resetZoomButtonAriaLabel: text("resetZoomButtonAriaLabel"),
+    zoomControlsAriaLabel: text("zoomControlsAriaLabel"),
+    zoomResetAnnouncementText: text("zoomResetAnnouncementText"),
   };
 }

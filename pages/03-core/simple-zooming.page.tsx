@@ -11,16 +11,20 @@ import Checkbox from "@cloudscape-design/components/checkbox";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import { colorChartsBlue1400, colorChartsLineTick } from "@cloudscape-design/design-tokens";
 
+import { InternalZoomProps } from "../../lib/components/core/chart-zoom/interfaces";
 import { CoreChartProps } from "../../lib/components/core/interfaces";
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
 import { dateFormatter } from "../common/formatters";
 import { PageSettings, PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
+import { ZoomI18nProvider } from "../common/zoom-i18n-provider";
 import pseudoRandom from "../utils/pseudo-random";
 
 interface ThisPageSettings extends PageSettings {
   keepZoomingFrame: boolean;
 }
+
+const ZoomCoreChart = CoreChart as React.ComponentType<CoreChartProps & InternalZoomProps>;
 
 function randomInt(min: number, max: number) {
   return min + Math.floor(pseudoRandom() * (max - min));
@@ -120,7 +124,9 @@ export default function () {
       }
       screenshotArea={false}
     >
-      <Charts />
+      <ZoomI18nProvider>
+        <Charts />
+      </ZoomI18nProvider>
     </Page>
   );
 }
@@ -144,7 +150,6 @@ function Charts() {
   const zoomStateRef = useRef<null | number>(null);
   const setZoom = useCallback(
     (range: null | [number, number]) => {
-      getScatterChart().chart.xAxis[0].setExtremes(range?.[0], range?.[1]);
       if (!keepZoomingFrame) {
         getNavigatorChart().chart.xAxis[0].setExtremes(range?.[0], range?.[1]);
       }
@@ -245,13 +250,18 @@ function Charts() {
         }}
       />
 
-      <CoreChart
+      <ZoomCoreChart
         callback={(chart) => {
           scatterChartRef.current = chart;
         }}
         {...commonProps}
         chartHeight={350}
         ariaLabel="Scatter chart"
+        zoom={{ enabled: true }}
+        zoomRange={zoomRange ? { x: { startValue: zoomRange[0], endValue: zoomRange[1] } } : null}
+        onZoomRangeChange={({ detail }) =>
+          setZoom(detail.zoomRange?.x ? [detail.zoomRange.x.startValue, detail.zoomRange.x.endValue] : null)
+        }
         onHighlight={onScatterHighlight}
         onClearHighlight={onScatterClearHighlight}
         options={{

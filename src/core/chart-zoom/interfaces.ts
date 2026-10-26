@@ -5,7 +5,7 @@ import type { NonCancelableEventHandler } from "../../internal/events";
 
 export interface ZoomOptions {
   enabled?: boolean;
-  hideButtons?: boolean;
+  hideZoomControls?: boolean;
 }
 
 // The range is nested under the axis it applies to, leaving room for a "y" range should zooming

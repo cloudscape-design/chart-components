@@ -1,8 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import clsx from "clsx";
-
 import Button from "@cloudscape-design/components/button";
 
 import { ResolvedZoomI18n } from "./zoom-i18n";
@@ -21,16 +19,15 @@ interface ZoomControlsProps {
 // axis titles and of a legend placed to the side.
 export default function ZoomControls({ i18n, onResetZoom }: ZoomControlsProps) {
   return (
-    <div
-      role="region"
-      aria-label={i18n.zoomControlsAriaLabel}
-      className={clsx(styles.controls, testClasses["zoom-controls"])}
-    >
-      <span className={testClasses["reset-zoom-button"]}>
-        <Button variant="link" onClick={onResetZoom} ariaLabel={i18n.resetZoomButtonAriaLabel}>
-          {i18n.resetZoomButtonText}
-        </Button>
-      </span>
+    <div role="region" aria-label={i18n.zoomControlsAriaLabel} className={styles.controls}>
+      <Button
+        variant="link"
+        onClick={onResetZoom}
+        ariaLabel={i18n.resetZoomButtonAriaLabel}
+        className={testClasses["reset-zoom-button"]}
+      >
+        {i18n.resetZoomButtonText}
+      </Button>
     </div>
   );
 }
