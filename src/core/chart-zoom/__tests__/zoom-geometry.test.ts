@@ -36,8 +36,8 @@ describe("getClusterRect", () => {
     ["the last point", 560],
   ])("centers the cluster on a cursor at %s of a horizontal axis", (_, pixel) => {
     const rect = getClusterRect(chart, axis(true), pixel, clusterSize);
-    expect(rect.left + rect.width / 2).toBe(pixel);
-    expect(rect.top).toBe(40 + 320 - 24 - 8);
+    expect(rect.x + rect.width / 2).toBe(pixel);
+    expect(rect.y).toBe(40 + 320 - 24 - 8);
   });
 
   test.each([
@@ -45,24 +45,24 @@ describe("getClusterRect", () => {
     ["the last point", 360],
   ])("centers the cluster on a cursor at %s of a vertical axis", (_, pixel) => {
     const rect = getClusterRect(chart, axis(false), pixel, clusterSize);
-    expect(rect.top + rect.height / 2).toBe(pixel);
-    expect(rect.left).toBe(40 + 8);
+    expect(rect.y + rect.height / 2).toBe(pixel);
+    expect(rect.x).toBe(40 + 8);
   });
 
   test("keeps the cluster centered when the gutter beside the plot is narrower than the cluster", () => {
     const narrowGutters = { ...chart, plotLeft: 10, plotWidth: 580 } as Highcharts.Chart;
-    expect(getClusterRect(narrowGutters, axis(true), 10, clusterSize).left).toBe(10 - 26);
-    expect(getClusterRect(narrowGutters, axis(true), 590, clusterSize).left).toBe(590 - 26);
+    expect(getClusterRect(narrowGutters, axis(true), 10, clusterSize).x).toBe(10 - 26);
+    expect(getClusterRect(narrowGutters, axis(true), 590, clusterSize).x).toBe(590 - 26);
   });
 });
 
 describe("getDividerRect", () => {
   test("draws a one pixel line across the plot at the value of a horizontal axis", () => {
-    expect(getDividerRect(chart, axis(true), 100)).toEqual({ left: 99.5, top: 40, width: 1, height: 320 });
+    expect(getDividerRect(chart, axis(true), 100)).toEqual({ x: 99.5, y: 40, width: 1, height: 320 });
   });
 
   test("draws a one pixel line across the plot at the value of a vertical axis", () => {
-    expect(getDividerRect(chart, axis(false), 100)).toEqual({ left: 40, top: 99.5, width: 520, height: 1 });
+    expect(getDividerRect(chart, axis(false), 100)).toEqual({ x: 40, y: 99.5, width: 520, height: 1 });
   });
 });
 
@@ -71,8 +71,8 @@ describe("getBandRect", () => {
     { name: "in value order", from: 100, to: 200 },
     { name: "in reverse value order", from: 200, to: 100 },
   ])("spans the range between two values given $name", ({ from, to }) => {
-    expect(getBandRect(chart, axis(true), from, to)).toEqual({ left: 100, top: 40, width: 100, height: 320 });
-    expect(getBandRect(chart, axis(false), from, to)).toEqual({ left: 40, top: 100, width: 520, height: 100 });
+    expect(getBandRect(chart, axis(true), from, to)).toEqual({ x: 100, y: 40, width: 100, height: 320 });
+    expect(getBandRect(chart, axis(false), from, to)).toEqual({ x: 40, y: 100, width: 520, height: 100 });
   });
 
   test("keeps a range of a single value visible", () => {

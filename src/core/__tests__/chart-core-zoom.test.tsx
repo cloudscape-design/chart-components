@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { act } from "react";
+import type Highcharts from "highcharts";
 import highcharts from "highcharts";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
@@ -59,6 +60,13 @@ const onZoomRangeChange = vi.fn();
 afterEach(() => {
   onZoomRangeChange.mockReset();
 });
+
+// The resolved zoom settings and the deprecated zoomType are not covered by the Highcharts types.
+function getNativeZoom() {
+  return (getCurrentChart() as unknown as { zooming: Highcharts.ChartZoomingOptions }).zooming;
+}
+
+const deprecatedZoomType = { zoomType: "x" } as Highcharts.ChartOptions;
 
 function getCurrentChart() {
   // Target the most recently rendered chart: highcharts.charts accumulates entries across tests
@@ -242,6 +250,55 @@ describe("CoreChart: zoom", { timeout: TEST_TIMEOUT }, () => {
     } finally {
       highcharts.setOptions({ xAxis: { minRange: undefined }, plotOptions: { series: { pointPlacement: undefined } } });
     }
+  });
+
+  test("gives the global error bar placement precedence over the chart's series placement", () => {
+    highcharts.setOptions({ plotOptions: { errorbar: { pointPlacement: "between" } } });
+    try {
+      renderChart({
+        ...defaultProps,
+        zoom: undefined,
+        options: { ...defaultProps.options, plotOptions: { series: { pointPlacement: "on" } } },
+      });
+      expect(getCurrentChart().options.plotOptions?.errorbar?.pointPlacement).toBe("between");
+    } finally {
+      highcharts.setOptions({ plotOptions: { errorbar: { pointPlacement: undefined } } });
+    }
+  });
+
+  test("marks the zoomed range when zoom is enabled on an axis already showing that range", () => {
+    const { rerender } = renderChart({
+      ...defaultProps,
+      zoom: undefined,
+      zoomRange: { x: { startValue: 1, endValue: 3 } },
+    });
+    act(() => getCurrentChart().xAxis[0].setExtremes(1, 3));
+    rerender({
+      ...defaultProps,
+      zoom: { enabled: true, hideZoomControls: true },
+      zoomRange: { x: { startValue: 1, endValue: 3 } },
+    });
+    expect(document.querySelector(`.${testClasses["zoom-range"]}`)).not.toBe(null);
+  });
+
+  test("gives back the global Highcharts drag-to-zoom when zoom is disabled", () => {
+    highcharts.setOptions({ chart: { zooming: { type: "x" } } });
+    try {
+      const { rerender } = renderChart({ ...defaultProps });
+      expect(getNativeZoom().type).toBeUndefined();
+      rerender({ ...defaultProps, zoom: undefined });
+      expect(getNativeZoom().type).toBe("x");
+    } finally {
+      highcharts.setOptions({ chart: { zooming: { type: undefined } } });
+    }
+  });
+
+  test("gives back the consumer's deprecated zoomType when zoom is disabled", () => {
+    const options = { ...defaultProps.options, chart: deprecatedZoomType };
+    const { rerender } = renderChart({ ...defaultProps, options });
+    expect(getNativeZoom().type).toBeUndefined();
+    rerender({ ...defaultProps, options, zoom: undefined });
+    expect(getNativeZoom().type).toBe("x");
   });
 
   test("keeps the x-axis minRange declared by the consumer", () => {

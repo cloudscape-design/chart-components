@@ -5,6 +5,9 @@ import type Highcharts from "highcharts";
 
 import {
   colorBackgroundContainerContent,
+  colorBackgroundItemSelected,
+  colorBackgroundToggleButtonNormalPressed,
+  colorBorderItemSelected,
   colorChartsLineTick,
   colorChartsPaletteCategorical1,
   colorChartsPaletteCategorical2,
@@ -147,6 +150,33 @@ export const navigationFocusOutline = {
 
 export const cursorLine = {
   fill: colorChartsLineTick,
+  zIndex: 5,
+  "pointer-events": "none",
+};
+
+export const zoomRangeBand = {
+  fill: colorBackgroundItemSelected,
+  zIndex: 0,
+  "pointer-events": "none",
+};
+
+export const zoomRangeBorders = {
+  stroke: colorBorderItemSelected,
+  "stroke-width": 1,
+  zIndex: 3,
+  "pointer-events": "none",
+};
+
+// A shade deeper than the zoomed range band, so that a new selection shows over a zoomed plot.
+export const zoomSelectionBand = {
+  fill: colorBackgroundToggleButtonNormalPressed,
+  opacity: 0.5,
+  zIndex: 4,
+  "pointer-events": "none",
+};
+
+export const zoomSelectionDivider = {
+  fill: colorBorderItemSelected,
   zIndex: 5,
   "pointer-events": "none",
 };

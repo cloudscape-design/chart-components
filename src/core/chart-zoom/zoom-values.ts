@@ -73,3 +73,39 @@ export function findNearestIndex(values: readonly number[], target: number): num
 export function getPageStep(valuesCount: number): number {
   return Math.max(1, Math.floor(valuesCount / 10));
 }
+
+// The values a consumer's chart would use for the options the zoom overrides. When zoom is off they are given back
+// explicitly, because Highcharts merges option updates over the previous ones, and they include the global
+// Highcharts.setOptions defaults, which an explicit option would otherwise override.
+export function getInheritedZoomOptions(highcharts: null | typeof Highcharts, options: Highcharts.Options) {
+  const globalOptions = highcharts?.getOptions();
+  // The deprecated zoomType and pinchType are not typed in Highcharts 12, but still take precedence over zooming.
+  const chart = options.chart as undefined | DeprecatedZoomOptions;
+  const globalChart = globalOptions?.chart as undefined | DeprecatedZoomOptions;
+  const globalXAxis = Array.isArray(globalOptions?.xAxis) ? globalOptions?.xAxis[0] : globalOptions?.xAxis;
+  return {
+    nativeZoom: {
+      zooming: {
+        ...options.chart?.zooming,
+        type: chart?.zooming?.type ?? globalChart?.zooming?.type,
+        pinchType: chart?.zooming?.pinchType ?? globalChart?.zooming?.pinchType,
+      },
+      zoomType: chart?.zoomType ?? globalChart?.zoomType,
+      pinchType: chart?.pinchType ?? globalChart?.pinchType,
+    } as Highcharts.ChartOptions,
+    minRange: globalXAxis?.minRange,
+    // The chart's own plotOptions.errorbar is applied over this. Highcharts resolves the type options before the
+    // series options, each with the chart's options over the global ones.
+    errorBarPointPlacement:
+      globalOptions?.plotOptions?.errorbar?.pointPlacement ??
+      options.plotOptions?.series?.pointPlacement ??
+      globalOptions?.plotOptions?.series?.pointPlacement,
+  };
+}
+
+type ZoomingType = NonNullable<Highcharts.ChartZoomingOptions["type"]>;
+
+interface DeprecatedZoomOptions extends Highcharts.ChartOptions {
+  zoomType?: ZoomingType;
+  pinchType?: ZoomingType;
+}

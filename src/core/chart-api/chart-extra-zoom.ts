@@ -4,12 +4,8 @@
 import type Highcharts from "highcharts";
 
 import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
-import {
-  colorBackgroundItemSelected,
-  colorBackgroundToggleButtonNormalPressed,
-  colorBorderItemSelected,
-} from "@cloudscape-design/design-tokens";
 
+import * as Styles from "../../internal/chart-styles";
 import { fireNonCancelableEvent } from "../../internal/events";
 import AsyncStore from "../../internal/utils/async-store";
 import { SafeChart } from "../../internal/utils/highcharts";
@@ -24,7 +20,6 @@ import {
   isInsidePlot,
   isPixelForward,
   isXAxisHorizontal,
-  OverlayRect,
   pixelToValue,
 } from "../chart-zoom/zoom-geometry";
 import {
@@ -43,6 +38,7 @@ import {
 } from "../chart-zoom/zoom-state-machine";
 import { findNearestIndex, getPageStep, getVisibleXValues } from "../chart-zoom/zoom-values";
 import { getFormatter } from "../formatters";
+import { Rect } from "../interfaces";
 import { ChartExtraContext } from "./chart-extra-context";
 
 import testClasses from "../test-classes/styles.css.js";
@@ -50,7 +46,6 @@ import testClasses from "../test-classes/styles.css.js";
 // How far the pointer must travel before a press is treated as a drag. Shorter movements are clicks, which
 // must not commit a zoom: in zoom mode a click sets a range boundary.
 const DRAG_THRESHOLD = 10;
-const BORDER_WIDTH = 1;
 
 export type ZoomControlsFocusTarget = Exclude<ZoomFocusTarget, "cursor">;
 
@@ -128,9 +123,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   // The range is reconciled on every render, because the x-axis can be replaced by any chart update.
   public onChartRender = () => {
     this.valuesStale = true;
-    const chart = this.context.chart();
-    this.applyExtremes(chart);
-    this.drawRange(chart);
+    this.reconcile(this.context.chart());
     if (!this.enabled) {
       return;
     }
@@ -162,7 +155,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     }
     if (chart) {
       this.applyContainerStyle(chart);
-      this.applyExtremes(chart);
+      this.reconcile(chart);
     }
     this.syncResetAnnouncement();
   };
@@ -252,11 +245,11 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   };
 
   private get enabled() {
-    return !!this.context.settings.zoom?.enabled;
+    return !!this.context.settings.zoomEnabled;
   }
 
   private get labels() {
-    return this.context.settings.zoom!.labels;
+    return this.context.settings.labels;
   }
 
   // The axis instance is replaced on chart updates, so it is always read from the chart.
@@ -272,7 +265,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   // A controlled reset is announced once the consumer applies it. LiveRegion only announces the same text again
   // once its content changed in between, so the reset announcement is cleared when the chart is zoomed again.
   private syncResetAnnouncement() {
-    const resetText = this.context.settings.zoom?.labels.zoomResetAnnouncementText ?? "";
+    const resetText = this.labels.zoomResetAnnouncementText ?? "";
     if (this.resetRequested && !this.getExtremes()) {
       this.resetRequested = false;
       this.announce(resetText);
@@ -286,6 +279,13 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       return null;
     }
     return this.controlled ? extremesFromRange(this.context.state.zoomRange) : this.localExtremes;
+  }
+
+  // Applies the zoom range to the chart and draws it. Runs on every chart render, and once more after a zoom prop
+  // change, when the context holds the new range.
+  private reconcile(chart: SafeChart) {
+    this.applyExtremes(chart);
+    this.drawRange(chart);
   }
 
   // The range is applied imperatively: Highcharts keeps the extremes set with setExtremes through chart updates,
@@ -383,7 +383,9 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
         }
         const min = Math.min(fromValue, toValue);
         const max = Math.max(fromValue, toValue);
-        this.announce(this.labels.zoomRangeChangeAnnouncementText(this.formatValue(min), this.formatValue(max)));
+        this.announce(
+          this.labels.zoomRangeChangeAnnouncementText?.(this.formatValue(min), this.formatValue(max)) ?? "",
+        );
         if (!this.controlled) {
           this.localExtremes = { min, max };
           this.applyExtremes(this.context.chart());
@@ -402,7 +404,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
         }
         this.localExtremes = null;
         this.applyExtremes(this.context.chart());
-        this.announce(this.labels.zoomResetAnnouncementText);
+        this.announce(this.labels.zoomResetAnnouncementText ?? "");
         // A reset requested through the API is not reported back to an uncontrolled chart's consumer.
         if (!effect.isApiCall) {
           fireNonCancelableEvent(this.context.handlers.onZoomRangeChange, { zoomRange: null });
@@ -415,18 +417,18 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     const values = this.getValues();
     switch (announcement.type) {
       case "zoomModeEntered":
-        return this.labels.zoomModeEnteredAnnouncementText(this.formatValue(values[announcement.index]));
+        return this.labels.zoomModeEnteredAnnouncementText?.(this.formatValue(values[announcement.index])) ?? "";
       case "startPointSet":
-        return this.labels.zoomStartPointAnnouncementText(this.formatValue(values[announcement.index]));
+        return this.labels.zoomStartPointAnnouncementText?.(this.formatValue(values[announcement.index])) ?? "";
       case "zoomModeExited":
-        return this.labels.zoomModeExitedAnnouncementText;
+        return this.labels.zoomModeExitedAnnouncementText ?? "";
     }
   }
 
   private moveFocus(target: ZoomFocusTarget) {
     if (target === "cursor") {
       this.cursorElement?.focus();
-    } else if (this.context.settings.zoom?.hideControls) {
+    } else if (this.context.settings.zoomControlsHidden) {
       this.handlers.onFocusChart();
     } else {
       // The buttons to focus are rendered by the controls component, often only as a result of this transition,
@@ -457,19 +459,10 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     const band = getBandRect(chart as Highcharts.Chart, xAxis, extremes.min, extremes.max);
     const start = getDividerRect(chart as Highcharts.Chart, xAxis, extremes.min);
     const end = getDividerRect(chart as Highcharts.Chart, xAxis, extremes.max);
-    this.svg.rangeBand.rect(chart.renderer, {
-      ...toSvgRect(band),
-      fill: colorBackgroundItemSelected,
-      zIndex: 0,
-      "pointer-events": "none",
-      class: testClasses["zoom-range"],
-    });
+    this.svg.rangeBand.rect(chart.renderer, { ...Styles.zoomRangeBand, ...band, class: testClasses["zoom-range"] });
     this.svg.rangeBorders.path(chart.renderer, {
+      ...Styles.zoomRangeBorders,
       d: [toSvgLine(start), toSvgLine(end)].join(" "),
-      stroke: colorBorderItemSelected,
-      "stroke-width": BORDER_WIDTH,
-      zIndex: 3,
-      "pointer-events": "none",
       class: testClasses["zoom-range-borders"],
     });
   }
@@ -518,23 +511,23 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       cursor.setAttribute(
         "aria-valuetext",
         anchorValue === null
-          ? this.labels.zoomCursorPositionAnnouncementText(this.formatValue(cursorValue))
-          : this.labels.zoomSelectionAnnouncementText(this.formatValue(anchorValue), this.formatValue(cursorValue)),
+          ? (this.labels.zoomCursorPositionAnnouncementText?.(this.formatValue(cursorValue)) ?? "")
+          : (this.labels.zoomSelectionAnnouncementText?.(
+              this.formatValue(anchorValue),
+              this.formatValue(cursorValue),
+            ) ?? ""),
       );
     }
   }
 
-  private drawSelection(chart: Highcharts.Chart, band: null | OverlayRect, dividers: OverlayRect[]) {
+  private drawSelection(chart: Highcharts.Chart, band: null | Rect, dividers: Rect[]) {
     this.svg.selectionBand.hide();
     this.svg.selectionStart.hide();
     this.svg.selectionEnd.hide();
     if (band) {
       this.svg.selectionBand.rect(chart.renderer, {
-        ...toSvgRect(band),
-        fill: colorBackgroundToggleButtonNormalPressed,
-        opacity: 0.5,
-        zIndex: 4,
-        "pointer-events": "none",
+        ...Styles.zoomSelectionBand,
+        ...band,
         class: testClasses["zoom-selection"],
       });
     }
@@ -544,13 +537,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       [this.svg.selectionEnd, end, testClasses["zoom-selection-end"]],
     ] as const) {
       if (rect) {
-        element.rect(chart.renderer, {
-          ...toSvgRect(rect),
-          fill: colorBorderItemSelected,
-          zIndex: 5,
-          "pointer-events": "none",
-          class: className,
-        });
+        element.rect(chart.renderer, { ...Styles.zoomSelectionDivider, ...rect, class: className });
       }
     }
   }
@@ -689,14 +676,10 @@ function extremesFromRange(zoomRange: undefined | null | ZoomRange): null | Zoom
   return x ? { min: Math.min(x.startValue, x.endValue), max: Math.max(x.startValue, x.endValue) } : null;
 }
 
-function toSvgRect({ left, top, width, height }: OverlayRect) {
-  return { x: left, y: top, width, height };
-}
-
-function toSvgLine({ left, top, width, height }: OverlayRect) {
+function toSvgLine({ x, y, width, height }: Rect) {
   return width <= height
-    ? `M ${left + width / 2} ${top} L ${left + width / 2} ${top + height}`
-    : `M ${left} ${top + height / 2} L ${left + width} ${top + height / 2}`;
+    ? `M ${x + width / 2} ${y} L ${x + width / 2} ${y + height}`
+    : `M ${x} ${y + height / 2} L ${x + width} ${y + height / 2}`;
 }
 
 // Movement across the axis does not change the range, and counting it would turn a shaky click into a drag.

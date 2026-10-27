@@ -3,14 +3,9 @@
 
 import type Highcharts from "highcharts";
 
-// Rectangles are expressed in physical pixels relative to the Highcharts container's top-left corner, matching
-// chart.plotLeft / plotTop / toPixels. Highcharts renders its SVG left-to-right regardless of page direction.
-export interface OverlayRect {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-}
+import { Rect } from "../interfaces";
+
+// The rectangles are in physical pixels relative to the chart, matching chart.plotLeft, plotTop, and toPixels.
 
 // Thickness of the cursor and boundary lines drawn over the plot, matching the chart's own cursor line.
 const DIVIDER_THICKNESS = 1;
@@ -44,38 +39,33 @@ export function isPixelForward(xAxis: Highcharts.Axis, values: readonly number[]
 }
 
 // A line across the plot at the given x value.
-export function getDividerRect(chart: Highcharts.Chart, xAxis: Highcharts.Axis, value: number): OverlayRect {
+export function getDividerRect(chart: Highcharts.Chart, xAxis: Highcharts.Axis, value: number): Rect {
   const pixel = valueToPixel(xAxis, value);
   return isXAxisHorizontal(xAxis)
     ? {
-        left: pixel - DIVIDER_THICKNESS / 2,
-        top: chart.plotTop,
+        x: pixel - DIVIDER_THICKNESS / 2,
+        y: chart.plotTop,
         width: DIVIDER_THICKNESS,
         height: chart.plotHeight,
       }
     : {
-        left: chart.plotLeft,
-        top: pixel - DIVIDER_THICKNESS / 2,
+        x: chart.plotLeft,
+        y: pixel - DIVIDER_THICKNESS / 2,
         width: chart.plotWidth,
         height: DIVIDER_THICKNESS,
       };
 }
 
 // The band covering the range between two x values, spanning the plot across the other dimension.
-export function getBandRect(
-  chart: Highcharts.Chart,
-  xAxis: Highcharts.Axis,
-  fromValue: number,
-  toValue: number,
-): OverlayRect {
+export function getBandRect(chart: Highcharts.Chart, xAxis: Highcharts.Axis, fromValue: number, toValue: number): Rect {
   const fromPixel = valueToPixel(xAxis, fromValue);
   const toPixel = valueToPixel(xAxis, toValue);
   const start = Math.min(fromPixel, toPixel);
   // A range of a single value still needs a visible band, hence the minimum of one pixel.
   const size = Math.max(1, Math.abs(toPixel - fromPixel));
   return isXAxisHorizontal(xAxis)
-    ? { left: start, top: chart.plotTop, width: size, height: chart.plotHeight }
-    : { left: chart.plotLeft, top: start, width: chart.plotWidth, height: size };
+    ? { x: start, y: chart.plotTop, width: size, height: chart.plotHeight }
+    : { x: chart.plotLeft, y: start, width: chart.plotWidth, height: size };
 }
 
 // The cursor button cluster, centered on the cursor and pinned to a plot edge: the bottom edge when the
@@ -86,20 +76,20 @@ export function getClusterRect(
   xAxis: Highcharts.Axis,
   value: number,
   clusterSize: { width: number; height: number },
-): OverlayRect {
+): Rect {
   const pixel = valueToPixel(xAxis, value);
   const { width, height } = clusterSize;
   if (isXAxisHorizontal(xAxis)) {
     return {
-      left: pixel - width / 2,
-      top: chart.plotTop + Math.max(0, chart.plotHeight - height - CLUSTER_OFFSET),
+      x: pixel - width / 2,
+      y: chart.plotTop + Math.max(0, chart.plotHeight - height - CLUSTER_OFFSET),
       width,
       height,
     };
   }
   return {
-    left: chart.plotLeft + CLUSTER_OFFSET,
-    top: pixel - height / 2,
+    x: chart.plotLeft + CLUSTER_OFFSET,
+    y: pixel - height / 2,
     width,
     height,
   };
@@ -123,7 +113,7 @@ export interface OverlayOrigin {
 
 // Positions the cursor elements imperatively, so that stepping the cursor or dragging causes no React render.
 // They are hidden with visibility rather than display, so that they keep a measurable size while hidden.
-export function applyRect(element: null | HTMLElement, rect: null | OverlayRect, origin: OverlayOrigin) {
+export function applyRect(element: null | HTMLElement, rect: null | Rect, origin: OverlayOrigin) {
   if (applyPosition(element, rect, origin) && element && rect) {
     element.style.width = `${rect.width}px`;
     element.style.height = `${rect.height}px`;
@@ -132,7 +122,7 @@ export function applyRect(element: null | HTMLElement, rect: null | OverlayRect,
 
 // Positions an element without constraining its size, used for the cursor button cluster, which is sized by
 // its contents.
-export function applyPosition(element: null | HTMLElement, rect: null | OverlayRect, origin: OverlayOrigin): boolean {
+export function applyPosition(element: null | HTMLElement, rect: null | Rect, origin: OverlayOrigin): boolean {
   if (!element) {
     return false;
   }
@@ -141,7 +131,7 @@ export function applyPosition(element: null | HTMLElement, rect: null | OverlayR
     return false;
   }
   element.style.visibility = "visible";
-  element.style.left = `${origin.left + rect.left}px`;
-  element.style.top = `${origin.top + rect.top}px`;
+  element.style.left = `${origin.left + rect.x}px`;
+  element.style.top = `${origin.top + rect.y}px`;
   return true;
 }

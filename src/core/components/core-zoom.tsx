@@ -12,9 +12,9 @@ import { colorBackgroundButtonPrimaryActive, colorBorderButtonPrimaryActive } fr
 
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
-import { ResolvedZoomI18n } from "../chart-zoom/zoom-i18n";
+import { ChartLabels } from "../i18n-utils";
 
-import styles from "../chart-zoom/styles.css.js";
+import styles from "../styles.css.js";
 import testClasses from "../test-classes/styles.css.js";
 
 const exitButtonStyle: ButtonProps.Style = {
@@ -32,7 +32,7 @@ const exitButtonStyle: ButtonProps.Style = {
   },
 };
 
-export function ChartZoomControls({ api, i18n }: { api: ChartAPI; i18n: ResolvedZoomI18n }) {
+export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: ChartLabels }) {
   const active = useSelector(api.zoomStore, (s) => s.interaction === "cursor");
   const zoomed = useSelector(api.zoomStore, (s) => s.zoomed);
   const canZoom = useSelector(api.zoomStore, (s) => s.canZoom);
@@ -55,7 +55,12 @@ export function ChartZoomControls({ api, i18n }: { api: ChartAPI; i18n: Resolved
   }, [api, focusRequest]);
 
   return (
-    <div ref={api.setZoomControls} role="region" aria-label={i18n.zoomControlsAriaLabel} className={styles.controls}>
+    <div
+      ref={api.setZoomControls}
+      role="region"
+      aria-label={labels.zoomControlsAriaLabel}
+      className={styles["chart-zoom-controls"]}
+    >
       <SpaceBetween size="s" direction="horizontal">
         {zoomed && !active && (
           <Button
@@ -71,10 +76,10 @@ export function ChartZoomControls({ api, i18n }: { api: ChartAPI; i18n: Resolved
                 api.focusChart();
               }
             }}
-            ariaLabel={i18n.resetZoomButtonAriaLabel}
+            ariaLabel={labels.resetZoomButtonAriaLabel}
             className={testClasses["reset-zoom-button"]}
           >
-            {i18n.resetZoomButtonText}
+            {labels.resetZoomButtonText}
           </Button>
         )}
         {!active ? (
@@ -84,10 +89,10 @@ export function ChartZoomControls({ api, i18n }: { api: ChartAPI; i18n: Resolved
             formAction="none"
             disabled={!canZoom}
             onClick={() => api.enterZoomMode()}
-            ariaLabel={i18n.enterZoomModeButtonAriaLabel}
+            ariaLabel={labels.enterZoomModeButtonAriaLabel}
             className={testClasses["zoom-button"]}
           >
-            {i18n.enterZoomModeButtonText}
+            {labels.enterZoomModeButtonText}
           </Button>
         ) : (
           <Button
@@ -95,10 +100,10 @@ export function ChartZoomControls({ api, i18n }: { api: ChartAPI; i18n: Resolved
             formAction="none"
             style={exitButtonStyle}
             onClick={() => api.exitZoomMode({ withFocus: true })}
-            ariaLabel={i18n.exitZoomModeButtonAriaLabel}
+            ariaLabel={labels.exitZoomModeButtonAriaLabel}
             className={testClasses["exit-zoom-button"]}
           >
-            {i18n.exitZoomModeButtonText}
+            {labels.exitZoomModeButtonText}
           </Button>
         )}
       </SpaceBetween>
@@ -109,12 +114,12 @@ export function ChartZoomControls({ api, i18n }: { api: ChartAPI; i18n: Resolved
 // The keyboard cursor and its step buttons, positioned over the plot by the zoom helper.
 export function ChartZoomCursor({
   api,
-  i18n,
+  labels,
   inverted,
   isRtl,
 }: {
   api: ChartAPI;
-  i18n: ResolvedZoomI18n;
+  labels: ChartLabels;
   inverted: boolean;
   isRtl: boolean;
 }) {
@@ -124,9 +129,13 @@ export function ChartZoomCursor({
         ref={api.setZoomCursor}
         role="slider"
         tabIndex={0}
-        aria-label={i18n.zoomCursorAriaLabel}
+        aria-label={labels.zoomCursorAriaLabel}
         aria-orientation={inverted ? "vertical" : "horizontal"}
-        className={clsx(styles.cursor, inverted && styles["cursor-vertical"], testClasses["zoom-cursor"])}
+        className={clsx(
+          styles["chart-zoom-cursor"],
+          inverted && styles["chart-zoom-cursor-vertical"],
+          testClasses["zoom-cursor"],
+        )}
         onKeyDown={api.onZoomCursorKeyDown}
         onBlur={api.onZoomCursorBlur}
       />
@@ -134,17 +143,17 @@ export function ChartZoomCursor({
         ref={api.setZoomCluster}
         // The buttons follow the plot's physical orientation, not the page's.
         style={{ flexDirection: inverted ? "column" : isRtl ? "row-reverse" : "row" }}
-        className={styles.cluster}
+        className={styles["chart-zoom-cluster"]}
       >
         <ZoomCursorButton
           iconName={stepIconName(-1, inverted, isRtl)}
-          ariaLabel={i18n.zoomCursorPreviousButtonAriaLabel}
+          ariaLabel={labels.zoomCursorPreviousButtonAriaLabel}
           testClassName={testClasses["zoom-cursor-previous-button"]}
           onClick={() => api.stepZoomCursor(-1)}
         />
         <ZoomCursorButton
           iconName={stepIconName(1, inverted, isRtl)}
-          ariaLabel={i18n.zoomCursorNextButtonAriaLabel}
+          ariaLabel={labels.zoomCursorNextButtonAriaLabel}
           testClassName={testClasses["zoom-cursor-next-button"]}
           onClick={() => api.stepZoomCursor(1)}
         />
@@ -165,7 +174,7 @@ function ZoomCursorButton({
   onClick,
 }: {
   iconName: IconProps.Name;
-  ariaLabel: string;
+  ariaLabel?: string;
   testClassName: string;
   onClick: () => void;
 }) {
@@ -175,7 +184,7 @@ function ZoomCursorButton({
       // The cursor slider is the tab stop and offers the same actions. Tabbing here would end zoom mode.
       tabIndex={-1}
       aria-label={ariaLabel}
-      className={clsx(styles.button, testClassName)}
+      className={clsx(styles["chart-zoom-cursor-button"], testClassName)}
       onClick={onClick}
       // Keep the press from moving focus off the cursor, which would end zoom mode.
       onPointerDown={(event) => event.preventDefault()}

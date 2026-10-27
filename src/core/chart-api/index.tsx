@@ -62,11 +62,11 @@ export function useChartAPI(
     }
   }, [api, visibleItemsIndex]);
 
-  // The zoom range is applied imperatively, so the helper is notified when the zoom settings or the controlled
-  // range change. The range is compared by value.
+  // The chart re-renders from a layout effect, before the effect above updates the context, so it is drawn with
+  // the previous zoom range. The zoom is reconciled again here, once the context holds the new one. The range is
+  // compared by value.
   const zoomIndex = [
-    settings.zoom?.enabled,
-    settings.zoom?.hideControls,
+    settings.zoomEnabled,
     state.zoomRange === undefined
       ? "uncontrolled"
       : `${state.zoomRange?.x?.startValue}:${state.zoomRange?.x?.endValue}`,
