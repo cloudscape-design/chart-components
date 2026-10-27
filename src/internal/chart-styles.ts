@@ -5,6 +5,8 @@ import type Highcharts from "highcharts";
 
 import {
   colorBackgroundContainerContent,
+  colorBackgroundItemSelected,
+  colorBorderItemSelected,
   colorChartsLineTick,
   colorChartsPaletteCategorical1,
   colorChartsPaletteCategorical2,
@@ -148,6 +150,19 @@ export const navigationFocusOutline = {
 export const cursorLine = {
   fill: colorChartsLineTick,
   zIndex: 5,
+  "pointer-events": "none",
+};
+
+export const zoomRangeBand = {
+  fill: colorBackgroundItemSelected,
+  zIndex: 0,
+  "pointer-events": "none",
+};
+
+export const zoomRangeBorders = {
+  stroke: colorBorderItemSelected,
+  "stroke-width": 1,
+  zIndex: 3,
   "pointer-events": "none",
 };
 

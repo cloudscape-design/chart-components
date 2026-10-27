@@ -62,11 +62,11 @@ export function useChartAPI(
     }
   }, [api, visibleItemsIndex]);
 
-  // The zoom range is applied imperatively, so the helper is notified when the zoom settings or the controlled
-  // range change. The range is compared by value.
+  // The chart re-renders from a layout effect, before the effect above updates the context, so it is drawn with
+  // the previous zoom range. The zoom is reconciled again here, once the context holds the new one. The range is
+  // compared by value.
   const zoomIndex = [
-    settings.zoom?.enabled,
-    settings.zoom?.hideControls,
+    settings.zoomEnabled,
     state.zoomRange === undefined
       ? "uncontrolled"
       : `${state.zoomRange?.x?.startValue}:${state.zoomRange?.x?.endValue}`,
@@ -205,12 +205,13 @@ export class ChartAPI {
     }
   };
 
-  // Moves focus to the chart, when keyboard navigation is enabled.
-  public focusChart = () => this.chartExtraNavigation.focusChartApplication();
-
   // Zoom interactions, used by the zoom controls component.
   public onZoomPropsChange = () => this.chartExtraZoom.onZoomPropsChange();
-  public resetZoom = () => this.chartExtraZoom.resetZoom();
+  public resetZoom = () => {
+    this.chartExtraZoom.resetZoom();
+    // The Reset button is removed once the reset is applied, so focus moves to the chart as it is pressed.
+    this.chartExtraNavigation.focusChartApplication();
+  };
 
   // Hide the tooltip from an action initiated by the tooltip's content
   public hideTooltip = () => {

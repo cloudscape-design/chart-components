@@ -6,30 +6,26 @@ import LiveRegion from "@cloudscape-design/components/live-region";
 
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
-import { ResolvedZoomI18n } from "../chart-zoom/zoom-i18n";
+import { ChartLabels } from "../i18n-utils";
 
-import styles from "../chart-zoom/styles.css.js";
+import styles from "../styles.css.js";
 import testClasses from "../test-classes/styles.css.js";
 
-export function ChartZoomControls({ api, i18n }: { api: ChartAPI; i18n: ResolvedZoomI18n }) {
+export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: ChartLabels }) {
   const zoomed = useSelector(api.zoomStore, (s) => s.zoomed);
   if (!zoomed) {
     return null;
   }
   return (
-    <div role="region" aria-label={i18n.zoomControlsAriaLabel} className={styles.controls}>
+    <div role="region" aria-label={labels.zoomControlsAriaLabel} className={styles["chart-zoom-controls"]}>
       <Button
         variant="link"
         formAction="none"
-        onClick={() => {
-          api.resetZoom();
-          // The Reset button is removed once the reset is applied, so focus moves to the chart as it is pressed.
-          api.focusChart();
-        }}
-        ariaLabel={i18n.resetZoomButtonAriaLabel}
+        onClick={api.resetZoom}
+        ariaLabel={labels.resetZoomButtonAriaLabel}
         className={testClasses["reset-zoom-button"]}
       >
-        {i18n.resetZoomButtonText}
+        {labels.resetZoomButtonText}
       </Button>
     </div>
   );

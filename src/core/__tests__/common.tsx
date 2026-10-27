@@ -6,6 +6,8 @@ import { fireEvent, render } from "@testing-library/react";
 
 import { ButtonWrapper } from "@cloudscape-design/components/test-utils/dom";
 
+import "@cloudscape-design/components/test-utils/dom";
+import { InternalZoomProps } from "../../../lib/components/core/chart-zoom/interfaces";
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
 import { fireNonCancelableEvent } from "../../../lib/components/internal/events";
@@ -20,10 +22,14 @@ export class ExtendedTestWrapper extends CoreChartWrapper {
   findResetZoomButton = () => this.findComponent(`.${testClasses["reset-zoom-button"]}`, ButtonWrapper);
 }
 
-export function StatefulChart(props: CoreChartProps) {
+// The core chart accepts the internal zoom properties, which are not part of its public interface yet.
+const CoreChartWithZoom = CoreChart as React.ComponentType<CoreChartProps & InternalZoomProps>;
+
+export function StatefulChart(props: CoreChartProps & InternalZoomProps) {
   const [visibleItems, setVisibleItems] = useState<readonly string[]>(props.visibleItems ?? []);
+  const [zoomRange, setZoomRange] = useState(props.zoomRange);
   return (
-    <CoreChart
+    <CoreChartWithZoom
       {...props}
       visibleItems={visibleItems}
       onVisibleItemsChange={({ detail }) => {
@@ -31,17 +37,26 @@ export function StatefulChart(props: CoreChartProps) {
         setVisibleItems(visibleItems);
         fireNonCancelableEvent(props.onVisibleItemsChange, detail);
       }}
+      zoomRange={zoomRange}
+      onZoomRangeChange={({ detail }) => {
+        setZoomRange(detail.zoomRange);
+        fireNonCancelableEvent(props.onZoomRangeChange, detail);
+      }}
     />
   );
 }
 
-export type CoreChartTestProps = Partial<CoreChartProps> & {
-  onLegendItemHighlight?: () => void;
-  i18nProvider?: Record<string, Record<string, string>>;
-};
+export type CoreChartTestProps = Partial<CoreChartProps> &
+  InternalZoomProps & {
+    onLegendItemHighlight?: () => void;
+    i18nProvider?: Record<string, Record<string, string>>;
+  };
 
-export function renderChart({ i18nProvider, ...props }: CoreChartTestProps, Component = CoreChart) {
-  const ComponentWrapper = (props: CoreChartProps) => {
+export function renderChart(
+  { i18nProvider, ...props }: CoreChartTestProps,
+  Component: React.ComponentType<CoreChartProps & InternalZoomProps> = CoreChartWithZoom,
+) {
+  const ComponentWrapper = (props: CoreChartProps & InternalZoomProps) => {
     return i18nProvider ? (
       <TestI18nProvider messages={i18nProvider}>
         <Component options={{}} {...props} />

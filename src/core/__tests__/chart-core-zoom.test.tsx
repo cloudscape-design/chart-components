@@ -1,17 +1,16 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { act, ComponentType, useState } from "react";
+import { act } from "react";
 import { render } from "@testing-library/react";
+import type Highcharts from "highcharts";
 import highcharts from "highcharts";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
 import "highcharts/highcharts-more";
-import { InternalZoomProps, ZoomRange } from "../../../lib/components/core/chart-zoom/interfaces";
+import { ZoomRange } from "../../../lib/components/core/chart-zoom/interfaces";
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
-import { TestI18nProvider } from "../../../lib/components/internal/utils/test-i18n-provider";
-import CoreChart from "../../../lib/components/internal-do-not-use/core-chart";
-import { createChartWrapper } from "./common";
+import { CoreChartTestProps, createChartWrapper, renderChart, renderStatefulChart, StatefulChart } from "./common";
 import { stubPlotGeometry } from "./plot-geometry";
 
 import testClasses from "../../../lib/components/core/test-classes/styles.selectors.js";
@@ -19,9 +18,6 @@ import testClasses from "../../../lib/components/core/test-classes/styles.select
 const TEST_TIMEOUT = 15_000;
 
 stubPlotGeometry();
-
-const ZoomCoreChart = CoreChart as ComponentType<CoreChartProps & InternalZoomProps>;
-type ZoomChartProps = Partial<CoreChartProps> & InternalZoomProps;
 
 const series: CoreChartProps.ChartOptions["series"] = [
   {
@@ -48,13 +44,6 @@ const series: CoreChartProps.ChartOptions["series"] = [
   },
 ];
 
-const defaultProps: ZoomChartProps = {
-  highcharts,
-  ariaLabel: "Chart",
-  options: { series, xAxis: { min: 0, max: 4 } },
-  zoom: { enabled: true },
-};
-
 const zoomMessages = {
   "[charts]": {
     "i18nStrings.resetZoomButtonText": "Reset",
@@ -64,6 +53,14 @@ const zoomMessages = {
   },
 };
 
+const defaultProps: CoreChartTestProps = {
+  highcharts,
+  i18nProvider: zoomMessages,
+  ariaLabel: "Chart",
+  options: { series, xAxis: { min: 0, max: 4 } },
+  zoom: { enabled: true },
+};
+
 const zoomedRange: ZoomRange = { x: { startValue: 1, endValue: 3 } };
 const onZoomRangeChange = vi.fn();
 
@@ -71,30 +68,12 @@ afterEach(() => {
   onZoomRangeChange.mockReset();
 });
 
-function renderZoomChart(props: ZoomChartProps, i18nProvider: Record<string, Record<string, string>> = zoomMessages) {
-  const element = (props: ZoomChartProps) => (
-    <TestI18nProvider messages={i18nProvider}>
-      <ZoomCoreChart options={{}} {...props} />
-    </TestI18nProvider>
-  );
-  const { rerender } = render(element(props));
-  return { wrapper: createChartWrapper(), rerender: (props: ZoomChartProps) => rerender(element(props)) };
+// The resolved zoom settings and the deprecated zoomType are not covered by the Highcharts types.
+function getNativeZoom() {
+  return (getCurrentChart() as unknown as { zooming: Highcharts.ChartZoomingOptions }).zooming;
 }
 
-function StatefulZoomChart({ initialRange, ...props }: ZoomChartProps & { initialRange: null | ZoomRange }) {
-  const [zoomRange, setZoomRange] = useState(initialRange);
-  return (
-    <ZoomCoreChart
-      options={{}}
-      {...props}
-      zoomRange={zoomRange}
-      onZoomRangeChange={(event) => {
-        setZoomRange(event.detail.zoomRange);
-        props.onZoomRangeChange?.(event);
-      }}
-    />
-  );
-}
+const deprecatedZoomType = { zoomType: "x", pinchType: "x" } as Highcharts.ChartOptions;
 
 function getCurrentChart() {
   return [...highcharts.charts].reverse().find((c) => c)!;
@@ -135,14 +114,14 @@ function getZoomRangeAffordance() {
 
 describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
   test("ignores the zoom range when zoom is not enabled", () => {
-    const { wrapper } = renderZoomChart({ ...defaultProps, zoom: undefined, zoomRange: zoomedRange });
+    const { wrapper } = renderChart({ ...defaultProps, zoom: undefined, zoomRange: zoomedRange });
     expect(getXExtremes()).toEqual({ min: 0, max: 4 });
     expect(getZoomRangeAffordance().present).toBe(false);
     expect(wrapper.findResetZoomButton()).toBe(null);
   });
 
   test("applies the zoom range and marks it with a band and boundary lines", () => {
-    const { wrapper, rerender } = renderZoomChart({ ...defaultProps, zoomRange: null });
+    const { wrapper, rerender } = renderChart({ ...defaultProps, zoomRange: null });
     expect(getXExtremes()).toEqual({ min: 0, max: 4 });
     expect(getZoomRangeAffordance().present).toBe(false);
     expect(wrapper.findResetZoomButton()).toBe(null);
@@ -160,13 +139,13 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
   });
 
   test("normalizes a zoom range given from the higher to the lower value", () => {
-    renderZoomChart({ ...defaultProps, zoomRange: { x: { startValue: 3, endValue: 1 } } });
+    renderChart({ ...defaultProps, zoomRange: { x: { startValue: 3, endValue: 1 } } });
     expect(getXExtremes()).toEqual({ min: 1, max: 3 });
     expect(getZoomRangeAffordance().band).toEqual({ from: 1, to: 3 });
   });
 
   test("keeps the consumer x-axis plot lines and bands while zoomed", () => {
-    renderZoomChart({
+    renderChart({
       ...defaultProps,
       options: {
         series,
@@ -179,7 +158,7 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
 
   test("does not dim the zoomed range when a series is highlighted", () => {
     let chartApi: CoreChartProps.ChartAPI | null = null;
-    renderZoomChart({
+    renderChart({
       ...defaultProps,
       options: { series, xAxis: { min: 0, max: 4, plotLines: [{ id: "L2", value: 2 }] } },
       zoomRange: zoomedRange,
@@ -198,9 +177,9 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
   });
 
   test("allows a zoom range of two adjacent points without explicit axis bounds", () => {
-    renderZoomChart({
+    renderChart({
       ...defaultProps,
-      options: { series: series.map((s) => ({ ...s, type: "column" as const })), xAxis: {} },
+      options: { series: [{ type: "column", name: "C1", data: [10, 20, 30, 25, 40] }], xAxis: {} },
       zoomRange: { x: { startValue: 1, endValue: 2 } },
     });
     expect(getXExtremes()).toEqual({ min: 1, max: 2 });
@@ -208,7 +187,7 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
 
   test("restores the consumer x-axis options when zoom is disabled", () => {
     const options = { series, xAxis: { min: 0, max: 4, plotLines: [{ id: "line", value: 2 }] } };
-    const { wrapper, rerender } = renderZoomChart({ ...defaultProps, options, zoomRange: zoomedRange });
+    const { wrapper, rerender } = renderChart({ ...defaultProps, options, zoomRange: zoomedRange });
     expect(getXExtremes()).toEqual({ min: 1, max: 3 });
 
     rerender({ ...defaultProps, options, zoom: { enabled: false }, zoomRange: zoomedRange });
@@ -219,7 +198,7 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
   });
 
   test("ignores the zoom when the chart declares no x-axis", () => {
-    const { wrapper } = renderZoomChart({ ...defaultProps, options: { series }, zoomRange: zoomedRange });
+    const { wrapper } = renderChart({ ...defaultProps, options: { series }, zoomRange: zoomedRange });
     const { min, max } = getXExtremes();
     expect(min).toBeLessThanOrEqual(0);
     expect(max).toBeGreaterThanOrEqual(4);
@@ -228,7 +207,7 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
   });
 
   test("ignores the zoom while the x-axes are removed, and applies it again once they are back", () => {
-    const { wrapper, rerender } = renderZoomChart({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
+    const { wrapper, rerender } = renderChart({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
     expect(getXExtremes()).toEqual({ min: 1, max: 3 });
 
     rerender({ ...defaultProps, options: { series, xAxis: [] }, zoomRange: zoomedRange, onZoomRangeChange });
@@ -249,7 +228,7 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
         { id: "second", min: 0, max: 4 },
       ],
     };
-    const { rerender } = renderZoomChart({ ...defaultProps, options, zoomRange: zoomedRange });
+    const { rerender } = renderChart({ ...defaultProps, options, zoomRange: zoomedRange });
     expect(getXExtremes()).toEqual({ min: 1, max: 3 });
 
     rerender({
@@ -262,7 +241,7 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
   });
 
   test("leaves x-axis extremes it did not apply to the consumer", () => {
-    renderZoomChart({ ...defaultProps, zoom: undefined });
+    renderChart({ ...defaultProps, zoom: undefined });
     act(() => getCurrentChart().xAxis[0].setExtremes(2, 3));
     act(() => getCurrentChart().redraw());
     expect(getXExtremes()).toEqual({ min: 2, max: 3 });
@@ -271,7 +250,7 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
   test("keeps the global x-axis minRange and error bar placement when zoom is not enabled", () => {
     highcharts.setOptions({ xAxis: { minRange: 3 }, plotOptions: { series: { pointPlacement: "on" } } });
     try {
-      renderZoomChart({ ...defaultProps, zoom: undefined, options: { ...defaultProps.options, xAxis: {} } });
+      renderChart({ ...defaultProps, zoom: undefined, options: { ...defaultProps.options, xAxis: {} } });
       const chart = getCurrentChart();
       expect(chart.xAxis[0].options.minRange).toBe(3);
       expect(chart.options.plotOptions?.errorbar?.pointPlacement).toBe("on");
@@ -281,7 +260,7 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
   });
 
   test("keeps the consumer error bar placement from the series plot options when zoom is not enabled", () => {
-    renderZoomChart({
+    renderChart({
       ...defaultProps,
       zoom: undefined,
       options: { ...defaultProps.options, plotOptions: { series: { pointPlacement: "between" } } },
@@ -289,13 +268,62 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
     expect(getCurrentChart().options.plotOptions?.errorbar?.pointPlacement).toBe("between");
   });
 
+  test("gives the global error bar placement precedence over the chart's series placement", () => {
+    highcharts.setOptions({ plotOptions: { errorbar: { pointPlacement: "between" } } });
+    try {
+      renderChart({
+        ...defaultProps,
+        zoom: undefined,
+        options: { ...defaultProps.options, plotOptions: { series: { pointPlacement: "on" } } },
+      });
+      expect(getCurrentChart().options.plotOptions?.errorbar?.pointPlacement).toBe("between");
+    } finally {
+      highcharts.setOptions({ plotOptions: { errorbar: { pointPlacement: undefined } } });
+    }
+  });
+
+  test("marks the zoomed range when zoom is enabled on an axis already showing that range", () => {
+    const { rerender } = renderChart({
+      ...defaultProps,
+      zoom: undefined,
+      zoomRange: { x: { startValue: 1, endValue: 3 } },
+    });
+    act(() => getCurrentChart().xAxis[0].setExtremes(1, 3));
+    rerender({
+      ...defaultProps,
+      zoom: { enabled: true, hideZoomControls: true },
+      zoomRange: { x: { startValue: 1, endValue: 3 } },
+    });
+    expect(document.querySelector(`.${testClasses["zoom-range"]}`)).not.toBe(null);
+  });
+
+  test("gives back the global Highcharts drag-to-zoom when zoom is disabled", () => {
+    highcharts.setOptions({ chart: { zooming: { type: "x" } } });
+    try {
+      const { rerender } = renderChart({ ...defaultProps });
+      expect(getNativeZoom().type).toBeUndefined();
+      rerender({ ...defaultProps, zoom: undefined });
+      expect(getNativeZoom().type).toBe("x");
+    } finally {
+      highcharts.setOptions({ chart: { zooming: { type: undefined } } });
+    }
+  });
+
+  test("gives back the consumer's deprecated zoomType when zoom is disabled", () => {
+    const options = { ...defaultProps.options, chart: deprecatedZoomType };
+    const { rerender } = renderChart({ ...defaultProps, options });
+    expect(getNativeZoom().type).toBeUndefined();
+    rerender({ ...defaultProps, options, zoom: undefined });
+    expect(getNativeZoom().type).toBe("x");
+  });
+
   test("keeps the x-axis minRange declared by the consumer", () => {
-    renderZoomChart({ ...defaultProps, options: { series, xAxis: { min: 0, max: 4, minRange: 3 } } });
+    renderChart({ ...defaultProps, options: { series, xAxis: { min: 0, max: 4, minRange: 3 } } });
     expect(getCurrentChart().xAxis[0].options.minRange).toBe(3);
   });
 
   test("turns off the Highcharts drag-to-zoom and pinch-to-zoom while zoom is enabled", () => {
-    renderZoomChart({
+    renderChart({
       ...defaultProps,
       options: { ...defaultProps.options, chart: { zooming: { type: "x", pinchType: "x" } } },
     });
@@ -304,17 +332,16 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
   });
 
   test("turns off the deprecated Highcharts zoomType and pinchType while zoom is enabled", () => {
-    renderZoomChart({
+    renderChart({
       ...defaultProps,
-      options: { ...defaultProps.options, chart: { zoomType: "x", pinchType: "x" } },
+      options: { ...defaultProps.options, chart: deprecatedZoomType },
     });
-    const chart = getCurrentChart();
-    expect(chart.zooming.type).toBeUndefined();
-    expect(chart.zooming.pinchType).toBeUndefined();
+    expect(getNativeZoom().type).toBeUndefined();
+    expect(getNativeZoom().pinchType).toBeUndefined();
   });
 
   test("keeps the Highcharts drag-to-zoom of the consumer when zoom is not enabled", () => {
-    renderZoomChart({
+    renderChart({
       ...defaultProps,
       zoom: undefined,
       options: { ...defaultProps.options, chart: { zooming: { type: "x" } } },
@@ -325,7 +352,7 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
 
 describe("CoreChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
   test("renders the controls before the plot, leaving the navigator slot to the consumer", () => {
-    const { wrapper } = renderZoomChart({
+    const { wrapper } = renderChart({
       ...defaultProps,
       zoomRange: zoomedRange,
       navigator: <div>Custom navigator</div>,
@@ -342,7 +369,7 @@ describe("CoreChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
   });
 
   test("hides the Reset button with hideZoomControls", () => {
-    const { wrapper } = renderZoomChart({
+    const { wrapper } = renderChart({
       ...defaultProps,
       zoom: { enabled: true, hideZoomControls: true },
       zoomRange: zoomedRange,
@@ -352,7 +379,7 @@ describe("CoreChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
   });
 
   test("the Reset button asks the consumer to show the full range, and leaves the range to the consumer", () => {
-    const { wrapper } = renderZoomChart({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
+    const { wrapper } = renderChart({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
     wrapper.findResetZoomButton()!.click();
 
     expect(onZoomRangeChange).toHaveBeenCalledTimes(1);
@@ -361,12 +388,7 @@ describe("CoreChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
   });
 
   test("resets the zoom, announces it, and moves focus to the chart", () => {
-    render(
-      <TestI18nProvider messages={zoomMessages}>
-        <StatefulZoomChart {...defaultProps} initialRange={zoomedRange} onZoomRangeChange={onZoomRangeChange} />
-      </TestI18nProvider>,
-    );
-    const wrapper = createChartWrapper();
+    const { wrapper } = renderStatefulChart({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
     wrapper.findResetZoomButton()!.focus();
     wrapper.findResetZoomButton()!.click();
 
@@ -378,7 +400,7 @@ describe("CoreChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
   });
 
   test("moves focus to the chart as soon as Reset is pressed", () => {
-    const { wrapper } = renderZoomChart({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
+    const { wrapper } = renderChart({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
     wrapper.findResetZoomButton()!.focus();
     wrapper.findResetZoomButton()!.click();
 
@@ -391,9 +413,13 @@ describe("CoreChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
     form.addEventListener("submit", onSubmit);
     document.body.appendChild(form);
     render(
-      <TestI18nProvider messages={zoomMessages}>
-        <ZoomCoreChart options={{}} {...defaultProps} zoomRange={zoomedRange} onZoomRangeChange={onZoomRangeChange} />
-      </TestI18nProvider>,
+      <StatefulChart
+        highcharts={highcharts}
+        options={{ series, xAxis: { min: 0, max: 4 } }}
+        zoom={{ enabled: true }}
+        zoomRange={zoomedRange}
+        onZoomRangeChange={onZoomRangeChange}
+      />,
       { container: form },
     );
 
@@ -405,7 +431,7 @@ describe("CoreChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
   });
 
   test("announces the reset only once the consumer applies it, and again on the next reset", () => {
-    const { wrapper, rerender } = renderZoomChart({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
+    const { wrapper, rerender } = renderChart({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
     const announcement = "Zoom reset. Showing the full data range.";
 
     wrapper.findResetZoomButton()!.click();
@@ -425,16 +451,17 @@ describe("CoreChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
   });
 
   test("resolves the zoom strings from the I18nProvider", () => {
-    const { wrapper } = renderZoomChart(
-      { ...defaultProps, zoomRange: zoomedRange },
-      {
+    const { wrapper } = renderChart({
+      ...defaultProps,
+      zoomRange: zoomedRange,
+      i18nProvider: {
         "[charts]": {
           "i18nStrings.resetZoomButtonText": "provider: reset",
           "i18nStrings.resetZoomButtonAriaLabel": "provider: reset label",
           "i18nStrings.zoomControlsAriaLabel": "provider: controls",
         },
       },
-    );
+    });
     const resetButton = wrapper.findResetZoomButton()!.getElement();
     expect(resetButton).toHaveTextContent("provider: reset");
     expect(resetButton).toHaveAttribute("aria-label", "provider: reset label");
@@ -442,7 +469,7 @@ describe("CoreChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
   });
 
   test("falls back to empty strings without I18nProvider messages", () => {
-    const { wrapper } = renderZoomChart({ ...defaultProps, zoomRange: zoomedRange }, {});
+    const { wrapper } = renderChart({ ...defaultProps, zoomRange: zoomedRange, i18nProvider: {} });
     const resetButton = wrapper.findResetZoomButton()!.getElement();
     expect(resetButton.textContent).toBe("");
     expect(resetButton.closest('[role="region"]')!.getAttribute("aria-label") ?? "").toBe("");
@@ -452,7 +479,7 @@ describe("CoreChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
 describe("CoreChart: zoom with error bars", { timeout: TEST_TIMEOUT }, () => {
   function renderErrorBarsOn(parentType: "line" | "column") {
     const data = [0, 10, 20, 30, 40].map((x) => ({ x, y: x + 10 }));
-    renderZoomChart({
+    renderChart({
       ...defaultProps,
       options: {
         xAxis: {},
@@ -489,7 +516,7 @@ describe("CoreChart: zoom with error bars", { timeout: TEST_TIMEOUT }, () => {
       ],
     };
     const getOffset = () => (getCurrentChart().xAxis[0] as unknown as { minPointOffset: number }).minPointOffset;
-    const { rerender } = renderZoomChart({ ...defaultProps, options });
+    const { rerender } = renderChart({ ...defaultProps, options });
     expect(getOffset()).toBe(0);
 
     rerender({ ...defaultProps, options, zoom: undefined });

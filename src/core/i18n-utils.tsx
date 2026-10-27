@@ -14,6 +14,10 @@ export interface ChartLabels {
   chartYAxisLabel?: string;
   chartSegmentLabel?: string;
   itemMarkerLabel?: (status?: ChartSeriesMarkerStatus) => string | undefined;
+  resetZoomButtonText?: string;
+  resetZoomButtonAriaLabel?: string;
+  zoomControlsAriaLabel?: string;
+  zoomResetAnnouncementText?: string;
 }
 
 export function useChartI18n({
@@ -27,6 +31,8 @@ export function useChartI18n({
 }): ChartLabels {
   const i18n = useInternalI18n("[charts]");
   const i18nPie = useInternalI18n("pie-chart");
+  // The zoom messages are not part of the typed "[charts]" namespace of the components package yet.
+  const i18nZoom = i18n as unknown as (key: string, value: undefined) => undefined | string;
   return {
     chartLabel: ariaLabel,
     chartDescription: ariaDescription,
@@ -36,6 +42,10 @@ export function useChartI18n({
     chartXAxisLabel: i18n("i18nStrings.xAxisAriaRoleDescription", i18nStrings?.xAxisRoleDescription),
     chartYAxisLabel: i18n("i18nStrings.yAxisAriaRoleDescription", i18nStrings?.yAxisRoleDescription),
     chartSegmentLabel: i18nPie("i18nStrings.segmentAriaRoleDescription", i18nStrings?.segmentRoleDescription),
+    resetZoomButtonText: i18nZoom("i18nStrings.resetZoomButtonText", undefined),
+    resetZoomButtonAriaLabel: i18nZoom("i18nStrings.resetZoomButtonAriaLabel", undefined),
+    zoomControlsAriaLabel: i18nZoom("i18nStrings.zoomControlsAriaLabel", undefined),
+    zoomResetAnnouncementText: i18nZoom("i18nStrings.zoomResetAnnouncementText", undefined),
     itemMarkerLabel: (status = "default") => {
       switch (status) {
         case "warning":

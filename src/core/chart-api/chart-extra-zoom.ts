@@ -3,19 +3,17 @@
 
 import type Highcharts from "highcharts";
 
-import { colorBackgroundItemSelected, colorBorderItemSelected } from "@cloudscape-design/design-tokens";
-
+import * as Styles from "../../internal/chart-styles";
 import { fireNonCancelableEvent } from "../../internal/events";
 import AsyncStore from "../../internal/utils/async-store";
 import { SafeChart } from "../../internal/utils/highcharts";
 import { SVGRendererSingle } from "../../internal/utils/renderer-utils";
 import { ZoomRange } from "../chart-zoom/interfaces";
-import { getBandRect, getDividerRect, OverlayRect } from "../chart-zoom/zoom-geometry";
+import { getBandRect, getDividerRect } from "../chart-zoom/zoom-geometry";
+import { Rect } from "../interfaces";
 import { ChartExtraContext } from "./chart-extra-context";
 
 import testClasses from "../test-classes/styles.css.js";
-
-const BORDER_WIDTH = 1;
 
 // The reactive state is used to propagate changes to the zoom controls and announcer components.
 export interface ReactiveZoomState {
@@ -43,9 +41,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
 
   // The range is reconciled on every render, because the x-axis can be replaced by any chart update.
   public onChartRender = () => {
-    const chart = this.context.chart();
-    this.applyExtremes(chart);
-    this.drawRange(chart);
+    this.reconcile(this.context.chart());
   };
 
   public onChartDestroy = () => {
@@ -56,7 +52,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   public onZoomPropsChange = () => {
     const chart = this.context.chartOrNull;
     if (chart) {
-      this.applyExtremes(chart);
+      this.reconcile(chart);
     }
     this.syncResetAnnouncement();
   };
@@ -72,7 +68,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   // A controlled reset is announced once the consumer applies it. LiveRegion only announces the same text again
   // once its content changed in between, so the reset announcement is cleared when the chart is zoomed again.
   private syncResetAnnouncement() {
-    const resetText = this.context.settings.zoom?.labels.zoomResetAnnouncementText ?? "";
+    const resetText = this.context.settings.labels.zoomResetAnnouncementText ?? "";
     if (this.resetRequested && !this.getExtremes()) {
       this.resetRequested = false;
       this.set((prev) => ({ ...prev, announcement: resetText }));
@@ -82,7 +78,14 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   }
 
   private getExtremes(): null | ZoomExtremes {
-    return this.context.settings.zoom?.enabled ? extremesFromRange(this.context.state.zoomRange) : null;
+    return this.context.settings.zoomEnabled ? extremesFromRange(this.context.state.zoomRange) : null;
+  }
+
+  // Applies the zoom range to the chart and draws it. Runs on every chart render, and once more after a zoom prop
+  // change, when the context holds the new range.
+  private reconcile(chart: SafeChart) {
+    this.applyExtremes(chart);
+    this.drawRange(chart);
   }
 
   // The range is applied imperatively: Highcharts keeps the extremes set with setExtremes through chart updates,
@@ -119,19 +122,10 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     const band = getBandRect(chart as Highcharts.Chart, xAxis, extremes.min, extremes.max);
     const start = getDividerRect(chart as Highcharts.Chart, xAxis, extremes.min);
     const end = getDividerRect(chart as Highcharts.Chart, xAxis, extremes.max);
-    this.svg.rangeBand.rect(chart.renderer, {
-      ...toSvgRect(band),
-      fill: colorBackgroundItemSelected,
-      zIndex: 0,
-      "pointer-events": "none",
-      class: testClasses["zoom-range"],
-    });
+    this.svg.rangeBand.rect(chart.renderer, { ...Styles.zoomRangeBand, ...band, class: testClasses["zoom-range"] });
     this.svg.rangeBorders.path(chart.renderer, {
+      ...Styles.zoomRangeBorders,
       d: [toSvgLine(start), toSvgLine(end)].join(" "),
-      stroke: colorBorderItemSelected,
-      "stroke-width": BORDER_WIDTH,
-      zIndex: 3,
-      "pointer-events": "none",
       class: testClasses["zoom-range-borders"],
     });
   }
@@ -146,12 +140,8 @@ function extremesFromRange(zoomRange: undefined | null | ZoomRange): null | Zoom
   return x ? { min: Math.min(x.startValue, x.endValue), max: Math.max(x.startValue, x.endValue) } : null;
 }
 
-function toSvgRect({ left, top, width, height }: OverlayRect) {
-  return { x: left, y: top, width, height };
-}
-
-function toSvgLine({ left, top, width, height }: OverlayRect) {
+function toSvgLine({ x, y, width, height }: Rect) {
   return width <= height
-    ? `M ${left + width / 2} ${top} L ${left + width / 2} ${top + height}`
-    : `M ${left} ${top + height / 2} L ${left + width} ${top + height / 2}`;
+    ? `M ${x + width / 2} ${y} L ${x + width / 2} ${y + height}`
+    : `M ${x} ${y + height / 2} L ${x + width} ${y + height / 2}`;
 }
