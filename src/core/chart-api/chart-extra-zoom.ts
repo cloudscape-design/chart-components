@@ -82,8 +82,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private handlers: ChartExtraZoomHandlers;
   private machine: ZoomState = IDLE_ZOOM_STATE;
   private localExtremes: null | ZoomExtremes = null;
-  private appliedExtremesKey = "";
-  private appliedAxis: null | Highcharts.Axis = null;
+  private appliedRange = false;
   private resetRequested = false;
   private values: number[] = [];
   private valuesStale = true;
@@ -123,18 +122,15 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     chart.container.addEventListener("pointerdown", this.onPlotPointerDown);
     chart.container.addEventListener("pointermove", this.onPlotPointerMove);
     chart.container.addEventListener("click", this.onPlotClickCapture, true);
-    // Highcharts creates a new chart instance when the chart is re-initialized, which has no extremes applied
-    // and no elements drawn yet.
-    this.appliedExtremesKey = "";
-    this.appliedAxis = null;
-    this.svg = createSvgElements();
     this.applyContainerStyle(chart);
-    this.applyExtremes(chart);
   };
 
+  // The range is reconciled on every render, because the x-axis can be replaced by any chart update.
   public onChartRender = () => {
     this.valuesStale = true;
-    this.drawRange(this.context.chart());
+    const chart = this.context.chart();
+    this.applyExtremes(chart);
+    this.drawRange(chart);
     if (!this.enabled) {
       return;
     }
@@ -293,18 +289,21 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   }
 
   // The range is applied imperatively: Highcharts keeps the extremes set with setExtremes through chart updates,
-  // and falls back to the min and max declared in the axis options when they are cleared.
+  // and falls back to the min and max declared in the axis options when they are cleared. The axis is only
+  // updated when its range differs, so the redraw it causes does not update it again. Extremes the zoom did not
+  // apply are left to the consumer.
   private applyExtremes(chart: SafeChart) {
     const extremes = this.getExtremes();
-    const key = extremes ? `${extremes.min}:${extremes.max}` : "";
-    // An x-axis removed with xAxis: [] and added back is a new axis, which has no range applied yet.
-    const xAxis = chart.xAxis?.[0] ?? null;
-    const axisReplaced = xAxis !== this.appliedAxis && !!extremes;
-    if (xAxis && (key !== this.appliedExtremesKey || axisReplaced)) {
-      xAxis.setExtremes(extremes?.min, extremes?.max, true, false);
+    const xAxis = chart.xAxis?.[0];
+    if (xAxis) {
+      const { userMin, userMax } = xAxis.getExtremes();
+      if (extremes && (userMin !== extremes.min || userMax !== extremes.max)) {
+        xAxis.setExtremes(extremes.min, extremes.max, true, false);
+      } else if (!extremes && this.appliedRange && (userMin !== undefined || userMax !== undefined)) {
+        xAxis.setExtremes(undefined, undefined, true, false);
+      }
     }
-    this.appliedExtremesKey = key;
-    this.appliedAxis = xAxis;
+    this.appliedRange = !!extremes;
     if (!!extremes !== this.get().zoomed) {
       this.set((prev) => ({ ...prev, zoomed: !!extremes }));
     }
@@ -449,9 +448,10 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private drawRange(chart: SafeChart) {
     const extremes = this.getExtremes();
     const xAxis = chart.xAxis?.[0];
+    // Hiding first destroys the elements of a chart instance that Highcharts has replaced, like the tooltip cursor.
+    this.svg.rangeBand.hide();
+    this.svg.rangeBorders.hide();
     if (!extremes || !xAxis) {
-      this.svg.rangeBand.hide();
-      this.svg.rangeBorders.hide();
       return;
     }
     const band = getBandRect(chart as Highcharts.Chart, xAxis, extremes.min, extremes.max);
@@ -525,6 +525,9 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   }
 
   private drawSelection(chart: Highcharts.Chart, band: null | OverlayRect, dividers: OverlayRect[]) {
+    this.svg.selectionBand.hide();
+    this.svg.selectionStart.hide();
+    this.svg.selectionEnd.hide();
     if (band) {
       this.svg.selectionBand.rect(chart.renderer, {
         ...toSvgRect(band),
@@ -534,8 +537,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
         "pointer-events": "none",
         class: testClasses["zoom-selection"],
       });
-    } else {
-      this.svg.selectionBand.hide();
     }
     const [start, end] = dividers;
     for (const [element, rect, className] of [
@@ -550,8 +551,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
           "pointer-events": "none",
           class: className,
         });
-      } else {
-        element.hide();
       }
     }
   }
