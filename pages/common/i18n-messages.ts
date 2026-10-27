@@ -1,9 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { I18nProvider } from "@cloudscape-design/components/i18n";
+import enMessages from "@cloudscape-design/components/i18n/messages/all.en";
 
-const zoomMessages = {
+// The chart messages that are not yet published in the components package, merged with the standard ones.
+const unpublishedMessages = {
   "cloudscape-design-components": {
     en: {
       "[charts]": {
@@ -16,10 +17,4 @@ const zoomMessages = {
   },
 };
 
-export function ZoomI18nProvider({ children }: { children: React.ReactNode }) {
-  return (
-    <I18nProvider locale="en" messages={[zoomMessages]}>
-      {children}
-    </I18nProvider>
-  );
-}
+export const pageMessages = [enMessages, unpublishedMessages];

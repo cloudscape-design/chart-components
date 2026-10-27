@@ -23,7 +23,8 @@ import { useChartAPI } from "./chart-api";
 import { ChartExtraContext } from "./chart-api/chart-extra-context";
 import { ChartContainer } from "./chart-container";
 import { InternalZoomProps } from "./chart-zoom/interfaces";
-import { useChartZoom } from "./chart-zoom/use-chart-zoom";
+import { useZoomI18n } from "./chart-zoom/zoom-i18n";
+import { hasColumnLikeSeries } from "./chart-zoom/zoom-values";
 import { ChartApplication } from "./components/core-application";
 import { ChartFilters } from "./components/core-filters";
 import { ChartLegend } from "./components/core-legend";
@@ -31,6 +32,7 @@ import { ChartNoData } from "./components/core-no-data";
 import { ChartFooter, ChartHeader } from "./components/core-slots";
 import { ChartTooltip } from "./components/core-tooltip";
 import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
+import { ChartZoomControls, ChartZoomLiveRegion } from "./components/core-zoom";
 import { getFormatter } from "./formatters";
 import { useChartI18n } from "./i18n-utils";
 import { CoreChartProps } from "./interfaces";
@@ -79,6 +81,9 @@ export function InternalCoreChart({
 }: CoreChartProps & InternalBaseComponentProps & InternalZoomProps) {
   const highcharts = rest.highcharts as null | typeof Highcharts;
   const labels = useChartI18n({ ariaLabel, ariaDescription, i18nStrings });
+  const zoomLabels = useZoomI18n();
+  // The zoom applies to the first x-axis, and is ignored when the chart does not define one.
+  const zoomEnabled = !!zoomOptions?.enabled && options.xAxis !== undefined;
   const context: ChartExtraContext["settings"] = {
     chartId: useUniqueId(),
     noDataEnabled: !!noDataOptions,
@@ -87,18 +92,11 @@ export function InternalCoreChart({
     keyboardNavigationEnabled: keyboardNavigation,
     labels,
     getItemOptions: getItemOptions ?? (() => ({})),
+    zoom: { enabled: zoomEnabled, hideControls: !!zoomOptions?.hideZoomControls, labels: zoomLabels },
   };
-  const handlers = { onHighlight, onClearHighlight, onVisibleItemsChange };
-  const state = { visibleItems };
+  const handlers = { onHighlight, onClearHighlight, onVisibleItemsChange, onZoomRangeChange };
+  const state = { visibleItems, zoomRange };
   const api = useChartAPI(context, handlers, state);
-  const zoom = useChartZoom({
-    zoom: zoomOptions,
-    zoomRange,
-    onZoomRangeChange,
-    series: options.series,
-    chartType: options.chart?.type,
-    focusChart: api.focusChart,
-  });
 
   const rootClassName = clsx(testClasses.root, styles.root, fitHeight && styles["root-fit-height"], className);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -235,8 +233,7 @@ export function InternalCoreChart({
     },
     // We use the rtl adjusted axes (instead of the original options.xAxis/yAxis) to ensure the chart renders
     // with the correct axis orientation for RTL layouts, matching what was used for legend positioning above.
-    // A chart with zoom always declares an x-axis, which is where the zoomed range is applied.
-    xAxis: castArray(options.xAxis ?? (zoom.managesXAxis ? {} : undefined))?.map((xAxisOptions, index) => ({
+    xAxis: castArray(options.xAxis)?.map((xAxisOptions, index) => ({
       ...Styles.xAxisOptions,
       ...xAxisOptions,
       // Depending on the chart.inverted the x-axis can be rendered as vertical, and needs to respect page direction.
@@ -245,9 +242,9 @@ export function InternalCoreChart({
       className: xAxisClassName(inverted, xAxisOptions.className),
       title: axisTitle(xAxisOptions.title ?? {}, !inverted || verticalAxisTitlePlacement === "side"),
       labels: axisLabels(xAxisOptions.labels ?? {}),
-      // The zoom applies to the primary x-axis only. The extremes are declared in the options, rather than
-      // imperatively set, because Highcharts re-initializes the axes on every React re-render.
-      ...(index === 0 ? zoom.getXAxisZoomOptions(xAxisOptions) : {}),
+      // Highcharts widens any range narrower than five times the closest point distance unless the axis declares
+      // a minRange, and reads zero as not declared. The smallest positive number lets the zoom show any range.
+      minRange: index === 0 && zoomEnabled ? (xAxisOptions.minRange ?? Number.MIN_VALUE) : xAxisOptions.minRange,
     })),
     yAxis: castArray(options.yAxis)?.map((yAxisOptions) => ({
       ...Styles.yAxisOptions,
@@ -285,7 +282,13 @@ export function InternalCoreChart({
       line: { ...Styles.lineSeries, ...options.plotOptions?.line },
       spline: { ...Styles.lineSeries, ...options.plotOptions?.spline },
       column: { ...Styles.columnSeries, ...options.plotOptions?.column },
-      errorbar: { ...Styles.errorbarSeries, ...zoom.errorBarOptions, ...options.plotOptions?.errorbar },
+      errorbar: {
+        ...Styles.errorbarSeries,
+        // Error bars pad the axis by half a point range on each side, so the zoomed plot would show more than the
+        // zoomed range. Without bars in the chart nothing needs that room, so the error bars are placed on their x.
+        pointPlacement: zoomEnabled && !hasColumnLikeSeries(options.series) ? "on" : undefined,
+        ...options.plotOptions?.errorbar,
+      },
       // Pie chart is shown in legend by default, that is required for standalone pie charts.
       pie: {
         showInLegend: true,
@@ -316,10 +319,9 @@ export function InternalCoreChart({
               // It is possible to override it by explicitly providing chart.height, but this will not be
               // compatible with any of the above settings.
               height: options.chart?.height ?? height,
-              // Highcharts' own drag-to-zoom is not accessible, and would compete with the zoom for the same
-              // range, so it is turned off while the zoom property is enabled. The deprecated zoomType and
-              // pinchType take precedence over the zooming options, so they are cleared too.
-              ...(zoom.enabled
+              // Highcharts' own drag-to-zoom is not accessible, and would compete with the zoom for the same range.
+              // The deprecated zoomType and pinchType take precedence over the zooming options.
+              ...(zoomEnabled
                 ? {
                     zooming: { ...options.chart?.zooming, type: undefined, pinchType: undefined },
                     zoomType: undefined,
@@ -385,7 +387,9 @@ export function InternalCoreChart({
             </>
           );
         }}
-        zoomControls={zoom.controls}
+        zoomControls={
+          zoomEnabled && !zoomOptions?.hideZoomControls ? <ChartZoomControls api={api} i18n={zoomLabels} /> : null
+        }
         navigator={navigator}
         primaryLegend={
           context.legendEnabled && legendProps.primary ? (
@@ -429,7 +433,7 @@ export function InternalCoreChart({
         />
       )}
 
-      {zoom.liveRegion}
+      {zoomEnabled && <ChartZoomLiveRegion api={api} />}
     </div>
   );
 }

@@ -14,7 +14,6 @@ import { InternalZoomProps, ZoomRange } from "../../lib/components/core/chart-zo
 import { dateFormatter, numberFormatter } from "../common/formatters";
 import { PageSettings, PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
-import { ZoomI18nProvider } from "../common/zoom-i18n-provider";
 import pseudoRandom from "../utils/pseudo-random";
 
 interface ThisPageSettings extends PageSettings {
@@ -78,56 +77,54 @@ export default function () {
         />
       }
     >
-      <ZoomI18nProvider>
-        <SpaceBetween size="xl">
-          <PageSection title="Line chart">
-            <ZoomChart
-              ariaLabel="Line chart"
-              initialRange={dateRange}
-              presetRange={dateRange}
-              format={dateFormatter}
-              xAxis={{ title: "Time", type: "datetime", valueFormatter: dateFormatter }}
-              yAxis={{ title: "Count" }}
-              series={[
-                { type: "line", id: "requests", name: "Requests", data: dailyData },
-                ...(errorBars
-                  ? [
-                      {
-                        type: "errorbar",
-                        name: "Requests error",
-                        linkedTo: "requests",
-                        data: dailyData.map(({ x, y }) => ({ x, low: y * 0.8, high: y * 1.2 })),
-                      } as const,
-                    ]
-                  : []),
-                { type: "y-threshold", name: "SLA limit", value: 150 },
-              ]}
-            />
-          </PageSection>
-          <PageSection title="Column chart">
-            <ZoomChart
-              ariaLabel="Column chart"
-              presetRange={categoryRange}
-              format={formatCategory}
-              xAxis={{ type: "category", title: "Quarter", categories }}
-              yAxis={{ title: "Costs (USD)", valueFormatter: numberFormatter }}
-              series={[
-                { type: "column", id: "costs", name: "Costs", data: costsData },
-                ...(errorBars
-                  ? [
-                      {
-                        type: "errorbar",
-                        name: "Costs error",
-                        linkedTo: "costs",
-                        data: costsData.map((y) => ({ low: y * 0.9, high: y * 1.1 })),
-                      } as const,
-                    ]
-                  : []),
-              ]}
-            />
-          </PageSection>
-        </SpaceBetween>
-      </ZoomI18nProvider>
+      <SpaceBetween size="xl">
+        <PageSection title="Line chart">
+          <ZoomChart
+            ariaLabel="Line chart"
+            initialRange={dateRange}
+            presetRange={dateRange}
+            format={dateFormatter}
+            xAxis={{ title: "Time", type: "datetime", valueFormatter: dateFormatter }}
+            yAxis={{ title: "Count" }}
+            series={[
+              { type: "line", id: "requests", name: "Requests", data: dailyData },
+              ...(errorBars
+                ? [
+                    {
+                      type: "errorbar",
+                      name: "Requests error",
+                      linkedTo: "requests",
+                      data: dailyData.map(({ x, y }) => ({ x, low: y * 0.8, high: y * 1.2 })),
+                    } as const,
+                  ]
+                : []),
+              { type: "y-threshold", name: "SLA limit", value: 150 },
+            ]}
+          />
+        </PageSection>
+        <PageSection title="Column chart">
+          <ZoomChart
+            ariaLabel="Column chart"
+            presetRange={categoryRange}
+            format={formatCategory}
+            xAxis={{ type: "category", title: "Quarter", categories }}
+            yAxis={{ title: "Costs (USD)", valueFormatter: numberFormatter }}
+            series={[
+              { type: "column", id: "costs", name: "Costs", data: costsData },
+              ...(errorBars
+                ? [
+                    {
+                      type: "errorbar",
+                      name: "Costs error",
+                      linkedTo: "costs",
+                      data: costsData.map((y) => ({ low: y * 0.9, high: y * 1.1 })),
+                    } as const,
+                  ]
+                : []),
+            ]}
+          />
+        </PageSection>
+      </SpaceBetween>
     </Page>
   );
 }

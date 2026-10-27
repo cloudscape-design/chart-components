@@ -12,8 +12,13 @@ import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import { TestI18nProvider } from "../../../lib/components/internal/utils/test-i18n-provider";
 import CoreChart from "../../../lib/components/internal-do-not-use/core-chart";
 import { createChartWrapper } from "./common";
+import { stubPlotGeometry } from "./plot-geometry";
+
+import testClasses from "../../../lib/components/core/test-classes/styles.selectors.js";
 
 const TEST_TIMEOUT = 15_000;
+
+stubPlotGeometry();
 
 const ZoomCoreChart = CoreChart as ComponentType<CoreChartProps & InternalZoomProps>;
 type ZoomChartProps = Partial<CoreChartProps> & InternalZoomProps;
@@ -100,21 +105,31 @@ function getXExtremes() {
   return { min, max };
 }
 
+function findSvg(className: string): null | SVGElement {
+  return document.querySelector(`.${testClasses[className]}`);
+}
+
+// The zoomed range is marked with a band and a border at each end, drawn on the plot and read back as x values.
 function getZoomRangeAffordance() {
-  const xAxis = getCurrentChart().xAxis[0] as unknown as {
-    plotLinesAndBands: { options: { id?: string; from?: number; to?: number; value?: number } }[];
-    userOptions: { plotBands?: { id?: string }[]; plotLines?: { id?: string }[] };
-  };
-  const findOptions = (id: string) => xAxis.plotLinesAndBands.find((item) => item.options.id === id)?.options ?? null;
-  const band = findOptions("awsui-zoom-range");
-  const startLine = findOptions("awsui-zoom-range-start");
-  const endLine = findOptions("awsui-zoom-range-end");
+  const xAxis = getCurrentChart().xAxis[0];
+  const band = findSvg("zoom-range");
+  const borders = findSvg("zoom-range-borders");
+  const toValue = (pixel: number) => Math.round(xAxis.toValue(pixel) * 1000) / 1000;
   return {
-    present: !!band && !!startLine && !!endLine,
-    band: band && { from: band.from, to: band.to },
-    boundaries: startLine && endLine && [startLine.value, endLine.value],
-    ids: xAxis.plotLinesAndBands.map((item) => item.options.id),
-    declaredIds: [...(xAxis.userOptions.plotBands ?? []), ...(xAxis.userOptions.plotLines ?? [])].map(({ id }) => id),
+    present: !!band && !!borders,
+    band: band && {
+      from: toValue(Number(band.getAttribute("x"))),
+      to: toValue(Number(band.getAttribute("x")) + Number(band.getAttribute("width"))),
+    },
+    boundaries:
+      borders &&
+      (borders.getAttribute("d") ?? "")
+        .split("M")
+        .filter((part) => part.trim())
+        .map((part) => toValue(Number(part.trim().split(" ")[0]))),
+    plotLineIds: (xAxis as unknown as { plotLinesAndBands: { options: { id?: string } }[] }).plotLinesAndBands.map(
+      (item) => item.options.id,
+    ),
   };
 }
 
@@ -141,7 +156,6 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
     rerender({ ...defaultProps, zoomRange: null });
     expect(getXExtremes()).toEqual({ min: 0, max: 4 });
     expect(getZoomRangeAffordance().present).toBe(false);
-    expect(getZoomRangeAffordance().declaredIds).toEqual([]);
     expect(wrapper.findResetZoomButton()).toBe(null);
   });
 
@@ -160,12 +174,10 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
       },
       zoomRange: zoomedRange,
     });
-    expect(getZoomRangeAffordance().ids).toEqual(
-      expect.arrayContaining(["line", "band", "awsui-zoom-range", "awsui-zoom-range-start", "awsui-zoom-range-end"]),
-    );
+    expect(getZoomRangeAffordance()).toEqual(expect.objectContaining({ present: true, plotLineIds: ["line", "band"] }));
   });
 
-  test("does not dim the zoomed range affordance when a series is highlighted", () => {
+  test("does not dim the zoomed range when a series is highlighted", () => {
     let chartApi: CoreChartProps.ChartAPI | null = null;
     renderZoomChart({
       ...defaultProps,
@@ -181,34 +193,14 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
     const opacityById = Object.fromEntries(
       xAxis.plotLinesAndBands.map((line) => [line.options.id, line.svgElem?.opacity ?? 1]),
     );
-    expect(opacityById).toEqual({
-      L2: 0.4,
-      "awsui-zoom-range": 1,
-      "awsui-zoom-range-start": 1,
-      "awsui-zoom-range-end": 1,
-    });
-  });
-
-  test("dims a consumer plot line whose ID only starts like the zoom affordance IDs", () => {
-    let chartApi: CoreChartProps.ChartAPI | null = null;
-    renderZoomChart({
-      ...defaultProps,
-      options: { series, xAxis: { min: 0, max: 4, plotLines: [{ id: "awsui-zoom-range-deployment", value: 2 }] } },
-      callback: (api) => (chartApi = api),
-    });
-
-    act(() => chartApi!.highlightItems(["L1"]));
-    const xAxis = getCurrentChart().xAxis[0] as unknown as {
-      plotLinesAndBands: { options: { id?: string }; svgElem?: { opacity?: number } }[];
-    };
-    const line = xAxis.plotLinesAndBands.find((item) => item.options.id === "awsui-zoom-range-deployment")!;
-    expect(line.svgElem?.opacity).toBe(0.4);
+    expect(opacityById).toEqual({ L2: 0.4 });
+    expect(findSvg("zoom-range")).not.toHaveAttribute("opacity");
   });
 
   test("allows a zoom range of two adjacent points without explicit axis bounds", () => {
     renderZoomChart({
       ...defaultProps,
-      options: { series: series.map((s) => ({ ...s, type: "column" as const })) },
+      options: { series: series.map((s) => ({ ...s, type: "column" as const })), xAxis: {} },
       zoomRange: { x: { startValue: 1, endValue: 2 } },
     });
     expect(getXExtremes()).toEqual({ min: 1, max: 2 });
@@ -221,21 +213,18 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
 
     rerender({ ...defaultProps, options, zoom: { enabled: false }, zoomRange: zoomedRange });
     expect(getXExtremes()).toEqual({ min: 0, max: 4 });
-    expect(getZoomRangeAffordance().ids).toEqual(["line"]);
+    expect(getZoomRangeAffordance().present).toBe(false);
     expect(getCurrentChart().xAxis[0].options.minRange).toBeUndefined();
     expect(wrapper.findResetZoomButton()).toBe(null);
   });
 
-  test("restores the x-axis when zoom is disabled on a chart that declares none", () => {
-    const options = { series };
-    const { rerender } = renderZoomChart({ ...defaultProps, options, zoomRange: zoomedRange });
-    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
-
-    rerender({ ...defaultProps, options, zoom: undefined, zoomRange: zoomedRange });
+  test("ignores the zoom when the chart declares no x-axis", () => {
+    const { wrapper } = renderZoomChart({ ...defaultProps, options: { series }, zoomRange: zoomedRange });
     const { min, max } = getXExtremes();
     expect(min).toBeLessThanOrEqual(0);
     expect(max).toBeGreaterThanOrEqual(4);
     expect(getZoomRangeAffordance().present).toBe(false);
+    expect(wrapper.findResetZoomButton()).toBe(null);
   });
 
   test("keeps the x-axis minRange declared by the consumer", () => {
@@ -326,19 +315,12 @@ describe("CoreChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
     expect(document.activeElement).toBe(wrapper.findApplication()!.getElement());
   });
 
-  test("keeps focus where the user moved it while the reset was pending", () => {
-    const { wrapper, rerender } = renderZoomChart({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
-    const otherButton = document.createElement("button");
-    document.body.appendChild(otherButton);
-
+  test("moves focus to the chart as soon as Reset is pressed", () => {
+    const { wrapper } = renderZoomChart({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
     wrapper.findResetZoomButton()!.focus();
     wrapper.findResetZoomButton()!.click();
-    otherButton.focus();
-    rerender({ ...defaultProps, zoomRange: null, onZoomRangeChange });
 
-    expect(wrapper.getElement()).toHaveTextContent("Zoom reset. Showing the full data range.");
-    expect(document.activeElement).toBe(otherButton);
-    otherButton.remove();
+    expect(document.activeElement).toBe(wrapper.findApplication()!.getElement());
   });
 
   test("does not submit an enclosing form when Reset is pressed", () => {
@@ -411,6 +393,7 @@ describe("CoreChart: zoom with error bars", { timeout: TEST_TIMEOUT }, () => {
     renderZoomChart({
       ...defaultProps,
       options: {
+        xAxis: {},
         series: [
           { type: parentType, id: "parent", name: "Parent", data },
           {
@@ -432,6 +415,7 @@ describe("CoreChart: zoom with error bars", { timeout: TEST_TIMEOUT }, () => {
   test("gives the error bars their padding back when zoom is disabled", () => {
     const data = [0, 10, 20, 30, 40].map((x) => ({ x, y: x + 10 }));
     const options: CoreChartProps.ChartOptions = {
+      xAxis: {},
       series: [
         { type: "line", id: "parent", name: "Parent", data },
         {

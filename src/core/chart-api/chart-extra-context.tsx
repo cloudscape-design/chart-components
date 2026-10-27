@@ -5,6 +5,8 @@ import type Highcharts from "highcharts";
 
 import { NonCancelableEventHandler } from "../../internal/events";
 import { getChartSeries, getSeriesData, SafeChart, SafeSeries } from "../../internal/utils/highcharts";
+import { ZoomChangeDetail, ZoomRange } from "../chart-zoom/interfaces";
+import { ResolvedZoomI18n } from "../chart-zoom/zoom-i18n";
 import { ChartLabels } from "../i18n-utils";
 import { CoreChartProps, Rect } from "../interfaces";
 import { getGroupRect, isSeriesStacked } from "../utils";
@@ -32,16 +34,25 @@ export namespace ChartExtraContext {
     keyboardNavigationEnabled: boolean;
     labels: ChartLabels;
     getItemOptions?: CoreChartProps.GetItemOptions;
+    zoom?: ZoomSettings;
+  }
+
+  export interface ZoomSettings {
+    enabled: boolean;
+    hideControls: boolean;
+    labels: ResolvedZoomI18n;
   }
 
   export interface Handlers {
     onHighlight?: NonCancelableEventHandler<CoreChartProps.HighlightChangeDetail>;
     onClearHighlight?: NonCancelableEventHandler<CoreChartProps.HighlightClearDetail>;
     onVisibleItemsChange?: NonCancelableEventHandler<CoreChartProps.VisibleItemsChangeDetail>;
+    onZoomRangeChange?: NonCancelableEventHandler<ZoomChangeDetail>;
   }
 
   export interface State {
     visibleItems?: readonly string[];
+    zoomRange?: null | ZoomRange;
   }
 
   export interface DerivedState {

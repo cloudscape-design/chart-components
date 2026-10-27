@@ -17,7 +17,6 @@ import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
 import { dateFormatter } from "../common/formatters";
 import { PageSettings, PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
-import { ZoomI18nProvider } from "../common/zoom-i18n-provider";
 import pseudoRandom from "../utils/pseudo-random";
 
 interface ThisPageSettings extends PageSettings {
@@ -124,9 +123,7 @@ export default function () {
       }
       screenshotArea={false}
     >
-      <ZoomI18nProvider>
-        <Charts />
-      </ZoomI18nProvider>
+      <Charts />
     </Page>
   );
 }

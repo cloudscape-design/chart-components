@@ -5,8 +5,6 @@
 
 @use "../../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
 
-// The zoom buttons render in the chart's header area, in normal flow, so they precede the plot both
-// visually and in the focus order, and never overlap the plot, its axis titles, or a side legend.
 .controls {
   display: flex;
   justify-content: flex-end;

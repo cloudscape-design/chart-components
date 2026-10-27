@@ -12,9 +12,11 @@ import Box from "@cloudscape-design/components/box";
 import ColumnLayout from "@cloudscape-design/components/column-layout";
 import Drawer from "@cloudscape-design/components/drawer";
 import Header from "@cloudscape-design/components/header";
+import { I18nProvider } from "@cloudscape-design/components/i18n";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
 import { IframeWrapper } from "../utils/iframe-wrapper";
+import { pageMessages } from "./i18n-messages";
 import { ScreenshotArea } from "./screenshot-area";
 
 import styles from "./styles.module.scss";
@@ -83,15 +85,17 @@ export function Page({
   }
 
   const content = (
-    <Box>
-      <h1>{title}</h1>
-      {subtitle && !urlParams.screenshotMode && (
-        <Box variant="p" margin={{ bottom: "xs" }}>
-          {subtitle}
-        </Box>
-      )}
-      <Box>{screenshotArea ? <ScreenshotArea>{children}</ScreenshotArea> : children}</Box>
-    </Box>
+    <I18nProvider locale="en" messages={pageMessages}>
+      <Box>
+        <h1>{title}</h1>
+        {subtitle && !urlParams.screenshotMode && (
+          <Box variant="p" margin={{ bottom: "xs" }}>
+            {subtitle}
+          </Box>
+        )}
+        <Box>{screenshotArea ? <ScreenshotArea>{children}</ScreenshotArea> : children}</Box>
+      </Box>
+    </I18nProvider>
   );
 
   return (

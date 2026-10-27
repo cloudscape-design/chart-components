@@ -23,6 +23,7 @@ import { ChartExtraNavigation, ChartExtraNavigationHandlers } from "./chart-extr
 import { ChartExtraNodata, ReactiveNodataState } from "./chart-extra-nodata";
 import { ChartExtraPointer, ChartExtraPointerHandlers } from "./chart-extra-pointer";
 import { ChartExtraTooltip, ReactiveTooltipState } from "./chart-extra-tooltip";
+import { ChartExtraZoom, ReactiveZoomState } from "./chart-extra-zoom";
 
 // The API helper injects Cloudscape custom behaviors, and returns the API instance that comes with
 // reactive state and handlers to be assigned as Highcharts options, used by Cloudscape components
@@ -61,6 +62,19 @@ export function useChartAPI(
     }
   }, [api, visibleItemsIndex]);
 
+  // The zoom range is applied imperatively, so the helper is notified when the zoom settings or the controlled
+  // range change. The range is compared by value.
+  const zoomIndex = [
+    settings.zoom?.enabled,
+    settings.zoom?.hideControls,
+    state.zoomRange === undefined
+      ? "uncontrolled"
+      : `${state.zoomRange?.x?.startValue}:${state.zoomRange?.x?.endValue}`,
+  ].join("::");
+  useEffect(() => {
+    api.onZoomPropsChange();
+  }, [api, zoomIndex]);
+
   // Run cleanup code when the component unmounts.
   useEffect(() => () => api.onChartDestroy(), [api]);
 
@@ -81,6 +95,7 @@ export class ChartAPI {
   private chartExtraLegend = new ChartExtraLegend(this.context);
   private chartExtraNodata = new ChartExtraNodata(this.context);
   private chartExtraAxisTitles = new ChartExtraAxisTitles(this.context);
+  private chartExtraZoom = new ChartExtraZoom(this.context);
 
   constructor(
     settings: ChartExtraContext.Settings,
@@ -104,6 +119,7 @@ export class ChartAPI {
     const chartAPI = this;
     const onChartLoad: Highcharts.ChartLoadCallbackFunction = function (this) {
       chartAPI.chartExtraPointer.onChartLoad(this);
+      chartAPI.chartExtraZoom.onChartLoad(this);
     };
     const onChartRender: Highcharts.ChartRenderCallbackFunction = function (this) {
       updateChartContext(chartAPI.context, this);
@@ -112,6 +128,7 @@ export class ChartAPI {
       chartAPI.chartExtraNodata.onChartRender();
       chartAPI.chartExtraAxisTitles.onChartRender();
       chartAPI.chartExtraTooltip.onChartRender();
+      chartAPI.chartExtraZoom.onChartRender();
       chartAPI.handleDestroyedPoints();
       chartAPI.resetColorCounter();
       chartAPI.showMarkersForIsolatedPoints();
@@ -144,6 +161,7 @@ export class ChartAPI {
     this.chartExtraNavigation.onChartDestroy();
     this.chartExtraPointer.onChartDestroy();
     this.chartExtraTooltip.onChartDestroy();
+    this.chartExtraZoom.onChartDestroy();
   };
 
   // Reactive state stores.
@@ -158,6 +176,9 @@ export class ChartAPI {
   }
   public get axisTitlesStore() {
     return this.chartExtraAxisTitles as ReadonlyAsyncStore<ReactiveAxisTitlesState>;
+  }
+  public get zoomStore() {
+    return this.chartExtraZoom as ReadonlyAsyncStore<ReactiveZoomState>;
   }
 
   // References to SVG elements used for tooltip placement.
@@ -187,6 +208,10 @@ export class ChartAPI {
 
   // Moves focus to the chart, when keyboard navigation is enabled.
   public focusChart = () => this.chartExtraNavigation.focusChartApplication();
+
+  // Zoom interactions, used by the zoom controls component.
+  public onZoomPropsChange = () => this.chartExtraZoom.onZoomPropsChange();
+  public resetZoom = () => this.chartExtraZoom.resetZoom();
 
   // Hide the tooltip from an action initiated by the tooltip's content
   public hideTooltip = () => {
