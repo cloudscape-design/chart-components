@@ -147,7 +147,7 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
     expect(getZoomRangeAffordance().present).toBe(false);
     expect(wrapper.findResetZoomButton()).toBe(null);
 
-    rerender({ ...defaultProps, zoomRange: zoomedRange });
+    rerender({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
     expect(getXExtremes()).toEqual({ min: 1, max: 3 });
     expect(getZoomRangeAffordance().band).toEqual({ from: 1, to: 3 });
     expect(getZoomRangeAffordance().boundaries).toEqual([1, 3]);
@@ -225,6 +225,20 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
     expect(max).toBeGreaterThanOrEqual(4);
     expect(getZoomRangeAffordance().present).toBe(false);
     expect(wrapper.findResetZoomButton()).toBe(null);
+  });
+
+  test("ignores the zoom while the x-axes are removed, and applies it again once they are back", () => {
+    const { wrapper, rerender } = renderZoomChart({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+
+    rerender({ ...defaultProps, options: { series, xAxis: [] }, zoomRange: zoomedRange, onZoomRangeChange });
+    expect(findSvg("zoom-range")).toBe(null);
+    expect(wrapper.findResetZoomButton()).toBe(null);
+
+    rerender({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+    expect(getZoomRangeAffordance().band).toEqual({ from: 1, to: 3 });
+    expect(wrapper.findResetZoomButton()).not.toBe(null);
   });
 
   test("keeps the x-axis minRange declared by the consumer", () => {
