@@ -84,18 +84,23 @@ export function Page({
     });
   }
 
-  const content = (
+  const page = (
+    <Box>
+      <h1>{title}</h1>
+      {subtitle && !urlParams.screenshotMode && (
+        <Box variant="p" margin={{ bottom: "xs" }}>
+          {subtitle}
+        </Box>
+      )}
+      <Box>{screenshotArea ? <ScreenshotArea>{children}</ScreenshotArea> : children}</Box>
+    </Box>
+  );
+  const content = urlParams.i18n ? (
     <I18nProvider locale="en" messages={pageMessages}>
-      <Box>
-        <h1>{title}</h1>
-        {subtitle && !urlParams.screenshotMode && (
-          <Box variant="p" margin={{ bottom: "xs" }}>
-            {subtitle}
-          </Box>
-        )}
-        <Box>{screenshotArea ? <ScreenshotArea>{children}</ScreenshotArea> : children}</Box>
-      </Box>
+      {page}
     </I18nProvider>
+  ) : (
+    page
   );
 
   return (
