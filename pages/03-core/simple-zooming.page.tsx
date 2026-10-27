@@ -144,7 +144,6 @@ function Charts() {
   const zoomStateRef = useRef<null | number>(null);
   const setZoom = useCallback(
     (range: null | [number, number]) => {
-      getScatterChart().chart.xAxis[0].setExtremes(range?.[0], range?.[1]);
       if (!keepZoomingFrame) {
         getNavigatorChart().chart.xAxis[0].setExtremes(range?.[0], range?.[1]);
       }
@@ -252,6 +251,11 @@ function Charts() {
         {...commonProps}
         chartHeight={350}
         ariaLabel="Scatter chart"
+        zoom={{ enabled: true }}
+        zoomRange={zoomRange ? { x: { startValue: zoomRange[0], endValue: zoomRange[1] } } : null}
+        onZoomRangeChange={({ detail }) =>
+          setZoom(detail.zoomRange?.x ? [detail.zoomRange.x.startValue, detail.zoomRange.x.endValue] : null)
+        }
         onHighlight={onScatterHighlight}
         onClearHighlight={onScatterClearHighlight}
         options={{

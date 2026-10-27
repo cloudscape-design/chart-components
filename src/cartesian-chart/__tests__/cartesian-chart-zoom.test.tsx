@@ -4,7 +4,7 @@
 import { act } from "react";
 import { cleanup } from "@testing-library/react";
 import highcharts from "highcharts";
-import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 
 import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 
@@ -13,7 +13,11 @@ import "@cloudscape-design/components/test-utils/dom";
 import "highcharts/highcharts-more";
 import { CartesianChartProps } from "../../../lib/components/cartesian-chart";
 import { getSeriesData } from "../../../lib/components/internal/utils/highcharts";
+import { stubPlotGeometry } from "../../core/__tests__/plot-geometry";
+import { zoomMessages } from "../../core/__tests__/zoom-messages";
 import { getChart, ref, renderCartesianChart } from "./common";
+
+import coreTestClasses from "../../../lib/components/core/test-classes/styles.selectors.js";
 
 // Every test here renders a real chart, which takes ~2s in jsdom, and the zoom interactions re-render
 // it multiple times.
@@ -35,6 +39,7 @@ const series: CartesianChartProps.SeriesOptions[] = [
 
 const defaultProps = {
   highcharts,
+  i18nProvider: zoomMessages,
   series,
   xAxis: { title: "X", type: "linear" as const, min: 0, max: 4 },
   yAxis: { title: "Y", type: "linear" as const },
@@ -42,53 +47,7 @@ const defaultProps = {
 
 const onZoomRangeChange = vi.fn();
 
-// Pointer interactions are hit-tested against the plot area, so the chart needs a plot area with a
-// real size. Highcharts derives it from two browser APIs that jsdom does not implement faithfully:
-//
-// 1. SVGElement.getBBox, which jsdom does not provide at all, so all rendered text measures as
-//    undefined and every axis label offset becomes NaN.
-// 2. The computed font size of the axis labels, which Highcharts parses into label metrics. Our
-//    labels are styled with Cloudscape design tokens (`var(--font-size-body-s, 12px)`), and jsdom
-//    returns the declaration verbatim instead of resolving it, which parses to NaN.
-//
-// Both make chart.plotHeight NaN, and every plot-area hit test then fails. Browsers resolve both,
-// so the stubs below bring jsdom's geometry in line with the browser rather than papering over a
-// product defect. Drag zooming is additionally covered end-to-end in test/functional.
-const nativeGetComputedStyle = window.getComputedStyle.bind(window);
-const nativeGetBBox = (SVGElement.prototype as { getBBox?: () => DOMRect }).getBBox;
-
-function resolveCustomProperty(value: string) {
-  const customPropertyWithFallback = /^var\(\s*--[\w-]+\s*,\s*([^)]+)\)$/.exec(value.trim());
-  return customPropertyWithFallback ? customPropertyWithFallback[1].trim() : value;
-}
-
-beforeAll(() => {
-  (SVGElement.prototype as { getBBox?: () => object }).getBBox = () => ({ x: 0, y: 0, width: 20, height: 12 });
-  window.getComputedStyle = ((element: Element, pseudoElement?: null | string) => {
-    const style = nativeGetComputedStyle(element, pseudoElement);
-    return new Proxy(style, {
-      get(target, property) {
-        if (property === "getPropertyValue") {
-          return (name: string) => resolveCustomProperty(target.getPropertyValue(name));
-        }
-        const value = Reflect.get(target, property, target);
-        if (typeof value === "function") {
-          return value.bind(target);
-        }
-        return typeof value === "string" ? resolveCustomProperty(value) : value;
-      },
-    });
-  }) as typeof window.getComputedStyle;
-});
-
-afterAll(() => {
-  if (nativeGetBBox) {
-    (SVGElement.prototype as { getBBox?: unknown }).getBBox = nativeGetBBox;
-  } else {
-    delete (SVGElement.prototype as { getBBox?: unknown }).getBBox;
-  }
-  window.getComputedStyle = nativeGetComputedStyle;
-});
+stubPlotGeometry();
 
 afterEach(() => {
   onZoomRangeChange.mockReset();
@@ -106,41 +65,50 @@ function getXExtremes() {
   return { min, max };
 }
 
-// The zoom affordances are DOM elements laid over the plot, positioned imperatively and hidden with
-// `visibility` so their layout box survives. The overlay is the cursor's parent, and its children are
-// in a fixed order (see zoom-overlay.tsx).
+// The cursor is a DOM element positioned over the plot and hidden with visibility. The selection and the zoomed
+// range are drawn on the chart SVG, and lose their class names when hidden.
+function findSvg(className: string): null | SVGElement {
+  return getChart().getElement().querySelector(`.${coreTestClasses[className]}`);
+}
+
 function getOverlay() {
   const cursor = getChart().findZoomCursor()!.getElement() as HTMLElement;
-  const overlay = cursor.parentElement!;
-  const [band, startDivider, endDivider] = Array.from(overlay.children) as HTMLElement[];
-  return { overlay, band, startDivider, endDivider, cursor };
-}
-
-function isVisible(element: HTMLElement) {
-  return element.style.visibility === "visible";
-}
-
-// The affordance marking the zoomed range is declared as x-axis plot bands and lines, so it ends up in the
-// Highcharts `Axis.plotLinesAndBands` collection, which is not covered with TS.
-function getZoomRangeAffordance() {
-  const xAxis = getCurrentChart().xAxis[0] as unknown as {
-    plotLinesAndBands: { options: { id?: string; from?: number; to?: number; value?: number } }[];
-    userOptions: { plotBands?: { id?: string }[]; plotLines?: { id?: string }[] };
-  };
-  const findOptions = (id: string) => xAxis.plotLinesAndBands.find((item) => item.options.id === id)?.options ?? null;
-  const band = findOptions("awsui-zoom-range");
-  const startLine = findOptions("awsui-zoom-range-start");
-  const endLine = findOptions("awsui-zoom-range-end");
   return {
-    present: !!band && !!startLine && !!endLine,
-    band: band && { from: band.from, to: band.to },
-    boundaries: startLine && endLine && [startLine.value, endLine.value],
-    // Everything the axis renders, the affordance included, so that the consumer's own lines can be shown to
-    // survive next to it.
-    totalCount: xAxis.plotLinesAndBands.length,
-    // Axis.update merges the new options over the previous ones, so a collection the zoom leaves out of them
-    // keeps the affordance of a range that is no longer current.
-    declaredIds: [...(xAxis.userOptions.plotBands ?? []), ...(xAxis.userOptions.plotLines ?? [])].map(({ id }) => id),
+    band: findSvg("zoom-selection"),
+    startDivider: findSvg("zoom-selection-start"),
+    endDivider: findSvg("zoom-selection-end"),
+    cursor,
+  };
+}
+
+function isVisible(element: null | Element) {
+  if (element instanceof HTMLElement) {
+    return element.style.visibility === "visible";
+  }
+  return !!element && element.getAttribute("visibility") !== "hidden";
+}
+
+// The zoomed range is marked with a band and a border at each end, read back as x values.
+function getZoomRangeAffordance() {
+  const xAxis = getCurrentChart().xAxis[0];
+  const band = findSvg("zoom-range");
+  const borders = findSvg("zoom-range-borders");
+  const toValue = (pixel: number) => Math.round(xAxis.toValue(pixel) * 1000) / 1000;
+  const from = band ? toValue(Number(band.getAttribute("x"))) : null;
+  const to = band ? toValue(Number(band.getAttribute("x")) + Number(band.getAttribute("width"))) : null;
+  const boundaries = borders
+    ? (borders.getAttribute("d") ?? "")
+        .split("M")
+        .filter((part) => part.trim())
+        .map((part) => toValue(Number(part.trim().split(" ")[0])))
+    : null;
+  return {
+    present: !!band && !!borders,
+    band: band && { from, to },
+    boundaries,
+    plotLineIds: (xAxis as unknown as { plotLinesAndBands: { options: { id?: string } }[] }).plotLinesAndBands.map(
+      (item) => item.options.id,
+    ),
   };
 }
 
@@ -248,8 +216,8 @@ describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
     expect(region).toHaveAttribute("aria-label", "Chart zoom controls");
   });
 
-  test("hides the built-in buttons with hideButtons, keeping the cursor available", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true, hideButtons: true } });
+  test("hides the built-in buttons with hideZoomControls, keeping the cursor available", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true, hideZoomControls: true } });
     expect(getChart().findZoomButton()).toBe(null);
     expect(getChart().findExitZoomButton()).toBe(null);
     expect(getChart().findZoomCursor()).not.toBe(null);
@@ -366,7 +334,6 @@ describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
     keyboardZoomToIndexes(1, 3);
     getChart().findResetZoomButton()!.click();
     expect(getZoomRangeAffordance().present).toBe(false);
-    expect(getZoomRangeAffordance().declaredIds).toEqual([]);
   });
 
   test("marks the zoomed range of a controlled zoomRange", () => {
@@ -398,8 +365,7 @@ describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
     expect(getZoomRangeAffordance().band).toEqual({ from: 2, to: 3 });
   });
 
-  // The thresholds a consumer declares are rendered as x-axis plot lines, which the affordance appends to
-  // rather than replaces.
+  // The thresholds a consumer declares are rendered as x-axis plot lines, which the zoom leaves untouched.
   test("keeps the consumer x-axis plot lines while zoomed", () => {
     renderCartesianChart({
       ...defaultProps,
@@ -407,8 +373,7 @@ describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
       series: [...series, { type: "x-threshold", name: "Peak", value: 2 }],
     });
     keyboardZoomToIndexes(1, 3);
-    // The threshold line plus the affordance's band and two boundary lines.
-    expect(getZoomRangeAffordance()).toEqual(expect.objectContaining({ present: true, totalCount: 4 }));
+    expect(getZoomRangeAffordance()).toEqual(expect.objectContaining({ present: true, plotLineIds: ["Peak"] }));
   });
 
   test("controlled zoomRange is not changed by the interaction, which only fires the event", () => {
@@ -550,8 +515,8 @@ describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
     expect(getChart().getElement()).toHaveTextContent("provider: 1 to 3");
   });
 
-  test("announces the zoom range change, including with hideButtons", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true, hideButtons: true } });
+  test("announces the zoom range change, including with hideZoomControls", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true, hideZoomControls: true } });
     act(() => ref.current!.enterZoomMode());
     pressCursorKey(KeyCode.right);
     pressCursorKey(KeyCode.enter);
@@ -667,7 +632,7 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
       min: "0",
       max: "4",
       now: "2",
-      text: "Selecting zoom range from 1 to 2",
+      text: "Selecting zoom range from 1 to 2.",
     });
   });
 
@@ -889,8 +854,8 @@ describe("CartesianChart: zoom pointer interaction", { timeout: TEST_TIMEOUT }, 
     dispatchPointer("pointermove", 3, 0, { buttons: 0 });
     const { band } = getOverlay();
     expect(isVisible(band)).toBe(true);
-    expect(parseFloat(band.style.width)).toBeGreaterThan(1);
-    expect(getCursorAttributes().text).toBe("Selecting zoom range from 1 to 3");
+    expect(Number(band!.getAttribute("width"))).toBeGreaterThan(1);
+    expect(getCursorAttributes().text).toBe("Selecting zoom range from 1 to 3.");
   });
 
   // Highcharts keeps tracking the hovered point while the tooltip is suppressed. Were that point kept
@@ -1216,10 +1181,9 @@ describe("CartesianChart: zoom direction", { timeout: TEST_TIMEOUT }, () => {
     if (rtl) {
       renderInRtl();
     }
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
-    // The page direction is read from the mounted chart, which the first interaction re-renders.
-    act(() => ref.current!.enterZoomMode());
-    act(() => ref.current!.exitZoomMode());
+    const { rerender } = renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    // The page direction is read from the mounted chart, so it applies from the next render.
+    rerender({ ...defaultProps, zoom: { enabled: true } });
     enterZoomMode();
 
     // The cursor starts at the left edge of the plot, so moving left does nothing.
@@ -1303,6 +1267,7 @@ describe("CartesianChart: zoom announcements", { timeout: TEST_TIMEOUT }, () => 
     const start = Date.UTC(2025, 0, 1);
     renderCartesianChart({
       highcharts,
+      i18nProvider: zoomMessages,
       series: [{ type: "line", name: "Requests", data: [0, 1, 2, 3, 4].map((i) => ({ x: start + i * day, y: i })) }],
       xAxis: {
         title: "Time",
@@ -1319,17 +1284,17 @@ describe("CartesianChart: zoom announcements", { timeout: TEST_TIMEOUT }, () => 
     pressCursorKey(KeyCode.right);
     pressCursorKey(KeyCode.enter);
     pressCursorKey(KeyCode.right);
-    expect(getCursorAttributes().text).toBe("Selecting zoom range from 2025-01-02 to 2025-01-03");
+    expect(getCursorAttributes().text).toBe("Selecting zoom range from 2025-01-02 to 2025-01-03.");
     pressCursorKey(KeyCode.enter);
     expect(getChart().getElement()).toHaveTextContent("Zoomed from 2025-01-02 to 2025-01-03");
   });
 });
 
 describe("CartesianChart: zoom focus and keyboard containment", { timeout: TEST_TIMEOUT }, () => {
-  // With hideButtons there is no Reset or Zoom button to land on after a zoom, so focus goes to the chart
+  // With hideZoomControls there is no Reset or Zoom button to land on after a zoom, so focus goes to the chart
   // itself rather than to the page body.
   test("moves focus to the chart after a keyboard zoom when the buttons are hidden", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true, hideButtons: true } });
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true, hideZoomControls: true } });
     act(() => ref.current!.enterZoomMode());
     pressCursorKey(KeyCode.right);
     pressCursorKey(KeyCode.enter);

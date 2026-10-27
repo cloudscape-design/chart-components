@@ -22,7 +22,8 @@ import { castArray } from "../internal/utils/utils";
 import { useChartAPI } from "./chart-api";
 import { ChartExtraContext } from "./chart-api/chart-extra-context";
 import { ChartContainer } from "./chart-container";
-import { useChartZoom } from "./chart-zoom/use-chart-zoom";
+import { useZoomI18n } from "./chart-zoom/zoom-i18n";
+import { hasColumnLikeSeries } from "./chart-zoom/zoom-values";
 import { ChartApplication } from "./components/core-application";
 import { ChartFilters } from "./components/core-filters";
 import { ChartLegend } from "./components/core-legend";
@@ -30,6 +31,7 @@ import { ChartNoData } from "./components/core-no-data";
 import { ChartFooter, ChartHeader } from "./components/core-slots";
 import { ChartTooltip } from "./components/core-tooltip";
 import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
+import { ChartZoomControls, ChartZoomCursor, ChartZoomLiveRegion } from "./components/core-zoom";
 import { getFormatter } from "./formatters";
 import { useChartI18n } from "./i18n-utils";
 import { CoreChartProps } from "./interfaces";
@@ -78,60 +80,25 @@ export function InternalCoreChart({
 }: CoreChartProps & InternalBaseComponentProps) {
   const highcharts = rest.highcharts as null | typeof Highcharts;
   const labels = useChartI18n({ ariaLabel, ariaDescription, i18nStrings });
-  const rootRef = useRef<HTMLDivElement>(null);
-  const inverted = !!options.chart?.inverted;
-  const isRtl = getIsRtl(rootRef.current);
-  const zoom = useChartZoom({
-    zoom: zoomOptions,
-    zoomRange,
-    onZoomRangeChange,
-    i18nStrings,
-    series: options.series,
-    chartType: options.chart?.type,
-    inverted,
-    isRtl,
-    rootRef,
-  });
+  const zoomLabels = useZoomI18n(i18nStrings);
+  // The zoom applies to the first x-axis, and is ignored when the chart does not define one.
+  const zoomEnabled = !!zoomOptions?.enabled && options.xAxis !== undefined;
   const context: ChartExtraContext["settings"] = {
     chartId: useUniqueId(),
     noDataEnabled: !!noDataOptions,
     legendEnabled: legendOptions?.enabled !== false,
-    // While a zoom range is being selected the pointer sets the range boundaries, so a tooltip following
-    // it would only obstruct the plot.
-    tooltipEnabled: tooltipOptions?.enabled !== false && !zoom.tooltipSuppressed,
+    tooltipEnabled: tooltipOptions?.enabled !== false,
     keyboardNavigationEnabled: keyboardNavigation,
     labels,
     getItemOptions: getItemOptions ?? (() => ({})),
+    zoom: { enabled: zoomEnabled, hideControls: !!zoomOptions?.hideZoomControls, labels: zoomLabels },
   };
-  const handlers = { onHighlight, onClearHighlight, onVisibleItemsChange };
-  const state = { visibleItems };
+  const handlers = { onHighlight, onClearHighlight, onVisibleItemsChange, onZoomRangeChange };
+  const state = { visibleItems, zoomRange };
   const api = useChartAPI(context, handlers, state);
 
-  // The chart API is handed out once, when Highcharts initializes, while the zoom actions are re-created on
-  // every render. The mirror ref lets the handed-out methods delegate to the current ones.
-  const zoomRef = useRef(zoom);
-  zoomRef.current = zoom;
-  const zoomApi = useRef({
-    enterZoomMode: () => zoomRef.current.enterZoomMode(),
-    exitZoomMode: () => zoomRef.current.exitZoomMode(),
-    resetZoom: () => zoomRef.current.resetZoom(),
-  }).current;
-
-  // The zoom needs to dismiss a highlighted point when a selection starts, and the API only exists once
-  // the context above is built.
-  useEffect(() => {
-    zoom.clearHighlightRef.current = () => api.clearChartHighlight({ isApiCall: false });
-  });
-
-  // The zoom is reconciled from here, and not from an effect inside its own hook, because it must observe
-  // the chart as the API leaves it: the API applies the visibleItems property to the series from an effect
-  // of its own, and an effect declared inside useChartZoom would run before that and still see the previous
-  // set of visible series. No dependencies, because any render can move the plot or change the data.
-  useEffect(() => {
-    zoom.reconcileAfterRender();
-  });
-
   const rootClassName = clsx(testClasses.root, styles.root, fitHeight && styles["root-fit-height"], className);
+  const rootRef = useRef<HTMLDivElement>(null);
   const mergedRootRef = useMergeRefs(rootRef, __internalRootRef);
   const rootProps = { ref: mergedRootRef, className: rootClassName, ...getDataAttributes(rest) };
   const legendPosition = legendOptions?.position ?? "bottom";
@@ -195,6 +162,8 @@ export function InternalCoreChart({
   }
 
   const apiOptions = api.getOptions();
+  const inverted = !!options.chart?.inverted;
+  const isRtl = getIsRtl(rootRef?.current);
 
   // The Highcharts options takes all provided Highcharts options and custom properties and merges them together, so that
   // the Cloudscape features and custom Highcharts extensions co-exist.
@@ -272,10 +241,9 @@ export function InternalCoreChart({
       className: xAxisClassName(inverted, xAxisOptions.className),
       title: axisTitle(xAxisOptions.title ?? {}, !inverted || verticalAxisTitlePlacement === "side"),
       labels: axisLabels(xAxisOptions.labels ?? {}),
-      // The zoom applies to the primary x-axis only: it is the axis the cursor and the drag selection
-      // are measured against. The extremes are declared in the options, rather than imperatively set,
-      // because Highcharts re-initializes the axes on every React re-render.
-      ...(index === 0 ? zoom.getXAxisZoomOptions(xAxisOptions) : {}),
+      // Highcharts widens any range narrower than five times the closest point distance unless the axis declares
+      // a minRange, and reads zero as not declared. The smallest positive number lets the zoom show any range.
+      minRange: index === 0 && zoomEnabled ? (xAxisOptions.minRange ?? Number.MIN_VALUE) : xAxisOptions.minRange,
     })),
     yAxis: castArray(options.yAxis)?.map((yAxisOptions) => ({
       ...Styles.yAxisOptions,
@@ -313,7 +281,13 @@ export function InternalCoreChart({
       line: { ...Styles.lineSeries, ...options.plotOptions?.line },
       spline: { ...Styles.lineSeries, ...options.plotOptions?.spline },
       column: { ...Styles.columnSeries, ...options.plotOptions?.column },
-      errorbar: { ...Styles.errorbarSeries, ...zoom.errorBarOptions, ...options.plotOptions?.errorbar },
+      errorbar: {
+        ...Styles.errorbarSeries,
+        // Error bars pad the axis by half a point range on each side, so the zoomed plot would show more than the
+        // zoomed range. Without bars in the chart nothing needs that room, so the error bars are placed on their x.
+        pointPlacement: zoomEnabled && !hasColumnLikeSeries(options.series) ? "on" : undefined,
+        ...options.plotOptions?.errorbar,
+      },
       // Pie chart is shown in legend by default, that is required for standalone pie charts.
       pie: {
         showInLegend: true,
@@ -344,9 +318,15 @@ export function InternalCoreChart({
               // It is possible to override it by explicitly providing chart.height, but this will not be
               // compatible with any of the above settings.
               height: options.chart?.height ?? height,
-              // Highcharts' own drag-to-zoom is not accessible, and would compete with the zoom interaction
-              // for the same pointer events, so it is turned off while the zoom property is enabled.
-              ...(zoom.enabled ? { zooming: { ...options.chart?.zooming, type: undefined } } : {}),
+              // Highcharts' own drag-to-zoom is not accessible, and would compete with the zoom for the same pointer
+              // events. The deprecated zoomType and pinchType take precedence over the zooming options.
+              ...(zoomEnabled
+                ? {
+                    zooming: { ...options.chart?.zooming, type: undefined, pinchType: undefined },
+                    zoomType: undefined,
+                    pinchType: undefined,
+                  }
+                : {}),
               // We override certain chart events to inject additional behaviors, but it is still possible to define
               // custom callbacks. The Cloudscape behaviors can be disabled or altered via components API. For instance,
               // if no-data props are not provided - the related on-render computations will be skipped.
@@ -358,9 +338,6 @@ export function InternalCoreChart({
                 },
                 render(event) {
                   apiOptions.onChartRender.call(this, event);
-                  // The zoom overlay is positioned against the plot, and the cached axis values depend on the
-                  // visible range, so both need to be refreshed whenever Highcharts re-draws.
-                  zoom.onChartRender(this);
                   return options.chart?.events?.render?.call(this, event);
                 },
                 click(event) {
@@ -397,28 +374,22 @@ export function InternalCoreChart({
             },
           };
           return (
-            // The anchor establishes the positioning context for the zoom overlay, which is drawn on top of the
-            // plot with DOM elements. Highcharts re-initializes its SVG on every React re-render, so imperatively
-            // added plot bands would not survive.
-            <div className={styles["chart-plot-anchor"]} {...zoom.plotProps}>
+            <>
               <ChartApplication api={api} keyboardNavigation={keyboardNavigation} ariaLabel={ariaLabel} />
               <HighchartsReact
                 highcharts={highcharts}
                 options={highchartsOptions}
                 callback={(chart: Highcharts.Chart) =>
-                  callback?.({
-                    chart,
-                    highcharts: highcharts as typeof Highcharts,
-                    ...api.publicApi,
-                    ...zoomApi,
-                  })
+                  callback?.({ chart, highcharts: highcharts as typeof Highcharts, ...api.publicApi })
                 }
               />
-              {zoom.overlay}
-            </div>
+              {zoomEnabled && <ChartZoomCursor api={api} i18n={zoomLabels} inverted={inverted} isRtl={isRtl} />}
+            </>
           );
         }}
-        zoomControls={zoom.controls}
+        zoomControls={
+          zoomEnabled && !zoomOptions?.hideZoomControls ? <ChartZoomControls api={api} i18n={zoomLabels} /> : null
+        }
         navigator={navigator}
         primaryLegend={
           context.legendEnabled && legendProps.primary ? (
@@ -462,7 +433,7 @@ export function InternalCoreChart({
         />
       )}
 
-      {zoom.liveRegion}
+      {zoomEnabled && <ChartZoomLiveRegion api={api} />}
     </div>
   );
 }

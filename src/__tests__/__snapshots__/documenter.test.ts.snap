@@ -841,8 +841,10 @@ button cancels the selection, and the "Reset" button restores the full data rang
 
 Supported options:
 * \`enabled\` (optional, boolean) - Enables zooming. Defaults to \`false\`.
-* \`hideButtons\` (optional, boolean) - Hides the built-in zoom buttons. Use it when providing custom
-controls, that use the \`enterZoomMode\`, \`exitZoomMode\`, and \`resetZoom\` methods of the component's ref.",
+* \`hideZoomControls\` (optional, boolean) - Hides the built-in zoom buttons. Use it when providing custom
+controls, that use the \`enterZoomMode\`, \`exitZoomMode\`, and \`resetZoom\` methods of the component's ref.
+
+Zooming requires \`xAxis\` to be defined.",
       "inlineType": {
         "name": "ZoomOptions",
         "properties": [
@@ -852,7 +854,7 @@ controls, that use the \`enterZoomMode\`, \`exitZoomMode\`, and \`resetZoom\` me
             "type": "boolean",
           },
           {
-            "name": "hideButtons",
+            "name": "hideZoomControls",
             "optional": true,
             "type": "boolean",
           },
@@ -2227,8 +2229,10 @@ end with a click, a tap, Enter, or Space.
 
 Supported options:
 * \`enabled\` (optional, boolean) - Enables zooming. Defaults to \`false\`.
-* \`hideButtons\` (optional, boolean) - Hides the built-in zoom buttons. Use it when providing custom
-controls, that use the \`enterZoomMode\`, \`exitZoomMode\`, and \`resetZoom\` methods of the component's ref.",
+* \`hideZoomControls\` (optional, boolean) - Hides the built-in zoom buttons. Use it when providing custom
+controls, that use the \`enterZoomMode\`, \`exitZoomMode\`, and \`resetZoom\` methods of the component's ref.
+
+Zooming applies to the first x-axis, and requires \`options.xAxis\` to be defined.",
         "i18nTag": undefined,
         "inlineType": {
           "name": "ZoomOptions",
@@ -2239,7 +2243,7 @@ controls, that use the \`enterZoomMode\`, \`exitZoomMode\`, and \`resetZoom\` me
               "type": "boolean",
             },
             {
-              "name": "hideButtons",
+              "name": "hideZoomControls",
               "optional": true,
               "type": "boolean",
             },

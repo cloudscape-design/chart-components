@@ -117,8 +117,10 @@ export interface CartesianChartProps
    *
    * Supported options:
    * * `enabled` (optional, boolean) - Enables zooming. Defaults to `false`.
-   * * `hideButtons` (optional, boolean) - Hides the built-in zoom buttons. Use it when providing custom
+   * * `hideZoomControls` (optional, boolean) - Hides the built-in zoom buttons. Use it when providing custom
    * controls, that use the `enterZoomMode`, `exitZoomMode`, and `resetZoom` methods of the component's ref.
+   *
+   * Zooming requires `xAxis` to be defined.
    */
   zoom?: CartesianChartProps.ZoomOptions;
 

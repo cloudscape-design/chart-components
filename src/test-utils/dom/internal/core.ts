@@ -45,7 +45,7 @@ export default class CoreChartWrapper extends BaseChartWrapper {
    * Visible when zoom is enabled and no range is being selected.
    */
   public findZoomButton(): null | ButtonWrapper {
-    return this.findComponent(`.${testClasses["zoom-button"]} .${ButtonWrapper.rootSelector}`, ButtonWrapper);
+    return this.findComponent(`.${testClasses["zoom-button"]}`, ButtonWrapper);
   }
 
   /**
@@ -53,7 +53,7 @@ export default class CoreChartWrapper extends BaseChartWrapper {
    * Visible while a zoom range is being selected.
    */
   public findExitZoomButton(): null | ButtonWrapper {
-    return this.findComponent(`.${testClasses["exit-zoom-button"]} .${ButtonWrapper.rootSelector}`, ButtonWrapper);
+    return this.findComponent(`.${testClasses["exit-zoom-button"]}`, ButtonWrapper);
   }
 
   /**
@@ -61,7 +61,7 @@ export default class CoreChartWrapper extends BaseChartWrapper {
    * Visible when the chart is zoomed in.
    */
   public findResetZoomButton(): null | ButtonWrapper {
-    return this.findComponent(`.${testClasses["reset-zoom-button"]} .${ButtonWrapper.rootSelector}`, ButtonWrapper);
+    return this.findComponent(`.${testClasses["reset-zoom-button"]}`, ButtonWrapper);
   }
 
   /**

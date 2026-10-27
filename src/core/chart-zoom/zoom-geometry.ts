@@ -3,9 +3,8 @@
 
 import type Highcharts from "highcharts";
 
-// Rectangles are expressed in physical pixels relative to the Highcharts container's top-left corner,
-// matching chart.plotLeft / plotTop / toPixels. Highcharts renders its SVG left-to-right regardless of
-// page direction, so the overlays are positioned with physical left/top rather than logical properties.
+// Rectangles are expressed in physical pixels relative to the Highcharts container's top-left corner, matching
+// chart.plotLeft / plotTop / toPixels. Highcharts renders its SVG left-to-right regardless of page direction.
 export interface OverlayRect {
   left: number;
   top: number;
@@ -116,40 +115,33 @@ export function isInsidePlot(chart: Highcharts.Chart, chartX: number, chartY: nu
   );
 }
 
-// Writes a rectangle onto an overlay element and makes it visible. Applied imperatively: the cursor and
-// the drag preview move with every pointer event, and re-rendering the chart component for each of those
-// would re-initialize the Highcharts axes.
-//
-// Visibility is used rather than display so the elements keep their layout box while hidden: the cursor
-// button cluster is a flex container whose own display must survive, and its size has to be measurable
-// before it is first shown. Hidden elements are neither focusable nor exposed to assistive technology,
-// and do not receive pointer events.
-export function applyRect(element: null | HTMLElement, rect: null | OverlayRect) {
-  if (!element) {
-    return;
-  }
-  if (!rect) {
-    element.style.visibility = "hidden";
-    return;
-  }
-  element.style.visibility = "visible";
-  element.style.left = `${rect.left}px`;
-  element.style.top = `${rect.top}px`;
-  element.style.width = `${rect.width}px`;
-  element.style.height = `${rect.height}px`;
+// The offset of the Highcharts container from the element the cursor is positioned against.
+export interface OverlayOrigin {
+  left: number;
+  top: number;
 }
 
-// Positions an element without constraining its size, used for the cursor button cluster: its size comes
-// from its contents, and writing the measured size back onto it would freeze that measurement.
-export function applyPosition(element: null | HTMLElement, rect: null | OverlayRect) {
+// Positions the cursor elements imperatively, so that stepping the cursor or dragging causes no React render.
+// They are hidden with visibility rather than display, so that they keep a measurable size while hidden.
+export function applyRect(element: null | HTMLElement, rect: null | OverlayRect, origin: OverlayOrigin) {
+  if (applyPosition(element, rect, origin) && element && rect) {
+    element.style.width = `${rect.width}px`;
+    element.style.height = `${rect.height}px`;
+  }
+}
+
+// Positions an element without constraining its size, used for the cursor button cluster, which is sized by
+// its contents.
+export function applyPosition(element: null | HTMLElement, rect: null | OverlayRect, origin: OverlayOrigin): boolean {
   if (!element) {
-    return;
+    return false;
   }
   if (!rect) {
     element.style.visibility = "hidden";
-    return;
+    return false;
   }
   element.style.visibility = "visible";
-  element.style.left = `${rect.left}px`;
-  element.style.top = `${rect.top}px`;
+  element.style.left = `${origin.left + rect.left}px`;
+  element.style.top = `${origin.top + rect.top}px`;
+  return true;
 }

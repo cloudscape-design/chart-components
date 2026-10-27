@@ -10,8 +10,9 @@ import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 import "@cloudscape-design/components/test-utils/dom";
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import { createChartWrapper, renderChart, renderStatefulChart } from "./common";
+import { zoomMessages } from "./zoom-messages";
 
-import styles from "../../../lib/components/core/styles.selectors.js";
+import testClasses from "../../../lib/components/core/test-classes/styles.selectors.js";
 
 // Every test here renders a real chart, which takes ~2s in jsdom, and the zoom interactions re-render it.
 const TEST_TIMEOUT = 15_000;
@@ -48,6 +49,7 @@ const series: CoreChartProps.ChartOptions["series"] = [
 
 const defaultProps = {
   highcharts,
+  i18nProvider: zoomMessages,
   options: { series, xAxis: { min: 0, max: 4 } },
   zoom: { enabled: true },
 };
@@ -204,7 +206,7 @@ describe("CoreChart: zoom", { timeout: TEST_TIMEOUT }, () => {
     { inverted: true, touchAction: "pan-x" },
   ])("leaves touch drags along the x axis to the zoom, inverted=$inverted", ({ inverted, touchAction }) => {
     renderChart({ ...defaultProps, options: { ...defaultProps.options, chart: { inverted } } });
-    expect(document.querySelector(`.${styles["chart-plot-anchor"]}`)).toHaveStyle({ touchAction });
+    expect(getCurrentChart().container).toHaveStyle({ touchAction });
   });
 
   // Highcharts keeps the points outside the x-axis extremes in the series until it exceeds cropThreshold.
@@ -231,9 +233,9 @@ describe("CoreChart: zoom", { timeout: TEST_TIMEOUT }, () => {
     expect(document.activeElement).toHaveAttribute("aria-label", last);
   });
 
-  // The zoom band and boundary lines mark the zoomed range rather than a series, so highlighting a series
-  // dims the consumer's plot lines, which belong to series, but not the zoom affordance.
-  test("does not dim the zoomed range affordance when a series is highlighted", () => {
+  // The zoomed range is drawn on the plot rather than declared as plot lines, so highlighting a series dims the
+  // consumer's plot lines, which belong to series, but not the zoomed range.
+  test("does not dim the zoomed range when a series is highlighted", () => {
     let chartApi: CoreChartProps.ChartAPI | null = null;
     renderChart({
       ...defaultProps,
@@ -249,12 +251,8 @@ describe("CoreChart: zoom", { timeout: TEST_TIMEOUT }, () => {
     const opacityById = Object.fromEntries(
       xAxis.plotLinesAndBands.map((line) => [line.options.id, line.svgElem?.opacity ?? 1]),
     );
-    expect(opacityById).toEqual({
-      L2: 0.4,
-      "awsui-zoom-range": 1,
-      "awsui-zoom-range-start": 1,
-      "awsui-zoom-range-end": 1,
-    });
+    expect(opacityById).toEqual({ L2: 0.4 });
+    expect(document.querySelector(`.${testClasses["zoom-range"]}`)).not.toHaveAttribute("opacity");
   });
 
   // A reversed x axis draws the values from right to left. The cursor still starts at the left edge of the

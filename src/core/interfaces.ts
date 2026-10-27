@@ -171,7 +171,7 @@ export interface WithCartesianI18nStrings {
    * * `exitZoomModeButtonAriaLabel` (optional, string) - Accessible label for the "Exit zoom" button.
    * * `resetZoomButtonText` (optional, string) - Visible label for the "Reset" button that resets zoom to full range.
    * * `resetZoomButtonAriaLabel` (optional, string) - Accessible label for the "Reset" button.
-   * * `zoomControlsAriaLabel` (optional, string) - Accessible label for the zoom controls region, e.g. "Chart zoom controls".
+   * * `zoomControlsAriaLabel` (optional, string) - Accessible label for the zoom controls region.
    * * `zoomCursorAriaLabel` (optional, string) - Accessible label for the zoom range cursor.
    * * `zoomCursorPreviousButtonAriaLabel` (optional, string) - Accessible label for the button that moves the zoom cursor to the previous data point.
    * * `zoomCursorNextButtonAriaLabel` (optional, string) - Accessible label for the button that moves the zoom cursor to the next data point.
@@ -209,39 +209,39 @@ export interface WithPieI18nStrings {
 export interface CartesianI18nStrings extends BaseI18nStrings {
   xAxisRoleDescription?: string;
   yAxisRoleDescription?: string;
-  /** Visible label for the "Zoom" button that enters zoom mode. @defaultValue "Zoom" */
+  /** Visible label for the "Zoom" button that enters zoom mode. */
   enterZoomModeButtonText?: string;
-  /** Accessible label for the "Zoom" button. @defaultValue "Enter zoom mode" */
+  /** Accessible label for the "Zoom" button. */
   enterZoomModeButtonAriaLabel?: string;
-  /** Visible label for the "Exit zoom" button that exits zoom mode without zooming. @defaultValue "Exit zoom" */
+  /** Visible label for the "Exit zoom" button that exits zoom mode without zooming. */
   exitZoomModeButtonText?: string;
-  /** Accessible label for the "Exit zoom" button. @defaultValue "Exit zoom mode" */
+  /** Accessible label for the "Exit zoom" button. */
   exitZoomModeButtonAriaLabel?: string;
-  /** Visible label for the "Reset" button that resets zoom to full range. @defaultValue "Reset" */
+  /** Visible label for the "Reset" button that resets zoom to full range. */
   resetZoomButtonText?: string;
-  /** Accessible label for the "Reset" button. @defaultValue "Reset zoom to show full data range" */
+  /** Accessible label for the "Reset" button. */
   resetZoomButtonAriaLabel?: string;
-  /** Accessible label for the zoom controls region. @defaultValue "Chart zoom controls" */
+  /** Accessible label for the zoom controls region. */
   zoomControlsAriaLabel?: string;
-  /** Accessible label for the zoom range cursor. @defaultValue "Zoom range cursor" */
+  /** Accessible label for the zoom range cursor. */
   zoomCursorAriaLabel?: string;
-  /** Accessible label for the button that moves the zoom cursor to the previous point. @defaultValue "Move zoom cursor to previous point" */
+  /** Accessible label for the button that moves the zoom cursor to the previous point. */
   zoomCursorPreviousButtonAriaLabel?: string;
-  /** Accessible label for the button that moves the zoom cursor to the next point. @defaultValue "Move zoom cursor to next point" */
+  /** Accessible label for the button that moves the zoom cursor to the next point. */
   zoomCursorNextButtonAriaLabel?: string;
-  /** Screen reader announcement when zoom mode is entered. Receives the formatted cursor value. @defaultValue (value) => \`Zoom mode. Cursor at ${value}. Use arrow keys to move, Enter to set the start point.\` */
+  /** Screen reader announcement when zoom mode is entered. Receives the formatted cursor value. */
   zoomModeEnteredAnnouncementText?: (value: string) => string;
-  /** Screen reader announcement when the zoom cursor moves. Receives the formatted cursor value. @defaultValue (value) => value */
+  /** Screen reader announcement when the zoom cursor moves. Receives the formatted cursor value. */
   zoomCursorPositionAnnouncementText?: (value: string) => string;
-  /** Screen reader announcement when the zoom start point is set. Receives the formatted start value. @defaultValue (value) => \`Start point set at ${value}. Move the cursor and set the end point to zoom.\` */
+  /** Screen reader announcement when the zoom start point is set. Receives the formatted start value. */
   zoomStartPointAnnouncementText?: (value: string) => string;
-  /** Screen reader announcement when the zoom range changes. Receives the formatted start and end values. @defaultValue (startValue, endValue) => \`Zoomed from ${startValue} to ${endValue}\` */
+  /** Screen reader announcement when the zoom range changes. Receives the formatted start and end values. */
   zoomRangeChangeAnnouncementText?: (startValue: string, endValue: string) => string;
-  /** Screen reader announcement when zoom mode is exited without zooming. @defaultValue "Zoom mode cancelled" */
+  /** Screen reader announcement when zoom mode is exited without zooming. */
   zoomModeExitedAnnouncementText?: string;
-  /** Screen reader announcement when the zoom is reset to the full data range. @defaultValue "Zoom reset. Showing the full data range." */
+  /** Screen reader announcement when the zoom is reset to the full data range. */
   zoomResetAnnouncementText?: string;
-  /** Screen reader announcement while adjusting the keyboard zoom selection. Receives the formatted start and end values. @defaultValue (startValue, endValue) => \`Selecting zoom range from ${startValue} to ${endValue}\` */
+  /** Screen reader announcement while adjusting the keyboard zoom selection. Receives the formatted start and end values. */
   zoomSelectionAnnouncementText?: (startValue: string, endValue: string) => string;
 }
 
@@ -455,8 +455,10 @@ export interface CoreChartProps
    *
    * Supported options:
    * * `enabled` (optional, boolean) - Enables zooming. Defaults to `false`.
-   * * `hideButtons` (optional, boolean) - Hides the built-in zoom buttons. Use it when providing custom
+   * * `hideZoomControls` (optional, boolean) - Hides the built-in zoom buttons. Use it when providing custom
    * controls, that use the `enterZoomMode`, `exitZoomMode`, and `resetZoom` methods of the component's ref.
+   *
+   * Zooming applies to the first x-axis, and requires `options.xAxis` to be defined.
    */
   zoom?: CoreChartProps.ZoomOptions;
   /**
