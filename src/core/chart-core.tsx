@@ -82,7 +82,7 @@ export function InternalCoreChart({
   const labels = useChartI18n({ ariaLabel, ariaDescription, i18nStrings });
   const zoomLabels = useZoomI18n(i18nStrings);
   // The zoom applies to the first x-axis, and is ignored when the chart does not define one.
-  const zoomEnabled = !!zoomOptions?.enabled && options.xAxis !== undefined;
+  const zoomEnabled = !!zoomOptions?.enabled && (castArray(options.xAxis)?.length ?? 0) > 0;
   const context: ChartExtraContext["settings"] = {
     chartId: useUniqueId(),
     noDataEnabled: !!noDataOptions,

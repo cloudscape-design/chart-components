@@ -196,6 +196,20 @@ describe("CoreChart: zoom", { timeout: TEST_TIMEOUT }, () => {
     expect(getCurrentChart().options.chart?.zooming?.type).toBe("x");
   });
 
+  test("ignores the zoom while the x-axes are removed, and applies it again once they are back", () => {
+    const { wrapper, rerender } = renderChart({ ...defaultProps, zoomRange: { x: { startValue: 1, endValue: 3 } } });
+    expect(getCurrentChart().xAxis[0].getExtremes()).toEqual(expect.objectContaining({ min: 1, max: 3 }));
+
+    rerender({ ...defaultProps, options: { series, xAxis: [] }, zoomRange: { x: { startValue: 1, endValue: 3 } } });
+    expect(document.querySelector(`.${testClasses["zoom-range"]}`)).toBe(null);
+    expect(wrapper.findZoomButton()).toBe(null);
+    expect(wrapper.findResetZoomButton()).toBe(null);
+
+    rerender({ ...defaultProps, zoomRange: { x: { startValue: 1, endValue: 3 } } });
+    expect(getCurrentChart().xAxis[0].getExtremes()).toEqual(expect.objectContaining({ min: 1, max: 3 }));
+    expect(wrapper.findResetZoomButton()).not.toBe(null);
+  });
+
   test("keeps the x-axis minRange declared by the consumer", () => {
     renderChart({ ...defaultProps, options: { ...defaultProps.options, xAxis: { min: 0, max: 4, minRange: 3 } } });
     expect(getCurrentChart().xAxis[0].options.minRange).toBe(3);

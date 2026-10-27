@@ -83,6 +83,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private machine: ZoomState = IDLE_ZOOM_STATE;
   private localExtremes: null | ZoomExtremes = null;
   private appliedExtremesKey = "";
+  private appliedAxis: null | Highcharts.Axis = null;
   private resetRequested = false;
   private values: number[] = [];
   private valuesStale = true;
@@ -125,6 +126,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     // Highcharts creates a new chart instance when the chart is re-initialized, which has no extremes applied
     // and no elements drawn yet.
     this.appliedExtremesKey = "";
+    this.appliedAxis = null;
     this.svg = createSvgElements();
     this.applyContainerStyle(chart);
     this.applyExtremes(chart);
@@ -295,10 +297,14 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private applyExtremes(chart: SafeChart) {
     const extremes = this.getExtremes();
     const key = extremes ? `${extremes.min}:${extremes.max}` : "";
-    if (key !== this.appliedExtremesKey && chart.xAxis?.[0]) {
-      this.appliedExtremesKey = key;
-      chart.xAxis[0].setExtremes(extremes?.min, extremes?.max, true, false);
+    // An x-axis removed with xAxis: [] and added back is a new axis, which has no range applied yet.
+    const xAxis = chart.xAxis?.[0] ?? null;
+    const axisReplaced = xAxis !== this.appliedAxis && !!extremes;
+    if (xAxis && (key !== this.appliedExtremesKey || axisReplaced)) {
+      xAxis.setExtremes(extremes?.min, extremes?.max, true, false);
     }
+    this.appliedExtremesKey = key;
+    this.appliedAxis = xAxis;
     if (!!extremes !== this.get().zoomed) {
       this.set((prev) => ({ ...prev, zoomed: !!extremes }));
     }
