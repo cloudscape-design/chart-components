@@ -119,7 +119,6 @@ export class ChartAPI {
     const chartAPI = this;
     const onChartLoad: Highcharts.ChartLoadCallbackFunction = function (this) {
       chartAPI.chartExtraPointer.onChartLoad(this);
-      chartAPI.chartExtraZoom.onChartLoad(this);
     };
     const onChartRender: Highcharts.ChartRenderCallbackFunction = function (this) {
       updateChartContext(chartAPI.context, this);

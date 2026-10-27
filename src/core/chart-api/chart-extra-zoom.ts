@@ -32,8 +32,7 @@ interface ZoomExtremes {
 // with the zoomRange property: the helper applies it to the axis, and marks it on the plot.
 export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private context: ChartExtraContext;
-  private appliedExtremesKey = "";
-  private appliedAxis: null | Highcharts.Axis = null;
+  private appliedRange = false;
   private resetRequested = false;
   private svg = createSvgElements();
 
@@ -42,17 +41,11 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     this.context = context;
   }
 
-  public onChartLoad = (chart: SafeChart) => {
-    // Highcharts creates a new chart instance when the chart is re-initialized, which has no extremes applied
-    // and no elements drawn yet.
-    this.appliedExtremesKey = "";
-    this.appliedAxis = null;
-    this.svg = createSvgElements();
-    this.applyExtremes(chart);
-  };
-
+  // The range is reconciled on every render, because the x-axis can be replaced by any chart update.
   public onChartRender = () => {
-    this.drawRange(this.context.chart());
+    const chart = this.context.chart();
+    this.applyExtremes(chart);
+    this.drawRange(chart);
   };
 
   public onChartDestroy = () => {
@@ -93,18 +86,21 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   }
 
   // The range is applied imperatively: Highcharts keeps the extremes set with setExtremes through chart updates,
-  // and falls back to the min and max declared in the axis options when they are cleared.
+  // and falls back to the min and max declared in the axis options when they are cleared. The axis is only
+  // updated when its range differs, so the redraw it causes does not update it again. Extremes the zoom did not
+  // apply are left to the consumer.
   private applyExtremes(chart: SafeChart) {
     const extremes = this.getExtremes();
-    const key = extremes ? `${extremes.min}:${extremes.max}` : "";
-    // An x-axis removed with xAxis: [] and added back is a new axis, which has no range applied yet.
-    const xAxis = chart.xAxis?.[0] ?? null;
-    const axisReplaced = xAxis !== this.appliedAxis && !!extremes;
-    if (xAxis && (key !== this.appliedExtremesKey || axisReplaced)) {
-      xAxis.setExtremes(extremes?.min, extremes?.max, true, false);
+    const xAxis = chart.xAxis?.[0];
+    if (xAxis) {
+      const { userMin, userMax } = xAxis.getExtremes();
+      if (extremes && (userMin !== extremes.min || userMax !== extremes.max)) {
+        xAxis.setExtremes(extremes.min, extremes.max, true, false);
+      } else if (!extremes && this.appliedRange && (userMin !== undefined || userMax !== undefined)) {
+        xAxis.setExtremes(undefined, undefined, true, false);
+      }
     }
-    this.appliedExtremesKey = key;
-    this.appliedAxis = xAxis;
+    this.appliedRange = !!extremes;
     if (!!extremes !== this.get().zoomed) {
       this.set((prev) => ({ ...prev, zoomed: !!extremes }));
     }
@@ -114,9 +110,10 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private drawRange(chart: SafeChart) {
     const extremes = this.getExtremes();
     const xAxis = chart.xAxis?.[0];
+    // Hiding first destroys the elements of a chart instance that Highcharts has replaced, like the tooltip cursor.
+    this.svg.rangeBand.hide();
+    this.svg.rangeBorders.hide();
     if (!extremes || !xAxis) {
-      this.svg.rangeBand.hide();
-      this.svg.rangeBorders.hide();
       return;
     }
     const band = getBandRect(chart as Highcharts.Chart, xAxis, extremes.min, extremes.max);

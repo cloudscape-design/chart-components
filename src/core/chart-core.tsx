@@ -80,6 +80,7 @@ export function InternalCoreChart({
   ...rest
 }: CoreChartProps & InternalBaseComponentProps & InternalZoomProps) {
   const highcharts = rest.highcharts as null | typeof Highcharts;
+  const globalOptions = highcharts?.getOptions();
   const labels = useChartI18n({ ariaLabel, ariaDescription, i18nStrings });
   const zoomLabels = useZoomI18n();
   // The zoom applies to the first x-axis, and is ignored when the chart does not define one.
@@ -244,7 +245,11 @@ export function InternalCoreChart({
       labels: axisLabels(xAxisOptions.labels ?? {}),
       // Highcharts widens any range narrower than five times the closest point distance unless the axis declares
       // a minRange, and reads zero as not declared. The smallest positive number lets the zoom show any range.
-      minRange: index === 0 && zoomEnabled ? (xAxisOptions.minRange ?? Number.MIN_VALUE) : xAxisOptions.minRange,
+      // The axis options are merged over the previous ones on update, so when zoom is off the consumer's
+      // effective minRange is given back, including one set globally with Highcharts.setOptions.
+      minRange:
+        xAxisOptions.minRange ??
+        (index === 0 && zoomEnabled ? Number.MIN_VALUE : castArray(globalOptions?.xAxis)?.[0]?.minRange),
     })),
     yAxis: castArray(options.yAxis)?.map((yAxisOptions) => ({
       ...Styles.yAxisOptions,
@@ -286,7 +291,12 @@ export function InternalCoreChart({
         ...Styles.errorbarSeries,
         // Error bars pad the axis by half a point range on each side, so the zoomed plot would show more than the
         // zoomed range. Without bars in the chart nothing needs that room, so the error bars are placed on their x.
-        pointPlacement: zoomEnabled && !hasColumnLikeSeries(options.series) ? "on" : undefined,
+        pointPlacement:
+          zoomEnabled && !hasColumnLikeSeries(options.series)
+            ? "on"
+            : (options.plotOptions?.series?.pointPlacement ??
+              globalOptions?.plotOptions?.errorbar?.pointPlacement ??
+              globalOptions?.plotOptions?.series?.pointPlacement),
         ...options.plotOptions?.errorbar,
       },
       // Pie chart is shown in legend by default, that is required for standalone pie charts.

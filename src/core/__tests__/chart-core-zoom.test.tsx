@@ -241,6 +241,54 @@ describe("CoreChart: zoom range", { timeout: TEST_TIMEOUT }, () => {
     expect(wrapper.findResetZoomButton()).not.toBe(null);
   });
 
+  test("applies the zoom range to an x-axis that replaces the first one", () => {
+    const options = {
+      series,
+      xAxis: [
+        { id: "first", min: 0, max: 4 },
+        { id: "second", min: 0, max: 4 },
+      ],
+    };
+    const { rerender } = renderZoomChart({ ...defaultProps, options, zoomRange: zoomedRange });
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+
+    rerender({
+      ...defaultProps,
+      options: { series, xAxis: [{ id: "second", min: 0, max: 4 }] },
+      zoomRange: zoomedRange,
+    });
+    expect(getCurrentChart().xAxis[0].options.id).toBe("second");
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+  });
+
+  test("leaves x-axis extremes it did not apply to the consumer", () => {
+    renderZoomChart({ ...defaultProps, zoom: undefined });
+    act(() => getCurrentChart().xAxis[0].setExtremes(2, 3));
+    act(() => getCurrentChart().redraw());
+    expect(getXExtremes()).toEqual({ min: 2, max: 3 });
+  });
+
+  test("keeps the global x-axis minRange and error bar placement when zoom is not enabled", () => {
+    highcharts.setOptions({ xAxis: { minRange: 3 }, plotOptions: { series: { pointPlacement: "on" } } });
+    try {
+      renderZoomChart({ ...defaultProps, zoom: undefined, options: { ...defaultProps.options, xAxis: {} } });
+      const chart = getCurrentChart();
+      expect(chart.xAxis[0].options.minRange).toBe(3);
+      expect(chart.options.plotOptions?.errorbar?.pointPlacement).toBe("on");
+    } finally {
+      highcharts.setOptions({ xAxis: { minRange: undefined }, plotOptions: { series: { pointPlacement: undefined } } });
+    }
+  });
+
+  test("keeps the consumer error bar placement from the series plot options when zoom is not enabled", () => {
+    renderZoomChart({
+      ...defaultProps,
+      zoom: undefined,
+      options: { ...defaultProps.options, plotOptions: { series: { pointPlacement: "between" } } },
+    });
+    expect(getCurrentChart().options.plotOptions?.errorbar?.pointPlacement).toBe("between");
+  });
+
   test("keeps the x-axis minRange declared by the consumer", () => {
     renderZoomChart({ ...defaultProps, options: { series, xAxis: { min: 0, max: 4, minRange: 3 } } });
     expect(getCurrentChart().xAxis[0].options.minRange).toBe(3);
