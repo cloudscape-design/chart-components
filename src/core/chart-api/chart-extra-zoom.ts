@@ -166,8 +166,8 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     this.dispatch({ type: "exitZoomMode", moveFocus: withFocus });
   };
 
-  public resetZoom = ({ withFocus, isApiCall }: { withFocus: boolean; isApiCall: boolean }) => {
-    this.dispatch({ type: "resetZoom", zoomed: !!this.getExtremes(), moveFocus: withFocus, isApiCall });
+  public resetZoom = ({ isApiCall }: { isApiCall: boolean }) => {
+    this.dispatch({ type: "resetZoom", zoomed: !!this.getExtremes(), isApiCall });
   };
 
   public clearFocusRequest = () => {
@@ -441,21 +441,18 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       return;
     }
     // In an inverted chart the x-axis runs vertically, so the band and the borders span the plot horizontally.
-    const horizontal = xAxis.horiz !== false;
     const { plotLeft, plotTop, plotWidth, plotHeight } = chart;
-    const from = xAxis.toPixels(extremes.min, false);
-    const to = xAxis.toPixels(extremes.max, false);
-    const start = Math.min(from, to);
-    // A range of a single value still needs a visible band, hence the minimum of one pixel.
-    const size = Math.max(1, Math.abs(to - from));
-    const band = horizontal
-      ? { x: start, y: plotTop, width: size, height: plotHeight }
-      : { x: plotLeft, y: start, width: plotWidth, height: size };
+    const from = valueToPixel(xAxis, extremes.min);
+    const to = valueToPixel(xAxis, extremes.max);
     const border = (pixel: number) =>
-      horizontal
+      isXAxisHorizontal(xAxis)
         ? `M ${pixel} ${plotTop} L ${pixel} ${plotTop + plotHeight}`
         : `M ${plotLeft} ${pixel} L ${plotLeft + plotWidth} ${pixel}`;
-    this.rangeBand.rect(chart.renderer, { ...Styles.zoomRangeBand, ...band, class: testClasses["zoom-range"] });
+    this.rangeBand.rect(chart.renderer, {
+      ...Styles.zoomRangeBand,
+      ...getBandRect(chart, xAxis, extremes.min, extremes.max),
+      class: testClasses["zoom-range"],
+    });
     this.rangeBorders.path(chart.renderer, {
       ...Styles.zoomRangeBorders,
       d: `${border(from)} ${border(to)}`,

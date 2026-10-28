@@ -50,6 +50,12 @@ $side-legend-max-inline-size: 30%;
   color: cs.$color-text-empty;
 }
 
+.chart-zoom-controls {
+  display: flex;
+  justify-content: flex-end;
+  padding-block-end: cs.$space-scaled-xxs;
+}
+
 .chart-filters {
   padding-block-end: cs.$space-scaled-l;
 
@@ -134,12 +140,6 @@ $side-legend-max-inline-size: 30%;
 }
 
 $zoom-cursor-button-size: cs.$space-static-xl;
-
-.chart-zoom-controls {
-  display: flex;
-  justify-content: flex-end;
-  padding-block-end: cs.$space-scaled-xxs;
-}
 
 // Positioned imperatively in physical pixels by the zoom helper, because Highcharts renders its SVG left-to-right
 // regardless of page direction. Hidden with visibility, so that their size can be measured while hidden.

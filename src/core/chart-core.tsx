@@ -234,7 +234,8 @@ export function InternalCoreChart({
       ...Styles.xAxisOptions,
       // Highcharts widens any range narrower than five times the closest point distance unless the axis declares
       // a minRange, and reads zero as not declared. The smallest positive number lets the zoom show any range.
-      ...(index === 0 && zoomEnabled ? { minRange: Number.MIN_VALUE } : {}),
+      // Highcharts merges axis updates, so the value is cleared explicitly once zoom is disabled.
+      ...(index === 0 ? { minRange: zoomEnabled ? Number.MIN_VALUE : undefined } : {}),
       ...xAxisOptions,
       // Depending on the chart.inverted the x-axis can be rendered as vertical, and needs to respect page direction.
       reversed: !inverted && isRtl ? !xAxisOptions.reversed : xAxisOptions.reversed,

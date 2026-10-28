@@ -35,8 +35,8 @@ const DRAGGING_IN_ZOOM: ZoomState = { type: "dragging", press: { ...PRESS, curre
 
 const ENTER: ZoomEvent = { type: "enterZoomMode", startIndex: 0 };
 const EXIT: ZoomEvent = { type: "exitZoomMode", moveFocus: true };
-const RESET: ZoomEvent = { type: "resetZoom", zoomed: true, moveFocus: true, isApiCall: false };
-const RESET_UNZOOMED: ZoomEvent = { type: "resetZoom", zoomed: false, moveFocus: true, isApiCall: false };
+const RESET: ZoomEvent = { type: "resetZoom", zoomed: true, isApiCall: false };
+const RESET_UNZOOMED: ZoomEvent = { type: "resetZoom", zoomed: false, isApiCall: false };
 const STEP: ZoomEvent = { type: "stepCursor", offset: 1 };
 const TO_EDGE: ZoomEvent = { type: "moveCursorToEdge", edge: "last" };
 const COMMIT: ZoomEvent = { type: "commitPoint" };
@@ -52,11 +52,11 @@ const RENDERED: ZoomEvent = { type: "chartRendered" };
 const FRESH: ZoomState = { type: "selecting", selection: { cursorIndex: 0, anchorIndex: null } };
 const ENTERED = ["clearHighlight", "announce", "focus"];
 const EXITED = ["announce", "focus"];
-const RESETTED = ["resetZoom", "focus"];
+const RESETTED = ["resetZoom"];
 const ZOOMED = ["applyZoom", "focus"];
 
 // Every state, against every event. "same" means the event means nothing in that state: the machine
-// returns the state it was given, unchanged and with no effects, and the hook can then skip the work
+// returns the state it was given, unchanged and with no effects, and the helper can then skip the work
 // a transition would cause.
 const SAME = "same";
 
@@ -143,7 +143,7 @@ describe("zoomReducer", () => {
     expect(transition.state).toEqual(to === SAME ? from : to);
     expect(transition.effects.map((effect) => effect.type)).toEqual(effects);
     if (to === SAME) {
-      // The hook compares the state by identity to tell a transition from an event it can ignore.
+      // The helper compares the state by identity to tell a transition from an event it can ignore.
       expect(transition.state).toBe(from);
     }
   });
@@ -274,9 +274,6 @@ describe("zoomReducer", () => {
 
   test("only moves the focus when asked to", () => {
     expect(effectTypes(reduce(SELECTING, { type: "exitZoomMode", moveFocus: false }))).toEqual(["announce"]);
-    expect(
-      effectTypes(reduce(SELECTING, { type: "resetZoom", zoomed: true, moveFocus: false, isApiCall: true })),
-    ).toEqual(["resetZoom"]);
   });
 });
 

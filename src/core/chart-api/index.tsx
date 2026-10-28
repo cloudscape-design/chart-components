@@ -219,8 +219,7 @@ export class ChartAPI {
   public clearZoomFocusRequest = this.chartExtraZoom.clearFocusRequest;
   public enterZoomMode = () => this.chartExtraZoom.enterZoomMode();
   public exitZoomMode = ({ withFocus }: { withFocus: boolean }) => this.chartExtraZoom.exitZoomMode({ withFocus });
-  public resetZoom = ({ withFocus, isApiCall }: { withFocus: boolean; isApiCall: boolean }) =>
-    this.chartExtraZoom.resetZoom({ withFocus, isApiCall });
+  public resetZoom = ({ isApiCall }: { isApiCall: boolean }) => this.chartExtraZoom.resetZoom({ isApiCall });
 
   // Hide the tooltip from an action initiated by the tooltip's content
   public hideTooltip = () => {
@@ -292,7 +291,7 @@ export class ChartAPI {
       clearChartHighlight: () => this.clearChartHighlight({ isApiCall: true }),
       enterZoomMode: () => this.enterZoomMode(),
       exitZoomMode: () => this.exitZoomMode({ withFocus: false }),
-      resetZoom: () => this.resetZoom({ withFocus: false, isApiCall: true }),
+      resetZoom: () => this.resetZoom({ isApiCall: true }),
     };
   }
 

@@ -68,9 +68,10 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
             variant="link"
             formAction="none"
             onClick={() => {
-              api.resetZoom({ withFocus: false, isApiCall: false });
-              // The Reset button is removed once the reset is applied, so focus moves on as it is pressed.
-              if (zoomButtonRef.current) {
+              api.resetZoom({ isApiCall: false });
+              // The Reset button is removed once the reset is applied, so focus moves on as it is pressed. A disabled
+              // Zoom button cannot take focus.
+              if (zoomButtonRef.current && canZoom) {
                 zoomButtonRef.current.focus();
               } else {
                 api.focusChart();

@@ -631,6 +631,17 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
     expect(document.activeElement).toBe(getChart().findZoomButton()!.getElement());
   });
 
+  test("moves focus to the chart after resetting when the Zoom button is disabled", () => {
+    renderCartesianChart({
+      ...defaultProps,
+      zoom: { enabled: true },
+      zoomRange: { x: { startValue: 1, endValue: 2 } },
+    });
+    expect(getChart().findZoomButton()!.isDisabled()).toBe(true);
+    getChart().findResetZoomButton()!.click();
+    expect(document.activeElement).toBe(getChart().findApplication()!.getElement());
+  });
+
   test("moves focus to the Zoom button when the selection is cancelled", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
     enterZoomMode();

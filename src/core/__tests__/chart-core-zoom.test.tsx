@@ -236,6 +236,13 @@ describe("CoreChart: zoom", () => {
     expect(getCurrentChart().xAxis[0].options.minRange).toBe(3);
   });
 
+  test("clears the zoom minRange once zoom is disabled", () => {
+    const { rerender } = renderChart(defaultProps);
+    expect(getCurrentChart().xAxis[0].options.minRange).toBe(Number.MIN_VALUE);
+    rerender({ ...defaultProps, zoom: { enabled: false } });
+    expect(getCurrentChart().xAxis[0].options.minRange).toBeUndefined();
+  });
+
   test.each([
     { inverted: false, touchAction: "pan-y" },
     { inverted: true, touchAction: "pan-x" },

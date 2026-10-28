@@ -10,7 +10,7 @@ import { MIN_ZOOM_POINTS } from "./zoom-utils";
  * and the chart re-rendering underneath it. The states and the transitions between them are therefore
  * spelled out here, separately from the React and Highcharts plumbing that carries them out. This module is
  * pure: it holds no chart, measures nothing, and deals only in indices into the list of x values the cursor
- * can sit on. The hook resolves those indices to values, draws them, and moves focus.
+ * can sit on. The ChartExtraZoom helper resolves those indices to values, draws them, and moves focus.
  *
  *                          enterZoomMode
  *        +-------------------------------------------------+
@@ -52,7 +52,7 @@ export interface ZoomSelection {
 /** A pointer being held down over the plot. */
 export interface ZoomPress {
   pointerId: number;
-  // Where the pointer went down, in client coordinates. The hook measures the travel from here against the
+  // Where the pointer went down, in client coordinates. The helper measures the travel from here against the
   // drag threshold, because only it knows which way the axis runs on screen.
   clientX: number;
   clientY: number;
@@ -89,16 +89,16 @@ export type ZoomState = IdleState | SelectingState | PressedState | DraggingStat
 export const IDLE_ZOOM_STATE: ZoomState = { type: "idle" };
 
 export type ZoomEvent =
-  // The "Zoom" button, the chart API, and a shortcut all start a selection at the stop the hook picks: the
+  // The "Zoom" button, the chart API, and a shortcut all start a selection at the stop the helper picks: the
   // visible start of the plot, whichever way the axis runs.
   | { type: "enterZoomMode"; startIndex: number }
   // The "Exit zoom" button, Escape, the chart API, and focus leaving the chart.
   | { type: "exitZoomMode"; moveFocus: boolean }
-  // The "Reset" button and the chart API. Whether there is a zoom to reset is the hook's to know, because
+  // The "Reset" button and the chart API. Whether there is a zoom to reset is the helper's to know, because
   // the range may be controlled by the consumer.
-  | { type: "resetZoom"; zoomed: boolean; moveFocus: boolean; isApiCall: boolean }
+  | { type: "resetZoom"; zoomed: boolean; isApiCall: boolean }
   // The arrow keys, Page Up/Down, and the cursor's step buttons. The offset is already expressed in stops
-  // along the value axis, with the direction on screen resolved by the hook.
+  // along the value axis, with the direction on screen resolved by the helper.
   | { type: "stepCursor"; offset: number }
   // Home and End.
   | { type: "moveCursorToEdge"; edge: "first" | "last" }
@@ -129,8 +129,8 @@ export type ZoomAnnouncement =
   | { type: "zoomModeExited" };
 
 /**
- * What the hook must do for a transition, beyond drawing the new state. The two zoom commands each also
- * announce their outcome, which the hook words from the values they resolve to.
+ * What the helper must do for a transition, beyond drawing the new state. The two zoom commands each also
+ * announce their outcome, which the helper words from the values they resolve to.
  */
 export type ZoomEffect =
   // Dismiss the highlighted point and its tooltip, which the selection is taking the plot over from.
@@ -139,7 +139,7 @@ export type ZoomEffect =
   | { type: "focus"; target: ZoomFocusTarget }
   // Zoom into the range between two stops.
   | { type: "applyZoom"; fromIndex: number; toIndex: number }
-  // Show the full range again. Only emitted for a chart that is zoomed in. The hook only reports a reset
+  // Show the full range again. Only emitted for a chart that is zoomed in. The helper only reports a reset
   // requested through the chart API back to the consumer when the range is controlled.
   | { type: "resetZoom"; isApiCall: boolean };
 
@@ -155,7 +155,7 @@ export interface ZoomContext {
 
 /**
  * The next state and what has to happen for it. An event that means nothing in the current state returns
- * that same state, with no effects: the hook can then skip the work a transition would cause.
+ * that same state, with no effects: the helper can then skip the work a transition would cause.
  */
 export function zoomReducer(state: ZoomState, event: ZoomEvent, context: ZoomContext): ZoomTransition {
   switch (state.type) {
@@ -319,23 +319,8 @@ function exitZoomMode(moveFocus: boolean): ZoomTransition {
 }
 
 // Resetting ends the interaction from any state, but only a chart that is zoomed in has something to reset.
-function resetZoom({
-  zoomed,
-  moveFocus,
-  isApiCall,
-}: {
-  zoomed: boolean;
-  moveFocus: boolean;
-  isApiCall: boolean;
-}): ZoomTransition {
-  if (!zoomed) {
-    return stay(IDLE_ZOOM_STATE);
-  }
-  const effects: ZoomEffect[] = [{ type: "resetZoom", isApiCall }];
-  if (moveFocus) {
-    effects.push({ type: "focus", target: "zoomButton" });
-  }
-  return transition(IDLE_ZOOM_STATE, effects);
+function resetZoom({ zoomed, isApiCall }: { zoomed: boolean; isApiCall: boolean }): ZoomTransition {
+  return zoomed ? transition(IDLE_ZOOM_STATE, [{ type: "resetZoom", isApiCall }]) : stay(IDLE_ZOOM_STATE);
 }
 
 // Sets the range start on the first commit and applies the zoom on the second, which is what a click or a tap
@@ -470,7 +455,7 @@ export function getOverlayView(state: ZoomState): ZoomOverlayView {
 
 const HIDDEN_VIEW: ZoomOverlayView = { type: "hidden" };
 
-/** The press in progress, which the hook measures the drag threshold against. */
+/** The press in progress, which the helper measures the drag threshold against. */
 export function getPress(state: ZoomState): null | ZoomPress {
   return state.type === "pressed" || state.type === "dragging" ? state.press : null;
 }
