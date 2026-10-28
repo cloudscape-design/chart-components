@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { act } from "react";
-import type Highcharts from "highcharts";
 import highcharts from "highcharts";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
@@ -58,16 +57,6 @@ const onZoomRangeChange = vi.fn();
 afterEach(() => {
   onZoomRangeChange.mockReset();
 });
-
-// The resolved zoom settings and the deprecated zoomType are not covered by the Highcharts types.
-function getNativeZoom() {
-  return (getCurrentChart() as unknown as { zooming: Highcharts.ChartZoomingOptions }).zooming;
-}
-
-const nativeZoomOptions: [string, Highcharts.ChartOptions][] = [
-  ["zooming", { zooming: { type: "x", pinchType: "x" } }],
-  ["deprecated zoomType", { zoomType: "x", pinchType: "x" } as Highcharts.ChartOptions],
-];
 
 function getCurrentChart() {
   // Target the most recently rendered chart: highcharts.charts accumulates entries across tests
@@ -191,12 +180,6 @@ describe("CoreChart: zoom", () => {
     );
   });
 
-  test.each(nativeZoomOptions)("turns off the Highcharts drag-to-zoom with %s while zoom is enabled", (_, chart) => {
-    renderChart({ ...defaultProps, options: { ...defaultProps.options, chart } });
-    expect(getNativeZoom().type).toBeUndefined();
-    expect(getNativeZoom().pinchType).toBeUndefined();
-  });
-
   test("ignores the zoom while the x-axes are removed, and applies it again once they are back", () => {
     const { wrapper, rerender } = renderChart({ ...defaultProps, zoomRange: { x: { startValue: 1, endValue: 3 } } });
     expect(getCurrentChart().xAxis[0].getExtremes()).toEqual(expect.objectContaining({ min: 1, max: 3 }));
@@ -233,29 +216,6 @@ describe("CoreChart: zoom", () => {
     expect(getCurrentChart().xAxis[0].getExtremes()).toEqual(expect.objectContaining({ min: 2, max: 3 }));
   });
 
-  test("gives back the global Highcharts defaults when zoom is disabled", () => {
-    highcharts.setOptions({
-      chart: { zooming: { type: "x" } },
-      xAxis: { minRange: 3 },
-      plotOptions: { errorbar: { pointPlacement: "between" } },
-    });
-    try {
-      const options = { ...defaultProps.options, plotOptions: { series: { pointPlacement: "on" as const } } };
-      const { rerender } = renderChart({ ...defaultProps, options });
-      rerender({ ...defaultProps, options, zoom: undefined });
-      const chart = getCurrentChart();
-      expect(getNativeZoom().type).toBe("x");
-      expect(chart.xAxis[0].options.minRange).toBe(3);
-      expect(chart.options.plotOptions?.errorbar?.pointPlacement).toBe("between");
-    } finally {
-      highcharts.setOptions({
-        chart: { zooming: { type: undefined } },
-        xAxis: { minRange: undefined },
-        plotOptions: { errorbar: { pointPlacement: undefined } },
-      });
-    }
-  });
-
   test("marks the zoomed range when zoom is enabled on an axis already showing that range", () => {
     const { rerender } = renderChart({
       ...defaultProps,
@@ -269,14 +229,6 @@ describe("CoreChart: zoom", () => {
       zoomRange: { x: { startValue: 1, endValue: 3 } },
     });
     expect(document.querySelector(`.${testClasses["zoom-range"]}`)).not.toBe(null);
-  });
-
-  test.each(nativeZoomOptions)("gives back the consumer's drag-to-zoom with %s when zoom is disabled", (_, chart) => {
-    const options = { ...defaultProps.options, chart };
-    const { rerender } = renderChart({ ...defaultProps, options });
-    expect(getNativeZoom().type).toBeUndefined();
-    rerender({ ...defaultProps, options, zoom: undefined });
-    expect(getNativeZoom().type).toBe("x");
   });
 
   test("keeps the x-axis minRange declared by the consumer", () => {

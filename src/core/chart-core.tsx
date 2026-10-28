@@ -81,7 +81,7 @@ export function InternalCoreChart({
   const labels = useChartI18n({ ariaLabel, ariaDescription, i18nStrings });
   // The zoom applies to the first x-axis, and is ignored when the chart does not define one.
   const zoomEnabled = !!zoomOptions?.enabled && (castArray(options.xAxis)?.length ?? 0) > 0;
-  const resolvedZoomOptions = resolveZoomOptions(highcharts, options, zoomEnabled);
+  const resolvedZoomOptions = resolveZoomOptions(options, zoomEnabled);
   const context: ChartExtraContext["settings"] = {
     chartId: useUniqueId(),
     noDataEnabled: !!noDataOptions,
@@ -234,6 +234,7 @@ export function InternalCoreChart({
     // with the correct axis orientation for RTL layouts, matching what was used for legend positioning above.
     xAxis: castArray(options.xAxis)?.map((xAxisOptions, index) => ({
       ...Styles.xAxisOptions,
+      ...(index === 0 ? resolvedZoomOptions.firstXAxis : {}),
       ...xAxisOptions,
       // Depending on the chart.inverted the x-axis can be rendered as vertical, and needs to respect page direction.
       reversed: !inverted && isRtl ? !xAxisOptions.reversed : xAxisOptions.reversed,
@@ -241,7 +242,6 @@ export function InternalCoreChart({
       className: xAxisClassName(inverted, xAxisOptions.className),
       title: axisTitle(xAxisOptions.title ?? {}, !inverted || verticalAxisTitlePlacement === "side"),
       labels: axisLabels(xAxisOptions.labels ?? {}),
-      minRange: xAxisOptions.minRange ?? resolvedZoomOptions.getXAxisMinRange(index),
     })),
     yAxis: castArray(options.yAxis)?.map((yAxisOptions) => ({
       ...Styles.yAxisOptions,
@@ -281,7 +281,7 @@ export function InternalCoreChart({
       column: { ...Styles.columnSeries, ...options.plotOptions?.column },
       errorbar: {
         ...Styles.errorbarSeries,
-        pointPlacement: resolvedZoomOptions.errorBarPointPlacement,
+        ...resolvedZoomOptions.errorbar,
         ...options.plotOptions?.errorbar,
       },
       // Pie chart is shown in legend by default, that is required for standalone pie charts.
@@ -314,8 +314,6 @@ export function InternalCoreChart({
               // It is possible to override it by explicitly providing chart.height, but this will not be
               // compatible with any of the above settings.
               height: options.chart?.height ?? height,
-              // Highcharts' own drag-to-zoom is not accessible, and would compete with the zoom for the same range.
-              ...resolvedZoomOptions.nativeZoom,
               // We override certain chart events to inject additional behaviors, but it is still possible to define
               // custom callbacks. The Cloudscape behaviors can be disabled or altered via components API. For instance,
               // if no-data props are not provided - the related on-render computations will be skipped.

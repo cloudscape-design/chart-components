@@ -238,7 +238,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   };
 
   private get enabled() {
-    return !!this.context.settings.zoomEnabled;
+    return this.context.settings.zoomEnabled;
   }
 
   private get labels() {
@@ -284,7 +284,8 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
         xAxis.setExtremes(undefined, undefined, true, false);
       }
     }
-    // The reset announcement is cleared once the chart is zoomed, so that LiveRegion announces the next reset again.
+    // Zooming clears the reset announcement, so that LiveRegion announces the next reset again. Other announcements
+    // are kept: the range change is announced just before the zoom is applied.
     if (!!extremes !== this.get().zoomed) {
       const resetText = this.labels.zoomResetAnnouncementText ?? "";
       this.set((prev) => ({
@@ -433,19 +434,32 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private drawRange(chart: SafeChart) {
     const extremes = this.getExtremes();
     const xAxis = chart.xAxis?.[0];
-    // Hiding first destroys the elements of a chart instance that Highcharts has replaced, like the tooltip cursor.
+    // Hiding first destroys elements that belong to a chart instance Highcharts has replaced, so that they are drawn
+    // again on the current one, like the tooltip cursor.
     this.rangeBand.hide();
     this.rangeBorders.hide();
     if (!extremes || !xAxis) {
       return;
     }
-    const band = getBandRect(chart, xAxis, extremes.min, extremes.max);
-    const start = getDividerRect(chart, xAxis, extremes.min);
-    const end = getDividerRect(chart, xAxis, extremes.max);
+    // In an inverted chart the x-axis runs vertically, so the band and the borders span the plot horizontally.
+    const horizontal = xAxis.horiz !== false;
+    const { plotLeft, plotTop, plotWidth, plotHeight } = chart;
+    const from = xAxis.toPixels(extremes.min, false);
+    const to = xAxis.toPixels(extremes.max, false);
+    const start = Math.min(from, to);
+    // A range of a single value still needs a visible band, hence the minimum of one pixel.
+    const size = Math.max(1, Math.abs(to - from));
+    const band = horizontal
+      ? { x: start, y: plotTop, width: size, height: plotHeight }
+      : { x: plotLeft, y: start, width: plotWidth, height: size };
+    const border = (pixel: number) =>
+      horizontal
+        ? `M ${pixel} ${plotTop} L ${pixel} ${plotTop + plotHeight}`
+        : `M ${plotLeft} ${pixel} L ${plotLeft + plotWidth} ${pixel}`;
     this.rangeBand.rect(chart.renderer, { ...Styles.zoomRangeBand, ...band, class: testClasses["zoom-range"] });
     this.rangeBorders.path(chart.renderer, {
       ...Styles.zoomRangeBorders,
-      d: [toSvgLine(start), toSvgLine(end)].join(" "),
+      d: `${border(from)} ${border(to)}`,
       class: testClasses["zoom-range-borders"],
     });
   }
@@ -773,12 +787,6 @@ function applyPosition(element: null | HTMLElement, rect: null | Rect, origin: O
   element.style.left = `${origin.left + rect.x}px`;
   element.style.top = `${origin.top + rect.y}px`;
   return true;
-}
-
-function toSvgLine({ x, y, width, height }: Rect) {
-  return width <= height
-    ? `M ${x + width / 2} ${y} L ${x + width / 2} ${y + height}`
-    : `M ${x} ${y + height / 2} L ${x + width} ${y + height / 2}`;
 }
 
 // Movement across the axis does not change the range, and counting it would turn a shaky click into a drag.
