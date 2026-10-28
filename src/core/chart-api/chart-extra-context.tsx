@@ -33,8 +33,8 @@ export namespace ChartExtraContext {
     keyboardNavigationEnabled: boolean;
     labels: ChartLabels;
     getItemOptions?: CoreChartProps.GetItemOptions;
-    zoomEnabled?: boolean;
-    zoomControlsHidden?: boolean;
+    zoomEnabled: boolean;
+    zoomControlsHidden: boolean;
   }
 
   export interface Handlers {
@@ -68,6 +68,8 @@ export function createChartContext(): ChartExtraContext {
       tooltipEnabled: false,
       keyboardNavigationEnabled: false,
       labels: {},
+      zoomEnabled: false,
+      zoomControlsHidden: false,
     },
     handlers: {},
     state: {},
