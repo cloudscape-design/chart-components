@@ -66,7 +66,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private handlers: ChartExtraZoomHandlers;
   private machine: ZoomState = IDLE_ZOOM_STATE;
   private localExtremes: null | ZoomExtremes = null;
-  private appliedRange = false;
   private values: number[] = [];
   private valuesStale = true;
   private swallowClick = false;
@@ -281,11 +280,10 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       const { userMin, userMax } = xAxis.getExtremes();
       if (extremes && (userMin !== extremes.min || userMax !== extremes.max)) {
         xAxis.setExtremes(extremes.min, extremes.max, true, false);
-      } else if (!extremes && this.appliedRange && (userMin !== undefined || userMax !== undefined)) {
+      } else if (!extremes && this.get().zoomed && (userMin !== undefined || userMax !== undefined)) {
         xAxis.setExtremes(undefined, undefined, true, false);
       }
     }
-    this.appliedRange = !!extremes;
     // The reset announcement is cleared once the chart is zoomed, so that LiveRegion announces the next reset again.
     if (!!extremes !== this.get().zoomed) {
       const resetText = this.labels.zoomResetAnnouncementText ?? "";
