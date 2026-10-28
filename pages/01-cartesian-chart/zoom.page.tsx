@@ -88,6 +88,7 @@ export default function () {
             yAxis={{ title: "Count" }}
             series={[
               { type: "line", id: "requests", name: "Requests", data: dailyData },
+              { type: "y-threshold", name: "SLA limit", value: 150 },
               ...(errorBars
                 ? [
                     {
@@ -98,7 +99,6 @@ export default function () {
                     } as const,
                   ]
                 : []),
-              { type: "y-threshold", name: "SLA limit", value: 150 },
             ]}
           />
         </PageSection>
