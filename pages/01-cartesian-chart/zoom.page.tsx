@@ -4,8 +4,6 @@
 import { ComponentType, useState } from "react";
 import { range } from "lodash";
 
-import Box from "@cloudscape-design/components/box";
-import Button from "@cloudscape-design/components/button";
 import Checkbox from "@cloudscape-design/components/checkbox";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
@@ -34,8 +32,6 @@ const dateRange: ZoomRange = { x: { startValue: dailyData[10].x, endValue: daily
 
 const categories = ["Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "Q8"];
 const costsData = categories.map(() => Math.floor(1000 + pseudoRandom() * 5000));
-const categoryRange: ZoomRange = { x: { startValue: 2, endValue: 5 } };
-const formatCategory = (value: number) => categories[value];
 
 export default function () {
   const { settings, setSettings } = useChartSettings<ThisPageSettings>();
@@ -44,7 +40,7 @@ export default function () {
   const inverted = settings.inverted ?? false;
   return (
     <Page
-      title="Zoom range"
+      title="Zoom"
       settings={
         <PageSettingsForm
           selectedSettings={[
@@ -82,8 +78,6 @@ export default function () {
           <ZoomChart
             ariaLabel="Line chart"
             initialRange={dateRange}
-            presetRange={dateRange}
-            format={dateFormatter}
             xAxis={{ title: "Time", type: "datetime", valueFormatter: dateFormatter }}
             yAxis={{ title: "Count" }}
             series={[
@@ -105,8 +99,6 @@ export default function () {
         <PageSection title="Column chart">
           <ZoomChart
             ariaLabel="Column chart"
-            presetRange={categoryRange}
-            format={formatCategory}
             xAxis={{ type: "category", title: "Quarter", categories }}
             yAxis={{ title: "Costs (USD)", valueFormatter: numberFormatter }}
             series={[
@@ -124,6 +116,9 @@ export default function () {
             ]}
           />
         </PageSection>
+        <PageSection title="Uncontrolled line chart">
+          <UncontrolledZoomChart />
+        </PageSection>
       </SpaceBetween>
     </Page>
   );
@@ -131,36 +126,37 @@ export default function () {
 
 function ZoomChart({
   initialRange = null,
-  presetRange,
-  format,
   ...props
 }: Pick<CartesianChartProps, "ariaLabel" | "series" | "xAxis" | "yAxis"> & {
   initialRange?: null | ZoomRange;
-  presetRange: ZoomRange;
-  format: (value: number) => string;
 }) {
   const { settings, chartProps } = useChartSettings<ThisPageSettings>({ more: true });
   const [zoomRange, setZoomRange] = useState<null | ZoomRange>(initialRange);
   return (
-    <SpaceBetween size="s">
-      <ZoomCartesianChart
-        {...chartProps.cartesian}
-        {...props}
-        chartHeight={300}
-        inverted={settings.inverted}
-        zoom={{ enabled: true, hideZoomControls: settings.hideZoomControls }}
-        zoomRange={zoomRange}
-        onZoomRangeChange={({ detail }) => setZoomRange(detail.zoomRange)}
-      />
-      <SpaceBetween size="xs" direction="horizontal" alignItems="center">
-        <Button onClick={() => setZoomRange(presetRange)}>Apply range</Button>
-        <Button onClick={() => setZoomRange(null)}>Clear range</Button>
-        <Box color="text-body-secondary">
-          {zoomRange?.x
-            ? `Zoomed from ${format(zoomRange.x.startValue)} to ${format(zoomRange.x.endValue)}`
-            : "Showing the full data range"}
-        </Box>
-      </SpaceBetween>
-    </SpaceBetween>
+    <ZoomCartesianChart
+      {...chartProps.cartesian}
+      {...props}
+      chartHeight={300}
+      inverted={settings.inverted}
+      zoom={{ enabled: true, hideZoomControls: settings.hideZoomControls }}
+      zoomRange={zoomRange}
+      onZoomRangeChange={({ detail }) => setZoomRange(detail.zoomRange)}
+    />
+  );
+}
+
+function UncontrolledZoomChart() {
+  const { settings, chartProps } = useChartSettings<ThisPageSettings>({ more: true });
+  return (
+    <ZoomCartesianChart
+      {...chartProps.cartesian}
+      ariaLabel="Uncontrolled line chart"
+      chartHeight={300}
+      inverted={settings.inverted}
+      xAxis={{ title: "Time", type: "datetime", valueFormatter: dateFormatter }}
+      yAxis={{ title: "Count" }}
+      series={[{ type: "line", name: "Requests", data: dailyData }]}
+      zoom={{ enabled: true, hideZoomControls: settings.hideZoomControls }}
+    />
   );
 }
