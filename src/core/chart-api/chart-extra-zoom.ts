@@ -1,15 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import type Highcharts from "highcharts";
-
 import * as Styles from "../../internal/chart-styles";
 import { fireNonCancelableEvent } from "../../internal/events";
 import AsyncStore from "../../internal/utils/async-store";
 import { SafeChart } from "../../internal/utils/highcharts";
 import { SVGRendererSingle } from "../../internal/utils/renderer-utils";
 import { ZoomRange } from "../chart-zoom/interfaces";
-import { Rect } from "../interfaces";
 import { ChartExtraContext } from "./chart-extra-context";
 
 import testClasses from "../test-classes/styles.css.js";
@@ -111,13 +108,25 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     if (!extremes || !xAxis) {
       return;
     }
-    const band = getBandRect(chart, xAxis, extremes.min, extremes.max);
-    const start = getDividerRect(chart, xAxis, extremes.min);
-    const end = getDividerRect(chart, xAxis, extremes.max);
+    // In an inverted chart the x-axis runs vertically, so the band and the borders span the plot horizontally.
+    const horizontal = xAxis.horiz !== false;
+    const { plotLeft, plotTop, plotWidth, plotHeight } = chart;
+    const from = xAxis.toPixels(extremes.min, false);
+    const to = xAxis.toPixels(extremes.max, false);
+    const start = Math.min(from, to);
+    // A range of a single value still needs a visible band, hence the minimum of one pixel.
+    const size = Math.max(1, Math.abs(to - from));
+    const band = horizontal
+      ? { x: start, y: plotTop, width: size, height: plotHeight }
+      : { x: plotLeft, y: start, width: plotWidth, height: size };
+    const border = (pixel: number) =>
+      horizontal
+        ? `M ${pixel} ${plotTop} L ${pixel} ${plotTop + plotHeight}`
+        : `M ${plotLeft} ${pixel} L ${plotLeft + plotWidth} ${pixel}`;
     this.rangeBand.rect(chart.renderer, { ...Styles.zoomRangeBand, ...band, class: testClasses["zoom-range"] });
     this.rangeBorders.path(chart.renderer, {
       ...Styles.zoomRangeBorders,
-      d: [toSvgLine(start), toSvgLine(end)].join(" "),
+      d: `${border(from)} ${border(to)}`,
       class: testClasses["zoom-range-borders"],
     });
   }
@@ -126,48 +135,4 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
 function extremesFromRange(zoomRange: undefined | null | ZoomRange): null | ZoomExtremes {
   const x = zoomRange?.x;
   return x ? { min: Math.min(x.startValue, x.endValue), max: Math.max(x.startValue, x.endValue) } : null;
-}
-
-// The rectangles are in physical pixels relative to the chart, matching chart.plotLeft, plotTop, and toPixels.
-
-// In an inverted chart the x axis runs vertically, so every pixel computation swaps the two dimensions
-// and Axis.toValue / toPixels operate on chart y coordinates instead of x ones.
-function isXAxisHorizontal(xAxis: Pick<Highcharts.Axis, "horiz">): boolean {
-  return xAxis.horiz !== false;
-}
-
-// A line across the plot at the given x value.
-function getDividerRect(chart: SafeChart, xAxis: Highcharts.Axis, value: number): Rect {
-  const pixel = xAxis.toPixels(value, false);
-  return isXAxisHorizontal(xAxis)
-    ? {
-        x: pixel - Styles.zoomDividerThickness / 2,
-        y: chart.plotTop,
-        width: Styles.zoomDividerThickness,
-        height: chart.plotHeight,
-      }
-    : {
-        x: chart.plotLeft,
-        y: pixel - Styles.zoomDividerThickness / 2,
-        width: chart.plotWidth,
-        height: Styles.zoomDividerThickness,
-      };
-}
-
-// The band covering the range between two x values, spanning the plot across the other dimension.
-function getBandRect(chart: SafeChart, xAxis: Highcharts.Axis, fromValue: number, toValue: number): Rect {
-  const fromPixel = xAxis.toPixels(fromValue, false);
-  const toPixel = xAxis.toPixels(toValue, false);
-  const start = Math.min(fromPixel, toPixel);
-  // A range of a single value still needs a visible band, hence the minimum of one pixel.
-  const size = Math.max(1, Math.abs(toPixel - fromPixel));
-  return isXAxisHorizontal(xAxis)
-    ? { x: start, y: chart.plotTop, width: size, height: chart.plotHeight }
-    : { x: chart.plotLeft, y: start, width: chart.plotWidth, height: size };
-}
-
-function toSvgLine({ x, y, width, height }: Rect) {
-  return width <= height
-    ? `M ${x + width / 2} ${y} L ${x + width / 2} ${y + height}`
-    : `M ${x} ${y + height / 2} L ${x + width} ${y + height / 2}`;
 }

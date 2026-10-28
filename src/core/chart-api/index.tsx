@@ -64,12 +64,7 @@ export function useChartAPI(
 
   // Like the visible items, the zoom range requires notifying the helper when it changes. The chart re-renders before
   // the context is updated, so the render still sees the previous range. The range is compared by value.
-  const zoomIndex = [
-    settings.zoomEnabled,
-    state.zoomRange === undefined
-      ? "uncontrolled"
-      : `${state.zoomRange?.x?.startValue}:${state.zoomRange?.x?.endValue}`,
-  ].join("::");
+  const zoomIndex = [settings.zoomEnabled, state.zoomRange?.x?.startValue, state.zoomRange?.x?.endValue].join("::");
   useEffect(() => {
     api.onZoomPropsChange();
   }, [api, zoomIndex]);
@@ -204,8 +199,9 @@ export class ChartAPI {
     }
   };
 
-  // Zoom interactions, used by the zoom controls component.
   public onZoomPropsChange = () => this.chartExtraZoom.onZoomPropsChange();
+
+  // Resets the zoom from the Reset button of the zoom controls.
   public resetZoom = () => {
     this.chartExtraZoom.resetZoom();
     // The Reset button is removed once the reset is applied, so focus moves to the chart as it is pressed.
