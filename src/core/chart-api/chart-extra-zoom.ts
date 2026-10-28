@@ -26,7 +26,6 @@ interface ZoomExtremes {
 // with the zoomRange property: the helper applies it to the axis, and marks it on the plot.
 export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private context: ChartExtraContext;
-  private appliedRange = false;
   private rangeBand = new SVGRendererSingle();
   private rangeBorders = new SVGRendererSingle();
 
@@ -82,11 +81,10 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       const { userMin, userMax } = xAxis.getExtremes();
       if (extremes && (userMin !== extremes.min || userMax !== extremes.max)) {
         xAxis.setExtremes(extremes.min, extremes.max, true, false);
-      } else if (!extremes && this.appliedRange && (userMin !== undefined || userMax !== undefined)) {
+      } else if (!extremes && this.get().zoomed && (userMin !== undefined || userMax !== undefined)) {
         xAxis.setExtremes(undefined, undefined, true, false);
       }
     }
-    this.appliedRange = !!extremes;
     // The reset announcement is cleared once the chart is zoomed, so that LiveRegion announces the next reset again.
     if (!!extremes !== this.get().zoomed) {
       const resetText = this.context.settings.labels.zoomResetAnnouncementText ?? "";
