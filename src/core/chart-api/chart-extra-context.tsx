@@ -7,6 +7,7 @@ import { NonCancelableEventHandler } from "../../internal/events";
 import { getChartSeries, getSeriesData, SafeChart, SafeSeries } from "../../internal/utils/highcharts";
 import { ChartLabels } from "../i18n-utils";
 import { CoreChartProps, Rect } from "../interfaces";
+import { ZoomChangeDetail, ZoomRange } from "../internal-interfaces";
 import { getGroupRect, isSeriesStacked } from "../utils";
 
 // Chart API context is used for dependency injection for chart utilities.
@@ -32,16 +33,19 @@ export namespace ChartExtraContext {
     keyboardNavigationEnabled: boolean;
     labels: ChartLabels;
     getItemOptions?: CoreChartProps.GetItemOptions;
+    zoomEnabled: boolean;
   }
 
   export interface Handlers {
     onHighlight?: NonCancelableEventHandler<CoreChartProps.HighlightChangeDetail>;
     onClearHighlight?: NonCancelableEventHandler<CoreChartProps.HighlightClearDetail>;
     onVisibleItemsChange?: NonCancelableEventHandler<CoreChartProps.VisibleItemsChangeDetail>;
+    onZoomRangeChange?: NonCancelableEventHandler<ZoomChangeDetail>;
   }
 
   export interface State {
     visibleItems?: readonly string[];
+    zoomRange?: null | ZoomRange;
   }
 
   export interface DerivedState {
@@ -63,6 +67,7 @@ export function createChartContext(): ChartExtraContext {
       tooltipEnabled: false,
       keyboardNavigationEnabled: false,
       labels: {},
+      zoomEnabled: false,
     },
     handlers: {},
     state: {},

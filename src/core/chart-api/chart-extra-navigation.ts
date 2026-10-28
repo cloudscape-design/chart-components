@@ -105,6 +105,15 @@ export class ChartExtraNavigation {
     }
   }
 
+  // Casting focus to the application element with the chart itself as the focus target. This is used when the
+  // element that held focus is removed from the chart, for instance the zoom reset button.
+  public focusChartApplication() {
+    if (this.context.settings.keyboardNavigationEnabled) {
+      this.focusedState = { type: "chart" };
+      this.applicationElement?.focus();
+    }
+  }
+
   public announceChart(ariaLabel: string) {
     this.announce({ role: "application", "aria-label": ariaLabel });
   }

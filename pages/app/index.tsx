@@ -27,6 +27,20 @@ import { pages, pagesMap } from "./pages";
 
 import "@cloudscape-design/global-styles/index.css";
 
+// The chart zoom messages are not yet published in the components package.
+const zoomMessages = {
+  "cloudscape-design-components": {
+    en: {
+      "[charts]": {
+        "i18nStrings.resetZoomButtonText": "Reset",
+        "i18nStrings.resetZoomButtonAriaLabel": "Reset zoom to show full data range",
+        "i18nStrings.zoomControlsAriaLabel": "Chart zoom controls",
+        "i18nStrings.zoomResetAnnouncementText": "Zoom reset. Showing the full data range.",
+      },
+    },
+  },
+};
+
 function applyModes(params: AppUrlParams, target?: Element) {
   applyMode(params.mode as Mode, target);
   applyDensity(params.density as Density, target);
@@ -56,7 +70,7 @@ function AppBody() {
     </>
   );
   return urlParams.i18n ? (
-    <I18nProvider locale="en" messages={[enMessages]}>
+    <I18nProvider locale="en" messages={[enMessages, zoomMessages]}>
       {routes}
     </I18nProvider>
   ) : (
