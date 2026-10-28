@@ -482,21 +482,6 @@ export namespace CoreChartProps {
   export type XAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: null | number) => string };
   export type YAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: null | number) => string };
 
-  export interface ZoomOptions {
-    enabled?: boolean;
-    hideZoomControls?: boolean;
-  }
-
-  // The range is nested under the axis it applies to, leaving room for a "y" range should zooming
-  // along the y-axis be supported later, without a breaking change to the property shape.
-  export interface ZoomRange {
-    x?: { startValue: number; endValue: number };
-  }
-
-  export interface ZoomChangeDetail {
-    zoomRange: ZoomRange | null;
-  }
-
   export interface SizeAxisOptions {
     id?: string;
     title: string;

@@ -7,6 +7,7 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 
 import "highcharts/highcharts-more";
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
+import { ZoomRange } from "../../../lib/components/core/internal-interfaces";
 import { CoreChartTestProps, renderChart, renderStatefulChart } from "./common";
 import { stubPlotGeometry } from "./plot-geometry";
 
@@ -56,7 +57,7 @@ const defaultProps: CoreChartTestProps = {
   zoom: { enabled: true },
 };
 
-const zoomedRange: CoreChartProps.ZoomRange = { x: { startValue: 1, endValue: 3 } };
+const zoomedRange: ZoomRange = { x: { startValue: 1, endValue: 3 } };
 const onZoomRangeChange = vi.fn();
 
 afterEach(() => {

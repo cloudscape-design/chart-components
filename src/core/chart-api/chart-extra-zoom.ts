@@ -6,7 +6,7 @@ import { fireNonCancelableEvent } from "../../internal/events";
 import AsyncStore from "../../internal/utils/async-store";
 import { SafeChart } from "../../internal/utils/highcharts";
 import { SVGRendererSingle } from "../../internal/utils/renderer-utils";
-import { CoreChartProps } from "../interfaces";
+import { ZoomRange } from "../internal-interfaces";
 import { ChartExtraContext } from "./chart-extra-context";
 
 import testClasses from "../test-classes/styles.css.js";
@@ -128,7 +128,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   }
 }
 
-function extremesFromRange(zoomRange: undefined | null | CoreChartProps.ZoomRange): null | ZoomExtremes {
+function extremesFromRange(zoomRange: undefined | null | ZoomRange): null | ZoomExtremes {
   const x = zoomRange?.x;
   return x ? { min: Math.min(x.startValue, x.endValue), max: Math.max(x.startValue, x.endValue) } : null;
 }
