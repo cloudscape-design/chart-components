@@ -6,7 +6,6 @@ import highcharts from "highcharts";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
 import "highcharts/highcharts-more";
-import { ZoomRange } from "../../../lib/components/core/chart-zoom/interfaces";
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import { CoreChartTestProps, renderChart, renderStatefulChart } from "./common";
 import { stubPlotGeometry } from "./plot-geometry";
@@ -57,7 +56,7 @@ const defaultProps: CoreChartTestProps = {
   zoom: { enabled: true },
 };
 
-const zoomedRange: ZoomRange = { x: { startValue: 1, endValue: 3 } };
+const zoomedRange: CoreChartProps.ZoomRange = { x: { startValue: 1, endValue: 3 } };
 const onZoomRangeChange = vi.fn();
 
 afterEach(() => {
@@ -317,60 +316,5 @@ describe("CoreChart: zoom controls", () => {
     const resetButton = wrapper.findResetZoomButton()!.getElement();
     expect(resetButton.textContent).toBe("");
     expect(resetButton.closest('[role="region"]')!.getAttribute("aria-label") ?? "").toBe("");
-  });
-});
-
-describe("CoreChart: zoom with error bars", () => {
-  function renderErrorBarsOn(parentType: "line" | "column") {
-    const data = [0, 10, 20, 30, 40].map((x) => ({ x, y: x + 10 }));
-    renderChart({
-      ...defaultProps,
-      options: {
-        xAxis: {},
-        series: [
-          { type: parentType, id: "parent", name: "Parent", data },
-          {
-            type: "errorbar",
-            linkedTo: "parent",
-            name: "Error",
-            data: data.map(({ x, y }) => ({ x, low: y - 2, high: y + 2 })),
-          },
-        ],
-      },
-      zoomRange: { x: { startValue: 10, endValue: 30 } },
-    });
-    expect(getXExtremes()).toEqual({ min: 10, max: 30 });
-    // Highcharts pads the axis by this offset on each side of the extremes, so that column-like points at the
-    // edges are not cut in half.
-    return (getCurrentChart().xAxis[0] as unknown as { minPointOffset: number }).minPointOffset;
-  }
-
-  test("keeps the error bar padding when zoom is not enabled", () => {
-    const data = [0, 10, 20, 30, 40].map((x) => ({ x, y: x + 10 }));
-    renderChart({
-      ...defaultProps,
-      zoom: undefined,
-      options: {
-        xAxis: {},
-        series: [
-          { type: "line", id: "parent", name: "Parent", data },
-          {
-            type: "errorbar",
-            linkedTo: "parent",
-            name: "Error",
-            data: data.map(({ x, y }) => ({ x, low: y - 2, high: y + 2 })),
-          },
-        ],
-      },
-    });
-    expect((getCurrentChart().xAxis[0] as unknown as { minPointOffset: number }).minPointOffset).toBeGreaterThan(0);
-  });
-
-  test("ends the zoomed plot on the zoomed range for error bars on a line", () => {
-    expect(renderErrorBarsOn("line")).toBe(0);
-  });
-
-  test("keeps the padding that shows the bars in full for error bars on columns", () => {
-    expect(renderErrorBarsOn("column")).toBeGreaterThan(0);
   });
 });

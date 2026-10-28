@@ -10,7 +10,8 @@ import Checkbox from "@cloudscape-design/components/checkbox";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
 import { CartesianChart, CartesianChartProps } from "../../lib/components";
-import { InternalZoomProps, ZoomRange } from "../../lib/components/core/chart-zoom/interfaces";
+import { CoreChartProps } from "../../lib/components/core/interfaces";
+import { InternalZoomProps } from "../../lib/components/core/internal-interfaces";
 import { dateFormatter, numberFormatter } from "../common/formatters";
 import { PageSettings, PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
@@ -30,11 +31,11 @@ const dailyData = range(0, 30).map((i) => ({
   x: seriesStart + i * DAY,
   y: Math.floor((pseudoRandom() + i / 15) * 100),
 }));
-const dateRange: ZoomRange = { x: { startValue: dailyData[10].x, endValue: dailyData[20].x } };
+const dateRange: CoreChartProps.ZoomRange = { x: { startValue: dailyData[10].x, endValue: dailyData[20].x } };
 
 const categories = ["Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "Q8"];
 const costsData = categories.map(() => Math.floor(1000 + pseudoRandom() * 5000));
-const categoryRange: ZoomRange = { x: { startValue: 2, endValue: 5 } };
+const categoryRange: CoreChartProps.ZoomRange = { x: { startValue: 2, endValue: 5 } };
 const formatCategory = (value: number) => categories[value];
 
 export default function () {
@@ -135,12 +136,12 @@ function ZoomChart({
   format,
   ...props
 }: Pick<CartesianChartProps, "ariaLabel" | "series" | "xAxis" | "yAxis"> & {
-  initialRange?: null | ZoomRange;
-  presetRange: ZoomRange;
+  initialRange?: null | CoreChartProps.ZoomRange;
+  presetRange: CoreChartProps.ZoomRange;
   format: (value: number) => string;
 }) {
   const { settings, chartProps } = useChartSettings<ThisPageSettings>({ more: true });
-  const [zoomRange, setZoomRange] = useState<null | ZoomRange>(initialRange);
+  const [zoomRange, setZoomRange] = useState<null | CoreChartProps.ZoomRange>(initialRange);
   return (
     <SpaceBetween size="s">
       <ZoomCartesianChart

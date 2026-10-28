@@ -7,8 +7,8 @@ import { fireEvent, render } from "@testing-library/react";
 import { ButtonWrapper } from "@cloudscape-design/components/test-utils/dom";
 
 import "@cloudscape-design/components/test-utils/dom";
-import { InternalZoomProps } from "../../../lib/components/core/chart-zoom/interfaces";
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
+import { InternalZoomProps } from "../../../lib/components/core/internal-interfaces";
 import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
 import { fireNonCancelableEvent } from "../../../lib/components/internal/events";
 import { TestI18nProvider } from "../../../lib/components/internal/utils/test-i18n-provider";
