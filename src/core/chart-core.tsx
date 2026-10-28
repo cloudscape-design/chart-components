@@ -29,7 +29,7 @@ import { ChartNoData } from "./components/core-no-data";
 import { ChartFooter, ChartHeader } from "./components/core-slots";
 import { ChartTooltip } from "./components/core-tooltip";
 import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
-import { ChartZoomControls, ChartZoomLiveRegion } from "./components/core-zoom";
+import { ChartZoomControls, ChartZoomCursor, ChartZoomLiveRegion } from "./components/core-zoom";
 import { getFormatter } from "./formatters";
 import { useChartI18n } from "./i18n-utils";
 import { CoreChartProps } from "./interfaces";
@@ -234,7 +234,8 @@ export function InternalCoreChart({
       ...Styles.xAxisOptions,
       // Highcharts widens any range narrower than five times the closest point distance unless the axis declares
       // a minRange, and reads zero as not declared. The smallest positive number lets the zoom show any range.
-      ...(index === 0 && zoomEnabled ? { minRange: Number.MIN_VALUE } : {}),
+      // Highcharts merges axis updates, so the value is cleared explicitly once zoom is disabled.
+      ...(index === 0 ? { minRange: zoomEnabled ? Number.MIN_VALUE : undefined } : {}),
       ...xAxisOptions,
       // Depending on the chart.inverted the x-axis can be rendered as vertical, and needs to respect page direction.
       reversed: !inverted && isRtl ? !xAxisOptions.reversed : xAxisOptions.reversed,
@@ -366,6 +367,7 @@ export function InternalCoreChart({
                   callback?.({ chart, highcharts: highcharts as typeof Highcharts, ...api.publicApi })
                 }
               />
+              {zoomEnabled && <ChartZoomCursor api={api} labels={labels} inverted={inverted} isRtl={isRtl} />}
             </>
           );
         }}
