@@ -4,7 +4,6 @@
 import type Highcharts from "highcharts";
 
 import { getChartSeries, getSeriesData } from "../../internal/utils/highcharts";
-import { hasColumnLikeSeries } from "../utils";
 
 // A zoomed range always spans at least this many data points. Selecting a single point produces a range
 // with no width, which Highcharts cannot display and which the user cannot zoom out of by zooming again.
@@ -65,20 +64,4 @@ export function findNearestIndex(values: readonly number[], target: number): num
 // the cursor when the visible window holds fewer than ten points.
 export function getPageStep(valuesCount: number): number {
   return Math.max(1, Math.floor(valuesCount / 10));
-}
-
-// Resolves the Highcharts options the zoom overrides while it is enabled. When zoom is not enabled, nothing is
-// overridden, so that the consumer's own options apply as they are.
-export function resolveZoomOptions(options: Highcharts.Options, zoomEnabled: boolean) {
-  if (!zoomEnabled) {
-    return { firstXAxis: {}, errorbar: {} };
-  }
-  return {
-    // Highcharts widens any range narrower than five times the closest point distance unless the axis declares
-    // a minRange, and reads zero as not declared. The smallest positive number lets the zoom show any range.
-    firstXAxis: { minRange: Number.MIN_VALUE },
-    // Error bars pad the axis by half a point range on each side, so the zoomed plot would show more than the
-    // zoomed range. Without bars in the chart nothing needs that room, so the error bars are placed on their x.
-    errorbar: hasColumnLikeSeries(options.series) ? {} : { pointPlacement: "on" as const },
-  };
 }

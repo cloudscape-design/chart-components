@@ -51,13 +51,6 @@ export function isSeriesStacked(series: SafeSeries) {
   return (series.options as any).stacking === "normal";
 }
 
-// Series types Highcharts draws with a width along the x axis, padding the axis by half a point range on each side.
-const COLUMN_LIKE_SERIES_TYPES = new Set(["bar", "column"]);
-
-export function hasColumnLikeSeries(allSeries: Highcharts.Options["series"] = []): boolean {
-  return allSeries.some((series) => "type" in series && COLUMN_LIKE_SERIES_TYPES.has(series.type));
-}
-
 // The threshold series are custom series, implemented as a combination of line series, and plot lines.
 // As Highcharts does not support custom series declaration, we annotate threshold series by using the
 // series.custom property. This is then used in our utilities to recognize threshold series, and retrieve

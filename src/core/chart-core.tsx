@@ -22,7 +22,6 @@ import { castArray } from "../internal/utils/utils";
 import { useChartAPI } from "./chart-api";
 import { ChartExtraContext } from "./chart-api/chart-extra-context";
 import { ChartContainer } from "./chart-container";
-import { resolveZoomOptions } from "./chart-zoom/zoom-utils";
 import { ChartApplication } from "./components/core-application";
 import { ChartFilters } from "./components/core-filters";
 import { ChartLegend } from "./components/core-legend";
@@ -81,7 +80,6 @@ export function InternalCoreChart({
   const labels = useChartI18n({ ariaLabel, ariaDescription, i18nStrings });
   // The zoom applies to the first x-axis, and is ignored when the chart does not define one.
   const zoomEnabled = !!zoomOptions?.enabled && (castArray(options.xAxis)?.length ?? 0) > 0;
-  const resolvedZoomOptions = resolveZoomOptions(options, zoomEnabled);
   const context: ChartExtraContext["settings"] = {
     chartId: useUniqueId(),
     noDataEnabled: !!noDataOptions,
@@ -234,7 +232,9 @@ export function InternalCoreChart({
     // with the correct axis orientation for RTL layouts, matching what was used for legend positioning above.
     xAxis: castArray(options.xAxis)?.map((xAxisOptions, index) => ({
       ...Styles.xAxisOptions,
-      ...(index === 0 ? resolvedZoomOptions.firstXAxis : {}),
+      // Highcharts widens any range narrower than five times the closest point distance unless the axis declares
+      // a minRange, and reads zero as not declared. The smallest positive number lets the zoom show any range.
+      ...(index === 0 && zoomEnabled ? { minRange: Number.MIN_VALUE } : {}),
       ...xAxisOptions,
       // Depending on the chart.inverted the x-axis can be rendered as vertical, and needs to respect page direction.
       reversed: !inverted && isRtl ? !xAxisOptions.reversed : xAxisOptions.reversed,
@@ -279,11 +279,7 @@ export function InternalCoreChart({
       line: { ...Styles.lineSeries, ...options.plotOptions?.line },
       spline: { ...Styles.lineSeries, ...options.plotOptions?.spline },
       column: { ...Styles.columnSeries, ...options.plotOptions?.column },
-      errorbar: {
-        ...Styles.errorbarSeries,
-        ...resolvedZoomOptions.errorbar,
-        ...options.plotOptions?.errorbar,
-      },
+      errorbar: { ...Styles.errorbarSeries, ...options.plotOptions?.errorbar },
       // Pie chart is shown in legend by default, that is required for standalone pie charts.
       pie: {
         showInLegend: true,

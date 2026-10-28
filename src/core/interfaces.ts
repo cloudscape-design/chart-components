@@ -4,11 +4,6 @@
 import type Highcharts from "highcharts";
 
 import { type NonCancelableEventHandler } from "../types/events";
-import type {
-  ZoomChangeDetail as ChartZoomChangeDetail,
-  ZoomOptions as ChartZoomOptions,
-  ZoomRange as ChartZoomRange,
-} from "./chart-zoom/interfaces";
 
 export type ChartSeriesMarkerStatus = "warning" | "default";
 
@@ -569,11 +564,20 @@ export namespace CoreChartProps {
   export type XAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: null | number) => string };
   export type YAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: null | number) => string };
 
-  // The zoom types are owned by the zoom implementation, and re-exported here so that consumers of the
-  // core chart, and the components built on top of it, refer to a single definition.
-  export type ZoomOptions = ChartZoomOptions;
-  export type ZoomRange = ChartZoomRange;
-  export type ZoomChangeDetail = ChartZoomChangeDetail;
+  export interface ZoomOptions {
+    enabled?: boolean;
+    hideZoomControls?: boolean;
+  }
+
+  // The range is nested under the axis it applies to, leaving room for a "y" range should zooming
+  // along the y-axis be supported later, without a breaking change to the property shape.
+  export interface ZoomRange {
+    x?: { startValue: number; endValue: number };
+  }
+
+  export interface ZoomChangeDetail {
+    zoomRange: ZoomRange | null;
+  }
 
   export interface SizeAxisOptions {
     id?: string;

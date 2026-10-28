@@ -10,7 +10,6 @@ import { fireNonCancelableEvent } from "../../internal/events";
 import AsyncStore from "../../internal/utils/async-store";
 import { SafeChart } from "../../internal/utils/highcharts";
 import { SVGRendererSingle } from "../../internal/utils/renderer-utils";
-import { ZoomRange } from "../chart-zoom/interfaces";
 import {
   canZoomInto,
   getInteraction,
@@ -27,7 +26,7 @@ import {
 } from "../chart-zoom/zoom-state-machine";
 import { findNearestIndex, getPageStep, getVisibleXValues } from "../chart-zoom/zoom-utils";
 import { getFormatter } from "../formatters";
-import { Rect } from "../interfaces";
+import { CoreChartProps, Rect } from "../interfaces";
 import { ChartExtraContext } from "./chart-extra-context";
 
 import testClasses from "../test-classes/styles.css.js";
@@ -658,7 +657,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   }
 }
 
-function extremesFromRange(zoomRange: undefined | null | ZoomRange): null | ZoomExtremes {
+function extremesFromRange(zoomRange: undefined | null | CoreChartProps.ZoomRange): null | ZoomExtremes {
   const x = zoomRange?.x;
   return x ? { min: Math.min(x.startValue, x.endValue), max: Math.max(x.startValue, x.endValue) } : null;
 }

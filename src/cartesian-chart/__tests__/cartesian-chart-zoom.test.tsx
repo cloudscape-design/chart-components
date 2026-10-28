@@ -1089,46 +1089,6 @@ describe("CartesianChart: zoom with other series types", { timeout: TEST_TIMEOUT
     );
   });
 
-  // Error bars are drawn like columns, for which Highcharts pads the axis by half a point range on each side.
-  // On a line that padding would show more than the zoomed range; on bars it keeps them from being cut off.
-  function renderErrorBarsOn(parentType: "line" | "column") {
-    const data = [0, 10, 20, 30, 40].map((x) => ({ x, y: x + 10 }));
-    renderCartesianChart({
-      highcharts,
-      series: [
-        { type: parentType, id: "parent", name: "Parent", data },
-        {
-          type: "errorbar",
-          linkedTo: "parent",
-          name: "Error",
-          data: data.map(({ x, y }) => ({ x, low: y - 2, high: y + 2 })),
-        },
-      ],
-      xAxis: { title: "X", type: "linear" as const },
-      yAxis: { title: "Y", type: "linear" as const },
-      zoom: { enabled: true },
-    });
-    keyboardZoomToIndexes(1, 3);
-    expect(getXExtremes()).toEqual({ min: 10, max: 30 });
-    const chart = getCurrentChart();
-    return {
-      start: chart.xAxis[0].toPixels(10, false) - chart.plotLeft,
-      end: chart.plotLeft + chart.plotWidth - chart.xAxis[0].toPixels(30, false),
-    };
-  }
-
-  test("ends the zoomed plot on the zoomed range for error bars on a line", () => {
-    const padding = renderErrorBarsOn("line");
-    expect(padding.start).toBeCloseTo(0, 0);
-    expect(padding.end).toBeCloseTo(0, 0);
-  });
-
-  test("keeps the padding that shows the bars in full for error bars on columns", () => {
-    const padding = renderErrorBarsOn("column");
-    expect(padding.start).toBeGreaterThan(1);
-    expect(padding.end).toBeGreaterThan(1);
-  });
-
   test("zooms an inverted chart with the keyboard", () => {
     renderCartesianChart({
       ...defaultProps,

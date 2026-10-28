@@ -1521,11 +1521,11 @@ exports[`internal core API matches snapshot > internal-core-chart 1`] = `
         "description": "A callback function, triggered when the zoomed range changes as a result of user interaction with the chart
 or the zoom controls. The detail's \`zoomRange\` is \`null\` when the zoom is reset to the full data range.",
         "detailInlineType": {
-          "name": "ZoomChangeDetail",
+          "name": "CoreChartProps.ZoomChangeDetail",
           "properties": [
             {
               "inlineType": {
-                "name": "ZoomRange",
+                "name": "CoreChartProps.ZoomRange",
                 "properties": [
                   {
                     "inlineType": {
@@ -1553,12 +1553,12 @@ or the zoom controls. The detail's \`zoomRange\` is \`null\` when the zoom is re
               },
               "name": "zoomRange",
               "optional": false,
-              "type": "ZoomRange | null",
+              "type": "CoreChartProps.ZoomRange | null",
             },
           ],
           "type": "object",
         },
-        "detailType": "ZoomChangeDetail",
+        "detailType": "CoreChartProps.ZoomChangeDetail",
         "name": "onZoomRangeChange",
         "systemTags": undefined,
       },
@@ -2235,7 +2235,7 @@ controls, that use the \`enterZoomMode\`, \`exitZoomMode\`, and \`resetZoom\` me
 Zooming applies to the first x-axis, and requires \`options.xAxis\` to be defined.",
         "i18nTag": undefined,
         "inlineType": {
-          "name": "ZoomOptions",
+          "name": "CoreChartProps.ZoomOptions",
           "properties": [
             {
               "name": "enabled",
@@ -2253,7 +2253,7 @@ Zooming applies to the first x-axis, and requires \`options.xAxis\` to be define
         "name": "zoom",
         "optional": true,
         "systemTags": undefined,
-        "type": "ZoomOptions",
+        "type": "CoreChartProps.ZoomOptions",
         "visualRefreshTag": undefined,
       },
       {
@@ -2268,7 +2268,7 @@ Supported options:
 values are timestamps in milliseconds.",
         "i18nTag": undefined,
         "inlineType": {
-          "name": "ZoomRange",
+          "name": "CoreChartProps.ZoomRange",
           "properties": [
             {
               "inlineType": {
@@ -2297,7 +2297,7 @@ values are timestamps in milliseconds.",
         "name": "zoomRange",
         "optional": true,
         "systemTags": undefined,
-        "type": "ZoomRange | null",
+        "type": "CoreChartProps.ZoomRange | null",
         "visualRefreshTag": undefined,
       },
     ],
