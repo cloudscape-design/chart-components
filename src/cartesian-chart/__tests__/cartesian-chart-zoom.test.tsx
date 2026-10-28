@@ -21,6 +21,8 @@ import coreTestClasses from "../../../lib/components/core/test-classes/styles.se
 
 // Every test here renders a real chart, which takes ~2s in jsdom, and the zoom interactions re-render
 // it multiple times.
+const TEST_TIMEOUT = 15_000;
+
 const series: CartesianChartProps.SeriesOptions[] = [
   {
     type: "line",
@@ -196,7 +198,7 @@ function focusOutsideChart() {
   return button;
 }
 
-describe("CartesianChart: zoom controls", () => {
+describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
   test("renders the Zoom button in idle state when zoom is enabled", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
     expect(getChart().findZoomButton()!.getElement()).toHaveTextContent("Zoom");
@@ -510,7 +512,7 @@ describe("CartesianChart: zoom controls", () => {
   });
 });
 
-describe("CartesianChart: zoom keyboard interaction", () => {
+describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT }, () => {
   test.each([
     { key: "Enter", keyCode: KeyCode.enter },
     { key: "Space", keyCode: KeyCode.space },
@@ -671,7 +673,7 @@ describe("CartesianChart: zoom keyboard interaction", () => {
   });
 });
 
-describe("CartesianChart: zoom cursor buttons", () => {
+describe("CartesianChart: zoom cursor buttons", { timeout: TEST_TIMEOUT }, () => {
   test("renders the cursor buttons outside the tab order", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
     const buttons = [getChart().findZoomCursorPreviousButton()!, getChart().findZoomCursorNextButton()!];
@@ -718,7 +720,7 @@ describe("CartesianChart: zoom cursor buttons", () => {
   });
 });
 
-describe("CartesianChart: zoom overlay", () => {
+describe("CartesianChart: zoom overlay", { timeout: TEST_TIMEOUT }, () => {
   // The overlay must draw nothing while idle: a highlight left on the chart after a zoom looks like a
   // pending selection, and on an empty chart it looks like a rendering artifact.
   test.each([
@@ -747,7 +749,7 @@ describe("CartesianChart: zoom overlay", () => {
   });
 });
 
-describe("CartesianChart: zoom pointer interaction", () => {
+describe("CartesianChart: zoom pointer interaction", { timeout: TEST_TIMEOUT }, () => {
   test("dragging across the plot zooms into the dragged range", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
     dispatchPointer("pointerdown", 1);
@@ -993,7 +995,7 @@ describe("CartesianChart: zoom pointer interaction", () => {
   });
 });
 
-describe("CartesianChart: zoom with other series types", () => {
+describe("CartesianChart: zoom with other series types", { timeout: TEST_TIMEOUT }, () => {
   // Highcharts computes a minRange of its own (five times the closest data range) when the axis has no
   // explicit bounds, and silently widens any narrower range. Grouped column charts hit this most
   // visibly, because zooming into a couple of categories appeared to do nothing.
@@ -1151,7 +1153,7 @@ describe("CartesianChart: zoom with other series types", () => {
   });
 });
 
-describe("CartesianChart: zoom direction", () => {
+describe("CartesianChart: zoom direction", { timeout: TEST_TIMEOUT }, () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -1208,7 +1210,7 @@ describe("CartesianChart: zoom direction", () => {
   });
 });
 
-describe("CartesianChart: zoom announcements", () => {
+describe("CartesianChart: zoom announcements", { timeout: TEST_TIMEOUT }, () => {
   test.each([
     {
       step: "entering zoom mode",
@@ -1274,7 +1276,7 @@ describe("CartesianChart: zoom announcements", () => {
   });
 });
 
-describe("CartesianChart: zoom focus and keyboard containment", () => {
+describe("CartesianChart: zoom focus and keyboard containment", { timeout: TEST_TIMEOUT }, () => {
   // With hideZoomControls there is no Reset or Zoom button to land on after a zoom, so focus goes to the chart
   // itself rather than to the page body.
   test("moves focus to the chart after a keyboard zoom when the buttons are hidden", () => {

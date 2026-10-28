@@ -61,7 +61,9 @@ test(
     await expect(page.isDisplayed(chart.findZoomCursor().toSelector())).resolves.toBe(false);
 
     await page.click(chart.findResetZoomButton().toSelector());
-    await expect(page.getText(xAxisLabels)).resolves.toBe(labelsBeforeZoom);
+    // Highcharts reuses the label elements, so the same labels can come back in a different document order.
+    const sortedLabels = (text: string) => text.split("\n").sort();
+    await expect(page.getText(xAxisLabels).then(sortedLabels)).resolves.toEqual(sortedLabels(labelsBeforeZoom));
     await expect(page.isExisting(chart.findResetZoomButton().toSelector())).resolves.toBe(false);
   }),
 );
