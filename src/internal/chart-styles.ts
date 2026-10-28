@@ -154,6 +154,11 @@ export const cursorLine = {
   "pointer-events": "none",
 };
 
+// Thickness of the zoom cursor and boundary lines drawn over the plot, matching the chart's own cursor line.
+export const zoomDividerThickness = 1;
+// Distance between the zoom cursor button cluster and the plot edge it is anchored to.
+export const zoomCursorClusterOffset = 8;
+
 export const zoomRangeBand = {
   fill: colorBackgroundItemSelected,
   zIndex: 0,

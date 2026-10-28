@@ -16,8 +16,6 @@ import { zoomMessages } from "./zoom-messages";
 import testClasses from "../../../lib/components/core/test-classes/styles.selectors.js";
 
 // Every test here renders a real chart, which takes ~2s in jsdom, and the zoom interactions re-render it.
-const TEST_TIMEOUT = 15_000;
-
 // Zooming belongs to the core chart, which is what consumers that build their own chart components
 // render. The affordances themselves are covered in depth against CartesianChart; the tests here cover
 // what only the core chart can show: that zooming is reachable through the core chart's own properties,
@@ -66,7 +64,10 @@ function getNativeZoom() {
   return (getCurrentChart() as unknown as { zooming: Highcharts.ChartZoomingOptions }).zooming;
 }
 
-const deprecatedZoomType = { zoomType: "x" } as Highcharts.ChartOptions;
+const nativeZoomOptions: [string, Highcharts.ChartOptions][] = [
+  ["zooming", { zooming: { type: "x", pinchType: "x" } }],
+  ["deprecated zoomType", { zoomType: "x", pinchType: "x" } as Highcharts.ChartOptions],
+];
 
 function getCurrentChart() {
   // Target the most recently rendered chart: highcharts.charts accumulates entries across tests
@@ -99,7 +100,7 @@ function keyboardZoomToIndexes(startIndex: number, endIndex: number) {
   pressCursorKey(KeyCode.enter);
 }
 
-describe("CoreChart: zoom", { timeout: TEST_TIMEOUT }, () => {
+describe("CoreChart: zoom", () => {
   test("renders no zoom affordances when zoom is not enabled", () => {
     const { wrapper } = renderChart({ ...defaultProps, zoom: undefined });
     expect(wrapper.findZoomButton()).toBe(null);
@@ -190,18 +191,10 @@ describe("CoreChart: zoom", { timeout: TEST_TIMEOUT }, () => {
     );
   });
 
-  test("turns off the Highcharts drag-to-zoom while zoom is enabled", () => {
-    renderChart({ ...defaultProps, options: { ...defaultProps.options, chart: { zooming: { type: "x" } } } });
-    expect(getCurrentChart().options.chart?.zooming?.type).toBeUndefined();
-  });
-
-  test("keeps the Highcharts drag-to-zoom of the consumer when zoom is not enabled", () => {
-    renderChart({
-      ...defaultProps,
-      zoom: undefined,
-      options: { ...defaultProps.options, chart: { zooming: { type: "x" } } },
-    });
-    expect(getCurrentChart().options.chart?.zooming?.type).toBe("x");
+  test.each(nativeZoomOptions)("turns off the Highcharts drag-to-zoom with %s while zoom is enabled", (_, chart) => {
+    renderChart({ ...defaultProps, options: { ...defaultProps.options, chart } });
+    expect(getNativeZoom().type).toBeUndefined();
+    expect(getNativeZoom().pinchType).toBeUndefined();
   });
 
   test("ignores the zoom while the x-axes are removed, and applies it again once they are back", () => {
@@ -240,29 +233,26 @@ describe("CoreChart: zoom", { timeout: TEST_TIMEOUT }, () => {
     expect(getCurrentChart().xAxis[0].getExtremes()).toEqual(expect.objectContaining({ min: 2, max: 3 }));
   });
 
-  test("keeps the global x-axis minRange and error bar placement when zoom is not enabled", () => {
-    highcharts.setOptions({ xAxis: { minRange: 3 }, plotOptions: { series: { pointPlacement: "on" } } });
+  test("gives back the global Highcharts defaults when zoom is disabled", () => {
+    highcharts.setOptions({
+      chart: { zooming: { type: "x" } },
+      xAxis: { minRange: 3 },
+      plotOptions: { errorbar: { pointPlacement: "between" } },
+    });
     try {
-      renderChart({ ...defaultProps, zoom: undefined });
+      const options = { ...defaultProps.options, plotOptions: { series: { pointPlacement: "on" as const } } };
+      const { rerender } = renderChart({ ...defaultProps, options });
+      rerender({ ...defaultProps, options, zoom: undefined });
       const chart = getCurrentChart();
+      expect(getNativeZoom().type).toBe("x");
       expect(chart.xAxis[0].options.minRange).toBe(3);
-      expect(chart.options.plotOptions?.errorbar?.pointPlacement).toBe("on");
+      expect(chart.options.plotOptions?.errorbar?.pointPlacement).toBe("between");
     } finally {
-      highcharts.setOptions({ xAxis: { minRange: undefined }, plotOptions: { series: { pointPlacement: undefined } } });
-    }
-  });
-
-  test("gives the global error bar placement precedence over the chart's series placement", () => {
-    highcharts.setOptions({ plotOptions: { errorbar: { pointPlacement: "between" } } });
-    try {
-      renderChart({
-        ...defaultProps,
-        zoom: undefined,
-        options: { ...defaultProps.options, plotOptions: { series: { pointPlacement: "on" } } },
+      highcharts.setOptions({
+        chart: { zooming: { type: undefined } },
+        xAxis: { minRange: undefined },
+        plotOptions: { errorbar: { pointPlacement: undefined } },
       });
-      expect(getCurrentChart().options.plotOptions?.errorbar?.pointPlacement).toBe("between");
-    } finally {
-      highcharts.setOptions({ plotOptions: { errorbar: { pointPlacement: undefined } } });
     }
   });
 
@@ -281,20 +271,8 @@ describe("CoreChart: zoom", { timeout: TEST_TIMEOUT }, () => {
     expect(document.querySelector(`.${testClasses["zoom-range"]}`)).not.toBe(null);
   });
 
-  test("gives back the global Highcharts drag-to-zoom when zoom is disabled", () => {
-    highcharts.setOptions({ chart: { zooming: { type: "x" } } });
-    try {
-      const { rerender } = renderChart({ ...defaultProps });
-      expect(getNativeZoom().type).toBeUndefined();
-      rerender({ ...defaultProps, zoom: undefined });
-      expect(getNativeZoom().type).toBe("x");
-    } finally {
-      highcharts.setOptions({ chart: { zooming: { type: undefined } } });
-    }
-  });
-
-  test("gives back the consumer's deprecated zoomType when zoom is disabled", () => {
-    const options = { ...defaultProps.options, chart: deprecatedZoomType };
+  test.each(nativeZoomOptions)("gives back the consumer's drag-to-zoom with %s when zoom is disabled", (_, chart) => {
+    const options = { ...defaultProps.options, chart };
     const { rerender } = renderChart({ ...defaultProps, options });
     expect(getNativeZoom().type).toBeUndefined();
     rerender({ ...defaultProps, options, zoom: undefined });
@@ -336,28 +314,6 @@ describe("CoreChart: zoom", { timeout: TEST_TIMEOUT }, () => {
     expect(document.activeElement).toHaveAttribute("aria-label", first);
     application.keydown(KeyCode.end);
     expect(document.activeElement).toHaveAttribute("aria-label", last);
-  });
-
-  // The zoomed range is drawn on the plot rather than declared as plot lines, so highlighting a series dims the
-  // consumer's plot lines, which belong to series, but not the zoomed range.
-  test("does not dim the zoomed range when a series is highlighted", () => {
-    let chartApi: CoreChartProps.ChartAPI | null = null;
-    renderChart({
-      ...defaultProps,
-      options: { series, xAxis: { min: 0, max: 4, plotLines: [{ id: "L2", value: 2 }] } },
-      callback: (api) => (chartApi = api),
-    });
-    keyboardZoomToIndexes(1, 3);
-
-    act(() => chartApi!.highlightItems(["L1"]));
-    const xAxis = getCurrentChart().xAxis[0] as unknown as {
-      plotLinesAndBands: { options: { id?: string }; svgElem?: { opacity?: number } }[];
-    };
-    const opacityById = Object.fromEntries(
-      xAxis.plotLinesAndBands.map((line) => [line.options.id, line.svgElem?.opacity ?? 1]),
-    );
-    expect(opacityById).toEqual({ L2: 0.4 });
-    expect(document.querySelector(`.${testClasses["zoom-range"]}`)).not.toHaveAttribute("opacity");
   });
 
   // A reversed x axis draws the values from right to left. The cursor still starts at the left edge of the

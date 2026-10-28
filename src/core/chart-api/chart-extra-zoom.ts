@@ -12,17 +12,6 @@ import { SafeChart } from "../../internal/utils/highcharts";
 import { SVGRendererSingle } from "../../internal/utils/renderer-utils";
 import { ZoomRange } from "../chart-zoom/interfaces";
 import {
-  applyPosition,
-  applyRect,
-  getBandRect,
-  getClusterRect,
-  getDividerRect,
-  isInsidePlot,
-  isPixelForward,
-  isXAxisHorizontal,
-  pixelToValue,
-} from "../chart-zoom/zoom-geometry";
-import {
   canZoomInto,
   getInteraction,
   getOverlayView,
@@ -36,7 +25,7 @@ import {
   zoomReducer,
   ZoomState,
 } from "../chart-zoom/zoom-state-machine";
-import { findNearestIndex, getPageStep, getVisibleXValues } from "../chart-zoom/zoom-values";
+import { findNearestIndex, getPageStep, getVisibleXValues } from "../chart-zoom/zoom-utils";
 import { getFormatter } from "../formatters";
 import { Rect } from "../interfaces";
 import { ChartExtraContext } from "./chart-extra-context";
@@ -78,7 +67,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private machine: ZoomState = IDLE_ZOOM_STATE;
   private localExtremes: null | ZoomExtremes = null;
   private appliedRange = false;
-  private resetRequested = false;
   private values: number[] = [];
   private valuesStale = true;
   private swallowClick = false;
@@ -86,7 +74,11 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private cursorElement: null | HTMLElement = null;
   private clusterElement: null | HTMLElement = null;
   private controlsElement: null | HTMLElement = null;
-  private svg = createSvgElements();
+  private rangeBand = new SVGRendererSingle();
+  private rangeBorders = new SVGRendererSingle();
+  private selectionBand = new SVGRendererSingle();
+  private selectionStart = new SVGRendererSingle();
+  private selectionEnd = new SVGRendererSingle();
 
   constructor(context: ChartExtraContext, handlers: ChartExtraZoomHandlers) {
     super({ interaction: "idle", zoomed: false, canZoom: true, announcement: "", focusRequest: null });
@@ -120,7 +112,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     this.applyContainerStyle(chart);
   };
 
-  // The range is reconciled on every render, because the x-axis can be replaced by any chart update.
   public onChartRender = () => {
     this.valuesStale = true;
     this.reconcile(this.context.chart());
@@ -141,7 +132,11 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     container?.removeEventListener("pointermove", this.onPlotPointerMove);
     container?.removeEventListener("click", this.onPlotClickCapture, true);
     this.stopPress();
-    Object.values(this.svg).forEach((element) => element.destroy());
+    this.rangeBand.destroy();
+    this.rangeBorders.destroy();
+    this.selectionBand.destroy();
+    this.selectionStart.destroy();
+    this.selectionEnd.destroy();
   };
 
   // Called when the zoom settings or the controlled zoom range change.
@@ -157,7 +152,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       this.applyContainerStyle(chart);
       this.reconcile(chart);
     }
-    this.syncResetAnnouncement();
   };
 
   public enterZoomMode = () => {
@@ -262,18 +256,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     return this.context.state.zoomRange !== undefined;
   }
 
-  // A controlled reset is announced once the consumer applies it. LiveRegion only announces the same text again
-  // once its content changed in between, so the reset announcement is cleared when the chart is zoomed again.
-  private syncResetAnnouncement() {
-    const resetText = this.labels.zoomResetAnnouncementText ?? "";
-    if (this.resetRequested && !this.getExtremes()) {
-      this.resetRequested = false;
-      this.announce(resetText);
-    } else if (this.getExtremes() && this.get().announcement === resetText) {
-      this.announce("");
-    }
-  }
-
   private getExtremes(): null | ZoomExtremes {
     if (!this.enabled) {
       return null;
@@ -304,8 +286,14 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       }
     }
     this.appliedRange = !!extremes;
+    // The reset announcement is cleared once the chart is zoomed, so that LiveRegion announces the next reset again.
     if (!!extremes !== this.get().zoomed) {
-      this.set((prev) => ({ ...prev, zoomed: !!extremes }));
+      const resetText = this.labels.zoomResetAnnouncementText ?? "";
+      this.set((prev) => ({
+        ...prev,
+        zoomed: !!extremes,
+        announcement: extremes && prev.announcement === resetText ? "" : prev.announcement,
+      }));
     }
   }
 
@@ -396,17 +384,14 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
         break;
       }
       case "resetZoom":
-        if (this.controlled) {
-          // A controlled chart cannot reset on its own: the reset is announced once the consumer applies it.
-          this.resetRequested = true;
-          fireNonCancelableEvent(this.context.handlers.onZoomRangeChange, { zoomRange: null });
-          break;
+        // A controlled chart cannot reset on its own: it asks the consumer to show the full range.
+        if (!this.controlled) {
+          this.localExtremes = null;
+          this.applyExtremes(this.context.chart());
         }
-        this.localExtremes = null;
-        this.applyExtremes(this.context.chart());
         this.announce(this.labels.zoomResetAnnouncementText ?? "");
         // A reset requested through the API is not reported back to an uncontrolled chart's consumer.
-        if (!effect.isApiCall) {
+        if (this.controlled || !effect.isApiCall) {
           fireNonCancelableEvent(this.context.handlers.onZoomRangeChange, { zoomRange: null });
         }
         break;
@@ -451,16 +436,16 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     const extremes = this.getExtremes();
     const xAxis = chart.xAxis?.[0];
     // Hiding first destroys the elements of a chart instance that Highcharts has replaced, like the tooltip cursor.
-    this.svg.rangeBand.hide();
-    this.svg.rangeBorders.hide();
+    this.rangeBand.hide();
+    this.rangeBorders.hide();
     if (!extremes || !xAxis) {
       return;
     }
-    const band = getBandRect(chart as Highcharts.Chart, xAxis, extremes.min, extremes.max);
-    const start = getDividerRect(chart as Highcharts.Chart, xAxis, extremes.min);
-    const end = getDividerRect(chart as Highcharts.Chart, xAxis, extremes.max);
-    this.svg.rangeBand.rect(chart.renderer, { ...Styles.zoomRangeBand, ...band, class: testClasses["zoom-range"] });
-    this.svg.rangeBorders.path(chart.renderer, {
+    const band = getBandRect(chart, xAxis, extremes.min, extremes.max);
+    const start = getDividerRect(chart, xAxis, extremes.min);
+    const end = getDividerRect(chart, xAxis, extremes.max);
+    this.rangeBand.rect(chart.renderer, { ...Styles.zoomRangeBand, ...band, class: testClasses["zoom-range"] });
+    this.rangeBorders.path(chart.renderer, {
       ...Styles.zoomRangeBorders,
       d: [toSvgLine(start), toSvgLine(end)].join(" "),
       class: testClasses["zoom-range-borders"],
@@ -521,11 +506,11 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   }
 
   private drawSelection(chart: Highcharts.Chart, band: null | Rect, dividers: Rect[]) {
-    this.svg.selectionBand.hide();
-    this.svg.selectionStart.hide();
-    this.svg.selectionEnd.hide();
+    this.selectionBand.hide();
+    this.selectionStart.hide();
+    this.selectionEnd.hide();
     if (band) {
-      this.svg.selectionBand.rect(chart.renderer, {
+      this.selectionBand.rect(chart.renderer, {
         ...Styles.zoomSelectionBand,
         ...band,
         class: testClasses["zoom-selection"],
@@ -533,8 +518,8 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     }
     const [start, end] = dividers;
     for (const [element, rect, className] of [
-      [this.svg.selectionStart, start, testClasses["zoom-selection-start"]],
-      [this.svg.selectionEnd, end, testClasses["zoom-selection-end"]],
+      [this.selectionStart, start, testClasses["zoom-selection-start"]],
+      [this.selectionEnd, end, testClasses["zoom-selection-end"]],
     ] as const) {
       if (rect) {
         element.rect(chart.renderer, { ...Styles.zoomSelectionDivider, ...rect, class: className });
@@ -543,9 +528,9 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   }
 
   private hideOverlay() {
-    this.svg.selectionBand.hide();
-    this.svg.selectionStart.hide();
-    this.svg.selectionEnd.hide();
+    this.selectionBand.hide();
+    this.selectionStart.hide();
+    this.selectionEnd.hide();
     const origin = { left: 0, top: 0 };
     applyRect(this.cursorElement, null, origin);
     applyPosition(this.clusterElement, null, origin);
@@ -661,19 +646,135 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   }
 }
 
-function createSvgElements() {
-  return {
-    rangeBand: new SVGRendererSingle(),
-    rangeBorders: new SVGRendererSingle(),
-    selectionBand: new SVGRendererSingle(),
-    selectionStart: new SVGRendererSingle(),
-    selectionEnd: new SVGRendererSingle(),
-  };
-}
-
 function extremesFromRange(zoomRange: undefined | null | ZoomRange): null | ZoomExtremes {
   const x = zoomRange?.x;
   return x ? { min: Math.min(x.startValue, x.endValue), max: Math.max(x.startValue, x.endValue) } : null;
+}
+
+// The rectangles are in physical pixels relative to the chart, matching chart.plotLeft, plotTop, and toPixels.
+
+// In an inverted chart the x axis runs vertically, so every pixel computation swaps the two dimensions
+// and Axis.toValue / toPixels operate on chart y coordinates instead of x ones.
+function isXAxisHorizontal(xAxis: Pick<Highcharts.Axis, "horiz">): boolean {
+  return xAxis.horiz !== false;
+}
+
+// Converts a pointer position over the chart into an x-axis value.
+function pixelToValue(xAxis: Highcharts.Axis, chartX: number, chartY: number): number {
+  return xAxis.toValue(isXAxisHorizontal(xAxis) ? chartX : chartY, false);
+}
+
+// Converts an x-axis value into a chart-relative pixel along the axis.
+function valueToPixel(xAxis: Highcharts.Axis, value: number): number {
+  return xAxis.toPixels(value, false);
+}
+
+// True when increasing x values map to increasing pixel coordinates. Derived from the rendered pixels
+// rather than from the reversed / inverted options, so it holds for right-to-left pages, consumer-set
+// `reversed` axes, and inverted charts alike, including combinations of the three.
+function isPixelForward(xAxis: Highcharts.Axis, values: readonly number[]): boolean {
+  if (values.length < 2) {
+    return true;
+  }
+  return valueToPixel(xAxis, values[values.length - 1]) >= valueToPixel(xAxis, values[0]);
+}
+
+// A line across the plot at the given x value.
+function getDividerRect(chart: SafeChart, xAxis: Highcharts.Axis, value: number): Rect {
+  const pixel = valueToPixel(xAxis, value);
+  return isXAxisHorizontal(xAxis)
+    ? {
+        x: pixel - Styles.zoomDividerThickness / 2,
+        y: chart.plotTop,
+        width: Styles.zoomDividerThickness,
+        height: chart.plotHeight,
+      }
+    : {
+        x: chart.plotLeft,
+        y: pixel - Styles.zoomDividerThickness / 2,
+        width: chart.plotWidth,
+        height: Styles.zoomDividerThickness,
+      };
+}
+
+// The band covering the range between two x values, spanning the plot across the other dimension.
+function getBandRect(chart: SafeChart, xAxis: Highcharts.Axis, fromValue: number, toValue: number): Rect {
+  const fromPixel = valueToPixel(xAxis, fromValue);
+  const toPixel = valueToPixel(xAxis, toValue);
+  const start = Math.min(fromPixel, toPixel);
+  // A range of a single value still needs a visible band, hence the minimum of one pixel.
+  const size = Math.max(1, Math.abs(toPixel - fromPixel));
+  return isXAxisHorizontal(xAxis)
+    ? { x: start, y: chart.plotTop, width: size, height: chart.plotHeight }
+    : { x: chart.plotLeft, y: start, width: chart.plotWidth, height: size };
+}
+
+// The cursor button cluster, centered on the cursor and pinned to a plot edge: the bottom edge when the
+// x axis is horizontal, the inline start edge when it is vertical. It is never shifted along the axis, so
+// it stays aligned with a cursor at the first or the last point by extending past the plot edge.
+function getClusterRect(
+  chart: SafeChart,
+  xAxis: Highcharts.Axis,
+  value: number,
+  clusterSize: { width: number; height: number },
+): Rect {
+  const pixel = valueToPixel(xAxis, value);
+  const { width, height } = clusterSize;
+  if (isXAxisHorizontal(xAxis)) {
+    return {
+      x: pixel - width / 2,
+      y: chart.plotTop + Math.max(0, chart.plotHeight - height - Styles.zoomCursorClusterOffset),
+      width,
+      height,
+    };
+  }
+  return {
+    x: chart.plotLeft + Styles.zoomCursorClusterOffset,
+    y: pixel - height / 2,
+    width,
+    height,
+  };
+}
+
+// True when the given chart coordinates fall inside the plot area.
+function isInsidePlot(chart: SafeChart, chartX: number, chartY: number): boolean {
+  return (
+    chartX >= chart.plotLeft &&
+    chartX <= chart.plotLeft + chart.plotWidth &&
+    chartY >= chart.plotTop &&
+    chartY <= chart.plotTop + chart.plotHeight
+  );
+}
+
+// The offset of the Highcharts container from the element the cursor is positioned against.
+interface OverlayOrigin {
+  left: number;
+  top: number;
+}
+
+// Positions the cursor elements imperatively, so that stepping the cursor or dragging causes no React render.
+// They are hidden with visibility rather than display, so that they keep a measurable size while hidden.
+function applyRect(element: null | HTMLElement, rect: null | Rect, origin: OverlayOrigin) {
+  if (applyPosition(element, rect, origin) && element && rect) {
+    element.style.width = `${rect.width}px`;
+    element.style.height = `${rect.height}px`;
+  }
+}
+
+// Positions an element without constraining its size, used for the cursor button cluster, which is sized by
+// its contents.
+function applyPosition(element: null | HTMLElement, rect: null | Rect, origin: OverlayOrigin): boolean {
+  if (!element) {
+    return false;
+  }
+  if (!rect) {
+    element.style.visibility = "hidden";
+    return false;
+  }
+  element.style.visibility = "visible";
+  element.style.left = `${origin.left + rect.x}px`;
+  element.style.top = `${origin.top + rect.y}px`;
+  return true;
 }
 
 function toSvgLine({ x, y, width, height }: Rect) {

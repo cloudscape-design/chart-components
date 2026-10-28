@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { MIN_ZOOM_POINTS } from "./zoom-values";
+import { MIN_ZOOM_POINTS } from "./zoom-utils";
 
 /**
  * The zoom interaction as a finite state machine.

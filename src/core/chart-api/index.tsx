@@ -62,9 +62,8 @@ export function useChartAPI(
     }
   }, [api, visibleItemsIndex]);
 
-  // The chart re-renders from a layout effect, before the effect above updates the context, so it is drawn with
-  // the previous zoom range. The zoom is reconciled again here, once the context holds the new one. The range is
-  // compared by value.
+  // Like the visible items, the zoom range requires notifying the helper when it changes. The chart re-renders before
+  // the context is updated, so the render still sees the previous range. The range is compared by value.
   const zoomIndex = [
     settings.zoomEnabled,
     state.zoomRange === undefined

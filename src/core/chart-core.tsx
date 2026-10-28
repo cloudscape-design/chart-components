@@ -22,7 +22,7 @@ import { castArray } from "../internal/utils/utils";
 import { useChartAPI } from "./chart-api";
 import { ChartExtraContext } from "./chart-api/chart-extra-context";
 import { ChartContainer } from "./chart-container";
-import { getInheritedZoomOptions, hasColumnLikeSeries } from "./chart-zoom/zoom-values";
+import { resolveZoomOptions } from "./chart-zoom/zoom-utils";
 import { ChartApplication } from "./components/core-application";
 import { ChartFilters } from "./components/core-filters";
 import { ChartLegend } from "./components/core-legend";
@@ -81,7 +81,7 @@ export function InternalCoreChart({
   const labels = useChartI18n({ ariaLabel, ariaDescription, i18nStrings });
   // The zoom applies to the first x-axis, and is ignored when the chart does not define one.
   const zoomEnabled = !!zoomOptions?.enabled && (castArray(options.xAxis)?.length ?? 0) > 0;
-  const inheritedZoomOptions = getInheritedZoomOptions(highcharts, options);
+  const resolvedZoomOptions = resolveZoomOptions(highcharts, options, zoomEnabled);
   const context: ChartExtraContext["settings"] = {
     chartId: useUniqueId(),
     noDataEnabled: !!noDataOptions,
@@ -241,10 +241,7 @@ export function InternalCoreChart({
       className: xAxisClassName(inverted, xAxisOptions.className),
       title: axisTitle(xAxisOptions.title ?? {}, !inverted || verticalAxisTitlePlacement === "side"),
       labels: axisLabels(xAxisOptions.labels ?? {}),
-      // Highcharts widens any range narrower than five times the closest point distance unless the axis declares
-      // a minRange, and reads zero as not declared. The smallest positive number lets the zoom show any range.
-      minRange:
-        xAxisOptions.minRange ?? (index === 0 && zoomEnabled ? Number.MIN_VALUE : inheritedZoomOptions.minRange),
+      minRange: xAxisOptions.minRange ?? resolvedZoomOptions.getXAxisMinRange(index),
     })),
     yAxis: castArray(options.yAxis)?.map((yAxisOptions) => ({
       ...Styles.yAxisOptions,
@@ -284,10 +281,7 @@ export function InternalCoreChart({
       column: { ...Styles.columnSeries, ...options.plotOptions?.column },
       errorbar: {
         ...Styles.errorbarSeries,
-        // Error bars pad the axis by half a point range on each side, so the zoomed plot would show more than the
-        // zoomed range. Without bars in the chart nothing needs that room, so the error bars are placed on their x.
-        pointPlacement:
-          zoomEnabled && !hasColumnLikeSeries(options.series) ? "on" : inheritedZoomOptions.errorBarPointPlacement,
+        pointPlacement: resolvedZoomOptions.errorBarPointPlacement,
         ...options.plotOptions?.errorbar,
       },
       // Pie chart is shown in legend by default, that is required for standalone pie charts.
@@ -320,15 +314,8 @@ export function InternalCoreChart({
               // It is possible to override it by explicitly providing chart.height, but this will not be
               // compatible with any of the above settings.
               height: options.chart?.height ?? height,
-              // Highcharts' own drag-to-zoom is not accessible, and would compete with the zoom for the same range,
-              // so it is turned off while zoom is enabled, and the consumer's settings are given back otherwise.
-              ...(zoomEnabled
-                ? {
-                    zooming: { ...options.chart?.zooming, type: undefined, pinchType: undefined },
-                    zoomType: undefined,
-                    pinchType: undefined,
-                  }
-                : inheritedZoomOptions.nativeZoom),
+              // Highcharts' own drag-to-zoom is not accessible, and would compete with the zoom for the same range.
+              ...resolvedZoomOptions.nativeZoom,
               // We override certain chart events to inject additional behaviors, but it is still possible to define
               // custom callbacks. The Cloudscape behaviors can be disabled or altered via components API. For instance,
               // if no-data props are not provided - the related on-render computations will be skipped.
