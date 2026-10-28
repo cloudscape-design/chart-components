@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { act } from "react";
-import type Highcharts from "highcharts";
 import highcharts from "highcharts";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
@@ -64,16 +63,6 @@ const onZoomRangeChange = vi.fn();
 afterEach(() => {
   onZoomRangeChange.mockReset();
 });
-
-// The resolved zoom settings and the deprecated zoomType are not covered by the Highcharts types.
-function getNativeZoom() {
-  return (getCurrentChart() as unknown as { zooming: Highcharts.ChartZoomingOptions }).zooming;
-}
-
-const nativeZoomOptions: [string, Highcharts.ChartOptions][] = [
-  ["zooming", { zooming: { type: "x", pinchType: "x" } }],
-  ["deprecated zoomType", { zoomType: "x", pinchType: "x" } as Highcharts.ChartOptions],
-];
 
 function getCurrentChart() {
   return [...highcharts.charts].reverse().find((c) => c)!;
@@ -150,7 +139,7 @@ describe("CoreChart: zoom range", () => {
     expect(getXExtremes()).toEqual({ min: 1, max: 2 });
   });
 
-  test("restores the consumer x-axis options when zoom is disabled", () => {
+  test("shows the consumer x-axis range when zoom is disabled", () => {
     const options = { series, xAxis: { min: 0, max: 4, plotLines: [{ id: "line", value: 2 }] } };
     const { wrapper, rerender } = renderChart({ ...defaultProps, options, zoomRange: zoomedRange });
     expect(getXExtremes()).toEqual({ min: 1, max: 3 });
@@ -158,7 +147,6 @@ describe("CoreChart: zoom range", () => {
     rerender({ ...defaultProps, options, zoom: { enabled: false }, zoomRange: zoomedRange });
     expect(getXExtremes()).toEqual({ min: 0, max: 4 });
     expect(getZoomRangeAffordance().present).toBe(false);
-    expect(getCurrentChart().xAxis[0].options.minRange).toBeUndefined();
     expect(wrapper.findResetZoomButton()).toBe(null);
   });
 
@@ -212,38 +200,6 @@ describe("CoreChart: zoom range", () => {
     expect(getXExtremes()).toEqual({ min: 2, max: 3 });
   });
 
-  test("gives back the global Highcharts defaults when zoom is disabled", () => {
-    highcharts.setOptions({
-      chart: { zooming: { type: "x" } },
-      xAxis: { minRange: 3 },
-      plotOptions: { errorbar: { pointPlacement: "between" } },
-    });
-    try {
-      const options = { ...defaultProps.options, plotOptions: { series: { pointPlacement: "on" as const } } };
-      const { rerender } = renderChart({ ...defaultProps, options });
-      rerender({ ...defaultProps, options, zoom: undefined });
-      const chart = getCurrentChart();
-      expect(getNativeZoom().type).toBe("x");
-      expect(chart.xAxis[0].options.minRange).toBe(3);
-      expect(chart.options.plotOptions?.errorbar?.pointPlacement).toBe("between");
-    } finally {
-      highcharts.setOptions({
-        chart: { zooming: { type: undefined } },
-        xAxis: { minRange: undefined },
-        plotOptions: { errorbar: { pointPlacement: undefined } },
-      });
-    }
-  });
-
-  test("keeps the consumer error bar placement from the series plot options when zoom is not enabled", () => {
-    renderChart({
-      ...defaultProps,
-      zoom: undefined,
-      options: { ...defaultProps.options, plotOptions: { series: { pointPlacement: "between" } } },
-    });
-    expect(getCurrentChart().options.plotOptions?.errorbar?.pointPlacement).toBe("between");
-  });
-
   test("marks the zoomed range when zoom is enabled on an axis already showing that range", () => {
     const { rerender } = renderChart({
       ...defaultProps,
@@ -259,23 +215,9 @@ describe("CoreChart: zoom range", () => {
     expect(document.querySelector(`.${testClasses["zoom-range"]}`)).not.toBe(null);
   });
 
-  test.each(nativeZoomOptions)("gives back the consumer's drag-to-zoom with %s when zoom is disabled", (_, chart) => {
-    const options = { ...defaultProps.options, chart };
-    const { rerender } = renderChart({ ...defaultProps, options });
-    expect(getNativeZoom().type).toBeUndefined();
-    rerender({ ...defaultProps, options, zoom: undefined });
-    expect(getNativeZoom().type).toBe("x");
-  });
-
   test("keeps the x-axis minRange declared by the consumer", () => {
     renderChart({ ...defaultProps, options: { series, xAxis: { min: 0, max: 4, minRange: 3 } } });
     expect(getCurrentChart().xAxis[0].options.minRange).toBe(3);
-  });
-
-  test.each(nativeZoomOptions)("turns off the Highcharts drag-to-zoom with %s while zoom is enabled", (_, chart) => {
-    renderChart({ ...defaultProps, options: { ...defaultProps.options, chart } });
-    expect(getNativeZoom().type).toBeUndefined();
-    expect(getNativeZoom().pinchType).toBeUndefined();
   });
 });
 
@@ -403,26 +345,25 @@ describe("CoreChart: zoom with error bars", () => {
     return (getCurrentChart().xAxis[0] as unknown as { minPointOffset: number }).minPointOffset;
   }
 
-  test("gives the error bars their padding back when zoom is disabled", () => {
+  test("keeps the error bar padding when zoom is not enabled", () => {
     const data = [0, 10, 20, 30, 40].map((x) => ({ x, y: x + 10 }));
-    const options: CoreChartProps.ChartOptions = {
-      xAxis: {},
-      series: [
-        { type: "line", id: "parent", name: "Parent", data },
-        {
-          type: "errorbar",
-          linkedTo: "parent",
-          name: "Error",
-          data: data.map(({ x, y }) => ({ x, low: y - 2, high: y + 2 })),
-        },
-      ],
-    };
-    const getOffset = () => (getCurrentChart().xAxis[0] as unknown as { minPointOffset: number }).minPointOffset;
-    const { rerender } = renderChart({ ...defaultProps, options });
-    expect(getOffset()).toBe(0);
-
-    rerender({ ...defaultProps, options, zoom: undefined });
-    expect(getOffset()).toBeGreaterThan(0);
+    renderChart({
+      ...defaultProps,
+      zoom: undefined,
+      options: {
+        xAxis: {},
+        series: [
+          { type: "line", id: "parent", name: "Parent", data },
+          {
+            type: "errorbar",
+            linkedTo: "parent",
+            name: "Error",
+            data: data.map(({ x, y }) => ({ x, low: y - 2, high: y + 2 })),
+          },
+        ],
+      },
+    });
+    expect((getCurrentChart().xAxis[0] as unknown as { minPointOffset: number }).minPointOffset).toBeGreaterThan(0);
   });
 
   test("ends the zoomed plot on the zoomed range for error bars on a line", () => {

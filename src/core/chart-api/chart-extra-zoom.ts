@@ -85,14 +85,11 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
         xAxis.setExtremes(undefined, undefined, true, false);
       }
     }
-    // The reset announcement is cleared once the chart is zoomed, so that LiveRegion announces the next reset again.
-    if (!!extremes !== this.get().zoomed) {
-      const resetText = this.context.settings.labels.zoomResetAnnouncementText ?? "";
-      this.set((prev) => ({
-        ...prev,
-        zoomed: !!extremes,
-        announcement: extremes && prev.announcement === resetText ? "" : prev.announcement,
-      }));
+    // Zooming clears the reset announcement, so that LiveRegion announces the next reset again. When the range is
+    // cleared, the announcement made by Reset is kept.
+    const zoomed = !!extremes;
+    if (zoomed !== this.get().zoomed) {
+      this.set(({ announcement }) => ({ zoomed, announcement: zoomed ? "" : announcement }));
     }
   }
 
@@ -100,7 +97,8 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private drawRange(chart: SafeChart) {
     const extremes = this.getExtremes();
     const xAxis = chart.xAxis?.[0];
-    // Hiding first destroys the elements of a chart instance that Highcharts has replaced, like the tooltip cursor.
+    // Hiding first destroys elements that belong to a chart instance Highcharts has replaced, so that they are drawn
+    // again on the current one, like the tooltip cursor.
     this.rangeBand.hide();
     this.rangeBorders.hide();
     if (!extremes || !xAxis) {
