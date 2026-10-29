@@ -202,6 +202,15 @@ describe("CartesianChart: zoom selection, controls", { timeout: TEST_TIMEOUT }, 
     expect(getChart().findZoomButton()).not.toBe(null);
   });
 
+  test("the Zoom button is a toggle button that is pressed in zoom mode", () => {
+    renderZoomChart({ ...defaultProps, zoom: { enabled: true } });
+    const button = getChart().findZoomButton()!.getElement();
+    expect(button).toHaveAttribute("aria-pressed", "false");
+    enterZoomMode();
+    expect(getChart().findExitZoomButton()!.getElement()).toBe(button);
+    expect(button).toHaveAttribute("aria-pressed", "true");
+  });
+
   test("the Reset button fires onZoomRangeChange with a null range", () => {
     renderZoomChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
     keyboardZoomToIndexes(1, 3);
