@@ -23,7 +23,7 @@ import { ChartExtraNavigation, ChartExtraNavigationHandlers } from "./chart-extr
 import { ChartExtraNodata, ReactiveNodataState } from "./chart-extra-nodata";
 import { ChartExtraPointer, ChartExtraPointerHandlers } from "./chart-extra-pointer";
 import { ChartExtraTooltip, ReactiveTooltipState } from "./chart-extra-tooltip";
-import { ChartExtraZoom, ReactiveZoomState } from "./chart-extra-zoom";
+import { ChartExtraZoom, ChartExtraZoomHandlers, ReactiveZoomState } from "./chart-extra-zoom";
 
 // The API helper injects Cloudscape custom behaviors, and returns the API instance that comes with
 // reactive state and handlers to be assigned as Highcharts options, used by Cloudscape components
@@ -64,7 +64,12 @@ export function useChartAPI(
 
   // Like the visible items, the zoom range requires notifying the helper when it changes. The chart re-renders before
   // the context is updated, so the render still sees the previous range. The range is compared by value.
-  const zoomIndex = [settings.zoomEnabled, state.zoomRange?.x?.startValue, state.zoomRange?.x?.endValue].join("::");
+  const zoomIndex = [
+    settings.zoomEnabled,
+    state.zoomRange === undefined
+      ? "uncontrolled"
+      : `${state.zoomRange?.x?.startValue}:${state.zoomRange?.x?.endValue}`,
+  ].join("::");
   useEffect(() => {
     api.onZoomPropsChange();
   }, [api, zoomIndex]);
@@ -89,7 +94,7 @@ export class ChartAPI {
   private chartExtraLegend = new ChartExtraLegend(this.context);
   private chartExtraNodata = new ChartExtraNodata(this.context);
   private chartExtraAxisTitles = new ChartExtraAxisTitles(this.context);
-  private chartExtraZoom = new ChartExtraZoom(this.context);
+  private chartExtraZoom = new ChartExtraZoom(this.context, this.zoomHandlers);
 
   constructor(
     settings: ChartExtraContext.Settings,
@@ -113,6 +118,7 @@ export class ChartAPI {
     const chartAPI = this;
     const onChartLoad: Highcharts.ChartLoadCallbackFunction = function (this) {
       chartAPI.chartExtraPointer.onChartLoad(this);
+      chartAPI.chartExtraZoom.onChartLoad(this);
     };
     const onChartRender: Highcharts.ChartRenderCallbackFunction = function (this) {
       updateChartContext(chartAPI.context, this);
@@ -199,14 +205,23 @@ export class ChartAPI {
     }
   };
 
-  public onZoomPropsChange = () => this.chartExtraZoom.onZoomPropsChange();
+  // Moves focus to the chart, when keyboard navigation is enabled.
+  public focusChart = () => this.chartExtraNavigation.focusChartApplication();
 
-  // Resets the zoom from the Reset button of the zoom controls.
-  public resetZoom = () => {
-    this.chartExtraZoom.resetZoom();
-    // The Reset button is removed once the reset is applied, so focus moves to the chart as it is pressed.
-    this.chartExtraNavigation.focusChartApplication();
-  };
+  // Zoom interactions, used by the zoom controls and cursor components, and the public API.
+  public onZoomPropsChange = () => this.chartExtraZoom.onZoomPropsChange();
+  public setZoomCursor = this.chartExtraZoom.setCursor;
+  public setZoomCluster = this.chartExtraZoom.setCluster;
+  public setZoomControls = this.chartExtraZoom.setControls;
+  public onZoomCursorKeyDown = this.chartExtraZoom.onCursorKeyDown;
+  public onZoomCursorBlur = this.chartExtraZoom.onCursorBlur;
+  public onZoomControlsBlur = this.chartExtraZoom.onControlsBlur;
+  public onZoomControlsKeyDown = this.chartExtraZoom.onControlsKeyDown;
+  public stepZoomCursor = (direction: -1 | 1) => this.chartExtraZoom.stepCursor(direction);
+  public clearZoomFocusRequest = this.chartExtraZoom.clearFocusRequest;
+  public enterZoomMode = () => this.chartExtraZoom.enterZoomMode();
+  public exitZoomMode = ({ withFocus }: { withFocus: boolean }) => this.chartExtraZoom.exitZoomMode({ withFocus });
+  public resetZoom = ({ isApiCall }: { isApiCall: boolean }) => this.chartExtraZoom.resetZoom({ isApiCall });
 
   // Hide the tooltip from an action initiated by the tooltip's content
   public hideTooltip = () => {
@@ -276,6 +291,9 @@ export class ChartAPI {
       highlightChartPoint: (point: Highcharts.Point) => this.highlightChartPoint(point, { isApiCall: true }),
       highlightChartGroup: (group: readonly Highcharts.Point[]) => this.highlightChartGroup(group, { isApiCall: true }),
       clearChartHighlight: () => this.clearChartHighlight({ isApiCall: true }),
+      enterZoomMode: () => this.enterZoomMode(),
+      exitZoomMode: () => this.exitZoomMode({ withFocus: false }),
+      resetZoom: () => this.resetZoom({ isApiCall: true }),
     };
   }
 
@@ -325,14 +343,26 @@ export class ChartAPI {
     };
   }
 
+  private get zoomHandlers(): ChartExtraZoomHandlers {
+    return {
+      onClearHighlight: () => this.clearChartHighlight({ isApiCall: false }),
+      onFocusChart: () => this.focusChart(),
+    };
+  }
+
   // A set of callbacks required for pointer navigation.
   private get pointerHandlers(): ChartExtraPointerHandlers {
     return {
+      // While a zoom range is selected the pointer sets the range boundaries, so it does not highlight the chart.
       onPointHover: (point) => {
-        this.highlightChartPoint(point, { isApiCall: false });
+        if (!this.chartExtraZoom.isActive) {
+          this.highlightChartPoint(point, { isApiCall: false });
+        }
       },
       onGroupHover: (group) => {
-        this.highlightChartGroup(group, { isApiCall: false });
+        if (!this.chartExtraZoom.isActive) {
+          this.highlightChartGroup(group, { isApiCall: false });
+        }
       },
       onHoverLost: () => {
         this.clearChartHighlight({ isApiCall: false });

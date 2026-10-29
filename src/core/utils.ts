@@ -473,3 +473,13 @@ function getChartRect(rect: Rect, chart: SafeChart, canBeInverted: boolean): Rec
         height: rect.height,
       };
 }
+
+// True when the given chart coordinates fall inside the plot area.
+export function isInsidePlot(chart: SafeChart, chartX: number, chartY: number): boolean {
+  return (
+    chartX >= chart.plotLeft &&
+    chartX <= chart.plotLeft + chart.plotWidth &&
+    chartY >= chart.plotTop &&
+    chartY <= chart.plotTop + chart.plotHeight
+  );
+}
