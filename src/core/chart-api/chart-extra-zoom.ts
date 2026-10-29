@@ -27,6 +27,7 @@ import {
 import { findNearestIndex, getPageStep, getVisibleXValues } from "../chart-zoom/zoom-utils";
 import { getFormatter } from "../formatters";
 import { CoreChartProps, Rect } from "../interfaces";
+import { isInsidePlot } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
 import testClasses from "../test-classes/styles.css.js";
@@ -742,16 +743,6 @@ function getClusterRect(
     width,
     height,
   };
-}
-
-// True when the given chart coordinates fall inside the plot area.
-function isInsidePlot(chart: SafeChart, chartX: number, chartY: number): boolean {
-  return (
-    chartX >= chart.plotLeft &&
-    chartX <= chart.plotLeft + chart.plotWidth &&
-    chartY >= chart.plotTop &&
-    chartY <= chart.plotTop + chart.plotHeight
-  );
 }
 
 // The offset of the Highcharts container from the element the cursor is positioned against.
