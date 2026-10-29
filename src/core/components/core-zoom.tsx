@@ -8,7 +8,6 @@ import Button, { ButtonProps } from "@cloudscape-design/components/button";
 import Icon, { IconProps } from "@cloudscape-design/components/icon";
 import LiveRegion from "@cloudscape-design/components/live-region";
 import SpaceBetween from "@cloudscape-design/components/space-between";
-import { colorBackgroundButtonPrimaryActive, colorBorderButtonPrimaryActive } from "@cloudscape-design/design-tokens";
 
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
@@ -17,23 +16,8 @@ import { ChartLabels } from "../i18n-utils";
 import styles from "../styles.css.js";
 import testClasses from "../test-classes/styles.css.js";
 
-const exitButtonStyle: ButtonProps.Style = {
-  root: {
-    background: {
-      default: colorBackgroundButtonPrimaryActive,
-      hover: colorBackgroundButtonPrimaryActive,
-      active: colorBackgroundButtonPrimaryActive,
-    },
-    borderColor: {
-      default: colorBorderButtonPrimaryActive,
-      hover: colorBorderButtonPrimaryActive,
-      active: colorBorderButtonPrimaryActive,
-    },
-  },
-};
-
 export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: ChartLabels }) {
-  const active = useSelector(api.zoomStore, (s) => s.interaction === "cursor");
+  const inZoomMode = useSelector(api.zoomStore, (s) => s.interaction === "cursor");
   const zoomed = useSelector(api.zoomStore, (s) => s.zoomed);
   const canZoom = useSelector(api.zoomStore, (s) => s.canZoom);
   const focusRequest = useSelector(api.zoomStore, (s) => s.focusRequest);
@@ -62,7 +46,7 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
       className={styles["chart-zoom-controls"]}
     >
       <SpaceBetween size="s" direction="horizontal">
-        {zoomed && !active && (
+        {zoomed && !inZoomMode && (
           <Button
             ref={resetButtonRef}
             variant="link"
@@ -83,7 +67,7 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
             {labels.resetZoomButtonText}
           </Button>
         )}
-        {!active ? (
+        {!inZoomMode ? (
           <Button
             ref={zoomButtonRef}
             iconName="search"
@@ -98,8 +82,8 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
         ) : (
           <Button
             variant="primary"
+            iconName="search"
             formAction="none"
-            style={exitButtonStyle}
             onClick={() => api.exitZoomMode({ withFocus: true })}
             ariaLabel={labels.exitZoomModeButtonAriaLabel}
             className={testClasses["exit-zoom-button"]}

@@ -10,11 +10,21 @@ import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 import "highcharts/highcharts-more";
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import { ZoomRange } from "../../../lib/components/core/internal-interfaces";
-import { CoreChartTestProps, createChartWrapper, renderChart, renderStatefulChart } from "./common";
+import {
+  CoreChartTestProps,
+  createChartWrapper,
+  enterZoomMode,
+  findZoomSvg,
+  getCurrentChart,
+  getXExtremes,
+  getZoomRangeAffordance,
+  keyboardZoomToIndexes,
+  pressCursorKey,
+  renderChart,
+  renderStatefulChart,
+} from "./common";
 import { stubPlotGeometry } from "./plot-geometry";
 import { zoomMessages } from "./zoom-messages";
-
-import testClasses from "../../../lib/components/core/test-classes/styles.selectors.js";
 
 stubPlotGeometry();
 
@@ -57,60 +67,6 @@ const onZoomRangeChange = vi.fn();
 afterEach(() => {
   onZoomRangeChange.mockReset();
 });
-
-function getCurrentChart() {
-  return [...highcharts.charts].reverse().find((c) => c)!;
-}
-
-function getXExtremes() {
-  const { min, max } = getCurrentChart().xAxis[0].getExtremes();
-  return { min, max };
-}
-
-function findSvg(className: string): null | SVGElement {
-  return document.querySelector(`.${testClasses[className]}`);
-}
-
-// The zoomed range is marked with a band and a border at each end, drawn on the plot and read back as x values.
-function getZoomRangeAffordance() {
-  const xAxis = getCurrentChart().xAxis[0];
-  const band = findSvg("zoom-range");
-  const borders = findSvg("zoom-range-borders");
-  const toValue = (pixel: number) => Math.round(xAxis.toValue(pixel) * 1000) / 1000;
-  return {
-    present: !!band && !!borders,
-    band: band && {
-      from: toValue(Number(band.getAttribute("x"))),
-      to: toValue(Number(band.getAttribute("x")) + Number(band.getAttribute("width"))),
-    },
-    boundaries:
-      borders &&
-      (borders.getAttribute("d") ?? "")
-        .split("M")
-        .filter((part) => part.trim())
-        .map((part) => toValue(Number(part.trim().split(" ")[0]))),
-  };
-}
-
-function enterZoomMode() {
-  createChartWrapper().findZoomButton()!.click();
-}
-
-function pressCursorKey(keyCode: number, times = 1) {
-  for (let i = 0; i < times; i++) {
-    createChartWrapper().findZoomCursor()!.keydown(keyCode);
-  }
-}
-
-// Drives a full keyboard zoom over the visible points, by index: the cursor starts at the first visible point, so
-// stepping right N times lands on the N-th visible point.
-function keyboardZoomToIndexes(startIndex: number, endIndex: number) {
-  enterZoomMode();
-  pressCursorKey(KeyCode.right, startIndex);
-  pressCursorKey(KeyCode.enter);
-  pressCursorKey(KeyCode.right, endIndex - startIndex);
-  pressCursorKey(KeyCode.enter);
-}
 
 describe("CoreChart: zoom range", () => {
   test("ignores the zoom range when zoom is not enabled", () => {
@@ -178,7 +134,7 @@ describe("CoreChart: zoom range", () => {
     expect(getXExtremes()).toEqual({ min: 1, max: 3 });
 
     rerender({ ...defaultProps, options: { series, xAxis: [] }, zoomRange: zoomedRange, onZoomRangeChange });
-    expect(findSvg("zoom-range")).toBe(null);
+    expect(findZoomSvg("zoom-range")).toBe(null);
     expect(wrapper.findResetZoomButton()).toBe(null);
 
     rerender({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
@@ -226,7 +182,7 @@ describe("CoreChart: zoom range", () => {
       zoom: { enabled: true, hideZoomControls: true },
       zoomRange: { x: { startValue: 1, endValue: 3 } },
     });
-    expect(document.querySelector(`.${testClasses["zoom-range"]}`)).not.toBe(null);
+    expect(findZoomSvg("zoom-range")).not.toBe(null);
   });
 
   test("keeps the x-axis minRange declared by the consumer", () => {

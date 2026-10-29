@@ -14,12 +14,19 @@ import "highcharts/highcharts-more";
 import { CartesianChartProps } from "../../../lib/components/cartesian-chart";
 import { InternalZoomProps } from "../../../lib/components/core/internal-interfaces";
 import { getSeriesData } from "../../../lib/components/internal/utils/highcharts";
-import { ExtendedTestWrapper } from "../../core/__tests__/common";
+import {
+  createChartWrapper as getChart,
+  enterZoomMode,
+  findZoomSvg,
+  getCurrentChart,
+  getXExtremes,
+  getZoomRangeAffordance,
+  keyboardZoomToIndexes,
+  pressCursorKey,
+} from "../../core/__tests__/common";
 import { stubPlotGeometry } from "../../core/__tests__/plot-geometry";
 import { zoomMessages } from "../../core/__tests__/zoom-messages";
-import { getChart as getCartesianChart, renderCartesianChart } from "./common";
-
-import coreTestClasses from "../../../lib/components/core/test-classes/styles.selectors.js";
+import { renderCartesianChart } from "./common";
 
 // Every test here renders a real chart, which takes ~2s in jsdom, and the zoom interactions re-render
 // it multiple times.
@@ -61,10 +68,6 @@ function renderZoomChart(props: ZoomTestProps) {
   return { rerender: (props: ZoomTestProps) => rerender(props) };
 }
 
-function getChart() {
-  return new ExtendedTestWrapper(getCartesianChart().getElement());
-}
-
 stubPlotGeometry();
 
 afterEach(() => {
@@ -72,28 +75,11 @@ afterEach(() => {
   document.querySelectorAll("[data-testid='outside']").forEach((element) => element.remove());
 });
 
-function getCurrentChart() {
-  // Target the most recently rendered chart: highcharts.charts accumulates entries across tests
-  // (disposed charts remain as holes), so the last defined entry is the one under test.
-  return [...highcharts.charts].reverse().find((c) => c)!;
-}
-
-function getXExtremes() {
-  const { min, max } = getCurrentChart().xAxis[0].getExtremes();
-  return { min, max };
-}
-
-// The cursor is a DOM element positioned over the plot and hidden with visibility. The selection and the zoomed
-// range are drawn on the chart SVG, and lose their class names when hidden.
-function findSvg(className: string): null | SVGElement {
-  return getChart().getElement().querySelector(`.${coreTestClasses[className]}`);
-}
-
 function getOverlay() {
   const cursor = getChart().findZoomCursor()!.getElement() as HTMLElement;
   return {
-    band: findSvg("zoom-selection"),
-    startDivider: findSvg("zoom-selection-start"),
+    band: findZoomSvg("zoom-selection"),
+    startDivider: findZoomSvg("zoom-selection-start"),
     cursor,
   };
 }
@@ -105,41 +91,6 @@ function isVisible(element: null | Element) {
   return !!element && element.getAttribute("visibility") !== "hidden";
 }
 
-// The zoomed range is marked with a band and a border at each end, read back as x values.
-function getZoomRangeAffordance() {
-  const xAxis = getCurrentChart().xAxis[0];
-  const band = findSvg("zoom-range");
-  const borders = findSvg("zoom-range-borders");
-  const toValue = (pixel: number) => Math.round(xAxis.toValue(pixel) * 1000) / 1000;
-  const from = band ? toValue(Number(band.getAttribute("x"))) : null;
-  const to = band ? toValue(Number(band.getAttribute("x")) + Number(band.getAttribute("width"))) : null;
-  const boundaries = borders
-    ? (borders.getAttribute("d") ?? "")
-        .split("M")
-        .filter((part) => part.trim())
-        .map((part) => toValue(Number(part.trim().split(" ")[0])))
-    : null;
-  return {
-    present: !!band && !!borders,
-    band: band && { from, to },
-    boundaries,
-  };
-}
-
-function enterZoomMode() {
-  getChart().findZoomButton()!.click();
-}
-
-function pressCursorKey(keyCode: number) {
-  getChart().findZoomCursor()!.keydown(keyCode);
-}
-
-function pressCursorKeyTimes(keyCode: number, times: number) {
-  for (let i = 0; i < times; i++) {
-    pressCursorKey(keyCode);
-  }
-}
-
 function getCursorAttributes() {
   const cursor = getChart().findZoomCursor()!.getElement();
   return {
@@ -148,16 +99,6 @@ function getCursorAttributes() {
     now: cursor.getAttribute("aria-valuenow"),
     text: cursor.getAttribute("aria-valuetext"),
   };
-}
-
-// Drives a full keyboard zoom over the visible points, by index: the cursor starts at the first
-// visible point, so stepping right N times lands on the N-th visible point.
-function keyboardZoomToIndexes(startIndex: number, endIndex: number) {
-  enterZoomMode();
-  pressCursorKeyTimes(KeyCode.right, startIndex);
-  pressCursorKey(KeyCode.enter);
-  pressCursorKeyTimes(KeyCode.right, endIndex - startIndex);
-  pressCursorKey(KeyCode.enter);
 }
 
 // Pointer events are dispatched on the Highcharts container and bubble to the plot wrapper that holds
@@ -447,7 +388,7 @@ describe("CartesianChart: zoom selection, controls", { timeout: TEST_TIMEOUT }, 
 
     pressCursorKey(KeyCode.right);
     pressCursorKey(KeyCode.enter);
-    pressCursorKeyTimes(KeyCode.right, 2);
+    pressCursorKey(KeyCode.right, 2);
     pressCursorKey(KeyCode.enter);
     expect(getChart().getElement()).toHaveTextContent("provider: 1 to 3");
   });
@@ -462,7 +403,7 @@ describe("CartesianChart: zoom selection, keyboard interaction", { timeout: TEST
     enterZoomMode();
     pressCursorKey(KeyCode.right);
     pressCursorKey(keyCode);
-    pressCursorKeyTimes(KeyCode.right, 2);
+    pressCursorKey(KeyCode.right, 2);
     pressCursorKey(keyCode);
     expect(getXExtremes()).toEqual({ min: 1, max: 3 });
     expect(onZoomRangeChange).toHaveBeenCalledWith(
@@ -607,9 +548,9 @@ describe("CartesianChart: zoom selection, keyboard interaction", { timeout: TEST
     enterZoomMode();
     expect(getCursorAttributes()).toEqual({ min: "1", max: "3", now: "1", text: "1" });
 
-    pressCursorKeyTimes(KeyCode.right, 5);
+    pressCursorKey(KeyCode.right, 5);
     expect(getCursorAttributes().now).toBe("3");
-    pressCursorKeyTimes(KeyCode.left, 5);
+    pressCursorKey(KeyCode.left, 5);
     expect(getCursorAttributes().now).toBe("1");
   });
 });
@@ -922,7 +863,7 @@ describe("CartesianChart: zoom selection, with other series types", { timeout: T
     expect(getCursorAttributes().now).toBe("10");
 
     pressCursorKey(KeyCode.enter);
-    pressCursorKeyTimes(KeyCode.right, 2);
+    pressCursorKey(KeyCode.right, 2);
     pressCursorKey(KeyCode.enter);
     expect(getXExtremes()).toEqual({ min: 10, max: 30 });
     expect(onZoomRangeChange).toHaveBeenCalledWith(
@@ -947,7 +888,7 @@ describe("CartesianChart: zoom selection, with other series types", { timeout: T
     pressCursorKey(KeyCode.down);
     expect(getCursorAttributes().now).toBe("1");
     pressCursorKey(KeyCode.enter);
-    pressCursorKeyTimes(KeyCode.down, 2);
+    pressCursorKey(KeyCode.down, 2);
     expect(getCursorAttributes().now).toBe("3");
     pressCursorKey(KeyCode.enter);
     expect(getXExtremes()).toEqual({ min: 1, max: 3 });
