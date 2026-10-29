@@ -3,7 +3,9 @@
 
 import { act, useState } from "react";
 import { fireEvent, render } from "@testing-library/react";
+import highcharts from "highcharts";
 
+import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 import { ButtonWrapper } from "@cloudscape-design/components/test-utils/dom";
 
 import "@cloudscape-design/components/test-utils/dom";
@@ -19,7 +21,12 @@ import CoreChartWrapper from "../../../lib/components/test-utils/dom/internal/co
 
 export class ExtendedTestWrapper extends CoreChartWrapper {
   findHighchartsTooltip = () => this.findByClassName("highcharts-tooltip");
+  findZoomButton = () => this.findComponent(`.${testClasses["zoom-button"]}`, ButtonWrapper);
+  findExitZoomButton = () => this.findComponent(`.${testClasses["exit-zoom-button"]}`, ButtonWrapper);
   findResetZoomButton = () => this.findComponent(`.${testClasses["reset-zoom-button"]}`, ButtonWrapper);
+  findZoomCursor = () => this.findByClassName(testClasses["zoom-cursor"]);
+  findZoomCursorPreviousButton = () => this.findByClassName(testClasses["zoom-cursor-previous-button"]);
+  findZoomCursorNextButton = () => this.findByClassName(testClasses["zoom-cursor-next-button"]);
 }
 
 // The core chart accepts the internal zoom properties, which are not part of its public interface yet.
@@ -129,4 +136,61 @@ export function hoverSecondaryLegendItem(index: number, wrapper: ExtendedTestWra
   act(() => {
     fireEvent.mouseOver(wrapper.findLegend({ axisId: "secondary" })!.findItems()[index].getElement());
   });
+}
+
+export function enterZoomMode() {
+  createChartWrapper().findZoomButton()!.click();
+}
+
+export function pressCursorKey(keyCode: number, times = 1) {
+  for (let i = 0; i < times; i++) {
+    createChartWrapper().findZoomCursor()!.keydown(keyCode);
+  }
+}
+
+// Drives a full keyboard zoom over the visible points, by index: the cursor starts at the first visible point, so
+// stepping right N times lands on the N-th visible point.
+export function keyboardZoomToIndexes(startIndex: number, endIndex: number) {
+  enterZoomMode();
+  pressCursorKey(KeyCode.right, startIndex);
+  pressCursorKey(KeyCode.enter);
+  pressCursorKey(KeyCode.right, endIndex - startIndex);
+  pressCursorKey(KeyCode.enter);
+}
+
+// Targets the most recently rendered chart: highcharts.charts accumulates entries across tests, and disposed charts
+// remain as holes.
+export function getCurrentChart() {
+  return [...highcharts.charts].reverse().find((c) => c)!;
+}
+
+export function getXExtremes() {
+  const { min, max } = getCurrentChart().xAxis[0].getExtremes();
+  return { min, max };
+}
+
+// The zoomed range and the selection are drawn on the chart SVG, and lose their class names when hidden.
+export function findZoomSvg(className: string): null | SVGElement {
+  return createChartWrapper().getElement().querySelector(`.${testClasses[className]}`);
+}
+
+// The zoomed range is marked with a band and a border at each end, drawn on the plot and read back as x values.
+export function getZoomRangeAffordance() {
+  const xAxis = getCurrentChart().xAxis[0];
+  const band = findZoomSvg("zoom-range");
+  const borders = findZoomSvg("zoom-range-borders");
+  const toValue = (pixel: number) => Math.round(xAxis.toValue(pixel) * 1000) / 1000;
+  return {
+    present: !!band && !!borders,
+    band: band && {
+      from: toValue(Number(band.getAttribute("x"))),
+      to: toValue(Number(band.getAttribute("x")) + Number(band.getAttribute("width"))),
+    },
+    boundaries:
+      borders &&
+      (borders.getAttribute("d") ?? "")
+        .split("M")
+        .filter((part) => part.trim())
+        .map((part) => toValue(Number(part.trim().split(" ")[0]))),
+  };
 }
