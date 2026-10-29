@@ -90,9 +90,17 @@ export type ZoomEvent =
     }
   | { type: "pointerUp"; pointerId: number }
   | { type: "pointerCancel"; pointerId: number }
-  // The chart has re-rendered: the stops the cursor can sit on change with the zoomed range and with which
+  // The chart has re-rendered: the stops the cursor can sit on change with the zoomed range, the data, and which
   // series are visible.
-  | { type: "chartRendered" };
+  | { type: "chartRendered"; remap: ZoomStopsRemap };
+
+/** Where the stops of the previous render are among the current ones. */
+export interface ZoomStopsRemap {
+  // The current stop nearest to the value of a previous one.
+  nearest(index: number): number;
+  // The current stop with the value of a previous one, or null when that value is no longer shown.
+  exact(index: number): null | number;
+}
 
 /** Where focus must go once the transition has been rendered. */
 export type ZoomFocusTarget = "cursor" | "zoomButton" | "resetButton";
@@ -174,7 +182,7 @@ function fromSelecting(state: SelectingState, event: ZoomEvent, context: ZoomCon
       // cursor is showing. Outside the plot the cursor stays where it is.
       return event.insidePlot ? moveCursor(state, event.index, valuesCount) : stay(state);
     case "chartRendered":
-      return reconcile(state, context);
+      return reconcile(state, event.remap, context);
     default:
       return stay(state);
   }
@@ -203,7 +211,7 @@ function fromPressed(state: PressedState, event: ZoomEvent, context: ZoomContext
     case "resetZoom":
       return resetZoom(event);
     case "chartRendered":
-      return reconcile(state, context);
+      return reconcile(state, event.remap, context);
     default:
       return stay(state);
   }
@@ -259,8 +267,9 @@ function commitPoint(selection: ZoomSelection, { valuesCount }: ZoomContext): Zo
   ]);
 }
 
-// Brings the state in line with what the chart now shows.
-function reconcile(state: ZoomState, { valuesCount }: ZoomContext): ZoomTransition {
+// Brings the state in line with what the chart now shows. The boundaries follow their values, so a change to the data
+// does not move them to other points.
+function reconcile(state: ZoomState, remap: ZoomStopsRemap, { valuesCount }: ZoomContext): ZoomTransition {
   if (valuesCount === 0) {
     // Nothing left to select, for instance because all series were filtered out.
     return state.type === "idle" ? stay(state) : exitZoomMode(false);
@@ -269,9 +278,13 @@ function reconcile(state: ZoomState, { valuesCount }: ZoomContext): ZoomTransiti
     case "idle":
       return stay(state);
     case "selecting":
-      return stay({ type: "selecting", selection: clampSelection(state.selection, valuesCount) });
+      return stay({ type: "selecting", selection: remapSelection(state.selection, remap) });
     case "pressed":
-      return stay({ ...state, resume: clampSelection(state.resume, valuesCount) });
+      return stay({
+        type: "pressed",
+        press: { ...state.press, startIndex: remap.nearest(state.press.startIndex) },
+        resume: remapSelection(state.resume, remap),
+      });
   }
 }
 
@@ -297,11 +310,11 @@ function transition(state: ZoomState, effects: readonly ZoomEffect[]): ZoomTrans
 
 const NO_EFFECTS: readonly ZoomEffect[] = [];
 
-function clampSelection(selection: ZoomSelection, valuesCount: number): ZoomSelection {
+function remapSelection(selection: ZoomSelection, remap: ZoomStopsRemap): ZoomSelection {
   return {
-    cursorIndex: clampIndex(selection.cursorIndex, valuesCount),
+    cursorIndex: remap.nearest(selection.cursorIndex),
     // A start point that is no longer in the plot cannot be zoomed into, so the selection starts over.
-    anchorIndex: selection.anchorIndex !== null && selection.anchorIndex < valuesCount ? selection.anchorIndex : null,
+    anchorIndex: selection.anchorIndex === null ? null : remap.exact(selection.anchorIndex),
   };
 }
 
