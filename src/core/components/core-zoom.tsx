@@ -28,15 +28,19 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
     if (!focusRequest) {
       return;
     }
-    api.clearZoomFocusRequest();
-    const candidates = focusRequest.target === "resetButton" ? [resetButtonRef, zoomButtonRef] : [zoomButtonRef];
-    const button = candidates.map((ref) => ref.current).find(Boolean);
-    if (button) {
-      button.focus();
-    } else {
-      api.focusChart();
+    if (focusRequest.target === "resetButton" && resetButtonRef.current) {
+      api.clearZoomFocusRequest();
+      resetButtonRef.current.focus();
+      return;
     }
-  }, [api, focusRequest]);
+    // A controlled range is applied once the consumer renders it, after this effect, so Reset can appear a render
+    // later. Until then focus waits on the Zoom button next to it.
+    const waitForReset = focusRequest.target === "resetButton" && !!zoomButtonRef.current && canZoom;
+    focusZoomButton(api, zoomButtonRef.current, canZoom);
+    if (!waitForReset) {
+      api.clearZoomFocusRequest();
+    }
+  }, [api, focusRequest, zoomed, canZoom]);
 
   return (
     <div
@@ -44,6 +48,8 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
       role="region"
       aria-label={labels.zoomControlsAriaLabel}
       className={styles["chart-zoom-controls"]}
+      onBlur={api.onZoomControlsBlur}
+      onKeyDown={api.onZoomControlsKeyDown}
     >
       <SpaceBetween size="s" direction="horizontal">
         {zoomed && !inZoomMode && (
@@ -53,13 +59,8 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
             formAction="none"
             onClick={() => {
               api.resetZoom({ isApiCall: false });
-              // The Reset button is removed once the reset is applied, so focus moves on as it is pressed. A disabled
-              // Zoom button cannot take focus.
-              if (zoomButtonRef.current && canZoom) {
-                zoomButtonRef.current.focus();
-              } else {
-                api.focusChart();
-              }
+              // The Reset button is removed once the reset is applied, so focus moves on as it is pressed.
+              focusZoomButton(api, zoomButtonRef.current, canZoom);
             }}
             ariaLabel={labels.resetZoomButtonAriaLabel}
             className={testClasses["reset-zoom-button"]}
@@ -177,6 +178,15 @@ function ZoomCursorButton({
       <Icon name={iconName} size="small" />
     </button>
   );
+}
+
+// A disabled Zoom button cannot take focus, so the chart takes it instead.
+function focusZoomButton(api: ChartAPI, zoomButton: null | ButtonProps.Ref, canZoom: boolean) {
+  if (zoomButton && canZoom) {
+    zoomButton.focus();
+  } else {
+    api.focusChart();
+  }
 }
 
 // Cloudscape mirrors the horizontal arrow icons in right-to-left pages, so the name is chosen for the arrow to

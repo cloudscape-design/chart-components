@@ -1,8 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { act } from "react";
-import { cleanup } from "@testing-library/react";
+import { act, useState } from "react";
+import { cleanup, render } from "@testing-library/react";
 import highcharts from "highcharts";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
@@ -11,8 +11,9 @@ import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 import "@cloudscape-design/components/test-utils/dom";
 // The error bar series type is only available with the highcharts-more module.
 import "highcharts/highcharts-more";
-import { CartesianChartProps } from "../../../lib/components/cartesian-chart";
+import CartesianChart, { CartesianChartProps } from "../../../lib/components/cartesian-chart";
 import { getSeriesData } from "../../../lib/components/internal/utils/highcharts";
+import { TestI18nProvider } from "../../../lib/components/internal/utils/test-i18n-provider";
 import { stubPlotGeometry } from "../../core/__tests__/plot-geometry";
 import { zoomMessages } from "../../core/__tests__/zoom-messages";
 import { getChart, ref, renderCartesianChart } from "./common";
@@ -666,6 +667,76 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
     enterZoomMode();
     act(() => (getChart().findExitZoomButton()!.getElement() as HTMLElement).focus());
     expect(getChart().findExitZoomButton()).not.toBe(null);
+  });
+
+  test("exits zoom mode when focus leaves the chart from the zoom controls", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    enterZoomMode();
+    act(() => (getChart().findExitZoomButton()!.getElement() as HTMLElement).focus());
+
+    focusOutsideChart();
+    expect(getChart().findExitZoomButton()).toBe(null);
+    expect(getChart().findZoomButton()).not.toBe(null);
+  });
+
+  test("Escape on the zoom controls cancels the selection", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
+    enterZoomMode();
+    getChart().findExitZoomButton()!.keydown(KeyCode.escape);
+
+    expect(getChart().findExitZoomButton()).toBe(null);
+    expect(document.activeElement).toBe(getChart().findZoomButton()!.getElement());
+    expect(onZoomRangeChange).not.toHaveBeenCalled();
+  });
+
+  // When the data changes during a selection, the start point keeps the value it was set on.
+  test("keeps the start point on its value when the data changes", () => {
+    const xs = (values: number[]) => [
+      { type: "line" as const, name: "Requests", data: values.map((x) => ({ x, y: x })) },
+    ];
+    const props = { ...defaultProps, xAxis: { ...defaultProps.xAxis, max: 40 }, zoom: { enabled: true } };
+    const { rerender } = renderCartesianChart({ ...props, series: xs([0, 10, 20, 30, 40]) });
+    enterZoomMode();
+    pressCursorKeyTimes(KeyCode.right, 2);
+    pressCursorKey(KeyCode.enter);
+
+    rerender({ ...props, series: xs([0, 20, 30, 40]) });
+    pressCursorKey(KeyCode.right);
+    pressCursorKey(KeyCode.enter);
+    expect(getXExtremes()).toEqual({ min: 20, max: 30 });
+  });
+
+  test("moves focus to the chart when a cancelled selection leaves nothing to zoom into", () => {
+    const { rerender } = renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    enterZoomMode();
+    rerender({ ...defaultProps, series: seriesOfLength(2), zoom: { enabled: true } });
+    expect(getChart().findExitZoomButton()).not.toBe(null);
+
+    pressCursorKey(KeyCode.escape);
+    expect(getChart().findZoomButton()!.isDisabled()).toBe(true);
+    expect(document.activeElement).toBe(getChart().findApplication()!.getElement());
+  });
+
+  // A controlled range is applied once the consumer renders it, after the controls have rendered.
+  test("moves focus to Reset after a zoom into a controlled range", () => {
+    function ControlledChart() {
+      const [zoomRange, setZoomRange] = useState<null | CartesianChartProps.ZoomRange>(null);
+      return (
+        <TestI18nProvider messages={zoomMessages}>
+          <CartesianChart
+            {...defaultProps}
+            zoom={{ enabled: true }}
+            zoomRange={zoomRange}
+            onZoomRangeChange={({ detail }) => setZoomRange(detail.zoomRange)}
+          />
+        </TestI18nProvider>
+      );
+    }
+    render(<ControlledChart />);
+    keyboardZoomToIndexes(1, 3);
+
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+    expect(document.activeElement).toBe(getChart().findResetZoomButton()!.getElement());
   });
 
   // Once zoomed, the cursor may only travel inside the visible window. Highcharts keeps the
