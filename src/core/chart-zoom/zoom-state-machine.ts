@@ -271,8 +271,9 @@ function commitPoint(selection: ZoomSelection, { valuesCount }: ZoomContext): Zo
 // does not move them to other points.
 function reconcile(state: ZoomState, remap: ZoomStopsRemap, { valuesCount }: ZoomContext): ZoomTransition {
   if (valuesCount === 0) {
-    // Nothing left to select, for instance because all series were filtered out.
-    return state.type === "idle" ? stay(state) : exitZoomMode(false);
+    // Nothing left to select, for instance because all series were filtered out. The cursor that held the focus is
+    // hidden, so the focus moves on.
+    return state.type === "idle" ? stay(state) : exitZoomMode(true);
   }
   switch (state.type) {
     case "idle":

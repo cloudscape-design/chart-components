@@ -230,7 +230,11 @@ describe("zoomReducer", () => {
       const transition = zoomReducer(state, RENDERED, { valuesCount: 0 });
 
       expect(transition.state).toEqual(IDLE_ZOOM_STATE);
-      expect(transition.effects).toEqual([{ type: "announce", announcement: { type: "zoomModeExited" } }]);
+      // The cursor is hidden, so the focus moves to the controls.
+      expect(transition.effects).toEqual([
+        { type: "announce", announcement: { type: "zoomModeExited" } },
+        { type: "focus", target: "zoomButton" },
+      ]);
     }
   });
 
