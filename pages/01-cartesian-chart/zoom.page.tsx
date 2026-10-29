@@ -112,7 +112,7 @@ export default function () {
               "Drag across the plot to zoom into a range. The range snaps to the data points it covers.",
               `Or select "Zoom" to enter zoom mode. The cursor follows the pointer and the arrow keys, Home and End
               jump to the ends, and Page Up and Page Down move in larger steps. A click, Enter, or Space sets the
-              start of the range, and a second one sets the end. Escape or "Exit zoom" cancels.`,
+              start of the range, and a second one sets the end. Escape or pressing "Zoom" again cancels.`,
               `While zoomed, "Reset" restores the full range, and "Zoom" selects a narrower one.`,
               "The cursor position and the selected range are announced to screen readers.",
             ],

@@ -230,14 +230,15 @@ describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
     expect(position & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  test("clicking Zoom enters zoom mode and shows the Exit zoom button", () => {
+  test("clicking Zoom enters zoom mode and keeps the Zoom label", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
     enterZoomMode();
     expect(getChart().findZoomButton()).toBe(null);
-    expect(getChart().findExitZoomButton()!.getElement()).toHaveTextContent("Exit zoom");
+    expect(getChart().findExitZoomButton()!.getElement()).toHaveTextContent("Zoom");
+    expect(getChart().findExitZoomButton()!.getElement()).toHaveAttribute("aria-label", "Exit zoom mode");
   });
 
-  test("clicking Exit zoom returns to idle state", () => {
+  test("clicking the pressed Zoom button returns to idle state", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
     enterZoomMode();
     getChart().findExitZoomButton()!.click();
@@ -470,7 +471,7 @@ describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
       zoom: { enabled: true },
       i18nStrings: {
         enterZoomModeButtonText: "Vergrößern",
-        exitZoomModeButtonText: "Abbrechen",
+        exitZoomModeButtonAriaLabel: "Zoom-Modus beenden",
         resetZoomButtonText: "Zurücksetzen",
         zoomControlsAriaLabel: "Zoom-Steuerung",
       },
@@ -479,7 +480,7 @@ describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
     expect(getChart().findZoomButton()!.getElement()).toHaveTextContent("Vergrößern");
 
     enterZoomMode();
-    expect(getChart().findExitZoomButton()!.getElement()).toHaveTextContent("Abbrechen");
+    expect(getChart().findExitZoomButton()!.getElement()).toHaveAttribute("aria-label", "Zoom-Modus beenden");
 
     getChart().findExitZoomButton()!.click();
     keyboardZoomToIndexes(1, 3);
@@ -490,11 +491,11 @@ describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
     renderCartesianChart({
       ...defaultProps,
       zoom: { enabled: true },
-      i18nStrings: { exitZoomModeButtonText: "i18n: exit" },
+      i18nStrings: { exitZoomModeButtonAriaLabel: "i18n: exit" },
       i18nProvider: {
         "[charts]": {
           "i18nStrings.enterZoomModeButtonText": "provider: zoom",
-          "i18nStrings.exitZoomModeButtonText": "provider: exit",
+          "i18nStrings.exitZoomModeButtonAriaLabel": "provider: exit",
           "i18nStrings.zoomRangeChangeAnnouncementText": "provider: {startValue} to {endValue}",
         },
       },
@@ -502,7 +503,7 @@ describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
     expect(getChart().findZoomButton()!.getElement()).toHaveTextContent("provider: zoom");
 
     enterZoomMode();
-    expect(getChart().findExitZoomButton()!.getElement()).toHaveTextContent("i18n: exit");
+    expect(getChart().findExitZoomButton()!.getElement()).toHaveAttribute("aria-label", "i18n: exit");
 
     pressCursorKey(KeyCode.right);
     pressCursorKey(KeyCode.enter);

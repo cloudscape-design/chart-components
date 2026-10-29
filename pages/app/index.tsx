@@ -34,7 +34,6 @@ const zoomMessages = {
       "[charts]": {
         "i18nStrings.enterZoomModeButtonText": "Zoom",
         "i18nStrings.enterZoomModeButtonAriaLabel": "Enter zoom mode",
-        "i18nStrings.exitZoomModeButtonText": "Exit zoom",
         "i18nStrings.exitZoomModeButtonAriaLabel": "Exit zoom mode",
         "i18nStrings.resetZoomButtonText": "Reset",
         "i18nStrings.resetZoomButtonAriaLabel": "Reset zoom to show full data range",

@@ -16,7 +16,6 @@ export interface ChartLabels {
   itemMarkerLabel?: (status?: ChartSeriesMarkerStatus) => string | undefined;
   enterZoomModeButtonText?: string;
   enterZoomModeButtonAriaLabel?: string;
-  exitZoomModeButtonText?: string;
   exitZoomModeButtonAriaLabel?: string;
   resetZoomButtonText?: string;
   resetZoomButtonAriaLabel?: string;
@@ -70,7 +69,6 @@ export function useChartI18n({
       "i18nStrings.enterZoomModeButtonAriaLabel",
       i18nStrings?.enterZoomModeButtonAriaLabel,
     ),
-    exitZoomModeButtonText: i18nZoom("i18nStrings.exitZoomModeButtonText", i18nStrings?.exitZoomModeButtonText),
     exitZoomModeButtonAriaLabel: i18nZoom(
       "i18nStrings.exitZoomModeButtonAriaLabel",
       i18nStrings?.exitZoomModeButtonAriaLabel,

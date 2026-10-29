@@ -49,7 +49,7 @@ export default class CoreChartWrapper extends BaseChartWrapper {
   }
 
   /**
-   * Finds the "Exit zoom" button that exits zoom mode without applying zoom.
+   * Finds the pressed "Zoom" button that exits zoom mode without applying zoom.
    * Visible while a zoom range is being selected.
    */
   public findExitZoomButton(): null | ButtonWrapper {

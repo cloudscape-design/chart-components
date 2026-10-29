@@ -112,8 +112,8 @@ export interface CartesianChartProps
   /**
    * Zoom settings, allowing the users to zoom into a range of the x-axis. Zooming is possible by dragging
    * across the chart plot, or by entering zoom mode with the "Zoom" button and selecting the range start and
-   * end with a click, Enter, or Space. In zoom mode the tooltip is suppressed, Escape or the "Exit zoom"
-   * button cancels the selection, and the "Reset" button restores the full data range once zoomed.
+   * end with a click, Enter, or Space. In zoom mode the tooltip is suppressed, Escape or pressing the "Zoom"
+   * button again cancels the selection, and the "Reset" button restores the full data range once zoomed.
    *
    * Supported options:
    * * `enabled` (optional, boolean) - Enables zooming. Defaults to `false`.
