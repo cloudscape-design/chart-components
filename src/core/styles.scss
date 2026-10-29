@@ -194,11 +194,11 @@ $zoom-cursor-button-size: cs.$space-static-xl;
 .chart-zoom-cluster {
   display: flex;
   align-items: center;
-  gap: cs.$space-static-xxs;
+  gap: cs.$space-static-xs;
   pointer-events: auto;
 }
 
-// The step buttons share the filled look of the "Exit zoom" button, so the active interaction reads as one set.
+// The step buttons are filled like the app layout toggle buttons, so they stand out against the plot they sit on.
 .chart-zoom-cursor-button {
   box-sizing: border-box;
   display: flex;
@@ -208,22 +208,21 @@ $zoom-cursor-button-size: cs.$space-static-xl;
   block-size: $zoom-cursor-button-size;
   padding-block: 0;
   padding-inline: 0;
-  border-block: cs.$border-width-button solid cs.$color-border-button-primary-active;
-  border-inline: cs.$border-width-button solid cs.$color-border-button-primary-active;
+  border-block: 0;
+  border-inline: 0;
   border-start-start-radius: 50%;
   border-start-end-radius: 50%;
   border-end-start-radius: 50%;
   border-end-end-radius: 50%;
-  background-color: cs.$color-background-button-primary-active;
-  color: cs.$color-text-button-primary-active;
-  box-shadow: cs.$shadow-card;
+  background-color: cs.$color-background-layout-toggle-default;
+  color: cs.$color-text-layout-toggle;
   cursor: pointer;
 
-  &:disabled {
-    border-block-color: cs.$color-border-button-primary-disabled;
-    border-inline-color: cs.$color-border-button-primary-disabled;
-    background-color: cs.$color-background-button-primary-disabled;
-    color: cs.$color-text-button-primary-disabled;
-    cursor: default;
+  &:hover {
+    background-color: cs.$color-background-layout-toggle-hover;
+  }
+
+  &:active {
+    background-color: cs.$color-background-layout-toggle-active;
   }
 }
