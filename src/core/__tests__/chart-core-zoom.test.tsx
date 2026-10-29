@@ -359,6 +359,63 @@ describe("CoreChart: zoom selection", () => {
     );
   });
 
+  test("only stops the cursor on the points of the zoomed first x-axis", () => {
+    renderChart({
+      ...defaultProps,
+      options: {
+        xAxis: [{ min: 0, max: 4 }, {}],
+        series: [
+          {
+            type: "line",
+            name: "L1",
+            data: [
+              { x: 0, y: 1 },
+              { x: 2, y: 2 },
+              { x: 4, y: 3 },
+            ],
+          },
+          {
+            type: "line",
+            name: "L2",
+            xAxis: 1,
+            data: [
+              { x: 1, y: 1 },
+              { x: 3, y: 2 },
+            ],
+          },
+        ],
+      },
+    });
+    enterZoomMode();
+    const cursor = createChartWrapper().findZoomCursor()!.getElement();
+    pressCursorKey(KeyCode.right);
+    expect(cursor).toHaveAttribute("aria-valuenow", "2");
+    pressCursorKey(KeyCode.end);
+    expect(cursor).toHaveAttribute("aria-valuenow", "4");
+  });
+
+  // A controlled range is applied once the consumer renders it, after the controls have rendered.
+  test("moves focus to Reset after a zoom into a controlled range", () => {
+    const { wrapper } = renderStatefulChart({
+      ...defaultProps,
+      visibleItems: ["L1", "L2"],
+      zoomRange: null,
+      onZoomRangeChange,
+    });
+    keyboardZoomToIndexes(1, 3);
+
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+    expect(document.activeElement).toBe(wrapper.findResetZoomButton()!.getElement());
+  });
+
+  test("moves focus to the Zoom button after a zoom into a controlled range the consumer ignores", () => {
+    const { wrapper } = renderChart({ ...defaultProps, zoomRange: null, onZoomRangeChange });
+    keyboardZoomToIndexes(1, 3);
+
+    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
+    expect(document.activeElement).toBe(wrapper.findZoomButton()!.getElement());
+  });
+
   // A reversed x axis draws the values from right to left. The cursor still starts at the left edge of the plot, and
   // the arrow keys still move it the way they point on screen.
   test("follows a reversed x axis on screen", () => {

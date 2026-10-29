@@ -23,7 +23,7 @@ import {
   zoomReducer,
   ZoomState,
 } from "../chart-zoom/zoom-state-machine";
-import { findNearestIndex, getPageStep, getVisibleXValues } from "../chart-zoom/zoom-utils";
+import { findNearestIndex, getPageStep, getVisibleXValues, remapStops } from "../chart-zoom/zoom-utils";
 import { getFormatter } from "../formatters";
 import { Rect } from "../interfaces";
 import { ZoomRange } from "../internal-interfaces";
@@ -105,12 +105,14 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   };
 
   public onChartRender = () => {
+    // The interaction refers to the stops by their index in the last values read.
+    const previousValues = this.values;
     this.valuesStale = true;
     this.reconcile(this.context.chart());
     if (!this.enabled) {
       return;
     }
-    this.dispatch({ type: "chartRendered" });
+    this.dispatch({ type: "chartRendered", remap: remapStops(previousValues, this.getValues()) });
     this.syncOverlay();
     const canZoom = canZoomInto(this.getValues().length);
     if (canZoom !== this.get().canZoom) {
@@ -221,12 +223,31 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   };
 
   public onCursorBlur = (event: React.FocusEvent) => {
-    const nextTarget = event.relatedTarget;
-    if (nextTarget instanceof Node && this.controlsElement?.contains(nextTarget)) {
-      return;
+    if (!this.isFocusWithinZoom(event.relatedTarget)) {
+      this.exitZoomMode({ withFocus: false });
     }
-    this.exitZoomMode({ withFocus: false });
   };
+
+  // Focus can move from the cursor to the zoom controls, so leaving them ends the selection too. A focus request still
+  // waiting for its button is dropped, so that it cannot take the focus back later.
+  public onControlsBlur = (event: React.FocusEvent) => {
+    if (!this.isFocusWithinZoom(event.relatedTarget)) {
+      this.exitZoomMode({ withFocus: false });
+      this.clearFocusRequest();
+    }
+  };
+
+  public onControlsKeyDown = (event: React.KeyboardEvent) => {
+    if (event.keyCode === KeyCode.escape && getInteraction(this.machine) === "cursor") {
+      event.preventDefault();
+      event.stopPropagation();
+      this.exitZoomMode({ withFocus: true });
+    }
+  };
+
+  private isFocusWithinZoom(target: EventTarget | null) {
+    return target instanceof Node && (target === this.cursorElement || !!this.controlsElement?.contains(target));
+  }
 
   private get enabled() {
     return this.context.settings.zoomEnabled;
@@ -390,6 +411,8 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
 
   private moveFocus(target: ZoomFocusTarget) {
     if (target === "cursor") {
+      // A request still waiting for the Reset button must not take the focus back from the cursor.
+      this.clearFocusRequest();
       this.cursorElement?.focus();
     } else {
       // The buttons to focus are rendered by the controls component, often only as a result of this transition,

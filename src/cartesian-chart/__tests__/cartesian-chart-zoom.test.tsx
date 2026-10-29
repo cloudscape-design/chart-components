@@ -539,6 +539,54 @@ describe("CartesianChart: zoom selection, keyboard interaction", { timeout: TEST
     expect(getChart().findExitZoomButton()).not.toBe(null);
   });
 
+  test("exits zoom mode when focus leaves the chart from the zoom controls", () => {
+    renderZoomChart({ ...defaultProps, zoom: { enabled: true } });
+    enterZoomMode();
+    act(() => (getChart().findExitZoomButton()!.getElement() as HTMLElement).focus());
+
+    focusOutsideChart();
+    expect(getChart().findExitZoomButton()).toBe(null);
+    expect(getChart().findZoomButton()).not.toBe(null);
+  });
+
+  test("Escape on the zoom controls cancels the selection", () => {
+    renderZoomChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
+    enterZoomMode();
+    getChart().findExitZoomButton()!.keydown(KeyCode.escape);
+
+    expect(getChart().findExitZoomButton()).toBe(null);
+    expect(document.activeElement).toBe(getChart().findZoomButton()!.getElement());
+    expect(onZoomRangeChange).not.toHaveBeenCalled();
+  });
+
+  // When the data changes during a selection, the start point keeps the value it was set on.
+  test("keeps the start point on its value when the data changes", () => {
+    const xs = (values: number[]) => [
+      { type: "line" as const, name: "Requests", data: values.map((x) => ({ x, y: x })) },
+    ];
+    const props = { ...defaultProps, xAxis: { ...defaultProps.xAxis, max: 40 }, zoom: { enabled: true } };
+    const { rerender } = renderZoomChart({ ...props, series: xs([0, 10, 20, 30, 40]) });
+    enterZoomMode();
+    pressCursorKey(KeyCode.right, 2);
+    pressCursorKey(KeyCode.enter);
+
+    rerender({ ...props, series: xs([0, 20, 30, 40]) });
+    pressCursorKey(KeyCode.right);
+    pressCursorKey(KeyCode.enter);
+    expect(getXExtremes()).toEqual({ min: 20, max: 30 });
+  });
+
+  test("moves focus to the chart when a cancelled selection leaves nothing to zoom into", () => {
+    const { rerender } = renderZoomChart({ ...defaultProps, zoom: { enabled: true } });
+    enterZoomMode();
+    rerender({ ...defaultProps, series: seriesOfLength(2), zoom: { enabled: true } });
+    expect(getChart().findExitZoomButton()).not.toBe(null);
+
+    pressCursorKey(KeyCode.escape);
+    expect(getChart().findZoomButton()!.isDisabled()).toBe(true);
+    expect(document.activeElement).toBe(getChart().findApplication()!.getElement());
+  });
+
   // Once zoomed, the cursor may only travel inside the visible window. Highcharts keeps the
   // out-of-range points in the series (below cropThreshold), so the stops are recomputed from the
   // current extremes rather than from the full data.
