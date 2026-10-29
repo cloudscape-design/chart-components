@@ -8,6 +8,7 @@ import Button, { ButtonProps } from "@cloudscape-design/components/button";
 import Icon, { IconProps } from "@cloudscape-design/components/icon";
 import LiveRegion from "@cloudscape-design/components/live-region";
 import SpaceBetween from "@cloudscape-design/components/space-between";
+import ToggleButton, { ToggleButtonProps } from "@cloudscape-design/components/toggle-button";
 
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
@@ -21,7 +22,7 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
   const zoomed = useSelector(api.zoomStore, (s) => s.zoomed);
   const canZoom = useSelector(api.zoomStore, (s) => s.canZoom);
   const focusRequest = useSelector(api.zoomStore, (s) => s.focusRequest);
-  const zoomButtonRef = useRef<ButtonProps.Ref>(null);
+  const zoomButtonRef = useRef<ToggleButtonProps.Ref>(null);
   const resetButtonRef = useRef<ButtonProps.Ref>(null);
 
   useEffect(() => {
@@ -68,30 +69,18 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
             {labels.resetZoomButtonText}
           </Button>
         )}
-        {!inZoomMode ? (
-          <Button
-            ref={zoomButtonRef}
-            iconName="search"
-            formAction="none"
-            disabled={!canZoom}
-            onClick={() => api.enterZoomMode()}
-            ariaLabel={labels.enterZoomModeButtonAriaLabel}
-            className={testClasses["zoom-button"]}
-          >
-            {labels.enterZoomModeButtonText}
-          </Button>
-        ) : (
-          <Button
-            variant="primary"
-            iconName="search"
-            formAction="none"
-            onClick={() => api.exitZoomMode({ withFocus: true })}
-            ariaLabel={labels.exitZoomModeButtonAriaLabel}
-            className={testClasses["exit-zoom-button"]}
-          >
-            {labels.exitZoomModeButtonText}
-          </Button>
-        )}
+        <ToggleButton
+          ref={zoomButtonRef}
+          pressed={inZoomMode}
+          iconName="zoom-in"
+          pressedIconSvg={zoomModeIcon}
+          disabled={!canZoom}
+          onChange={({ detail }) => (detail.pressed ? api.enterZoomMode() : api.exitZoomMode({ withFocus: true }))}
+          ariaLabel={inZoomMode ? labels.exitZoomModeButtonAriaLabel : labels.enterZoomModeButtonAriaLabel}
+          className={inZoomMode ? testClasses["exit-zoom-button"] : testClasses["zoom-button"]}
+        >
+          {inZoomMode ? labels.exitZoomModeButtonText : labels.enterZoomModeButtonText}
+        </ToggleButton>
       </SpaceBetween>
     </div>
   );
@@ -180,8 +169,19 @@ function ZoomCursorButton({
   );
 }
 
+const zoomModeIcon = (
+  <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" focusable="false">
+    <path d="M11 11L15 15" />
+    <path
+      className="filled no-stroke"
+      d="M7 1C10.3137 1 13 3.68629 13 7C13 10.3137 10.3137 13 7 13C3.68629 13 1 10.3137 1 7C1 3.68629 3.68629 1 7 1ZM6.25 4V6.25H4V7.75H6.25V10H7.75V7.75H10V6.25H7.75V4H6.25Z"
+    />
+    <circle cx="7" cy="7" r="6" />
+  </svg>
+);
+
 // A disabled Zoom button cannot take focus, so the chart takes it instead.
-function focusZoomButton(api: ChartAPI, zoomButton: null | ButtonProps.Ref, canZoom: boolean) {
+function focusZoomButton(api: ChartAPI, zoomButton: null | ToggleButtonProps.Ref, canZoom: boolean) {
   if (zoomButton && canZoom) {
     zoomButton.focus();
   } else {
