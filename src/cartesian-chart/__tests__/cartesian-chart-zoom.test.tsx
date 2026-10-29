@@ -187,14 +187,15 @@ describe("CartesianChart: zoom selection, controls", { timeout: TEST_TIMEOUT }, 
     expect(position & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  test("clicking Zoom enters zoom mode and shows the Exit zoom button", () => {
+  test("clicking Zoom enters zoom mode and keeps the Zoom label", () => {
     renderZoomChart({ ...defaultProps, zoom: { enabled: true } });
     enterZoomMode();
     expect(getChart().findZoomButton()).toBe(null);
-    expect(getChart().findExitZoomButton()!.getElement()).toHaveTextContent("Exit zoom");
+    expect(getChart().findExitZoomButton()!.getElement()).toHaveTextContent("Zoom");
+    expect(getChart().findExitZoomButton()!.getElement()).toHaveAttribute("aria-label", "Exit zoom mode");
   });
 
-  test("clicking Exit zoom returns to idle state", () => {
+  test("clicking the pressed Zoom button returns to idle state", () => {
     renderZoomChart({ ...defaultProps, zoom: { enabled: true } });
     enterZoomMode();
     getChart().findExitZoomButton()!.click();
@@ -385,7 +386,6 @@ describe("CartesianChart: zoom selection, controls", { timeout: TEST_TIMEOUT }, 
       i18nProvider: {
         "[charts]": {
           "i18nStrings.enterZoomModeButtonText": "provider: zoom",
-          "i18nStrings.exitZoomModeButtonText": "provider: exit",
           "i18nStrings.zoomRangeChangeAnnouncementText": "provider: {startValue} to {endValue}",
         },
       },
@@ -393,7 +393,7 @@ describe("CartesianChart: zoom selection, controls", { timeout: TEST_TIMEOUT }, 
     expect(getChart().findZoomButton()!.getElement()).toHaveTextContent("provider: zoom");
 
     enterZoomMode();
-    expect(getChart().findExitZoomButton()!.getElement()).toHaveTextContent("provider: exit");
+    expect(getChart().findExitZoomButton()!.getElement()).toHaveTextContent("provider: zoom");
 
     pressCursorKey(KeyCode.right);
     pressCursorKey(KeyCode.enter);

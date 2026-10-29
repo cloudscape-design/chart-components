@@ -79,7 +79,7 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
           ariaLabel={inZoomMode ? labels.exitZoomModeButtonAriaLabel : labels.enterZoomModeButtonAriaLabel}
           className={inZoomMode ? testClasses["exit-zoom-button"] : testClasses["zoom-button"]}
         >
-          {inZoomMode ? labels.exitZoomModeButtonText : labels.enterZoomModeButtonText}
+          {labels.enterZoomModeButtonText}
         </ToggleButton>
       </SpaceBetween>
     </div>

@@ -69,7 +69,7 @@ export type ZoomEvent =
   // The "Zoom" button starts a selection at the stop the helper picks: the visible start of the plot, whichever way
   // the axis runs.
   | { type: "enterZoomMode"; startIndex: number }
-  // The "Exit zoom" button, Escape, and focus leaving the chart.
+  // The pressed Zoom button, Escape, and focus leaving the chart.
   | { type: "exitZoomMode"; moveFocus: boolean }
   // The "Reset" button. Whether there is a zoom to reset is the helper's to know, because the range may be
   // controlled by the consumer.
