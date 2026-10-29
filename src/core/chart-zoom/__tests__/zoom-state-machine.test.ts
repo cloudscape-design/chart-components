@@ -286,12 +286,20 @@ describe("zoomReducer", () => {
   });
 
   test("leaves zoom mode after a render that left no stops to select", () => {
-    for (const state of [SELECTING, PRESSED_IN_ZOOM, DRAGGING]) {
+    // In zoom mode the cursor is hidden, so the focus moves to the controls.
+    for (const state of [SELECTING, PRESSED_IN_ZOOM]) {
       const transition = zoomReducer(state, RENDERED, { valuesCount: 0 });
 
       expect(transition.state).toEqual(IDLE_ZOOM_STATE);
-      expect(transition.effects).toEqual([{ type: "announce", announcement: { type: "zoomModeExited" } }]);
+      expect(transition.effects).toEqual([
+        { type: "announce", announcement: { type: "zoomModeExited" } },
+        { type: "focus", target: "zoomButton" },
+      ]);
     }
+    // A drag started outside zoom mode does not hold the focus.
+    expect(zoomReducer(DRAGGING, RENDERED, { valuesCount: 0 }).effects).toEqual([
+      { type: "announce", announcement: { type: "zoomModeExited" } },
+    ]);
 
     // A press that is not part of a selection belongs to the chart, which is still there.
     expect(zoomReducer(PRESSED, RENDERED, { valuesCount: 0 }).state).toBe(PRESSED);

@@ -360,8 +360,12 @@ function commitPoint(selection: ZoomSelection, { valuesCount }: ZoomContext): Zo
 function reconcile(state: ZoomState, remap: ZoomStopsRemap, { valuesCount }: ZoomContext): ZoomTransition {
   if (valuesCount === 0) {
     // Nothing left to select, for instance because all series were filtered out. A press that is not part
-    // of a selection is left alone: it belongs to the chart, which is still there.
-    return getInteraction(state) === "idle" ? stay(state) : exitZoomMode(false);
+    // of a selection is left alone: it belongs to the chart, which is still there. In zoom mode the cursor that held
+    // the focus is hidden, so the focus moves on.
+    if (state.type === "idle" || getInteraction(state) === "idle") {
+      return stay(state);
+    }
+    return exitZoomMode(state.type === "selecting" || state.resume !== null);
   }
   switch (state.type) {
     case "idle":
