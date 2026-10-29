@@ -416,6 +416,54 @@ describe("CoreChart: zoom selection", () => {
     expect(document.activeElement).toBe(wrapper.findZoomButton()!.getElement());
   });
 
+  test("allows zooming once zoom is enabled on data that changed while it was disabled", () => {
+    const options = (values: number[]) => ({
+      series: [{ type: "line" as const, name: "L1", data: values.map((x) => ({ x, y: x })) }],
+      xAxis: { min: 0, max: 4 },
+    });
+    const { wrapper, rerender } = renderChart({ ...defaultProps, options: options([0, 1]) });
+    expect(wrapper.findZoomButton()!.isDisabled()).toBe(true);
+
+    rerender({ ...defaultProps, zoom: { enabled: false }, options: options([0, 1]) });
+    rerender({ ...defaultProps, zoom: { enabled: false }, options: options([0, 1, 2, 3, 4]) });
+    rerender({ ...defaultProps, options: options([0, 1, 2, 3, 4]) });
+    expect(wrapper.findZoomButton()!.isDisabled()).toBe(false);
+  });
+
+  test("moves focus to the chart when the data leaves nothing to select", () => {
+    const { wrapper, rerender } = renderChart(defaultProps);
+    enterZoomMode();
+    rerender({ ...defaultProps, options: { series: [], xAxis: { min: 0, max: 4 } } });
+
+    expect(wrapper.findExitZoomButton()).toBe(null);
+    expect(document.activeElement).toBe(wrapper.findApplication()!.getElement());
+  });
+
+  // On a logarithmic axis the nearest value to the pointer is not always the nearest point on screen.
+  test("moves the cursor to the point nearest on screen on a logarithmic x-axis", () => {
+    renderChart({
+      ...defaultProps,
+      options: {
+        series: [{ type: "line", name: "L1", data: [1, 100, 10000].map((x) => ({ x, y: x })) }],
+        xAxis: { type: "logarithmic", min: 1, max: 10000 },
+      },
+    });
+    enterZoomMode();
+    const chart = getCurrentChart();
+    const pointer = new PointerEvent("pointermove", {
+      bubbles: true,
+      pointerId: 1,
+      pointerType: "mouse",
+      clientX: chart.xAxis[0].toPixels(40, false),
+      clientY: chart.plotTop + chart.plotHeight / 2,
+    });
+    act(() => {
+      chart.container.dispatchEvent(pointer);
+    });
+
+    expect(createChartWrapper().findZoomCursor()!.getElement()).toHaveAttribute("aria-valuenow", "100");
+  });
+
   // A reversed x axis draws the values from right to left. The cursor still starts at the left edge of the plot, and
   // the arrow keys still move it the way they point on screen.
   test("follows a reversed x axis on screen", () => {

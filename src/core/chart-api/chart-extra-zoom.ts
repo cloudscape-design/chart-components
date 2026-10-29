@@ -114,10 +114,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     }
     this.dispatch({ type: "chartRendered", remap: remapStops(previousValues, this.getValues()) });
     this.syncOverlay();
-    const canZoom = canZoomInto(this.getValues().length);
-    if (canZoom !== this.get().canZoom) {
-      this.set((prev) => ({ ...prev, canZoom }));
-    }
+    this.updateCanZoom();
   };
 
   public onChartDestroy = () => {
@@ -143,6 +140,10 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     }
     if (chart) {
       this.reconcile(chart);
+      // The chart can render before the settings enable zoom, and then has not updated whether zooming is possible.
+      if (this.enabled) {
+        this.updateCanZoom();
+      }
     }
   };
 
@@ -244,6 +245,13 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       this.exitZoomMode({ withFocus: true });
     }
   };
+
+  private updateCanZoom() {
+    const canZoom = canZoomInto(this.getValues().length);
+    if (canZoom !== this.get().canZoom) {
+      this.set((prev) => ({ ...prev, canZoom }));
+    }
+  }
 
   private isFocusWithinZoom(target: EventTarget | null) {
     return target instanceof Node && (target === this.cursorElement || !!this.controlsElement?.contains(target));
@@ -557,7 +565,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     this.trackPress(chart.container, event.pointerId);
     this.dispatch({
       type: "pointerDown",
-      press: { pointerId: event.pointerId, startIndex: findNearestIndex(values, pixelToValue(xAxis, chartX, chartY)) },
+      press: { pointerId: event.pointerId, startIndex: findStopAtPointer(values, xAxis, chartX, chartY) },
     });
     // The press must not move focus off the cursor, which would end the selection.
     event.preventDefault();
@@ -577,7 +585,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     const { chartX, chartY } = chart.pointer.normalize(event);
     this.dispatch({
       type: "pointerMove",
-      index: findNearestIndex(values, pixelToValue(xAxis, chartX, chartY)),
+      index: findStopAtPointer(values, xAxis, chartX, chartY),
       insidePlot: isInsidePlot(chart as Highcharts.Chart, chartX, chartY),
     });
   };
@@ -629,9 +637,22 @@ function isXAxisHorizontal(xAxis: Pick<Highcharts.Axis, "horiz">): boolean {
   return xAxis.horiz !== false;
 }
 
-// Converts a pointer position over the chart into an x-axis value.
-function pixelToValue(xAxis: Highcharts.Axis, chartX: number, chartY: number): number {
-  return xAxis.toValue(isXAxisHorizontal(xAxis) ? chartX : chartY, false);
+// The stop nearest to a pointer position over the chart. On a logarithmic axis the nearest value is not always the
+// nearest on screen, so the neighbouring stops are compared by their distance in pixels.
+function findStopAtPointer(values: readonly number[], xAxis: Highcharts.Axis, chartX: number, chartY: number): number {
+  const pixel = isXAxisHorizontal(xAxis) ? chartX : chartY;
+  const index = findNearestIndex(values, xAxis.toValue(pixel, false));
+  if (xAxis.options.type !== "logarithmic") {
+    return index;
+  }
+  const distance = (i: number) => Math.abs(valueToPixel(xAxis, values[i]) - pixel);
+  let nearest = index;
+  for (const candidate of [index - 1, index + 1]) {
+    if (candidate >= 0 && candidate < values.length && distance(candidate) < distance(nearest)) {
+      nearest = candidate;
+    }
+  }
+  return nearest;
 }
 
 // Converts an x-axis value into a chart-relative pixel along the axis.
