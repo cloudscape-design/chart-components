@@ -5,6 +5,7 @@ import type Highcharts from "highcharts";
 
 import { getChartSeries, isPointVisible, SafeChart } from "../../internal/utils/highcharts";
 import { DebouncedCall } from "../../internal/utils/utils";
+import { isInsidePlot } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
 const HOVER_LOST_DELAY = 25;
@@ -84,9 +85,8 @@ export class ChartExtraPointer {
     const normalized = chart.pointer.normalize(event);
     const plotX = normalized.chartX;
     const plotY = normalized.chartY;
-    const { plotLeft, plotTop, plotWidth, plotHeight } = chart;
     // We only check for matched groups if the plotX, plotY are within the plot area, where series are rendered.
-    if (plotX >= plotLeft && plotX <= plotLeft + plotWidth && plotY >= plotTop && plotY <= plotTop + plotHeight) {
+    if (isInsidePlot(chart, plotX, plotY)) {
       // We match groups by comparing the plotX, plotY against each group rect. If the pointer is within one of
       // the rects - the group is considered matched. Otherwise, we take the group which is closest to the pointer.
       // This is done to avoid gaps, when the hover state switches between on and off in a sparsely populated chart,
