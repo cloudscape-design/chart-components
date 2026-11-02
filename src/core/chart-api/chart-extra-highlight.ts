@@ -33,8 +33,10 @@ export class ChartExtraHighlight {
   // when triggered a state update from the consumer-provided tooltip footer action.
   private seriesState = new Map<string, "" | Highcharts.SeriesStateValue>();
   private pointState = new Map<string, Map<string, "" | Highcharts.PointStateValue>>();
+  private columnStatesSynced = false;
 
   public onChartRender() {
+    this.columnStatesSynced = false;
     this.overrideStateSetters();
     this.restoreHighlightState();
   }
@@ -79,10 +81,11 @@ export class ChartExtraHighlight {
       // See: https://github.com/highcharts/highcharts/issues/23076.
       if (s.type === "column") {
         for (const d of getSeriesData(s)) {
-          this.setPointState(d, includedPoints.has(d) ? "" : "inactive");
+          this.setPointState(d, includedPoints.has(d) ? "" : "inactive", !this.columnStatesSynced);
         }
       }
     }
+    this.columnStatesSynced = true;
     setPlotLinesState(this.context.chart(), (lineId) => includedSeriesIds.has(lineId));
   };
 
@@ -104,10 +107,11 @@ export class ChartExtraHighlight {
       // For column series we ensure only one group/stack that matches selected X is highlighted.
       else if (s.type === "column") {
         for (const d of getSeriesData(s)) {
-          this.setPointState(d, d === point ? "hover" : "inactive");
+          this.setPointState(d, d === point ? "hover" : "inactive", !this.columnStatesSynced);
         }
       }
     }
+    this.columnStatesSynced = true;
     // Highlight threshold series plot lines.
     setPlotLinesState(this.context.chart(), (lineId) => lineId === getSeriesId(masterSeries));
   };
@@ -132,9 +136,9 @@ export class ChartExtraHighlight {
   }
 
   // Makes the specified point active or dimmed.
-  private setPointState(point: Highcharts.Point, state: "" | Highcharts.PointStateValue) {
+  private setPointState(point: Highcharts.Point, state: "" | Highcharts.PointStateValue, move = true) {
     (point.setState as PointSetStateWithLock)[SET_STATE_LOCK] = false;
-    point.setState(state, true);
+    point.setState(state, move);
     this.updateStoredPointState(point, state);
     (point.setState as PointSetStateWithLock)[SET_STATE_LOCK] = true;
   }
