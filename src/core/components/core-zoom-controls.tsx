@@ -9,16 +9,17 @@ import ToggleButton, { ToggleButtonProps } from "@cloudscape-design/components/t
 
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
+import { getInteraction } from "../chart-zoom/zoom-state-machine";
 import { ChartLabels } from "../i18n-utils";
 
 import styles from "../styles.css.js";
 import testClasses from "../test-classes/styles.css.js";
 
 export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: ChartLabels }) {
-  const inZoomMode = useSelector(api.zoomStore, (s) => s.interaction === "cursor");
+  const inZoomMode = useSelector(api.zoomStore, (s) => getInteraction(s) === "cursor");
   const zoomed = useSelector(api.zoomStore, (s) => s.zoomed);
   const canZoom = useSelector(api.zoomStore, (s) => s.canZoom);
-  const focusRequest = useSelector(api.zoomStore, (s) => s.focusRequest);
+  const focusRequest = useSelector(api.zoomStore, (s) => (s.type === "idle" ? s.focusRequest : null));
   const zoomButtonRef = useRef<ToggleButtonProps.Ref>(null);
   const resetButtonRef = useRef<ButtonProps.Ref>(null);
 
@@ -47,7 +48,6 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
       aria-label={labels.zoomControlsAriaLabel}
       className={styles["chart-zoom-controls"]}
       onBlur={api.onZoomControlsBlur}
-      onKeyDown={api.onZoomControlsKeyDown}
     >
       <SpaceBetween size="s" direction="horizontal">
         {zoomed && !inZoomMode && (
@@ -57,8 +57,9 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
             formAction="none"
             onClick={() => {
               api.resetZoom();
-              // The Reset button is removed once the reset is applied, so focus moves on as it is pressed.
-              focusZoomButton(api, zoomButtonRef.current, canZoom);
+              // The Reset button is removed once the reset is applied. Resetting can enable the Zoom button, which
+              // only takes focus once it has rendered, so the move is requested rather than made here.
+              api.focusZoomButton();
             }}
             ariaLabel={labels.resetZoomButtonAriaLabel}
             className={testClasses["reset-zoom-button"]}
@@ -71,7 +72,7 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
           pressed={inZoomMode}
           iconName="zoom-in"
           pressedIconSvg={zoomModeIcon}
-          disabled={!canZoom}
+          disabled={!canZoom && !inZoomMode}
           onChange={({ detail }) => (detail.pressed ? api.enterZoomMode() : api.exitZoomMode({ withFocus: true }))}
           ariaLabel={inZoomMode ? labels.exitZoomModeButtonAriaLabel : labels.enterZoomModeButtonAriaLabel}
           className={inZoomMode ? testClasses["exit-zoom-button"] : testClasses["zoom-button"]}

@@ -215,8 +215,8 @@ export class ChartAPI {
   public onZoomCursorKeyDown = this.chartExtraZoom.onCursorKeyDown;
   public onZoomCursorBlur = this.chartExtraZoom.onCursorBlur;
   public onZoomControlsBlur = this.chartExtraZoom.onControlsBlur;
-  public onZoomControlsKeyDown = this.chartExtraZoom.onControlsKeyDown;
   public clearZoomFocusRequest = this.chartExtraZoom.clearFocusRequest;
+  public focusZoomButton = this.chartExtraZoom.focusZoomButton;
   public enterZoomMode = () => this.chartExtraZoom.enterZoomMode();
   public exitZoomMode = ({ withFocus }: { withFocus: boolean }) => this.chartExtraZoom.exitZoomMode({ withFocus });
   public resetZoom = () => this.chartExtraZoom.resetZoom();
@@ -341,6 +341,7 @@ export class ChartAPI {
   private get zoomHandlers(): ChartExtraZoomHandlers {
     return {
       onClearHighlight: () => this.clearChartHighlight({ isApiCall: false }),
+      onFocusChart: () => this.chartExtraNavigation.focusChartApplication(),
     };
   }
 

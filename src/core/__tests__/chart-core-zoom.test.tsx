@@ -439,6 +439,33 @@ describe("CoreChart: zoom selection", () => {
     expect(document.activeElement).toBe(wrapper.findApplication()!.getElement());
   });
 
+  test("keeps the pressed Zoom button enabled when the data shrinks during a selection", () => {
+    const { wrapper, rerender } = renderChart(defaultProps);
+    enterZoomMode();
+    rerender({
+      ...defaultProps,
+      options: {
+        series: [
+          {
+            type: "line",
+            name: "L1",
+            data: [
+              { x: 0, y: 1 },
+              { x: 4, y: 2 },
+            ],
+          },
+        ],
+        xAxis: {},
+      },
+    });
+
+    const exitButton = wrapper.findExitZoomButton()!;
+    expect(exitButton.isDisabled()).toBe(false);
+    exitButton.click();
+    expect(wrapper.findExitZoomButton()).toBe(null);
+    expect(wrapper.findZoomButton()!.isDisabled()).toBe(true);
+  });
+
   // On a logarithmic axis the nearest value to the pointer is not always the nearest point on screen.
   test("moves the cursor to the point nearest on screen on a logarithmic x-axis", () => {
     renderChart({
