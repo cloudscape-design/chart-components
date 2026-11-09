@@ -160,6 +160,22 @@ export interface WithCartesianI18nStrings {
    * * `chartRoleDescription` (optional, string) - Accessible role description of the chart plot area, e.g. "interactive chart".
    * * `xAxisRoleDescription` (optional, string) - Accessible role description of the x axis, e.g. "x axis".
    * * `yAxisRoleDescription` (optional, string) - Accessible role description of the y axis, e.g. "y axis".
+   * * `enterZoomModeButtonText` (optional, string) - Visible label for the "Zoom" button that enters zoom mode.
+   * * `enterZoomModeButtonAriaLabel` (optional, string) - Accessible label for the "Zoom" button.
+   * * `exitZoomModeButtonAriaLabel` (optional, string) - Accessible label for the pressed "Zoom" button, which exits zoom mode.
+   * * `resetZoomButtonText` (optional, string) - Visible label for the "Reset" button that resets zoom to full range.
+   * * `resetZoomButtonAriaLabel` (optional, string) - Accessible label for the "Reset" button.
+   * * `zoomControlsAriaLabel` (optional, string) - Accessible label for the zoom controls region.
+   * * `zoomCursorAriaLabel` (optional, string) - Accessible label for the zoom range cursor.
+   * * `zoomCursorPreviousButtonAriaLabel` (optional, string) - Accessible label for the button that moves the zoom cursor to the previous data point.
+   * * `zoomCursorNextButtonAriaLabel` (optional, string) - Accessible label for the button that moves the zoom cursor to the next data point.
+   * * `zoomModeEnteredAnnouncementText` (optional, function) - Screen reader announcement when zoom mode is entered. Receives the formatted cursor value.
+   * * `zoomCursorPositionAnnouncementText` (optional, function) - Screen reader announcement when the zoom cursor moves. Receives the formatted cursor value.
+   * * `zoomStartPointAnnouncementText` (optional, function) - Screen reader announcement when the start of the range is set. Receives the formatted start value.
+   * * `zoomRangeChangeAnnouncementText` (optional, function) - Screen reader announcement when the zoom range changes. Receives the formatted start and end values.
+   * * `zoomModeExitedAnnouncementText` (optional, string) - Screen reader announcement when zoom mode is exited without zooming.
+   * * `zoomResetAnnouncementText` (optional, string) - Screen reader announcement when the zoom is reset to the full data range.
+   * * `zoomSelectionAnnouncementText` (optional, function) - Screen reader announcement while the range is being selected. Receives the formatted start and end values.
    */
   i18nStrings?: CartesianI18nStrings;
 }
@@ -187,6 +203,38 @@ export interface WithPieI18nStrings {
 export interface CartesianI18nStrings extends BaseI18nStrings {
   xAxisRoleDescription?: string;
   yAxisRoleDescription?: string;
+  /** Visible label for the "Zoom" button that enters zoom mode. */
+  enterZoomModeButtonText?: string;
+  /** Accessible label for the "Zoom" button. */
+  enterZoomModeButtonAriaLabel?: string;
+  /** Accessible label for the pressed "Zoom" button, which exits zoom mode. */
+  exitZoomModeButtonAriaLabel?: string;
+  /** Visible label for the "Reset" button that resets zoom to full range. */
+  resetZoomButtonText?: string;
+  /** Accessible label for the "Reset" button. */
+  resetZoomButtonAriaLabel?: string;
+  /** Accessible label for the zoom controls region. */
+  zoomControlsAriaLabel?: string;
+  /** Accessible label for the zoom range cursor. */
+  zoomCursorAriaLabel?: string;
+  /** Accessible label for the button that moves the zoom cursor to the previous point. */
+  zoomCursorPreviousButtonAriaLabel?: string;
+  /** Accessible label for the button that moves the zoom cursor to the next point. */
+  zoomCursorNextButtonAriaLabel?: string;
+  /** Screen reader announcement when zoom mode is entered. Receives the formatted cursor value. */
+  zoomModeEnteredAnnouncementText?: (value: string) => string;
+  /** Screen reader announcement when the zoom cursor moves. Receives the formatted cursor value. */
+  zoomCursorPositionAnnouncementText?: (value: string) => string;
+  /** Screen reader announcement when the zoom start point is set. Receives the formatted start value. */
+  zoomStartPointAnnouncementText?: (value: string) => string;
+  /** Screen reader announcement when the zoom range changes. Receives the formatted start and end values. */
+  zoomRangeChangeAnnouncementText?: (startValue: string, endValue: string) => string;
+  /** Screen reader announcement when zoom mode is exited without zooming. */
+  zoomModeExitedAnnouncementText?: string;
+  /** Screen reader announcement when the zoom is reset to the full data range. */
+  zoomResetAnnouncementText?: string;
+  /** Screen reader announcement while adjusting the keyboard zoom selection. Receives the formatted start and end values. */
+  zoomSelectionAnnouncementText?: (startValue: string, endValue: string) => string;
 }
 
 export interface PieI18nStrings extends BaseI18nStrings {
@@ -393,6 +441,33 @@ export interface CoreChartProps
    */
   navigator?: React.ReactNode;
   /**
+   * Zoom settings, allowing the users to zoom into a range of the x-axis. Zooming is possible by dragging
+   * across the chart plot, or by entering zoom mode with the "Zoom" button and selecting the range start and
+   * end with a click, a tap, Enter, or Space.
+   *
+   * Supported options:
+   * * `enabled` (optional, boolean) - Enables zooming. Defaults to `false`.
+   * * `hideZoomControls` (optional, boolean) - Hides the built-in zoom buttons. Use it when providing custom
+   * controls, that use the `enterZoomMode`, `exitZoomMode`, and `resetZoom` methods of the component's ref.
+   *
+   * Zooming applies to the first x-axis, and requires `options.xAxis` to be defined.
+   */
+  zoom?: CoreChartProps.ZoomOptions;
+  /**
+   * The zoomed range of the x-axis. By default, the range is managed by the component. When using this property,
+   * manage state updates with `onZoomRangeChange`, and use `null` to show the full data range.
+   *
+   * Supported options:
+   * * `x` (optional, object) - The zoomed x-axis range, as `startValue` and `endValue`. For datetime axes the
+   * values are timestamps in milliseconds.
+   */
+  zoomRange?: CoreChartProps.ZoomRange | null;
+  /**
+   * A callback function, triggered when the zoomed range changes as a result of user interaction with the chart
+   * or the zoom controls. The detail's `zoomRange` is `null` when the zoom is reset to the full data range.
+   */
+  onZoomRangeChange?: NonCancelableEventHandler<CoreChartProps.ZoomChangeDetail>;
+  /**
    * A custom slot below the chart plot and legend.
    */
   footer?: CoreChartProps.FooterOptions;
@@ -466,6 +541,10 @@ export namespace CoreChartProps {
     highlightChartPoint(point: Highcharts.Point): void;
     highlightChartGroup(group: readonly Highcharts.Point[]): void;
     clearChartHighlight(): void;
+    // The zoom methods are no-ops when zooming is not enabled with the zoom property.
+    enterZoomMode(): void;
+    exitZoomMode(): void;
+    resetZoom(): void;
   }
 
   /**
@@ -481,6 +560,21 @@ export namespace CoreChartProps {
   };
   export type XAxisOptions = Highcharts.XAxisOptions & { valueFormatter?: (value: null | number) => string };
   export type YAxisOptions = Highcharts.YAxisOptions & { valueFormatter?: (value: null | number) => string };
+
+  export interface ZoomOptions {
+    enabled?: boolean;
+    hideZoomControls?: boolean;
+  }
+
+  // The range is nested under the axis it applies to, leaving room for a "y" range should zooming
+  // along the y-axis be supported later, without a breaking change to the property shape.
+  export interface ZoomRange {
+    x?: { startValue: number; endValue: number };
+  }
+
+  export interface ZoomChangeDetail {
+    zoomRange: ZoomRange | null;
+  }
 
   export interface SizeAxisOptions {
     id?: string;

@@ -42,6 +42,30 @@ class ChartPageObject extends BasePageObject {
     ]);
   }
 
+  // Presses the pointer at its current position, moves it by the given offset, and releases it. The move
+  // is split into steps, because a drag is only recognized from the pointer events emitted along the way.
+  async dragBy(xOffset: number, yOffset: number, steps = 5) {
+    await this.browser.performActions([
+      {
+        type: "pointer",
+        id: "event",
+        parameters: { pointerType: "mouse" },
+        actions: [
+          { type: "pointerDown", origin: "pointer", button: 0, duration: 20 },
+          ...Array.from({ length: steps }, () => ({
+            type: "pointerMove" as const,
+            duration: 50,
+            origin: "pointer" as const,
+            x: Math.round(xOffset / steps),
+            y: Math.round(yOffset / steps),
+          })),
+          { type: "pointerUp", origin: "pointer", button: 0, duration: 20 },
+          { type: "pause", duration: 150 },
+        ],
+      },
+    ]);
+  }
+
   async clickHere() {
     await this.browser.performActions([
       {
