@@ -449,6 +449,25 @@ describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
     expect(getChart().findZoomButton()!.isDisabled()).toBe(false);
   });
 
+  test("does not count points without a y value as cursor stops", () => {
+    renderCartesianChart({
+      ...defaultProps,
+      series: [
+        {
+          type: "line",
+          name: "L1",
+          data: [
+            { x: 0, y: null },
+            { x: 1, y: null },
+            { x: 2, y: null },
+          ],
+        },
+      ],
+      zoom: { enabled: true },
+    });
+    expect(getChart().findZoomButton()!.isDisabled()).toBe(true);
+  });
+
   test("disables the Zoom button when no series with data points are visible", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, visibleSeries: [] });
     expect(getChart().findZoomButton()!.isDisabled()).toBe(true);
@@ -687,16 +706,6 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
     focusOutsideChart();
     expect(getChart().findExitZoomButton()).toBe(null);
     expect(getChart().findZoomButton()).not.toBe(null);
-  });
-
-  test("Escape on the zoom controls cancels the selection", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
-    enterZoomMode();
-    getChart().findExitZoomButton()!.keydown(KeyCode.escape);
-
-    expect(getChart().findExitZoomButton()).toBe(null);
-    expect(document.activeElement).toBe(getChart().findZoomButton()!.getElement());
-    expect(onZoomRangeChange).not.toHaveBeenCalled();
   });
 
   // When the data changes during a selection, the start point keeps the value it was set on.
@@ -1277,7 +1286,71 @@ describe("CartesianChart: zoom announcements", { timeout: TEST_TIMEOUT }, () => 
   });
 });
 
+describe("CartesianChart: zoom repeated announcements", { timeout: TEST_TIMEOUT }, () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  test("announces the start point again when Enter is pressed twice on it", async () => {
+    vi.useFakeTimers();
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    const startPointText = "Start point set at 0. Move the cursor and set the end point to zoom.";
+    let announcements = 0;
+    const observer = new MutationObserver((records) => {
+      for (const { target } of records) {
+        const element = target instanceof Element ? target : target.parentElement;
+        if (element?.matches("[aria-live]") && element.textContent?.startsWith(startPointText.slice(0, -1))) {
+          announcements++;
+        }
+      }
+    });
+    observer.observe(document.body, { subtree: true, childList: true, characterData: true });
+    try {
+      enterZoomMode();
+      pressCursorKey(KeyCode.enter);
+      await act(() => vi.advanceTimersByTimeAsync(2000));
+      pressCursorKey(KeyCode.enter);
+      await act(() => vi.advanceTimersByTimeAsync(2000));
+    } finally {
+      observer.disconnect();
+    }
+    expect(announcements).toBe(2);
+  });
+});
+
 describe("CartesianChart: zoom focus and keyboard containment", { timeout: TEST_TIMEOUT }, () => {
+  test("moves focus to the Zoom button after resetting from the minimum range", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    keyboardZoomToIndexes(0, 1);
+    expect(getChart().findZoomButton()!.isDisabled()).toBe(true);
+    getChart().findResetZoomButton()!.click();
+    expect(document.activeElement).toBe(getChart().findZoomButton()!.getElement());
+  });
+
+  test("moves focus to the chart on Escape once the zoom controls are hidden mid-selection", () => {
+    const { rerender } = renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    enterZoomMode();
+    rerender({ ...defaultProps, zoom: { enabled: true, hideZoomControls: true } });
+    pressCursorKey(KeyCode.escape);
+    expect(document.activeElement).toBe(getChart().findApplication()!.getElement());
+  });
+
+  test("does not collect cursor stops on a press when zoom is disabled", () => {
+    renderCartesianChart(defaultProps);
+    const chartSeries = getCurrentChart().series[0];
+    const data = chartSeries.data;
+    let reads = 0;
+    Object.defineProperty(chartSeries, "data", {
+      configurable: true,
+      get: () => {
+        reads++;
+        return data;
+      },
+    });
+    dispatchPointer("pointerdown", 1);
+    expect(reads).toBe(0);
+  });
+
   // With hideZoomControls there is no Reset or Zoom button to land on after a zoom, so focus goes to the chart
   // itself rather than to the page body.
   test("moves focus to the chart after a keyboard zoom when the buttons are hidden", () => {

@@ -3,7 +3,7 @@
 
 import type Highcharts from "highcharts";
 
-import { getChartSeries, getSeriesData } from "../../internal/utils/highcharts";
+import type { ChartExtraContext } from "../chart-api/chart-extra-context";
 import type { ZoomStopMapper } from "./zoom-state-machine";
 
 // A zoomed range always spans at least this many data points. Selecting a single point produces a range
@@ -18,24 +18,18 @@ function isZoomableSeries(series: { type?: string }) {
   return series.type !== "errorbar";
 }
 
-// Collects the x values the zoom cursor can land on, sorted ascending. Only the series on the zoomed first x-axis are
-// included, and only values inside its current extremes: once zoomed in, the cursor must not be able to step outside
-// the visible window, and Highcharts keeps out-of-range points in the series until the series exceeds cropThreshold.
-export function getVisibleXValues(chart: Highcharts.Chart): number[] {
-  // The render event can fire before the axes exist, for example when the chart has no data at all.
-  const xAxis = chart.xAxis?.[0];
-  const { min, max } = xAxis ? xAxis.getExtremes() : { min: undefined, max: undefined };
-  const xValues = new Set<number>();
-  for (const series of getChartSeries(chart)) {
-    if (series.visible && series.xAxis === xAxis && isZoomableSeries(series)) {
-      for (const point of getSeriesData(series)) {
-        if ((typeof min !== "number" || point.x >= min) && (typeof max !== "number" || point.x <= max)) {
-          xValues.add(point.x);
-        }
-      }
-    }
+// The x values the zoom cursor can land on, sorted ascending. They are the chart's own x values, which are limited to
+// the current extremes and skip points without a y value, taken from the series on the zoomed first x-axis.
+export function getCursorStops(
+  { allX, getPointsByX }: Pick<ChartExtraContext.DerivedState, "allX" | "getPointsByX">,
+  xAxis: null | Highcharts.Axis,
+): number[] {
+  if (!xAxis) {
+    return [];
   }
-  return Array.from(xValues).sort((a, b) => a - b);
+  return allX.filter((x) =>
+    getPointsByX(x).some((point) => point.series.xAxis === xAxis && isZoomableSeries(point.series)),
+  );
 }
 
 // Index of the value closest to the target. Binary search, because this runs for every pointer move and
