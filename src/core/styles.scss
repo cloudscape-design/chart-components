@@ -139,19 +139,12 @@ $side-legend-max-inline-size: 30%;
   outline: none;
 }
 
-$zoom-cursor-button-size: cs.$space-static-xl;
-
-// Positioned imperatively in physical pixels by the zoom helper, because Highcharts renders its SVG left-to-right
-// regardless of page direction. Hidden with visibility, so that their size can be measured while hidden.
-.chart-zoom-cursor,
-.chart-zoom-cluster {
+// The keyboard cursor. It is a slider, focused while zoom mode is active, and takes no pointer events
+// so that a click on top of it still goes to the plot. It is positioned imperatively in physical pixels by the
+// zoom helper, because Highcharts renders its SVG left-to-right regardless of page direction.
+.chart-zoom-cursor {
   position: absolute;
   visibility: hidden;
-}
-
-// The keyboard cursor. It is a slider, focused while zoom mode is active, and takes no pointer events
-// so that a click on top of it still goes to the plot.
-.chart-zoom-cursor {
   background-color: cs.$color-border-item-selected;
   pointer-events: none;
 
@@ -187,42 +180,5 @@ $zoom-cursor-button-size: cs.$space-static-xl;
       border-block-color: cs.$color-border-item-focused;
       border-inline-color: cs.$color-border-item-focused;
     }
-  }
-}
-
-// Pointer-operated equivalents of the arrow keys.
-.chart-zoom-cluster {
-  display: flex;
-  align-items: center;
-  gap: cs.$space-static-xs;
-  pointer-events: auto;
-}
-
-// The step buttons are filled like the app layout toggle buttons, so they stand out against the plot they sit on.
-.chart-zoom-cursor-button {
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  inline-size: $zoom-cursor-button-size;
-  block-size: $zoom-cursor-button-size;
-  padding-block: 0;
-  padding-inline: 0;
-  border-block: 0;
-  border-inline: 0;
-  border-start-start-radius: 50%;
-  border-start-end-radius: 50%;
-  border-end-start-radius: 50%;
-  border-end-end-radius: 50%;
-  background-color: cs.$color-background-layout-toggle-default;
-  color: cs.$color-text-layout-toggle;
-  cursor: pointer;
-
-  &:hover {
-    background-color: cs.$color-background-layout-toggle-hover;
-  }
-
-  &:active {
-    background-color: cs.$color-background-layout-toggle-active;
   }
 }

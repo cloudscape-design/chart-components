@@ -612,53 +612,6 @@ describe("CartesianChart: zoom selection, keyboard interaction", { timeout: TEST
   });
 });
 
-describe("CartesianChart: zoom selection, cursor buttons", { timeout: TEST_TIMEOUT }, () => {
-  test("renders the cursor buttons outside the tab order", () => {
-    renderZoomChart({ ...defaultProps, zoom: { enabled: true } });
-    const buttons = [getChart().findZoomCursorPreviousButton()!, getChart().findZoomCursorNextButton()!];
-    for (const button of buttons) {
-      expect(button.getElement()).toHaveAttribute("tabindex", "-1");
-    }
-    expect(buttons.map((button) => button.getElement().getAttribute("aria-label"))).toEqual([
-      "Move zoom cursor to previous point",
-      "Move zoom cursor to next point",
-    ]);
-  });
-
-  test("selects a full range with the cursor buttons and Enter", () => {
-    renderZoomChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
-    enterZoomMode();
-    getChart().findZoomCursorNextButton()!.click();
-    pressCursorKey(KeyCode.enter);
-    getChart().findZoomCursorNextButton()!.click();
-    pressCursorKey(KeyCode.enter);
-    expect(getXExtremes()).toEqual({ min: 1, max: 2 });
-    expect(onZoomRangeChange).toHaveBeenCalledWith(
-      expect.objectContaining({ detail: { zoomRange: { x: { startValue: 1, endValue: 2 } } } }),
-    );
-  });
-
-  test("keeps clicking the cursor buttons out of the focus order", () => {
-    renderZoomChart({ ...defaultProps, zoom: { enabled: true } });
-    enterZoomMode();
-    getChart().findZoomCursorNextButton()!.click();
-    // The cursor keeps the focus, so arrow keys continue to work after using the buttons.
-    expect(document.activeElement).toBe(getChart().findZoomCursor()!.getElement());
-    pressCursorKey(KeyCode.right);
-    expect(getCursorAttributes().now).toBe("2");
-  });
-
-  test("keeps the cursor buttons enabled at the range edges", () => {
-    renderZoomChart({ ...defaultProps, zoom: { enabled: true } });
-    enterZoomMode();
-    const previousButton = getChart().findZoomCursorPreviousButton()!.getElement() as HTMLButtonElement;
-    expect(previousButton.disabled).toBe(false);
-    getChart().findZoomCursorPreviousButton()!.click();
-    expect(getCursorAttributes().now).toBe("0");
-    expect(previousButton.disabled).toBe(false);
-  });
-});
-
 describe("CartesianChart: zoom selection, overlay", { timeout: TEST_TIMEOUT }, () => {
   // The overlay must draw nothing while idle: a highlight left on the chart after a zoom looks like a
   // pending selection, and on an empty chart it looks like a rendering artifact.
@@ -957,7 +910,7 @@ describe("CartesianChart: zoom selection, direction", { timeout: TEST_TIMEOUT },
     vi.restoreAllMocks();
   });
 
-  // The cursor, the arrow keys, Home and End, and the step buttons follow the plot as it is drawn. In a
+  // The cursor, the arrow keys, Home and End follow the plot as it is drawn. In a
   // right-to-left page the x axis runs from right to left, so the values go the other way on screen.
   test.each([
     { name: "left-to-right page", rtl: false, first: "0", last: "4" },
@@ -978,10 +931,6 @@ describe("CartesianChart: zoom selection, direction", { timeout: TEST_TIMEOUT },
     expect(getCursorLeft()).toBe(startLeft);
 
     pressCursorKey(KeyCode.right);
-    expect(getCursorLeft()).toBeGreaterThan(startLeft);
-    getChart().findZoomCursorPreviousButton()!.click();
-    expect(getCursorLeft()).toBe(startLeft);
-    getChart().findZoomCursorNextButton()!.click();
     expect(getCursorLeft()).toBeGreaterThan(startLeft);
 
     pressCursorKey(KeyCode.end);

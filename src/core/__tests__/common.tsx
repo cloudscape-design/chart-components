@@ -25,8 +25,6 @@ export class ExtendedTestWrapper extends CoreChartWrapper {
   findExitZoomButton = () => this.findComponent(`.${testClasses["exit-zoom-button"]}`, ButtonWrapper);
   findResetZoomButton = () => this.findComponent(`.${testClasses["reset-zoom-button"]}`, ButtonWrapper);
   findZoomCursor = () => this.findByClassName(testClasses["zoom-cursor"]);
-  findZoomCursorPreviousButton = () => this.findByClassName(testClasses["zoom-cursor-previous-button"]);
-  findZoomCursorNextButton = () => this.findByClassName(testClasses["zoom-cursor-next-button"]);
 }
 
 // The core chart accepts the internal zoom properties, which are not part of its public interface yet.

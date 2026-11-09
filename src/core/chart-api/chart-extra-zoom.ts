@@ -66,7 +66,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private swallowClick = false;
   private stopTrackingPress: null | (() => void) = null;
   private cursorElement: null | HTMLElement = null;
-  private clusterElement: null | HTMLElement = null;
   private controlsElement: null | HTMLElement = null;
   private rangeBand = new SVGRendererSingle();
   private rangeBorders = new SVGRendererSingle();
@@ -85,10 +84,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
 
   public setCursor = (element: null | HTMLElement) => {
     this.cursorElement = element;
-  };
-
-  public setCluster = (element: null | HTMLElement) => {
-    this.clusterElement = element;
   };
 
   public setControls = (element: null | HTMLElement) => {
@@ -169,7 +164,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   };
 
   // Moves the cursor by the given number of stops towards the start (-1) or the end (+1) of the plot on screen.
-  public stepCursor = (direction: -1 | 1, stops = 1) => {
+  private stepCursor = (direction: -1 | 1, stops = 1) => {
     const xAxis = this.xAxis;
     const values = this.getValues();
     if (xAxis && values.length > 0) {
@@ -482,7 +477,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     const cursorValue = values[view.cursorIndex];
     const anchorValue = view.anchorIndex === null ? null : values[view.anchorIndex];
     applyRect(this.cursorElement, getDividerRect(chart, xAxis, cursorValue), origin);
-    applyPosition(this.clusterElement, getClusterRect(chart, xAxis, cursorValue, this.measureCluster()), origin);
     this.drawSelection(chart, xAxis, anchorValue, cursorValue);
     // The cursor is a slider, so its position is announced from its own value as it moves.
     const cursor = this.cursorElement;
@@ -531,12 +525,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     this.selectionStart.hide();
     const origin = { left: 0, top: 0 };
     applyRect(this.cursorElement, null, origin);
-    applyPosition(this.clusterElement, null, origin);
-  }
-
-  // The cluster sizes itself from its contents. It keeps its layout box while hidden, so it can be measured.
-  private measureCluster() {
-    return { width: this.clusterElement?.offsetWidth ?? 0, height: this.clusterElement?.offsetHeight ?? 0 };
   }
 
   // In zoom mode a press on the plot sets a range boundary where it lands.
@@ -699,60 +687,24 @@ function getBandRect(chart: SafeChart, xAxis: Highcharts.Axis, fromValue: number
     : { x: chart.plotLeft, y: start, width: chart.plotWidth, height: size };
 }
 
-// The cursor button cluster, centered on the cursor and pinned to a plot edge: the bottom edge when the
-// x axis is horizontal, the inline start edge when it is vertical. It is never shifted along the axis, so
-// it stays aligned with a cursor at the first or the last point by extending past the plot edge.
-function getClusterRect(
-  chart: SafeChart,
-  xAxis: Highcharts.Axis,
-  value: number,
-  clusterSize: { width: number; height: number },
-): Rect {
-  const pixel = valueToPixel(xAxis, value);
-  const { width, height } = clusterSize;
-  if (isXAxisHorizontal(xAxis)) {
-    return {
-      x: pixel - width / 2,
-      y: chart.plotTop + Math.max(0, chart.plotHeight - height - Styles.zoomCursorClusterOffset),
-      width,
-      height,
-    };
-  }
-  return {
-    x: chart.plotLeft + Styles.zoomCursorClusterOffset,
-    y: pixel - height / 2,
-    width,
-    height,
-  };
-}
-
 // The offset of the Highcharts container from the element the cursor is positioned against.
 interface OverlayOrigin {
   left: number;
   top: number;
 }
 
-// Positions the cursor elements imperatively, so that stepping the cursor causes no React render.
-// They are hidden with visibility rather than display, so that they keep a measurable size while hidden.
+// Positions the cursor imperatively, so that stepping the cursor causes no React render.
 function applyRect(element: null | HTMLElement, rect: null | Rect, origin: OverlayOrigin) {
-  if (applyPosition(element, rect, origin) && element && rect) {
-    element.style.width = `${rect.width}px`;
-    element.style.height = `${rect.height}px`;
-  }
-}
-
-// Positions an element without constraining its size, used for the cursor button cluster, which is sized by
-// its contents.
-function applyPosition(element: null | HTMLElement, rect: null | Rect, origin: OverlayOrigin): boolean {
   if (!element) {
-    return false;
+    return;
   }
   if (!rect) {
     element.style.visibility = "hidden";
-    return false;
+    return;
   }
   element.style.visibility = "visible";
   element.style.left = `${origin.left + rect.x}px`;
   element.style.top = `${origin.top + rect.y}px`;
-  return true;
+  element.style.width = `${rect.width}px`;
+  element.style.height = `${rect.height}px`;
 }

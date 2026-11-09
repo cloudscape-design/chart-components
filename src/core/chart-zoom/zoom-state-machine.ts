@@ -74,7 +74,7 @@ export type ZoomEvent =
   // The "Reset" button. Whether there is a zoom to reset is the helper's to know, because the range may be
   // controlled by the consumer.
   | { type: "resetZoom"; zoomed: boolean }
-  // The arrow keys, Page Up/Down, and the cursor's step buttons. The offset is already expressed in stops
+  // The arrow keys and Page Up/Down. The offset is already expressed in stops
   // along the value axis, with the direction on screen resolved by the helper.
   | { type: "stepCursor"; offset: number }
   // Home and End.

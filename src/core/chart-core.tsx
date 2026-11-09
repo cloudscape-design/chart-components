@@ -369,7 +369,7 @@ export function InternalCoreChart({
                   callback?.({ chart, highcharts: highcharts as typeof Highcharts, ...api.publicApi })
                 }
               />
-              {zoomEnabled && <ChartZoomCursor api={api} labels={labels} inverted={inverted} isRtl={isRtl} />}
+              {zoomEnabled && <ChartZoomCursor api={api} labels={labels} inverted={inverted} />}
             </>
           );
         }}

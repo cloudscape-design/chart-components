@@ -211,13 +211,11 @@ export class ChartAPI {
   // Zoom interactions, used by the zoom controls and cursor components.
   public onZoomPropsChange = () => this.chartExtraZoom.onZoomPropsChange();
   public setZoomCursor = this.chartExtraZoom.setCursor;
-  public setZoomCluster = this.chartExtraZoom.setCluster;
   public setZoomControls = this.chartExtraZoom.setControls;
   public onZoomCursorKeyDown = this.chartExtraZoom.onCursorKeyDown;
   public onZoomCursorBlur = this.chartExtraZoom.onCursorBlur;
   public onZoomControlsBlur = this.chartExtraZoom.onControlsBlur;
   public onZoomControlsKeyDown = this.chartExtraZoom.onControlsKeyDown;
-  public stepZoomCursor = (direction: -1 | 1) => this.chartExtraZoom.stepCursor(direction);
   public clearZoomFocusRequest = this.chartExtraZoom.clearFocusRequest;
   public enterZoomMode = () => this.chartExtraZoom.enterZoomMode();
   public exitZoomMode = ({ withFocus }: { withFocus: boolean }) => this.chartExtraZoom.exitZoomMode({ withFocus });
