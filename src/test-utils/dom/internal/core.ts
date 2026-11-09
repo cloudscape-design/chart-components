@@ -71,22 +71,6 @@ export default class CoreChartWrapper extends BaseChartWrapper {
   public findZoomCursor(): null | ElementWrapper {
     return this.findByClassName(testClasses["zoom-cursor"]);
   }
-
-  /**
-   * Finds the button that moves the zoom cursor to the previous data point.
-   * Present whenever zoom is enabled, and only shown while a range is being selected.
-   */
-  public findZoomCursorPreviousButton(): null | ElementWrapper {
-    return this.findByClassName(testClasses["zoom-cursor-previous-button"]);
-  }
-
-  /**
-   * Finds the button that moves the zoom cursor to the next data point.
-   * Present whenever zoom is enabled, and only shown while a range is being selected.
-   */
-  public findZoomCursorNextButton(): null | ElementWrapper {
-    return this.findByClassName(testClasses["zoom-cursor-next-button"]);
-  }
 }
 
 export class CoreChartLegendWrapper extends BaseChartLegendWrapper {

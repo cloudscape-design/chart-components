@@ -21,8 +21,6 @@ export interface ChartLabels {
   resetZoomButtonAriaLabel?: string;
   zoomControlsAriaLabel?: string;
   zoomCursorAriaLabel?: string;
-  zoomCursorPreviousButtonAriaLabel?: string;
-  zoomCursorNextButtonAriaLabel?: string;
   zoomModeEnteredAnnouncementText?: (value: string) => string;
   zoomCursorPositionAnnouncementText?: (value: string) => string;
   zoomStartPointAnnouncementText?: (value: string) => string;
@@ -77,14 +75,6 @@ export function useChartI18n({
     resetZoomButtonAriaLabel: i18nZoom("i18nStrings.resetZoomButtonAriaLabel", i18nStrings?.resetZoomButtonAriaLabel),
     zoomControlsAriaLabel: i18nZoom("i18nStrings.zoomControlsAriaLabel", i18nStrings?.zoomControlsAriaLabel),
     zoomCursorAriaLabel: i18nZoom("i18nStrings.zoomCursorAriaLabel", i18nStrings?.zoomCursorAriaLabel),
-    zoomCursorPreviousButtonAriaLabel: i18nZoom(
-      "i18nStrings.zoomCursorPreviousButtonAriaLabel",
-      i18nStrings?.zoomCursorPreviousButtonAriaLabel,
-    ),
-    zoomCursorNextButtonAriaLabel: i18nZoom(
-      "i18nStrings.zoomCursorNextButtonAriaLabel",
-      i18nStrings?.zoomCursorNextButtonAriaLabel,
-    ),
     zoomModeEnteredAnnouncementText: zoomValueText(
       "zoomModeEnteredAnnouncementText",
       i18nStrings?.zoomModeEnteredAnnouncementText,

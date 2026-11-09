@@ -288,11 +288,6 @@ Supported Highcharts versions: 12.",
             "type": "string",
           },
           {
-            "name": "zoomCursorNextButtonAriaLabel",
-            "optional": true,
-            "type": "string",
-          },
-          {
             "inlineType": {
               "name": "(value: string) => string",
               "parameters": [
@@ -307,11 +302,6 @@ Supported Highcharts versions: 12.",
             "name": "zoomCursorPositionAnnouncementText",
             "optional": true,
             "type": "((value: string) => string)",
-          },
-          {
-            "name": "zoomCursorPreviousButtonAriaLabel",
-            "optional": true,
-            "type": "string",
           },
           {
             "inlineType": {

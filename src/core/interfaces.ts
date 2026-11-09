@@ -167,8 +167,6 @@ export interface WithCartesianI18nStrings {
    * * `resetZoomButtonAriaLabel` (optional, string) - Accessible label for the "Reset" button.
    * * `zoomControlsAriaLabel` (optional, string) - Accessible label for the zoom controls region.
    * * `zoomCursorAriaLabel` (optional, string) - Accessible label for the zoom range cursor.
-   * * `zoomCursorPreviousButtonAriaLabel` (optional, string) - Accessible label for the button that moves the zoom cursor to the previous data point.
-   * * `zoomCursorNextButtonAriaLabel` (optional, string) - Accessible label for the button that moves the zoom cursor to the next data point.
    * * `zoomModeEnteredAnnouncementText` (optional, function) - Screen reader announcement when zoom mode is entered. Receives the formatted cursor value.
    * * `zoomCursorPositionAnnouncementText` (optional, function) - Screen reader announcement when the zoom cursor moves. Receives the formatted cursor value.
    * * `zoomStartPointAnnouncementText` (optional, function) - Screen reader announcement when the start of the range is set. Receives the formatted start value.
@@ -217,10 +215,6 @@ export interface CartesianI18nStrings extends BaseI18nStrings {
   zoomControlsAriaLabel?: string;
   /** Accessible label for the zoom range cursor. */
   zoomCursorAriaLabel?: string;
-  /** Accessible label for the button that moves the zoom cursor to the previous point. */
-  zoomCursorPreviousButtonAriaLabel?: string;
-  /** Accessible label for the button that moves the zoom cursor to the next point. */
-  zoomCursorNextButtonAriaLabel?: string;
   /** Screen reader announcement when zoom mode is entered. Receives the formatted cursor value. */
   zoomModeEnteredAnnouncementText?: (value: string) => string;
   /** Screen reader announcement when the zoom cursor moves. Receives the formatted cursor value. */
