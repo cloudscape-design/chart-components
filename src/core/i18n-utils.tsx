@@ -31,7 +31,6 @@ export interface ChartLabels {
   zoomResetAnnouncementText?: string;
 }
 
-// The zoom messages are not part of the typed "[charts]" namespace of the components package yet.
 type ZoomFormatFunction = <T>(
   key: string,
   provided: undefined,
@@ -49,6 +48,7 @@ export function useChartI18n({
 }): ChartLabels {
   const i18n = useInternalI18n("[charts]");
   const i18nPie = useInternalI18n("pie-chart");
+  // The zoom messages are not part of the typed "[charts]" namespace of the components package yet.
   const i18nZoom = i18n as unknown as ZoomFormatFunction;
   const zoomText = (key: string) => i18nZoom<string>(`i18nStrings.${key}`, undefined);
   const zoomValueText = (key: string) =>

@@ -92,10 +92,10 @@ export type ZoomEvent =
   | { type: "pointerCancel"; pointerId: number }
   // The chart has re-rendered: the stops the cursor can sit on change with the zoomed range, the data, and which
   // series are visible.
-  | { type: "chartRendered"; remap: ZoomStopsRemap };
+  | { type: "chartRendered"; stopMapper: ZoomStopMapper };
 
 /** Where the stops of the previous render are among the current ones. */
-export interface ZoomStopsRemap {
+export interface ZoomStopMapper {
   // The current stop nearest to the value of a previous one.
   nearest(index: number): number;
   // The current stop with the value of a previous one, or null when that value is no longer shown.
@@ -182,7 +182,7 @@ function fromSelecting(state: SelectingState, event: ZoomEvent, context: ZoomCon
       // cursor is showing. Outside the plot the cursor stays where it is.
       return event.insidePlot ? moveCursor(state, event.index, valuesCount) : stay(state);
     case "chartRendered":
-      return reconcile(state, event.remap, context);
+      return reconcile(state, event.stopMapper, context);
     default:
       return stay(state);
   }
@@ -211,7 +211,7 @@ function fromPressed(state: PressedState, event: ZoomEvent, context: ZoomContext
     case "resetZoom":
       return resetZoom(event);
     case "chartRendered":
-      return reconcile(state, event.remap, context);
+      return reconcile(state, event.stopMapper, context);
     default:
       return stay(state);
   }
@@ -269,7 +269,7 @@ function commitPoint(selection: ZoomSelection, { valuesCount }: ZoomContext): Zo
 
 // Brings the state in line with what the chart now shows. The boundaries follow their values, so a change to the data
 // does not move them to other points.
-function reconcile(state: ZoomState, remap: ZoomStopsRemap, { valuesCount }: ZoomContext): ZoomTransition {
+function reconcile(state: ZoomState, stopMapper: ZoomStopMapper, { valuesCount }: ZoomContext): ZoomTransition {
   if (valuesCount === 0) {
     // Nothing left to select, for instance because all series were filtered out. The cursor that held the focus is
     // hidden, so the focus moves on.
@@ -279,12 +279,12 @@ function reconcile(state: ZoomState, remap: ZoomStopsRemap, { valuesCount }: Zoo
     case "idle":
       return stay(state);
     case "selecting":
-      return stay({ type: "selecting", selection: remapSelection(state.selection, remap) });
+      return stay({ type: "selecting", selection: remapSelection(state.selection, stopMapper) });
     case "pressed":
       return stay({
         type: "pressed",
-        press: { ...state.press, startIndex: remap.nearest(state.press.startIndex) },
-        resume: remapSelection(state.resume, remap),
+        press: { ...state.press, startIndex: stopMapper.nearest(state.press.startIndex) },
+        resume: remapSelection(state.resume, stopMapper),
       });
   }
 }
@@ -311,11 +311,11 @@ function transition(state: ZoomState, effects: readonly ZoomEffect[]): ZoomTrans
 
 const NO_EFFECTS: readonly ZoomEffect[] = [];
 
-function remapSelection(selection: ZoomSelection, remap: ZoomStopsRemap): ZoomSelection {
+function remapSelection(selection: ZoomSelection, stopMapper: ZoomStopMapper): ZoomSelection {
   return {
-    cursorIndex: remap.nearest(selection.cursorIndex),
+    cursorIndex: stopMapper.nearest(selection.cursorIndex),
     // A start point that is no longer in the plot cannot be zoomed into, so the selection starts over.
-    anchorIndex: selection.anchorIndex === null ? null : remap.exact(selection.anchorIndex),
+    anchorIndex: selection.anchorIndex === null ? null : stopMapper.exact(selection.anchorIndex),
   };
 }
 

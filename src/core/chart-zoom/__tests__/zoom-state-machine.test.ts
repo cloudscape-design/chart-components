@@ -12,7 +12,7 @@ import {
   zoomReducer,
   ZoomState,
 } from "../../../../lib/components/core/chart-zoom/zoom-state-machine";
-import { remapStops } from "../../../../lib/components/core/chart-zoom/zoom-utils";
+import { createStopMapper } from "../../../../lib/components/core/chart-zoom/zoom-utils";
 
 // The machine is pure, so it can be tabulated: the table below states the outcome of every event in
 // every state, which is the whole behaviour of the zoom interaction. The cases after it cover what a
@@ -41,7 +41,10 @@ const MOVE: ZoomEvent = { type: "pointerMove", index: 8, insidePlot: true };
 const UP: ZoomEvent = { type: "pointerUp", pointerId: 1 };
 const CANCEL: ZoomEvent = { type: "pointerCancel", pointerId: 1 };
 // A render that leaves the stops as they were.
-const RENDERED: ZoomEvent = { type: "chartRendered", remap: { nearest: (index) => index, exact: (index) => index } };
+const RENDERED: ZoomEvent = {
+  type: "chartRendered",
+  stopMapper: { nearest: (index) => index, exact: (index) => index },
+};
 
 // The state a new selection starts in, and the effects that announce it and give it the focus.
 const FRESH: ZoomState = { type: "selecting", selection: { cursorIndex: 0, anchorIndex: null } };
@@ -196,7 +199,7 @@ describe("zoomReducer", () => {
     const current = [0, 1, 2, 3, 4];
     const { state } = zoomReducer(
       { type: "selecting", selection: { cursorIndex: 8, anchorIndex: 7 } },
-      { type: "chartRendered", remap: remapStops(previous, current) },
+      { type: "chartRendered", stopMapper: createStopMapper(previous, current) },
       { valuesCount: current.length },
     );
 
@@ -205,15 +208,15 @@ describe("zoomReducer", () => {
 
   test("keeps the boundaries on their values when the stops change", () => {
     // The stop at 10 is removed: the start point at 20 and the cursor at 30 keep their values, at new indices.
-    const remap = remapStops([0, 10, 20, 30, 40], [0, 20, 30, 40]);
+    const stopMapper = createStopMapper([0, 10, 20, 30, 40], [0, 20, 30, 40]);
     const selecting = zoomReducer(
       { type: "selecting", selection: { cursorIndex: 3, anchorIndex: 2 } },
-      { type: "chartRendered", remap },
+      { type: "chartRendered", stopMapper },
       { valuesCount: 4 },
     );
     const pressed = zoomReducer(
       { type: "pressed", press: { pointerId: 1, startIndex: 4 }, resume: { cursorIndex: 3, anchorIndex: 2 } },
-      { type: "chartRendered", remap },
+      { type: "chartRendered", stopMapper },
       { valuesCount: 4 },
     );
 
