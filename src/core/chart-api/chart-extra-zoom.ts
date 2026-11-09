@@ -24,7 +24,7 @@ import {
   zoomReducer,
   ZoomState,
 } from "../chart-zoom/zoom-state-machine";
-import { findNearestIndex, getPageStep, getVisibleXValues, remapStops } from "../chart-zoom/zoom-utils";
+import { createStopMapper, findNearestIndex, getPageStep, getVisibleXValues } from "../chart-zoom/zoom-utils";
 import { getFormatter } from "../formatters";
 import { CoreChartProps, Rect } from "../interfaces";
 import { isInsidePlot } from "../utils";
@@ -119,8 +119,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     if (!this.enabled) {
       return;
     }
-    this.dispatch({ type: "chartRendered", remap: remapStops(previousValues, this.getValues()) });
-    this.syncOverlay();
+    this.dispatch({ type: "chartRendered", stopMapper: createStopMapper(previousValues, this.getValues()) });
     this.updateCanZoom();
   };
 

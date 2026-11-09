@@ -4,7 +4,7 @@
 import type Highcharts from "highcharts";
 
 import { getChartSeries, getSeriesData } from "../../internal/utils/highcharts";
-import type { ZoomStopsRemap } from "./zoom-state-machine";
+import type { ZoomStopMapper } from "./zoom-state-machine";
 
 // A zoomed range always spans at least this many data points. Selecting a single point produces a range
 // with no width, which Highcharts cannot display and which the user cannot zoom out of by zooming again.
@@ -68,7 +68,7 @@ export function getPageStep(valuesCount: number): number {
 }
 
 // Finds the stops of a previous render among the current ones, by their values.
-export function remapStops(previous: readonly number[], current: readonly number[]): ZoomStopsRemap {
+export function createStopMapper(previous: readonly number[], current: readonly number[]): ZoomStopMapper {
   const nearest = (index: number) => findNearestIndex(current, previous[index]);
   return {
     nearest,
