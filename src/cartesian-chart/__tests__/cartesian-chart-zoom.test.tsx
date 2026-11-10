@@ -765,15 +765,16 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
 
 describe("CartesianChart: zoom overlay", { timeout: TEST_TIMEOUT }, () => {
   test.each([
-    { state: "idle", act: () => {} },
-    { state: "after a committed zoom", act: () => keyboardZoomToIndexes(1, 3) },
-  ])("draws nothing $state", ({ act: run }) => {
+    { state: "idle", act: () => {}, zoomed: false },
+    { state: "after a committed zoom", act: () => keyboardZoomToIndexes(1, 3), zoomed: true },
+  ])("draws no selection overlay $state", ({ act: run, zoomed }) => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
     run();
     const { band, startDivider, endDivider, cursor } = getOverlay();
     for (const element of [band, startDivider, endDivider, cursor]) {
       expect(isVisible(element)).toBe(false);
     }
+    expect(isVisible(findSvg("zoom-range"))).toBe(zoomed);
   });
 
   test("shows the cursor while selecting, and the band once the start point is set", () => {
