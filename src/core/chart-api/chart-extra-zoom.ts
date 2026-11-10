@@ -198,10 +198,10 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
         this.stepCursor(1);
         break;
       case KeyCode.pageUp:
-        this.stepCursor(1, pageStop);
+        this.dispatch({ type: "stepCursor", offset: -pageStop });
         break;
       case KeyCode.pageDown:
-        this.stepCursor(-1, pageStop);
+        this.dispatch({ type: "stepCursor", offset: pageStop });
         break;
       case KeyCode.home:
         this.moveCursorToEdge(-1);

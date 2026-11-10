@@ -70,7 +70,6 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
           pressedIconSvg={zoomModeIcon}
           disabled={!canZoom && !inZoomMode}
           onChange={({ detail }) => (detail.pressed ? api.enterZoomMode() : api.exitZoomMode({ withFocus: true }))}
-          ariaLabel={inZoomMode ? labels.exitZoomModeButtonAriaLabel : labels.enterZoomModeButtonAriaLabel}
           className={inZoomMode ? testClasses["exit-zoom-button"] : testClasses["zoom-button"]}
         >
           {labels.enterZoomModeButtonText}

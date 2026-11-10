@@ -181,7 +181,15 @@ describe("CartesianChart: zoom selection, controls", { timeout: TEST_TIMEOUT }, 
     enterZoomMode();
     expect(getChart().findZoomButton()).toBe(null);
     expect(getChart().findExitZoomButton()!.getElement()).toHaveTextContent("Zoom");
-    expect(getChart().findExitZoomButton()!.getElement()).toHaveAttribute("aria-label", "Exit zoom mode");
+  });
+
+  test("keeps the same accessible name on the Zoom button in zoom mode", () => {
+    renderZoomChart({ ...defaultProps, zoom: { enabled: true } });
+    const button = getChart().findZoomButton()!.getElement();
+    expect(button).not.toHaveAttribute("aria-label");
+    enterZoomMode();
+    expect(button).not.toHaveAttribute("aria-label");
+    expect(button).toHaveTextContent("Zoom");
   });
 
   test("clicking the pressed Zoom button returns to idle state", () => {
@@ -430,7 +438,7 @@ describe("CartesianChart: zoom selection, keyboard interaction", { timeout: TEST
   test.each([
     { count: 5, step: 1 },
     { count: 50, step: 5 },
-  ])("steps the cursor a tenth of $count points with PageUp and PageDown", ({ count, step }) => {
+  ])("steps the cursor a tenth of $count points with PageDown and PageUp", ({ count, step }) => {
     renderZoomChart({
       ...defaultProps,
       series: seriesOfLength(count),
@@ -438,10 +446,36 @@ describe("CartesianChart: zoom selection, keyboard interaction", { timeout: TEST
       zoom: { enabled: true },
     });
     enterZoomMode();
-    pressCursorKey(KeyCode.pageUp);
-    expect(getCursorAttributes().now).toBe(String(step));
     pressCursorKey(KeyCode.pageDown);
+    expect(getCursorAttributes().now).toBe(String(step));
+    pressCursorKey(KeyCode.pageUp);
     expect(getCursorAttributes().now).toBe("0");
+  });
+
+  test.each([
+    { name: "left-to-right page", rtl: false, inverted: false, key: KeyCode.pageDown, now: "5" },
+    { name: "inverted chart", rtl: false, inverted: true, key: KeyCode.pageDown, now: "5" },
+    { name: "right-to-left page", rtl: true, inverted: false, key: KeyCode.pageUp, now: "44" },
+  ])("pages through the values in order, as chart navigation does, in a $name", ({ rtl, inverted, key, now }) => {
+    if (rtl) {
+      renderInRtl();
+    }
+    const props = {
+      ...defaultProps,
+      inverted,
+      series: seriesOfLength(50),
+      xAxis: { ...defaultProps.xAxis, max: 49 },
+      zoom: { enabled: true },
+    };
+    try {
+      const { rerender } = renderZoomChart(props);
+      rerender(props);
+      enterZoomMode();
+      pressCursorKey(key);
+      expect(getCursorAttributes().now).toBe(now);
+    } finally {
+      vi.restoreAllMocks();
+    }
   });
 
   test("ignores vertical arrow keys on a horizontal axis", () => {
