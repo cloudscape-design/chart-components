@@ -1,7 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-// The English zoom messages, which are not yet part of the components package messages.
 export const zoomMessages = {
   "[charts]": {
     "i18nStrings.enterZoomModeButtonText": "Zoom",

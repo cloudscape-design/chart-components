@@ -39,13 +39,10 @@ interface ZoomCommonState {
   zoomed: boolean;
   canZoom: boolean;
   announcement: string;
-  // Counts the announcements, so that the same text is announced again when it is repeated.
   announcementCount: number;
 }
 
-// The single zoom state: the state of the interaction, as the zoom state machine defines it, together with what the
-// zoom controls and the announcer show. It is reactive, so that the components render from it. A focus request for
-// the zoom buttons only exists while idle, which is the only state that moves focus to them.
+// The reactive state is used to propagate changes to the zoom controls and announcer components.
 export type ReactiveZoomState = ZoomCommonState &
   (
     | { type: "idle"; focusRequest: null | { target: ZoomControlsFocusTarget } }
@@ -63,10 +60,7 @@ interface ZoomExtremes {
   max: number;
 }
 
-// Chart helper that implements zooming into a range of the first x-axis: by setting the range boundaries with a click
-// or a tap, or with the keyboard cursor. The interaction itself is the state machine in zoom-state-machine; this
-// helper resolves its stops to values, applies the zoomed range to the axis, and draws the range and the selection on
-// the plot.
+// Chart helper that implements zooming into a range of the first x-axis.
 export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private context: ChartExtraContext;
   private handlers: ChartExtraZoomHandlers;
@@ -117,7 +111,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   };
 
   public onChartRender = () => {
-    // The interaction refers to the stops by their index in the last values read.
     const previousValues = this.values;
     this.valuesStale = true;
     this.reconcile(this.context.chart());
@@ -150,7 +143,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     }
     if (chart) {
       this.reconcile(chart);
-      // The chart can render before the settings enable zoom, and then has not updated whether zooming is possible.
       if (this.enabled) {
         this.updateCanZoom();
       }
@@ -163,7 +155,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       return;
     }
     const values = this.getValues();
-    // The cursor always starts at the visible start of the plot, whichever way the axis runs.
     this.dispatch({ type: "enterZoomMode", startIndex: isPixelForward(xAxis, values) ? 0 : values.length - 1 });
   };
 
@@ -183,7 +174,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     this.setFocusRequest(null);
   };
 
-  // Moves the cursor by the given number of stops towards the start (-1) or the end (+1) of the plot on screen.
   private stepCursor = (direction: -1 | 1, stops = 1) => {
     const xAxis = this.xAxis;
     const values = this.getValues();
@@ -197,7 +187,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     if (!xAxis || getInteraction(this.get()) !== "cursor") {
       return;
     }
-    // On an inverted chart the x-axis runs vertically, and so does the cursor.
     const vertical = !isXAxisHorizontal(xAxis);
     const pageStop = getPageStep(this.getValues().length);
     let handled = true;
@@ -232,7 +221,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     }
     if (handled) {
       event.preventDefault();
-      // The chart dismisses the tooltip on Escape from a document listener, which must not act on this key too.
       event.stopPropagation();
     }
   };
@@ -243,8 +231,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     }
   };
 
-  // Focus can move from the cursor to the zoom controls, so leaving them ends the selection too. A focus request still
-  // waiting for its button is dropped, so that it cannot take the focus back later.
   public onControlsBlur = (event: React.FocusEvent) => {
     if (!this.isFocusWithinZoom(event.relatedTarget)) {
       this.exitZoomMode({ withFocus: false });
@@ -271,12 +257,10 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     return this.context.settings.labels;
   }
 
-  // The axis instance is replaced on chart updates, so it is always read from the chart.
   private get xAxis(): null | Highcharts.Axis {
     return this.context.chartOrNull?.xAxis?.[0] ?? null;
   }
 
-  // The range is controlled when the property is defined, including null, which shows the full data range.
   private get controlled() {
     return this.context.state.zoomRange !== undefined;
   }
@@ -310,8 +294,8 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
         xAxis.setExtremes(undefined, undefined, true, false);
       }
     }
-    // Zooming clears the reset announcement, so that LiveRegion announces the next reset again. Other announcements
-    // are kept: the range change is announced just before the zoom is applied.
+    // Zooming clears the reset announcement, so that LiveRegion announces the next reset again. When the range is
+    // cleared, the announcement made by Reset is kept.
     if (!!extremes !== this.get().zoomed) {
       const resetText = this.labels.zoomResetAnnouncementText ?? "";
       const { announcement } = this.get();
@@ -335,7 +319,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     this.setCommon({ announcement: text, announcementCount: this.get().announcementCount + 1 });
   }
 
-  // Updates what the zoom controls and the announcer show, keeping the state of the interaction.
   private setCommon(update: Partial<ZoomCommonState>) {
     this.set((state) => ({ ...state, ...update }));
   }
@@ -346,19 +329,15 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     );
   }
 
-  // Every zoom interaction goes through here: the state machine decides the next state and its effects.
   private dispatch(event: ZoomEvent) {
     const previous = this.get();
     const { state, effects } = zoomReducer(previous, event, { valuesCount: this.getValues().length });
-    // The idle state carries nothing, so any idle state the reducer returns is the same one.
     const changed = state !== previous && !(state.type === "idle" && previous.type === "idle");
     if (!changed && effects.length === 0) {
       return;
     }
     if (changed) {
       this.set((prev) => withInteraction(prev, state));
-      // The chart keeps tracking the hovered point during the interaction, and would open the tooltip on it
-      // once the interaction ends.
       if (getInteraction(state) === "idle" && getInteraction(previous) !== "idle") {
         this.handlers.onClearHighlight();
       }
@@ -407,7 +386,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
         break;
       }
       case "resetZoom":
-        // A controlled chart cannot reset on its own: it asks the consumer to show the full range.
+        // The chart cannot reset a controlled range on its own: it asks the consumer to show the full range.
         if (!this.controlled) {
           this.localExtremes = null;
           this.applyExtremes(this.context.chart());
@@ -432,15 +411,11 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
 
   private moveFocus(target: ZoomFocusTarget) {
     if (target === "cursor") {
-      // A request still waiting for the Reset button must not take the focus back from the cursor.
       this.clearFocusRequest();
       this.cursorElement?.focus();
     } else if (!this.controlsElement) {
-      // With the zoom controls hidden there are no buttons to focus.
       this.handlers.onFocusChart();
     } else {
-      // The buttons to focus are rendered by the controls component, often only as a result of this transition,
-      // so the component moves focus once it has rendered.
       this.setFocusRequest({ target });
     }
   }
@@ -485,7 +460,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     });
   }
 
-  // Draws the current state of the interaction onto the plot, and describes the cursor to assistive technology.
   private syncOverlay() {
     const chart = this.context.chartOrNull as null | Highcharts.Chart;
     const xAxis = this.xAxis;
@@ -500,7 +474,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     const anchorValue = view.anchorIndex === null ? null : values[view.anchorIndex];
     applyRect(this.cursorElement, getDividerRect(chart, xAxis, cursorValue), origin);
     this.drawSelection(chart, xAxis, anchorValue, cursorValue);
-    // The cursor is a slider, so its position is announced from its own value as it moves.
     const cursor = this.cursorElement;
     if (cursor) {
       cursor.setAttribute("aria-valuemin", `${values[0]}`);
@@ -518,7 +491,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     }
   }
 
-  // Once the start point is set, marks it and the range between it and the cursor.
   private drawSelection(
     chart: Highcharts.Chart,
     xAxis: Highcharts.Axis,
@@ -549,10 +521,8 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     applyRect(this.cursorElement, null, origin);
   }
 
-  // In zoom mode a press on the plot sets a range boundary where it lands.
   private onPlotPointerDown = (event: PointerEvent) => {
     this.swallowClick = false;
-    // Secondary mouse buttons open context menus and must not set a boundary.
     if (!this.enabled || getInteraction(this.get()) !== "cursor" || (event.pointerType === "mouse" && event.button)) {
       return;
     }
@@ -572,11 +542,9 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       type: "pointerDown",
       press: { pointerId: event.pointerId, startIndex: findStopAtPointer(values, xAxis, chartX, chartY) },
     });
-    // The press must not move focus off the cursor, which would end the selection.
     event.preventDefault();
   };
 
-  // Hovering the plot in zoom mode moves the cursor.
   private onPlotPointerMove = (event: PointerEvent) => {
     if (!this.enabled || this.get().type !== "selecting") {
       return;
@@ -595,7 +563,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     });
   };
 
-  // Runs in the capture phase, so the click that set a range boundary does not also reach Highcharts and pin a point.
   private onPlotClickCapture = (event: MouseEvent) => {
     if (this.swallowClick) {
       this.swallowClick = false;
@@ -603,8 +570,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     }
   };
 
-  // Follows a press on the document until it ends, so that it is not lost when the pointer is released outside the
-  // chart.
   private trackPress(container: HTMLElement, pointerId: number) {
     this.stopPress();
     const document = container.ownerDocument;
@@ -629,7 +594,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   }
 }
 
-// The next zoom state for a state of the interaction, keeping what the controls and the announcer show.
 function withInteraction(prev: ReactiveZoomState, interaction: ZoomState): ReactiveZoomState {
   const { zoomed, canZoom, announcement, announcementCount } = prev;
   const common = { zoomed, canZoom, announcement, announcementCount };
@@ -648,16 +612,10 @@ function extremesFromRange(zoomRange: undefined | null | ZoomRange): null | Zoom
   return x ? { min: Math.min(x.startValue, x.endValue), max: Math.max(x.startValue, x.endValue) } : null;
 }
 
-// The rectangles are in physical pixels relative to the chart, matching chart.plotLeft, plotTop, and toPixels.
-
-// In an inverted chart the x axis runs vertically, so every pixel computation swaps the two dimensions
-// and Axis.toValue / toPixels operate on chart y coordinates instead of x ones.
 function isXAxisHorizontal(xAxis: Pick<Highcharts.Axis, "horiz">): boolean {
   return xAxis.horiz !== false;
 }
 
-// The stop nearest to a pointer position over the chart. On a logarithmic axis the nearest value is not always the
-// nearest on screen, so the neighbouring stops are compared by their distance in pixels.
 function findStopAtPointer(values: readonly number[], xAxis: Highcharts.Axis, chartX: number, chartY: number): number {
   const pixel = isXAxisHorizontal(xAxis) ? chartX : chartY;
   const index = findNearestIndex(values, xAxis.toValue(pixel, false));
@@ -674,14 +632,10 @@ function findStopAtPointer(values: readonly number[], xAxis: Highcharts.Axis, ch
   return nearest;
 }
 
-// Converts an x-axis value into a chart-relative pixel along the axis.
 function valueToPixel(xAxis: Highcharts.Axis, value: number): number {
   return xAxis.toPixels(value, false);
 }
 
-// True when increasing x values map to increasing pixel coordinates. Derived from the rendered pixels
-// rather than from the reversed / inverted options, so it holds for right-to-left pages, consumer-set
-// `reversed` axes, and inverted charts alike, including combinations of the three.
 function isPixelForward(xAxis: Highcharts.Axis, values: readonly number[]): boolean {
   if (values.length < 2) {
     return true;
@@ -689,7 +643,6 @@ function isPixelForward(xAxis: Highcharts.Axis, values: readonly number[]): bool
   return valueToPixel(xAxis, values[values.length - 1]) >= valueToPixel(xAxis, values[0]);
 }
 
-// A line across the plot at the given x value.
 function getDividerRect(chart: SafeChart, xAxis: Highcharts.Axis, value: number): Rect {
   const pixel = valueToPixel(xAxis, value);
   return isXAxisHorizontal(xAxis)
@@ -707,7 +660,6 @@ function getDividerRect(chart: SafeChart, xAxis: Highcharts.Axis, value: number)
       };
 }
 
-// The band covering the range between two x values, spanning the plot across the other dimension.
 function getBandRect(chart: SafeChart, xAxis: Highcharts.Axis, fromValue: number, toValue: number): Rect {
   const fromPixel = valueToPixel(xAxis, fromValue);
   const toPixel = valueToPixel(xAxis, toValue);
@@ -719,13 +671,11 @@ function getBandRect(chart: SafeChart, xAxis: Highcharts.Axis, fromValue: number
     : { x: chart.plotLeft, y: start, width: chart.plotWidth, height: size };
 }
 
-// The offset of the Highcharts container from the element the cursor is positioned against.
 interface OverlayOrigin {
   left: number;
   top: number;
 }
 
-// Positions the cursor imperatively, so that stepping the cursor causes no React render.
 function applyRect(element: null | HTMLElement, rect: null | Rect, origin: OverlayOrigin) {
   if (!element) {
     return;

@@ -146,8 +146,6 @@ export function pressCursorKey(keyCode: number, times = 1) {
   }
 }
 
-// Drives a full keyboard zoom over the visible points, by index: the cursor starts at the first visible point, so
-// stepping right N times lands on the N-th visible point.
 export function keyboardZoomToIndexes(startIndex: number, endIndex: number) {
   enterZoomMode();
   pressCursorKey(KeyCode.right, startIndex);
@@ -156,8 +154,6 @@ export function keyboardZoomToIndexes(startIndex: number, endIndex: number) {
   pressCursorKey(KeyCode.enter);
 }
 
-// Targets the most recently rendered chart: highcharts.charts accumulates entries across tests, and disposed charts
-// remain as holes.
 export function getCurrentChart() {
   return [...highcharts.charts].reverse().find((c) => c)!;
 }
@@ -167,7 +163,6 @@ export function getXExtremes() {
   return { min, max };
 }
 
-// The zoomed range and the selection are drawn on the chart SVG, and lose their class names when hidden.
 export function findZoomSvg(className: string): null | SVGElement {
   return createChartWrapper().getElement().querySelector(`.${testClasses[className]}`);
 }

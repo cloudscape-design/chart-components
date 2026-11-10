@@ -154,7 +154,6 @@ export const cursorLine = {
   "pointer-events": "none",
 };
 
-// Thickness of the zoom cursor and the selection boundaries drawn over the plot, matching the chart's own cursor line.
 export const zoomDividerThickness = 1;
 
 export const zoomRangeBand = {
@@ -170,7 +169,6 @@ export const zoomRangeBorders = {
   "pointer-events": "none",
 };
 
-// A shade deeper than the zoomed range band, so that a new selection shows over a zoomed plot.
 export const zoomSelectionBand = {
   fill: colorBackgroundToggleButtonNormalPressed,
   opacity: 0.5,

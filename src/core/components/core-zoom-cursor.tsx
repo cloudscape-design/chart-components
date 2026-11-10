@@ -9,7 +9,6 @@ import { ChartLabels } from "../i18n-utils";
 import styles from "../styles.css.js";
 import testClasses from "../test-classes/styles.css.js";
 
-// The keyboard cursor, positioned over the plot by the zoom helper.
 export function ChartZoomCursor({ api, labels, inverted }: { api: ChartAPI; labels: ChartLabels; inverted: boolean }) {
   return (
     <div

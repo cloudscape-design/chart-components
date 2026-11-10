@@ -333,9 +333,6 @@ describe("CoreChart: zoom selection", () => {
     expect(onZoomRangeChange).toHaveBeenCalledWith(expect.objectContaining({ detail: { zoomRange: null } }));
   });
 
-  // The core chart applies the visibleItems property to the series from an effect of its own, and the zoom reconciles
-  // after that effect: it has to see the series as the chart leaves them, or it keeps offering a range that is no
-  // longer in the plot.
   test("leaves zoom mode when the remaining series are hidden mid-selection", () => {
     const { wrapper, rerender } = renderChart({ ...defaultProps, visibleItems: ["L1", "L2"] });
 
@@ -394,7 +391,6 @@ describe("CoreChart: zoom selection", () => {
     expect(cursor).toHaveAttribute("aria-valuenow", "4");
   });
 
-  // A controlled range is applied once the consumer renders it, after the controls have rendered.
   test("moves focus to Reset after a zoom into a controlled range", () => {
     const { wrapper } = renderStatefulChart({
       ...defaultProps,
@@ -466,7 +462,6 @@ describe("CoreChart: zoom selection", () => {
     expect(wrapper.findZoomButton()!.isDisabled()).toBe(true);
   });
 
-  // On a logarithmic axis the nearest value to the pointer is not always the nearest point on screen.
   test("moves the cursor to the point nearest on screen on a logarithmic x-axis", () => {
     renderChart({
       ...defaultProps,
@@ -491,8 +486,6 @@ describe("CoreChart: zoom selection", () => {
     expect(createChartWrapper().findZoomCursor()!.getElement()).toHaveAttribute("aria-valuenow", "100");
   });
 
-  // A reversed x axis draws the values from right to left. The cursor still starts at the left edge of the plot, and
-  // the arrow keys still move it the way they point on screen.
   test("follows a reversed x axis on screen", () => {
     renderChart({ ...defaultProps, options: { series, xAxis: { min: 0, max: 4, reversed: true } } });
     enterZoomMode();

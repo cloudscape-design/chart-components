@@ -3,45 +3,13 @@
 
 import { MIN_ZOOM_POINTS } from "./zoom-utils";
 
-/**
- * The zoom interaction as a finite state machine.
- *
- * Selecting a range is a small interaction with many entry points: three buttons, eight keys, the pointer,
- * and the chart re-rendering underneath it. The states and the transitions between them are therefore
- * spelled out here, separately from the React and Highcharts plumbing that carries them out. This module is
- * pure: it holds no chart, measures nothing, and deals only in indices into the list of x values the cursor
- * can sit on. The ChartExtraZoom helper resolves those indices to values, draws them, and moves focus.
- *
- *                          enterZoomMode
- *        +-------------------------------------------------+
- *        |                                                 v
- *    +------+                                        +-----------+ --+ stepCursor, moveCursorToEdge,
- *    |      |   exitZoomMode, resetZoom, and         |           |   | pointerMove, and the commitPoint
- *    | idle | <------------------------------------- | selecting | <-+ that sets the range start
- *    |      |   the commitPoint that applies a zoom  |           |
- *    +------+                                        +-----------+
- *                                                      |  ^
- *                                    pointerDown       |  | pointerUp, which sets a boundary where the
- *                                                      v  | click landed, and pointerCancel
- *                                                  +-----------+
- *                                                  |  pressed  |
- *                                                  +-----------+
- *
- * The pressed state carries the selection it interrupted, so that a cancelled press returns to it.
- */
-
-/** The two boundaries of a range being selected. The range is complete once the anchor is set. */
 export interface ZoomSelection {
-  // Where the cursor is, which is the boundary the next commit sets.
   cursorIndex: number;
-  // Where the range starts, or null while no start point has been set.
   anchorIndex: null | number;
 }
 
-/** A pointer being held down over the plot in zoom mode. */
 export interface ZoomPress {
   pointerId: number;
-  // The stop the press started on, which the click sets as a range boundary.
   startIndex: number;
 }
 
@@ -57,7 +25,6 @@ interface SelectingState {
 interface PressedState {
   type: "pressed";
   press: ZoomPress;
-  // The selection the press interrupted.
   resume: ZoomSelection;
 }
 
@@ -66,43 +33,27 @@ export type ZoomState = IdleState | SelectingState | PressedState;
 export const IDLE_ZOOM_STATE: ZoomState = { type: "idle" };
 
 export type ZoomEvent =
-  // The "Zoom" button starts a selection at the stop the helper picks: the visible start of the plot, whichever way
-  // the axis runs.
   | { type: "enterZoomMode"; startIndex: number }
-  // The pressed Zoom button, Escape, and focus leaving the chart.
   | { type: "exitZoomMode"; moveFocus: boolean }
-  // The "Reset" button. Whether there is a zoom to reset is the helper's to know, because the range may be
-  // controlled by the consumer.
   | { type: "resetZoom"; zoomed: boolean }
-  // The arrow keys and Page Up/Down. The offset is already expressed in stops
-  // along the value axis, with the direction on screen resolved by the helper.
   | { type: "stepCursor"; offset: number }
-  // Home and End.
   | { type: "moveCursorToEdge"; edge: "first" | "last" }
-  // Enter, Space, and a click or tap on the plot.
   | { type: "commitPoint" }
   | { type: "pointerDown"; press: ZoomPress }
   | {
       type: "pointerMove";
-      // The stop nearest to the pointer.
       index: number;
       insidePlot: boolean;
     }
   | { type: "pointerUp"; pointerId: number }
   | { type: "pointerCancel"; pointerId: number }
-  // The chart has re-rendered: the stops the cursor can sit on change with the zoomed range, the data, and which
-  // series are visible.
   | { type: "chartRendered"; stopMapper: ZoomStopMapper };
 
-/** Where the stops of the previous render are among the current ones. */
 export interface ZoomStopMapper {
-  // The current stop nearest to the value of a previous one.
   nearest(index: number): number;
-  // The current stop with the value of a previous one, or null when that value is no longer shown.
   exact(index: number): null | number;
 }
 
-/** Where focus must go once the transition has been rendered. */
 export type ZoomFocusTarget = "cursor" | "zoomButton" | "resetButton";
 
 export type ZoomAnnouncement =
@@ -110,18 +61,11 @@ export type ZoomAnnouncement =
   | { type: "startPointSet"; index: number }
   | { type: "zoomModeExited" };
 
-/**
- * What the helper must do for a transition, beyond drawing the new state. The two zoom commands each also
- * announce their outcome, which the helper words from the values they resolve to.
- */
 export type ZoomEffect =
-  // Dismiss the highlighted point and its tooltip, which the selection is taking the plot over from.
   | { type: "clearHighlight" }
   | { type: "announce"; announcement: ZoomAnnouncement }
   | { type: "focus"; target: ZoomFocusTarget }
-  // Zoom into the range between two stops.
   | { type: "applyZoom"; fromIndex: number; toIndex: number }
-  // Show the full range again. Only emitted for a chart that is zoomed in.
   | { type: "resetZoom" };
 
 export interface ZoomTransition {
@@ -130,14 +74,9 @@ export interface ZoomTransition {
 }
 
 export interface ZoomContext {
-  // How many stops the cursor can sit on, as of the chart's last render.
   valuesCount: number;
 }
 
-/**
- * The next state and what has to happen for it. An event that means nothing in the current state returns
- * that same state, with no effects: the helper can then skip the work a transition would cause.
- */
 export function zoomReducer(state: ZoomState, event: ZoomEvent, context: ZoomContext): ZoomTransition {
   switch (state.type) {
     case "idle":
@@ -178,8 +117,6 @@ function fromSelecting(state: SelectingState, event: ZoomEvent, context: ZoomCon
     case "pointerDown":
       return stay({ type: "pressed", press: event.press, resume: state.selection });
     case "pointerMove":
-      // With no press in progress the cursor follows the pointer, so that a click sets the boundary the
-      // cursor is showing. Outside the plot the cursor stays where it is.
       return event.insidePlot ? moveCursor(state, event.index, valuesCount) : stay(state);
     case "chartRendered":
       return reconcile(state, event.stopMapper, context);
@@ -195,14 +132,12 @@ function fromPressed(state: PressedState, event: ZoomEvent, context: ZoomContext
       if (event.pointerId !== press.pointerId) {
         return stay(state);
       }
-      // The click sets a range boundary where it landed.
       const cursorIndex = clampIndex(press.startIndex, context.valuesCount);
       return commitPoint({ cursorIndex, anchorIndex: resume.anchorIndex }, context);
     }
     case "pointerCancel":
       return event.pointerId === press.pointerId ? stay({ type: "selecting", selection: resume }) : stay(state);
     case "pointerDown":
-      // A new press supersedes the one in progress, and inherits the selection it was interrupting.
       return stay({ type: "pressed", press: event.press, resume });
     case "enterZoomMode":
       return enterZoomMode(state, event.startIndex, context);
@@ -217,7 +152,6 @@ function fromPressed(state: PressedState, event: ZoomEvent, context: ZoomContext
   }
 }
 
-// Entering zoom mode starts a new selection at the given stop, dropping whatever was selected before.
 function enterZoomMode(state: ZoomState, startIndex: number, { valuesCount }: ZoomContext): ZoomTransition {
   if (!canZoomInto(valuesCount)) {
     return stay(state);
@@ -238,13 +172,10 @@ function exitZoomMode(moveFocus: boolean): ZoomTransition {
   return transition(IDLE_ZOOM_STATE, effects);
 }
 
-// Resetting ends the interaction from any state, but only a chart that is zoomed in has something to reset.
 function resetZoom({ zoomed }: { zoomed: boolean }): ZoomTransition {
   return zoomed ? transition(IDLE_ZOOM_STATE, [{ type: "resetZoom" }]) : stay(IDLE_ZOOM_STATE);
 }
 
-// Sets the range start on the first commit and applies the zoom on the second, which is what a click or a tap
-// on the plot, and Enter, all do.
 function commitPoint(selection: ZoomSelection, { valuesCount }: ZoomContext): ZoomTransition {
   const selecting: ZoomState = { type: "selecting", selection };
   if (valuesCount === 0) {
@@ -257,8 +188,6 @@ function commitPoint(selection: ZoomSelection, { valuesCount }: ZoomContext): Zo
     ]);
   }
   if (!isZoomableRange(anchorIndex, cursorIndex)) {
-    // A range of a single point has no width, and the chart cannot display it. Rather than applying a zoom
-    // that cannot be undone by zooming again, the start point is kept and restated.
     return transition(selecting, [{ type: "announce", announcement: { type: "startPointSet", index: anchorIndex } }]);
   }
   return transition(IDLE_ZOOM_STATE, [
@@ -267,12 +196,8 @@ function commitPoint(selection: ZoomSelection, { valuesCount }: ZoomContext): Zo
   ]);
 }
 
-// Brings the state in line with what the chart now shows. The boundaries follow their values, so a change to the data
-// does not move them to other points.
 function reconcile(state: ZoomState, stopMapper: ZoomStopMapper, { valuesCount }: ZoomContext): ZoomTransition {
   if (valuesCount === 0) {
-    // Nothing left to select, for instance because all series were filtered out. The cursor that held the focus is
-    // hidden, so the focus moves on.
     return state.type === "idle" ? stay(state) : exitZoomMode(true);
   }
   switch (state.type) {
@@ -314,7 +239,6 @@ const NO_EFFECTS: readonly ZoomEffect[] = [];
 function remapSelection(selection: ZoomSelection, stopMapper: ZoomStopMapper): ZoomSelection {
   return {
     cursorIndex: stopMapper.nearest(selection.cursorIndex),
-    // A start point that is no longer in the plot cannot be zoomed into, so the selection starts over.
     anchorIndex: selection.anchorIndex === null ? null : stopMapper.exact(selection.anchorIndex),
   };
 }
@@ -323,28 +247,20 @@ function clampIndex(index: number, valuesCount: number): number {
   return Math.min(Math.max(index, 0), Math.max(0, valuesCount - 1));
 }
 
-// A range must span at least two stops: a narrower one has no width, and the chart cannot display it.
 function isZoomableRange(fromIndex: number, toIndex: number): boolean {
   return Math.abs(toIndex - fromIndex) + 1 >= MIN_ZOOM_POINTS;
 }
 
-// With two stops or fewer there is no narrower range left to select, so there is nothing to zoom into.
 export function canZoomInto(valuesCount: number): boolean {
   return valuesCount > MIN_ZOOM_POINTS;
 }
 
-/**
- * What React must know about the state. Everything else is drawn imperatively, so that stepping the cursor
- * causes no render at all.
- */
 export type ZoomInteraction = "idle" | "cursor";
 
-// A press shows the selection it interrupted.
 export function getInteraction(state: ZoomState): ZoomInteraction {
   return state.type === "idle" ? "idle" : "cursor";
 }
 
-/** What the overlay draws for the state. */
 export type ZoomOverlayView = { type: "hidden" } | { type: "cursor"; cursorIndex: number; anchorIndex: null | number };
 
 export function getOverlayView(state: ZoomState): ZoomOverlayView {

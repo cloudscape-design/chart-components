@@ -32,8 +32,6 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
       resetButtonRef.current.focus();
       return;
     }
-    // A controlled range is applied once the consumer renders it, after this effect, so Reset can appear a render
-    // later. Until then focus waits on the Zoom button next to it.
     const waitForReset = focusRequest.target === "resetButton" && !!zoomButtonRef.current && canZoom;
     focusZoomButton(api, zoomButtonRef.current, canZoom);
     if (!waitForReset) {
@@ -57,8 +55,6 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
             formAction="none"
             onClick={() => {
               api.resetZoom();
-              // The Reset button is removed once the reset is applied. Resetting can enable the Zoom button, which
-              // only takes focus once it has rendered, so the move is requested rather than made here.
               api.focusZoomButton();
             }}
             ariaLabel={labels.resetZoomButtonAriaLabel}
@@ -95,7 +91,6 @@ const zoomModeIcon = (
   </svg>
 );
 
-// A disabled Zoom button cannot take focus, so the chart takes it instead.
 function focusZoomButton(api: ChartAPI, zoomButton: null | ToggleButtonProps.Ref, canZoom: boolean) {
   if (zoomButton && canZoom) {
     zoomButton.focus();
