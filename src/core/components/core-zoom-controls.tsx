@@ -19,25 +19,25 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
   const inZoomMode = useSelector(api.zoomStore, (s) => getInteraction(s) === "cursor");
   const zoomed = useSelector(api.zoomStore, (s) => s.zoomed);
   const canZoom = useSelector(api.zoomStore, (s) => s.canZoom);
-  const focusRequest = useSelector(api.zoomStore, (s) => (s.type === "idle" ? s.focusRequest : null));
+  const pendingButtonFocus = useSelector(api.zoomStore, (s) => (s.type === "idle" ? s.pendingButtonFocus : null));
   const zoomButtonRef = useRef<ToggleButtonProps.Ref>(null);
   const resetButtonRef = useRef<ButtonProps.Ref>(null);
 
   useEffect(() => {
-    if (!focusRequest) {
+    if (!pendingButtonFocus) {
       return;
     }
-    if (focusRequest.target === "resetButton" && resetButtonRef.current) {
-      api.clearZoomFocusRequest();
+    if (pendingButtonFocus.target === "resetButton" && resetButtonRef.current) {
+      api.clearPendingZoomButtonFocus();
       resetButtonRef.current.focus();
       return;
     }
-    const waitForReset = focusRequest.target === "resetButton" && !!zoomButtonRef.current && canZoom;
+    const waitForReset = pendingButtonFocus.target === "resetButton" && !!zoomButtonRef.current && canZoom;
     focusZoomButton(api, zoomButtonRef.current, canZoom);
     if (!waitForReset) {
-      api.clearZoomFocusRequest();
+      api.clearPendingZoomButtonFocus();
     }
-  }, [api, focusRequest, zoomed, canZoom]);
+  }, [api, pendingButtonFocus, zoomed, canZoom]);
 
   return (
     <div

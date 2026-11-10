@@ -8,9 +8,9 @@ import { ChartAPI } from "../chart-api";
 
 export function ChartZoomLiveRegion({ api }: { api: ChartAPI }) {
   const announcement = useSelector(api.zoomStore, (s) => s.announcement);
-  const announcementCount = useSelector(api.zoomStore, (s) => s.announcementCount);
+  const announcementKey = useSelector(api.zoomStore, (s) => s.announcementKey);
   return (
-    <LiveRegion key={announcementCount} hidden={true}>
+    <LiveRegion key={announcementKey} hidden={true}>
       {announcement}
     </LiveRegion>
   );

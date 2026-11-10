@@ -213,7 +213,7 @@ export class ChartAPI {
   public onZoomCursorKeyDown = this.chartExtraZoom.onCursorKeyDown;
   public onZoomCursorBlur = this.chartExtraZoom.onCursorBlur;
   public onZoomControlsBlur = this.chartExtraZoom.onControlsBlur;
-  public clearZoomFocusRequest = this.chartExtraZoom.clearFocusRequest;
+  public clearPendingZoomButtonFocus = this.chartExtraZoom.clearPendingButtonFocus;
   public focusZoomButton = this.chartExtraZoom.focusZoomButton;
   public enterZoomMode = () => this.chartExtraZoom.enterZoomMode();
   public exitZoomMode = ({ withFocus }: { withFocus: boolean }) => this.chartExtraZoom.exitZoomMode({ withFocus });
