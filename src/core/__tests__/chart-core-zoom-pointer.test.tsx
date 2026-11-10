@@ -1,0 +1,186 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
+import { act } from "react";
+import { afterEach, describe, expect, test, vi } from "vitest";
+
+import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
+
+import "@cloudscape-design/components/test-utils/dom";
+import { getSeriesData } from "../../../lib/components/internal/utils/highcharts";
+import {
+  createChartWrapper as getChart,
+  enterZoomMode,
+  findZoomSvg,
+  getCurrentChart,
+  getXExtremes,
+  keyboardZoomToIndexes,
+  pressCursorKey,
+} from "./common";
+import { stubPlotGeometry } from "./plot-geometry";
+import {
+  dispatchPointer,
+  getCursorAttributes,
+  getOverlay,
+  isVisible,
+  onZoomRangeChange,
+  pointerEventAtValue,
+  renderZoomChart,
+  TEST_TIMEOUT,
+} from "./zoom-test-utils";
+
+stubPlotGeometry();
+
+afterEach(() => {
+  onZoomRangeChange.mockReset();
+  document.querySelectorAll("[data-testid='outside']").forEach((element) => element.remove());
+});
+
+describe("CoreChart: zoom selection, overlay", { timeout: TEST_TIMEOUT }, () => {
+  test.each([
+    { state: "idle", act: () => {}, zoomed: false },
+    { state: "after a committed zoom", act: () => keyboardZoomToIndexes(1, 3), zoomed: true },
+  ])("draws no selection overlay $state", ({ act: run, zoomed }) => {
+    renderZoomChart({ zoom: { enabled: true } });
+    run();
+    const { band, startDivider, cursor } = getOverlay();
+    for (const element of [band, startDivider, cursor]) {
+      expect(isVisible(element)).toBe(false);
+    }
+    expect(isVisible(findZoomSvg("zoom-range"))).toBe(zoomed);
+  });
+
+  test("shows the cursor while selecting, and the band once the start point is set", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    enterZoomMode();
+    expect(isVisible(getOverlay().cursor)).toBe(true);
+    expect(isVisible(getOverlay().band)).toBe(false);
+
+    pressCursorKey(KeyCode.enter);
+    expect(isVisible(getOverlay().startDivider)).toBe(true);
+
+    pressCursorKey(KeyCode.right);
+    expect(isVisible(getOverlay().band)).toBe(true);
+  });
+});
+describe("CoreChart: zoom selection, pointer interaction", { timeout: TEST_TIMEOUT }, () => {
+  test("sets a boundary when a press on the plot is released outside the chart", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    const outside = document.createElement("div");
+    document.body.appendChild(outside);
+    try {
+      enterZoomMode();
+      dispatchPointer("pointerdown", 1);
+      act(() => {
+        outside.dispatchEvent(pointerEventAtValue("pointerup", 3));
+      });
+      expect(isVisible(getOverlay().startDivider)).toBe(true);
+      expect(getCursorAttributes().text).toBe("Selecting zoom range from 1 to 1.");
+    } finally {
+      outside.remove();
+    }
+  });
+
+  test("returns to the selection on pointercancel", () => {
+    renderZoomChart({ zoom: { enabled: true }, onZoomRangeChange });
+    enterZoomMode();
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointercancel", 1);
+    expect(isVisible(getOverlay().startDivider)).toBe(false);
+    expect(getChart().findExitZoomButton()).not.toBe(null);
+    expect(onZoomRangeChange).not.toHaveBeenCalled();
+  });
+
+  test("leaves presses outside zoom mode to the chart", () => {
+    renderZoomChart({ zoom: { enabled: true }, onZoomRangeChange });
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointermove", 3);
+    dispatchPointer("pointerup", 3);
+    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
+    expect(getChart().findExitZoomButton()).toBe(null);
+    expect(onZoomRangeChange).not.toHaveBeenCalled();
+  });
+
+  test("moves the cursor with the pointer hovering the plot in zoom mode", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    enterZoomMode();
+    const startLeft = getOverlay().cursor.style.left;
+    dispatchPointer("pointermove", 3, 0, { buttons: 0 });
+    expect(getOverlay().cursor.style.left).not.toBe(startLeft);
+    expect(getCursorAttributes().now).toBe(String(3));
+  });
+
+  test("previews the band with the pointer hovering the plot after the first click", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    enterZoomMode();
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointerup", 1);
+    dispatchPointer("pointermove", 3, 0, { buttons: 0 });
+    const { band } = getOverlay();
+    expect(isVisible(band)).toBe(true);
+    expect(Number(band!.getAttribute("width"))).toBeGreaterThan(1);
+    expect(getCursorAttributes().text).toBe("Selecting zoom range from 1 to 3.");
+  });
+
+  test("shows no tooltip for a point hovered in zoom mode", async () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    vi.useFakeTimers();
+    try {
+      act(() => getSeriesData(getCurrentChart().series[0])[2].onMouseOver());
+      await act(() => vi.advanceTimersByTimeAsync(500));
+      expect(getChart().findTooltip()).not.toBe(null);
+      act(() => getSeriesData(getCurrentChart().series[0])[2].onMouseOut());
+      await act(() => vi.advanceTimersByTimeAsync(500));
+
+      enterZoomMode();
+      act(() => getSeriesData(getCurrentChart().series[0])[2].onMouseOver());
+      await act(() => vi.advanceTimersByTimeAsync(500));
+      expect(getChart().findTooltip()).toBe(null);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test("clicking twice in zoom mode selects the range", () => {
+    renderZoomChart({ zoom: { enabled: true }, onZoomRangeChange });
+    enterZoomMode();
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointerup", 1);
+    expect(isVisible(getOverlay().startDivider)).toBe(true);
+
+    dispatchPointer("pointerdown", 3);
+    dispatchPointer("pointerup", 3);
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+    expect(onZoomRangeChange).toHaveBeenCalledWith(
+      expect.objectContaining({ detail: { zoomRange: { x: { startValue: 1, endValue: 3 } } } }),
+    );
+  });
+
+  test("keeps the clicks that set the range boundaries away from the chart", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    const onContainerClick = vi.fn();
+    getCurrentChart().container.addEventListener("click", onContainerClick);
+    const click = (value: number) => {
+      dispatchPointer("pointerdown", value);
+      dispatchPointer("pointerup", value);
+      dispatchPointer("click", value);
+    };
+
+    enterZoomMode();
+    click(1);
+    click(3);
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+    expect(onContainerClick).not.toHaveBeenCalled();
+
+    click(2);
+    expect(onContainerClick).toHaveBeenCalledTimes(1);
+  });
+
+  test("ignores presses of non-primary mouse buttons", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    enterZoomMode();
+    dispatchPointer("pointerdown", 1, 0, { button: 2, buttons: 2 });
+    dispatchPointer("pointerup", 1, 0, { button: 2, buttons: 0 });
+    expect(isVisible(getOverlay().startDivider)).toBe(false);
+  });
+});
