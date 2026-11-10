@@ -261,7 +261,7 @@ function commitPoint(selection: ZoomSelection, { valuesCount }: ZoomContext): Zo
 
 function reconcile(state: ZoomState, stopMapper: ZoomStopMapper, { valuesCount }: ZoomContext): ZoomTransition {
   if (valuesCount === 0) {
-    if (state.type === "idle" || getInteraction(state) === "idle") {
+    if (state.type === "idle" || !isInteracting(state)) {
       return stay(state);
     }
     return exitZoomMode(state.type === "selecting" || state.resume !== null);
@@ -330,19 +330,12 @@ export function canZoomInto(valuesCount: number): boolean {
   return valuesCount > MIN_ZOOM_POINTS;
 }
 
-export type ZoomInteraction = "idle" | "cursor" | "drag";
+export function isZooming(state: ZoomState): boolean {
+  return state.type === "selecting" || (state.type === "pressed" && !!state.resume);
+}
 
-export function getInteraction(state: ZoomState): ZoomInteraction {
-  switch (state.type) {
-    case "idle":
-      return "idle";
-    case "selecting":
-      return "cursor";
-    case "pressed":
-      return state.resume ? "cursor" : "idle";
-    case "dragging":
-      return "drag";
-  }
+export function isInteracting(state: ZoomState): boolean {
+  return isZooming(state) || state.type === "dragging";
 }
 
 export type ZoomOverlayView =

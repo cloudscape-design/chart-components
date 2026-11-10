@@ -4,10 +4,11 @@
 import { describe, expect, test } from "vitest";
 
 import {
-  getInteraction,
   getOverlayView,
   getPress,
   IDLE_ZOOM_STATE,
+  isInteracting,
+  isZooming,
   ZoomEffect,
   ZoomEvent,
   zoomReducer,
@@ -170,12 +171,13 @@ describe("zoomReducer", () => {
 
   test("zooms by dragging across the plot", () => {
     const pressed = reduce(IDLE_ZOOM_STATE, { type: "pointerDown", press: PRESS }).state;
-    expect(getInteraction(pressed)).toBe("idle");
+    expect(isInteracting(pressed)).toBe(false);
     expect(getOverlayView(pressed)).toEqual({ type: "hidden" });
 
     const dragging = reduce(pressed, { ...DRAG_MOVE, index: 7 }).state;
 
-    expect(getInteraction(dragging)).toBe("drag");
+    expect(isZooming(dragging)).toBe(false);
+    expect(isInteracting(dragging)).toBe(true);
     expect(getOverlayView(dragging)).toEqual({ type: "range", fromIndex: 4, toIndex: 7 });
 
     const zoomed = reduce(dragging, UP);
@@ -275,15 +277,16 @@ describe("zoomReducer", () => {
 
 describe("zoom state projections", () => {
   test.each([
-    [IDLE_ZOOM_STATE, "idle", { type: "hidden" }, null],
-    [SELECTING, "cursor", { type: "cursor", cursorIndex: 3, anchorIndex: null }, null],
-    [PRESSED, "idle", { type: "hidden" }, PRESS],
-    [PRESSED_IN_ZOOM, "cursor", { type: "cursor", ...STARTED }, PRESS],
-    [DRAGGING, "drag", { type: "range", fromIndex: 4, toIndex: 8 }, { ...PRESS, currentIndex: 8 }],
+    [IDLE_ZOOM_STATE, false, false, { type: "hidden" }, null],
+    [SELECTING, true, true, { type: "cursor", cursorIndex: 3, anchorIndex: null }, null],
+    [PRESSED, false, false, { type: "hidden" }, PRESS],
+    [PRESSED_IN_ZOOM, true, true, { type: "cursor", ...STARTED }, PRESS],
+    [DRAGGING, false, true, { type: "range", fromIndex: 4, toIndex: 8 }, { ...PRESS, currentIndex: 8 }],
   ])(
     "describes the %# state to React, to the overlay, and to the pointer handlers",
-    (state, interaction, view, press) => {
-      expect(getInteraction(state)).toBe(interaction);
+    (state, zooming, interacting, view, press) => {
+      expect(isZooming(state)).toBe(zooming);
+      expect(isInteracting(state)).toBe(interacting);
       expect(getOverlayView(state)).toEqual(view);
       expect(getPress(state)).toEqual(press);
     },

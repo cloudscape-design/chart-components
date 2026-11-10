@@ -132,8 +132,12 @@ export class ChartAPI {
       chartAPI.resetColorCounter();
       chartAPI.showMarkersForIsolatedPoints();
     };
-    const onChartClick: Highcharts.ChartClickCallbackFunction = function () {
+    const onChartClick = function (this: Highcharts.Chart): boolean {
+      if (chartAPI.chartExtraZoom.consumeChartClick()) {
+        return false;
+      }
       chartAPI.chartExtraPointer.onChartClick(this.hoverPoint);
+      return true;
     };
     const onSeriesPointMouseOver: Highcharts.PointMouseOverCallbackFunction = function () {
       chartAPI.chartExtraPointer.onSeriesPointMouseOver(this);
@@ -141,8 +145,12 @@ export class ChartAPI {
     const onSeriesPointMouseOut: Highcharts.PointMouseOutCallbackFunction = function () {
       chartAPI.chartExtraPointer.onSeriesPointMouseOut();
     };
-    const onSeriesPointClick: Highcharts.PointClickCallbackFunction = function () {
+    const onSeriesPointClick = function (this: Highcharts.Point): boolean {
+      if (chartAPI.chartExtraZoom.consumeChartClick()) {
+        return false;
+      }
       chartAPI.chartExtraPointer.onSeriesPointClick(this);
+      return true;
     };
     return {
       onChartLoad,
@@ -213,12 +221,14 @@ export class ChartAPI {
   public onZoomCursorKeyDown = this.chartExtraZoom.onCursorKeyDown;
   public onZoomCursorBlur = this.chartExtraZoom.onCursorBlur;
   public onZoomControlsBlur = this.chartExtraZoom.onControlsBlur;
-  public clearZoomFocusRequest = this.chartExtraZoom.clearFocusRequest;
-  public focusZoomButton = this.chartExtraZoom.focusZoomButton;
+  public setZoomButton = this.chartExtraZoom.setZoomButton;
+  public setResetZoomButton = this.chartExtraZoom.setResetButton;
+  public onZoomControlsUpdate = this.chartExtraZoom.onZoomControlsUpdate;
   public enterZoomMode = () => this.chartExtraZoom.enterZoomMode();
   public exitZoomMode = ({ withFocus }: { withFocus: boolean }) => this.chartExtraZoom.exitZoomMode({ withFocus });
   // Resets the zoom from the Reset button of the zoom controls.
-  public resetZoom = ({ isApiCall }: { isApiCall: boolean }) => this.chartExtraZoom.resetZoom({ isApiCall });
+  public resetZoom = ({ isApiCall, withFocus }: { isApiCall: boolean; withFocus?: boolean }) =>
+    this.chartExtraZoom.resetZoom({ isApiCall, withFocus });
 
   // Hide the tooltip from an action initiated by the tooltip's content
   public hideTooltip = () => {

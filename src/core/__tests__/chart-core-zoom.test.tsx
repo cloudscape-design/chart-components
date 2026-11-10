@@ -83,6 +83,38 @@ function keyboardZoomToIndexes(startIndex: number, endIndex: number) {
 }
 
 describe("CoreChart: zoom", () => {
+  test("keeps the clicks that set the range boundaries away from the chart", () => {
+    const onChartClick = vi.fn();
+    renderChart({ ...defaultProps, options: { ...defaultProps.options, chart: { events: { click: onChartClick } } } });
+    const click = (value: number) => {
+      const chart = getCurrentChart();
+      const init = {
+        bubbles: true,
+        cancelable: true,
+        pointerId: 1,
+        pointerType: "mouse",
+        button: 0,
+        buttons: 1,
+        clientX: chart.xAxis[0].toPixels(value, false),
+        clientY: chart.plotTop + chart.plotHeight / 2,
+      };
+      for (const type of ["pointerdown", "pointerup", "click"]) {
+        act(() => {
+          chart.container.dispatchEvent(new PointerEvent(type, init));
+        });
+      }
+    };
+
+    enterZoomMode();
+    click(1);
+    click(3);
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+    expect(onChartClick).not.toHaveBeenCalled();
+
+    click(2);
+    expect(onChartClick).toHaveBeenCalledTimes(1);
+  });
+
   test("renders no zoom affordances when zoom is not enabled", () => {
     const { wrapper } = renderChart({ ...defaultProps, zoom: undefined });
     expect(wrapper.findZoomButton()).toBe(null);

@@ -326,7 +326,9 @@ export function InternalCoreChart({
                   return options.chart?.events?.render?.call(this, event);
                 },
                 click(event) {
-                  apiOptions.onChartClick.call(this, event);
+                  if (!apiOptions.onChartClick.call(this)) {
+                    return false;
+                  }
                   return options.chart?.events?.click?.call(this, event);
                 },
               },
@@ -350,7 +352,9 @@ export function InternalCoreChart({
                       return options.plotOptions?.series?.point?.events?.mouseOut?.call(this, event);
                     },
                     click(event) {
-                      apiOptions.onSeriesPointClick.call(this, event);
+                      if (!apiOptions.onSeriesPointClick.call(this)) {
+                        return false;
+                      }
                       return options.plotOptions?.series?.point?.events?.click?.call(this, event);
                     },
                   },
