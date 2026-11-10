@@ -218,7 +218,15 @@ describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
     enterZoomMode();
     expect(getChart().findZoomButton()).toBe(null);
     expect(getChart().findExitZoomButton()!.getElement()).toHaveTextContent("Zoom");
-    expect(getChart().findExitZoomButton()!.getElement()).toHaveAttribute("aria-label", "Exit zoom mode");
+  });
+
+  test("keeps the same accessible name on the Zoom button in zoom mode", () => {
+    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    const button = getChart().findZoomButton()!.getElement();
+    expect(button).not.toHaveAttribute("aria-label");
+    enterZoomMode();
+    expect(button).not.toHaveAttribute("aria-label");
+    expect(button).toHaveTextContent("Zoom");
   });
 
   test("clicking the pressed Zoom button returns to idle state", () => {
@@ -460,31 +468,28 @@ describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
       zoom: { enabled: true },
       i18nStrings: {
         enterZoomModeButtonText: "Vergrößern",
-        exitZoomModeButtonAriaLabel: "Zoom-Modus beenden",
         resetZoomButtonText: "Zurücksetzen",
+        resetZoomButtonAriaLabel: "Zoom zurücksetzen",
         zoomControlsAriaLabel: "Zoom-Steuerung",
       },
     });
     expect(getChart().getElement().querySelector('[role="region"]')).toHaveAttribute("aria-label", "Zoom-Steuerung");
     expect(getChart().findZoomButton()!.getElement()).toHaveTextContent("Vergrößern");
 
-    enterZoomMode();
-    expect(getChart().findExitZoomButton()!.getElement()).toHaveAttribute("aria-label", "Zoom-Modus beenden");
-
-    getChart().findExitZoomButton()!.click();
     keyboardZoomToIndexes(1, 3);
     expect(getChart().findResetZoomButton()!.getElement()).toHaveTextContent("Zurücksetzen");
+    expect(getChart().findResetZoomButton()!.getElement()).toHaveAttribute("aria-label", "Zoom zurücksetzen");
   });
 
   test("resolves the zoom strings from the I18nProvider, with i18nStrings taking precedence", () => {
     renderCartesianChart({
       ...defaultProps,
       zoom: { enabled: true },
-      i18nStrings: { exitZoomModeButtonAriaLabel: "i18n: exit" },
+      i18nStrings: { resetZoomButtonText: "i18n: reset" },
       i18nProvider: {
         "[charts]": {
           "i18nStrings.enterZoomModeButtonText": "provider: zoom",
-          "i18nStrings.exitZoomModeButtonAriaLabel": "provider: exit",
+          "i18nStrings.resetZoomButtonText": "provider: reset",
           "i18nStrings.zoomRangeChangeAnnouncementText": "provider: {startValue} to {endValue}",
         },
       },
@@ -492,13 +497,12 @@ describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
     expect(getChart().findZoomButton()!.getElement()).toHaveTextContent("provider: zoom");
 
     enterZoomMode();
-    expect(getChart().findExitZoomButton()!.getElement()).toHaveAttribute("aria-label", "i18n: exit");
-
     pressCursorKey(KeyCode.right);
     pressCursorKey(KeyCode.enter);
     pressCursorKeyTimes(KeyCode.right, 2);
     pressCursorKey(KeyCode.enter);
     expect(getChart().getElement()).toHaveTextContent("provider: 1 to 3");
+    expect(getChart().findResetZoomButton()!.getElement()).toHaveTextContent("i18n: reset");
   });
 
   test("announces the zoom range change, including with hideZoomControls", () => {
@@ -544,7 +548,7 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
   test.each([
     { count: 5, step: 1 },
     { count: 50, step: 5 },
-  ])("steps the cursor a tenth of $count points with PageUp and PageDown", ({ count, step }) => {
+  ])("steps the cursor a tenth of $count points with PageDown and PageUp", ({ count, step }) => {
     renderCartesianChart({
       ...defaultProps,
       series: seriesOfLength(count),
@@ -552,10 +556,36 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
       zoom: { enabled: true },
     });
     enterZoomMode();
-    pressCursorKey(KeyCode.pageUp);
-    expect(getCursorAttributes().now).toBe(String(step));
     pressCursorKey(KeyCode.pageDown);
+    expect(getCursorAttributes().now).toBe(String(step));
+    pressCursorKey(KeyCode.pageUp);
     expect(getCursorAttributes().now).toBe("0");
+  });
+
+  test.each([
+    { name: "left-to-right page", rtl: false, inverted: false, key: KeyCode.pageDown, now: "5" },
+    { name: "inverted chart", rtl: false, inverted: true, key: KeyCode.pageDown, now: "5" },
+    { name: "right-to-left page", rtl: true, inverted: false, key: KeyCode.pageUp, now: "44" },
+  ])("pages through the values in order, as chart navigation does, in a $name", ({ rtl, inverted, key, now }) => {
+    if (rtl) {
+      renderInRtl();
+    }
+    const props = {
+      ...defaultProps,
+      inverted,
+      series: seriesOfLength(50),
+      xAxis: { ...defaultProps.xAxis, max: 49 },
+      zoom: { enabled: true },
+    };
+    try {
+      const { rerender } = renderCartesianChart(props);
+      rerender(props);
+      enterZoomMode();
+      pressCursorKey(key);
+      expect(getCursorAttributes().now).toBe(now);
+    } finally {
+      vi.restoreAllMocks();
+    }
   });
 
   test("ignores vertical arrow keys on a horizontal axis", () => {

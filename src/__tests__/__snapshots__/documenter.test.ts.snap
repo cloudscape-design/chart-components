@@ -208,22 +208,12 @@ Supported Highcharts versions: 12.",
             "type": "string",
           },
           {
-            "name": "enterZoomModeButtonAriaLabel",
-            "optional": true,
-            "type": "string",
-          },
-          {
             "name": "enterZoomModeButtonText",
             "optional": true,
             "type": "string",
           },
           {
             "name": "errorText",
-            "optional": true,
-            "type": "string",
-          },
-          {
-            "name": "exitZoomModeButtonAriaLabel",
             "optional": true,
             "type": "string",
           },

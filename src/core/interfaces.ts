@@ -161,8 +161,6 @@ export interface WithCartesianI18nStrings {
    * * `xAxisRoleDescription` (optional, string) - Accessible role description of the x axis, e.g. "x axis".
    * * `yAxisRoleDescription` (optional, string) - Accessible role description of the y axis, e.g. "y axis".
    * * `enterZoomModeButtonText` (optional, string) - Visible label for the "Zoom" button that enters zoom mode.
-   * * `enterZoomModeButtonAriaLabel` (optional, string) - Accessible label for the "Zoom" button.
-   * * `exitZoomModeButtonAriaLabel` (optional, string) - Accessible label for the pressed "Zoom" button, which exits zoom mode.
    * * `resetZoomButtonText` (optional, string) - Visible label for the "Reset" button that resets zoom to full range.
    * * `resetZoomButtonAriaLabel` (optional, string) - Accessible label for the "Reset" button.
    * * `zoomControlsAriaLabel` (optional, string) - Accessible label for the zoom controls region.
@@ -203,10 +201,6 @@ export interface CartesianI18nStrings extends BaseI18nStrings {
   yAxisRoleDescription?: string;
   /** Visible label for the "Zoom" button that enters zoom mode. */
   enterZoomModeButtonText?: string;
-  /** Accessible label for the "Zoom" button. */
-  enterZoomModeButtonAriaLabel?: string;
-  /** Accessible label for the pressed "Zoom" button, which exits zoom mode. */
-  exitZoomModeButtonAriaLabel?: string;
   /** Visible label for the "Reset" button that resets zoom to full range. */
   resetZoomButtonText?: string;
   /** Accessible label for the "Reset" button. */
