@@ -435,6 +435,18 @@ describe("CoreChart: zoom selection", () => {
     expect(document.activeElement).toBe(wrapper.findApplication()!.getElement());
   });
 
+  test("unpins the tooltip when zoom mode is entered with the keyboard", () => {
+    const { wrapper } = renderChart(defaultProps);
+    wrapper.findApplication()!.focus();
+    wrapper.findApplication()!.keydown(KeyCode.enter);
+    wrapper.findApplication()!.keydown(KeyCode.enter);
+    expect(wrapper.findTooltip()!.findDismissButton()).not.toBe(null);
+
+    wrapper.findZoomButton()!.click();
+    expect(wrapper.findExitZoomButton()).not.toBe(null);
+    expect(wrapper.findTooltip()).toBe(null);
+  });
+
   test("keeps the pressed Zoom button enabled when the data shrinks during a selection", () => {
     const { wrapper, rerender } = renderChart(defaultProps);
     enterZoomMode();

@@ -340,6 +340,7 @@ export class ChartAPI {
   private get zoomHandlers(): ChartExtraZoomHandlers {
     return {
       onClearHighlight: () => this.clearChartHighlight({ isApiCall: false }),
+      onHideTooltip: () => this.hideTooltip(),
       onFocusChart: () => this.chartExtraNavigation.focusChartApplication(),
     };
   }

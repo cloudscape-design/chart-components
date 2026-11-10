@@ -52,6 +52,7 @@ export type ReactiveZoomState = ZoomCommonState &
 
 export interface ChartExtraZoomHandlers {
   onClearHighlight(): void;
+  onHideTooltip(): void;
   onFocusChart(): void;
 }
 
@@ -359,7 +360,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private runEffect(effect: Exclude<ZoomEffect, { type: "focus" }>) {
     switch (effect.type) {
       case "clearHighlight":
-        this.handlers.onClearHighlight();
+        this.handlers.onHideTooltip();
         break;
       case "announce":
         this.announce(this.describeAnnouncement(effect.announcement));

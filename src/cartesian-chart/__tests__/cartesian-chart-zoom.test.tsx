@@ -623,15 +623,16 @@ describe("CartesianChart: zoom selection, keyboard interaction", { timeout: TEST
 
 describe("CartesianChart: zoom selection, overlay", { timeout: TEST_TIMEOUT }, () => {
   test.each([
-    { state: "idle", act: () => {} },
-    { state: "after a committed zoom", act: () => keyboardZoomToIndexes(1, 3) },
-  ])("draws nothing $state", ({ act: run }) => {
+    { state: "idle", act: () => {}, zoomed: false },
+    { state: "after a committed zoom", act: () => keyboardZoomToIndexes(1, 3), zoomed: true },
+  ])("draws no selection overlay $state", ({ act: run, zoomed }) => {
     renderZoomChart({ ...defaultProps, zoom: { enabled: true } });
     run();
     const { band, startDivider, cursor } = getOverlay();
     for (const element of [band, startDivider, cursor]) {
       expect(isVisible(element)).toBe(false);
     }
+    expect(isVisible(findZoomSvg("zoom-range"))).toBe(zoomed);
   });
 
   test("shows the cursor while selecting, and the band once the start point is set", () => {
@@ -649,7 +650,7 @@ describe("CartesianChart: zoom selection, overlay", { timeout: TEST_TIMEOUT }, (
 });
 
 describe("CartesianChart: zoom selection, pointer interaction", { timeout: TEST_TIMEOUT }, () => {
-  test("sets a boundary for a press that is released outside the plot", () => {
+  test("sets a boundary when a press on the plot is released outside the chart", () => {
     renderZoomChart({ ...defaultProps, zoom: { enabled: true } });
     const outside = document.createElement("div");
     document.body.appendChild(outside);
