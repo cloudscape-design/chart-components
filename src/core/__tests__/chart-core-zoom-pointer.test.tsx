@@ -157,9 +157,8 @@ describe("CoreChart: zoom selection, pointer interaction", { timeout: TEST_TIMEO
   });
 
   test("keeps the clicks that set the range boundaries away from the chart", () => {
-    renderZoomChart({ zoom: { enabled: true } });
-    const onContainerClick = vi.fn();
-    getCurrentChart().container.addEventListener("click", onContainerClick);
+    const onChartClick = vi.fn();
+    renderZoomChart({ zoom: { enabled: true }, onChartClick });
     const click = (value: number) => {
       dispatchPointer("pointerdown", value);
       dispatchPointer("pointerup", value);
@@ -170,10 +169,10 @@ describe("CoreChart: zoom selection, pointer interaction", { timeout: TEST_TIMEO
     click(1);
     click(3);
     expect(getXExtremes()).toEqual({ min: 1, max: 3 });
-    expect(onContainerClick).not.toHaveBeenCalled();
+    expect(onChartClick).not.toHaveBeenCalled();
 
     click(2);
-    expect(onContainerClick).toHaveBeenCalledTimes(1);
+    expect(onChartClick).toHaveBeenCalledTimes(1);
   });
 
   test("ignores presses of non-primary mouse buttons", () => {

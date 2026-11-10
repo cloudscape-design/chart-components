@@ -4,9 +4,9 @@
 import { describe, expect, test } from "vitest";
 
 import {
-  getInteraction,
   getOverlayView,
   IDLE_ZOOM_STATE,
+  isZooming,
   ZoomEffect,
   ZoomEvent,
   zoomReducer,
@@ -218,11 +218,11 @@ describe("zoomReducer", () => {
 
 describe("zoom state projections", () => {
   test.each([
-    [IDLE_ZOOM_STATE, "idle", { type: "hidden" }],
-    [SELECTING, "cursor", { type: "cursor", cursorIndex: 3, anchorIndex: null }],
-    [PRESSED, "cursor", { type: "cursor", ...STARTED }],
-  ])("describes the %# state to React and to the overlay", (state, interaction, view) => {
-    expect(getInteraction(state)).toBe(interaction);
+    [IDLE_ZOOM_STATE, false, { type: "hidden" }],
+    [SELECTING, true, { type: "cursor", cursorIndex: 3, anchorIndex: null }],
+    [PRESSED, true, { type: "cursor", ...STARTED }],
+  ])("describes the %# state to React and to the overlay", (state, zooming, view) => {
+    expect(isZooming(state)).toBe(zooming);
     expect(getOverlayView(state)).toEqual(view);
   });
 });

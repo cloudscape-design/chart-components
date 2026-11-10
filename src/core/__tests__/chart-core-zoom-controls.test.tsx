@@ -272,6 +272,14 @@ describe("CoreChart: zoom selection, controls", { timeout: TEST_TIMEOUT }, () =>
   });
 });
 describe("CoreChart: zoom selection, focus and keyboard containment", { timeout: TEST_TIMEOUT }, () => {
+  test("moves focus to the Zoom button when a controlled reset is not applied", () => {
+    renderZoomChart({ zoom: { enabled: true }, zoomRange: { x: { startValue: 1, endValue: 3 } }, onZoomRangeChange });
+    getChart().findResetZoomButton()!.click();
+    expect(onZoomRangeChange).toHaveBeenCalledWith(expect.objectContaining({ detail: { zoomRange: null } }));
+    expect(getChart().findResetZoomButton()).not.toBe(null);
+    expect(document.activeElement).toBe(getChart().findZoomButton()!.getElement());
+  });
+
   test("moves focus to the Zoom button after resetting from the minimum range", () => {
     renderZoomChart({ zoom: { enabled: true } });
     keyboardZoomToIndexes(0, 1);

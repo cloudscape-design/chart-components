@@ -255,10 +255,8 @@ export function canZoomInto(valuesCount: number): boolean {
   return valuesCount > MIN_ZOOM_POINTS;
 }
 
-export type ZoomInteraction = "idle" | "cursor";
-
-export function getInteraction(state: ZoomState): ZoomInteraction {
-  return state.type === "idle" ? "idle" : "cursor";
+export function isZooming(state: ZoomState): boolean {
+  return state.type !== "idle";
 }
 
 export type ZoomOverlayView = { type: "hidden" } | { type: "cursor"; cursorIndex: number; anchorIndex: null | number };

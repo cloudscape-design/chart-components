@@ -37,6 +37,7 @@ export type ZoomTestProps = Omit<CoreChartTestProps, "options"> & {
   series?: ZoomTestSeries;
   xAxis?: CoreChartProps.XAxisOptions;
   inverted?: boolean;
+  onChartClick?: () => void;
 };
 
 export function renderZoomChart(props: ZoomTestProps) {
@@ -44,12 +45,16 @@ export function renderZoomChart(props: ZoomTestProps) {
   return { rerender: (props: ZoomTestProps) => rerender(getZoomChartProps(props)) };
 }
 
-function getZoomChartProps({ series: chartSeries = series, xAxis, inverted, ...props }: ZoomTestProps) {
+function getZoomChartProps({ series: chartSeries = series, xAxis, inverted, onChartClick, ...props }: ZoomTestProps) {
   return {
     highcharts,
     i18nProvider: zoomMessages,
     ...props,
-    options: { chart: { inverted }, series: structuredClone(chartSeries), xAxis: { min: 0, max: 4, ...xAxis } },
+    options: {
+      chart: { inverted, events: { click: onChartClick } },
+      series: structuredClone(chartSeries),
+      xAxis: { min: 0, max: 4, ...xAxis },
+    },
   };
 }
 

@@ -1,43 +1,27 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
-import Button, { ButtonProps } from "@cloudscape-design/components/button";
+import Button from "@cloudscape-design/components/button";
 import SpaceBetween from "@cloudscape-design/components/space-between";
-import ToggleButton, { ToggleButtonProps } from "@cloudscape-design/components/toggle-button";
+import ToggleButton from "@cloudscape-design/components/toggle-button";
 
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
-import { getInteraction } from "../chart-zoom/zoom-state-machine";
 import { ChartLabels } from "../i18n-utils";
 
 import styles from "../styles.css.js";
 import testClasses from "../test-classes/styles.css.js";
 
 export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: ChartLabels }) {
-  const inZoomMode = useSelector(api.zoomStore, (s) => getInteraction(s) === "cursor");
+  const zooming = useSelector(api.zoomStore, (s) => s.zooming);
   const zoomed = useSelector(api.zoomStore, (s) => s.zoomed);
   const canZoom = useSelector(api.zoomStore, (s) => s.canZoom);
-  const pendingButtonFocus = useSelector(api.zoomStore, (s) => (s.type === "idle" ? s.pendingButtonFocus : null));
-  const zoomButtonRef = useRef<ToggleButtonProps.Ref>(null);
-  const resetButtonRef = useRef<ButtonProps.Ref>(null);
 
   useEffect(() => {
-    if (!pendingButtonFocus) {
-      return;
-    }
-    if (pendingButtonFocus.target === "resetButton" && resetButtonRef.current) {
-      api.clearPendingZoomButtonFocus();
-      resetButtonRef.current.focus();
-      return;
-    }
-    const waitForReset = pendingButtonFocus.target === "resetButton" && !!zoomButtonRef.current && canZoom;
-    focusZoomButton(api, zoomButtonRef.current, canZoom);
-    if (!waitForReset) {
-      api.clearPendingZoomButtonFocus();
-    }
-  }, [api, pendingButtonFocus, zoomed, canZoom]);
+    api.onZoomControlsUpdate();
+  });
 
   return (
     <div
@@ -48,15 +32,12 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
       onBlur={api.onZoomControlsBlur}
     >
       <SpaceBetween size="s" direction="horizontal">
-        {zoomed && !inZoomMode && (
+        {zoomed && !zooming && (
           <Button
-            ref={resetButtonRef}
+            ref={api.setResetZoomButton}
             variant="link"
             formAction="none"
-            onClick={() => {
-              api.resetZoom();
-              api.focusZoomButton();
-            }}
+            onClick={() => api.resetZoom({ withFocus: true })}
             ariaLabel={labels.resetZoomButtonAriaLabel}
             className={testClasses["reset-zoom-button"]}
           >
@@ -64,13 +45,13 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
           </Button>
         )}
         <ToggleButton
-          ref={zoomButtonRef}
-          pressed={inZoomMode}
+          ref={api.setZoomButton}
+          pressed={zooming}
           iconName="zoom-in"
           pressedIconSvg={zoomModeIcon}
-          disabled={!canZoom && !inZoomMode}
+          disabled={!canZoom && !zooming}
           onChange={({ detail }) => (detail.pressed ? api.enterZoomMode() : api.exitZoomMode({ withFocus: true }))}
-          className={inZoomMode ? testClasses["exit-zoom-button"] : testClasses["zoom-button"]}
+          className={zooming ? testClasses["exit-zoom-button"] : testClasses["zoom-button"]}
         >
           {labels.enterZoomModeButtonText}
         </ToggleButton>
@@ -89,11 +70,3 @@ const zoomModeIcon = (
     <circle cx="7" cy="7" r="6" />
   </svg>
 );
-
-function focusZoomButton(api: ChartAPI, zoomButton: null | ToggleButtonProps.Ref, canZoom: boolean) {
-  if (zoomButton && canZoom) {
-    zoomButton.focus();
-  } else {
-    api.focusChart();
-  }
-}
