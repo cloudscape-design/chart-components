@@ -9,7 +9,6 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 
 import "@cloudscape-design/components/test-utils/dom";
-// The error bar series type is only available with the highcharts-more module.
 import "highcharts/highcharts-more";
 import CartesianChart, { CartesianChartProps } from "../../../lib/components/cartesian-chart";
 import { getSeriesData } from "../../../lib/components/internal/utils/highcharts";
@@ -20,8 +19,6 @@ import { getChart, ref, renderCartesianChart } from "./common";
 
 import coreTestClasses from "../../../lib/components/core/test-classes/styles.selectors.js";
 
-// Every test here renders a real chart, which takes ~2s in jsdom, and the zoom interactions re-render
-// it multiple times.
 const TEST_TIMEOUT = 15_000;
 
 const series: CartesianChartProps.SeriesOptions[] = [
@@ -56,8 +53,6 @@ afterEach(() => {
 });
 
 function getCurrentChart() {
-  // Target the most recently rendered chart: highcharts.charts accumulates entries across tests
-  // (disposed charts remain as holes), so the last defined entry is the one under test.
   return [...highcharts.charts].reverse().find((c) => c)!;
 }
 
@@ -66,8 +61,6 @@ function getXExtremes() {
   return { min, max };
 }
 
-// The cursor is a DOM element positioned over the plot and hidden with visibility. The selection and the zoomed
-// range are drawn on the chart SVG, and lose their class names when hidden.
 function findSvg(className: string): null | SVGElement {
   return getChart().getElement().querySelector(`.${coreTestClasses[className]}`);
 }
@@ -89,7 +82,6 @@ function isVisible(element: null | Element) {
   return !!element && element.getAttribute("visibility") !== "hidden";
 }
 
-// The zoomed range is marked with a band and a border at each end, read back as x values.
 function getZoomRangeAffordance() {
   const xAxis = getCurrentChart().xAxis[0];
   const band = findSvg("zoom-range");
@@ -134,8 +126,6 @@ function getCursorAttributes() {
   };
 }
 
-// Drives a full keyboard zoom over the visible points, by index: the cursor starts at the first
-// visible point, so stepping right N times lands on the N-th visible point.
 function keyboardZoomToIndexes(startIndex: number, endIndex: number) {
   enterZoomMode();
   pressCursorKeyTimes(KeyCode.right, startIndex);
@@ -144,10 +134,6 @@ function keyboardZoomToIndexes(startIndex: number, endIndex: number) {
   pressCursorKey(KeyCode.enter);
 }
 
-// Pointer events are dispatched on the Highcharts container and bubble to the plot wrapper that holds
-// the zoom handlers. In jsdom the container has no offset and no scaling, so a chart-relative pixel
-// (what Axis.toPixels returns) is also the client coordinate. The offset is applied along the x axis,
-// which runs vertically in inverted charts.
 function pointerEventAtValue(type: string, value: number, offset = 0, init: PointerEventInit = {}) {
   const chart = getCurrentChart();
   const pixel = chart.xAxis[0].toPixels(value, false) + offset;
@@ -180,7 +166,6 @@ function seriesOfLength(count: number): CartesianChartProps.SeriesOptions[] {
   return [{ type: "line", name: "Requests", data: Array.from({ length: count }, (_, x) => ({ x, y: x })) }];
 }
 
-// The page direction is read from the computed style of the chart's root.
 function renderInRtl() {
   const getComputedStyle = window.getComputedStyle;
   vi.spyOn(window, "getComputedStyle").mockImplementation((element, pseudoElement) => {
@@ -221,8 +206,6 @@ describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
     expect(getChart().findZoomCursor()).not.toBe(null);
   });
 
-  // The controls render in the chart's header area, in normal flow, so they precede the plot in the
-  // DOM and therefore in the focus order.
   test("renders the zoom controls before the plot in DOM order", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
     const zoomButton = getChart().findZoomButton()!.getElement();
@@ -326,8 +309,6 @@ describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
     expect(getChart().findResetZoomButton()).toBe(null);
   });
 
-  // The zoomed range is only as visible as the axis labels make it, so while zoomed the range it covers is
-  // marked with a tint and a boundary line at each end.
   test("marks the zoomed range with a band and boundary lines", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
     expect(getZoomRangeAffordance().present).toBe(false);
@@ -349,20 +330,15 @@ describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
     expect(getZoomRangeAffordance().present).toBe(false);
 
     rerender({ ...defaultProps, zoom: { enabled: true }, zoomRange: { x: { startValue: 3, endValue: 1 } } });
-    // The range is normalized, so a reversed one still produces a band from the lower to the higher value.
     expect(getZoomRangeAffordance().band).toEqual({ from: 1, to: 3 });
 
     rerender({ ...defaultProps, zoom: { enabled: true }, zoomRange: null });
     expect(getZoomRangeAffordance().present).toBe(false);
   });
 
-  // Zoom mode can be entered on top of an existing zoom, and until a new range is applied the chart is still
-  // zoomed to the old one, which must stay marked as such.
   test("keeps the zoomed range affordance while zoom mode is re-entered", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
     keyboardZoomToIndexes(1, 3);
-    // Zoom mode is entered on top of the existing zoom, which the chart still shows until a new range is
-    // applied. The cursor now moves over the zoomed range, whose visible points are 1, 2 and 3.
     enterZoomMode();
     expect(getZoomRangeAffordance().band).toEqual({ from: 1, to: 3 });
 
@@ -381,7 +357,6 @@ describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
       onZoomRangeChange,
     });
     keyboardZoomToIndexes(1, 3);
-    // The consumer owns the range, so the chart still shows the full range, but the selection is over.
     expect(getXExtremes()).toEqual({ min: 0, max: 4 });
     expect(getChart().findExitZoomButton()).toBe(null);
     expect(onZoomRangeChange).toHaveBeenCalledWith(
@@ -394,7 +369,6 @@ describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
     keyboardZoomToIndexes(1, 4);
     enterZoomMode();
     expect(getChart().findExitZoomButton()).not.toBe(null);
-    // The Reset button steps aside while a new range is being selected.
     expect(getChart().findResetZoomButton()).toBe(null);
     expect(getXExtremes()).toEqual({ min: 1, max: 4 });
   });
@@ -415,7 +389,6 @@ describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
     expect(getXExtremes()).toEqual({ min: 1, max: 4 });
 
     onZoomRangeChange.mockReset();
-    // The visible window now holds x=1..4, and the cursor starts at its first point (x=1).
     keyboardZoomToIndexes(0, 1);
     expect(getXExtremes()).toEqual({ min: 1, max: 2 });
     expect(onZoomRangeChange).toHaveBeenCalledWith(
@@ -437,14 +410,11 @@ describe("CartesianChart: zoom controls", { timeout: TEST_TIMEOUT }, () => {
     expect(onZoomRangeChange).not.toHaveBeenCalled();
   });
 
-  // Zooming to two adjacent points leaves no room for another zoom, so the button is disabled rather
-  // than doing nothing when pressed.
   test("disables the Zoom button once zoomed to the minimum range", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
     keyboardZoomToIndexes(0, 1);
     expect(getXExtremes()).toEqual({ min: 0, max: 1 });
     expect(getChart().findZoomButton()!.isDisabled()).toBe(true);
-    // Resetting makes zooming available again.
     getChart().findResetZoomButton()!.click();
     expect(getChart().findZoomButton()!.isDisabled()).toBe(false);
   });
@@ -607,8 +577,6 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
     expect(onZoomRangeChange).not.toHaveBeenCalled();
   });
 
-  // A range of a single point has no width, so the chart cannot display it and the user cannot zoom
-  // out of it. The start point stays set instead.
   test("rejects a selection of a single point", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
     enterZoomMode();
@@ -616,7 +584,6 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
     pressCursorKey(KeyCode.enter);
     expect(getXExtremes()).toEqual({ min: 0, max: 4 });
     expect(onZoomRangeChange).not.toHaveBeenCalled();
-    // Still selecting, and completing the range from here works.
     expect(getChart().findExitZoomButton()).not.toBe(null);
     pressCursorKey(KeyCode.right);
     pressCursorKey(KeyCode.enter);
@@ -641,7 +608,6 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
     pressCursorKey(KeyCode.right);
     expect(getCursorAttributes()).toEqual({ min: "0", max: "4", now: "1", text: "1" });
 
-    // Once the start point is set, the value text describes the range being selected.
     pressCursorKey(KeyCode.enter);
     pressCursorKey(KeyCode.right);
     expect(getCursorAttributes()).toEqual({
@@ -679,8 +645,6 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
     expect(document.activeElement).toBe(getChart().findZoomButton()!.getElement());
   });
 
-  // Focus leaving the chart abandons the selection, so the chart is never left in an active zoom
-  // state the user cannot see the focus for.
   test("exits zoom mode when focus leaves the chart", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
     enterZoomMode();
@@ -708,7 +672,6 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
     expect(getChart().findZoomButton()).not.toBe(null);
   });
 
-  // When the data changes during a selection, the start point keeps the value it was set on.
   test("keeps the start point on its value when the data changes", () => {
     const xs = (values: number[]) => [
       { type: "line" as const, name: "Requests", data: values.map((x) => ({ x, y: x })) },
@@ -736,7 +699,6 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
     expect(document.activeElement).toBe(getChart().findApplication()!.getElement());
   });
 
-  // A controlled range is applied once the consumer renders it, after the controls have rendered.
   test("moves focus to Reset after a zoom into a controlled range", () => {
     function ControlledChart() {
       const [zoomRange, setZoomRange] = useState<null | CartesianChartProps.ZoomRange>(null);
@@ -758,9 +720,6 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
     expect(document.activeElement).toBe(getChart().findResetZoomButton()!.getElement());
   });
 
-  // Once zoomed, the cursor may only travel inside the visible window. Highcharts keeps the
-  // out-of-range points in the series (below cropThreshold), so the stops are recomputed from the
-  // current extremes rather than from the full data.
   test("confines the cursor to the zoomed window", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
     keyboardZoomToIndexes(1, 3);
@@ -775,8 +734,6 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
 });
 
 describe("CartesianChart: zoom overlay", { timeout: TEST_TIMEOUT }, () => {
-  // The overlay must draw nothing while idle: a highlight left on the chart after a zoom looks like a
-  // pending selection, and on an empty chart it looks like a rendering artifact.
   test.each([
     { state: "idle", act: () => {} },
     { state: "after a committed zoom", act: () => keyboardZoomToIndexes(1, 3) },
@@ -815,8 +772,6 @@ describe("CartesianChart: zoom pointer interaction", { timeout: TEST_TIMEOUT }, 
     );
   });
 
-  // The tooltip is rendered outside the plot wrapper and, with a dense series, sits right next to the
-  // pointer, so the moves and the release of a drag often land on it rather than on the plot.
   test("keeps following a drag whose moves and release land outside the plot", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
     const outside = document.createElement("div");
@@ -838,8 +793,6 @@ describe("CartesianChart: zoom pointer interaction", { timeout: TEST_TIMEOUT }, 
     }
   });
 
-  // Highcharts measures the chart position against the document, while pointer client coordinates are
-  // relative to the viewport, so the two only agree when the page is not scrolled.
   test("zooms on a drag over a chart further down a scrolled page", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
     const scrollY = 1000;
@@ -847,7 +800,6 @@ describe("CartesianChart: zoom pointer interaction", { timeout: TEST_TIMEOUT }, 
     vi.spyOn(chart.container, "getBoundingClientRect").mockReturnValue(new DOMRect(0, -scrollY, 600, 400));
     vi.spyOn(window, "pageYOffset", "get").mockReturnValue(scrollY);
     delete (chart.pointer as { chartPosition?: unknown }).chartPosition;
-    // jsdom does not account for the scroll in pageY, which a browser does.
     const dispatchScrolled = (type: string, value: number) => {
       const clientY = chart.plotTop + chart.plotHeight / 2 - scrollY;
       const event = pointerEventAtValue(type, value, 0, { clientY });
@@ -898,8 +850,6 @@ describe("CartesianChart: zoom pointer interaction", { timeout: TEST_TIMEOUT }, 
     expect(getCursorAttributes().text).toBe("Selecting zoom range from 1 to 3.");
   });
 
-  // Highcharts keeps tracking the hovered point while the tooltip is suppressed. Were that point kept
-  // highlighted, the tooltip would open on it as soon as the zoom is applied.
   test("does not show the tooltip on the point hovered during a pointer selection once zoomed", async () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
     vi.useFakeTimers();
@@ -951,8 +901,6 @@ describe("CartesianChart: zoom pointer interaction", { timeout: TEST_TIMEOUT }, 
     expect(isVisible(getOverlay().band)).toBe(false);
   });
 
-  // A press with a small amount of travel is a click, not a drag: zooming on it would make the chart
-  // impossible to click.
   test("does not zoom on a press that does not pass the drag threshold", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
     dispatchPointer("pointerdown", 1);
@@ -962,8 +910,6 @@ describe("CartesianChart: zoom pointer interaction", { timeout: TEST_TIMEOUT }, 
     expect(onZoomRangeChange).not.toHaveBeenCalled();
   });
 
-  // Capturing the pointer on press would retarget the click that follows away from the Highcharts
-  // container, and clicking the chart would no longer pin a point. Only a drag may capture it.
   test("captures the pointer only once a press turns into a drag", () => {
     const setPointerCapture = vi.fn();
     Object.assign(HTMLElement.prototype, { setPointerCapture, hasPointerCapture: () => false });
@@ -982,7 +928,6 @@ describe("CartesianChart: zoom pointer interaction", { timeout: TEST_TIMEOUT }, 
     }
   });
 
-  // A drag that stays within one data point would produce a range with no width.
   test("does not zoom on a drag covering a single data point", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
     dispatchPointer("pointerdown", 1);
@@ -1018,7 +963,6 @@ describe("CartesianChart: zoom pointer interaction", { timeout: TEST_TIMEOUT }, 
     );
   });
 
-  // The click that sets the second boundary ends zoom mode, and must not then pin a point in the chart.
   test("keeps the clicks that set the range boundaries away from the chart", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
     const onContainerClick = vi.fn();
@@ -1050,9 +994,6 @@ describe("CartesianChart: zoom pointer interaction", { timeout: TEST_TIMEOUT }, 
 });
 
 describe("CartesianChart: zoom with other series types", { timeout: TEST_TIMEOUT }, () => {
-  // Highcharts computes a minRange of its own (five times the closest data range) when the axis has no
-  // explicit bounds, and silently widens any narrower range. Grouped column charts hit this most
-  // visibly, because zooming into a couple of categories appeared to do nothing.
   test("zooms into two adjacent points without explicit axis bounds", () => {
     renderCartesianChart({
       highcharts,
@@ -1092,8 +1033,6 @@ describe("CartesianChart: zoom with other series types", { timeout: TEST_TIMEOUT
     );
   });
 
-  // Error bar data items may omit x, in which case Highcharts assigns index-based x values that have
-  // nothing to do with the x values of the series they are linked to. They must not become cursor stops.
   test("ignores error bar series when collecting cursor stops", () => {
     renderCartesianChart({
       highcharts,
@@ -1129,7 +1068,6 @@ describe("CartesianChart: zoom with other series types", { timeout: TEST_TIMEOUT
       onZoomRangeChange,
     });
     enterZoomMode();
-    // The index-based x values of the error bars (0..4) do not add stops of their own.
     expect(getCursorAttributes()).toEqual({ min: "0", max: "40", now: "0", text: "0" });
     pressCursorKey(KeyCode.right);
     expect(getCursorAttributes().now).toBe("10");
@@ -1154,8 +1092,6 @@ describe("CartesianChart: zoom with other series types", { timeout: TEST_TIMEOUT
     const cursor = getChart().findZoomCursor()!.getElement();
     expect(cursor).toHaveAttribute("aria-orientation", "vertical");
 
-    // On an inverted chart the x axis runs vertically, so the vertical arrows drive the cursor, which
-    // starts at the visual start of the plot: the top, where the smallest x value is rendered.
     expect(getCursorAttributes().now).toBe("0");
     pressCursorKey(KeyCode.down);
     expect(getCursorAttributes().now).toBe("1");
@@ -1172,8 +1108,6 @@ describe("CartesianChart: zoom direction", { timeout: TEST_TIMEOUT }, () => {
     vi.restoreAllMocks();
   });
 
-  // The cursor, the arrow keys, Home and End follow the plot as it is drawn. In a
-  // right-to-left page the x axis runs from right to left, so the values go the other way on screen.
   test.each([
     { name: "left-to-right page", rtl: false, first: "0", last: "4" },
     { name: "right-to-left page", rtl: true, first: "4", last: "0" },
@@ -1182,11 +1116,9 @@ describe("CartesianChart: zoom direction", { timeout: TEST_TIMEOUT }, () => {
       renderInRtl();
     }
     const { rerender } = renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
-    // The page direction is read from the mounted chart, so it applies from the next render.
     rerender({ ...defaultProps, zoom: { enabled: true } });
     enterZoomMode();
 
-    // The cursor starts at the left edge of the plot, so moving left does nothing.
     expect(getCursorAttributes().now).toBe(first);
     const startLeft = getCursorLeft();
     pressCursorKey(KeyCode.left);
@@ -1351,8 +1283,6 @@ describe("CartesianChart: zoom focus and keyboard containment", { timeout: TEST_
     expect(reads).toBe(0);
   });
 
-  // With hideZoomControls there is no Reset or Zoom button to land on after a zoom, so focus goes to the chart
-  // itself rather than to the page body.
   test("moves focus to the chart after a keyboard zoom when the buttons are hidden", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true, hideZoomControls: true } });
     act(() => ref.current!.enterZoomMode());

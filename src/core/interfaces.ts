@@ -535,7 +535,6 @@ export namespace CoreChartProps {
     highlightChartPoint(point: Highcharts.Point): void;
     highlightChartGroup(group: readonly Highcharts.Point[]): void;
     clearChartHighlight(): void;
-    // The zoom methods are no-ops when zooming is not enabled with the zoom property.
     enterZoomMode(): void;
     exitZoomMode(): void;
     resetZoom(): void;

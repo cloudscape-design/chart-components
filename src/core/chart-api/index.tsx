@@ -205,10 +205,8 @@ export class ChartAPI {
     }
   };
 
-  // Moves focus to the chart, when keyboard navigation is enabled.
   public focusChart = () => this.chartExtraNavigation.focusChartApplication();
 
-  // Zoom interactions, used by the zoom controls and cursor components, and the public API.
   public onZoomPropsChange = () => this.chartExtraZoom.onZoomPropsChange();
   public setZoomCursor = this.chartExtraZoom.setCursor;
   public setZoomControls = this.chartExtraZoom.setControls;
@@ -219,6 +217,7 @@ export class ChartAPI {
   public focusZoomButton = this.chartExtraZoom.focusZoomButton;
   public enterZoomMode = () => this.chartExtraZoom.enterZoomMode();
   public exitZoomMode = ({ withFocus }: { withFocus: boolean }) => this.chartExtraZoom.exitZoomMode({ withFocus });
+  // Resets the zoom from the Reset button of the zoom controls.
   public resetZoom = ({ isApiCall }: { isApiCall: boolean }) => this.chartExtraZoom.resetZoom({ isApiCall });
 
   // Hide the tooltip from an action initiated by the tooltip's content
@@ -351,7 +350,6 @@ export class ChartAPI {
   // A set of callbacks required for pointer navigation.
   private get pointerHandlers(): ChartExtraPointerHandlers {
     return {
-      // While a zoom range is selected the pointer sets the range boundaries, so it does not highlight the chart.
       onPointHover: (point) => {
         if (!this.chartExtraZoom.isActive) {
           this.highlightChartPoint(point, { isApiCall: false });

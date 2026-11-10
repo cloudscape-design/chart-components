@@ -15,12 +15,6 @@ import { zoomMessages } from "./zoom-messages";
 
 import testClasses from "../../../lib/components/core/test-classes/styles.selectors.js";
 
-// Every test here renders a real chart, which takes ~2s in jsdom, and the zoom interactions re-render it.
-// Zooming belongs to the core chart, which is what consumers that build their own chart components
-// render. The affordances themselves are covered in depth against CartesianChart; the tests here cover
-// what only the core chart can show: that zooming is reachable through the core chart's own properties,
-// slots, and API, and that it observes the series visibility the core chart applies from its own effect.
-
 stubPlotGeometry();
 
 const series: CoreChartProps.ChartOptions["series"] = [
@@ -62,8 +56,6 @@ afterEach(() => {
 });
 
 function getCurrentChart() {
-  // Target the most recently rendered chart: highcharts.charts accumulates entries across tests
-  // (disposed charts remain as holes), so the last defined entry is the one under test.
   return [...highcharts.charts].reverse().find((c) => c)!;
 }
 
@@ -82,8 +74,6 @@ function pressCursorKey(keyCode: number, times = 1) {
   }
 }
 
-// Drives a full keyboard zoom over the visible points, by index: the cursor starts at the first visible
-// point, so stepping right N times lands on the N-th visible point.
 function keyboardZoomToIndexes(startIndex: number, endIndex: number) {
   enterZoomMode();
   pressCursorKey(KeyCode.right, startIndex);
@@ -101,8 +91,6 @@ describe("CoreChart: zoom", () => {
     expect(wrapper.findZoomCursor()).toBe(null);
   });
 
-  // The zoom controls render in the chart's header area, so they precede the plot in the DOM and in the
-  // focus order, while a navigator given by the consumer keeps its own place after the plot.
   test("renders the zoom controls before the plot, leaving the navigator slot to the consumer", () => {
     const { wrapper } = renderChart({
       ...defaultProps,
@@ -153,12 +141,7 @@ describe("CoreChart: zoom", () => {
     expect(getXExtremes()).toEqual({ min: 0, max: 4 });
   });
 
-  // The core chart applies the visibleItems property to the series from an effect of its own, and the
-  // zoom reconciles after that effect: it has to see the series as the chart leaves them, or it keeps
-  // offering a range that is no longer in the plot.
   test("leaves zoom mode when the remaining series are hidden mid-selection", () => {
-    // The series visibility stays controlled for the lifetime of the component: switching from
-    // uncontrolled to controlled is not supported and the update would be ignored.
     const { wrapper, rerender } = renderChart({ ...defaultProps, visibleItems: ["L1", "L2"] });
 
     enterZoomMode();
@@ -167,14 +150,12 @@ describe("CoreChart: zoom", () => {
     rerender({ ...defaultProps, visibleItems: [] });
 
     expect(wrapper.findExitZoomButton()).toBe(null);
-    // With no points left there is no range to select, so the button has nothing to offer.
     expect(wrapper.findZoomButton()!.isDisabled()).toBe(true);
   });
 
   test("zooms over the points of the series that are still visible", () => {
     renderStatefulChart({ ...defaultProps, visibleItems: ["L2"], onZoomRangeChange });
 
-    // L1 is hidden, and the range is selected over the points of L2, which span the same x values.
     keyboardZoomToIndexes(1, 3);
 
     expect(getXExtremes()).toEqual({ min: 1, max: 3 });
@@ -254,8 +235,6 @@ describe("CoreChart: zoom", () => {
     expect(getCurrentChart().container).toHaveStyle({ touchAction });
   });
 
-  // Highcharts keeps the points outside the x-axis extremes in the series until it exceeds cropThreshold.
-  // Keyboard navigation must not reach them, whether the extremes come from a zoom or from the consumer.
   test.each([
     { name: "a zoom", props: {}, zoomTo: [1, 3], first: "1", last: "3" },
     {
@@ -371,7 +350,6 @@ describe("CoreChart: zoom", () => {
     expect(wrapper.findZoomButton()!.isDisabled()).toBe(true);
   });
 
-  // On a logarithmic axis the nearest value to the pointer is not always the nearest point on screen.
   test("moves the cursor to the point nearest on screen on a logarithmic x-axis", () => {
     renderChart({
       ...defaultProps,
@@ -396,8 +374,6 @@ describe("CoreChart: zoom", () => {
     expect(createChartWrapper().findZoomCursor()!.getElement()).toHaveAttribute("aria-valuenow", "100");
   });
 
-  // A reversed x axis draws the values from right to left. The cursor still starts at the left edge of the
-  // plot, and the arrow keys still move it the way they point on screen.
   test("follows a reversed x axis on screen", () => {
     renderChart({ ...defaultProps, options: { series, xAxis: { min: 0, max: 4, reversed: true } } });
     enterZoomMode();

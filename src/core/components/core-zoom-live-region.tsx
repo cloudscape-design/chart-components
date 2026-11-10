@@ -9,7 +9,6 @@ import { ChartAPI } from "../chart-api";
 export function ChartZoomLiveRegion({ api }: { api: ChartAPI }) {
   const announcement = useSelector(api.zoomStore, (s) => s.announcement);
   const announcementCount = useSelector(api.zoomStore, (s) => s.announcementCount);
-  // LiveRegion skips a text that matches its previous announcement, so a new one starts for each announcement.
   return (
     <LiveRegion key={announcementCount} hidden={true}>
       {announcement}

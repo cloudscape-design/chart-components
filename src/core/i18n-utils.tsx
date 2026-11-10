@@ -79,7 +79,6 @@ export function useChartI18n({
       "zoomModeEnteredAnnouncementText",
       i18nStrings?.zoomModeEnteredAnnouncementText,
     ),
-    // The cursor position is the formatted value itself, which needs no translation.
     zoomCursorPositionAnnouncementText:
       zoomValueText("zoomCursorPositionAnnouncementText", i18nStrings?.zoomCursorPositionAnnouncementText) ??
       ((value) => value),

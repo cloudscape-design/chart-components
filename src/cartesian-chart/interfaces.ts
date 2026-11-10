@@ -265,7 +265,6 @@ export namespace CartesianChartProps {
 
   export type NoDataOptions = CoreTypes.BaseNoDataOptions;
 
-  // Zooming is implemented by the core chart, so the types are shared with it rather than duplicated.
   export type ZoomOptions = CoreTypes.CoreChartProps.ZoomOptions;
 
   export type ZoomRange = CoreTypes.CoreChartProps.ZoomRange;

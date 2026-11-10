@@ -16,7 +16,6 @@ import { Page, PageSection } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
 
 const DAY = 24 * 60 * 60 * 1000;
-// A fixed start date keeps the rendered charts, and the visual regression snapshots, stable.
 const seriesStart = new Date("2025-01-01T00:00:00Z").getTime();
 
 const dailyData = range(0, 60).map((i) => ({
@@ -24,7 +23,6 @@ const dailyData = range(0, 60).map((i) => ({
   y: Math.floor((pseudoRandom() + i / 30) * 100),
 }));
 
-// Pinned to the data range, as on the other cartesian pages, so the plot starts and ends on the data.
 const xAxis = {
   title: "Time",
   type: "datetime",
@@ -64,7 +62,6 @@ interface ThisPageSettings extends PageSettings {
 type ZoomChartProps = Partial<CartesianChartProps> &
   Pick<CartesianChartProps, "series" | "ariaLabel"> & { chartRef?: React.Ref<CartesianChartProps.Ref> };
 
-// Every chart on this page has zoom enabled over the same axes, and only declares what makes it different.
 function ZoomChart({ chartRef, ...props }: ZoomChartProps) {
   const { settings, chartProps } = useChartSettings<ThisPageSettings>({ more: true });
   return (
@@ -279,7 +276,6 @@ export default function () {
 
 function ControlledZoom() {
   const chartRef = useRef<CartesianChartProps.Ref>(null);
-  // Starts zoomed, so that the visual regression tests cover the zoomed range.
   const [zoomRange, setZoomRange] = useState<null | CartesianChartProps.ZoomRange>(fixedZoomRange);
   return (
     <SpaceBetween size="s">

@@ -42,8 +42,6 @@ class ChartPageObject extends BasePageObject {
     ]);
   }
 
-  // Presses the pointer at its current position, moves it by the given offset, and releases it. The move
-  // is split into steps, because a drag is only recognized from the pointer events emitted along the way.
   async dragBy(xOffset: number, yOffset: number, steps = 5) {
     await this.browser.performActions([
       {
