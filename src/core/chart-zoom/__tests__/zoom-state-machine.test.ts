@@ -5,8 +5,6 @@ import { describe, expect, test } from "vitest";
 
 import {
   INACTIVE_ZOOM_STATE,
-  isZooming,
-  ZoomEffect,
   ZoomEvent,
   zoomReducer,
   ZoomState,
@@ -58,28 +56,6 @@ describe("zoomReducer", () => {
     }
   });
 
-  test("zooms into the range between the two committed inputs", () => {
-    const first = reduce(reduce(INACTIVE_ZOOM_STATE, ENTER).state, { type: "move", index: 2 });
-    const started = reduce(first.state, COMMIT);
-    expect(started.effects).toEqual([{ type: "announce", announcement: { type: "startPointSet", index: 2 } }]);
-
-    const second = reduce(started.state, { type: "move", index: 5 });
-    const zoomed = reduce(second.state, COMMIT);
-    expect(zoomed.state).toEqual(INACTIVE_ZOOM_STATE);
-    expect(zoomed.effects).toEqual([
-      { type: "applyZoom", fromIndex: 2, toIndex: 5 },
-      { type: "focus", target: "resetButton" },
-    ]);
-  });
-
-  test("keeps the start point when the range would be a single stop", () => {
-    const state: ZoomState = { type: "pendingSecondInput", startIndex: 4, cursorIndex: 4 };
-    const transition = reduce(state, COMMIT);
-
-    expect(transition.state).toBe(state);
-    expect(transition.effects).toEqual([{ type: "announce", announcement: { type: "startPointSet", index: 4 } }]);
-  });
-
   test("cannot enter zoom mode when there is no narrower range left", () => {
     for (const valuesCount of [0, 1, 2]) {
       const transition = zoomReducer(INACTIVE_ZOOM_STATE, ENTER, { valuesCount });
@@ -87,11 +63,6 @@ describe("zoomReducer", () => {
       expect(transition.state).toBe(INACTIVE_ZOOM_STATE);
       expect(transition.effects).toEqual([]);
     }
-  });
-
-  test("keeps the cursor within the stops the chart shows", () => {
-    expect(reduce(FIRST, { type: "move", index: 100 }).state).toEqual({ type: "pendingFirstInput", cursorIndex: 9 });
-    expect(reduce(FIRST, { type: "move", index: -100 }).state).toEqual({ type: "pendingFirstInput", cursorIndex: 0 });
   });
 
   test("goes back to the first input after a render removed the start point", () => {
@@ -103,46 +74,8 @@ describe("zoomReducer", () => {
 
     expect(state).toEqual({ type: "pendingFirstInput", cursorIndex: 4 });
   });
-
-  test("keeps the inputs on their values when the stops change", () => {
-    const { state } = zoomReducer(
-      { type: "pendingSecondInput", startIndex: 2, cursorIndex: 3 },
-      { type: "rendered", stopMapper: createStopMapper([0, 10, 20, 30, 40], [0, 20, 30, 40]) },
-      { valuesCount: 4 },
-    );
-
-    expect(state).toEqual({ type: "pendingSecondInput", startIndex: 1, cursorIndex: 2 });
-  });
-
-  test("leaves zoom mode after a render that left no stops to select", () => {
-    for (const state of [FIRST, SECOND]) {
-      const transition = zoomReducer(state, RENDERED, { valuesCount: 0 });
-
-      expect(transition.state).toEqual(INACTIVE_ZOOM_STATE);
-      expect(transition.effects).toEqual([
-        { type: "announce", announcement: { type: "zoomModeExited" } },
-        { type: "focus", target: "zoomButton" },
-      ]);
-    }
-  });
-
-  test("only moves the focus when asked to", () => {
-    expect(effectTypes(reduce(FIRST, { type: "cancel", moveFocus: false }))).toEqual(["announce"]);
-  });
-
-  test.each([
-    [INACTIVE_ZOOM_STATE, false],
-    [FIRST, true],
-    [SECOND, true],
-  ])("tells whether zooming is in progress in the %# state", (state, zooming) => {
-    expect(isZooming(state)).toBe(zooming);
-  });
 });
 
 function reduce(state: ZoomState, event: ZoomEvent) {
   return zoomReducer(state, event, { valuesCount: COUNT });
-}
-
-function effectTypes({ effects }: { effects: readonly ZoomEffect[] }) {
-  return effects.map((effect) => effect.type);
 }

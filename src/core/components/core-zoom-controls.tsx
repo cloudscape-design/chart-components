@@ -8,6 +8,7 @@ import SpaceBetween from "@cloudscape-design/components/space-between";
 import ToggleButton, { ToggleButtonProps } from "@cloudscape-design/components/toggle-button";
 
 import { useSelector } from "../../internal/utils/async-store";
+import { usePrevious } from "../../internal/utils/use-previous";
 import { ChartAPI } from "../chart-api";
 import { ChartLabels } from "../i18n-utils";
 
@@ -18,36 +19,30 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
   const zooming = useSelector(api.zoomStore, (s) => s.zooming);
   const zoomed = useSelector(api.zoomStore, (s) => s.zoomed);
   const canZoom = useSelector(api.zoomStore, (s) => s.canZoom);
+  const zoomId = useSelector(api.zoomStore, (s) => s.zoomId);
+  const cancelId = useSelector(api.zoomStore, (s) => s.cancelId);
   const zoomButtonRef = useRef<ToggleButtonProps.Ref>(null);
   const resetButtonRef = useRef<ButtonProps.Ref>(null);
-  const focusResetOnRender = useRef(false);
-
-  useEffect(() => {
-    api.setZoomButton({ focus: () => zoomButtonRef.current?.focus() });
-    api.setResetZoomButton({
-      focus: () => {
-        if (resetButtonRef.current) {
-          resetButtonRef.current.focus();
-        } else {
-          focusResetOnRender.current = true;
-          zoomButtonRef.current?.focus();
-        }
-      },
-    });
-    return () => {
-      api.setZoomButton(null);
-      api.setResetZoomButton(null);
-    };
-  }, [api]);
+  const focusedZoomId = useRef(zoomId);
+  const prevCancelId = usePrevious(cancelId);
 
   useEffect(() => {
     if (zooming) {
-      focusResetOnRender.current = false;
-    } else if (focusResetOnRender.current && resetButtonRef.current) {
-      focusResetOnRender.current = false;
-      resetButtonRef.current.focus();
+      focusedZoomId.current = zoomId;
+    } else if (zoomId !== focusedZoomId.current && resetButtonRef.current) {
+      focusedZoomId.current = zoomId;
+      const active = document.activeElement;
+      if (!active || active === document.body || api.isFocusWithinZoom(active)) {
+        resetButtonRef.current.focus();
+      }
     }
-  }, [zoomed, zooming]);
+  }, [api, zoomId, zoomed, zooming]);
+
+  useEffect(() => {
+    if (prevCancelId !== undefined && cancelId !== prevCancelId) {
+      zoomButtonRef.current?.focus();
+    }
+  }, [cancelId, prevCancelId]);
 
   return (
     <div
@@ -55,12 +50,7 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
       role="region"
       aria-label={labels.zoomControlsAriaLabel}
       className={styles["chart-zoom-controls"]}
-      onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) {
-          focusResetOnRender.current = false;
-        }
-        api.onZoomBlur(event);
-      }}
+      onBlur={api.onZoomBlur}
     >
       <SpaceBetween size="s" direction="horizontal">
         {zoomed && !zooming && (
@@ -68,7 +58,10 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
             ref={resetButtonRef}
             variant="link"
             formAction="none"
-            onClick={() => api.resetZoom({ withFocus: true })}
+            onClick={() => {
+              api.resetZoom();
+              zoomButtonRef.current?.focus();
+            }}
             ariaLabel={labels.resetZoomButtonAriaLabel}
             className={testClasses["reset-zoom-button"]}
           >

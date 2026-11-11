@@ -197,9 +197,9 @@ describe("CoreChart: zoom selection, keyboard interaction", () => {
     enterZoomMode();
     expect(getChart().findExitZoomButton()).not.toBe(null);
 
-    focusOutsideChart();
+    const outside = focusOutsideChart();
     expect(getChart().findExitZoomButton()).toBe(null);
-    expect(getChart().findZoomButton()).not.toBe(null);
+    expect(document.activeElement).toBe(outside);
   });
 
   test("keeps zoom mode when focus moves within the chart", () => {

@@ -25,6 +25,7 @@ import {
 } from "./common";
 import { stubPlotGeometry } from "./plot-geometry";
 import { zoomMessages } from "./zoom-messages";
+import { focusOutsideChart } from "./zoom-test-utils";
 
 stubPlotGeometry();
 
@@ -241,20 +242,32 @@ describe("CoreChart: zoom controls", () => {
     expect(wrapper.getElement()).toHaveTextContent("Zoom reset. Showing the full data range.");
   });
 
-  test("announces the reset when Reset is pressed, and again on the next reset", () => {
+  test("announces the reset when Reset is pressed, and again on the next reset", async () => {
+    vi.useFakeTimers();
     const { wrapper, rerender } = renderChart({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
     const announcement = "Zoom reset. Showing the full data range.";
-    expect(wrapper.getElement()).not.toHaveTextContent(announcement);
-
-    wrapper.findResetZoomButton()!.click();
-    expect(wrapper.getElement()).toHaveTextContent(announcement);
-
-    rerender({ ...defaultProps, zoomRange: null, onZoomRangeChange });
-    rerender({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
-    expect(wrapper.getElement()).not.toHaveTextContent(announcement);
-
-    wrapper.findResetZoomButton()!.click();
-    expect(wrapper.getElement()).toHaveTextContent(announcement);
+    let announcements = 0;
+    const observer = new MutationObserver((records) => {
+      for (const { target } of records) {
+        const element = target instanceof Element ? target : target.parentElement;
+        if (element?.matches("[aria-live]") && element.textContent?.startsWith(announcement.slice(0, -1))) {
+          announcements++;
+        }
+      }
+    });
+    observer.observe(document.body, { subtree: true, childList: true, characterData: true });
+    try {
+      wrapper.findResetZoomButton()!.click();
+      await act(() => vi.advanceTimersByTimeAsync(2000));
+      rerender({ ...defaultProps, zoomRange: null, onZoomRangeChange });
+      rerender({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
+      wrapper.findResetZoomButton()!.click();
+      await act(() => vi.advanceTimersByTimeAsync(2000));
+    } finally {
+      observer.disconnect();
+      vi.useRealTimers();
+    }
+    expect(announcements).toBe(2);
   });
 });
 
@@ -330,12 +343,15 @@ describe("CoreChart: zoom selection", () => {
     expect(document.activeElement).toBe(wrapper.findResetZoomButton()!.getElement());
   });
 
-  test("moves focus to the Zoom button after a zoom into a controlled range the consumer ignores", () => {
-    const { wrapper } = renderChart({ ...defaultProps, zoomRange: null, onZoomRangeChange });
+  test("leaves the focus where the user moved it when a controlled range is applied later", () => {
+    const { wrapper, rerender } = renderChart({ ...defaultProps, zoomRange: null, onZoomRangeChange });
     keyboardZoomToIndexes(1, 3);
+    const outside = focusOutsideChart();
+    rerender({ ...defaultProps, zoomRange: { x: { startValue: 1, endValue: 3 } }, onZoomRangeChange });
 
-    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
-    expect(document.activeElement).toBe(wrapper.findZoomButton()!.getElement());
+    expect(wrapper.findResetZoomButton()).not.toBe(null);
+    expect(document.activeElement).toBe(outside);
+    outside.remove();
   });
 
   test("allows zooming once zoom is enabled on data that changed while it was disabled", () => {

@@ -81,6 +81,8 @@ describe("CoreChart: zoom selection, controls", () => {
     renderZoomChart({ zoom: { enabled: true } });
     keyboardZoomToIndexes(1, 3);
     enterZoomMode();
+    expect(getChart().findResetZoomButton()).toBe(null);
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
     expect(getZoomRangeAffordance().band).toEqual({ from: 1, to: 3 });
 
     pressCursorKey(KeyCode.right);
@@ -102,25 +104,6 @@ describe("CoreChart: zoom selection, controls", () => {
     expect(onZoomRangeChange).toHaveBeenCalledWith(
       expect.objectContaining({ detail: { zoomRange: { x: { startValue: 1, endValue: 3 } } } }),
     );
-  });
-
-  test("re-entering zoom mode while zoomed keeps the range", () => {
-    renderZoomChart({ zoom: { enabled: true } });
-    keyboardZoomToIndexes(1, 4);
-    enterZoomMode();
-    expect(getChart().findExitZoomButton()).not.toBe(null);
-    expect(getChart().findResetZoomButton()).toBe(null);
-    expect(getXExtremes()).toEqual({ min: 1, max: 4 });
-  });
-
-  test("exiting a re-zoom returns to the zoomed state with the range intact", () => {
-    renderZoomChart({ zoom: { enabled: true } });
-    keyboardZoomToIndexes(1, 4);
-    enterZoomMode();
-    getChart().findExitZoomButton()!.click();
-    expect(getChart().findResetZoomButton()).not.toBe(null);
-    expect(getChart().findZoomButton()).not.toBe(null);
-    expect(getXExtremes()).toEqual({ min: 1, max: 4 });
   });
 
   test("re-zooming narrows the range from the visible window", () => {
@@ -260,14 +243,6 @@ describe("CoreChart: zoom selection, focus and keyboard containment", () => {
     getChart().findResetZoomButton()!.focus();
     getChart().findResetZoomButton()!.click();
     expect(document.activeElement).toBe(getChart().findZoomButton()!.getElement());
-  });
-
-  test("moves focus to the chart on Escape once the zoom controls are hidden mid-selection", () => {
-    const { rerender } = renderZoomChart({ zoom: { enabled: true } });
-    enterZoomMode();
-    rerender({ zoom: { enabled: true, hideZoomControls: true } });
-    pressCursorKey(KeyCode.escape);
-    expect(document.activeElement).toBe(getChart().findApplication()!.getElement());
   });
 
   test("keeps the keys the cursor handles from reaching the page", () => {

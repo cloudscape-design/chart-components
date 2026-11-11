@@ -133,11 +133,7 @@ export class ChartAPI {
       chartAPI.showMarkersForIsolatedPoints();
     };
     const onChartClick = function (this: Highcharts.Chart): boolean {
-      if (chartAPI.chartExtraZoom.consumeChartClick()) {
-        return false;
-      }
-      chartAPI.chartExtraPointer.onChartClick(this.hoverPoint);
-      return true;
+      return chartAPI.chartExtraPointer.onChartClick(this.hoverPoint);
     };
     const onSeriesPointMouseOver: Highcharts.PointMouseOverCallbackFunction = function () {
       chartAPI.chartExtraPointer.onSeriesPointMouseOver(this);
@@ -146,11 +142,7 @@ export class ChartAPI {
       chartAPI.chartExtraPointer.onSeriesPointMouseOut();
     };
     const onSeriesPointClick = function (this: Highcharts.Point): boolean {
-      if (chartAPI.chartExtraZoom.consumeChartClick()) {
-        return false;
-      }
-      chartAPI.chartExtraPointer.onSeriesPointClick(this);
-      return true;
+      return chartAPI.chartExtraPointer.onSeriesPointClick(this);
     };
     return {
       onChartLoad,
@@ -218,12 +210,11 @@ export class ChartAPI {
   public setZoomControls = this.chartExtraZoom.setControls;
   public onZoomCursorKeyDown = this.chartExtraZoom.onCursorKeyDown;
   public onZoomBlur = this.chartExtraZoom.onBlur;
-  public setZoomButton = this.chartExtraZoom.setZoomButton;
-  public setResetZoomButton = this.chartExtraZoom.setResetButton;
+  public isFocusWithinZoom = this.chartExtraZoom.isFocusWithinZoom;
   public enterZoomMode = () => this.chartExtraZoom.enterZoomMode();
   public exitZoomMode = ({ withFocus }: { withFocus: boolean }) => this.chartExtraZoom.exitZoomMode({ withFocus });
   // Resets the zoom from the Reset button of the zoom controls.
-  public resetZoom = ({ withFocus }: { withFocus: boolean }) => this.chartExtraZoom.resetZoom({ withFocus });
+  public resetZoom = () => this.chartExtraZoom.resetZoom();
 
   // Hide the tooltip from an action initiated by the tooltip's content
   public hideTooltip = () => {
@@ -345,7 +336,6 @@ export class ChartAPI {
   private get zoomHandlers(): ChartExtraZoomHandlers {
     return {
       onHideTooltip: () => this.hideTooltip(),
-      onFocusChart: () => this.chartExtraNavigation.focusChartApplication(),
     };
   }
 
@@ -353,14 +343,10 @@ export class ChartAPI {
   private get pointerHandlers(): ChartExtraPointerHandlers {
     return {
       onPointHover: (point) => {
-        if (!this.chartExtraZoom.isActive) {
-          this.highlightChartPoint(point, { isApiCall: false });
-        }
+        this.highlightChartPoint(point, { isApiCall: false });
       },
       onGroupHover: (group) => {
-        if (!this.chartExtraZoom.isActive) {
-          this.highlightChartGroup(group, { isApiCall: false });
-        }
+        this.highlightChartGroup(group, { isApiCall: false });
       },
       onHoverLost: () => {
         this.clearChartHighlight({ isApiCall: false });
@@ -371,6 +357,7 @@ export class ChartAPI {
       onGroupClick: (group) => {
         this.pinTooltipOnGroup(group);
       },
+      isLocked: () => this.chartExtraZoom.pointerLocked,
     };
   }
 

@@ -4,12 +4,13 @@
 import type Highcharts from "highcharts";
 
 import type { ChartExtraContext } from "../chart-api/chart-extra-context";
+import { isXThreshold, isYThreshold } from "../utils";
 import type { ZoomStopMapper } from "./zoom-state-machine";
 
 export const MIN_ZOOM_POINTS = 2;
 
-function isZoomableSeries(series: { type?: string }) {
-  return series.type !== "errorbar";
+function isZoomableSeries(series: Highcharts.Series) {
+  return series.type !== "errorbar" && !isXThreshold(series) && !isYThreshold(series);
 }
 
 export function getCursorStops(

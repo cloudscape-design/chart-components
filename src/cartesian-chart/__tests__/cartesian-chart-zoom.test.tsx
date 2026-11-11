@@ -121,6 +121,50 @@ describe("CartesianChart: zoom selection, with other series types", () => {
     expect(getChart().findZoomButton()!.isDisabled()).toBe(true);
   });
 
+  test("does not stop the cursor on the points added for threshold series", () => {
+    renderZoomChart({
+      ...defaultProps,
+      series: [
+        {
+          type: "line",
+          name: "Requests",
+          data: [
+            { x: 0, y: 10 },
+            { x: 2, y: 20 },
+            { x: 4, y: 30 },
+          ],
+        },
+        { type: "x-threshold", name: "Deploy", value: 3 },
+        { type: "y-threshold", name: "Limit", value: 25 },
+      ],
+      zoom: { enabled: true },
+    });
+    enterZoomMode();
+    pressCursorKey(KeyCode.end);
+    pressCursorKey(KeyCode.left);
+    expect(getCursorAttributes().now).toBe("2");
+  });
+
+  test("disables the Zoom button when only the threshold series add points", () => {
+    renderZoomChart({
+      ...defaultProps,
+      series: [
+        {
+          type: "line",
+          name: "Requests",
+          data: [
+            { x: 0, y: 10 },
+            { x: 1, y: null },
+            { x: 2, y: null },
+          ],
+        },
+        { type: "y-threshold", name: "Limit", value: 25 },
+      ],
+      zoom: { enabled: true },
+    });
+    expect(getChart().findZoomButton()!.isDisabled()).toBe(true);
+  });
+
   test("passes the zoom properties through to the core chart", () => {
     const { rerender } = renderZoomChart({
       ...defaultProps,

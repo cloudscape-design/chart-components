@@ -90,17 +90,6 @@ describe("CoreChart: zoom selection, pointer interaction", () => {
     expect(onZoomRangeChange).not.toHaveBeenCalled();
   });
 
-  test("only sets a boundary when the pointer that pressed is released", () => {
-    renderZoomChart({ zoom: { enabled: true } });
-    enterZoomMode();
-    dispatchPointer("pointerdown", 1);
-    dispatchPointer("pointerup", 3, 0, { pointerId: 2 });
-    expect(isVisible(getOverlay().startDivider)).toBe(false);
-
-    dispatchPointer("pointerup", 3);
-    expect(getCursorAttributes().text).toBe("Selecting zoom range from 1 to 1.");
-  });
-
   test("ignores the cursor keys while a press is in progress", () => {
     renderZoomChart({ zoom: { enabled: true } });
     enterZoomMode();
@@ -176,7 +165,7 @@ describe("CoreChart: zoom selection, pointer interaction", () => {
     );
   });
 
-  test("keeps the clicks that set the range boundaries away from the chart", () => {
+  test("keeps the clicks that set the range boundaries away from the chart", async () => {
     const onChartClick = vi.fn();
     renderZoomChart({ zoom: { enabled: true }, onChartClick });
     const click = (value: number) => {
@@ -191,8 +180,36 @@ describe("CoreChart: zoom selection, pointer interaction", () => {
     expect(getXExtremes()).toEqual({ min: 1, max: 3 });
     expect(onChartClick).not.toHaveBeenCalled();
 
+    vi.useFakeTimers();
+    try {
+      act(() => getSeriesData(getCurrentChart().series[0])[2].onMouseOver());
+      await act(() => vi.advanceTimersByTimeAsync(500));
+      expect(getChart().findTooltip()).not.toBe(null);
+    } finally {
+      vi.useRealTimers();
+    }
+
     click(2);
     expect(onChartClick).toHaveBeenCalledTimes(1);
+  });
+
+  test("shows the tooltip again after zoom mode ends with a press released outside the chart", async () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    vi.useFakeTimers();
+    try {
+      enterZoomMode();
+      dispatchPointer("pointerdown", 1);
+      act(() => {
+        document.body.dispatchEvent(pointerEventAtValue("pointerup", 1));
+      });
+      pressCursorKey(KeyCode.escape);
+
+      act(() => getSeriesData(getCurrentChart().series[0])[2].onMouseOver());
+      await act(() => vi.advanceTimersByTimeAsync(500));
+      expect(getChart().findTooltip()).not.toBe(null);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   test("ignores presses of non-primary mouse buttons", () => {

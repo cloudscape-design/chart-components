@@ -16,6 +16,7 @@ export interface ChartExtraPointerHandlers {
   onHoverLost(): void;
   onPointClick(point: Highcharts.Point): void;
   onGroupClick(group: Highcharts.Point[]): void;
+  isLocked(): boolean;
 }
 
 // Chart helper that implements pointer events (click and hover).
@@ -46,6 +47,9 @@ export class ChartExtraPointer {
   // Highcharts because it includes computation of complex shape intersections, such as pie chart segments.
   // When triggered, we set the given point as hovered, and it takes precedence over hovered groups.
   public onSeriesPointMouseOver = (point: Highcharts.Point) => {
+    if (this.handlers.isLocked()) {
+      return;
+    }
     this.setHoveredPoint(point);
   };
 
@@ -76,6 +80,9 @@ export class ChartExtraPointer {
   // of points (those having matching X value in cartesian charts), as this is not directly supported by Highcharts.
   // Points hovering takes precedence over groups hovering.
   private onChartMousemove = (event: MouseEvent) => {
+    if (this.handlers.isLocked()) {
+      return;
+    }
     const chart = this.context.chart();
     // In pie charts there is no support for groups - only a single point can be hovered at a time.
     if (getChartSeries(chart).some((s) => s.type === "pie")) {
@@ -125,13 +132,13 @@ export class ChartExtraPointer {
 
   // This event is triggered by Highcharts when there is a click inside the chart plot. It might or might not include
   // the point, hovered immediately before the click.
-  public onChartClick = (point: null | Highcharts.Point) => {
-    this.onClick(point);
+  public onChartClick = (point: null | Highcharts.Point): boolean => {
+    return this.onClick(point);
   };
 
   // This event is triggered by Highcharts when a series point is clicked, it always has a point target.
-  public onSeriesPointClick = (point: Highcharts.Point) => {
-    this.onClick(point);
+  public onSeriesPointClick = (point: Highcharts.Point): boolean => {
+    return this.onClick(point);
   };
 
   // We treat the chart and point clicks the same, but call different handlers depending on the target (null or point).
@@ -139,17 +146,20 @@ export class ChartExtraPointer {
   // the click event triggered.
   // Before calling the on-point-click or on-group-click handlers, we verify if the target point or group are still valid
   // (visible, and not destroyed by Highcharts).
-  private onClick = (point: null | Highcharts.Point) => {
+  private onClick = (point: null | Highcharts.Point): boolean => {
+    if (this.handlers.isLocked()) {
+      return false;
+    }
     const targetPoint = point ?? (this.hoveredPoint && isPointVisible(this.hoveredPoint) ? this.hoveredPoint : null);
     if (targetPoint) {
       this.handlers.onPointClick(targetPoint);
-      return;
+      return true;
     }
     const targetGroup = this.hoveredGroup?.filter(isPointVisible) ?? null;
     if (targetGroup && targetGroup.length > 0) {
       this.handlers.onGroupClick(targetGroup);
-      return;
     }
+    return true;
   };
 
   private setHoveredPoint = (point: Highcharts.Point) => {
