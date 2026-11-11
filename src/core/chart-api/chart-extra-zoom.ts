@@ -236,9 +236,9 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     }
   }
 
-  public isFocusWithinZoom = (target: EventTarget | null) => {
+  private isFocusWithinZoom(target: EventTarget | null) {
     return target instanceof Node && (target === this.cursorElement || !!this.controlsElement?.contains(target));
-  };
+  }
 
   private get enabled() {
     return this.context.settings.zoomEnabled;

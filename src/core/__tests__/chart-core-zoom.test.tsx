@@ -25,7 +25,6 @@ import {
 } from "./common";
 import { stubPlotGeometry } from "./plot-geometry";
 import { zoomMessages } from "./zoom-messages";
-import { focusOutsideChart } from "./zoom-test-utils";
 
 stubPlotGeometry();
 
@@ -341,17 +340,6 @@ describe("CoreChart: zoom selection", () => {
 
     expect(getXExtremes()).toEqual({ min: 1, max: 3 });
     expect(document.activeElement).toBe(wrapper.findResetZoomButton()!.getElement());
-  });
-
-  test("leaves the focus where the user moved it when a controlled range is applied later", () => {
-    const { wrapper, rerender } = renderChart({ ...defaultProps, zoomRange: null, onZoomRangeChange });
-    keyboardZoomToIndexes(1, 3);
-    const outside = focusOutsideChart();
-    rerender({ ...defaultProps, zoomRange: { x: { startValue: 1, endValue: 3 } }, onZoomRangeChange });
-
-    expect(wrapper.findResetZoomButton()).not.toBe(null);
-    expect(document.activeElement).toBe(outside);
-    outside.remove();
   });
 
   test("allows zooming once zoom is enabled on data that changed while it was disabled", () => {

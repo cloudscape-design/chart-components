@@ -26,20 +26,15 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
   const focusedZoomId = useRef(zoomId);
   const prevCancelId = usePrevious(cancelId);
 
-  // A committed zoom increases zoomId. Reset is focused once it renders, which for a controlled range can be a few
-  // renders later, after the consumer applies the range. The last handled zoomId is kept in a ref rather than compared
-  // with the previous render, so that the focus still moves then. It does not move if the user has moved focus away.
+  // A committed zoom increases zoomId. Reset is focused once the range is applied, which for a controlled range is
+  // a few renders later, when the consumer passes it back. The last handled zoomId is kept in a ref rather than
+  // compared with the previous render, so that the focus still moves then.
   useEffect(() => {
-    if (zooming) {
+    if (zoomed && zoomId !== focusedZoomId.current) {
       focusedZoomId.current = zoomId;
-    } else if (zoomId !== focusedZoomId.current && resetButtonRef.current) {
-      focusedZoomId.current = zoomId;
-      const active = document.activeElement;
-      if (!active || active === document.body || api.isFocusWithinZoom(active)) {
-        resetButtonRef.current.focus();
-      }
+      resetButtonRef.current?.focus();
     }
-  }, [api, zoomId, zoomed, zooming]);
+  }, [zoomId, zoomed]);
 
   // A cancel that should move focus increases cancelId. Leaving zoom mode by moving focus away does not, so that the
   // Zoom button does not take the focus back.
