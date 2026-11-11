@@ -37,6 +37,9 @@ export interface ReactiveZoomState {
   canZoom: boolean;
   announcement: string;
   announcementKey: number;
+  // Counters that ask the zoom controls to move focus, which only they can do once their buttons are rendered.
+  // zoomId increases when a zoom is committed, to focus Reset. cancelId increases when zoom mode is cancelled with
+  // Escape, the Zoom button, or because no stops are left, to focus the Zoom button.
   zoomId: number;
   cancelId: number;
 }
