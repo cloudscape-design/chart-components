@@ -441,13 +441,18 @@ describe("CartesianChart: zoom focus and keyboard containment", { timeout: TEST_
   test("stops following a press when the chart unmounts mid-press", () => {
     renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
     const removeEventListener = vi.spyOn(document, "removeEventListener");
+    const containerRemoveEventListener = vi.spyOn(getCurrentChart().container, "removeEventListener");
     try {
       dispatchPointer("pointerdown", 1);
       cleanup();
       const removed = removeEventListener.mock.calls.map(([type]) => type);
       expect(removed).toEqual(expect.arrayContaining(["pointermove", "pointerup", "pointercancel"]));
+      expect(containerRemoveEventListener.mock.calls.map(([type]) => type)).toEqual(
+        expect.arrayContaining(["pointerdown", "pointermove"]),
+      );
     } finally {
       removeEventListener.mockRestore();
+      containerRemoveEventListener.mockRestore();
     }
   });
 });

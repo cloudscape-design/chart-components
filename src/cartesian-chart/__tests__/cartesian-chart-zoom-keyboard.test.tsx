@@ -87,7 +87,7 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
   test.each([
     { name: "left-to-right page", rtl: false, inverted: false, key: KeyCode.pageDown, now: "5" },
     { name: "inverted chart", rtl: false, inverted: true, key: KeyCode.pageDown, now: "5" },
-    { name: "right-to-left page", rtl: true, inverted: false, key: KeyCode.pageUp, now: "44" },
+    { name: "right-to-left page", rtl: true, inverted: false, key: KeyCode.pageDown, now: "5" },
   ])("pages through the values in order, as chart navigation does, in a $name", ({ rtl, inverted, key, now }) => {
     if (rtl) {
       renderInRtl();
@@ -290,9 +290,9 @@ describe("CartesianChart: zoom direction", { timeout: TEST_TIMEOUT }, () => {
   });
 
   test.each([
-    { name: "left-to-right page", rtl: false, first: "0", last: "4" },
-    { name: "right-to-left page", rtl: true, first: "4", last: "0" },
-  ])("follows the plot on screen in a $name", ({ rtl, first, last }) => {
+    { name: "left-to-right page", rtl: false, towardsEnd: KeyCode.right, direction: 1 },
+    { name: "right-to-left page", rtl: true, towardsEnd: KeyCode.left, direction: -1 },
+  ])("starts at the first value and follows the plot on screen in a $name", ({ rtl, towardsEnd, direction }) => {
     if (rtl) {
       renderInRtl();
     }
@@ -300,18 +300,16 @@ describe("CartesianChart: zoom direction", { timeout: TEST_TIMEOUT }, () => {
     rerender({ ...defaultProps, zoom: { enabled: true } });
     enterZoomMode();
 
-    expect(getCursorAttributes().now).toBe(first);
+    expect(getCursorAttributes().now).toBe("0");
     const startLeft = getCursorLeft();
-    pressCursorKey(KeyCode.left);
-    expect(getCursorLeft()).toBe(startLeft);
-
-    pressCursorKey(KeyCode.right);
-    expect(getCursorLeft()).toBeGreaterThan(startLeft);
+    pressCursorKey(towardsEnd);
+    expect(getCursorAttributes().now).toBe("1");
+    expect(Math.sign(getCursorLeft() - startLeft)).toBe(direction);
 
     pressCursorKey(KeyCode.end);
-    expect(getCursorAttributes().now).toBe(last);
+    expect(getCursorAttributes().now).toBe("4");
     pressCursorKey(KeyCode.home);
-    expect(getCursorAttributes().now).toBe(first);
+    expect(getCursorAttributes().now).toBe("0");
   });
 
   test("zooms an inverted chart by dragging along the vertical axis", () => {

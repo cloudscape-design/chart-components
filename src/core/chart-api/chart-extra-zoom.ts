@@ -4,6 +4,7 @@
 import type Highcharts from "highcharts";
 
 import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
+import type { ButtonProps } from "@cloudscape-design/components/button";
 
 import * as Styles from "../../internal/chart-styles";
 import { fireNonCancelableEvent } from "../../internal/events";
@@ -45,10 +46,6 @@ export interface ReactiveZoomState {
   announcementKey: number;
 }
 
-export interface FocusableButton {
-  focus(): void;
-}
-
 export interface ChartExtraZoomHandlers {
   onClearHighlight(): void;
   onHideTooltip(): void;
@@ -69,12 +66,11 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private values: number[] = [];
   private valuesStale = true;
   private suppressNextChartClick = false;
-  private listenedDocument: null | Document = null;
-  private pressPointerId: null | number = null;
+  private container: null | HTMLElement = null;
   private cursorElement: null | HTMLElement = null;
   private controlsElement: null | HTMLElement = null;
-  private zoomButton: null | FocusableButton = null;
-  private resetButton: null | FocusableButton = null;
+  private zoomButton: null | ButtonProps.Ref = null;
+  private resetButton: null | ButtonProps.Ref = null;
   private pendingButtonFocus: null | ZoomControlsFocusTarget = null;
   private renderedControls: null | { zoomed: boolean; zooming: boolean; canZoom: boolean } = null;
   private rangeBand = new SVGRendererSingle();
@@ -113,11 +109,11 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     this.controlsElement = element;
   };
 
-  public setZoomButton = (button: null | FocusableButton) => {
+  public setZoomButton = (button: null | ButtonProps.Ref) => {
     this.zoomButton = button;
   };
 
-  public setResetButton = (button: null | FocusableButton) => {
+  public setResetButton = (button: null | ButtonProps.Ref) => {
     this.resetButton = button;
   };
 
@@ -131,12 +127,12 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     if (!chart.container) {
       return;
     }
-    chart.container.addEventListener("pointerdown", this.onPlotPointerDown);
-    chart.container.addEventListener("pointermove", this.onPlotPointerMove);
-    this.listenedDocument = chart.container.ownerDocument;
-    this.listenedDocument.addEventListener("pointermove", this.onDocumentPointerMove);
-    this.listenedDocument.addEventListener("pointerup", this.onDocumentPointerUp);
-    this.listenedDocument.addEventListener("pointercancel", this.onDocumentPointerCancel);
+    this.container = chart.container;
+    this.container.addEventListener("pointerdown", this.onPlotPointerDown);
+    this.container.addEventListener("pointermove", this.onPlotPointerMove);
+    this.container.ownerDocument.addEventListener("pointermove", this.onDocumentPointerMove);
+    this.container.ownerDocument.addEventListener("pointerup", this.onDocumentPointerUp);
+    this.container.ownerDocument.addEventListener("pointercancel", this.onDocumentPointerCancel);
     this.applyContainerStyle(chart);
   };
 
@@ -152,14 +148,13 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   };
 
   public onChartDestroy = () => {
-    const container = this.context.chartOrNull?.container;
+    const container = this.container;
     container?.removeEventListener("pointerdown", this.onPlotPointerDown);
     container?.removeEventListener("pointermove", this.onPlotPointerMove);
-    this.listenedDocument?.removeEventListener("pointermove", this.onDocumentPointerMove);
-    this.listenedDocument?.removeEventListener("pointerup", this.onDocumentPointerUp);
-    this.listenedDocument?.removeEventListener("pointercancel", this.onDocumentPointerCancel);
-    this.listenedDocument = null;
-    this.pressPointerId = null;
+    container?.ownerDocument.removeEventListener("pointermove", this.onDocumentPointerMove);
+    container?.ownerDocument.removeEventListener("pointerup", this.onDocumentPointerUp);
+    container?.ownerDocument.removeEventListener("pointercancel", this.onDocumentPointerCancel);
+    this.container = null;
     this.rangeBand.destroy();
     this.rangeBorders.destroy();
     this.selectionBand.destroy();
@@ -190,8 +185,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     if (!this.enabled || !xAxis) {
       return;
     }
-    const values = this.getValues();
-    this.dispatch({ type: "enterZoomMode", startIndex: isPixelForward(xAxis, values) ? 0 : values.length - 1 });
+    this.dispatch({ type: "enterZoomMode", startIndex: 0 });
   };
 
   public exitZoomMode = ({ withFocus }: { withFocus: boolean }) => {
@@ -239,10 +233,10 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
         this.dispatch({ type: "stepCursor", offset: pageStop });
         break;
       case KeyCode.home:
-        this.moveCursorToEdge(-1);
+        this.dispatch({ type: "moveCursorToEdge", edge: "first" });
         break;
       case KeyCode.end:
-        this.moveCursorToEdge(1);
+        this.dispatch({ type: "moveCursorToEdge", edge: "last" });
         break;
       case KeyCode.enter:
       case KeyCode.space:
@@ -494,15 +488,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     }
   }
 
-  private moveCursorToEdge(direction: -1 | 1) {
-    const xAxis = this.xAxis;
-    const values = this.getValues();
-    if (xAxis && values.length > 0) {
-      const atStart = isPixelForward(xAxis, values) === (direction === -1);
-      this.dispatch({ type: "moveCursorToEdge", edge: atStart ? "first" : "last" });
-    }
-  }
-
   // Marks the zoomed range on the plot with a tinted band and a border at each end.
   private drawRange(chart: SafeChart) {
     const extremes = this.getExtremes();
@@ -629,7 +614,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     }
     const inZoomMode = isZooming(this.interaction);
     this.suppressNextChartClick = inZoomMode;
-    this.pressPointerId = event.pointerId;
     const index = findStopAtPointer(values, xAxis, chartX, chartY);
     this.dispatch({
       type: "pointerDown",
@@ -647,25 +631,25 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   };
 
   private onPlotPointerMove = (event: PointerEvent) => {
-    if (this.enabled && this.pressPointerId === null) {
+    if (this.enabled && !getPress(this.interaction)) {
       this.onPressMove(event);
     }
   };
 
   private onDocumentPointerMove = (event: PointerEvent) => {
-    if (event.pointerId === this.pressPointerId) {
+    if (this.isPressing(event.pointerId)) {
       this.onPressMove(event);
     }
   };
 
   private onDocumentPointerUp = (event: PointerEvent) => {
-    if (event.pointerId === this.pressPointerId) {
+    if (this.isPressing(event.pointerId)) {
       this.onPressEnd(event, "pointerUp");
     }
   };
 
   private onDocumentPointerCancel = (event: PointerEvent) => {
-    if (event.pointerId === this.pressPointerId) {
+    if (this.isPressing(event.pointerId)) {
       this.onPressEnd(event, "pointerCancel");
     }
   };
@@ -692,8 +676,11 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     }
   }
 
+  private isPressing(pointerId: number) {
+    return getPress(this.interaction)?.pointerId === pointerId;
+  }
+
   private onPressEnd(event: PointerEvent, type: "pointerUp" | "pointerCancel") {
-    this.pressPointerId = null;
     const container = this.context.chartOrNull?.container;
     if (container) {
       releasePointer(container, event.pointerId);

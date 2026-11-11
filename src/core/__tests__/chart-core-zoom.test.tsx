@@ -422,14 +422,16 @@ describe("CoreChart: zoom", () => {
     renderChart({ ...defaultProps, options: { series, xAxis: { min: 0, max: 4, reversed: true } } });
     enterZoomMode();
     const cursor = createChartWrapper().findZoomCursor()!.getElement();
-    expect(cursor).toHaveAttribute("aria-valuenow", "4");
+    expect(cursor).toHaveAttribute("aria-valuenow", "0");
 
-    pressCursorKey(KeyCode.left);
-    expect(cursor).toHaveAttribute("aria-valuenow", "4");
     pressCursorKey(KeyCode.right);
-    expect(cursor).toHaveAttribute("aria-valuenow", "3");
+    expect(cursor).toHaveAttribute("aria-valuenow", "0");
+    pressCursorKey(KeyCode.left);
+    expect(cursor).toHaveAttribute("aria-valuenow", "1");
 
     pressCursorKey(KeyCode.end);
+    expect(cursor).toHaveAttribute("aria-valuenow", "4");
+    pressCursorKey(KeyCode.home);
     expect(cursor).toHaveAttribute("aria-valuenow", "0");
   });
 });
