@@ -16,8 +16,6 @@ import {
 } from "./common";
 import { zoomMessages } from "./zoom-messages";
 
-export const TEST_TIMEOUT = 15_000;
-
 type ZoomTestSeries = NonNullable<CoreChartProps.ChartOptions["series"]>;
 
 export const series: ZoomTestSeries = [

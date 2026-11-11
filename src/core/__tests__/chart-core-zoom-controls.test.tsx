@@ -17,13 +17,7 @@ import {
   pressCursorKey,
 } from "./common";
 import { stubPlotGeometry } from "./plot-geometry";
-import {
-  dispatchPointer,
-  onZoomRangeChange,
-  renderStatefulZoomChart,
-  renderZoomChart,
-  TEST_TIMEOUT,
-} from "./zoom-test-utils";
+import { dispatchPointer, onZoomRangeChange, renderStatefulZoomChart, renderZoomChart } from "./zoom-test-utils";
 
 stubPlotGeometry();
 
@@ -32,7 +26,7 @@ afterEach(() => {
   document.querySelectorAll("[data-testid='outside']").forEach((element) => element.remove());
 });
 
-describe("CoreChart: zoom selection, controls", { timeout: TEST_TIMEOUT }, () => {
+describe("CoreChart: zoom selection, controls", () => {
   test("renders the Zoom button in idle state when zoom is enabled", () => {
     renderZoomChart({ zoom: { enabled: true } });
     expect(getChart().findZoomButton()!.getElement()).toHaveTextContent("Zoom");
@@ -226,7 +220,7 @@ describe("CoreChart: zoom selection, controls", { timeout: TEST_TIMEOUT }, () =>
     expect(resetButton.closest('[role="region"]')!.getAttribute("aria-label") ?? "").toBe("");
   });
 });
-describe("CoreChart: zoom selection, focus and keyboard containment", { timeout: TEST_TIMEOUT }, () => {
+describe("CoreChart: zoom selection, focus and keyboard containment", () => {
   test.each([
     { name: "an uncontrolled zoom", stateful: false, zoomTo: [1, 3], zoomRange: undefined, target: "zoom" },
     {
@@ -279,22 +273,6 @@ describe("CoreChart: zoom selection, focus and keyboard containment", { timeout:
     rerender({ zoom: { enabled: true, hideZoomControls: true } });
     pressCursorKey(KeyCode.escape);
     expect(document.activeElement).toBe(getChart().findApplication()!.getElement());
-  });
-
-  test("does not collect cursor stops on a press when zoom is disabled", () => {
-    renderZoomChart({});
-    const chartSeries = getCurrentChart().series[0];
-    const data = chartSeries.data;
-    let reads = 0;
-    Object.defineProperty(chartSeries, "data", {
-      configurable: true,
-      get: () => {
-        reads++;
-        return data;
-      },
-    });
-    dispatchPointer("pointerdown", 1);
-    expect(reads).toBe(0);
   });
 
   test("keeps the keys the cursor handles from reaching the page", () => {

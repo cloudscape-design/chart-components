@@ -213,8 +213,6 @@ export class ChartAPI {
     }
   };
 
-  public focusChart = () => this.chartExtraNavigation.focusChartApplication();
-
   public onZoomPropsChange = () => this.chartExtraZoom.onZoomPropsChange();
   public setZoomCursor = this.chartExtraZoom.setCursor;
   public setZoomControls = this.chartExtraZoom.setControls;
@@ -348,7 +346,6 @@ export class ChartAPI {
 
   private get zoomHandlers(): ChartExtraZoomHandlers {
     return {
-      onClearHighlight: () => this.clearChartHighlight({ isApiCall: false }),
       onHideTooltip: () => this.hideTooltip(),
       onFocusChart: () => this.chartExtraNavigation.focusChartApplication(),
     };

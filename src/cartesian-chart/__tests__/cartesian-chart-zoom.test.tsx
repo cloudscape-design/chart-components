@@ -21,8 +21,6 @@ import { zoomMessages } from "../../core/__tests__/zoom-messages";
 import { getCursorAttributes } from "../../core/__tests__/zoom-test-utils";
 import { renderCartesianChart } from "./common";
 
-const TEST_TIMEOUT = 15_000;
-
 const series: CartesianChartProps.SeriesOptions[] = [
   {
     type: "line",
@@ -65,7 +63,7 @@ afterEach(() => {
   document.querySelectorAll("[data-testid='outside']").forEach((element) => element.remove());
 });
 
-describe("CartesianChart: zoom selection, with other series types", { timeout: TEST_TIMEOUT }, () => {
+describe("CartesianChart: zoom selection, with other series types", () => {
   test("ignores error bar series when collecting cursor stops", () => {
     renderZoomChart({
       highcharts,

@@ -26,7 +26,6 @@ import {
   onZoomRangeChange,
   pointerEventAtValue,
   renderZoomChart,
-  TEST_TIMEOUT,
 } from "./zoom-test-utils";
 
 stubPlotGeometry();
@@ -36,7 +35,7 @@ afterEach(() => {
   document.querySelectorAll("[data-testid='outside']").forEach((element) => element.remove());
 });
 
-describe("CoreChart: zoom selection, overlay", { timeout: TEST_TIMEOUT }, () => {
+describe("CoreChart: zoom selection, overlay", () => {
   test.each([
     { state: "idle", act: () => {}, zoomed: false },
     { state: "after a committed zoom", act: () => keyboardZoomToIndexes(1, 3), zoomed: true },
@@ -63,7 +62,7 @@ describe("CoreChart: zoom selection, overlay", { timeout: TEST_TIMEOUT }, () => 
     expect(isVisible(getOverlay().band)).toBe(true);
   });
 });
-describe("CoreChart: zoom selection, pointer interaction", { timeout: TEST_TIMEOUT }, () => {
+describe("CoreChart: zoom selection, pointer interaction", () => {
   test("sets a boundary when a press on the plot is released outside the chart", () => {
     renderZoomChart({ zoom: { enabled: true } });
     const outside = document.createElement("div");

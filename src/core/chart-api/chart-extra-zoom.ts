@@ -44,7 +44,6 @@ export interface ReactiveZoomState {
 }
 
 export interface ChartExtraZoomHandlers {
-  onClearHighlight(): void;
   onHideTooltip(): void;
   onFocusChart(): void;
 }
@@ -354,7 +353,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     if (isZooming(state) !== isZooming(previous)) {
       this.setCommon({ zooming: isZooming(state) });
       if (!isZooming(state)) {
-        this.handlers.onClearHighlight();
+        this.handlers.onHideTooltip();
       }
     }
     if (state.type !== "idle") {

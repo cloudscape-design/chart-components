@@ -24,7 +24,6 @@ import {
   renderInRtl,
   renderZoomChart,
   seriesOfLength,
-  TEST_TIMEOUT,
 } from "./zoom-test-utils";
 
 stubPlotGeometry();
@@ -34,7 +33,7 @@ afterEach(() => {
   document.querySelectorAll("[data-testid='outside']").forEach((element) => element.remove());
 });
 
-describe("CoreChart: zoom selection, keyboard interaction", { timeout: TEST_TIMEOUT }, () => {
+describe("CoreChart: zoom selection, keyboard interaction", () => {
   test.each([
     { key: "Enter", keyCode: KeyCode.enter },
     { key: "Space", keyCode: KeyCode.space },
@@ -259,7 +258,7 @@ describe("CoreChart: zoom selection, keyboard interaction", { timeout: TEST_TIME
     expect(getCursorAttributes().now).toBe("1");
   });
 });
-describe("CoreChart: zoom selection, direction", { timeout: TEST_TIMEOUT }, () => {
+describe("CoreChart: zoom selection, direction", () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -297,7 +296,7 @@ describe("CoreChart: zoom selection, direction", { timeout: TEST_TIMEOUT }, () =
     expect(getXExtremes()).toEqual({ min: 1, max: 3 });
   });
 });
-describe("CoreChart: zoom selection, announcements", { timeout: TEST_TIMEOUT }, () => {
+describe("CoreChart: zoom selection, announcements", () => {
   test.each([
     {
       step: "entering zoom mode",
@@ -358,7 +357,7 @@ describe("CoreChart: zoom selection, announcements", { timeout: TEST_TIMEOUT }, 
     expect(getChart().getElement()).toHaveTextContent("Zoomed from 2025-01-02 to 2025-01-03");
   });
 });
-describe("CoreChart: zoom selection, repeated announcements", { timeout: TEST_TIMEOUT }, () => {
+describe("CoreChart: zoom selection, repeated announcements", () => {
   afterEach(() => {
     vi.useRealTimers();
   });
