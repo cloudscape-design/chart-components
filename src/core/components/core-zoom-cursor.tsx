@@ -23,7 +23,7 @@ export function ChartZoomCursor({ api, labels, inverted }: { api: ChartAPI; labe
         testClasses["zoom-cursor"],
       )}
       onKeyDown={api.onZoomCursorKeyDown}
-      onBlur={api.onZoomCursorBlur}
+      onBlur={api.onZoomBlur}
     />
   );
 }

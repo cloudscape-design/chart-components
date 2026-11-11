@@ -59,7 +59,7 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
         if (!event.currentTarget.contains(event.relatedTarget)) {
           focusResetOnRender.current = false;
         }
-        api.onZoomControlsBlur(event);
+        api.onZoomBlur(event);
       }}
     >
       <SpaceBetween size="s" direction="horizontal">

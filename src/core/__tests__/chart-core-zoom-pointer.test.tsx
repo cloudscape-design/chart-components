@@ -90,6 +90,27 @@ describe("CoreChart: zoom selection, pointer interaction", () => {
     expect(onZoomRangeChange).not.toHaveBeenCalled();
   });
 
+  test("only sets a boundary when the pointer that pressed is released", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    enterZoomMode();
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointerup", 3, 0, { pointerId: 2 });
+    expect(isVisible(getOverlay().startDivider)).toBe(false);
+
+    dispatchPointer("pointerup", 3);
+    expect(getCursorAttributes().text).toBe("Selecting zoom range from 1 to 1.");
+  });
+
+  test("ignores the cursor keys while a press is in progress", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    enterZoomMode();
+    dispatchPointer("pointerdown", 2);
+    pressCursorKey(KeyCode.right);
+    pressCursorKey(KeyCode.enter);
+    expect(getCursorAttributes().now).toBe("0");
+    expect(isVisible(getOverlay().startDivider)).toBe(false);
+  });
+
   test("leaves presses outside zoom mode to the chart", () => {
     renderZoomChart({ zoom: { enabled: true }, onZoomRangeChange });
     dispatchPointer("pointerdown", 1);

@@ -13,8 +13,7 @@ import { SafeChart } from "../../internal/utils/highcharts";
 import { SVGRendererSingle } from "../../internal/utils/renderer-utils";
 import {
   canZoomInto,
-  getOverlayView,
-  IDLE_ZOOM_STATE,
+  INACTIVE_ZOOM_STATE,
   isZooming,
   ZoomAnnouncement,
   ZoomEffect,
@@ -51,14 +50,19 @@ interface ZoomExtremes {
   max: number;
 }
 
+interface ZoomPress {
+  pointerId: number;
+  index: number;
+}
+
 // Chart helper that implements zooming into a range of the first x-axis.
 export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private context: ChartExtraContext;
   private handlers: ChartExtraZoomHandlers;
-  private interaction: ZoomState = IDLE_ZOOM_STATE;
+  private interaction: ZoomState = INACTIVE_ZOOM_STATE;
+  private press: null | ZoomPress = null;
   private localExtremes: null | ZoomExtremes = null;
   private values: number[] = [];
-  private valuesStale = true;
   private suppressNextChartClick = false;
   private container: null | HTMLElement = null;
   private cursorElement: null | HTMLElement = null;
@@ -121,12 +125,16 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
 
   public onChartRender = () => {
     const previousValues = this.values;
-    this.valuesStale = true;
     this.reconcile(this.context.chart());
     if (!this.enabled) {
       return;
     }
-    this.dispatch({ type: "chartRendered", stopMapper: createStopMapper(previousValues, this.getValues()) });
+    this.updateValues();
+    const stopMapper = createStopMapper(previousValues, this.values);
+    this.dispatch({ type: "rendered", stopMapper });
+    if (this.press) {
+      this.press = { ...this.press, index: stopMapper.nearest(this.press.index) };
+    }
     this.updateCanZoom();
   };
 
@@ -148,75 +156,77 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     const chart = this.context.chartOrNull;
     if (!this.enabled) {
       this.localExtremes = null;
-      this.interaction = IDLE_ZOOM_STATE;
+      this.interaction = INACTIVE_ZOOM_STATE;
+      this.press = null;
       this.hideOverlay();
       this.setCommon({ zooming: false });
     }
     if (chart) {
       this.reconcile(chart);
       if (this.enabled) {
+        this.updateValues();
         this.updateCanZoom();
       }
     }
   };
 
   public enterZoomMode = () => {
-    const xAxis = this.xAxis;
-    if (!this.enabled || !xAxis) {
-      return;
+    if (this.enabled) {
+      this.dispatch({ type: "enter" });
     }
-    this.dispatch({ type: "enterZoomMode", startIndex: 0 });
   };
 
   public exitZoomMode = ({ withFocus }: { withFocus: boolean }) => {
-    this.dispatch({ type: "exitZoomMode", moveFocus: withFocus });
+    this.dispatch({ type: "cancel", moveFocus: withFocus });
   };
 
   public resetZoom = ({ withFocus }: { withFocus: boolean }) => {
-    this.dispatch({ type: "resetZoom", zoomed: !!this.getExtremes() });
+    if (this.getExtremes()) {
+      // The chart cannot reset a controlled range on its own: it asks the consumer to show the full range.
+      if (!this.controlled) {
+        this.localExtremes = null;
+        this.applyExtremes(this.context.chart());
+      }
+      this.announce(this.labels.zoomResetAnnouncementText ?? "");
+      fireNonCancelableEvent(this.context.handlers.onZoomRangeChange, { zoomRange: null });
+    }
     if (withFocus) {
       this.moveFocus("zoomButton");
     }
   };
 
-  private stepCursor = (direction: -1 | 1, stops = 1) => {
-    const xAxis = this.xAxis;
-    const values = this.getValues();
-    if (xAxis && values.length > 0) {
-      this.dispatch({ type: "stepCursor", offset: (isPixelForward(xAxis, values) ? 1 : -1) * direction * stops });
-    }
-  };
-
   public onCursorKeyDown = (event: React.KeyboardEvent) => {
     const xAxis = this.xAxis;
-    if (!xAxis || !isZooming(this.interaction)) {
+    if (!xAxis || this.interaction.type === "inactive") {
       return;
     }
+    const { cursorIndex } = this.interaction;
     const vertical = !isXAxisHorizontal(xAxis);
-    const pageStop = getPageStep(this.getValues().length);
+    const pageStop = getPageStep(this.values.length);
+    const arrowStop = isPixelForward(xAxis, this.values) ? 1 : -1;
     let handled = true;
     switch (event.keyCode) {
       case vertical ? KeyCode.up : KeyCode.left:
-        this.stepCursor(-1);
+        this.dispatchInput({ type: "move", index: cursorIndex - arrowStop });
         break;
       case vertical ? KeyCode.down : KeyCode.right:
-        this.stepCursor(1);
+        this.dispatchInput({ type: "move", index: cursorIndex + arrowStop });
         break;
       case KeyCode.pageUp:
-        this.dispatch({ type: "stepCursor", offset: -pageStop });
+        this.dispatchInput({ type: "move", index: cursorIndex - pageStop });
         break;
       case KeyCode.pageDown:
-        this.dispatch({ type: "stepCursor", offset: pageStop });
+        this.dispatchInput({ type: "move", index: cursorIndex + pageStop });
         break;
       case KeyCode.home:
-        this.dispatch({ type: "moveCursorToEdge", edge: "first" });
+        this.dispatchInput({ type: "move", index: 0 });
         break;
       case KeyCode.end:
-        this.dispatch({ type: "moveCursorToEdge", edge: "last" });
+        this.dispatchInput({ type: "move", index: this.values.length - 1 });
         break;
       case KeyCode.enter:
       case KeyCode.space:
-        this.dispatch({ type: "commitPoint" });
+        this.dispatchInput({ type: "commit" });
         break;
       case KeyCode.escape:
         this.exitZoomMode({ withFocus: true });
@@ -230,20 +240,14 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     }
   };
 
-  public onCursorBlur = (event: React.FocusEvent) => {
-    if (!this.isFocusWithinZoom(event.relatedTarget)) {
-      this.exitZoomMode({ withFocus: false });
-    }
-  };
-
-  public onControlsBlur = (event: React.FocusEvent) => {
+  public onBlur = (event: React.FocusEvent) => {
     if (!this.isFocusWithinZoom(event.relatedTarget)) {
       this.exitZoomMode({ withFocus: false });
     }
   };
 
   private updateCanZoom() {
-    const canZoom = canZoomInto(this.getValues().length);
+    const canZoom = canZoomInto(this.values.length);
     if (canZoom !== this.get().canZoom) {
       this.setCommon({ canZoom });
     }
@@ -307,12 +311,8 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     }
   }
 
-  private getValues(): number[] {
-    if (this.valuesStale) {
-      this.values = getCursorStops(this.context.derived, this.xAxis);
-      this.valuesStale = false;
-    }
-    return this.values;
+  private updateValues() {
+    this.values = getCursorStops(this.context.derived, this.xAxis);
   }
 
   private formatValue(value: number): string {
@@ -329,17 +329,17 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
 
   private dispatch(event: ZoomEvent) {
     const previous = this.interaction;
-    const { state, effects } = zoomReducer(previous, event, { valuesCount: this.getValues().length });
-    const changed = state !== previous && !(state.type === "idle" && previous.type === "idle");
-    if (!changed && effects.length === 0) {
+    const { state, effects } = zoomReducer(previous, event, { valuesCount: this.values.length });
+    if (state === previous && effects.length === 0) {
       return;
     }
     this.interaction = state;
+    if (!isZooming(state)) {
+      this.press = null;
+    }
     if (isZooming(state) !== isZooming(previous)) {
       this.setCommon({ zooming: isZooming(state) });
-      if (!isZooming(state)) {
-        this.handlers.onHideTooltip();
-      }
+      this.handlers.onHideTooltip();
     }
     let focusTarget: null | ZoomFocusTarget = null;
     for (const effect of effects) {
@@ -355,16 +355,19 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     }
   }
 
+  private dispatchInput(event: ZoomEvent) {
+    if (!this.press) {
+      this.dispatch(event);
+    }
+  }
+
   private runEffect(effect: Exclude<ZoomEffect, { type: "focus" }>) {
     switch (effect.type) {
-      case "clearHighlight":
-        this.handlers.onHideTooltip();
-        break;
       case "announce":
         this.announce(this.describeAnnouncement(effect.announcement));
         break;
       case "applyZoom": {
-        const values = this.getValues();
+        const values = this.values;
         const fromValue = values[effect.fromIndex];
         const toValue = values[effect.toIndex];
         if (fromValue === undefined || toValue === undefined) {
@@ -384,20 +387,11 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
         });
         break;
       }
-      case "resetZoom":
-        // The chart cannot reset a controlled range on its own: it asks the consumer to show the full range.
-        if (!this.controlled) {
-          this.localExtremes = null;
-          this.applyExtremes(this.context.chart());
-        }
-        this.announce(this.labels.zoomResetAnnouncementText ?? "");
-        fireNonCancelableEvent(this.context.handlers.onZoomRangeChange, { zoomRange: null });
-        break;
     }
   }
 
   private describeAnnouncement(announcement: ZoomAnnouncement): string {
-    const values = this.getValues();
+    const values = this.values;
     switch (announcement.type) {
       case "zoomModeEntered":
         return this.labels.zoomModeEnteredAnnouncementText?.(this.formatValue(values[announcement.index])) ?? "";
@@ -455,15 +449,15 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private syncOverlay() {
     const chart = this.context.chartOrNull as null | Highcharts.Chart;
     const xAxis = this.xAxis;
-    const values = this.getValues();
-    const view = getOverlayView(this.interaction);
-    if (!chart || !xAxis || values.length === 0 || view.type === "hidden") {
+    const values = this.values;
+    const state = this.interaction;
+    if (!chart || !xAxis || values.length === 0 || state.type === "inactive") {
       this.hideOverlay();
       return;
     }
     const origin = { left: chart.container.offsetLeft, top: chart.container.offsetTop };
-    const cursorValue = values[view.cursorIndex];
-    const anchorValue = view.anchorIndex === null ? null : values[view.anchorIndex];
+    const cursorValue = values[state.cursorIndex];
+    const anchorValue = state.type === "pendingSecondInput" ? values[state.startIndex] : null;
     applyRect(this.cursorElement, getDividerRect(chart, xAxis, cursorValue), origin);
     this.drawSelection(chart, xAxis, anchorValue, cursorValue);
     const cursor = this.cursorElement;
@@ -509,18 +503,19 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private hideOverlay() {
     this.selectionBand.hide();
     this.selectionStart.hide();
-    const origin = { left: 0, top: 0 };
-    applyRect(this.cursorElement, null, origin);
+    if (this.cursorElement) {
+      this.cursorElement.style.visibility = "hidden";
+    }
   }
 
   private onPlotPointerDown = (event: PointerEvent) => {
     this.suppressNextChartClick = false;
-    if (!this.enabled || !isZooming(this.interaction) || (event.pointerType === "mouse" && event.button)) {
+    if (!isZooming(this.interaction) || (event.pointerType === "mouse" && event.button)) {
       return;
     }
     const chart = this.context.chartOrNull;
     const xAxis = this.xAxis;
-    const values = this.getValues();
+    const values = this.values;
     if (!chart || !xAxis || values.length === 0) {
       return;
     }
@@ -529,40 +524,38 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       return;
     }
     this.suppressNextChartClick = true;
-    this.dispatch({
-      type: "pointerDown",
-      press: { pointerId: event.pointerId, startIndex: findStopAtPointer(values, xAxis, chartX, chartY) },
-    });
+    this.press = { pointerId: event.pointerId, index: findStopAtPointer(values, xAxis, chartX, chartY) };
     event.preventDefault();
   };
 
   private onPlotPointerMove = (event: PointerEvent) => {
-    if (!this.enabled || this.interaction.type !== "selecting") {
+    if (!isZooming(this.interaction) || this.press) {
       return;
     }
     const chart = this.context.chartOrNull;
     const xAxis = this.xAxis;
-    const values = this.getValues();
+    const values = this.values;
     if (!chart || !xAxis || values.length === 0) {
       return;
     }
     const { chartX, chartY } = chart.pointer.normalize(event);
-    this.dispatch({
-      type: "pointerMove",
-      index: findStopAtPointer(values, xAxis, chartX, chartY),
-      insidePlot: isInsidePlot(chart as Highcharts.Chart, chartX, chartY),
-    });
+    if (isInsidePlot(chart as Highcharts.Chart, chartX, chartY)) {
+      this.dispatch({ type: "move", index: findStopAtPointer(values, xAxis, chartX, chartY) });
+    }
   };
 
   private onDocumentPointerUp = (event: PointerEvent) => {
-    if (this.interaction.type === "pressed") {
-      this.dispatch({ type: "pointerUp", pointerId: event.pointerId });
+    const press = this.press;
+    if (press?.pointerId === event.pointerId) {
+      this.press = null;
+      this.dispatch({ type: "move", index: press.index });
+      this.dispatch({ type: "commit" });
     }
   };
 
   private onDocumentPointerCancel = (event: PointerEvent) => {
-    if (this.interaction.type === "pressed") {
-      this.dispatch({ type: "pointerCancel", pointerId: event.pointerId });
+    if (this.press?.pointerId === event.pointerId) {
+      this.press = null;
     }
   };
 }
@@ -636,12 +629,8 @@ interface OverlayOrigin {
   top: number;
 }
 
-function applyRect(element: null | HTMLElement, rect: null | Rect, origin: OverlayOrigin) {
+function applyRect(element: null | HTMLElement, rect: Rect, origin: OverlayOrigin) {
   if (!element) {
-    return;
-  }
-  if (!rect) {
-    element.style.visibility = "hidden";
     return;
   }
   element.style.visibility = "visible";

@@ -3,51 +3,31 @@
 
 import { MIN_ZOOM_POINTS } from "./zoom-utils";
 
-export interface ZoomSelection {
+interface InactiveState {
+  type: "inactive";
+}
+
+interface PendingFirstInputState {
+  type: "pendingFirstInput";
   cursorIndex: number;
-  anchorIndex: null | number;
 }
 
-export interface ZoomPress {
-  pointerId: number;
+interface PendingSecondInputState {
+  type: "pendingSecondInput";
   startIndex: number;
+  cursorIndex: number;
 }
 
-interface IdleState {
-  type: "idle";
-}
+export type ZoomState = InactiveState | PendingFirstInputState | PendingSecondInputState;
 
-interface SelectingState {
-  type: "selecting";
-  selection: ZoomSelection;
-}
-
-interface PressedState {
-  type: "pressed";
-  press: ZoomPress;
-  resume: ZoomSelection;
-}
-
-export type ZoomState = IdleState | SelectingState | PressedState;
-
-export const IDLE_ZOOM_STATE: ZoomState = { type: "idle" };
+export const INACTIVE_ZOOM_STATE: ZoomState = { type: "inactive" };
 
 export type ZoomEvent =
-  | { type: "enterZoomMode"; startIndex: number }
-  | { type: "exitZoomMode"; moveFocus: boolean }
-  | { type: "resetZoom"; zoomed: boolean }
-  | { type: "stepCursor"; offset: number }
-  | { type: "moveCursorToEdge"; edge: "first" | "last" }
-  | { type: "commitPoint" }
-  | { type: "pointerDown"; press: ZoomPress }
-  | {
-      type: "pointerMove";
-      index: number;
-      insidePlot: boolean;
-    }
-  | { type: "pointerUp"; pointerId: number }
-  | { type: "pointerCancel"; pointerId: number }
-  | { type: "chartRendered"; stopMapper: ZoomStopMapper };
+  | { type: "enter" }
+  | { type: "cancel"; moveFocus: boolean }
+  | { type: "move"; index: number }
+  | { type: "commit" }
+  | { type: "rendered"; stopMapper: ZoomStopMapper };
 
 export interface ZoomStopMapper {
   nearest(index: number): number;
@@ -62,11 +42,9 @@ export type ZoomAnnouncement =
   | { type: "zoomModeExited" };
 
 export type ZoomEffect =
-  | { type: "clearHighlight" }
   | { type: "announce"; announcement: ZoomAnnouncement }
   | { type: "focus"; target: ZoomFocusTarget }
-  | { type: "applyZoom"; fromIndex: number; toIndex: number }
-  | { type: "resetZoom" };
+  | { type: "applyZoom"; fromIndex: number; toIndex: number };
 
 export interface ZoomTransition {
   state: ZoomState;
@@ -77,199 +55,93 @@ export interface ZoomContext {
   valuesCount: number;
 }
 
-export function zoomReducer(state: ZoomState, event: ZoomEvent, context: ZoomContext): ZoomTransition {
-  switch (state.type) {
-    case "idle":
-      return fromIdle(state, event, context);
-    case "selecting":
-      return fromSelecting(state, event, context);
-    case "pressed":
-      return fromPressed(state, event, context);
+export function zoomReducer(state: ZoomState, event: ZoomEvent, { valuesCount }: ZoomContext): ZoomTransition {
+  if (state.type === "inactive") {
+    return event.type === "enter" ? enter(state, valuesCount) : transition(state);
   }
-}
-
-function fromIdle(state: IdleState, event: ZoomEvent, context: ZoomContext): ZoomTransition {
   switch (event.type) {
-    case "enterZoomMode":
-      return enterZoomMode(state, event.startIndex, context);
-    case "resetZoom":
-      return resetZoom(event);
+    case "cancel":
+      return cancel(event.moveFocus);
+    case "move":
+      return move(state, event.index, valuesCount);
+    case "commit":
+      return commit(state);
+    case "rendered":
+      return rendered(state, event.stopMapper, valuesCount);
     default:
-      return stay(state);
+      return transition(state);
   }
 }
 
-function fromSelecting(state: SelectingState, event: ZoomEvent, context: ZoomContext): ZoomTransition {
-  const { valuesCount } = context;
-  switch (event.type) {
-    case "enterZoomMode":
-      return enterZoomMode(state, event.startIndex, context);
-    case "exitZoomMode":
-      return exitZoomMode(event.moveFocus);
-    case "resetZoom":
-      return resetZoom(event);
-    case "stepCursor":
-      return moveCursor(state, state.selection.cursorIndex + event.offset, valuesCount);
-    case "moveCursorToEdge":
-      return moveCursor(state, event.edge === "first" ? 0 : valuesCount - 1, valuesCount);
-    case "commitPoint":
-      return commitPoint(state.selection, context);
-    case "pointerDown":
-      return stay({ type: "pressed", press: event.press, resume: state.selection });
-    case "pointerMove":
-      return event.insidePlot ? moveCursor(state, event.index, valuesCount) : stay(state);
-    case "chartRendered":
-      return reconcile(state, event.stopMapper, context);
-    default:
-      return stay(state);
-  }
-}
-
-function fromPressed(state: PressedState, event: ZoomEvent, context: ZoomContext): ZoomTransition {
-  const { press, resume } = state;
-  switch (event.type) {
-    case "pointerUp": {
-      if (event.pointerId !== press.pointerId) {
-        return stay(state);
-      }
-      const cursorIndex = clampIndex(press.startIndex, context.valuesCount);
-      return commitPoint({ cursorIndex, anchorIndex: resume.anchorIndex }, context);
-    }
-    case "pointerCancel":
-      return event.pointerId === press.pointerId ? stay({ type: "selecting", selection: resume }) : stay(state);
-    case "pointerDown":
-      return stay({ type: "pressed", press: event.press, resume });
-    case "enterZoomMode":
-      return enterZoomMode(state, event.startIndex, context);
-    case "exitZoomMode":
-      return exitZoomMode(event.moveFocus);
-    case "resetZoom":
-      return resetZoom(event);
-    case "chartRendered":
-      return reconcile(state, event.stopMapper, context);
-    default:
-      return stay(state);
-  }
-}
-
-function enterZoomMode(state: ZoomState, startIndex: number, { valuesCount }: ZoomContext): ZoomTransition {
+function enter(state: InactiveState, valuesCount: number): ZoomTransition {
   if (!canZoomInto(valuesCount)) {
-    return stay(state);
+    return transition(state);
   }
-  const cursorIndex = clampIndex(startIndex, valuesCount);
-  return transition({ type: "selecting", selection: { cursorIndex, anchorIndex: null } }, [
-    { type: "clearHighlight" },
-    { type: "announce", announcement: { type: "zoomModeEntered", index: cursorIndex } },
+  return transition({ type: "pendingFirstInput", cursorIndex: 0 }, [
+    { type: "announce", announcement: { type: "zoomModeEntered", index: 0 } },
     { type: "focus", target: "cursor" },
   ]);
 }
 
-function exitZoomMode(moveFocus: boolean): ZoomTransition {
+function cancel(moveFocus: boolean): ZoomTransition {
   const effects: ZoomEffect[] = [{ type: "announce", announcement: { type: "zoomModeExited" } }];
   if (moveFocus) {
     effects.push({ type: "focus", target: "zoomButton" });
   }
-  return transition(IDLE_ZOOM_STATE, effects);
+  return transition(INACTIVE_ZOOM_STATE, effects);
 }
 
-function resetZoom({ zoomed }: { zoomed: boolean }): ZoomTransition {
-  return zoomed ? transition(IDLE_ZOOM_STATE, [{ type: "resetZoom" }]) : stay(IDLE_ZOOM_STATE);
+function move(
+  state: PendingFirstInputState | PendingSecondInputState,
+  index: number,
+  valuesCount: number,
+): ZoomTransition {
+  const cursorIndex = Math.min(Math.max(index, 0), valuesCount - 1);
+  return transition(cursorIndex === state.cursorIndex ? state : { ...state, cursorIndex });
 }
 
-function commitPoint(selection: ZoomSelection, { valuesCount }: ZoomContext): ZoomTransition {
-  const selecting: ZoomState = { type: "selecting", selection };
-  if (valuesCount === 0) {
-    return stay(selecting);
-  }
-  const { cursorIndex, anchorIndex } = selection;
-  if (anchorIndex === null) {
-    return transition({ type: "selecting", selection: { cursorIndex, anchorIndex: cursorIndex } }, [
-      { type: "announce", announcement: { type: "startPointSet", index: cursorIndex } },
+function commit(state: PendingFirstInputState | PendingSecondInputState): ZoomTransition {
+  if (state.type === "pendingFirstInput") {
+    return transition({ type: "pendingSecondInput", startIndex: state.cursorIndex, cursorIndex: state.cursorIndex }, [
+      { type: "announce", announcement: { type: "startPointSet", index: state.cursorIndex } },
     ]);
   }
-  if (!isZoomableRange(anchorIndex, cursorIndex)) {
-    return transition(selecting, [{ type: "announce", announcement: { type: "startPointSet", index: anchorIndex } }]);
+  if (Math.abs(state.cursorIndex - state.startIndex) + 1 < MIN_ZOOM_POINTS) {
+    return transition(state, [{ type: "announce", announcement: { type: "startPointSet", index: state.startIndex } }]);
   }
-  return transition(IDLE_ZOOM_STATE, [
-    { type: "applyZoom", fromIndex: anchorIndex, toIndex: cursorIndex },
+  return transition(INACTIVE_ZOOM_STATE, [
+    { type: "applyZoom", fromIndex: state.startIndex, toIndex: state.cursorIndex },
     { type: "focus", target: "resetButton" },
   ]);
 }
 
-function reconcile(state: ZoomState, stopMapper: ZoomStopMapper, { valuesCount }: ZoomContext): ZoomTransition {
+function rendered(
+  state: PendingFirstInputState | PendingSecondInputState,
+  stopMapper: ZoomStopMapper,
+  valuesCount: number,
+): ZoomTransition {
   if (valuesCount === 0) {
-    return state.type === "idle" ? stay(state) : exitZoomMode(true);
+    return cancel(true);
   }
-  switch (state.type) {
-    case "idle":
-      return stay(state);
-    case "selecting":
-      return stay({ type: "selecting", selection: remapSelection(state.selection, stopMapper) });
-    case "pressed":
-      return stay({
-        type: "pressed",
-        press: { ...state.press, startIndex: stopMapper.nearest(state.press.startIndex) },
-        resume: remapSelection(state.resume, stopMapper),
-      });
-  }
-}
-
-function moveCursor(state: SelectingState, index: number, valuesCount: number): ZoomTransition {
-  if (valuesCount === 0) {
-    return stay(state);
-  }
-  const cursorIndex = clampIndex(index, valuesCount);
-  return stay(
-    cursorIndex === state.selection.cursorIndex
-      ? state
-      : { type: "selecting", selection: { ...state.selection, cursorIndex } },
+  const cursorIndex = stopMapper.nearest(state.cursorIndex);
+  const startIndex = state.type === "pendingSecondInput" ? stopMapper.exact(state.startIndex) : null;
+  return transition(
+    startIndex === null
+      ? { type: "pendingFirstInput", cursorIndex }
+      : { type: "pendingSecondInput", startIndex, cursorIndex },
   );
 }
 
-function stay(state: ZoomState): ZoomTransition {
-  return { state, effects: NO_EFFECTS };
-}
-
-function transition(state: ZoomState, effects: readonly ZoomEffect[]): ZoomTransition {
+function transition(state: ZoomState, effects: readonly ZoomEffect[] = NO_EFFECTS): ZoomTransition {
   return { state, effects };
 }
 
 const NO_EFFECTS: readonly ZoomEffect[] = [];
-
-function remapSelection(selection: ZoomSelection, stopMapper: ZoomStopMapper): ZoomSelection {
-  return {
-    cursorIndex: stopMapper.nearest(selection.cursorIndex),
-    anchorIndex: selection.anchorIndex === null ? null : stopMapper.exact(selection.anchorIndex),
-  };
-}
-
-function clampIndex(index: number, valuesCount: number): number {
-  return Math.min(Math.max(index, 0), Math.max(0, valuesCount - 1));
-}
-
-function isZoomableRange(fromIndex: number, toIndex: number): boolean {
-  return Math.abs(toIndex - fromIndex) + 1 >= MIN_ZOOM_POINTS;
-}
 
 export function canZoomInto(valuesCount: number): boolean {
   return valuesCount > MIN_ZOOM_POINTS;
 }
 
 export function isZooming(state: ZoomState): boolean {
-  return state.type !== "idle";
+  return state.type !== "inactive";
 }
-
-export type ZoomOverlayView = { type: "hidden" } | { type: "cursor"; cursorIndex: number; anchorIndex: null | number };
-
-export function getOverlayView(state: ZoomState): ZoomOverlayView {
-  switch (state.type) {
-    case "idle":
-      return HIDDEN_VIEW;
-    case "selecting":
-      return { type: "cursor", ...state.selection };
-    case "pressed":
-      return { type: "cursor", ...state.resume };
-  }
-}
-
-const HIDDEN_VIEW: ZoomOverlayView = { type: "hidden" };
