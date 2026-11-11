@@ -15,9 +15,10 @@ import {
   INACTIVE_ZOOM_STATE,
   isZooming,
   ZoomAnnouncement,
+  ZoomCancelReason,
   ZoomEffect,
   ZoomEvent,
-  ZoomFocusTarget,
+  ZoomOperation,
   zoomReducer,
   ZoomState,
 } from "../chart-zoom/zoom-state-machine";
@@ -37,11 +38,9 @@ export interface ReactiveZoomState {
   canZoom: boolean;
   announcement: string;
   announcementKey: number;
-  // Counters that ask the zoom controls to move focus, which only they can do once their buttons are rendered.
-  // zoomId increases when a zoom is committed, to focus Reset. cancelId increases when zoom mode is cancelled with
-  // Escape, the Zoom button, or because no stops are left, to focus the Zoom button.
-  zoomId: number;
-  cancelId: number;
+  // The last commit or cancel of a selection, so that the zoom controls can move focus to their buttons once those
+  // are rendered. A new object is stored for every operation.
+  lastOperation: null | ZoomOperation;
 }
 
 export interface ChartExtraZoomHandlers {
@@ -79,8 +78,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       canZoom: true,
       announcement: "",
       announcementKey: 0,
-      zoomId: 0,
-      cancelId: 0,
+      lastOperation: null,
     });
     this.context = context;
     this.handlers = handlers;
@@ -162,8 +160,8 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     this.dispatch({ type: "enter" });
   };
 
-  public exitZoomMode = ({ withFocus }: { withFocus: boolean }) => {
-    this.dispatch({ type: "cancel", moveFocus: withFocus });
+  public exitZoomMode = (reason: ZoomCancelReason) => {
+    this.dispatch({ type: "cancel", reason });
   };
 
   public resetZoom = () => {
@@ -212,7 +210,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
         this.dispatchInput({ type: "commit" });
         break;
       case KeyCode.escape:
-        this.exitZoomMode({ withFocus: true });
+        this.exitZoomMode("escape");
         break;
       default:
         handled = false;
@@ -225,7 +223,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
 
   public onBlur = (event: React.FocusEvent) => {
     if (!this.isFocusWithinZoom(event.relatedTarget)) {
-      this.exitZoomMode({ withFocus: false });
+      this.exitZoomMode("blur");
     }
   };
 
@@ -322,17 +320,12 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
         this.handlers.onHideTooltip();
       }
     }
-    let focusTarget: null | ZoomFocusTarget = null;
     for (const effect of effects) {
-      if (effect.type === "focus") {
-        focusTarget = effect.target;
-      } else {
-        this.runEffect(effect);
-      }
+      this.runEffect(effect);
     }
     this.syncOverlay();
-    if (focusTarget) {
-      this.moveFocus(focusTarget);
+    if (effects.some((effect) => effect.type === "focusCursor")) {
+      this.cursorElement?.focus();
     }
   }
 
@@ -342,7 +335,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     }
   }
 
-  private runEffect(effect: Exclude<ZoomEffect, { type: "focus" }>) {
+  private runEffect(effect: ZoomEffect) {
     switch (effect.type) {
       case "announce":
         this.announce(this.describeAnnouncement(effect.announcement));
@@ -366,8 +359,12 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
         fireNonCancelableEvent(this.context.handlers.onZoomRangeChange, {
           zoomRange: { x: { startValue: min, endValue: max } },
         });
+        this.setCommon({ lastOperation: { type: "commit" } });
         break;
       }
+      case "cancelled":
+        this.setCommon({ lastOperation: { type: "cancel", reason: effect.reason } });
+        break;
     }
   }
 
@@ -380,20 +377,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
         return this.labels.zoomStartPointAnnouncementText?.(this.formatValue(values[announcement.index])) ?? "";
       case "zoomModeExited":
         return this.labels.zoomModeExitedAnnouncementText ?? "";
-    }
-  }
-
-  private moveFocus(target: ZoomFocusTarget) {
-    switch (target) {
-      case "cursor":
-        this.cursorElement?.focus();
-        break;
-      case "zoomButton":
-        this.setCommon({ cancelId: this.get().cancelId + 1 });
-        break;
-      case "resetButton":
-        this.setCommon({ zoomId: this.get().zoomId + 1 });
-        break;
     }
   }
 

@@ -24,7 +24,7 @@ export const INACTIVE_ZOOM_STATE: ZoomState = { type: "inactive" };
 
 export type ZoomEvent =
   | { type: "enter" }
-  | { type: "cancel"; moveFocus: boolean }
+  | { type: "cancel"; reason: ZoomCancelReason }
   | { type: "move"; index: number }
   | { type: "commit" }
   | { type: "rendered"; stopMapper: ZoomStopMapper };
@@ -34,7 +34,9 @@ export interface ZoomStopMapper {
   exact(index: number): null | number;
 }
 
-export type ZoomFocusTarget = "cursor" | "zoomButton" | "resetButton";
+export type ZoomCancelReason = "escape" | "toggle" | "blur" | "noStops";
+
+export type ZoomOperation = { type: "commit" } | { type: "cancel"; reason: ZoomCancelReason };
 
 export type ZoomAnnouncement =
   | { type: "zoomModeEntered"; index: number }
@@ -43,8 +45,9 @@ export type ZoomAnnouncement =
 
 export type ZoomEffect =
   | { type: "announce"; announcement: ZoomAnnouncement }
-  | { type: "focus"; target: ZoomFocusTarget }
-  | { type: "applyZoom"; fromIndex: number; toIndex: number };
+  | { type: "focusCursor" }
+  | { type: "applyZoom"; fromIndex: number; toIndex: number }
+  | { type: "cancelled"; reason: ZoomCancelReason };
 
 export interface ZoomTransition {
   state: ZoomState;
@@ -61,7 +64,7 @@ export function zoomReducer(state: ZoomState, event: ZoomEvent, { valuesCount }:
   }
   switch (event.type) {
     case "cancel":
-      return cancel(event.moveFocus);
+      return cancel(event.reason);
     case "move":
       return move(state, event.index, valuesCount);
     case "commit":
@@ -79,16 +82,15 @@ function enter(state: InactiveState, valuesCount: number): ZoomTransition {
   }
   return transition({ type: "pendingFirstInput", cursorIndex: 0 }, [
     { type: "announce", announcement: { type: "zoomModeEntered", index: 0 } },
-    { type: "focus", target: "cursor" },
+    { type: "focusCursor" },
   ]);
 }
 
-function cancel(moveFocus: boolean): ZoomTransition {
-  const effects: ZoomEffect[] = [{ type: "announce", announcement: { type: "zoomModeExited" } }];
-  if (moveFocus) {
-    effects.push({ type: "focus", target: "zoomButton" });
-  }
-  return transition(INACTIVE_ZOOM_STATE, effects);
+function cancel(reason: ZoomCancelReason): ZoomTransition {
+  return transition(INACTIVE_ZOOM_STATE, [
+    { type: "announce", announcement: { type: "zoomModeExited" } },
+    { type: "cancelled", reason },
+  ]);
 }
 
 function move(
@@ -111,7 +113,6 @@ function commit(state: PendingFirstInputState | PendingSecondInputState): ZoomTr
   }
   return transition(INACTIVE_ZOOM_STATE, [
     { type: "applyZoom", fromIndex: state.startIndex, toIndex: state.cursorIndex },
-    { type: "focus", target: "resetButton" },
   ]);
 }
 
@@ -121,7 +122,7 @@ function rendered(
   valuesCount: number,
 ): ZoomTransition {
   if (valuesCount === 0) {
-    return cancel(true);
+    return cancel("noStops");
   }
   const cursorIndex = stopMapper.nearest(state.cursorIndex);
   const startIndex = state.type === "pendingSecondInput" ? stopMapper.exact(state.startIndex) : null;

@@ -17,7 +17,7 @@ const FIRST: ZoomState = { type: "pendingFirstInput", cursorIndex: 3 };
 const SECOND: ZoomState = { type: "pendingSecondInput", startIndex: 2, cursorIndex: 5 };
 
 const ENTER: ZoomEvent = { type: "enter" };
-const CANCEL: ZoomEvent = { type: "cancel", moveFocus: true };
+const CANCEL: ZoomEvent = { type: "cancel", reason: "escape" };
 const MOVE: ZoomEvent = { type: "move", index: 8 };
 const COMMIT: ZoomEvent = { type: "commit" };
 const RENDERED: ZoomEvent = { type: "rendered", stopMapper: { nearest: (index) => index, exact: (index) => index } };
@@ -26,22 +26,22 @@ const SAME = "same";
 
 const TRANSITIONS: [name: string, from: ZoomState, event: ZoomEvent, to: ZoomState | typeof SAME, effects: string[]][] =
   [
-    ["inactive + enter", INACTIVE_ZOOM_STATE, ENTER, { type: "pendingFirstInput", cursorIndex: 0 }, ["announce", "focus"]], // prettier-ignore
+    ["inactive + enter", INACTIVE_ZOOM_STATE, ENTER, { type: "pendingFirstInput", cursorIndex: 0 }, ["announce", "focusCursor"]], // prettier-ignore
     ["inactive + cancel", INACTIVE_ZOOM_STATE, CANCEL, SAME, []],
     ["inactive + move", INACTIVE_ZOOM_STATE, MOVE, SAME, []],
     ["inactive + commit", INACTIVE_ZOOM_STATE, COMMIT, SAME, []],
     ["inactive + rendered", INACTIVE_ZOOM_STATE, RENDERED, SAME, []],
 
     ["first input + enter", FIRST, ENTER, SAME, []],
-    ["first input + cancel", FIRST, CANCEL, INACTIVE_ZOOM_STATE, ["announce", "focus"]],
+    ["first input + cancel", FIRST, CANCEL, INACTIVE_ZOOM_STATE, ["announce", "cancelled"]],
     ["first input + move", FIRST, MOVE, { type: "pendingFirstInput", cursorIndex: 8 }, []],
     ["first input + commit", FIRST, COMMIT, { type: "pendingSecondInput", startIndex: 3, cursorIndex: 3 }, ["announce"]], // prettier-ignore
     ["first input + rendered", FIRST, RENDERED, FIRST, []],
 
     ["second input + enter", SECOND, ENTER, SAME, []],
-    ["second input + cancel", SECOND, CANCEL, INACTIVE_ZOOM_STATE, ["announce", "focus"]],
+    ["second input + cancel", SECOND, CANCEL, INACTIVE_ZOOM_STATE, ["announce", "cancelled"]],
     ["second input + move", SECOND, MOVE, { type: "pendingSecondInput", startIndex: 2, cursorIndex: 8 }, []],
-    ["second input + commit", SECOND, COMMIT, INACTIVE_ZOOM_STATE, ["applyZoom", "focus"]],
+    ["second input + commit", SECOND, COMMIT, INACTIVE_ZOOM_STATE, ["applyZoom"]],
     ["second input + rendered", SECOND, RENDERED, SECOND, []],
   ];
 

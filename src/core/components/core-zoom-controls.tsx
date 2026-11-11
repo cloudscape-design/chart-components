@@ -8,7 +8,6 @@ import SpaceBetween from "@cloudscape-design/components/space-between";
 import ToggleButton, { ToggleButtonProps } from "@cloudscape-design/components/toggle-button";
 
 import { useSelector } from "../../internal/utils/async-store";
-import { usePrevious } from "../../internal/utils/use-previous";
 import { ChartAPI } from "../chart-api";
 import { ChartLabels } from "../i18n-utils";
 
@@ -19,30 +18,31 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
   const zooming = useSelector(api.zoomStore, (s) => s.zooming);
   const zoomed = useSelector(api.zoomStore, (s) => s.zoomed);
   const canZoom = useSelector(api.zoomStore, (s) => s.canZoom);
-  const zoomId = useSelector(api.zoomStore, (s) => s.zoomId);
-  const cancelId = useSelector(api.zoomStore, (s) => s.cancelId);
+  const lastOperation = useSelector(api.zoomStore, (s) => s.lastOperation);
   const zoomButtonRef = useRef<ToggleButtonProps.Ref>(null);
   const resetButtonRef = useRef<ButtonProps.Ref>(null);
-  const focusedZoomId = useRef(zoomId);
-  const prevCancelId = usePrevious(cancelId);
+  const handledOperation = useRef(lastOperation);
 
-  // A committed zoom increases zoomId. Reset is focused once the range is applied, which for a controlled range is
-  // a few renders later, when the consumer passes it back. The last handled zoomId is kept in a ref rather than
-  // compared with the previous render, so that the focus still moves then.
+  // After a commit, Reset takes the focus once the range is applied. For a controlled range this is a render later,
+  // when the consumer passes the range back, so the handled operation is kept in a ref rather than compared with the
+  // previous render. After a cancel, the Zoom button takes the focus, unless the user left zoom mode by moving the
+  // focus away.
   useEffect(() => {
-    if (zoomed && zoomId !== focusedZoomId.current) {
-      focusedZoomId.current = zoomId;
-      resetButtonRef.current?.focus();
+    if (!lastOperation || lastOperation === handledOperation.current) {
+      return;
     }
-  }, [zoomId, zoomed]);
-
-  // A cancel that should move focus increases cancelId. Leaving zoom mode by moving focus away does not, so that the
-  // Zoom button does not take the focus back.
-  useEffect(() => {
-    if (prevCancelId !== undefined && cancelId !== prevCancelId) {
-      zoomButtonRef.current?.focus();
+    if (lastOperation.type === "commit") {
+      if (zoomed) {
+        handledOperation.current = lastOperation;
+        resetButtonRef.current?.focus();
+      }
+    } else {
+      handledOperation.current = lastOperation;
+      if (lastOperation.reason !== "blur") {
+        zoomButtonRef.current?.focus();
+      }
     }
-  }, [cancelId, prevCancelId]);
+  }, [lastOperation, zoomed]);
 
   return (
     <div
@@ -75,7 +75,7 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
           pressedIconSvg={zoomModeIcon}
           disabled={!canZoom && !zooming}
           disabledReason={labels.zoomButtonDisabledReason}
-          onChange={({ detail }) => (detail.pressed ? api.enterZoomMode() : api.exitZoomMode({ withFocus: true }))}
+          onChange={({ detail }) => (detail.pressed ? api.enterZoomMode() : api.exitZoomMode())}
           className={zooming ? testClasses["exit-zoom-button"] : testClasses["zoom-button"]}
         >
           {labels.enterZoomModeButtonText}
