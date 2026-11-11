@@ -32,8 +32,6 @@ import { ChartExtraContext } from "./chart-extra-context";
 
 import testClasses from "../test-classes/styles.css.js";
 
-export type ZoomControlsFocusTarget = Exclude<ZoomFocusTarget, "cursor">;
-
 // The reactive state is used to propagate changes to the zoom controls and announcer components.
 export interface ReactiveZoomState {
   zoomed: boolean;
@@ -67,8 +65,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private controlsElement: null | HTMLElement = null;
   private zoomButton: null | ButtonProps.Ref = null;
   private resetButton: null | ButtonProps.Ref = null;
-  private pendingButtonFocus: null | ZoomControlsFocusTarget = null;
-  private renderedControls: null | { zoomed: boolean; zooming: boolean; canZoom: boolean } = null;
   private rangeBand = new SVGRendererSingle();
   private rangeBorders = new SVGRendererSingle();
   private selectionBand = new SVGRendererSingle();
@@ -110,12 +106,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
 
   public setResetButton = (button: null | ButtonProps.Ref) => {
     this.resetButton = button;
-  };
-
-  public onZoomControlsUpdate = () => {
-    const { zoomed, zooming, canZoom } = this.get();
-    this.renderedControls = { zoomed, zooming, canZoom };
-    this.completeButtonFocus();
   };
 
   public onChartLoad = (chart: SafeChart) => {
@@ -189,10 +179,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     }
   };
 
-  public clearPendingButtonFocus = () => {
-    this.pendingButtonFocus = null;
-  };
-
   private stepCursor = (direction: -1 | 1, stops = 1) => {
     const xAxis = this.xAxis;
     const values = this.getValues();
@@ -253,7 +239,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   public onControlsBlur = (event: React.FocusEvent) => {
     if (!this.isFocusWithinZoom(event.relatedTarget)) {
       this.exitZoomMode({ withFocus: false });
-      this.clearPendingButtonFocus();
     }
   };
 
@@ -356,9 +341,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
         this.handlers.onHideTooltip();
       }
     }
-    if (state.type !== "idle") {
-      this.pendingButtonFocus = null;
-    }
     let focusTarget: null | ZoomFocusTarget = null;
     for (const effect of effects) {
       if (effect.type === "focus") {
@@ -428,43 +410,14 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
 
   private moveFocus(target: ZoomFocusTarget) {
     if (target === "cursor") {
-      this.clearPendingButtonFocus();
       this.cursorElement?.focus();
-    } else if (!this.controlsElement) {
-      this.handlers.onFocusChart();
-    } else {
-      this.pendingButtonFocus = target;
-      if (!this.controlsWillUpdate()) {
-        this.completeButtonFocus();
-      }
-    }
-  }
-
-  private controlsWillUpdate() {
-    const rendered = this.renderedControls;
-    const { zoomed, zooming, canZoom } = this.get();
-    return !rendered || rendered.zoomed !== zoomed || rendered.zooming !== zooming || rendered.canZoom !== canZoom;
-  }
-
-  private completeButtonFocus() {
-    const target = this.pendingButtonFocus;
-    if (!target) {
       return;
     }
-    if (target === "resetButton" && this.resetButton) {
-      this.pendingButtonFocus = null;
-      this.resetButton.focus();
-      return;
-    }
-    const canZoom = !!this.renderedControls?.canZoom;
-    const waitForReset = target === "resetButton" && !!this.zoomButton && canZoom;
-    if (this.zoomButton && canZoom) {
-      this.zoomButton.focus();
+    const button = target === "resetButton" ? this.resetButton : this.zoomButton;
+    if (button) {
+      button.focus();
     } else {
       this.handlers.onFocusChart();
-    }
-    if (!waitForReset) {
-      this.pendingButtonFocus = null;
     }
   }
 
@@ -602,11 +555,15 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   };
 
   private onDocumentPointerUp = (event: PointerEvent) => {
-    this.dispatch({ type: "pointerUp", pointerId: event.pointerId });
+    if (this.interaction.type === "pressed") {
+      this.dispatch({ type: "pointerUp", pointerId: event.pointerId });
+    }
   };
 
   private onDocumentPointerCancel = (event: PointerEvent) => {
-    this.dispatch({ type: "pointerCancel", pointerId: event.pointerId });
+    if (this.interaction.type === "pressed") {
+      this.dispatch({ type: "pointerCancel", pointerId: event.pointerId });
+    }
   };
 }
 

@@ -222,36 +222,32 @@ describe("CoreChart: zoom selection, controls", () => {
 });
 describe("CoreChart: zoom selection, focus and keyboard containment", () => {
   test.each([
-    { name: "an uncontrolled zoom", stateful: false, zoomTo: [1, 3], zoomRange: undefined, target: "zoom" },
+    { name: "an uncontrolled zoom", stateful: false, zoomTo: [1, 3], zoomRange: undefined },
     {
       name: "an uncontrolled zoom to the minimum range",
       stateful: false,
       zoomTo: [0, 1],
       zoomRange: undefined,
-      target: "zoom",
     },
     {
       name: "a controlled zoom",
       stateful: true,
       zoomTo: null,
       zoomRange: { x: { startValue: 1, endValue: 3 } },
-      target: "zoom",
     },
     {
       name: "a controlled reset the consumer ignores",
       stateful: false,
       zoomTo: null,
       zoomRange: { x: { startValue: 1, endValue: 3 } },
-      target: "zoom",
     },
     {
       name: "an ignored reset with the Zoom button disabled",
       stateful: false,
       zoomTo: null,
       zoomRange: { x: { startValue: 1, endValue: 2 } },
-      target: "chart",
     },
-  ] as const)("moves focus when Reset is pressed after $name", ({ stateful, zoomTo, zoomRange, target }) => {
+  ] as const)("moves focus when Reset is pressed after $name", ({ stateful, zoomTo, zoomRange }) => {
     const props = { zoom: { enabled: true }, zoomRange, onZoomRangeChange };
     if (stateful) {
       renderStatefulZoomChart({ ...props, visibleItems: ["Requests"] });
@@ -263,8 +259,7 @@ describe("CoreChart: zoom selection, focus and keyboard containment", () => {
     }
     getChart().findResetZoomButton()!.focus();
     getChart().findResetZoomButton()!.click();
-    const expected = target === "zoom" ? getChart().findZoomButton()! : getChart().findApplication()!;
-    expect(document.activeElement).toBe(expected.getElement());
+    expect(document.activeElement).toBe(getChart().findZoomButton()!.getElement());
   });
 
   test("moves focus to the chart on Escape once the zoom controls are hidden mid-selection", () => {

@@ -5,6 +5,7 @@ export const zoomMessages = {
   "[charts]": {
     "i18nStrings.enterZoomModeButtonText": "Zoom",
     "i18nStrings.resetZoomButtonText": "Reset",
+    "i18nStrings.zoomButtonDisabledReason": "There is no narrower range to zoom into",
     "i18nStrings.resetZoomButtonAriaLabel": "Reset zoom to show full data range",
     "i18nStrings.zoomControlsAriaLabel": "Chart zoom controls",
     "i18nStrings.zoomCursorAriaLabel": "Zoom range cursor",

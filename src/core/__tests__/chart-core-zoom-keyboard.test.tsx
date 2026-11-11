@@ -235,7 +235,7 @@ describe("CoreChart: zoom selection, keyboard interaction", () => {
     expect(getXExtremes()).toEqual({ min: 20, max: 30 });
   });
 
-  test("moves focus to the chart when a cancelled selection leaves nothing to zoom into", () => {
+  test("moves focus to the disabled Zoom button when a cancelled selection leaves nothing to zoom into", () => {
     const { rerender } = renderZoomChart({ zoom: { enabled: true } });
     enterZoomMode();
     rerender({ series: seriesOfLength(2), zoom: { enabled: true } });
@@ -243,7 +243,7 @@ describe("CoreChart: zoom selection, keyboard interaction", () => {
 
     pressCursorKey(KeyCode.escape);
     expect(getChart().findZoomButton()!.isDisabled()).toBe(true);
-    expect(document.activeElement).toBe(getChart().findApplication()!.getElement());
+    expect(document.activeElement).toBe(getChart().findZoomButton()!.getElement());
   });
 
   test("confines the cursor to the zoomed window", () => {

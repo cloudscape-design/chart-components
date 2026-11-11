@@ -352,13 +352,26 @@ describe("CoreChart: zoom selection", () => {
     expect(wrapper.findZoomButton()!.isDisabled()).toBe(false);
   });
 
-  test("moves focus to the chart when the data leaves nothing to select", () => {
-    const { wrapper, rerender } = renderChart(defaultProps);
+  test.each([
+    { name: "", props: {} },
+    { name: " with noData", props: { noData: { statusType: "finished" as const } } },
+    { name: " with keyboard navigation turned off", props: { keyboardNavigation: false } },
+  ])("moves focus to the disabled Zoom button when the data leaves nothing to select$name", ({ props }) => {
+    const { wrapper, rerender } = renderChart({ ...defaultProps, ...props });
     enterZoomMode();
-    rerender({ ...defaultProps, options: { series: [], xAxis: { min: 0, max: 4 } } });
+    rerender({ ...defaultProps, ...props, options: { series: [], xAxis: { min: 0, max: 4 } } });
 
     expect(wrapper.findExitZoomButton()).toBe(null);
-    expect(document.activeElement).toBe(wrapper.findApplication()!.getElement());
+    expect(wrapper.findZoomButton()!.isDisabled()).toBe(true);
+    expect(document.activeElement).toBe(wrapper.findZoomButton()!.getElement());
+  });
+
+  test("explains why the Zoom button is disabled", () => {
+    const { wrapper } = renderChart({ ...defaultProps, zoomRange: { x: { startValue: 1, endValue: 2 } } });
+    const zoomButton = wrapper.findZoomButton()!;
+    expect(zoomButton.isDisabled()).toBe(true);
+    zoomButton.focus();
+    expect(zoomButton.findDisabledReason()!.getElement()).toHaveTextContent("There is no narrower range to zoom into");
   });
 
   test("unpins the tooltip when zoom mode is entered with the keyboard", () => {

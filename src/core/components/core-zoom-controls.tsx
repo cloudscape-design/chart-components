@@ -1,11 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
-import Button from "@cloudscape-design/components/button";
+import Button, { ButtonProps } from "@cloudscape-design/components/button";
 import SpaceBetween from "@cloudscape-design/components/space-between";
-import ToggleButton from "@cloudscape-design/components/toggle-button";
+import ToggleButton, { ToggleButtonProps } from "@cloudscape-design/components/toggle-button";
 
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
@@ -18,10 +18,36 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
   const zooming = useSelector(api.zoomStore, (s) => s.zooming);
   const zoomed = useSelector(api.zoomStore, (s) => s.zoomed);
   const canZoom = useSelector(api.zoomStore, (s) => s.canZoom);
+  const zoomButtonRef = useRef<ToggleButtonProps.Ref>(null);
+  const resetButtonRef = useRef<ButtonProps.Ref>(null);
+  const focusResetOnRender = useRef(false);
 
   useEffect(() => {
-    api.onZoomControlsUpdate();
-  });
+    api.setZoomButton({ focus: () => zoomButtonRef.current?.focus() });
+    api.setResetZoomButton({
+      focus: () => {
+        if (resetButtonRef.current) {
+          resetButtonRef.current.focus();
+        } else {
+          focusResetOnRender.current = true;
+          zoomButtonRef.current?.focus();
+        }
+      },
+    });
+    return () => {
+      api.setZoomButton(null);
+      api.setResetZoomButton(null);
+    };
+  }, [api]);
+
+  useEffect(() => {
+    if (zooming) {
+      focusResetOnRender.current = false;
+    } else if (focusResetOnRender.current && resetButtonRef.current) {
+      focusResetOnRender.current = false;
+      resetButtonRef.current.focus();
+    }
+  }, [zoomed, zooming]);
 
   return (
     <div
@@ -29,12 +55,17 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
       role="region"
       aria-label={labels.zoomControlsAriaLabel}
       className={styles["chart-zoom-controls"]}
-      onBlur={api.onZoomControlsBlur}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+          focusResetOnRender.current = false;
+        }
+        api.onZoomControlsBlur(event);
+      }}
     >
       <SpaceBetween size="s" direction="horizontal">
         {zoomed && !zooming && (
           <Button
-            ref={api.setResetZoomButton}
+            ref={resetButtonRef}
             variant="link"
             formAction="none"
             onClick={() => api.resetZoom({ withFocus: true })}
@@ -45,11 +76,12 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
           </Button>
         )}
         <ToggleButton
-          ref={api.setZoomButton}
+          ref={zoomButtonRef}
           pressed={zooming}
           iconName="zoom-in"
           pressedIconSvg={zoomModeIcon}
           disabled={!canZoom && !zooming}
+          disabledReason={labels.zoomButtonDisabledReason}
           onChange={({ detail }) => (detail.pressed ? api.enterZoomMode() : api.exitZoomMode({ withFocus: true }))}
           className={zooming ? testClasses["exit-zoom-button"] : testClasses["zoom-button"]}
         >
