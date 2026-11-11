@@ -12,6 +12,7 @@ import {
   findZoomSvg,
   getCurrentChart,
   renderChart,
+  renderStatefulChart,
 } from "./common";
 import { zoomMessages } from "./zoom-messages";
 
@@ -39,6 +40,10 @@ export type ZoomTestProps = Omit<CoreChartTestProps, "options"> & {
   inverted?: boolean;
   onChartClick?: () => void;
 };
+
+export function renderStatefulZoomChart(props: ZoomTestProps) {
+  return renderStatefulChart(getZoomChartProps(props));
+}
 
 export function renderZoomChart(props: ZoomTestProps) {
   const { rerender } = renderChart(getZoomChartProps(props));

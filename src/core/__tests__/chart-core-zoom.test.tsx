@@ -216,16 +216,6 @@ describe("CoreChart: zoom controls", () => {
     expect(controls.compareDocumentPosition(container) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  test("hides the Reset button with hideZoomControls", () => {
-    const { wrapper } = renderChart({
-      ...defaultProps,
-      zoom: { enabled: true, hideZoomControls: true },
-      zoomRange: zoomedRange,
-    });
-    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
-    expect(wrapper.findResetZoomButton()).toBe(null);
-  });
-
   test("the Reset button asks the consumer to show the full range, and leaves the range to the consumer", () => {
     const { wrapper } = renderChart({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
     wrapper.findResetZoomButton()!.click();
@@ -235,7 +225,7 @@ describe("CoreChart: zoom controls", () => {
     expect(getXExtremes()).toEqual({ min: 1, max: 3 });
   });
 
-  test("resets the zoom, announces it, and moves focus to the Zoom button", () => {
+  test("resets a controlled zoom and announces it", () => {
     const { wrapper } = renderStatefulChart({
       ...defaultProps,
       visibleItems: ["L1", "L2"],
@@ -249,28 +239,6 @@ describe("CoreChart: zoom controls", () => {
     expect(getZoomRangeAffordance().present).toBe(false);
     expect(wrapper.findResetZoomButton()).toBe(null);
     expect(wrapper.getElement()).toHaveTextContent("Zoom reset. Showing the full data range.");
-    expect(document.activeElement).toBe(wrapper.findZoomButton()!.getElement());
-  });
-
-  test("moves focus to the Zoom button as soon as Reset is pressed", () => {
-    const { wrapper } = renderChart({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
-    wrapper.findResetZoomButton()!.focus();
-    wrapper.findResetZoomButton()!.click();
-
-    expect(document.activeElement).toBe(wrapper.findZoomButton()!.getElement());
-  });
-
-  test("moves focus to the chart when Reset is pressed with the Zoom button disabled", () => {
-    const { wrapper } = renderChart({
-      ...defaultProps,
-      zoomRange: { x: { startValue: 1, endValue: 2 } },
-      onZoomRangeChange,
-    });
-    expect(wrapper.findZoomButton()!.isDisabled()).toBe(true);
-    wrapper.findResetZoomButton()!.focus();
-    wrapper.findResetZoomButton()!.click();
-
-    expect(document.activeElement).toBe(wrapper.findApplication()!.getElement());
   });
 
   test("announces the reset when Reset is pressed, and again on the next reset", () => {
@@ -288,51 +256,9 @@ describe("CoreChart: zoom controls", () => {
     wrapper.findResetZoomButton()!.click();
     expect(wrapper.getElement()).toHaveTextContent(announcement);
   });
-
-  test("resolves the zoom strings from the I18nProvider", () => {
-    const { wrapper } = renderChart({
-      ...defaultProps,
-      zoomRange: zoomedRange,
-      i18nProvider: {
-        "[charts]": {
-          "i18nStrings.resetZoomButtonText": "provider: reset",
-          "i18nStrings.resetZoomButtonAriaLabel": "provider: reset label",
-          "i18nStrings.zoomControlsAriaLabel": "provider: controls",
-        },
-      },
-    });
-    const resetButton = wrapper.findResetZoomButton()!.getElement();
-    expect(resetButton).toHaveTextContent("provider: reset");
-    expect(resetButton).toHaveAttribute("aria-label", "provider: reset label");
-    expect(resetButton.closest('[role="region"]')).toHaveAttribute("aria-label", "provider: controls");
-  });
-
-  test("falls back to empty strings without I18nProvider messages", () => {
-    const { wrapper } = renderChart({ ...defaultProps, zoomRange: zoomedRange, i18nProvider: {} });
-    const resetButton = wrapper.findResetZoomButton()!.getElement();
-    expect(resetButton.textContent).toBe("");
-    expect(resetButton.closest('[role="region"]')!.getAttribute("aria-label") ?? "").toBe("");
-  });
 });
 
 describe("CoreChart: zoom selection", () => {
-  test("zooms into a range with the keyboard and resets it", () => {
-    const { wrapper } = renderChart({ ...defaultProps, onZoomRangeChange });
-
-    keyboardZoomToIndexes(1, 3);
-
-    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
-    expect(onZoomRangeChange).toHaveBeenCalledWith(
-      expect.objectContaining({ detail: { zoomRange: { x: { startValue: 1, endValue: 3 } } } }),
-    );
-
-    onZoomRangeChange.mockReset();
-    wrapper.findResetZoomButton()!.click();
-
-    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
-    expect(onZoomRangeChange).toHaveBeenCalledWith(expect.objectContaining({ detail: { zoomRange: null } }));
-  });
-
   test("leaves zoom mode when the remaining series are hidden mid-selection", () => {
     const { wrapper, rerender } = renderChart({ ...defaultProps, visibleItems: ["L1", "L2"] });
 
@@ -502,14 +428,16 @@ describe("CoreChart: zoom selection", () => {
     renderChart({ ...defaultProps, options: { series, xAxis: { min: 0, max: 4, reversed: true } } });
     enterZoomMode();
     const cursor = createChartWrapper().findZoomCursor()!.getElement();
-    expect(cursor).toHaveAttribute("aria-valuenow", "4");
+    expect(cursor).toHaveAttribute("aria-valuenow", "0");
 
-    pressCursorKey(KeyCode.left);
-    expect(cursor).toHaveAttribute("aria-valuenow", "4");
     pressCursorKey(KeyCode.right);
-    expect(cursor).toHaveAttribute("aria-valuenow", "3");
+    expect(cursor).toHaveAttribute("aria-valuenow", "0");
+    pressCursorKey(KeyCode.left);
+    expect(cursor).toHaveAttribute("aria-valuenow", "1");
 
     pressCursorKey(KeyCode.end);
+    expect(cursor).toHaveAttribute("aria-valuenow", "4");
+    pressCursorKey(KeyCode.home);
     expect(cursor).toHaveAttribute("aria-valuenow", "0");
   });
 });

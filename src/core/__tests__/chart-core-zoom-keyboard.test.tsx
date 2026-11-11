@@ -82,7 +82,7 @@ describe("CoreChart: zoom selection, keyboard interaction", { timeout: TEST_TIME
   test.each([
     { name: "left-to-right page", rtl: false, inverted: false, key: KeyCode.pageDown, now: "5" },
     { name: "inverted chart", rtl: false, inverted: true, key: KeyCode.pageDown, now: "5" },
-    { name: "right-to-left page", rtl: true, inverted: false, key: KeyCode.pageUp, now: "44" },
+    { name: "right-to-left page", rtl: true, inverted: false, key: KeyCode.pageDown, now: "5" },
   ])("pages through the values in order, as chart navigation does, in a $name", ({ rtl, inverted, key, now }) => {
     if (rtl) {
       renderInRtl();
@@ -102,6 +102,22 @@ describe("CoreChart: zoom selection, keyboard interaction", { timeout: TEST_TIME
     } finally {
       vi.restoreAllMocks();
     }
+  });
+
+  test("zooms an inverted chart with the keyboard", () => {
+    renderZoomChart({ inverted: true, zoom: { enabled: true }, onZoomRangeChange });
+    enterZoomMode();
+    const cursor = getChart().findZoomCursor()!.getElement();
+    expect(cursor).toHaveAttribute("aria-orientation", "vertical");
+
+    expect(getCursorAttributes().now).toBe("0");
+    pressCursorKey(KeyCode.down);
+    expect(getCursorAttributes().now).toBe("1");
+    pressCursorKey(KeyCode.enter);
+    pressCursorKey(KeyCode.down, 2);
+    expect(getCursorAttributes().now).toBe("3");
+    pressCursorKey(KeyCode.enter);
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
   });
 
   test("ignores vertical arrow keys on a horizontal axis", () => {
@@ -164,13 +180,10 @@ describe("CoreChart: zoom selection, keyboard interaction", { timeout: TEST_TIME
     });
   });
 
-  test("moves focus to Reset after zooming, and back to Zoom after resetting", () => {
+  test("moves focus to Reset after zooming", () => {
     renderZoomChart({ zoom: { enabled: true } });
     keyboardZoomToIndexes(1, 3);
     expect(document.activeElement).toBe(getChart().findResetZoomButton()!.getElement());
-
-    getChart().findResetZoomButton()!.click();
-    expect(document.activeElement).toBe(getChart().findZoomButton()!.getElement());
   });
 
   test("moves focus to the Zoom button when the selection is cancelled", () => {
@@ -252,9 +265,9 @@ describe("CoreChart: zoom selection, direction", { timeout: TEST_TIMEOUT }, () =
   });
 
   test.each([
-    { name: "left-to-right page", rtl: false, first: "0", last: "4" },
-    { name: "right-to-left page", rtl: true, first: "4", last: "0" },
-  ])("follows the plot on screen in a $name", ({ rtl, first, last }) => {
+    { name: "left-to-right page", rtl: false, towardsEnd: KeyCode.right, direction: 1 },
+    { name: "right-to-left page", rtl: true, towardsEnd: KeyCode.left, direction: -1 },
+  ])("starts at the first value and follows the plot on screen in a $name", ({ rtl, towardsEnd, direction }) => {
     if (rtl) {
       renderInRtl();
     }
@@ -262,18 +275,16 @@ describe("CoreChart: zoom selection, direction", { timeout: TEST_TIMEOUT }, () =
     rerender({ zoom: { enabled: true } });
     enterZoomMode();
 
-    expect(getCursorAttributes().now).toBe(first);
+    expect(getCursorAttributes().now).toBe("0");
     const startLeft = getCursorLeft();
-    pressCursorKey(KeyCode.left);
-    expect(getCursorLeft()).toBe(startLeft);
-
-    pressCursorKey(KeyCode.right);
-    expect(getCursorLeft()).toBeGreaterThan(startLeft);
+    pressCursorKey(towardsEnd);
+    expect(getCursorAttributes().now).toBe("1");
+    expect(Math.sign(getCursorLeft() - startLeft)).toBe(direction);
 
     pressCursorKey(KeyCode.end);
-    expect(getCursorAttributes().now).toBe(last);
+    expect(getCursorAttributes().now).toBe("4");
     pressCursorKey(KeyCode.home);
-    expect(getCursorAttributes().now).toBe(first);
+    expect(getCursorAttributes().now).toBe("0");
   });
 
   test("zooms an inverted chart with two clicks in zoom mode", () => {

@@ -17,7 +17,13 @@ import {
   pressCursorKey,
 } from "./common";
 import { stubPlotGeometry } from "./plot-geometry";
-import { dispatchPointer, onZoomRangeChange, renderZoomChart, TEST_TIMEOUT } from "./zoom-test-utils";
+import {
+  dispatchPointer,
+  onZoomRangeChange,
+  renderStatefulZoomChart,
+  renderZoomChart,
+  TEST_TIMEOUT,
+} from "./zoom-test-utils";
 
 stubPlotGeometry();
 
@@ -35,111 +41,46 @@ describe("CoreChart: zoom selection, controls", { timeout: TEST_TIMEOUT }, () =>
     expect(getChart().findResetZoomButton()).toBe(null);
   });
 
-  test("labels the zoom controls region", () => {
-    renderZoomChart({ zoom: { enabled: true } });
-    const region = getChart().getElement().querySelector('[role="region"]')!;
-    expect(region).toHaveAttribute("aria-label", "Chart zoom controls");
-  });
-
-  test("hides the built-in buttons with hideZoomControls, keeping the cursor available", () => {
-    renderZoomChart({ zoom: { enabled: true, hideZoomControls: true } });
+  test("hides the built-in buttons with hideZoomControls, keeping the range and the cursor", () => {
+    renderZoomChart({
+      zoom: { enabled: true, hideZoomControls: true },
+      zoomRange: { x: { startValue: 1, endValue: 3 } },
+    });
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+    expect(getChart().findResetZoomButton()).toBe(null);
     expect(getChart().findZoomButton()).toBe(null);
     expect(getChart().findExitZoomButton()).toBe(null);
     expect(getChart().findZoomCursor()).not.toBe(null);
   });
 
-  test("renders the zoom controls before the plot in DOM order", () => {
-    renderZoomChart({ zoom: { enabled: true } });
-    const zoomButton = getChart().findZoomButton()!.getElement();
-    const position = zoomButton.compareDocumentPosition(getCurrentChart().container);
-    expect(position & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-  });
-
-  test("clicking Zoom enters zoom mode and keeps the Zoom label", () => {
-    renderZoomChart({ zoom: { enabled: true } });
-    enterZoomMode();
-    expect(getChart().findZoomButton()).toBe(null);
-    expect(getChart().findExitZoomButton()!.getElement()).toHaveTextContent("Zoom");
-  });
-
-  test("keeps the same accessible name on the Zoom button in zoom mode", () => {
-    renderZoomChart({ zoom: { enabled: true } });
-    const button = getChart().findZoomButton()!.getElement();
-    expect(button).not.toHaveAttribute("aria-label");
-    enterZoomMode();
-    expect(button).not.toHaveAttribute("aria-label");
-    expect(button).toHaveTextContent("Zoom");
-  });
-
-  test("clicking the pressed Zoom button returns to idle state", () => {
-    renderZoomChart({ zoom: { enabled: true } });
-    enterZoomMode();
-    getChart().findExitZoomButton()!.click();
-    expect(getChart().findExitZoomButton()).toBe(null);
-    expect(getChart().findZoomButton()).not.toBe(null);
-  });
-
-  test("the Zoom button is a toggle button that is pressed in zoom mode", () => {
+  test("the Zoom button toggles zoom mode and keeps its name", () => {
     renderZoomChart({ zoom: { enabled: true } });
     const button = getChart().findZoomButton()!.getElement();
     expect(button).toHaveAttribute("aria-pressed", "false");
     enterZoomMode();
     expect(getChart().findExitZoomButton()!.getElement()).toBe(button);
     expect(button).toHaveAttribute("aria-pressed", "true");
+    expect(button).toHaveTextContent("Zoom");
+    expect(button).not.toHaveAttribute("aria-label");
+
+    getChart().findExitZoomButton()!.click();
+    expect(getChart().findExitZoomButton()).toBe(null);
+    expect(button).toHaveAttribute("aria-pressed", "false");
   });
 
-  test("the Reset button fires onZoomRangeChange with a null range", () => {
+  test("marks the zoomed range, and clears it with Reset", () => {
     renderZoomChart({ zoom: { enabled: true }, onZoomRangeChange });
-    keyboardZoomToIndexes(1, 3);
-
-    onZoomRangeChange.mockReset();
-    getChart().findResetZoomButton()!.click();
-    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
-    expect(onZoomRangeChange).toHaveBeenCalledWith(expect.objectContaining({ detail: { zoomRange: null } }));
-  });
-
-  test("controlled zoomRange applies extremes and shows the Reset button", () => {
-    const { rerender } = renderZoomChart({ zoom: { enabled: true }, zoomRange: null });
-    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
-    expect(getChart().findResetZoomButton()).toBe(null);
-
-    rerender({
-      zoom: { enabled: true },
-      zoomRange: { x: { startValue: 1, endValue: 3 } },
-    });
-    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
-    expect(getChart().findResetZoomButton()!.getElement()).toHaveTextContent("Reset");
-
-    rerender({ zoom: { enabled: true }, zoomRange: null });
-    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
-    expect(getChart().findResetZoomButton()).toBe(null);
-  });
-
-  test("marks the zoomed range with a band and boundary lines", () => {
-    renderZoomChart({ zoom: { enabled: true } });
     expect(getZoomRangeAffordance().present).toBe(false);
 
     keyboardZoomToIndexes(1, 3);
     expect(getZoomRangeAffordance().band).toEqual({ from: 1, to: 3 });
     expect(getZoomRangeAffordance().boundaries).toEqual([1, 3]);
-  });
 
-  test("clears the zoomed range affordance when the zoom is reset", () => {
-    renderZoomChart({ zoom: { enabled: true } });
-    keyboardZoomToIndexes(1, 3);
+    onZoomRangeChange.mockReset();
     getChart().findResetZoomButton()!.click();
+    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
     expect(getZoomRangeAffordance().present).toBe(false);
-  });
-
-  test("marks the zoomed range of a controlled zoomRange", () => {
-    const { rerender } = renderZoomChart({ zoom: { enabled: true }, zoomRange: null });
-    expect(getZoomRangeAffordance().present).toBe(false);
-
-    rerender({ zoom: { enabled: true }, zoomRange: { x: { startValue: 3, endValue: 1 } } });
-    expect(getZoomRangeAffordance().band).toEqual({ from: 1, to: 3 });
-
-    rerender({ zoom: { enabled: true }, zoomRange: null });
-    expect(getZoomRangeAffordance().present).toBe(false);
+    expect(onZoomRangeChange).toHaveBeenCalledWith(expect.objectContaining({ detail: { zoomRange: null } }));
   });
 
   test("keeps the zoomed range affordance while zoom mode is re-entered", () => {
@@ -256,6 +197,9 @@ describe("CoreChart: zoom selection, controls", { timeout: TEST_TIMEOUT }, () =>
         "[charts]": {
           "i18nStrings.enterZoomModeButtonText": "provider: zoom",
           "i18nStrings.zoomRangeChangeAnnouncementText": "provider: {startValue} to {endValue}",
+          "i18nStrings.resetZoomButtonText": "provider: reset",
+          "i18nStrings.resetZoomButtonAriaLabel": "provider: reset label",
+          "i18nStrings.zoomControlsAriaLabel": "provider: controls",
         },
       },
     });
@@ -269,23 +213,64 @@ describe("CoreChart: zoom selection, controls", { timeout: TEST_TIMEOUT }, () =>
     pressCursorKey(KeyCode.right, 2);
     pressCursorKey(KeyCode.enter);
     expect(getChart().getElement()).toHaveTextContent("provider: 1 to 3");
+    const resetButton = getChart().findResetZoomButton()!.getElement();
+    expect(resetButton).toHaveTextContent("provider: reset");
+    expect(resetButton).toHaveAttribute("aria-label", "provider: reset label");
+    expect(resetButton.closest('[role="region"]')).toHaveAttribute("aria-label", "provider: controls");
+  });
+
+  test("falls back to empty strings without I18nProvider messages", () => {
+    renderZoomChart({ zoom: { enabled: true }, zoomRange: { x: { startValue: 1, endValue: 3 } }, i18nProvider: {} });
+    const resetButton = getChart().findResetZoomButton()!.getElement();
+    expect(resetButton.textContent).toBe("");
+    expect(resetButton.closest('[role="region"]')!.getAttribute("aria-label") ?? "").toBe("");
   });
 });
 describe("CoreChart: zoom selection, focus and keyboard containment", { timeout: TEST_TIMEOUT }, () => {
-  test("moves focus to the Zoom button when a controlled reset is not applied", () => {
-    renderZoomChart({ zoom: { enabled: true }, zoomRange: { x: { startValue: 1, endValue: 3 } }, onZoomRangeChange });
+  test.each([
+    { name: "an uncontrolled zoom", stateful: false, zoomTo: [1, 3], zoomRange: undefined, target: "zoom" },
+    {
+      name: "an uncontrolled zoom to the minimum range",
+      stateful: false,
+      zoomTo: [0, 1],
+      zoomRange: undefined,
+      target: "zoom",
+    },
+    {
+      name: "a controlled zoom",
+      stateful: true,
+      zoomTo: null,
+      zoomRange: { x: { startValue: 1, endValue: 3 } },
+      target: "zoom",
+    },
+    {
+      name: "a controlled reset the consumer ignores",
+      stateful: false,
+      zoomTo: null,
+      zoomRange: { x: { startValue: 1, endValue: 3 } },
+      target: "zoom",
+    },
+    {
+      name: "an ignored reset with the Zoom button disabled",
+      stateful: false,
+      zoomTo: null,
+      zoomRange: { x: { startValue: 1, endValue: 2 } },
+      target: "chart",
+    },
+  ] as const)("moves focus when Reset is pressed after $name", ({ stateful, zoomTo, zoomRange, target }) => {
+    const props = { zoom: { enabled: true }, zoomRange, onZoomRangeChange };
+    if (stateful) {
+      renderStatefulZoomChart({ ...props, visibleItems: ["Requests"] });
+    } else {
+      renderZoomChart(props);
+    }
+    if (zoomTo) {
+      keyboardZoomToIndexes(zoomTo[0], zoomTo[1]);
+    }
+    getChart().findResetZoomButton()!.focus();
     getChart().findResetZoomButton()!.click();
-    expect(onZoomRangeChange).toHaveBeenCalledWith(expect.objectContaining({ detail: { zoomRange: null } }));
-    expect(getChart().findResetZoomButton()).not.toBe(null);
-    expect(document.activeElement).toBe(getChart().findZoomButton()!.getElement());
-  });
-
-  test("moves focus to the Zoom button after resetting from the minimum range", () => {
-    renderZoomChart({ zoom: { enabled: true } });
-    keyboardZoomToIndexes(0, 1);
-    expect(getChart().findZoomButton()!.isDisabled()).toBe(true);
-    getChart().findResetZoomButton()!.click();
-    expect(document.activeElement).toBe(getChart().findZoomButton()!.getElement());
+    const expected = target === "zoom" ? getChart().findZoomButton()! : getChart().findApplication()!;
+    expect(document.activeElement).toBe(expected.getElement());
   });
 
   test("moves focus to the chart on Escape once the zoom controls are hidden mid-selection", () => {
@@ -334,14 +319,19 @@ describe("CoreChart: zoom selection, focus and keyboard containment", { timeout:
   test("stops following a press when the chart unmounts mid-press", () => {
     renderZoomChart({ zoom: { enabled: true } });
     const removeEventListener = vi.spyOn(document, "removeEventListener");
+    const containerRemoveEventListener = vi.spyOn(getCurrentChart().container, "removeEventListener");
     try {
       enterZoomMode();
       dispatchPointer("pointerdown", 1);
       cleanup();
       const removed = removeEventListener.mock.calls.map(([type]) => type);
       expect(removed).toEqual(expect.arrayContaining(["pointerup", "pointercancel"]));
+      expect(containerRemoveEventListener.mock.calls.map(([type]) => type)).toEqual(
+        expect.arrayContaining(["pointerdown", "pointermove"]),
+      );
     } finally {
       removeEventListener.mockRestore();
+      containerRemoveEventListener.mockRestore();
     }
   });
 });

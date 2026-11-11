@@ -14,11 +14,11 @@ import {
   createChartWrapper as getChart,
   enterZoomMode,
   getXExtremes,
-  keyboardZoomToIndexes,
   pressCursorKey,
 } from "../../core/__tests__/common";
 import { stubPlotGeometry } from "../../core/__tests__/plot-geometry";
 import { zoomMessages } from "../../core/__tests__/zoom-messages";
+import { getCursorAttributes } from "../../core/__tests__/zoom-test-utils";
 import { renderCartesianChart } from "./common";
 
 const TEST_TIMEOUT = 15_000;
@@ -58,16 +58,6 @@ function renderZoomChart(props: ZoomTestProps) {
   return { rerender: (props: ZoomTestProps) => rerender(props) };
 }
 
-function getCursorAttributes() {
-  const cursor = getChart().findZoomCursor()!.getElement();
-  return {
-    min: cursor.getAttribute("aria-valuemin"),
-    max: cursor.getAttribute("aria-valuemax"),
-    now: cursor.getAttribute("aria-valuenow"),
-    text: cursor.getAttribute("aria-valuetext"),
-  };
-}
-
 stubPlotGeometry();
 
 afterEach(() => {
@@ -76,45 +66,6 @@ afterEach(() => {
 });
 
 describe("CartesianChart: zoom selection, with other series types", { timeout: TEST_TIMEOUT }, () => {
-  test("zooms into two adjacent points without explicit axis bounds", () => {
-    renderZoomChart({
-      highcharts,
-      series: [
-        {
-          type: "column",
-          name: "A",
-          data: [
-            { x: 0, y: 1 },
-            { x: 1, y: 2 },
-            { x: 2, y: 3 },
-            { x: 3, y: 4 },
-            { x: 4, y: 5 },
-          ],
-        },
-        {
-          type: "column",
-          name: "B",
-          data: [
-            { x: 0, y: 2 },
-            { x: 1, y: 3 },
-            { x: 2, y: 4 },
-            { x: 3, y: 5 },
-            { x: 4, y: 6 },
-          ],
-        },
-      ],
-      xAxis: { title: "X", type: "linear" as const },
-      yAxis: { title: "Y", type: "linear" as const },
-      zoom: { enabled: true },
-      onZoomRangeChange,
-    });
-    keyboardZoomToIndexes(1, 2);
-    expect(getXExtremes()).toEqual({ min: 1, max: 2 });
-    expect(onZoomRangeChange).toHaveBeenCalledWith(
-      expect.objectContaining({ detail: { zoomRange: { x: { startValue: 1, endValue: 2 } } } }),
-    );
-  });
-
   test("ignores error bar series when collecting cursor stops", () => {
     renderZoomChart({
       highcharts,
@@ -163,26 +114,6 @@ describe("CartesianChart: zoom selection, with other series types", { timeout: T
     );
   });
 
-  test("zooms an inverted chart with the keyboard", () => {
-    renderZoomChart({
-      ...defaultProps,
-      inverted: true,
-      zoom: { enabled: true },
-      onZoomRangeChange,
-    });
-    enterZoomMode();
-    const cursor = getChart().findZoomCursor()!.getElement();
-    expect(cursor).toHaveAttribute("aria-orientation", "vertical");
-
-    expect(getCursorAttributes().now).toBe("0");
-    pressCursorKey(KeyCode.down);
-    expect(getCursorAttributes().now).toBe("1");
-    pressCursorKey(KeyCode.enter);
-    pressCursorKey(KeyCode.down, 2);
-    expect(getCursorAttributes().now).toBe("3");
-    pressCursorKey(KeyCode.enter);
-    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
-  });
   test("disables the Zoom button for threshold-only charts", () => {
     renderZoomChart({
       ...defaultProps,

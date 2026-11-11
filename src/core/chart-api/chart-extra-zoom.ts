@@ -4,6 +4,7 @@
 import type Highcharts from "highcharts";
 
 import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
+import type { ButtonProps } from "@cloudscape-design/components/button";
 
 import * as Styles from "../../internal/chart-styles";
 import { fireNonCancelableEvent } from "../../internal/events";
@@ -42,10 +43,6 @@ export interface ReactiveZoomState {
   announcementKey: number;
 }
 
-export interface FocusableButton {
-  focus(): void;
-}
-
 export interface ChartExtraZoomHandlers {
   onClearHighlight(): void;
   onHideTooltip(): void;
@@ -66,12 +63,11 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private values: number[] = [];
   private valuesStale = true;
   private suppressNextChartClick = false;
-  private listenedDocument: null | Document = null;
-  private pressPointerId: null | number = null;
+  private container: null | HTMLElement = null;
   private cursorElement: null | HTMLElement = null;
   private controlsElement: null | HTMLElement = null;
-  private zoomButton: null | FocusableButton = null;
-  private resetButton: null | FocusableButton = null;
+  private zoomButton: null | ButtonProps.Ref = null;
+  private resetButton: null | ButtonProps.Ref = null;
   private pendingButtonFocus: null | ZoomControlsFocusTarget = null;
   private renderedControls: null | { zoomed: boolean; zooming: boolean; canZoom: boolean } = null;
   private rangeBand = new SVGRendererSingle();
@@ -109,11 +105,11 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     this.controlsElement = element;
   };
 
-  public setZoomButton = (button: null | FocusableButton) => {
+  public setZoomButton = (button: null | ButtonProps.Ref) => {
     this.zoomButton = button;
   };
 
-  public setResetButton = (button: null | FocusableButton) => {
+  public setResetButton = (button: null | ButtonProps.Ref) => {
     this.resetButton = button;
   };
 
@@ -127,11 +123,11 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     if (!chart.container) {
       return;
     }
-    chart.container.addEventListener("pointerdown", this.onPlotPointerDown);
-    chart.container.addEventListener("pointermove", this.onPlotPointerMove);
-    this.listenedDocument = chart.container.ownerDocument;
-    this.listenedDocument.addEventListener("pointerup", this.onDocumentPointerUp);
-    this.listenedDocument.addEventListener("pointercancel", this.onDocumentPointerCancel);
+    this.container = chart.container;
+    this.container.addEventListener("pointerdown", this.onPlotPointerDown);
+    this.container.addEventListener("pointermove", this.onPlotPointerMove);
+    this.container.ownerDocument.addEventListener("pointerup", this.onDocumentPointerUp);
+    this.container.ownerDocument.addEventListener("pointercancel", this.onDocumentPointerCancel);
   };
 
   public onChartRender = () => {
@@ -146,13 +142,12 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   };
 
   public onChartDestroy = () => {
-    const container = this.context.chartOrNull?.container;
+    const container = this.container;
     container?.removeEventListener("pointerdown", this.onPlotPointerDown);
     container?.removeEventListener("pointermove", this.onPlotPointerMove);
-    this.listenedDocument?.removeEventListener("pointerup", this.onDocumentPointerUp);
-    this.listenedDocument?.removeEventListener("pointercancel", this.onDocumentPointerCancel);
-    this.listenedDocument = null;
-    this.pressPointerId = null;
+    container?.ownerDocument.removeEventListener("pointerup", this.onDocumentPointerUp);
+    container?.ownerDocument.removeEventListener("pointercancel", this.onDocumentPointerCancel);
+    this.container = null;
     this.rangeBand.destroy();
     this.rangeBorders.destroy();
     this.selectionBand.destroy();
@@ -181,8 +176,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     if (!this.enabled || !xAxis) {
       return;
     }
-    const values = this.getValues();
-    this.dispatch({ type: "enterZoomMode", startIndex: isPixelForward(xAxis, values) ? 0 : values.length - 1 });
+    this.dispatch({ type: "enterZoomMode", startIndex: 0 });
   };
 
   public exitZoomMode = ({ withFocus }: { withFocus: boolean }) => {
@@ -230,10 +224,10 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
         this.dispatch({ type: "stepCursor", offset: pageStop });
         break;
       case KeyCode.home:
-        this.moveCursorToEdge(-1);
+        this.dispatch({ type: "moveCursorToEdge", edge: "first" });
         break;
       case KeyCode.end:
-        this.moveCursorToEdge(1);
+        this.dispatch({ type: "moveCursorToEdge", edge: "last" });
         break;
       case KeyCode.enter:
       case KeyCode.space:
@@ -475,15 +469,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     }
   }
 
-  private moveCursorToEdge(direction: -1 | 1) {
-    const xAxis = this.xAxis;
-    const values = this.getValues();
-    if (xAxis && values.length > 0) {
-      const atStart = isPixelForward(xAxis, values) === (direction === -1);
-      this.dispatch({ type: "moveCursorToEdge", edge: atStart ? "first" : "last" });
-    }
-  }
-
   // Marks the zoomed range on the plot with a tinted band and a border at each end.
   private drawRange(chart: SafeChart) {
     const extremes = this.getExtremes();
@@ -592,7 +577,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       return;
     }
     this.suppressNextChartClick = true;
-    this.pressPointerId = event.pointerId;
     this.dispatch({
       type: "pointerDown",
       press: { pointerId: event.pointerId, startIndex: findStopAtPointer(values, xAxis, chartX, chartY) },
@@ -619,17 +603,11 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   };
 
   private onDocumentPointerUp = (event: PointerEvent) => {
-    if (event.pointerId === this.pressPointerId) {
-      this.pressPointerId = null;
-      this.dispatch({ type: "pointerUp", pointerId: event.pointerId });
-    }
+    this.dispatch({ type: "pointerUp", pointerId: event.pointerId });
   };
 
   private onDocumentPointerCancel = (event: PointerEvent) => {
-    if (event.pointerId === this.pressPointerId) {
-      this.pressPointerId = null;
-      this.dispatch({ type: "pointerCancel", pointerId: event.pointerId });
-    }
+    this.dispatch({ type: "pointerCancel", pointerId: event.pointerId });
   };
 }
 
