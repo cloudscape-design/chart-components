@@ -96,6 +96,20 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     }
   }
 
+  public showCursor(point: null | Highcharts.Point, group: readonly Highcharts.Point[]) {
+    if (!this.tooltipLock && this.chartType === "cartesian") {
+      this.createCursor(point, group);
+    }
+  }
+
+  public restoreCursor() {
+    if (this.lastGroup && this.get().visible) {
+      this.updateTooltipCursor({ point: this.lastPoint, group: this.lastGroup });
+    } else {
+      this.cursor.hide();
+    }
+  }
+
   public hideTooltip() {
     this.cursor.hide();
     this.targetTrack.hide();
@@ -127,9 +141,7 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
     this.lastPoint = props.point;
     this.lastGroup = props.group;
 
-    const chartType =
-      getChartSeries(this.context.chart()).find((s) => s.type === "pie" || s.type === "solidgauge")?.type ??
-      "cartesian";
+    const chartType = this.chartType;
     if (chartType === "pie") {
       return this.updateTooltipCursorPie(props.group[0]);
     } else if (chartType === "solidgauge") {
@@ -148,14 +160,24 @@ export class ChartExtraTooltip extends AsyncStore<ReactiveTooltipState> {
   }) => {
     const pointRect = point ? getPointRect(point) : getGroupRect(group.slice(0, 1));
     const groupRect = getGroupRect(group);
+    this.createCursor(point, group);
+    this.targetTrack.rect(this.context.chart().renderer, { ...pointRect, ...this.commonTrackAttrs });
+    this.groupTrack.rect(this.context.chart().renderer, { ...groupRect, ...this.commonTrackAttrs });
+  };
+
+  private createCursor(point: null | Highcharts.Point, group: readonly Highcharts.Point[]) {
     // The cursor is not shown when column series are present (a UX decision).
     const hideCursorLine = getChartSeries(this.context.chart()).some(
       (s) => s.type === "column" || s.type === "heatmap",
     );
-    this.cursor.create(groupRect, point, group, !hideCursorLine);
-    this.targetTrack.rect(this.context.chart().renderer, { ...pointRect, ...this.commonTrackAttrs });
-    this.groupTrack.rect(this.context.chart().renderer, { ...groupRect, ...this.commonTrackAttrs });
-  };
+    this.cursor.create(getGroupRect(group), point, group, !hideCursorLine);
+  }
+
+  private get chartType() {
+    return (
+      getChartSeries(this.context.chart()).find((s) => s.type === "pie" || s.type === "solidgauge")?.type ?? "cartesian"
+    );
+  }
 
   private updateTooltipCursorPie = (point: Highcharts.Point) => {
     // We only create target track for pie chart as pie chart does not support groups.

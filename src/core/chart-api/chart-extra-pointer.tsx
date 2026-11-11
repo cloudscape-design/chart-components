@@ -4,16 +4,21 @@
 import type Highcharts from "highcharts";
 
 import { getChartSeries, isPointVisible, SafeChart } from "../../internal/utils/highcharts";
-import { DebouncedCall } from "../../internal/utils/utils";
+import { DebouncedCall, isEqualArrays } from "../../internal/utils/utils";
 import { isInsidePlot } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
+import { HoverScheduler } from "./hover-scheduler";
 
 const HOVER_LOST_DELAY = 25;
+
+export type PointerHoverTarget = Highcharts.Point | Highcharts.Point[];
 
 export interface ChartExtraPointerHandlers {
   onPointHover(point: Highcharts.Point): void;
   onGroupHover(group: Highcharts.Point[]): void;
   onHoverLost(): void;
+  onHoverPreview(target: PointerHoverTarget): void;
+  onHoverPreviewCancel(): void;
   onPointClick(point: Highcharts.Point): void;
   onGroupClick(group: Highcharts.Point[]): void;
   isLocked(): boolean;
@@ -27,10 +32,12 @@ export class ChartExtraPointer {
   private hoveredGroup: null | Highcharts.Point[] = null;
   private tooltipHovered = false;
   private hoverLostCall = new DebouncedCall();
+  private hover: HoverScheduler<PointerHoverTarget>;
 
   constructor(context: ChartExtraContext, handlers: ChartExtraPointerHandlers) {
     this.context = context;
     this.handlers = handlers;
+    this.hover = new HoverScheduler(() => this.context.settings.hoverDelay, isSameHoverTarget);
   }
 
   public onChartLoad = (chart: SafeChart) => {
@@ -38,7 +45,10 @@ export class ChartExtraPointer {
     chart.container.addEventListener("mouseout", this.onChartMouseout);
   };
 
+  public cancelPendingHover = () => this.hover.cancel();
+
   public onChartDestroy = () => {
+    this.hover.cancel();
     this.context.chartOrNull?.container?.removeEventListener("mousemove", this.onChartMousemove);
     this.context.chartOrNull?.container?.removeEventListener("mouseout", this.onChartMouseout);
   };
@@ -67,6 +77,9 @@ export class ChartExtraPointer {
     this.tooltipHovered = true;
     this.hoveredPoint = null;
     this.hoveredGroup = null;
+    if (this.hover.cancel()) {
+      this.handlers.onHoverPreviewCancel();
+    }
   };
 
   // When the pointer leaves the tooltip it can hover another point or group. If that does not happen,
@@ -150,6 +163,7 @@ export class ChartExtraPointer {
     if (this.handlers.isLocked()) {
       return false;
     }
+    this.hover.flush();
     const targetPoint = point ?? (this.hoveredPoint && isPointVisible(this.hoveredPoint) ? this.hoveredPoint : null);
     if (targetPoint) {
       this.handlers.onPointClick(targetPoint);
@@ -166,7 +180,7 @@ export class ChartExtraPointer {
     if (isPointVisible(point)) {
       this.hoveredPoint = point;
       this.hoveredGroup = null;
-      this.handlers.onPointHover(point);
+      this.scheduleHover(point);
       this.applyCursorStyle();
     }
   };
@@ -176,7 +190,7 @@ export class ChartExtraPointer {
       const availablePoints = group.filter(isPointVisible);
       this.hoveredPoint = null;
       this.hoveredGroup = availablePoints;
-      this.handlers.onGroupHover(availablePoints);
+      this.scheduleHover(availablePoints);
       this.applyCursorStyle();
     }
   };
@@ -193,6 +207,30 @@ export class ChartExtraPointer {
     }, HOVER_LOST_DELAY);
   };
 
+  private scheduleHover = (target: PointerHoverTarget) => {
+    if (this.hover.schedule(target, () => this.applyHover(target))) {
+      this.handlers.onHoverPreview(target);
+    }
+  };
+
+  private applyHover = (target: PointerHoverTarget) => {
+    const current = this.hoveredPoint ?? this.hoveredGroup;
+    if (!current || !isSameHoverTarget(current, target)) {
+      this.handlers.onHoverPreviewCancel();
+    } else if (Array.isArray(target)) {
+      const group = target.filter(isPointVisible);
+      if (group.length > 0 || target.length === 0) {
+        this.handlers.onGroupHover(group);
+      } else {
+        this.handlers.onHoverPreviewCancel();
+      }
+    } else if (isPointVisible(target)) {
+      this.handlers.onPointHover(target);
+    } else {
+      this.handlers.onHoverPreviewCancel();
+    }
+  };
+
   private applyCursorStyle = () => {
     const container = this.context.chart().container;
     if (container) {
@@ -200,4 +238,11 @@ export class ChartExtraPointer {
       container.style.cursor = value;
     }
   };
+}
+
+function isSameHoverTarget(a: PointerHoverTarget, b: PointerHoverTarget) {
+  if (Array.isArray(a) && Array.isArray(b)) {
+    return isEqualArrays(a, b, (x, y) => x === y);
+  }
+  return a === b;
 }

@@ -549,6 +549,7 @@ export namespace CoreChartProps {
     enabled?: boolean;
     placement?: "middle" | "outside" | "target";
     size?: "small" | "medium" | "large";
+    // Superseded by the internal hoverDebounce prop (see InternalHoverProps) and planned for removal.
     debounce?: number | boolean;
     seriesSorting?: "as-added" | "by-value-desc";
   }
