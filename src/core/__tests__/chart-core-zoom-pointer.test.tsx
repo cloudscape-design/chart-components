@@ -165,7 +165,7 @@ describe("CoreChart: zoom selection, pointer interaction", () => {
     );
   });
 
-  test("keeps the clicks that set the range boundaries away from the chart", async () => {
+  test("does not pin a tooltip or fire the chart click for the clicks that set the zoom range", async () => {
     const onChartClick = vi.fn();
     renderZoomChart({ zoom: { enabled: true }, onChartClick });
     const click = (value: number) => {
