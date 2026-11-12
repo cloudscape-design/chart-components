@@ -77,7 +77,7 @@ describe("CoreChart: zoom selection, controls", () => {
     expect(onZoomRangeChange).toHaveBeenCalledWith(expect.objectContaining({ detail: { zoomRange: null } }));
   });
 
-  test("keeps the zoomed range affordance while zoom mode is re-entered", () => {
+  test("keeps marking the zoomed range while zooming in again", () => {
     renderZoomChart({ zoom: { enabled: true } });
     keyboardZoomToIndexes(1, 3);
     enterZoomMode();
@@ -142,7 +142,7 @@ describe("CoreChart: zoom selection, controls", () => {
     expect(getChart().findZoomButton()!.isDisabled()).toBe(false);
   });
 
-  test("does not count points without a y value as cursor stops", () => {
+  test("disables the Zoom button when no point has a value", () => {
     renderZoomChart({
       series: [
         {
@@ -264,7 +264,7 @@ describe("CoreChart: zoom selection, focus and keyboard containment", () => {
     }
   });
 
-  test("stops following a press when the chart unmounts mid-press", () => {
+  test("removes its pointer listeners when the chart unmounts during a press", () => {
     renderZoomChart({ zoom: { enabled: true } });
     const removeEventListener = vi.spyOn(document, "removeEventListener");
     const containerRemoveEventListener = vi.spyOn(getCurrentChart().container, "removeEventListener");

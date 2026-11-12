@@ -10,6 +10,7 @@ import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 import "highcharts/highcharts-more";
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import { ZoomRange } from "../../../lib/components/core/internal-interfaces";
+import { getSeriesData } from "../../../lib/components/internal/utils/highcharts";
 import {
   CoreChartTestProps,
   createChartWrapper,
@@ -266,7 +267,7 @@ describe("CoreChart: zoom selection", () => {
     );
   });
 
-  test("only stops the cursor on the points of the zoomed first x-axis", () => {
+  test("moves the zoom cursor only between the points of the first x-axis", () => {
     renderChart({
       ...defaultProps,
       options: {
@@ -350,19 +351,24 @@ describe("CoreChart: zoom selection", () => {
     expect(zoomButton.findDisabledReason()!.getElement()).toHaveTextContent("There is no narrower range to zoom into");
   });
 
-  test("unpins the tooltip when zoom mode is entered with the keyboard", () => {
-    const { wrapper } = renderChart(defaultProps);
-    wrapper.findApplication()!.focus();
-    wrapper.findApplication()!.keydown(KeyCode.enter);
-    wrapper.findApplication()!.keydown(KeyCode.enter);
-    expect(wrapper.findTooltip()!.findDismissButton()).not.toBe(null);
+  test("hides the tooltip of a hovered point when zoom mode is entered", async () => {
+    vi.useFakeTimers();
+    try {
+      const { wrapper } = renderChart(defaultProps);
+      act(() => getSeriesData(getCurrentChart().series[0])[2].onMouseOver());
+      await act(() => vi.advanceTimersByTimeAsync(500));
+      expect(wrapper.findTooltip()).not.toBe(null);
 
-    wrapper.findZoomButton()!.click();
-    expect(wrapper.findExitZoomButton()).not.toBe(null);
-    expect(wrapper.findTooltip()).toBe(null);
+      wrapper.findZoomButton()!.click();
+      await act(() => vi.advanceTimersByTimeAsync(500));
+      expect(wrapper.findExitZoomButton()).not.toBe(null);
+      expect(wrapper.findTooltip()).toBe(null);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
-  test("keeps the pressed Zoom button enabled when the data shrinks during a selection", () => {
+  test("can still cancel zoom mode with the Zoom button after the data shrinks during a selection", () => {
     const { wrapper, rerender } = renderChart(defaultProps);
     enterZoomMode();
     rerender({

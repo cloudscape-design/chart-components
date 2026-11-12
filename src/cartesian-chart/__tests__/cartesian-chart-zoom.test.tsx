@@ -64,7 +64,7 @@ afterEach(() => {
 });
 
 describe("CartesianChart: zoom selection, with other series types", () => {
-  test("ignores error bar series when collecting cursor stops", () => {
+  test("moves the zoom cursor between the data points, not the error bars", () => {
     renderZoomChart({
       highcharts,
       series: [
@@ -121,7 +121,7 @@ describe("CartesianChart: zoom selection, with other series types", () => {
     expect(getChart().findZoomButton()!.isDisabled()).toBe(true);
   });
 
-  test("does not stop the cursor on the points added for threshold series", () => {
+  test("skips the threshold series when moving the zoom cursor", () => {
     renderZoomChart({
       ...defaultProps,
       series: [
