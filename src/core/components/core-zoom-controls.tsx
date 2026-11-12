@@ -1,11 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useEffect, useRef } from "react";
-
-import Button, { ButtonProps } from "@cloudscape-design/components/button";
-import SpaceBetween from "@cloudscape-design/components/space-between";
-import ToggleButton, { ToggleButtonProps } from "@cloudscape-design/components/toggle-button";
+import Button from "@cloudscape-design/components/button";
+import ToggleButton from "@cloudscape-design/components/toggle-button";
 
 import { useSelector } from "../../internal/utils/async-store";
 import { ChartAPI } from "../chart-api";
@@ -18,31 +15,6 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
   const zooming = useSelector(api.zoomStore, (s) => s.zooming);
   const zoomed = useSelector(api.zoomStore, (s) => s.zoomed);
   const canZoom = useSelector(api.zoomStore, (s) => s.canZoom);
-  const lastOperation = useSelector(api.zoomStore, (s) => s.lastOperation);
-  const zoomButtonRef = useRef<ToggleButtonProps.Ref>(null);
-  const resetButtonRef = useRef<ButtonProps.Ref>(null);
-  const handledOperation = useRef(lastOperation);
-
-  // After a commit, Reset takes the focus once the range is applied. For a controlled range this is a render later,
-  // when the consumer passes the range back, so the handled operation is kept in a ref rather than compared with the
-  // previous render. After a cancel, the Zoom button takes the focus, unless the user left zoom mode by moving the
-  // focus away.
-  useEffect(() => {
-    if (!lastOperation || lastOperation === handledOperation.current) {
-      return;
-    }
-    if (lastOperation.type === "commit") {
-      if (zoomed) {
-        handledOperation.current = lastOperation;
-        resetButtonRef.current?.focus();
-      }
-    } else {
-      handledOperation.current = lastOperation;
-      if (lastOperation.reason !== "blur") {
-        zoomButtonRef.current?.focus();
-      }
-    }
-  }, [lastOperation, zoomed]);
 
   return (
     <div
@@ -52,35 +24,44 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
       className={styles["chart-zoom-controls"]}
       onBlur={api.onZoomBlur}
     >
-      <SpaceBetween size="s" direction="horizontal">
-        {zoomed && !zooming && (
-          <Button
-            ref={resetButtonRef}
-            variant="link"
-            formAction="none"
-            onClick={() => {
-              api.resetZoom();
-              zoomButtonRef.current?.focus();
-            }}
-            ariaLabel={labels.resetZoomButtonAriaLabel}
-            className={testClasses["reset-zoom-button"]}
-          >
-            {labels.resetZoomButtonText}
-          </Button>
-        )}
-        <ToggleButton
-          ref={zoomButtonRef}
-          pressed={zooming}
-          iconName="zoom-in"
-          pressedIconSvg={zoomModeIcon}
-          disabled={!canZoom && !zooming}
-          disabledReason={labels.zoomButtonDisabledReason}
-          onChange={({ detail }) => (detail.pressed ? api.enterZoomMode() : api.exitZoomMode())}
-          className={zooming ? testClasses["exit-zoom-button"] : testClasses["zoom-button"]}
+      {/* The Reset button is shown before it takes the focus, as the helper focuses it before the zoomed state renders. */}
+      <div hidden={!zoomed || zooming}>
+        <Button
+          nativeButtonAttributes={{
+            ref: (button) => {
+              if (button) {
+                api.setResetZoomButton({
+                  focus: () => {
+                    button.parentElement!.hidden = false;
+                    button.focus();
+                  },
+                });
+              } else {
+                api.setResetZoomButton(null);
+              }
+            },
+          }}
+          variant="link"
+          formAction="none"
+          onClick={api.resetZoom}
+          ariaLabel={labels.resetZoomButtonAriaLabel}
+          className={testClasses["reset-zoom-button"]}
         >
-          {labels.enterZoomModeButtonText}
-        </ToggleButton>
-      </SpaceBetween>
+          {labels.resetZoomButtonText}
+        </Button>
+      </div>
+      <ToggleButton
+        ref={api.setZoomButton}
+        pressed={zooming}
+        iconName="zoom-in"
+        pressedIconSvg={zoomModeIcon}
+        disabled={!canZoom && !zooming}
+        disabledReason={labels.zoomButtonDisabledReason}
+        onChange={({ detail }) => (detail.pressed ? api.enterZoomMode() : api.exitZoomMode())}
+        className={zooming ? testClasses["exit-zoom-button"] : testClasses["zoom-button"]}
+      >
+        {labels.enterZoomModeButtonText}
+      </ToggleButton>
     </div>
   );
 }

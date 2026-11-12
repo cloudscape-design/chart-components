@@ -23,7 +23,10 @@ export class ExtendedTestWrapper extends CoreChartWrapper {
   findHighchartsTooltip = () => this.findByClassName("highcharts-tooltip");
   findZoomButton = () => this.findComponent(`.${testClasses["zoom-button"]}`, ButtonWrapper);
   findExitZoomButton = () => this.findComponent(`.${testClasses["exit-zoom-button"]}`, ButtonWrapper);
-  findResetZoomButton = () => this.findComponent(`.${testClasses["reset-zoom-button"]}`, ButtonWrapper);
+  findResetZoomButton = () => {
+    const button = this.findComponent(`.${testClasses["reset-zoom-button"]}`, ButtonWrapper);
+    return button && !button.getElement().closest("[hidden]") ? button : null;
+  };
   findZoomCursor = () => this.findByClassName(testClasses["zoom-cursor"]);
 }
 

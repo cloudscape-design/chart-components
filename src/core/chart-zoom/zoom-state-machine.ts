@@ -36,7 +36,7 @@ export interface ZoomStopMapper {
 
 export type ZoomCancelReason = "escape" | "toggle" | "blur" | "noStops";
 
-export type ZoomOperation = { type: "commit" } | { type: "cancel"; reason: ZoomCancelReason };
+export type ZoomFocusTarget = "cursor" | "zoomButton" | "resetButton";
 
 export type ZoomAnnouncement =
   | { type: "zoomModeEntered"; index: number }
@@ -45,9 +45,8 @@ export type ZoomAnnouncement =
 
 export type ZoomEffect =
   | { type: "announce"; announcement: ZoomAnnouncement }
-  | { type: "focusCursor" }
-  | { type: "applyZoom"; fromIndex: number; toIndex: number }
-  | { type: "cancelled"; reason: ZoomCancelReason };
+  | { type: "focus"; target: ZoomFocusTarget }
+  | { type: "applyZoom"; fromIndex: number; toIndex: number };
 
 export interface ZoomTransition {
   state: ZoomState;
@@ -82,15 +81,17 @@ function enter(state: InactiveState, valuesCount: number): ZoomTransition {
   }
   return transition({ type: "pendingFirstInput", cursorIndex: 0 }, [
     { type: "announce", announcement: { type: "zoomModeEntered", index: 0 } },
-    { type: "focusCursor" },
+    { type: "focus", target: "cursor" },
   ]);
 }
 
+// Focus returns to the Zoom button, unless the user left zoom mode by moving the focus away.
 function cancel(reason: ZoomCancelReason): ZoomTransition {
-  return transition(INACTIVE_ZOOM_STATE, [
-    { type: "announce", announcement: { type: "zoomModeExited" } },
-    { type: "cancelled", reason },
-  ]);
+  const effects: ZoomEffect[] = [{ type: "announce", announcement: { type: "zoomModeExited" } }];
+  if (reason !== "blur") {
+    effects.push({ type: "focus", target: "zoomButton" });
+  }
+  return transition(INACTIVE_ZOOM_STATE, effects);
 }
 
 function move(
@@ -113,6 +114,7 @@ function commit(state: PendingFirstInputState | PendingSecondInputState): ZoomTr
   }
   return transition(INACTIVE_ZOOM_STATE, [
     { type: "applyZoom", fromIndex: state.startIndex, toIndex: state.cursorIndex },
+    { type: "focus", target: "resetButton" },
   ]);
 }
 

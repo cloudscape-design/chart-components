@@ -210,6 +210,8 @@ export class ChartAPI {
   public setZoomControls = this.chartExtraZoom.setControls;
   public onZoomCursorKeyDown = this.chartExtraZoom.onCursorKeyDown;
   public onZoomBlur = this.chartExtraZoom.onBlur;
+  public setZoomButton = this.chartExtraZoom.setZoomButton;
+  public setResetZoomButton = this.chartExtraZoom.setResetButton;
   public enterZoomMode = () => this.chartExtraZoom.enterZoomMode();
   public exitZoomMode = () => this.chartExtraZoom.exitZoomMode("toggle");
   // Resets the zoom from the Reset button of the zoom controls.

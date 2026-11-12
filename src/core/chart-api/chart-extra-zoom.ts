@@ -18,7 +18,7 @@ import {
   ZoomCancelReason,
   ZoomEffect,
   ZoomEvent,
-  ZoomOperation,
+  ZoomFocusTarget,
   zoomReducer,
   ZoomState,
 } from "../chart-zoom/zoom-state-machine";
@@ -38,13 +38,14 @@ export interface ReactiveZoomState {
   canZoom: boolean;
   announcement: string;
   announcementKey: number;
-  // The last commit or cancel of a selection, so that the zoom controls can move focus to their buttons once those
-  // are rendered. A new object is stored for every operation.
-  lastOperation: null | ZoomOperation;
 }
 
 export interface ChartExtraZoomHandlers {
   onHideTooltip(): void;
+}
+
+export interface FocusableControl {
+  focus(): void;
 }
 
 interface ZoomExtremes {
@@ -66,6 +67,8 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private container: null | HTMLElement = null;
   private cursorElement: null | HTMLElement = null;
   private controlsElement: null | HTMLElement = null;
+  private zoomButton: null | FocusableControl = null;
+  private resetButton: null | FocusableControl = null;
   private rangeBand = new SVGRendererSingle();
   private rangeBorders = new SVGRendererSingle();
   private selectionBand = new SVGRendererSingle();
@@ -78,7 +81,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       canZoom: true,
       announcement: "",
       announcementKey: 0,
-      lastOperation: null,
     });
     this.context = context;
     this.handlers = handlers;
@@ -94,6 +96,14 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
 
   public setControls = (element: null | HTMLElement) => {
     this.controlsElement = element;
+  };
+
+  public setZoomButton = (button: null | FocusableControl) => {
+    this.zoomButton = button;
+  };
+
+  public setResetButton = (button: null | FocusableControl) => {
+    this.resetButton = button;
   };
 
   public onChartLoad = (chart: SafeChart) => {
@@ -174,6 +184,8 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       this.announce(this.labels.zoomResetAnnouncementText ?? "");
       fireNonCancelableEvent(this.context.handlers.onZoomRangeChange, { zoomRange: null });
     }
+    // The Reset button goes away with the range, so the focus moves on before that happens.
+    this.moveFocus("zoomButton");
   };
 
   public onCursorKeyDown = (event: React.KeyboardEvent) => {
@@ -324,14 +336,31 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       this.runEffect(effect);
     }
     this.syncOverlay();
-    if (effects.some((effect) => effect.type === "focusCursor")) {
-      this.cursorElement?.focus();
+    // The focus moves last, once the overlay shows the cursor at its position.
+    for (const effect of effects) {
+      if (effect.type === "focus") {
+        this.moveFocus(effect.target);
+      }
     }
   }
 
   private dispatchInput(event: ZoomEvent) {
     if (this.pressIndex === null) {
       this.dispatch(event);
+    }
+  }
+
+  private moveFocus(target: ZoomFocusTarget) {
+    switch (target) {
+      case "cursor":
+        this.cursorElement?.focus();
+        break;
+      case "zoomButton":
+        this.zoomButton?.focus();
+        break;
+      case "resetButton":
+        this.resetButton?.focus();
+        break;
     }
   }
 
@@ -359,12 +388,8 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
         fireNonCancelableEvent(this.context.handlers.onZoomRangeChange, {
           zoomRange: { x: { startValue: min, endValue: max } },
         });
-        this.setCommon({ lastOperation: { type: "commit" } });
         break;
       }
-      case "cancelled":
-        this.setCommon({ lastOperation: { type: "cancel", reason: effect.reason } });
-        break;
     }
   }
 
