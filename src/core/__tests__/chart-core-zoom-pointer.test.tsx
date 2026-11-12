@@ -212,6 +212,22 @@ describe("CoreChart: zoom selection, pointer interaction", () => {
     }
   });
 
+  test("shows the tooltip again when zoom is disabled during a press", async () => {
+    const { rerender } = renderZoomChart({ zoom: { enabled: true } });
+    vi.useFakeTimers();
+    try {
+      enterZoomMode();
+      dispatchPointer("pointerdown", 1);
+      rerender({ zoom: { enabled: false } });
+
+      act(() => getSeriesData(getCurrentChart().series[0])[2].onMouseOver());
+      await act(() => vi.advanceTimersByTimeAsync(500));
+      expect(getChart().findTooltip()).not.toBe(null);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   test("ignores presses of non-primary mouse buttons", () => {
     renderZoomChart({ zoom: { enabled: true } });
     enterZoomMode();

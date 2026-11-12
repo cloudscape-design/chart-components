@@ -154,6 +154,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       this.localExtremes = null;
       this.interaction = INACTIVE_ZOOM_STATE;
       this.pressIndex = null;
+      this.pressClickPending = false;
       this.hideOverlay();
       this.setCommon({ zooming: false });
     }
