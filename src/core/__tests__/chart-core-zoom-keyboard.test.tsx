@@ -7,21 +7,16 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 
 import "@cloudscape-design/components/test-utils/dom";
-import {
-  createChartWrapper as getChart,
-  enterZoomMode,
-  getXExtremes,
-  keyboardZoomToIndexes,
-  pressCursorKey,
-} from "./common";
+import { createChartWrapper as getChart, focusOutsideChart, getXExtremes, renderInRtl } from "./common";
 import { stubPlotGeometry } from "./plot-geometry";
 import {
   dispatchPointer,
-  focusOutsideChart,
+  enterZoomMode,
   getCursorAttributes,
   getCursorLeft,
+  keyboardZoomToIndexes,
   onZoomRangeChange,
-  renderInRtl,
+  pressCursorKey,
   renderZoomChart,
   seriesOfLength,
 } from "./zoom-test-utils";

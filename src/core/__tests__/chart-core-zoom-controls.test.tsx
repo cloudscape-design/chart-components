@@ -7,16 +7,18 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 
 import "@cloudscape-design/components/test-utils/dom";
+import { createChartWrapper as getChart, getXExtremes } from "./common";
+import { stubPlotGeometry } from "./plot-geometry";
 import {
-  createChartWrapper as getChart,
+  dispatchPointer,
   enterZoomMode,
-  getXExtremes,
   getZoomRangeAffordance,
   keyboardZoomToIndexes,
+  onZoomRangeChange,
   pressCursorKey,
-} from "./common";
-import { stubPlotGeometry } from "./plot-geometry";
-import { dispatchPointer, onZoomRangeChange, renderStatefulZoomChart, renderZoomChart } from "./zoom-test-utils";
+  renderStatefulZoomChart,
+  renderZoomChart,
+} from "./zoom-test-utils";
 
 import styles from "../../../lib/components/core/styles.selectors.js";
 

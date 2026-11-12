@@ -5,16 +5,19 @@ import { act } from "react";
 import highcharts from "highcharts";
 import { vi } from "vitest";
 
+import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
+
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import {
   CoreChartTestProps,
   createChartWrapper as getChart,
-  findZoomSvg,
   getCurrentChart,
   renderChart,
   renderStatefulChart,
 } from "./common";
 import { zoomMessages } from "./zoom-messages";
+
+import testClasses from "../../../lib/components/core/test-classes/styles.css.js";
 
 type ZoomTestSeries = NonNullable<CoreChartProps.ChartOptions["series"]>;
 
@@ -121,20 +124,45 @@ export function seriesOfLength(count: number): ZoomTestSeries {
   return [{ type: "line", name: "Requests", data: Array.from({ length: count }, (_, x) => ({ x, y: x })) }];
 }
 
-export function renderInRtl() {
-  const getComputedStyle = window.getComputedStyle;
-  vi.spyOn(window, "getComputedStyle").mockImplementation((element, pseudoElement) => {
-    const style = getComputedStyle(element, pseudoElement);
-    return new Proxy(style, {
-      get: (target, property) => (property === "direction" ? "rtl" : Reflect.get(target, property, target)),
-    });
-  });
+export function enterZoomMode() {
+  getChart().findZoomButton()!.click();
 }
 
-export function focusOutsideChart() {
-  const button = document.createElement("button");
-  button.setAttribute("data-testid", "outside");
-  document.body.appendChild(button);
-  act(() => button.focus());
-  return button;
+export function pressCursorKey(keyCode: number, times = 1) {
+  for (let i = 0; i < times; i++) {
+    getChart().findZoomCursor()!.keydown(keyCode);
+  }
+}
+
+export function keyboardZoomToIndexes(startIndex: number, endIndex: number) {
+  enterZoomMode();
+  pressCursorKey(KeyCode.right, startIndex);
+  pressCursorKey(KeyCode.enter);
+  pressCursorKey(KeyCode.right, endIndex - startIndex);
+  pressCursorKey(KeyCode.enter);
+}
+
+export function findZoomSvg(className: string): null | SVGElement {
+  return getChart().getElement().querySelector(`.${testClasses[className]}`);
+}
+
+// The zoomed range is marked with a band and a border at each end, drawn on the plot and read back as x values.
+export function getZoomRangeAffordance() {
+  const xAxis = getCurrentChart().xAxis[0];
+  const band = findZoomSvg("zoom-range");
+  const borders = findZoomSvg("zoom-range-borders");
+  const toValue = (pixel: number) => Math.round(xAxis.toValue(pixel) * 1000) / 1000;
+  return {
+    present: !!band && !!borders,
+    band: band && {
+      from: toValue(Number(band.getAttribute("x"))),
+      to: toValue(Number(band.getAttribute("x")) + Number(band.getAttribute("width"))),
+    },
+    boundaries:
+      borders &&
+      (borders.getAttribute("d") ?? "")
+        .split("M")
+        .filter((part) => part.trim())
+        .map((part) => toValue(Number(part.trim().split(" ")[0]))),
+  };
 }

@@ -10,15 +10,10 @@ import "@cloudscape-design/components/test-utils/dom";
 import "highcharts/highcharts-more";
 import { CartesianChartProps } from "../../../lib/components/cartesian-chart";
 import { InternalZoomProps } from "../../../lib/components/core/internal-interfaces";
-import {
-  createChartWrapper as getChart,
-  enterZoomMode,
-  getXExtremes,
-  pressCursorKey,
-} from "../../core/__tests__/common";
+import { createChartWrapper as getChart, getXExtremes } from "../../core/__tests__/common";
 import { stubPlotGeometry } from "../../core/__tests__/plot-geometry";
 import { zoomMessages } from "../../core/__tests__/zoom-messages";
-import { getCursorAttributes } from "../../core/__tests__/zoom-test-utils";
+import { enterZoomMode, getCursorAttributes, pressCursorKey } from "../../core/__tests__/zoom-test-utils";
 import { renderCartesianChart } from "./common";
 
 const series: CartesianChartProps.SeriesOptions[] = [

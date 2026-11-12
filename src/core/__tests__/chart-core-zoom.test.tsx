@@ -14,18 +14,20 @@ import { getSeriesData } from "../../../lib/components/internal/utils/highcharts
 import {
   CoreChartTestProps,
   createChartWrapper,
-  enterZoomMode,
-  findZoomSvg,
   getCurrentChart,
   getXExtremes,
-  getZoomRangeAffordance,
-  keyboardZoomToIndexes,
-  pressCursorKey,
   renderChart,
   renderStatefulChart,
 } from "./common";
 import { stubPlotGeometry } from "./plot-geometry";
 import { zoomMessages } from "./zoom-messages";
+import {
+  enterZoomMode,
+  findZoomSvg,
+  getZoomRangeAffordance,
+  keyboardZoomToIndexes,
+  pressCursorKey,
+} from "./zoom-test-utils";
 
 stubPlotGeometry();
 

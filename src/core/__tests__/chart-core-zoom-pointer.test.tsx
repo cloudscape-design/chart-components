@@ -8,24 +8,19 @@ import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 
 import "@cloudscape-design/components/test-utils/dom";
 import { getSeriesData } from "../../../lib/components/internal/utils/highcharts";
-import {
-  createChartWrapper as getChart,
-  enterZoomMode,
-  findZoomSvg,
-  getCurrentChart,
-  getXExtremes,
-  keyboardZoomToIndexes,
-  pressCursorKey,
-} from "./common";
+import { createChartWrapper as getChart, getCurrentChart, getXExtremes, renderInRtl } from "./common";
 import { stubPlotGeometry } from "./plot-geometry";
 import {
   dispatchPointer,
+  enterZoomMode,
+  findZoomSvg,
   getCursorAttributes,
   getOverlay,
   isVisible,
+  keyboardZoomToIndexes,
   onZoomRangeChange,
   pointerEventAtValue,
-  renderInRtl,
+  pressCursorKey,
   renderZoomChart,
 } from "./zoom-test-utils";
 

@@ -141,11 +141,6 @@ $side-legend-max-inline-size: 30%;
   outline: none;
 }
 
-$zoom-cursor-focus-inset: calc(-1 * (#{cs.$space-static-xxs} + #{styles.$focus-ring-width} / 2));
-$zoom-cursor-marker-overhang: 2.5px;
-$zoom-cursor-focus-inset-across: calc(#{$zoom-cursor-focus-inset} - #{$zoom-cursor-marker-overhang});
-$zoom-cursor-focus-radius: calc(#{cs.$border-radius-control-default-focus-ring} + #{styles.$focus-ring-width} / 2);
-
 .chart-zoom-cursor {
   position: absolute;
   visibility: hidden;
@@ -156,28 +151,8 @@ $zoom-cursor-focus-radius: calc(#{cs.$border-radius-control-default-focus-ring} 
     outline: none;
   }
 
-  &::before {
-    content: "";
-    position: absolute;
-    inset-block: $zoom-cursor-focus-inset;
-    inset-inline: $zoom-cursor-focus-inset-across;
-    border-block: styles.$focus-ring-width solid transparent;
-    border-inline: styles.$focus-ring-width solid transparent;
-    border-start-start-radius: $zoom-cursor-focus-radius;
-    border-start-end-radius: $zoom-cursor-focus-radius;
-    border-end-start-radius: $zoom-cursor-focus-radius;
-    border-end-end-radius: $zoom-cursor-focus-radius;
-  }
-
-  &.chart-zoom-cursor-vertical::before {
-    inset-block: $zoom-cursor-focus-inset-across;
-    inset-inline: $zoom-cursor-focus-inset;
-  }
-
   @include focus-visible.when-visible {
-    &::before {
-      border-block-color: cs.$color-border-item-focused;
-      border-inline-color: cs.$color-border-item-focused;
-    }
+    @include styles.focus-highlight(cs.$space-static-xxs);
+    position: absolute;
   }
 }
