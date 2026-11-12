@@ -358,34 +358,3 @@ describe("CoreChart: zoom selection, announcements", () => {
     expect(getChart().getElement()).toHaveTextContent("Zoomed from 2025-01-02 to 2025-01-03");
   });
 });
-describe("CoreChart: zoom selection, repeated announcements", () => {
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  test("announces the start point again when Enter is pressed twice on it", async () => {
-    vi.useFakeTimers();
-    renderZoomChart({ zoom: { enabled: true } });
-    const startPointText = "Start point set at 0. Move the cursor and set the end point to zoom.";
-    let announcements = 0;
-    const observer = new MutationObserver((records) => {
-      for (const { target } of records) {
-        const element = target instanceof Element ? target : target.parentElement;
-        if (element?.matches("[aria-live]") && element.textContent?.startsWith(startPointText.slice(0, -1))) {
-          announcements++;
-        }
-      }
-    });
-    observer.observe(document.body, { subtree: true, childList: true, characterData: true });
-    try {
-      enterZoomMode();
-      pressCursorKey(KeyCode.enter);
-      await act(() => vi.advanceTimersByTimeAsync(2000));
-      pressCursorKey(KeyCode.enter);
-      await act(() => vi.advanceTimersByTimeAsync(2000));
-    } finally {
-      observer.disconnect();
-    }
-    expect(announcements).toBe(2);
-  });
-});

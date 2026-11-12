@@ -37,6 +37,8 @@ export interface ReactiveZoomState {
   zooming: boolean;
   canZoom: boolean;
   announcement: string;
+  // Changes with every announcement. The live region is keyed by it, so that an announcement repeating the previous
+  // text, like setting the same start point twice, is announced again.
   announcementKey: number;
 }
 

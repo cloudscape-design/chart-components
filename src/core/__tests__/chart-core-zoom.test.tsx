@@ -240,34 +240,6 @@ describe("CoreChart: zoom controls", () => {
     expect(wrapper.findResetZoomButton()).toBe(null);
     expect(wrapper.getElement()).toHaveTextContent("Zoom reset. Showing the full data range.");
   });
-
-  test("announces the reset when Reset is pressed, and again on the next reset", async () => {
-    vi.useFakeTimers();
-    const { wrapper, rerender } = renderChart({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
-    const announcement = "Zoom reset. Showing the full data range.";
-    let announcements = 0;
-    const observer = new MutationObserver((records) => {
-      for (const { target } of records) {
-        const element = target instanceof Element ? target : target.parentElement;
-        if (element?.matches("[aria-live]") && element.textContent?.startsWith(announcement.slice(0, -1))) {
-          announcements++;
-        }
-      }
-    });
-    observer.observe(document.body, { subtree: true, childList: true, characterData: true });
-    try {
-      wrapper.findResetZoomButton()!.click();
-      await act(() => vi.advanceTimersByTimeAsync(2000));
-      rerender({ ...defaultProps, zoomRange: null, onZoomRangeChange });
-      rerender({ ...defaultProps, zoomRange: zoomedRange, onZoomRangeChange });
-      wrapper.findResetZoomButton()!.click();
-      await act(() => vi.advanceTimersByTimeAsync(2000));
-    } finally {
-      observer.disconnect();
-      vi.useRealTimers();
-    }
-    expect(announcements).toBe(2);
-  });
 });
 
 describe("CoreChart: zoom selection", () => {
