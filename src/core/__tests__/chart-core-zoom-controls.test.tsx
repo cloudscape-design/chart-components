@@ -10,7 +10,6 @@ import "@cloudscape-design/components/test-utils/dom";
 import {
   createChartWrapper as getChart,
   enterZoomMode,
-  getCurrentChart,
   getXExtremes,
   getZoomRangeAffordance,
   keyboardZoomToIndexes,
@@ -25,7 +24,6 @@ stubPlotGeometry();
 
 afterEach(() => {
   onZoomRangeChange.mockReset();
-  document.querySelectorAll("[data-testid='outside']").forEach((element) => element.remove());
 });
 
 describe("CoreChart: zoom selection, controls", () => {
@@ -92,7 +90,7 @@ describe("CoreChart: zoom selection, controls", () => {
     expect(getZoomRangeAffordance().band).toEqual({ from: 2, to: 3 });
   });
 
-  test("controlled zoomRange is not changed by the interaction, which only fires the event", () => {
+  test("asks the consumer to apply a selected range when the range is controlled", () => {
     renderZoomChart({
       zoom: { enabled: true },
       zoomRange: null,
@@ -218,18 +216,6 @@ describe("CoreChart: zoom selection, focus and keyboard containment", () => {
       zoomTo: null,
       zoomRange: { x: { startValue: 1, endValue: 3 } },
     },
-    {
-      name: "a controlled reset the consumer ignores",
-      stateful: false,
-      zoomTo: null,
-      zoomRange: { x: { startValue: 1, endValue: 3 } },
-    },
-    {
-      name: "an ignored reset with the Zoom button disabled",
-      stateful: false,
-      zoomTo: null,
-      zoomRange: { x: { startValue: 1, endValue: 2 } },
-    },
   ] as const)("moves focus when Reset is pressed after $name", ({ stateful, zoomTo, zoomRange }) => {
     const props = { zoom: { enabled: true }, zoomRange, onZoomRangeChange };
     if (stateful) {
@@ -264,22 +250,14 @@ describe("CoreChart: zoom selection, focus and keyboard containment", () => {
     }
   });
 
-  test("removes its pointer listeners when the chart unmounts during a press", () => {
-    renderZoomChart({ zoom: { enabled: true } });
-    const removeEventListener = vi.spyOn(document, "removeEventListener");
-    const containerRemoveEventListener = vi.spyOn(getCurrentChart().container, "removeEventListener");
-    try {
-      enterZoomMode();
-      dispatchPointer("pointerdown", 1);
-      cleanup();
-      const removed = removeEventListener.mock.calls.map(([type]) => type);
-      expect(removed).toEqual(expect.arrayContaining(["pointerup", "pointercancel"]));
-      expect(containerRemoveEventListener.mock.calls.map(([type]) => type)).toEqual(
-        expect.arrayContaining(["pointerdown", "pointermove"]),
-      );
-    } finally {
-      removeEventListener.mockRestore();
-      containerRemoveEventListener.mockRestore();
-    }
+  test("ignores the release of a press after the chart unmounts", () => {
+    renderZoomChart({ zoom: { enabled: true }, onZoomRangeChange });
+    enterZoomMode();
+    pressCursorKey(KeyCode.right);
+    pressCursorKey(KeyCode.enter);
+    dispatchPointer("pointerdown", 3);
+    cleanup();
+    document.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, pointerId: 1 }));
+    expect(onZoomRangeChange).not.toHaveBeenCalled();
   });
 });

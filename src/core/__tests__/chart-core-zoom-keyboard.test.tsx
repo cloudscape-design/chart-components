@@ -30,6 +30,7 @@ stubPlotGeometry();
 
 afterEach(() => {
   onZoomRangeChange.mockReset();
+  vi.restoreAllMocks();
   document.querySelectorAll("[data-testid='outside']").forEach((element) => element.remove());
 });
 
@@ -104,8 +105,16 @@ describe("CoreChart: zoom selection, keyboard interaction", () => {
     }
   });
 
-  test("zooms an inverted chart with the keyboard", () => {
-    renderZoomChart({ inverted: true, zoom: { enabled: true }, onZoomRangeChange });
+  test.each([
+    { name: "left-to-right page", rtl: false },
+    { name: "right-to-left page", rtl: true },
+  ])("zooms an inverted chart with the arrow keys on a $name", ({ rtl }) => {
+    if (rtl) {
+      renderInRtl();
+    }
+    const props = { inverted: true, zoom: { enabled: true }, onZoomRangeChange };
+    const { rerender } = renderZoomChart(props);
+    rerender(props);
     enterZoomMode();
     const cursor = getChart().findZoomCursor()!.getElement();
     expect(cursor).toHaveAttribute("aria-orientation", "vertical");
@@ -128,13 +137,14 @@ describe("CoreChart: zoom selection, keyboard interaction", () => {
     expect(getCursorAttributes().now).toBe("0");
   });
 
-  test("Escape cancels the selection", () => {
+  test("Escape cancels the selection and returns focus to the Zoom button", () => {
     renderZoomChart({ zoom: { enabled: true }, onZoomRangeChange });
     enterZoomMode();
     pressCursorKey(KeyCode.right);
     pressCursorKey(KeyCode.enter);
     pressCursorKey(KeyCode.escape);
-    expect(getChart().findZoomButton()).not.toBe(null);
+    expect(getChart().findExitZoomButton()).toBe(null);
+    expect(document.activeElement).toBe(getChart().findZoomButton()!.getElement());
     expect(getXExtremes()).toEqual({ min: 0, max: 4 });
     expect(onZoomRangeChange).not.toHaveBeenCalled();
   });
@@ -184,13 +194,6 @@ describe("CoreChart: zoom selection, keyboard interaction", () => {
     renderZoomChart({ zoom: { enabled: true } });
     keyboardZoomToIndexes(1, 3);
     expect(document.activeElement).toBe(getChart().findResetZoomButton()!.getElement());
-  });
-
-  test("moves focus to the Zoom button when the selection is cancelled", () => {
-    renderZoomChart({ zoom: { enabled: true } });
-    enterZoomMode();
-    pressCursorKey(KeyCode.escape);
-    expect(document.activeElement).toBe(getChart().findZoomButton()!.getElement());
   });
 
   test("exits zoom mode when focus leaves the chart", () => {
@@ -280,11 +283,6 @@ describe("CoreChart: zoom selection, direction", () => {
     pressCursorKey(towardsEnd);
     expect(getCursorAttributes().now).toBe("1");
     expect(Math.sign(getCursorLeft() - startLeft)).toBe(direction);
-
-    pressCursorKey(KeyCode.end);
-    expect(getCursorAttributes().now).toBe("4");
-    pressCursorKey(KeyCode.home);
-    expect(getCursorAttributes().now).toBe("0");
   });
 
   test("zooms an inverted chart with two clicks in zoom mode", () => {

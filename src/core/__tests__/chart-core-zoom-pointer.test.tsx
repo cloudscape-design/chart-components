@@ -25,6 +25,7 @@ import {
   isVisible,
   onZoomRangeChange,
   pointerEventAtValue,
+  renderInRtl,
   renderZoomChart,
 } from "./zoom-test-utils";
 
@@ -32,7 +33,7 @@ stubPlotGeometry();
 
 afterEach(() => {
   onZoomRangeChange.mockReset();
-  document.querySelectorAll("[data-testid='outside']").forEach((element) => element.remove());
+  vi.restoreAllMocks();
 });
 
 describe("CoreChart: zoom selection, overlay", () => {
@@ -150,15 +151,24 @@ describe("CoreChart: zoom selection, pointer interaction", () => {
     }
   });
 
-  test("clicking twice in zoom mode selects the range", () => {
-    renderZoomChart({ zoom: { enabled: true }, onZoomRangeChange });
+  test.each([
+    { name: "a mouse", pointerType: "mouse", rtl: false },
+    { name: "touch", pointerType: "touch", rtl: false },
+    { name: "a mouse on a right-to-left page", pointerType: "mouse", rtl: true },
+  ])("selects the range with two presses using $name", ({ pointerType, rtl }) => {
+    if (rtl) {
+      renderInRtl();
+    }
+    const props = { zoom: { enabled: true }, onZoomRangeChange };
+    const { rerender } = renderZoomChart(props);
+    rerender(props);
     enterZoomMode();
-    dispatchPointer("pointerdown", 1);
-    dispatchPointer("pointerup", 1);
+    dispatchPointer("pointerdown", 1, 0, { pointerType });
+    dispatchPointer("pointerup", 1, 0, { pointerType });
     expect(isVisible(getOverlay().startDivider)).toBe(true);
 
-    dispatchPointer("pointerdown", 3);
-    dispatchPointer("pointerup", 3);
+    dispatchPointer("pointerdown", 3, 0, { pointerType });
+    dispatchPointer("pointerup", 3, 0, { pointerType });
     expect(getXExtremes()).toEqual({ min: 1, max: 3 });
     expect(onZoomRangeChange).toHaveBeenCalledWith(
       expect.objectContaining({ detail: { zoomRange: { x: { startValue: 1, endValue: 3 } } } }),
