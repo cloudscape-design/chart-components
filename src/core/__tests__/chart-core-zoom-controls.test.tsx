@@ -19,6 +19,8 @@ import {
 import { stubPlotGeometry } from "./plot-geometry";
 import { dispatchPointer, onZoomRangeChange, renderStatefulZoomChart, renderZoomChart } from "./zoom-test-utils";
 
+import styles from "../../../lib/components/core/styles.selectors.js";
+
 stubPlotGeometry();
 
 afterEach(() => {
@@ -41,9 +43,7 @@ describe("CoreChart: zoom selection, controls", () => {
       zoomRange: { x: { startValue: 1, endValue: 3 } },
     });
     expect(getXExtremes()).toEqual({ min: 1, max: 3 });
-    expect(getChart().findResetZoomButton()).toBe(null);
-    expect(getChart().findZoomButton()).toBe(null);
-    expect(getChart().findExitZoomButton()).toBe(null);
+    expect(getChart().findByClassName(styles["chart-zoom-controls"])).toBe(null);
     expect(getChart().findZoomCursor()).not.toBe(null);
   });
 

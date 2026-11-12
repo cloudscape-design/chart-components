@@ -82,6 +82,7 @@ describe("CoreChart: zoom selection, keyboard interaction", () => {
     { name: "left-to-right page", rtl: false, inverted: false, key: KeyCode.pageDown, now: "5" },
     { name: "inverted chart", rtl: false, inverted: true, key: KeyCode.pageDown, now: "5" },
     { name: "right-to-left page", rtl: true, inverted: false, key: KeyCode.pageDown, now: "5" },
+    { name: "inverted chart on a right-to-left page", rtl: true, inverted: true, key: KeyCode.pageDown, now: "5" },
   ])("pages through the values in order, as chart navigation does, in a $name", ({ rtl, inverted, key, now }) => {
     if (rtl) {
       renderInRtl();
