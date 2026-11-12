@@ -20,6 +20,8 @@ const ENTER: ZoomEvent = { type: "enter" };
 const CANCEL: ZoomEvent = { type: "cancel", reason: "escape" };
 const MOVE: ZoomEvent = { type: "move", index: 8 };
 const COMMIT: ZoomEvent = { type: "commit" };
+const SELECT: ZoomEvent = { type: "select", fromIndex: 2, toIndex: 6 };
+const SELECT_ONE: ZoomEvent = { type: "select", fromIndex: 4, toIndex: 4 };
 const RENDERED: ZoomEvent = { type: "rendered", stopMapper: { nearest: (index) => index, exact: (index) => index } };
 
 const SAME = "same";
@@ -31,6 +33,8 @@ const TRANSITIONS: [name: string, from: ZoomState, event: ZoomEvent, to: ZoomSta
     ["inactive + move", INACTIVE_ZOOM_STATE, MOVE, SAME, []],
     ["inactive + commit", INACTIVE_ZOOM_STATE, COMMIT, SAME, []],
     ["inactive + rendered", INACTIVE_ZOOM_STATE, RENDERED, SAME, []],
+    ["inactive + select", INACTIVE_ZOOM_STATE, SELECT, INACTIVE_ZOOM_STATE, ["applyZoom"]],
+    ["inactive + select of a single stop", INACTIVE_ZOOM_STATE, SELECT_ONE, SAME, []],
 
     ["first input + enter", FIRST, ENTER, SAME, []],
     ["first input + cancel", FIRST, CANCEL, INACTIVE_ZOOM_STATE, ["announce", "focus"]],
@@ -38,12 +42,16 @@ const TRANSITIONS: [name: string, from: ZoomState, event: ZoomEvent, to: ZoomSta
     ["first input + move", FIRST, MOVE, { type: "pendingFirstInput", cursorIndex: 8 }, []],
     ["first input + commit", FIRST, COMMIT, { type: "pendingSecondInput", startIndex: 3, cursorIndex: 3 }, ["announce"]], // prettier-ignore
     ["first input + rendered", FIRST, RENDERED, FIRST, []],
+    ["first input + select", FIRST, SELECT, INACTIVE_ZOOM_STATE, ["applyZoom", "focus"]],
+    ["first input + select of a single stop", FIRST, SELECT_ONE, SAME, []],
 
     ["second input + enter", SECOND, ENTER, SAME, []],
     ["second input + cancel", SECOND, CANCEL, INACTIVE_ZOOM_STATE, ["announce", "focus"]],
     ["second input + move", SECOND, MOVE, { type: "pendingSecondInput", startIndex: 2, cursorIndex: 8 }, []],
     ["second input + commit", SECOND, COMMIT, INACTIVE_ZOOM_STATE, ["applyZoom", "focus"]],
     ["second input + rendered", SECOND, RENDERED, SECOND, []],
+    ["second input + select", SECOND, SELECT, INACTIVE_ZOOM_STATE, ["applyZoom", "focus"]],
+    ["second input + select of a single stop", SECOND, SELECT_ONE, SAME, []],
   ];
 
 describe("zoomReducer", () => {

@@ -55,16 +55,28 @@ interface ZoomExtremes {
   max: number;
 }
 
+interface ZoomPress {
+  pointerType: string;
+  clientX: number;
+  clientY: number;
+  startIndex: number;
+  currentIndex: number;
+  dragging: boolean;
+}
+
+const DRAG_THRESHOLD = 10;
+
 // Chart helper that implements zooming into a range of the first x-axis.
 export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private context: ChartExtraContext;
   private handlers: ChartExtraZoomHandlers;
   private interaction: ZoomState = INACTIVE_ZOOM_STATE;
-  private pressIndex: null | number = null;
+  private press: null | ZoomPress = null;
   private localExtremes: null | ZoomExtremes = null;
   private values: number[] = [];
-  // A press that sets a zoom boundary is followed by a chart click, which can arrive after the press has ended zoom mode.
-  // The pointer stays locked until that click, so that it does not pin a tooltip or reach the consumer's click handler.
+  // A press that sets a zoom boundary, or a drag that selects a range, is followed by a chart click, which can arrive
+  // after zoom mode has ended. The pointer stays locked until that click, so that it does not pin a tooltip or reach
+  // the consumer's click handler.
   private pressClickPending = false;
   private container: null | HTMLElement = null;
   private cursorElement: null | HTMLElement = null;
@@ -129,8 +141,13 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     this.updateValues();
     const stopMapper = createStopMapper(previousValues, this.values);
     this.dispatch({ type: "rendered", stopMapper });
-    if (this.pressIndex !== null) {
-      this.pressIndex = stopMapper.nearest(this.pressIndex);
+    if (this.press) {
+      this.press = {
+        ...this.press,
+        startIndex: stopMapper.nearest(this.press.startIndex),
+        currentIndex: stopMapper.nearest(this.press.currentIndex),
+      };
+      this.syncOverlay();
     }
     this.updateCanZoom();
   };
@@ -155,7 +172,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     if (!this.enabled) {
       this.localExtremes = null;
       this.interaction = INACTIVE_ZOOM_STATE;
-      this.pressIndex = null;
+      this.press = null;
       this.pressClickPending = false;
       this.hideOverlay();
       this.setCommon({ zooming: false });
@@ -281,6 +298,19 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private reconcile(chart: SafeChart) {
     this.applyExtremes(chart);
     this.drawRange(chart);
+    this.applyTouchAction(chart);
+  }
+
+  // Touch drags along the x-axis select a zoom range, so only panning across it and pinch-zoom are left to the browser.
+  // Highcharts sets "none" when it follows touch moves itself, which keeps all touch gestures on the chart already.
+  private applyTouchAction(chart: SafeChart) {
+    const style = chart.container.style;
+    const xAxis = chart.xAxis?.[0];
+    if (this.enabled && xAxis && style.touchAction !== "none") {
+      style.touchAction = isXAxisHorizontal(xAxis) ? "pan-y pinch-zoom" : "pan-x pinch-zoom";
+    } else if (!this.enabled && style.touchAction.endsWith("pinch-zoom")) {
+      style.touchAction = String(chart.options.chart?.style?.["touch-action"] ?? "manipulation");
+    }
   }
 
   // The range is applied imperatively: Highcharts keeps the extremes set with setExtremes through chart updates,
@@ -326,10 +356,8 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       return;
     }
     this.interaction = state;
-    if (!isZooming(state)) {
-      this.pressIndex = null;
-    }
     if (isZooming(state) !== isZooming(previous)) {
+      this.press = null;
       this.setCommon({ zooming: isZooming(state) });
       if (isZooming(state)) {
         this.handlers.onHideTooltip();
@@ -348,7 +376,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   }
 
   private dispatchInput(event: ZoomEvent) {
-    if (this.pressIndex === null) {
+    if (!this.press) {
       this.dispatch(event);
     }
   }
@@ -444,13 +472,18 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     const xAxis = this.xAxis;
     const values = this.values;
     const state = this.interaction;
+    const drag = this.press?.dragging ? this.press : null;
     if (!chart || !xAxis || state.type === "inactive") {
       this.hideOverlay();
+      if (chart && xAxis && drag) {
+        this.drawSelection(chart, xAxis, values[drag.startIndex], values[drag.currentIndex]);
+      }
       return;
     }
     const origin = { left: chart.container.offsetLeft, top: chart.container.offsetTop };
-    const cursorValue = values[state.cursorIndex];
-    const anchorValue = state.type === "pendingSecondInput" ? values[state.startIndex] : null;
+    const cursorValue = values[drag ? drag.currentIndex : state.cursorIndex];
+    const anchorIndex = drag ? drag.startIndex : state.type === "pendingSecondInput" ? state.startIndex : null;
+    const anchorValue = anchorIndex === null ? null : values[anchorIndex];
     applyRect(this.cursorElement, getDividerRect(chart, xAxis, cursorValue), origin);
     this.drawSelection(chart, xAxis, anchorValue, cursorValue);
     const cursor = this.cursorElement;
@@ -503,26 +536,38 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
 
   private onPlotPointerDown = (event: PointerEvent) => {
     this.pressClickPending = false;
-    if (!isZooming(this.interaction) || (event.pointerType === "mouse" && event.button)) {
-      return;
-    }
-    const chart = this.context.chartOrNull;
-    const xAxis = this.xAxis;
     const values = this.values;
-    if (!chart || !xAxis) {
+    if (!this.enabled || !canZoomInto(values.length) || (event.pointerType === "mouse" && event.button)) {
       return;
     }
+    const chart = this.context.chart();
+    const xAxis = chart.xAxis[0];
     const { chartX, chartY } = chart.pointer.normalize(event);
     if (!isInsidePlot(chart as Highcharts.Chart, chartX, chartY)) {
       return;
     }
-    this.pressClickPending = true;
-    this.pressIndex = findStopAtPointer(values, xAxis, chartX, chartY);
-    event.preventDefault();
+    const index = findStopAtPointer(values, xAxis, chartX, chartY);
+    this.press = {
+      pointerType: event.pointerType,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      startIndex: index,
+      currentIndex: index,
+      dragging: false,
+    };
+    if (isZooming(this.interaction)) {
+      this.pressClickPending = true;
+      event.preventDefault();
+    }
   };
 
   private onPlotPointerMove = (event: PointerEvent) => {
-    if (!isZooming(this.interaction) || this.pressIndex !== null) {
+    const press = this.press;
+    if (press) {
+      this.dragPress(press, event);
+      return;
+    }
+    if (!isZooming(this.interaction)) {
       return;
     }
     const chart = this.context.chartOrNull;
@@ -541,21 +586,47 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     this.pressClickPending = false;
   };
 
+  private dragPress(press: ZoomPress, event: PointerEvent) {
+    if (!press.dragging && Math.hypot(event.clientX - press.clientX, event.clientY - press.clientY) < DRAG_THRESHOLD) {
+      return;
+    }
+    const chart = this.context.chart();
+    const { chartX, chartY } = chart.pointer.normalize(event);
+    const currentIndex = findStopAtPointer(this.values, chart.xAxis[0], chartX, chartY);
+    if (!press.dragging) {
+      this.pressClickPending = true;
+      this.handlers.onHideTooltip();
+    }
+    this.press = { ...press, currentIndex, dragging: true };
+    this.syncOverlay();
+  }
+
   private onDocumentPointerUp = (event: PointerEvent) => {
     if (!(event.target instanceof Node && this.container?.contains(event.target))) {
       this.pressClickPending = false;
     }
-    const index = this.pressIndex;
-    if (index !== null) {
-      this.pressIndex = null;
-      this.dispatch({ type: "move", index });
+    const press = this.press;
+    if (!press) {
+      return;
+    }
+    this.press = null;
+    if (press.dragging) {
+      // Browsers only follow a mouse drag with a click, so the pointer is not kept locked for one after a touch drag.
+      if (press.pointerType !== "mouse") {
+        this.pressClickPending = false;
+      }
+      this.dispatch({ type: "select", fromIndex: press.startIndex, toIndex: press.currentIndex });
+      this.syncOverlay();
+    } else if (isZooming(this.interaction)) {
+      this.dispatch({ type: "move", index: press.startIndex });
       this.dispatch({ type: "commit" });
     }
   };
 
   private onDocumentPointerCancel = () => {
-    this.pressIndex = null;
+    this.press = null;
     this.pressClickPending = false;
+    this.syncOverlay();
   };
 }
 
