@@ -6,6 +6,7 @@ import type Highcharts from "highcharts";
 import {
   colorBackgroundContainerContent,
   colorBackgroundItemSelected,
+  colorBackgroundToggleButtonNormalPressed,
   colorBorderItemSelected,
   colorChartsLineTick,
   colorChartsPaletteCategorical1,
@@ -153,6 +154,8 @@ export const cursorLine = {
   "pointer-events": "none",
 };
 
+export const zoomDividerThickness = 1;
+
 export const zoomRangeBand = {
   fill: colorBackgroundItemSelected,
   zIndex: 0,
@@ -163,6 +166,19 @@ export const zoomRangeBorders = {
   stroke: colorBorderItemSelected,
   "stroke-width": 1,
   zIndex: 3,
+  "pointer-events": "none",
+};
+
+export const zoomSelectionBand = {
+  fill: colorBackgroundToggleButtonNormalPressed,
+  opacity: 0.5,
+  zIndex: 4,
+  "pointer-events": "none",
+};
+
+export const zoomSelectionDivider = {
+  fill: colorBorderItemSelected,
+  zIndex: 5,
   "pointer-events": "none",
 };
 

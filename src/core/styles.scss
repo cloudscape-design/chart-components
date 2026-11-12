@@ -4,6 +4,8 @@
 */
 
 @use "../../node_modules/@cloudscape-design/design-tokens/index.scss" as cs;
+@use "../internal/styles" as styles;
+@use "@cloudscape-design/component-toolkit/internal/focus-visible" as focus-visible;
 
 $side-legend-max-inline-size: 30%;
 
@@ -52,6 +54,7 @@ $side-legend-max-inline-size: 30%;
 .chart-zoom-controls {
   display: flex;
   justify-content: flex-end;
+  gap: cs.$space-static-s;
   padding-block-end: cs.$space-scaled-xxs;
 }
 
@@ -136,4 +139,20 @@ $side-legend-max-inline-size: 30%;
 .application {
   // We hide the native focus outline to render a custom one around the chart plot instead.
   outline: none;
+}
+
+.chart-zoom-cursor {
+  position: absolute;
+  visibility: hidden;
+  background-color: cs.$color-border-item-selected;
+  pointer-events: none;
+
+  &:focus {
+    outline: none;
+  }
+
+  @include focus-visible.when-visible {
+    @include styles.focus-highlight(cs.$space-static-xxs);
+    position: absolute;
+  }
 }

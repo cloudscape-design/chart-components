@@ -29,7 +29,9 @@ import { ChartNoData } from "./components/core-no-data";
 import { ChartFooter, ChartHeader } from "./components/core-slots";
 import { ChartTooltip } from "./components/core-tooltip";
 import { VerticalAxisTitle } from "./components/core-vertical-axis-title";
-import { ChartZoomControls, ChartZoomLiveRegion } from "./components/core-zoom";
+import { ChartZoomControls } from "./components/core-zoom-controls";
+import { ChartZoomCursor } from "./components/core-zoom-cursor";
+import { ChartZoomLiveRegion } from "./components/core-zoom-live-region";
 import { getFormatter } from "./formatters";
 import { useChartI18n } from "./i18n-utils";
 import { CoreChartProps } from "./interfaces";
@@ -234,7 +236,7 @@ export function InternalCoreChart({
       ...Styles.xAxisOptions,
       // Highcharts widens any range narrower than five times the closest point distance unless the axis declares
       // a minRange, and reads zero as not declared. The smallest positive number lets the zoom show any range.
-      ...(index === 0 && zoomEnabled ? { minRange: Number.MIN_VALUE } : {}),
+      ...(index === 0 ? { minRange: zoomEnabled ? Number.MIN_VALUE : undefined } : {}),
       ...xAxisOptions,
       // Depending on the chart.inverted the x-axis can be rendered as vertical, and needs to respect page direction.
       reversed: !inverted && isRtl ? !xAxisOptions.reversed : xAxisOptions.reversed,
@@ -324,7 +326,9 @@ export function InternalCoreChart({
                   return options.chart?.events?.render?.call(this, event);
                 },
                 click(event) {
-                  apiOptions.onChartClick.call(this, event);
+                  if (!apiOptions.onChartClick.call(this)) {
+                    return false;
+                  }
                   return options.chart?.events?.click?.call(this, event);
                 },
               },
@@ -348,7 +352,9 @@ export function InternalCoreChart({
                       return options.plotOptions?.series?.point?.events?.mouseOut?.call(this, event);
                     },
                     click(event) {
-                      apiOptions.onSeriesPointClick.call(this, event);
+                      if (!apiOptions.onSeriesPointClick.call(this)) {
+                        return false;
+                      }
                       return options.plotOptions?.series?.point?.events?.click?.call(this, event);
                     },
                   },
@@ -366,6 +372,7 @@ export function InternalCoreChart({
                   callback?.({ chart, highcharts: highcharts as typeof Highcharts, ...api.publicApi })
                 }
               />
+              {zoomEnabled && <ChartZoomCursor api={api} labels={labels} inverted={inverted} />}
             </>
           );
         }}

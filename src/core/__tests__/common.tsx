@@ -3,6 +3,8 @@
 
 import { act, useState } from "react";
 import { fireEvent, render } from "@testing-library/react";
+import highcharts from "highcharts";
+import { vi } from "vitest";
 
 import { ButtonWrapper } from "@cloudscape-design/components/test-utils/dom";
 
@@ -19,7 +21,13 @@ import CoreChartWrapper from "../../../lib/components/test-utils/dom/internal/co
 
 export class ExtendedTestWrapper extends CoreChartWrapper {
   findHighchartsTooltip = () => this.findByClassName("highcharts-tooltip");
-  findResetZoomButton = () => this.findComponent(`.${testClasses["reset-zoom-button"]}`, ButtonWrapper);
+  findZoomButton = () => this.findComponent(`.${testClasses["zoom-button"]}`, ButtonWrapper);
+  findExitZoomButton = () => this.findComponent(`.${testClasses["exit-zoom-button"]}`, ButtonWrapper);
+  findResetZoomButton = () => {
+    const button = this.findComponent(`.${testClasses["reset-zoom-button"]}`, ButtonWrapper);
+    return button && !button.getElement().closest("[hidden]") ? button : null;
+  };
+  findZoomCursor = () => this.findByClassName(testClasses["zoom-cursor"]);
 }
 
 // The core chart accepts the internal zoom properties, which are not part of its public interface yet.
@@ -129,4 +137,31 @@ export function hoverSecondaryLegendItem(index: number, wrapper: ExtendedTestWra
   act(() => {
     fireEvent.mouseOver(wrapper.findLegend({ axisId: "secondary" })!.findItems()[index].getElement());
   });
+}
+
+export function getCurrentChart() {
+  return [...highcharts.charts].reverse().find((c) => c)!;
+}
+
+export function getXExtremes() {
+  const { min, max } = getCurrentChart().xAxis[0].getExtremes();
+  return { min, max };
+}
+
+export function renderInRtl() {
+  const getComputedStyle = window.getComputedStyle;
+  vi.spyOn(window, "getComputedStyle").mockImplementation((element, pseudoElement) => {
+    const style = getComputedStyle(element, pseudoElement);
+    return new Proxy(style, {
+      get: (target, property) => (property === "direction" ? "rtl" : Reflect.get(target, property, target)),
+    });
+  });
+}
+
+export function focusOutsideChart() {
+  const button = document.createElement("button");
+  button.setAttribute("data-testid", "outside");
+  document.body.appendChild(button);
+  act(() => button.focus());
+  return button;
 }
