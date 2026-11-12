@@ -27,6 +27,7 @@ export type ZoomEvent =
   | { type: "cancel"; reason: ZoomCancelReason }
   | { type: "move"; index: number }
   | { type: "commit" }
+  | { type: "select"; fromIndex: number; toIndex: number }
   | { type: "rendered"; stopMapper: ZoomStopMapper };
 
 export interface ZoomStopMapper {
@@ -58,6 +59,9 @@ export interface ZoomContext {
 }
 
 export function zoomReducer(state: ZoomState, event: ZoomEvent, { valuesCount }: ZoomContext): ZoomTransition {
+  if (event.type === "select") {
+    return select(state, event.fromIndex, event.toIndex);
+  }
   if (state.type === "inactive") {
     return event.type === "enter" ? enter(state, valuesCount) : transition(state);
   }
@@ -109,13 +113,24 @@ function commit(state: PendingFirstInputState | PendingSecondInputState): ZoomTr
       { type: "announce", announcement: { type: "startPointSet", index: state.cursorIndex } },
     ]);
   }
-  if (Math.abs(state.cursorIndex - state.startIndex) + 1 < MIN_ZOOM_POINTS) {
+  if (!isZoomableRange(state.startIndex, state.cursorIndex)) {
     return transition(state, [{ type: "announce", announcement: { type: "startPointSet", index: state.startIndex } }]);
   }
   return transition(INACTIVE_ZOOM_STATE, [
     { type: "applyZoom", fromIndex: state.startIndex, toIndex: state.cursorIndex },
     { type: "focus", target: "resetButton" },
   ]);
+}
+
+function select(state: ZoomState, fromIndex: number, toIndex: number): ZoomTransition {
+  if (!isZoomableRange(fromIndex, toIndex)) {
+    return transition(state);
+  }
+  const effects: ZoomEffect[] = [{ type: "applyZoom", fromIndex, toIndex }];
+  if (isZooming(state)) {
+    effects.push({ type: "focus", target: "resetButton" });
+  }
+  return transition(INACTIVE_ZOOM_STATE, effects);
 }
 
 function rendered(
@@ -133,6 +148,10 @@ function rendered(
       ? { type: "pendingFirstInput", cursorIndex }
       : { type: "pendingSecondInput", startIndex, cursorIndex },
   );
+}
+
+function isZoomableRange(fromIndex: number, toIndex: number): boolean {
+  return Math.abs(toIndex - fromIndex) + 1 >= MIN_ZOOM_POINTS;
 }
 
 function transition(state: ZoomState, effects: readonly ZoomEffect[] = NO_EFFECTS): ZoomTransition {
