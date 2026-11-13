@@ -39,24 +39,42 @@ export function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (char) => htmlEscapes[char]);
 }
 
-export class DebouncedCall {
+export class DebouncedCall<Key = never> {
   private locked = false;
   private lockTimeoutRef = setTimeout(() => {}, 0);
   private timeoutRef = setTimeout(() => {}, 0);
+  private pending: null | { callback: () => void; key?: Key } = null;
 
-  public call(callback: () => void, delay = -1) {
-    if (!this.locked) {
-      this.cancelPrevious();
-      if (delay === -1) {
-        callback();
-      } else {
-        this.timeoutRef = setTimeout(callback, delay);
-      }
+  constructor(private isSameKey: (a: Key, b: Key) => boolean = (a, b) => a === b) {}
+
+  public call(callback: () => void, delay = -1, key?: Key): boolean {
+    if (this.locked) {
+      return false;
     }
+    if (key !== undefined && this.pending?.key !== undefined && this.isSameKey(this.pending.key, key)) {
+      return false;
+    }
+    this.cancelPrevious();
+    if (delay === -1) {
+      callback();
+      return false;
+    }
+    this.pending = { callback, key };
+    this.timeoutRef = setTimeout(this.flush, delay);
+    return true;
   }
 
-  public cancelPrevious() {
+  public flush = () => {
+    const pending = this.pending;
+    this.cancelPrevious();
+    pending?.callback();
+  };
+
+  public cancelPrevious(): boolean {
+    const hadPending = this.pending !== null;
     clearTimeout(this.timeoutRef);
+    this.pending = null;
+    return hadPending;
   }
 
   public lock(timeout: number) {

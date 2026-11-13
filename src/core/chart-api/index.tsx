@@ -7,7 +7,7 @@ import type Highcharts from "highcharts";
 import { fireNonCancelableEvent } from "../../internal/events";
 import { ReadonlyAsyncStore } from "../../internal/utils/async-store";
 import { getChartSeries, getSeriesData } from "../../internal/utils/highcharts";
-import { Writeable } from "../../internal/utils/utils";
+import { DebouncedCall, Writeable } from "../../internal/utils/utils";
 import { CoreChartProps } from "../interfaces";
 import {
   getChartAccessibleDescription,
@@ -24,7 +24,6 @@ import { ChartExtraNodata, ReactiveNodataState } from "./chart-extra-nodata";
 import { ChartExtraPointer, ChartExtraPointerHandlers, PointerHoverTarget } from "./chart-extra-pointer";
 import { ChartExtraTooltip, ReactiveTooltipState } from "./chart-extra-tooltip";
 import { ChartExtraZoom, ChartExtraZoomHandlers, ReactiveZoomState } from "./chart-extra-zoom";
-import { HoverScheduler } from "./hover-scheduler";
 
 // The API helper injects Cloudscape custom behaviors, and returns the API instance that comes with
 // reactive state and handlers to be assigned as Highcharts options, used by Cloudscape components
@@ -96,10 +95,7 @@ export class ChartAPI {
   private chartExtraNodata = new ChartExtraNodata(this.context);
   private chartExtraAxisTitles = new ChartExtraAxisTitles(this.context);
   private chartExtraZoom = new ChartExtraZoom(this.context, this.zoomHandlers);
-  private legendItemHover = new HoverScheduler<string>(
-    () => this.context.settings.hoverDelay,
-    (a, b) => a === b,
-  );
+  private legendItemHover = new DebouncedCall<string>();
 
   constructor(
     settings: ChartExtraContext.Settings,
@@ -162,7 +158,7 @@ export class ChartAPI {
   // There is no cleanup or destroy event in Highcharts options, so we define a custom one
   // to be used when the React component unmounts.
   public onChartDestroy = () => {
-    this.legendItemHover.cancel();
+    this.legendItemHover.cancelPrevious();
     this.chartExtraNavigation.onChartDestroy();
     this.chartExtraPointer.onChartDestroy();
     this.chartExtraTooltip.onChartDestroy();
@@ -246,15 +242,20 @@ export class ChartAPI {
   // Callbacks used by the legend component when items highlight state changes.
   public onHighlightChartItems = (itemIds: readonly string[]) => this.highlightChartItems(itemIds);
   public onHoverLegendItem = (itemId: string, highlight: () => void) => {
-    this.legendItemHover.schedule(itemId, () => {
-      if (this.chartExtraLegend.get().items.some((item) => item.id === itemId && item.visible)) {
-        highlight();
-      }
-    });
+    const delay = this.context.settings.hoverDelay;
+    this.legendItemHover.call(
+      () => {
+        if (this.chartExtraLegend.get().items.some((item) => item.id === itemId && item.visible)) {
+          highlight();
+        }
+      },
+      delay > 0 ? delay : -1,
+      itemId,
+    );
   };
-  public onLeaveLegendItem = () => this.legendItemHover.cancel();
+  public onLeaveLegendItem = () => this.legendItemHover.cancelPrevious();
   public onClearChartItemsHighlight = () => {
-    this.legendItemHover.cancel();
+    this.legendItemHover.cancelPrevious();
     if (!this.isTooltipPinned) {
       this.chartExtraHighlight.clearChartItemsHighlight();
       this.chartExtraLegend.onClearHighlight();
@@ -506,7 +507,7 @@ export class ChartAPI {
       this.chartExtraTooltip.restoreCursor();
     }
     if (!keepLegendHover) {
-      this.legendItemHover.cancel();
+      this.legendItemHover.cancelPrevious();
     }
   };
 

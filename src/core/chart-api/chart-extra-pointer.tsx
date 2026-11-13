@@ -7,7 +7,6 @@ import { getChartSeries, isPointVisible, SafeChart } from "../../internal/utils/
 import { DebouncedCall, isEqualArrays } from "../../internal/utils/utils";
 import { isInsidePlot } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
-import { HoverScheduler } from "./hover-scheduler";
 
 const HOVER_LOST_DELAY = 25;
 
@@ -32,12 +31,11 @@ export class ChartExtraPointer {
   private hoveredGroup: null | Highcharts.Point[] = null;
   private tooltipHovered = false;
   private hoverLostCall = new DebouncedCall();
-  private hover: HoverScheduler<PointerHoverTarget>;
+  private hover = new DebouncedCall<PointerHoverTarget>(isSameHoverTarget);
 
   constructor(context: ChartExtraContext, handlers: ChartExtraPointerHandlers) {
     this.context = context;
     this.handlers = handlers;
-    this.hover = new HoverScheduler(() => this.context.settings.hoverDelay, isSameHoverTarget);
   }
 
   public onChartLoad = (chart: SafeChart) => {
@@ -45,10 +43,10 @@ export class ChartExtraPointer {
     chart.container.addEventListener("mouseout", this.onChartMouseout);
   };
 
-  public cancelPendingHover = () => this.hover.cancel();
+  public cancelPendingHover = () => this.hover.cancelPrevious();
 
   public onChartDestroy = () => {
-    this.hover.cancel();
+    this.hover.cancelPrevious();
     this.context.chartOrNull?.container?.removeEventListener("mousemove", this.onChartMousemove);
     this.context.chartOrNull?.container?.removeEventListener("mouseout", this.onChartMouseout);
   };
@@ -77,7 +75,7 @@ export class ChartExtraPointer {
     this.tooltipHovered = true;
     this.hoveredPoint = null;
     this.hoveredGroup = null;
-    if (this.hover.cancel()) {
+    if (this.hover.cancelPrevious()) {
       this.handlers.onHoverPreviewCancel();
     }
   };
@@ -208,7 +206,8 @@ export class ChartExtraPointer {
   };
 
   private scheduleHover = (target: PointerHoverTarget) => {
-    if (this.hover.schedule(target, () => this.applyHover(target))) {
+    const delay = this.context.settings.hoverDelay;
+    if (this.hover.call(() => this.applyHover(target), delay > 0 ? delay : -1, target)) {
       this.handlers.onHoverPreview(target);
     }
   };

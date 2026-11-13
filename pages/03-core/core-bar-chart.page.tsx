@@ -9,7 +9,7 @@ export default function () {
   const { chartProps } = useChartSettings();
 
   return (
-    <Page title="Core bar chart" settings={<PageSettingsForm selectedSettings={["showLegend"]} />}>
+    <Page title="Core bar chart" settings={<PageSettingsForm selectedSettings={["showLegend", "hoverDebounce"]} />}>
       <div style={{ height: 400 }}>
         <CoreChart
           {...chartProps.core}

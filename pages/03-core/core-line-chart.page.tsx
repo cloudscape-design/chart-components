@@ -99,6 +99,7 @@ export default function () {
             "showLegendActions",
             "useFallback",
             "tooltipSeriesSorting",
+            "hoverDebounce",
           ]}
         />
       }

@@ -35,6 +35,7 @@ export default function () {
                 </Checkbox>
               ),
             },
+            "hoverDebounce",
           ]}
         />
       }
@@ -56,7 +57,7 @@ function Component({ boostEnabled }: { boostEnabled: boolean }) {
   const { chartProps } = useChartSettings({ boost: true });
   return (
     <CoreChart
-      {...chartProps.cartesian}
+      {...chartProps.core}
       chartHeight={500}
       options={{
         boost: { enabled: boostEnabled },

@@ -1,8 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { omit } from "lodash";
-
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
 import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
@@ -28,12 +26,19 @@ export default function () {
       subtitle="This page demonstrates the use of solid gauge charts for displaying single-value metrics."
       settings={
         <PageSettingsForm
-          selectedSettings={["showLegend", "legendPosition", "showLegendTitle", "showLegendActions", "useFallback"]}
+          selectedSettings={[
+            "showLegend",
+            "legendPosition",
+            "showLegendTitle",
+            "showLegendActions",
+            "useFallback",
+            "hoverDebounce",
+          ]}
         />
       }
     >
       <CoreChart
-        {...omit(chartProps.cartesian, "ref")}
+        {...chartProps.core}
         options={{
           series,
           chart: {

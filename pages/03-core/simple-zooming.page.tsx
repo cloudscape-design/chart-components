@@ -3,7 +3,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Highcharts from "highcharts";
-import { omit } from "lodash";
 
 import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
@@ -108,6 +107,7 @@ export default function () {
             "showLegend",
             "tooltipSize",
             "tooltipPlacement",
+            "hoverDebounce",
             {
               content: (
                 <Checkbox
@@ -137,7 +137,7 @@ function Charts() {
     settings: { keepZoomingFrame = true },
     chartProps,
   } = useChartSettings<ThisPageSettings>({ more: true });
-  const commonProps = omit(chartProps.cartesian, ["ref"]);
+  const commonProps = chartProps.core;
   const scatterChartRef = useRef<CoreChartProps.ChartAPI>(null) as React.MutableRefObject<CoreChartProps.ChartAPI>;
   const getScatterChart = () => scatterChartRef.current!;
   const navigatorChartRef = useRef<CoreChartProps.ChartAPI>(null) as React.MutableRefObject<CoreChartProps.ChartAPI>;
