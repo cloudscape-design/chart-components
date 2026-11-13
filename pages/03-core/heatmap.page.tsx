@@ -1,7 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { ComponentType } from "react";
+
+import { CoreChartProps } from "../../lib/components/core/interfaces";
+import { InternalHoverProps } from "../../lib/components/core/internal-interfaces";
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
+import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
 import { useHighcharts } from "../common/use-highcharts";
 import pseudoRandom from "../utils/pseudo-random";
@@ -39,13 +44,21 @@ function generateHeatmapData() {
 
 const { series, instances } = generateHeatmapData();
 
+const HoverCoreChart = CoreChart as ComponentType<CoreChartProps & InternalHoverProps>;
+
 export default function () {
   const highcharts = useHighcharts({ heatmap: true });
+  const { settings } = useChartSettings();
 
   return (
-    <Page title="Heatmap Chart Demo" subtitle="Heatmap with generated data for 10 EC2 instances.">
-      <CoreChart
+    <Page
+      title="Heatmap Chart Demo"
+      subtitle="Heatmap with generated data for 10 EC2 instances."
+      settings={<PageSettingsForm selectedSettings={["hoverDebounce"]} />}
+    >
+      <HoverCoreChart
         highcharts={highcharts}
+        hoverDebounce={settings.hoverDebounce}
         chartHeight={600}
         keyboardNavigation={true}
         verticalAxisTitlePlacement="side"

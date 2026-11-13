@@ -22,6 +22,8 @@ export function ChartLegend({
   getLegendTooltipContent,
   enableHorizontalScroll,
   horizontalAlignment = "start",
+  tooltipShowDelay,
+  scrollIntoViewDelay,
 }: {
   api: ChartAPI;
   axisId?: string;
@@ -35,6 +37,8 @@ export function ChartLegend({
   i18nStrings?: CoreI18nStrings;
   onItemHighlight?: NonCancelableEventHandler<CoreChartProps.LegendItemHighlightDetail>;
   getLegendTooltipContent?: CoreChartProps.GetLegendTooltipContent;
+  tooltipShowDelay?: number;
+  scrollIntoViewDelay?: number;
 }) {
   const i18n = useInternalI18n("[charts]");
   const legendAriaLabel = i18n("i18nStrings.legendAriaLabel", i18nStrings?.legendAriaLabel);
@@ -91,14 +95,24 @@ export function ChartLegend({
       someHighlighted={someHighlighted}
       horizontalAlignment={horizontalAlignment}
       enableHorizontalScroll={enableHorizontalScroll}
+      tooltipShowDelay={tooltipShowDelay}
+      scrollIntoViewDelay={scrollIntoViewDelay}
       actions={actions}
       alignment={alignment}
       onToggleItem={onToggleItem}
       onSelectItem={onSelectItem}
       onItemHighlightExit={api.onClearChartItemsHighlight}
-      onItemHighlightEnter={(item) => {
-        api.onHighlightChartItems([item.id]);
-        fireNonCancelableEvent(onItemHighlight, { item });
+      onItemHoverLeave={api.onLeaveLegendItem}
+      onItemHighlightEnter={(item, detail) => {
+        const highlight = () => {
+          api.onHighlightChartItems([item.id]);
+          fireNonCancelableEvent(onItemHighlight, { item });
+        };
+        if (detail.pointer) {
+          api.onHoverLegendItem(item.id, highlight);
+        } else {
+          highlight();
+        }
       }}
       getTooltipContent={(props) => {
         if (isChartTooltipPinned) {

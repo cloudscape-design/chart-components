@@ -1,8 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { omit } from "lodash";
-
 import Link from "@cloudscape-design/components/link";
 
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
@@ -128,12 +126,13 @@ export default function () {
             "showLegendTitle",
             "showLegendActions",
             "legendHorizontalScroll",
+            "hoverDebounce",
           ]}
         />
       }
     >
       <CoreChart
-        {...omit(chartProps.cartesian, "ref")}
+        {...chartProps.core}
         chartHeight={400}
         ariaLabel="Dual axis line chart"
         tooltip={{ placement: "outside" }}

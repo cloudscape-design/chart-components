@@ -44,9 +44,12 @@ export interface ChartLegendProps {
   horizontalAlignment: LegendHorizontalAlignment;
   onToggleItem: (itemId: string) => void;
   onSelectItem: (itemId: string) => void;
-  onItemHighlightEnter: (item: LegendItem) => void;
+  onItemHighlightEnter: (item: LegendItem, detail: { pointer: boolean }) => void;
   onItemHighlightExit: () => void;
+  onItemHoverLeave?: () => void;
   getTooltipContent: (props: GetLegendTooltipContentProps) => null | LegendTooltipContent;
+  tooltipShowDelay?: number;
+  scrollIntoViewDelay?: number;
 }
 
 export const ChartLegend = ({
@@ -62,9 +65,12 @@ export const ChartLegend = ({
   onSelectItem,
   onItemHighlightEnter,
   onItemHighlightExit,
+  onItemHoverLeave,
   getTooltipContent,
   horizontalAlignment,
   enableHorizontalScroll,
+  tooltipShowDelay = TOOLTIP_SHOW_DELAY,
+  scrollIntoViewDelay = SCROLL_DELAY,
 }: ChartLegendProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const elementsByIndexRef = useRef<Record<number, HTMLElement>>([]);
@@ -74,11 +80,13 @@ export const ChartLegend = ({
   const scrollIntoViewControl = useMemo(() => new DebouncedCall(), []);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [tooltipItemId, setTooltipItemId] = useState<string | null>(null);
-  const { showTooltip, hideTooltip } = useMemo(() => {
+  const tooltipShowDelayRef = useRef(tooltipShowDelay);
+  tooltipShowDelayRef.current = tooltipShowDelay;
+  const { showTooltip, hideTooltip, cancelTooltip } = useMemo(() => {
     const control = new DebouncedCall();
     return {
       showTooltip(itemId: string) {
-        control.call(() => setTooltipItemId(itemId), TOOLTIP_SHOW_DELAY);
+        control.call(() => setTooltipItemId(itemId), tooltipShowDelayRef.current);
       },
       hideTooltip(lock = false) {
         control.call(() => setTooltipItemId(null), TOOLTIP_BLUR_DELAY);
@@ -86,24 +94,30 @@ export const ChartLegend = ({
           control.lock(TOOLTIP_BLUR_DELAY);
         }
       },
+      cancelTooltip() {
+        control.cancelPrevious();
+      },
     };
   }, []);
+  useEffect(() => cancelTooltip, [cancelTooltip]);
 
   useEffect(() => {
-    if (!tooltipItemId) {
-      return;
-    }
     const onDocumentKeyDown = (event: KeyboardEvent) => {
-      if (event.keyCode === KeyCode.escape) {
+      if (event.keyCode !== KeyCode.escape) {
+        return;
+      }
+      if (tooltipItemId) {
         hideTooltip(true);
         elementsByIdRef.current[tooltipItemId]?.focus();
+      } else {
+        cancelTooltip();
       }
     };
     document.addEventListener("keydown", onDocumentKeyDown, true);
     return () => {
       document.removeEventListener("keydown", onDocumentKeyDown, true);
     };
-  }, [tooltipItemId, hideTooltip]);
+  }, [tooltipItemId, hideTooltip, cancelTooltip]);
 
   const isMouseInContainer = useRef<boolean>(false);
 
@@ -122,14 +136,14 @@ export const ChartLegend = ({
         return;
       }
       scrollIntoViewNearestContainer(element, { behavior: "smooth", scrollMode: "if-needed" });
-    }, SCROLL_DELAY);
-  }, [items, scrollIntoViewControl]);
+    }, scrollIntoViewDelay);
+  }, [items, scrollIntoViewControl, scrollIntoViewDelay]);
 
-  const showHighlight = (itemId: string) => {
+  const showHighlight = (itemId: string, pointer = false) => {
     const item = items.find((item) => item.id === itemId);
     if (item?.visible) {
       highlightControl.cancelPrevious();
-      onItemHighlightEnter(item);
+      onItemHighlightEnter(item, { pointer });
     }
   };
   const clearHighlight = () => {
@@ -265,10 +279,11 @@ export const ChartLegend = ({
           {items.map((item, index) => {
             const handlers = {
               onMouseEnter: () => {
-                showHighlight(item.id);
+                showHighlight(item.id, true);
                 showTooltip(item.id);
               },
               onMouseLeave: () => {
+                onItemHoverLeave?.();
                 clearHighlight();
                 hideTooltip();
               },

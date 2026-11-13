@@ -10,7 +10,7 @@ import { ButtonWrapper } from "@cloudscape-design/components/test-utils/dom";
 
 import "@cloudscape-design/components/test-utils/dom";
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
-import { InternalZoomProps } from "../../../lib/components/core/internal-interfaces";
+import { InternalHoverProps, InternalZoomProps } from "../../../lib/components/core/internal-interfaces";
 import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
 import { fireNonCancelableEvent } from "../../../lib/components/internal/events";
 import { TestI18nProvider } from "../../../lib/components/internal/utils/test-i18n-provider";
@@ -31,9 +31,9 @@ export class ExtendedTestWrapper extends CoreChartWrapper {
 }
 
 // The core chart accepts the internal zoom properties, which are not part of its public interface yet.
-const CoreChartWithZoom = CoreChart as React.ComponentType<CoreChartProps & InternalZoomProps>;
+const CoreChartWithZoom = CoreChart as React.ComponentType<CoreChartProps & InternalZoomProps & InternalHoverProps>;
 
-export function StatefulChart(props: CoreChartProps & InternalZoomProps) {
+export function StatefulChart(props: CoreChartProps & InternalZoomProps & InternalHoverProps) {
   const [visibleItems, setVisibleItems] = useState<readonly string[]>(props.visibleItems ?? []);
   const [zoomRange, setZoomRange] = useState(props.zoomRange);
   return (
@@ -55,16 +55,17 @@ export function StatefulChart(props: CoreChartProps & InternalZoomProps) {
 }
 
 export type CoreChartTestProps = Partial<CoreChartProps> &
-  InternalZoomProps & {
+  InternalZoomProps &
+  InternalHoverProps & {
     onLegendItemHighlight?: () => void;
     i18nProvider?: Record<string, Record<string, string>>;
   };
 
 export function renderChart(
   { i18nProvider, ...props }: CoreChartTestProps,
-  Component: React.ComponentType<CoreChartProps & InternalZoomProps> = CoreChartWithZoom,
+  Component: React.ComponentType<CoreChartProps & InternalZoomProps & InternalHoverProps> = CoreChartWithZoom,
 ) {
-  const ComponentWrapper = (props: CoreChartProps & InternalZoomProps) => {
+  const ComponentWrapper = (props: CoreChartProps & InternalZoomProps & InternalHoverProps) => {
     return i18nProvider ? (
       <TestI18nProvider messages={i18nProvider}>
         <Component options={{}} {...props} />

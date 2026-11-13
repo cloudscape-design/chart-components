@@ -34,6 +34,7 @@ export namespace ChartExtraContext {
     labels: ChartLabels;
     getItemOptions?: CoreChartProps.GetItemOptions;
     zoomEnabled: boolean;
+    hoverDelay: number;
   }
 
   export interface Handlers {
@@ -68,6 +69,7 @@ export function createChartContext(): ChartExtraContext {
       keyboardNavigationEnabled: false,
       labels: {},
       zoomEnabled: false,
+      hoverDelay: 0,
     },
     handlers: {},
     state: {},
