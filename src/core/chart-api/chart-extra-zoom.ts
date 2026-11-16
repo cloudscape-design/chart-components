@@ -628,8 +628,8 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     }
     this.press = null;
     if (press.dragging) {
-      // Browsers only follow a mouse drag with a click, so the pointer is not kept locked for one after a touch drag.
-      if (press.pointerType !== "mouse") {
+      // Browsers follow a mouse or pen drag with a click, so the pointer is only released early after a touch drag.
+      if (press.pointerType === "touch") {
         this.pressClickPending = false;
       }
       this.dispatch({ type: "select", fromIndex: press.startIndex, toIndex: this.findStopAtEvent(event) });

@@ -153,19 +153,19 @@ describe("CoreChart: zoom selection, pointer interaction", () => {
     expect(onChartClick).toHaveBeenCalledTimes(1);
   });
 
-  test("does not fire the chart click or show a tooltip for a drag", async () => {
+  test.each(["mouse", "pen"])("does not fire the chart click or show a tooltip for a %s drag", async (pointerType) => {
     const onChartClick = vi.fn();
     renderZoomChart({ zoom: { enabled: true }, onChartClick });
     vi.useFakeTimers();
     try {
-      dispatchPointer("pointerdown", 1);
-      dispatchPointer("pointermove", 3);
+      dispatchPointer("pointerdown", 1, 0, { pointerType });
+      dispatchPointer("pointermove", 3, 0, { pointerType });
       act(() => getSeriesData(getCurrentChart().series[0])[2].onMouseOver());
       await act(() => vi.advanceTimersByTimeAsync(500));
       expect(getChart().findTooltip()).toBe(null);
 
-      dispatchPointer("pointerup", 3);
-      dispatchPointer("click", 3);
+      dispatchPointer("pointerup", 3, 0, { pointerType });
+      dispatchPointer("click", 3, 0, { pointerType });
       expect(onChartClick).not.toHaveBeenCalled();
     } finally {
       vi.useRealTimers();
