@@ -108,6 +108,9 @@ describe("CoreChart: zoom selection, pointer interaction", () => {
     dispatchPointer("pointerdown", 1);
     dispatchPointer("pointermove", 3);
     expect(isVisible(getOverlay().band)).toBe(true);
+    expect(isVisible(getOverlay().startDivider)).toBe(true);
+    const endLine = zoomMode ? getOverlay().cursor : getOverlay().endDivider;
+    expect(isVisible(endLine)).toBe(true);
 
     dispatchPointer("pointerup", 3);
     expect(getXExtremes()).toEqual({ min: 1, max: 3 });
@@ -115,6 +118,7 @@ describe("CoreChart: zoom selection, pointer interaction", () => {
       expect.objectContaining({ detail: { zoomRange: { x: { startValue: 1, endValue: 3 } } } }),
     );
     expect(isVisible(getOverlay().band)).toBe(false);
+    expect(isVisible(getOverlay().endDivider)).toBe(false);
     expect(getChart().findExitZoomButton()).toBe(null);
     if (zoomMode) {
       expect(document.activeElement).toBe(getChart().findResetZoomButton()!.getElement());
@@ -205,6 +209,15 @@ describe("CoreChart: zoom selection, pointer interaction", () => {
       document.body.dispatchEvent(pointerEventAtValue("pointerup", 4, 200));
     });
     expect(getXExtremes()).toEqual({ min: 1, max: 4 });
+  });
+
+  test("does not turn hover into a drag after a missed release", () => {
+    renderZoomChart({ zoom: { enabled: true }, onZoomRangeChange });
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointermove", 3, 0, { buttons: 0 });
+    expect(isVisible(getOverlay().band)).toBe(false);
+    dispatchPointer("pointerup", 3, 0, { buttons: 0 });
+    expect(onZoomRangeChange).not.toHaveBeenCalled();
   });
 
   test("drops the drag on pointercancel", () => {

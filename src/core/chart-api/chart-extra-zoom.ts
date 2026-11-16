@@ -87,6 +87,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private rangeBorders = new SVGRendererSingle();
   private selectionBand = new SVGRendererSingle();
   private selectionStart = new SVGRendererSingle();
+  private selectionEnd = new SVGRendererSingle();
 
   constructor(context: ChartExtraContext, handlers: ChartExtraZoomHandlers) {
     super({
@@ -164,6 +165,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     this.rangeBorders.destroy();
     this.selectionBand.destroy();
     this.selectionStart.destroy();
+    this.selectionEnd.destroy();
   };
 
   // Called when the zoom settings or the controlled zoom range change.
@@ -477,6 +479,11 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       this.hideOverlay();
       if (chart && xAxis && drag) {
         this.drawSelection(chart, xAxis, values[drag.startIndex], values[drag.currentIndex]);
+        this.selectionEnd.rect(chart.renderer, {
+          ...Styles.zoomSelectionDivider,
+          ...getDividerRect(chart, xAxis, values[drag.currentIndex]),
+          class: testClasses["zoom-selection-end"],
+        });
       }
       return;
     }
@@ -529,6 +536,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private hideOverlay() {
     this.selectionBand.hide();
     this.selectionStart.hide();
+    this.selectionEnd.hide();
     if (this.cursorElement) {
       this.cursorElement.style.visibility = "hidden";
     }
@@ -563,7 +571,12 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
 
   private onPlotPointerMove = (event: PointerEvent) => {
     const press = this.press;
-    if (press) {
+    if (press && event.pointerType === "mouse" && event.buttons === 0) {
+      // The release of this press was missed, for example in another window, so the press ends here.
+      this.press = null;
+      this.pressClickPending = false;
+      this.syncOverlay();
+    } else if (press) {
       this.dragPress(press, event);
       return;
     }
