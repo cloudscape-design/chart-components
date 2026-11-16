@@ -590,15 +590,19 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     if (!press.dragging && Math.hypot(event.clientX - press.clientX, event.clientY - press.clientY) < DRAG_THRESHOLD) {
       return;
     }
-    const chart = this.context.chart();
-    const { chartX, chartY } = chart.pointer.normalize(event);
-    const currentIndex = findStopAtPointer(this.values, chart.xAxis[0], chartX, chartY);
+    const currentIndex = this.findStopAtEvent(event);
     if (!press.dragging) {
       this.pressClickPending = true;
       this.handlers.onHideTooltip();
     }
     this.press = { ...press, currentIndex, dragging: true };
     this.syncOverlay();
+  }
+
+  private findStopAtEvent(event: PointerEvent) {
+    const chart = this.context.chart();
+    const { chartX, chartY } = chart.pointer.normalize(event);
+    return findStopAtPointer(this.values, chart.xAxis[0], chartX, chartY);
   }
 
   private onDocumentPointerUp = (event: PointerEvent) => {
@@ -615,7 +619,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       if (press.pointerType !== "mouse") {
         this.pressClickPending = false;
       }
-      this.dispatch({ type: "select", fromIndex: press.startIndex, toIndex: press.currentIndex });
+      this.dispatch({ type: "select", fromIndex: press.startIndex, toIndex: this.findStopAtEvent(event) });
       this.syncOverlay();
     } else if (isZooming(this.interaction)) {
       this.dispatch({ type: "move", index: press.startIndex });

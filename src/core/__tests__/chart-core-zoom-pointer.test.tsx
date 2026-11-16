@@ -197,6 +197,16 @@ describe("CoreChart: zoom selection, pointer interaction", () => {
     expect(isVisible(getOverlay().band)).toBe(false);
   });
 
+  test("zooms up to the edge when a drag is released outside the chart", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointermove", 2);
+    act(() => {
+      document.body.dispatchEvent(pointerEventAtValue("pointerup", 4, 200));
+    });
+    expect(getXExtremes()).toEqual({ min: 1, max: 4 });
+  });
+
   test("drops the drag on pointercancel", () => {
     renderZoomChart({ zoom: { enabled: true }, onZoomRangeChange });
     dispatchPointer("pointerdown", 1);
