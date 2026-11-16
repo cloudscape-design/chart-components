@@ -252,6 +252,13 @@ describe("CoreChart: zoom selection, pointer interaction", () => {
     expect(getCurrentChart().container.style.touchAction).toBe("manipulation");
   });
 
+  test("leaves all touch gestures to the browser when the chart has too few points to zoom", () => {
+    const { rerender } = renderZoomChart({ inverted: true, series: seriesOfLength(2), zoom: { enabled: true } });
+    expect(getCurrentChart().container.style.touchAction).toBe("manipulation");
+    rerender({ inverted: true, series: seriesOfLength(5), zoom: { enabled: true } });
+    expect(getCurrentChart().container.style.touchAction).toBe("pan-x pinch-zoom");
+  });
+
   test("moves the cursor with the pointer hovering the plot in zoom mode", () => {
     renderZoomChart({ zoom: { enabled: true } });
     enterZoomMode();

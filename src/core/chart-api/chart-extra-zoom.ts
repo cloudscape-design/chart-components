@@ -135,8 +135,10 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
 
   public onChartRender = () => {
     const previousValues = this.values;
-    this.reconcile(this.context.chart());
+    const chart = this.context.chart();
+    this.reconcile(chart);
     if (!this.enabled) {
+      this.applyTouchAction(chart);
       return;
     }
     this.updateValues();
@@ -151,6 +153,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       this.syncOverlay();
     }
     this.updateCanZoom();
+    this.applyTouchAction(chart);
   };
 
   public onChartDestroy = () => {
@@ -185,6 +188,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
         this.updateValues();
         this.updateCanZoom();
       }
+      this.applyTouchAction(chart);
     }
   };
 
@@ -300,7 +304,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private reconcile(chart: SafeChart) {
     this.applyExtremes(chart);
     this.drawRange(chart);
-    this.applyTouchAction(chart);
   }
 
   // Touch drags along the x-axis select a zoom range, so only panning across it and pinch-zoom are left to the browser.
@@ -308,9 +311,10 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private applyTouchAction(chart: SafeChart) {
     const style = chart.container.style;
     const xAxis = chart.xAxis?.[0];
-    if (this.enabled && xAxis && style.touchAction !== "none") {
+    const canDrag = this.enabled && canZoomInto(this.values.length);
+    if (canDrag && xAxis && style.touchAction !== "none") {
       style.touchAction = isXAxisHorizontal(xAxis) ? "pan-y pinch-zoom" : "pan-x pinch-zoom";
-    } else if (!this.enabled && style.touchAction.endsWith("pinch-zoom")) {
+    } else if (!canDrag && style.touchAction.endsWith("pinch-zoom")) {
       style.touchAction = String(chart.options.chart?.style?.["touch-action"] ?? "manipulation");
     }
   }
