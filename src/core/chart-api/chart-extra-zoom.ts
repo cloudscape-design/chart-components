@@ -64,7 +64,7 @@ interface ZoomPress {
   dragging: boolean;
 }
 
-const DRAG_THRESHOLD = 10;
+const DRAG_THRESHOLD_PX = 10;
 
 // Chart helper that implements zooming into a range of the first x-axis.
 export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
@@ -600,7 +600,10 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   };
 
   private dragPress(press: ZoomPress, event: PointerEvent) {
-    if (!press.dragging && Math.hypot(event.clientX - press.clientX, event.clientY - press.clientY) < DRAG_THRESHOLD) {
+    if (
+      !press.dragging &&
+      Math.hypot(event.clientX - press.clientX, event.clientY - press.clientY) < DRAG_THRESHOLD_PX
+    ) {
       return;
     }
     const currentIndex = this.findStopAtEvent(event);
