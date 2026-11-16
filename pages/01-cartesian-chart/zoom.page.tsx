@@ -15,7 +15,6 @@ import { Page, PageSection } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
 
 interface ThisPageSettings extends PageSettings {
-  hideZoomControls?: boolean;
   errorBars?: boolean;
   inverted?: boolean;
 }
@@ -52,7 +51,6 @@ const quarterAxis = { type: "category", title: "Quarter", categories } as const;
 
 export default function () {
   const { settings, setSettings } = useChartSettings<ThisPageSettings>();
-  const hideZoomControls = settings.hideZoomControls ?? false;
   const errorBars = settings.errorBars ?? false;
   const inverted = settings.inverted ?? false;
   return (
@@ -62,16 +60,7 @@ export default function () {
         <PageSettingsForm
           selectedSettings={[
             "showLegend",
-            {
-              content: (
-                <Checkbox
-                  checked={hideZoomControls}
-                  onChange={({ detail }) => setSettings({ hideZoomControls: detail.checked })}
-                >
-                  Hide zoom controls
-                </Checkbox>
-              ),
-            },
+            "hideZoomControls",
             {
               content: (
                 <Checkbox checked={errorBars} onChange={({ detail }) => setSettings({ errorBars: detail.checked })}>

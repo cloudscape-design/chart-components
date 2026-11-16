@@ -3,7 +3,7 @@
 
 import { CartesianChart, CartesianChartProps } from "../../lib/components";
 import { dateFormatter, moneyFormatter } from "../common/formatters";
-import { useChartSettings } from "../common/page-settings";
+import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page } from "../common/templates";
 
 // Note: in Highcharts, the scale can be configured explicitly with zMin/zMax on the bubble series, which is not currently exposed in the API.
@@ -41,7 +41,7 @@ const series: CartesianChartProps.SeriesOptions[] = [
 export default function () {
   const { chartProps } = useChartSettings({ more: true });
   return (
-    <Page title="Bubble chart">
+    <Page title="Bubble chart" settings={<PageSettingsForm selectedSettings={["zoom", "hideZoomControls"]} />}>
       <CartesianChart
         {...chartProps.cartesian}
         series={series}

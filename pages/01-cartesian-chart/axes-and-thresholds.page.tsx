@@ -17,7 +17,7 @@ const subYears = (date: Date, years: number) => {
 
 import { CartesianChart } from "../../lib/components";
 import { dateFormatter } from "../common/formatters";
-import { useChartSettings } from "../common/page-settings";
+import { PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
 
@@ -26,6 +26,7 @@ export default function () {
     <Page
       title="Axes and thresholds"
       subtitle="This pages demonstrates different axes types, tick formatters, and thresholds."
+      settings={<PageSettingsForm selectedSettings={["zoom", "hideZoomControls"]} />}
     >
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
         <PageSection title="Linear X, linear Y">
