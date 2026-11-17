@@ -545,7 +545,6 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       clientY: event.clientY,
       index: findStopAtPointer(values, xAxis, chartX, chartY),
     });
-    chart.container.setPointerCapture(event.pointerId);
     if (isZooming(this.interaction)) {
       this.pressClickPending = true;
       event.preventDefault();
@@ -553,13 +552,17 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   };
 
   private onPlotPointerMove = (event: PointerEvent) => {
-    if (this.interaction.press) {
+    const press = this.interaction.press;
+    if (press) {
       this.dispatch({
         type: "pressMove",
         clientX: event.clientX,
         clientY: event.clientY,
         index: this.findStopAtEvent(event),
       });
+      if (!press.dragging && this.interaction.press?.dragging) {
+        this.context.chart().container.setPointerCapture(event.pointerId);
+      }
       return;
     }
     if (!isZooming(this.interaction)) {

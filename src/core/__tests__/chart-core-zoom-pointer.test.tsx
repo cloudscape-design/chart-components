@@ -221,10 +221,13 @@ describe("CoreChart: zoom selection, pointer interaction", () => {
     expect(getXExtremes()).toEqual({ min: 1, max: 4 });
   });
 
-  test("captures the pointer for a press on the plot", () => {
+  test("captures the pointer once a press becomes a drag", () => {
     renderZoomChart({ zoom: { enabled: true } });
     const setPointerCapture = vi.spyOn(getCurrentChart().container, "setPointerCapture");
     dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointermove", 1, 5);
+    expect(setPointerCapture).not.toHaveBeenCalled();
+    dispatchPointer("pointermove", 3);
     expect(setPointerCapture).toHaveBeenCalledWith(1);
   });
 
