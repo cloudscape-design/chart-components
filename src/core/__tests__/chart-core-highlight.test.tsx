@@ -8,6 +8,7 @@ import { vi } from "vitest";
 import "highcharts/highcharts-more";
 import { renderChart } from "./common";
 import { HighchartsTestHelper } from "./highcharts-utils";
+import { describeWithAndWithoutZoom } from "./zoom-variants";
 
 const hc = new HighchartsTestHelper(highcharts);
 
@@ -19,7 +20,7 @@ afterAll(() => {
   vi.useRealTimers();
 });
 
-describe("CoreChart: highlight", () => {
+describeWithAndWithoutZoom("CoreChart: highlight", () => {
   test("highlights linked errorbar when target series is highlighted", async () => {
     renderChart({
       highcharts,

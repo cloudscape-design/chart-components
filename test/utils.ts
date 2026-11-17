@@ -42,6 +42,22 @@ class ChartPageObject extends BasePageObject {
     ]);
   }
 
+  async dragCursorBy(xOffset: number, yOffset: number) {
+    await this.browser.performActions([
+      {
+        type: "pointer",
+        id: "event",
+        parameters: { pointerType: "mouse" },
+        actions: [
+          { type: "pointerDown", origin: "pointer", button: 0, duration: 20 },
+          { type: "pointerMove", duration: 200, origin: "pointer", x: xOffset, y: yOffset },
+          { type: "pointerUp", origin: "pointer", button: 0, duration: 20 },
+          { type: "pause", duration: 150 },
+        ],
+      },
+    ]);
+  }
+
   async clickHere() {
     await this.browser.performActions([
       {

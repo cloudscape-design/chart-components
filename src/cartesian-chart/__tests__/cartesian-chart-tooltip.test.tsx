@@ -9,6 +9,7 @@ import { vi } from "vitest";
 import "highcharts/highcharts-more";
 import { CartesianChartProps } from "../../../lib/components/cartesian-chart";
 import { HighchartsTestHelper } from "../../core/__tests__/highcharts-utils";
+import { describeWithAndWithoutZoom } from "../../core/__tests__/zoom-variants";
 import {
   getAllTooltipSeries,
   getTooltip,
@@ -27,7 +28,7 @@ const lineSeries: CartesianChartProps.SeriesOptions[] = [
   { type: "line", name: "Line 3", data: [7, 8, 9] },
 ];
 
-describe("CartesianChart: tooltip", () => {
+describeWithAndWithoutZoom("CartesianChart: tooltip", () => {
   test("renders tooltip on point highlight", async () => {
     renderCartesianChart({
       highcharts,

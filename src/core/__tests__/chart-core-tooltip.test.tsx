@@ -10,8 +10,12 @@ import testClasses from "../../../lib/components/core/test-classes/styles.select
 import { CoreChartProps } from "../../../lib/components/internal-do-not-use/core-chart";
 import { createChartWrapper, renderChart } from "./common";
 import { HighchartsTestHelper } from "./highcharts-utils";
+import { stubPlotGeometry } from "./plot-geometry";
+import { describeWithAndWithoutZoom } from "./zoom-variants";
 
 const hc = new HighchartsTestHelper(highcharts);
+
+stubPlotGeometry();
 
 function hoverTooltip() {
   const tooltipElement = createChartWrapper().findTooltip()!.getElement();
@@ -80,7 +84,7 @@ const lineSeries: Highcharts.SeriesOptionsType[] = [
   },
 ];
 
-describe("CoreChart: tooltip", () => {
+describeWithAndWithoutZoom("CoreChart: tooltip", () => {
   test("renders highcharts tooltip", () => {
     const { wrapper } = renderChart({
       highcharts,
@@ -293,6 +297,28 @@ describe("CoreChart: tooltip", () => {
       expect(wrapper.findTooltip()).not.toBe(null);
       expect(wrapper.findTooltip()!.getElement()).toHaveTextContent("y10");
       expect(wrapper.findTooltip()!.findDismissButton()).toBe(null);
+    });
+  });
+
+  test("pins and unpins tooltip on a cartesian chart", async () => {
+    const { wrapper } = renderChart({
+      highcharts,
+      options: { series: lineSeries },
+      getTooltipContent: ({ point }) => ({ header: () => `y${point?.y}`, body: () => "" }),
+    });
+
+    act(() => hc.highlightChartPoint(0, 1));
+    act(() => hc.clickChartPoint(0, 1));
+
+    await waitFor(() => {
+      expect(wrapper.findTooltip()!.getElement()).toHaveTextContent("y12");
+      expect(wrapper.findTooltip()!.findDismissButton()).not.toBe(null);
+    });
+
+    act(() => wrapper.findTooltip()!.findDismissButton()!.click());
+
+    await waitFor(() => {
+      expect(wrapper.findTooltip()?.findDismissButton() ?? null).toBe(null);
     });
   });
 
