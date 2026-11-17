@@ -42,7 +42,7 @@ function applyModes(params: AppUrlParams, target?: Element) {
   applyMode(params.mode as Mode, target);
   applyDensity(params.density as Density, target);
   disableMotion(params.motionDisabled, target);
-  applyTheme((params.theme as Theme) ?? Theme.VisualRefresh, target);
+  applyTheme((params.theme as Theme) ?? null, target);
 }
 
 export default function App() {
@@ -100,7 +100,6 @@ function Navigation() {
   const isDarkMode = urlParams.mode === Mode.Dark;
   const isCompactMode = urlParams.density === Density.Compact;
   const isRtl = urlParams.direction === "rtl";
-  const isOneTheme = urlParams.theme === Theme.OneTheme;
   return urlParams.screenshotMode ? null : (
     <header id="h" style={{ position: "sticky", insetBlockStart: 0, zIndex: 1002 }}>
       <TopNavigation
@@ -118,7 +117,6 @@ function Navigation() {
               { id: "dark-mode", text: isDarkMode ? "Set light mode" : "Set dark mode" },
               { id: "compact-mode", text: isCompactMode ? "Set comfortable mode" : "Set compact mode" },
               { id: "rtl", text: isRtl ? "Set left to right text" : "Set right to left text" },
-              { id: "theme", text: isOneTheme ? "Set Visual Refresh theme" : "Set One Theme" },
               { id: "motion", text: urlParams.motionDisabled ? "Enable motion" : "Disable motion" },
               { id: "screenshot", text: urlParams.screenshotMode ? "Disable screenshot mode" : "Screenshot mode" },
               { id: "i18n", text: urlParams.i18n ? "Disable built-in i18n" : "Enable built-in i18n" },
@@ -131,8 +129,6 @@ function Navigation() {
                   return setUrlParams({ density: isCompactMode ? Density.Comfortable : Density.Compact });
                 case "rtl":
                   return setUrlParams({ direction: isRtl ? "ltr" : "rtl" });
-                case "theme":
-                  return setUrlParams({ theme: isOneTheme ? undefined : Theme.OneTheme });
                 case "motion":
                   return setUrlParams({ motionDisabled: !urlParams.motionDisabled });
                 case "screenshot":
