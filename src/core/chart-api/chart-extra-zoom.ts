@@ -19,6 +19,7 @@ import {
   ZoomEffect,
   ZoomEvent,
   ZoomFocusTarget,
+  ZoomPress,
   zoomReducer,
   ZoomState,
 } from "../chart-zoom/zoom-state-machine";
@@ -117,6 +118,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     this.container.addEventListener("pointerdown", this.onPlotPointerDown);
     this.container.addEventListener("pointermove", this.onPlotPointerMove);
     this.container.addEventListener("click", this.onContainerClick);
+    this.container.addEventListener("lostpointercapture", this.onContainerLostPointerCapture);
     this.container.ownerDocument.addEventListener("pointerup", this.onDocumentPointerUp);
     this.container.ownerDocument.addEventListener("pointercancel", this.onDocumentPointerCancel);
   };
@@ -141,6 +143,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     container?.removeEventListener("pointerdown", this.onPlotPointerDown);
     container?.removeEventListener("pointermove", this.onPlotPointerMove);
     container?.removeEventListener("click", this.onContainerClick);
+    container?.removeEventListener("lostpointercapture", this.onContainerLostPointerCapture);
     container?.ownerDocument.removeEventListener("pointerup", this.onDocumentPointerUp);
     container?.ownerDocument.removeEventListener("pointercancel", this.onDocumentPointerCancel);
     this.container = null;
@@ -542,6 +545,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       clientY: event.clientY,
       index: findStopAtPointer(values, xAxis, chartX, chartY),
     });
+    chart.container.setPointerCapture(event.pointerId);
     if (isZooming(this.interaction)) {
       this.pressClickPending = true;
       event.preventDefault();
@@ -549,12 +553,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   };
 
   private onPlotPointerMove = (event: PointerEvent) => {
-    const press = this.interaction.press;
-    if (press && event.pointerType === "mouse" && event.buttons === 0) {
-      // The release of this press was missed, for example in another window, so the press ends here.
-      this.pressClickPending = false;
-      this.dispatch({ type: "pressCancel" });
-    } else if (press) {
+    if (this.interaction.press) {
       this.dispatch({
         type: "pressMove",
         clientX: event.clientX,
@@ -582,6 +581,13 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     this.pressClickPending = false;
   };
 
+  private onContainerLostPointerCapture = (event: PointerEvent) => {
+    const press = this.interaction.press;
+    if (event.target === this.container && press) {
+      this.endPress(press, press.currentIndex);
+    }
+  };
+
   private findStopAtEvent(event: PointerEvent) {
     const chart = this.context.chart();
     const { chartX, chartY } = chart.pointer.normalize(event);
@@ -593,15 +599,18 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       this.pressClickPending = false;
     }
     const press = this.interaction.press;
-    if (!press) {
-      return;
+    if (press) {
+      this.endPress(press, this.findStopAtEvent(event));
     }
+  };
+
+  private endPress(press: ZoomPress, index: number) {
     // Browsers follow a mouse or pen drag with a click, so the pointer is only released early after a touch drag.
     if (press.dragging && press.pointerType === "touch") {
       this.pressClickPending = false;
     }
-    this.dispatch({ type: "pressEnd", index: this.findStopAtEvent(event) });
-  };
+    this.dispatch({ type: "pressEnd", index });
+  }
 
   private onDocumentPointerCancel = () => {
     this.pressClickPending = false;

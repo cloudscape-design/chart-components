@@ -221,13 +221,50 @@ describe("CoreChart: zoom selection, pointer interaction", () => {
     expect(getXExtremes()).toEqual({ min: 1, max: 4 });
   });
 
-  test("does not turn hover into a drag after a missed release", () => {
+  test("captures the pointer for a press on the plot", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    const setPointerCapture = vi.spyOn(getCurrentChart().container, "setPointerCapture");
+    dispatchPointer("pointerdown", 1);
+    expect(setPointerCapture).toHaveBeenCalledWith(1);
+  });
+
+  test("zooms when a move without a pressed button comes just before the release", () => {
     renderZoomChart({ zoom: { enabled: true }, onZoomRangeChange });
     dispatchPointer("pointerdown", 1);
-    dispatchPointer("pointermove", 3, 0, { buttons: 0 });
+    dispatchPointer("pointermove", 3);
+    dispatchPointer("pointermove", 3, 2, { buttons: 0 });
+    dispatchPointer("pointerup", 3, 2, { buttons: 0 });
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+  });
+
+  test("ends the drag where the pointer was when the chart loses it", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointermove", 3);
+    dispatchPointer("lostpointercapture", 0);
+    dispatchPointer("pointerup", 0);
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+  });
+
+  test("does not turn hover into a drag after the chart loses the pointer", () => {
+    renderZoomChart({ zoom: { enabled: true }, onZoomRangeChange });
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("lostpointercapture", 1);
+    dispatchPointer("pointermove", 3);
     expect(isVisible(getOverlay().band)).toBe(false);
-    dispatchPointer("pointerup", 3, 0, { buttons: 0 });
+    dispatchPointer("pointerup", 3);
     expect(onZoomRangeChange).not.toHaveBeenCalled();
+  });
+
+  test("keeps the drag when a child element of the chart loses the pointer", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    dispatchPointer("pointerdown", 1);
+    act(() => {
+      getCurrentChart().container.querySelector("svg")!.dispatchEvent(pointerEventAtValue("lostpointercapture", 1));
+    });
+    dispatchPointer("pointermove", 3);
+    dispatchPointer("pointerup", 3);
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
   });
 
   test("drops the drag on pointercancel", () => {
