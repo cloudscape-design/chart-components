@@ -122,9 +122,10 @@ export interface CartesianChartProps
   zoom?: CartesianChartProps.ZoomOptions;
 
   /**
-   * The zoomed range of the x-axis. By default, the range is managed by the component. When using this property,
-   * manage state updates with `onZoomRangeChange`, and use `null` to show the full data range. Update the property as soon
-   * as `onZoomRangeChange` is called, including when its `zoomRange` is `null` after a reset.
+   * The zoomed range of the x-axis. This property is optional: when it isn't set, the component keeps track of the
+   * zoomed range itself, and `onZoomRangeChange` still reports the changes.
+   * When you set it, the range is controlled. Update it in `onZoomRangeChange` as soon as the event is called,
+   * and use `null` to show the full data range, which the event passes after a reset.
    *
    * Supported options:
    * * `x` (optional, object) - The zoomed x-axis range, as `startValue` and `endValue`. For datetime axes, the
