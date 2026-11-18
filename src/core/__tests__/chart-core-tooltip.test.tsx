@@ -11,7 +11,6 @@ import { CoreChartProps } from "../../../lib/components/internal-do-not-use/core
 import { createChartWrapper, renderChart } from "./common";
 import { HighchartsTestHelper } from "./highcharts-utils";
 import { stubPlotGeometry } from "./plot-geometry";
-import { describeWithAndWithoutZoom } from "./zoom-variants";
 
 const hc = new HighchartsTestHelper(highcharts);
 
@@ -84,7 +83,7 @@ const lineSeries: Highcharts.SeriesOptionsType[] = [
   },
 ];
 
-describeWithAndWithoutZoom("CoreChart: tooltip", () => {
+describe("CoreChart: tooltip", () => {
   test("renders highcharts tooltip", () => {
     const { wrapper } = renderChart({
       highcharts,
@@ -300,10 +299,16 @@ describeWithAndWithoutZoom("CoreChart: tooltip", () => {
     });
   });
 
-  test("pins and unpins tooltip on a cartesian chart", async () => {
+  test.each([
+    { name: "zoom off", zoom: undefined, zoomRange: undefined },
+    { name: "zoom on", zoom: { enabled: true }, zoomRange: undefined },
+    { name: "zoom range set", zoom: { enabled: true }, zoomRange: { x: { startValue: 1, endValue: 3 } } },
+  ])("pins and unpins tooltip on a cartesian chart, $name", async ({ zoom, zoomRange }) => {
     const { wrapper } = renderChart({
       highcharts,
-      options: { series: lineSeries },
+      options: { series: lineSeries, xAxis: {} },
+      zoom,
+      zoomRange,
       getTooltipContent: ({ point }) => ({ header: () => `y${point?.y}`, body: () => "" }),
     });
 

@@ -12,7 +12,6 @@ import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 import "highcharts/highcharts-more";
 import "highcharts/modules/accessibility";
 import { CoreChartTestProps, createChartWrapper, renderChart } from "./common";
-import { describeWithAndWithoutZoom } from "./zoom-variants";
 
 const seriesShort2: Highcharts.SeriesOptionsType[] = [
   {
@@ -110,7 +109,7 @@ function describeFocusedElement() {
   return hasPopup !== null ? `${role}:${ariaLabel}[${hasPopup},${expanded}]` : `${role}:${ariaLabel}`;
 }
 
-describeWithAndWithoutZoom("CoreChart: navigation, cartesian charts", () => {
+describe("CoreChart: navigation, cartesian charts", () => {
   let mockState = { isRtl: false as boolean | "random" };
 
   beforeEach(() => {

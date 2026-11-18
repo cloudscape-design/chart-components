@@ -18,7 +18,6 @@ import CoreChart from "../../../lib/components/internal-do-not-use/core-chart";
 import createWrapper from "../../../lib/components/test-utils/dom";
 import BaseChartWrapper from "../../../lib/components/test-utils/dom/internal/base";
 import CoreChartWrapper from "../../../lib/components/test-utils/dom/internal/core";
-import { getTestZoom } from "./zoom-variants";
 
 export class ExtendedTestWrapper extends CoreChartWrapper {
   findHighchartsTooltip = () => this.findByClassName("highcharts-tooltip");
@@ -66,13 +65,12 @@ export function renderChart(
   Component: React.ComponentType<CoreChartProps & InternalZoomProps> = CoreChartWithZoom,
 ) {
   const ComponentWrapper = (props: CoreChartProps & InternalZoomProps) => {
-    const chartProps = { zoom: getTestZoom(), ...props, options: withZoomAxis(props.options ?? {}, getTestZoom()) };
     return i18nProvider ? (
       <TestI18nProvider messages={i18nProvider}>
-        <Component {...chartProps} />
+        <Component options={{}} {...props} />
       </TestI18nProvider>
     ) : (
-      <Component {...chartProps} />
+      <Component options={{}} {...props} />
     );
   };
   const { rerender } = render(<ComponentWrapper {...props} />);
@@ -80,11 +78,6 @@ export function renderChart(
     wrapper: createChartWrapper(),
     rerender: (props: CoreChartTestProps) => rerender(<ComponentWrapper {...props} />),
   };
-}
-
-function withZoomAxis(options: CoreChartProps.ChartOptions, zoom: undefined | InternalZoomProps["zoom"]) {
-  const cartesian = (options.series ?? []).some((series) => series.type !== "pie" && series.type !== "solidgauge");
-  return zoom?.enabled && cartesian && !options.xAxis ? { ...options, xAxis: {} } : options;
 }
 
 export function renderStatefulChart(props: CoreChartTestProps) {

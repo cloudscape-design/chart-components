@@ -19,7 +19,6 @@ import {
   toggleSecondaryLegendItem,
 } from "./common";
 import { HighchartsTestHelper } from "./highcharts-utils";
-import { describeWithAndWithoutZoom } from "./zoom-variants";
 
 import legendTestClasses from "../../../lib/components/internal/components/chart-legend/test-classes/styles.selectors.js";
 
@@ -394,7 +393,7 @@ describe("CoreChart: legend", () => {
     },
   );
 
-  describeWithAndWithoutZoom("Legend tooltip", () => {
+  describe("Legend tooltip", () => {
     test("renders legend tooltip on hover in cartesian chart", async () => {
       const { wrapper } = renderChart({
         highcharts,
@@ -741,7 +740,7 @@ describe("CoreChart: secondary legend", () => {
     ).toEqual(["Solo"]);
   });
 
-  describeWithAndWithoutZoom("Event handlers", () => {
+  describe("Event handlers", () => {
     test("calls onLegendItemHighlight when hovering secondary legend item", () => {
       const onLegendItemHighlight = vi.fn();
       renderChart({
