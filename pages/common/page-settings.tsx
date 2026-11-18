@@ -16,7 +16,6 @@ import Select from "@cloudscape-design/components/select";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
 import { CartesianChartProps, PieChartProps } from "../../lib/components";
-import { InternalZoomProps } from "../../lib/components/core/internal-interfaces";
 import { CoreChartProps } from "../../src/core/interfaces";
 import { useHighcharts } from "./use-highcharts";
 
@@ -90,9 +89,9 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
   settings: SettingsType;
   setSettings: (settings: Partial<SettingsType>) => void;
   chartProps: {
-    cartesian: Omit<CartesianChartProps, "series"> & InternalZoomProps & { ref: React.Ref<CartesianChartProps.Ref> };
+    cartesian: Omit<CartesianChartProps, "series"> & { ref: React.Ref<CartesianChartProps.Ref> };
     pie: Omit<PieChartProps, "series"> & { ref: React.Ref<PieChartProps.Ref> };
-    core: Omit<CoreChartProps, "series" | "options"> & InternalZoomProps;
+    core: Omit<CoreChartProps, "series" | "options">;
   };
   isEmpty: boolean;
 } {

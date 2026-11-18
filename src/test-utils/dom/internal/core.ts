@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { ButtonWrapper } from "@cloudscape-design/components/test-utils/dom";
 import ChartTooltipWrapper from "@cloudscape-design/components/test-utils/dom/internal/chart-tooltip";
 import { ElementWrapper } from "@cloudscape-design/test-utils-core/dom";
 
@@ -37,6 +38,34 @@ export default class CoreChartWrapper extends BaseChartWrapper {
 
   public findHorizontalAxisTitle(): null | ElementWrapper {
     return this.find(`.highcharts-axis.${testClasses["axis-horizontal"]} > .highcharts-axis-title`);
+  }
+
+  /**
+   * Finds the zoom button that enters zoom mode.
+   */
+  public findZoomButton(): null | ButtonWrapper {
+    return this.findComponent(`.${testClasses["zoom-button"]}`, ButtonWrapper);
+  }
+
+  /**
+   * Finds the pressed zoom button that exits zoom mode, shown while a range is being selected.
+   */
+  public findExitZoomButton(): null | ButtonWrapper {
+    return this.findComponent(`.${testClasses["exit-zoom-button"]}`, ButtonWrapper);
+  }
+
+  /**
+   * Finds the reset button, shown when the chart is zoomed in.
+   */
+  public findResetZoomButton(): null | ButtonWrapper {
+    return this.findComponent(`.${testClasses["reset-zoom-button"]}`, ButtonWrapper);
+  }
+
+  /**
+   * Finds the zoom cursor, which holds the keyboard focus while a range is being selected.
+   */
+  public findZoomCursor(): null | ElementWrapper {
+    return this.findByClassName(testClasses["zoom-cursor"]);
   }
 }
 

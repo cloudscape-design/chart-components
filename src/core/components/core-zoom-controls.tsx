@@ -45,7 +45,7 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
           formAction="none"
           onClick={api.resetZoom}
           ariaLabel={labels.resetZoomButtonAriaLabel}
-          className={testClasses["reset-zoom-button"]}
+          className={zoomed && !zooming ? testClasses["reset-zoom-button"] : undefined}
         >
           {labels.resetZoomButtonText}
         </Button>

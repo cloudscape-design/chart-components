@@ -40,13 +40,15 @@ export function useChartI18n({
   const i18n = useInternalI18n("[charts]");
   const i18nPie = useInternalI18n("pie-chart");
   // The disabled reason is not part of the typed "[charts]" namespace of the components package yet.
-  const i18nUntyped = i18n as unknown as (key: string, provided: undefined) => undefined | string;
+  const i18nUntyped = i18n as unknown as (key: string, provided: undefined | string) => undefined | string;
   const valueText = (
     key: "i18nStrings.zoomModeEnteredAnnouncementText" | "i18nStrings.zoomStartPointAnnouncementText",
-  ) => i18n(key, undefined, (format) => (value: string) => format({ value }));
+    provided?: (value: string) => string,
+  ) => i18n(key, provided, (format) => (value: string) => format({ value }));
   const rangeText = (
     key: "i18nStrings.zoomRangeChangeAnnouncementText" | "i18nStrings.zoomSelectionAnnouncementText",
-  ) => i18n(key, undefined, (format) => (startValue: string, endValue: string) => format({ startValue, endValue }));
+    provided?: (startValue: string, endValue: string) => string,
+  ) => i18n(key, provided, (format) => (startValue: string, endValue: string) => format({ startValue, endValue }));
   return {
     chartLabel: ariaLabel,
     chartDescription: ariaDescription,
@@ -56,18 +58,36 @@ export function useChartI18n({
     chartXAxisLabel: i18n("i18nStrings.xAxisAriaRoleDescription", i18nStrings?.xAxisRoleDescription),
     chartYAxisLabel: i18n("i18nStrings.yAxisAriaRoleDescription", i18nStrings?.yAxisRoleDescription),
     chartSegmentLabel: i18nPie("i18nStrings.segmentAriaRoleDescription", i18nStrings?.segmentRoleDescription),
-    enterZoomModeButtonText: i18n("i18nStrings.enterZoomModeButtonText", undefined),
-    zoomButtonDisabledReason: i18nUntyped("i18nStrings.zoomButtonDisabledReason", undefined),
-    resetZoomButtonText: i18n("i18nStrings.resetZoomButtonText", undefined),
-    resetZoomButtonAriaLabel: i18n("i18nStrings.resetZoomButtonAriaLabel", undefined),
-    zoomControlsAriaLabel: i18n("i18nStrings.zoomControlsAriaLabel", undefined),
-    zoomCursorAriaLabel: i18n("i18nStrings.zoomCursorAriaLabel", undefined),
-    zoomModeEnteredAnnouncementText: valueText("i18nStrings.zoomModeEnteredAnnouncementText"),
-    zoomStartPointAnnouncementText: valueText("i18nStrings.zoomStartPointAnnouncementText"),
-    zoomRangeChangeAnnouncementText: rangeText("i18nStrings.zoomRangeChangeAnnouncementText"),
-    zoomSelectionAnnouncementText: rangeText("i18nStrings.zoomSelectionAnnouncementText"),
-    zoomModeExitedAnnouncementText: i18n("i18nStrings.zoomModeExitedAnnouncementText", undefined),
-    zoomResetAnnouncementText: i18n("i18nStrings.zoomResetAnnouncementText", undefined),
+    enterZoomModeButtonText: i18n("i18nStrings.enterZoomModeButtonText", i18nStrings?.enterZoomModeButtonText),
+    zoomButtonDisabledReason: i18nUntyped(
+      "i18nStrings.zoomButtonDisabledReason",
+      i18nStrings?.zoomButtonDisabledReason,
+    ),
+    resetZoomButtonText: i18n("i18nStrings.resetZoomButtonText", i18nStrings?.resetZoomButtonText),
+    resetZoomButtonAriaLabel: i18n("i18nStrings.resetZoomButtonAriaLabel", i18nStrings?.resetZoomButtonAriaLabel),
+    zoomControlsAriaLabel: i18n("i18nStrings.zoomControlsAriaLabel", i18nStrings?.zoomControlsAriaLabel),
+    zoomCursorAriaLabel: i18n("i18nStrings.zoomCursorAriaLabel", i18nStrings?.zoomCursorAriaLabel),
+    zoomModeEnteredAnnouncementText: valueText(
+      "i18nStrings.zoomModeEnteredAnnouncementText",
+      i18nStrings?.zoomModeEnteredAnnouncementText,
+    ),
+    zoomStartPointAnnouncementText: valueText(
+      "i18nStrings.zoomStartPointAnnouncementText",
+      i18nStrings?.zoomStartPointAnnouncementText,
+    ),
+    zoomRangeChangeAnnouncementText: rangeText(
+      "i18nStrings.zoomRangeChangeAnnouncementText",
+      i18nStrings?.zoomRangeChangeAnnouncementText,
+    ),
+    zoomSelectionAnnouncementText: rangeText(
+      "i18nStrings.zoomSelectionAnnouncementText",
+      i18nStrings?.zoomSelectionAnnouncementText,
+    ),
+    zoomModeExitedAnnouncementText: i18n(
+      "i18nStrings.zoomModeExitedAnnouncementText",
+      i18nStrings?.zoomModeExitedAnnouncementText,
+    ),
+    zoomResetAnnouncementText: i18n("i18nStrings.zoomResetAnnouncementText", i18nStrings?.zoomResetAnnouncementText),
     itemMarkerLabel: (status = "default") => {
       switch (status) {
         case "warning":

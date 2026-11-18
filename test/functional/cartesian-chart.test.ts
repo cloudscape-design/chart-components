@@ -8,8 +8,6 @@ import "../../lib/components/test-utils/selectors";
 import createWrapper from "../../lib/components/test-utils/selectors";
 import { setupTest } from "../utils";
 
-import testClasses from "../../lib/components/core/test-classes/styles.selectors.js";
-
 const w = createWrapper();
 
 test.each([
@@ -46,7 +44,7 @@ test(
   setupTest("#/01-cartesian-chart/column-chart-test?zoom=true", async (page) => {
     const chart = w.findCartesianHighcharts('[data-testid="grouped-column-chart"]');
     const plotBox = await page.getBoundingBox(chart.find(".highcharts-plot-background").toSelector());
-    const resetButton = chart.find(`.${testClasses["reset-zoom-button"]}`).toSelector();
+    const resetButton = chart.findResetZoomButton().toSelector();
 
     await page.moveCursorTo(plotBox.left + plotBox.width * 0.2, plotBox.top + plotBox.height / 2);
     await page.dragCursorBy(Math.round(plotBox.width * 0.5), 0);
