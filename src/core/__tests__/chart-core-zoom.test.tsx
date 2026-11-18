@@ -9,7 +9,6 @@ import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 
 import "highcharts/highcharts-more";
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
-import { ZoomRange } from "../../../lib/components/core/internal-interfaces";
 import { getSeriesData } from "../../../lib/components/internal/utils/highcharts";
 import {
   CoreChartTestProps,
@@ -64,7 +63,7 @@ const defaultProps: CoreChartTestProps = {
   zoom: { enabled: true },
 };
 
-const zoomedRange: ZoomRange = { x: { startValue: 1, endValue: 3 } };
+const zoomedRange: CoreChartProps.ZoomRange = { x: { startValue: 1, endValue: 3 } };
 const onZoomRangeChange = vi.fn();
 
 afterEach(() => {

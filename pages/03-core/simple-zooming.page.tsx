@@ -12,7 +12,6 @@ import SpaceBetween from "@cloudscape-design/components/space-between";
 import { colorChartsBlue1400, colorChartsLineTick } from "@cloudscape-design/design-tokens";
 
 import { CoreChartProps } from "../../lib/components/core/interfaces";
-import { InternalZoomProps } from "../../lib/components/core/internal-interfaces";
 import CoreChart from "../../lib/components/internal-do-not-use/core-chart";
 import { dateFormatter } from "../common/formatters";
 import { PageSettings, PageSettingsForm, useChartSettings } from "../common/page-settings";
@@ -22,8 +21,6 @@ import pseudoRandom from "../utils/pseudo-random";
 interface ThisPageSettings extends PageSettings {
   keepZoomingFrame: boolean;
 }
-
-const ZoomCoreChart = CoreChart as React.ComponentType<CoreChartProps & InternalZoomProps>;
 
 function randomInt(min: number, max: number) {
   return min + Math.floor(pseudoRandom() * (max - min));
@@ -247,7 +244,7 @@ function Charts() {
         }}
       />
 
-      <ZoomCoreChart
+      <CoreChart
         callback={(chart) => {
           scatterChartRef.current = chart;
         }}

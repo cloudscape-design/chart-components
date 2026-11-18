@@ -35,7 +35,6 @@ import { ChartZoomLiveRegion } from "./components/core-zoom-live-region";
 import { getFormatter } from "./formatters";
 import { useChartI18n } from "./i18n-utils";
 import { CoreChartProps } from "./interfaces";
-import { InternalZoomProps } from "./internal-interfaces";
 import { getLegendsProps, getPointAccessibleDescription } from "./utils";
 
 import styles from "./styles.css.js";
@@ -78,7 +77,7 @@ export function InternalCoreChart({
   __internalRootRef,
   getItemOptions,
   ...rest
-}: CoreChartProps & InternalBaseComponentProps & InternalZoomProps) {
+}: CoreChartProps & InternalBaseComponentProps) {
   const highcharts = rest.highcharts as null | typeof Highcharts;
   const labels = useChartI18n({ ariaLabel, ariaDescription, i18nStrings });
   // The zoom applies to the first x-axis, and is ignored when the chart does not define one.

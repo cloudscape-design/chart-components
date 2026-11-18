@@ -6,11 +6,8 @@ import { fireEvent, render } from "@testing-library/react";
 import highcharts from "highcharts";
 import { vi } from "vitest";
 
-import { ButtonWrapper } from "@cloudscape-design/components/test-utils/dom";
-
 import "@cloudscape-design/components/test-utils/dom";
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
-import { InternalZoomProps } from "../../../lib/components/core/internal-interfaces";
 import testClasses from "../../../lib/components/core/test-classes/styles.selectors";
 import { fireNonCancelableEvent } from "../../../lib/components/internal/events";
 import { TestI18nProvider } from "../../../lib/components/internal/utils/test-i18n-provider";
@@ -22,23 +19,13 @@ import { getTestZoom } from "./zoom-variants";
 
 export class ExtendedTestWrapper extends CoreChartWrapper {
   findHighchartsTooltip = () => this.findByClassName("highcharts-tooltip");
-  findZoomButton = () => this.findComponent(`.${testClasses["zoom-button"]}`, ButtonWrapper);
-  findExitZoomButton = () => this.findComponent(`.${testClasses["exit-zoom-button"]}`, ButtonWrapper);
-  findResetZoomButton = () => {
-    const button = this.findComponent(`.${testClasses["reset-zoom-button"]}`, ButtonWrapper);
-    return button && !button.getElement().closest("[hidden]") ? button : null;
-  };
-  findZoomCursor = () => this.findByClassName(testClasses["zoom-cursor"]);
 }
 
-// The core chart accepts the internal zoom properties, which are not part of its public interface yet.
-const CoreChartWithZoom = CoreChart as React.ComponentType<CoreChartProps & InternalZoomProps>;
-
-export function StatefulChart(props: CoreChartProps & InternalZoomProps) {
+export function StatefulChart(props: CoreChartProps) {
   const [visibleItems, setVisibleItems] = useState<readonly string[]>(props.visibleItems ?? []);
   const [zoomRange, setZoomRange] = useState(props.zoomRange);
   return (
-    <CoreChartWithZoom
+    <CoreChart
       {...props}
       visibleItems={visibleItems}
       onVisibleItemsChange={({ detail }) => {
@@ -55,17 +42,16 @@ export function StatefulChart(props: CoreChartProps & InternalZoomProps) {
   );
 }
 
-export type CoreChartTestProps = Partial<CoreChartProps> &
-  InternalZoomProps & {
-    onLegendItemHighlight?: () => void;
-    i18nProvider?: Record<string, Record<string, string>>;
-  };
+export type CoreChartTestProps = Partial<CoreChartProps> & {
+  onLegendItemHighlight?: () => void;
+  i18nProvider?: Record<string, Record<string, string>>;
+};
 
 export function renderChart(
   { i18nProvider, ...props }: CoreChartTestProps,
-  Component: React.ComponentType<CoreChartProps & InternalZoomProps> = CoreChartWithZoom,
+  Component: React.ComponentType<CoreChartProps> = CoreChart,
 ) {
-  const ComponentWrapper = (props: CoreChartProps & InternalZoomProps) => {
+  const ComponentWrapper = (props: CoreChartProps) => {
     const chartProps = { zoom: getTestZoom(), ...props, options: withZoomAxis(props.options ?? {}, getTestZoom()) };
     return i18nProvider ? (
       <TestI18nProvider messages={i18nProvider}>
@@ -82,7 +68,7 @@ export function renderChart(
   };
 }
 
-function withZoomAxis(options: CoreChartProps.ChartOptions, zoom: undefined | InternalZoomProps["zoom"]) {
+function withZoomAxis(options: CoreChartProps.ChartOptions, zoom: undefined | CoreChartProps.ZoomOptions) {
   const cartesian = (options.series ?? []).some((series) => series.type !== "pie" && series.type !== "solidgauge");
   return zoom?.enabled && cartesian && !options.xAxis ? { ...options, xAxis: {} } : options;
 }

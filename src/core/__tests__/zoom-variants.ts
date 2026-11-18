@@ -3,9 +3,9 @@
 
 import { afterEach, beforeEach, describe } from "vitest";
 
-import { ZoomOptions } from "../../../lib/components/core/internal-interfaces";
+import { CoreChartProps } from "../../../lib/components/core/interfaces";
 
-let currentZoom: undefined | ZoomOptions = undefined;
+let currentZoom: undefined | CoreChartProps.ZoomOptions = undefined;
 
 export function getTestZoom() {
   return currentZoom;

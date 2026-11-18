@@ -25,8 +25,7 @@ import {
 } from "../chart-zoom/zoom-state-machine";
 import { createStopMapper, findNearestIndex, getCursorStops, getPageStep } from "../chart-zoom/zoom-utils";
 import { getFormatter } from "../formatters";
-import { Rect } from "../interfaces";
-import { ZoomRange } from "../internal-interfaces";
+import { CoreChartProps, Rect } from "../interfaces";
 import { isInsidePlot } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
 
@@ -621,7 +620,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   };
 }
 
-function extremesFromRange(zoomRange: undefined | null | ZoomRange): null | ZoomExtremes {
+function extremesFromRange(zoomRange: undefined | null | CoreChartProps.ZoomRange): null | ZoomExtremes {
   const x = zoomRange?.x;
   return x ? { min: Math.min(x.startValue, x.endValue), max: Math.max(x.startValue, x.endValue) } : null;
 }
