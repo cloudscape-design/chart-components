@@ -13,4 +13,7 @@ vi.stubGlobal("CSS", {
   }),
 });
 
+Element.prototype.setPointerCapture = () => {};
+Element.prototype.releasePointerCapture = () => {};
+
 expect.extend(matchers);

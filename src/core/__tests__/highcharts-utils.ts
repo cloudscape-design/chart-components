@@ -32,9 +32,13 @@ export class HighchartsTestHelper {
   }
 
   public clickChartPoint(seriesIndex: number, index: number) {
-    this.getChartPoint(seriesIndex, index).graphic!.element.dispatchEvent(
-      new MouseEvent("click", { bubbles: true, cancelable: true }),
-    );
+    const point = this.getChartPoint(seriesIndex, index);
+    const [clientX, clientY] = point.pos(true) ?? [0, 0];
+    const init = { bubbles: true, cancelable: true, clientX, clientY, pointerId: 1, pointerType: "mouse" };
+    const target = point.graphic?.element ?? this.getChart().container;
+    target.dispatchEvent(new PointerEvent("pointerdown", { ...init, button: 0, buttons: 1 }));
+    target.dispatchEvent(new PointerEvent("pointerup", { ...init, button: 0, buttons: 0 }));
+    target.dispatchEvent(new MouseEvent("click", init));
   }
 
   public getPlotLinesById(id: string) {

@@ -19,7 +19,16 @@ export default function () {
     <Page
       title="Scatter chart"
       settings={
-        <PageSettingsForm selectedSettings={["showLegend", "showLegendTitle", "tooltipSize", "tooltipPlacement"]} />
+        <PageSettingsForm
+          selectedSettings={[
+            "showLegend",
+            "showLegendTitle",
+            "tooltipSize",
+            "tooltipPlacement",
+            "zoom",
+            "hideZoomControls",
+          ]}
+        />
       }
     >
       <ExampleScatterSimple />

@@ -9,6 +9,7 @@ import "@cloudscape-design/components/test-utils/dom";
 import CartesianChart, { CartesianChartProps } from "../../../lib/components/cartesian-chart";
 import { TestI18nProvider } from "../../../lib/components/internal/utils/test-i18n-provider";
 import createWrapper from "../../../lib/components/test-utils/dom";
+import { getTestZoom } from "../../core/__tests__/zoom-variants";
 
 export const ref = createRef<CartesianChartProps.Ref>();
 
@@ -34,12 +35,13 @@ type TestProps = Partial<CartesianChartProps> & {
 
 export function renderCartesianChart({ i18nProvider, ...props }: TestProps, Component = CartesianChart) {
   const ComponentWrapper = (props: CartesianChartProps) => {
+    const zoomProps = { zoom: getTestZoom() } as object;
     return i18nProvider ? (
       <TestI18nProvider messages={i18nProvider}>
-        <Component ref={ref} {...props} />
+        <Component ref={ref} {...zoomProps} {...props} />
       </TestI18nProvider>
     ) : (
-      <Component ref={ref} {...props} />
+      <Component ref={ref} {...zoomProps} {...props} />
     );
   };
   const { rerender } = render(<ComponentWrapper {...props} />);

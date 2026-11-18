@@ -17,13 +17,9 @@ export function ChartZoomCursor({ api, labels, inverted }: { api: ChartAPI; labe
       tabIndex={0}
       aria-label={labels.zoomCursorAriaLabel}
       aria-orientation={inverted ? "vertical" : "horizontal"}
-      className={clsx(
-        styles["chart-zoom-cursor"],
-        inverted && styles["chart-zoom-cursor-vertical"],
-        testClasses["zoom-cursor"],
-      )}
+      className={clsx(styles["chart-zoom-cursor"], testClasses["zoom-cursor"])}
       onKeyDown={api.onZoomCursorKeyDown}
-      onBlur={api.onZoomCursorBlur}
+      onBlur={api.onZoomBlur}
     />
   );
 }

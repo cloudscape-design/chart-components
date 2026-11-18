@@ -1,0 +1,446 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
+import { act } from "react";
+import { afterEach, describe, expect, test, vi } from "vitest";
+
+import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
+
+import "@cloudscape-design/components/test-utils/dom";
+import { getSeriesData } from "../../../lib/components/internal/utils/highcharts";
+import { createChartWrapper as getChart, getCurrentChart, getXExtremes, renderInRtl } from "./common";
+import { stubPlotGeometry } from "./plot-geometry";
+import {
+  dispatchPointer,
+  enterZoomMode,
+  findZoomSvg,
+  getCursorAttributes,
+  getOverlay,
+  isVisible,
+  keyboardZoomToIndexes,
+  onZoomRangeChange,
+  pointerEventAtValue,
+  pressCursorKey,
+  renderZoomChart,
+  seriesOfLength,
+} from "./zoom-test-utils";
+
+stubPlotGeometry();
+
+afterEach(() => {
+  onZoomRangeChange.mockReset();
+  vi.restoreAllMocks();
+});
+
+describe("CoreChart: zoom selection, overlay", () => {
+  test.each([
+    { state: "idle", act: () => {}, zoomed: false },
+    { state: "after a committed zoom", act: () => keyboardZoomToIndexes(1, 3), zoomed: true },
+  ])("draws no selection overlay $state", ({ act: run, zoomed }) => {
+    renderZoomChart({ zoom: { enabled: true } });
+    run();
+    const { band, startDivider, cursor } = getOverlay();
+    for (const element of [band, startDivider, cursor]) {
+      expect(isVisible(element)).toBe(false);
+    }
+    expect(isVisible(findZoomSvg("zoom-range"))).toBe(zoomed);
+  });
+
+  test("shows the cursor while selecting, and the band once the start point is set", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    enterZoomMode();
+    expect(isVisible(getOverlay().cursor)).toBe(true);
+    expect(isVisible(getOverlay().band)).toBe(false);
+
+    pressCursorKey(KeyCode.enter);
+    expect(isVisible(getOverlay().startDivider)).toBe(true);
+
+    pressCursorKey(KeyCode.right);
+    expect(isVisible(getOverlay().band)).toBe(true);
+  });
+});
+describe("CoreChart: zoom selection, pointer interaction", () => {
+  test("sets a boundary when a press on the plot is released outside the chart", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    const outside = document.createElement("div");
+    document.body.appendChild(outside);
+    try {
+      enterZoomMode();
+      dispatchPointer("pointerdown", 1);
+      act(() => {
+        outside.dispatchEvent(pointerEventAtValue("pointerup", 3));
+      });
+      expect(isVisible(getOverlay().startDivider)).toBe(true);
+      expect(getCursorAttributes().text).toBe("Selecting zoom range from 1 to 1.");
+    } finally {
+      outside.remove();
+    }
+  });
+
+  test("returns to the selection on pointercancel", () => {
+    renderZoomChart({ zoom: { enabled: true }, onZoomRangeChange });
+    enterZoomMode();
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointercancel", 1);
+    expect(isVisible(getOverlay().startDivider)).toBe(false);
+    expect(getChart().findExitZoomButton()).not.toBe(null);
+    expect(onZoomRangeChange).not.toHaveBeenCalled();
+  });
+
+  test("ignores the cursor keys while a press is in progress", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    enterZoomMode();
+    dispatchPointer("pointerdown", 2);
+    pressCursorKey(KeyCode.right);
+    pressCursorKey(KeyCode.enter);
+    expect(getCursorAttributes().now).toBe("0");
+    expect(isVisible(getOverlay().startDivider)).toBe(false);
+  });
+
+  test.each([
+    { name: "outside zoom mode", zoomMode: false },
+    { name: "in zoom mode", zoomMode: true },
+  ])("zooms into the range dragged across the plot $name", ({ zoomMode }) => {
+    renderZoomChart({ zoom: { enabled: true }, onZoomRangeChange });
+    if (zoomMode) {
+      enterZoomMode();
+    }
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointermove", 3);
+    expect(isVisible(getOverlay().band)).toBe(true);
+    expect(isVisible(getOverlay().startDivider)).toBe(true);
+    const endLine = zoomMode ? getOverlay().cursor : getOverlay().endDivider;
+    expect(isVisible(endLine)).toBe(true);
+
+    dispatchPointer("pointerup", 3);
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+    expect(onZoomRangeChange).toHaveBeenCalledWith(
+      expect.objectContaining({ detail: { zoomRange: { x: { startValue: 1, endValue: 3 } } } }),
+    );
+    expect(isVisible(getOverlay().band)).toBe(false);
+    expect(isVisible(getOverlay().endDivider)).toBe(false);
+    expect(getChart().findExitZoomButton()).toBe(null);
+    if (zoomMode) {
+      expect(document.activeElement).toBe(getChart().findResetZoomButton()!.getElement());
+    }
+  });
+
+  test.each([
+    { name: "a right-to-left page", rtl: true, inverted: false },
+    { name: "an inverted chart", rtl: false, inverted: true },
+  ])("zooms into the dragged range on $name", ({ rtl, inverted }) => {
+    if (rtl) {
+      renderInRtl();
+    }
+    const props = { inverted, zoom: { enabled: true } };
+    const { rerender } = renderZoomChart(props);
+    rerender(props);
+    dispatchPointer("pointerdown", 3);
+    dispatchPointer("pointermove", 1);
+    dispatchPointer("pointerup", 1);
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+  });
+
+  test("keeps a press that moves less than the drag threshold a chart click", () => {
+    const onChartClick = vi.fn();
+    renderZoomChart({ zoom: { enabled: true }, onZoomRangeChange, onChartClick });
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointermove", 1, 5);
+    dispatchPointer("pointerup", 1, 5);
+    dispatchPointer("click", 1, 5);
+    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
+    expect(onZoomRangeChange).not.toHaveBeenCalled();
+    expect(onChartClick).toHaveBeenCalledTimes(1);
+  });
+
+  test.each(["mouse", "pen"])("does not fire the chart click or show a tooltip for a %s drag", async (pointerType) => {
+    const onChartClick = vi.fn();
+    renderZoomChart({ zoom: { enabled: true }, onChartClick });
+    vi.useFakeTimers();
+    try {
+      dispatchPointer("pointerdown", 1, 0, { pointerType });
+      dispatchPointer("pointermove", 3, 0, { pointerType });
+      act(() => getSeriesData(getCurrentChart().series[0])[2].onMouseOver());
+      await act(() => vi.advanceTimersByTimeAsync(500));
+      expect(getChart().findTooltip()).toBe(null);
+
+      dispatchPointer("pointerup", 3, 0, { pointerType });
+      dispatchPointer("click", 3, 0, { pointerType });
+      expect(onChartClick).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test("shows the tooltip on hover again after a touch drag", async () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    vi.useFakeTimers();
+    try {
+      dispatchPointer("pointerdown", 1, 0, { pointerType: "touch" });
+      dispatchPointer("pointermove", 3, 0, { pointerType: "touch" });
+      dispatchPointer("pointerup", 3, 0, { pointerType: "touch" });
+      expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+
+      act(() => getSeriesData(getCurrentChart().series[0])[2].onMouseOver());
+      await act(() => vi.advanceTimersByTimeAsync(500));
+      expect(getChart().findTooltip()).not.toBe(null);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test("does not zoom into a drag that covers a single point", () => {
+    renderZoomChart({ zoom: { enabled: true }, onZoomRangeChange });
+    const xAxis = getCurrentChart().xAxis[0];
+    const step = xAxis.toPixels(1, false) - xAxis.toPixels(0, false);
+    dispatchPointer("pointerdown", 2, -step / 3);
+    dispatchPointer("pointermove", 2, step / 3);
+    dispatchPointer("pointerup", 2, step / 3);
+    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
+    expect(onZoomRangeChange).not.toHaveBeenCalled();
+    expect(isVisible(getOverlay().band)).toBe(false);
+  });
+
+  test("keeps a drag in zoom mode when the press moves the focus out of zoom mode", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    enterZoomMode();
+    dispatchPointer("pointerdown", 1);
+    act(() => getOverlay().cursor.blur());
+    dispatchPointer("pointermove", 3);
+    dispatchPointer("pointerup", 3);
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+  });
+
+  test("zooms up to the edge when a drag is released outside the chart", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointermove", 2);
+    act(() => {
+      document.body.dispatchEvent(pointerEventAtValue("pointerup", 4, 200));
+    });
+    expect(getXExtremes()).toEqual({ min: 1, max: 4 });
+  });
+
+  test("captures the pointer once a press becomes a drag", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    const setPointerCapture = vi.spyOn(getCurrentChart().container, "setPointerCapture");
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointermove", 1, 5);
+    expect(setPointerCapture).not.toHaveBeenCalled();
+    dispatchPointer("pointermove", 3);
+    expect(setPointerCapture).toHaveBeenCalledWith(1);
+  });
+
+  test("zooms when a move without a pressed button comes just before the release", () => {
+    renderZoomChart({ zoom: { enabled: true }, onZoomRangeChange });
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointermove", 3);
+    dispatchPointer("pointermove", 3, 2, { buttons: 0 });
+    dispatchPointer("pointerup", 3, 2, { buttons: 0 });
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+  });
+
+  test("ends the drag where the pointer was when the chart loses it", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointermove", 3);
+    dispatchPointer("lostpointercapture", 0);
+    dispatchPointer("pointerup", 0);
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+  });
+
+  test("does not turn hover into a drag after the chart loses the pointer", () => {
+    renderZoomChart({ zoom: { enabled: true }, onZoomRangeChange });
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("lostpointercapture", 1);
+    dispatchPointer("pointermove", 3);
+    expect(isVisible(getOverlay().band)).toBe(false);
+    dispatchPointer("pointerup", 3);
+    expect(onZoomRangeChange).not.toHaveBeenCalled();
+  });
+
+  test("keeps the drag when a child element of the chart loses the pointer", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    dispatchPointer("pointerdown", 1);
+    act(() => {
+      getCurrentChart().container.querySelector("svg")!.dispatchEvent(pointerEventAtValue("lostpointercapture", 1));
+    });
+    dispatchPointer("pointermove", 3);
+    dispatchPointer("pointerup", 3);
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+  });
+
+  test("drops the drag on pointercancel", () => {
+    renderZoomChart({ zoom: { enabled: true }, onZoomRangeChange });
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointermove", 3);
+    dispatchPointer("pointercancel", 3);
+    dispatchPointer("pointerup", 3);
+    expect(onZoomRangeChange).not.toHaveBeenCalled();
+    expect(isVisible(getOverlay().band)).toBe(false);
+  });
+
+  test.each([
+    { name: "zoom is not enabled", zoom: { enabled: false }, series: undefined },
+    { name: "there is no narrower range to zoom into", zoom: { enabled: true }, series: seriesOfLength(2) },
+  ])("leaves drags to the chart when $name", ({ zoom, series }) => {
+    renderZoomChart({ zoom, series, onZoomRangeChange });
+    dispatchPointer("pointerdown", 0);
+    dispatchPointer("pointermove", 1);
+    dispatchPointer("pointerup", 1);
+    expect(getXExtremes().min).toBe(0);
+    expect(onZoomRangeChange).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    { name: "a horizontal x-axis", inverted: false, touchAction: "pan-y pinch-zoom" },
+    { name: "a vertical x-axis", inverted: true, touchAction: "pan-x pinch-zoom" },
+  ])("leaves scrolling across $name and pinch-zoom to touch gestures", ({ inverted, touchAction }) => {
+    const { rerender } = renderZoomChart({ inverted, zoom: { enabled: true } });
+    expect(getCurrentChart().container.style.touchAction).toBe(touchAction);
+    rerender({ inverted, zoom: { enabled: false } });
+    expect(getCurrentChart().container.style.touchAction).toBe("manipulation");
+  });
+
+  test("leaves all touch gestures to the browser when the chart has too few points to zoom", () => {
+    const { rerender } = renderZoomChart({ inverted: true, series: seriesOfLength(2), zoom: { enabled: true } });
+    expect(getCurrentChart().container.style.touchAction).toBe("manipulation");
+    rerender({ inverted: true, series: seriesOfLength(5), zoom: { enabled: true } });
+    expect(getCurrentChart().container.style.touchAction).toBe("pan-x pinch-zoom");
+  });
+
+  test("moves the cursor with the pointer hovering the plot in zoom mode", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    enterZoomMode();
+    const startLeft = getOverlay().cursor.style.left;
+    dispatchPointer("pointermove", 3, 0, { buttons: 0 });
+    expect(getOverlay().cursor.style.left).not.toBe(startLeft);
+    expect(getCursorAttributes().now).toBe(String(3));
+  });
+
+  test("previews the band with the pointer hovering the plot after the first click", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    enterZoomMode();
+    dispatchPointer("pointerdown", 1);
+    dispatchPointer("pointerup", 1);
+    dispatchPointer("pointermove", 3, 0, { buttons: 0 });
+    const { band } = getOverlay();
+    expect(isVisible(band)).toBe(true);
+    expect(Number(band!.getAttribute("width"))).toBeGreaterThan(1);
+    expect(getCursorAttributes().text).toBe("Selecting zoom range from 1 to 3.");
+  });
+
+  test("shows no tooltip for a point hovered in zoom mode", async () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    vi.useFakeTimers();
+    try {
+      act(() => getSeriesData(getCurrentChart().series[0])[2].onMouseOver());
+      await act(() => vi.advanceTimersByTimeAsync(500));
+      expect(getChart().findTooltip()).not.toBe(null);
+      act(() => getSeriesData(getCurrentChart().series[0])[2].onMouseOut());
+      await act(() => vi.advanceTimersByTimeAsync(500));
+
+      enterZoomMode();
+      act(() => getSeriesData(getCurrentChart().series[0])[2].onMouseOver());
+      await act(() => vi.advanceTimersByTimeAsync(500));
+      expect(getChart().findTooltip()).toBe(null);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test.each([
+    { name: "a mouse", pointerType: "mouse", rtl: false },
+    { name: "touch", pointerType: "touch", rtl: false },
+    { name: "a mouse on a right-to-left page", pointerType: "mouse", rtl: true },
+  ])("selects the range with two presses using $name", ({ pointerType, rtl }) => {
+    if (rtl) {
+      renderInRtl();
+    }
+    const props = { zoom: { enabled: true }, onZoomRangeChange };
+    const { rerender } = renderZoomChart(props);
+    rerender(props);
+    enterZoomMode();
+    dispatchPointer("pointerdown", 1, 0, { pointerType });
+    dispatchPointer("pointerup", 1, 0, { pointerType });
+    expect(isVisible(getOverlay().startDivider)).toBe(true);
+
+    dispatchPointer("pointerdown", 3, 0, { pointerType });
+    dispatchPointer("pointerup", 3, 0, { pointerType });
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+    expect(onZoomRangeChange).toHaveBeenCalledWith(
+      expect.objectContaining({ detail: { zoomRange: { x: { startValue: 1, endValue: 3 } } } }),
+    );
+  });
+
+  test("does not pin a tooltip or fire the chart click for the clicks that set the zoom range", async () => {
+    const onChartClick = vi.fn();
+    renderZoomChart({ zoom: { enabled: true }, onChartClick });
+    const click = (value: number) => {
+      dispatchPointer("pointerdown", value);
+      dispatchPointer("pointerup", value);
+      dispatchPointer("click", value);
+    };
+
+    enterZoomMode();
+    click(1);
+    click(3);
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+    expect(onChartClick).not.toHaveBeenCalled();
+
+    vi.useFakeTimers();
+    try {
+      act(() => getSeriesData(getCurrentChart().series[0])[2].onMouseOver());
+      await act(() => vi.advanceTimersByTimeAsync(500));
+      expect(getChart().findTooltip()).not.toBe(null);
+    } finally {
+      vi.useRealTimers();
+    }
+
+    click(2);
+    expect(onChartClick).toHaveBeenCalledTimes(1);
+  });
+
+  test("shows the tooltip again after zoom mode ends with a press released outside the chart", async () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    vi.useFakeTimers();
+    try {
+      enterZoomMode();
+      dispatchPointer("pointerdown", 1);
+      act(() => {
+        document.body.dispatchEvent(pointerEventAtValue("pointerup", 1));
+      });
+      pressCursorKey(KeyCode.escape);
+
+      act(() => getSeriesData(getCurrentChart().series[0])[2].onMouseOver());
+      await act(() => vi.advanceTimersByTimeAsync(500));
+      expect(getChart().findTooltip()).not.toBe(null);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test("shows the tooltip again when zoom is disabled during a press", async () => {
+    const { rerender } = renderZoomChart({ zoom: { enabled: true } });
+    vi.useFakeTimers();
+    try {
+      enterZoomMode();
+      dispatchPointer("pointerdown", 1);
+      rerender({ zoom: { enabled: false } });
+
+      act(() => getSeriesData(getCurrentChart().series[0])[2].onMouseOver());
+      await act(() => vi.advanceTimersByTimeAsync(500));
+      expect(getChart().findTooltip()).not.toBe(null);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test("ignores presses of non-primary mouse buttons", () => {
+    renderZoomChart({ zoom: { enabled: true } });
+    enterZoomMode();
+    dispatchPointer("pointerdown", 1, 0, { button: 2, buttons: 2 });
+    dispatchPointer("pointerup", 1, 0, { button: 2, buttons: 0 });
+    expect(isVisible(getOverlay().startDivider)).toBe(false);
+  });
+});

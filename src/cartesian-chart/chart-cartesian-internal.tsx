@@ -99,9 +99,6 @@ export const InternalCartesianChart = forwardRef(
     useImperativeHandle(ref, () => ({
       setVisibleSeries: (visibleSeriesIds) => apiRef.current?.setItemsVisible(visibleSeriesIds),
       showAllSeries: () => apiRef.current?.setItemsVisible(allSeriesIds),
-      enterZoomMode: () => apiRef.current?.enterZoomMode(),
-      exitZoomMode: () => apiRef.current?.exitZoomMode(),
-      resetZoom: () => apiRef.current?.resetZoom(),
     }));
 
     return (

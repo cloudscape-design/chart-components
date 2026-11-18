@@ -36,6 +36,8 @@ export default function () {
             "tooltipSize",
             "tooltipPlacement",
             "emphasizeBaseline",
+            "zoom",
+            "hideZoomControls",
           ]}
         />
       }

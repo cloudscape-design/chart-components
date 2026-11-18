@@ -42,7 +42,7 @@ class ChartPageObject extends BasePageObject {
     ]);
   }
 
-  async dragBy(xOffset: number, yOffset: number, steps = 5) {
+  async dragCursorBy(xOffset: number, yOffset: number) {
     await this.browser.performActions([
       {
         type: "pointer",
@@ -50,13 +50,7 @@ class ChartPageObject extends BasePageObject {
         parameters: { pointerType: "mouse" },
         actions: [
           { type: "pointerDown", origin: "pointer", button: 0, duration: 20 },
-          ...Array.from({ length: steps }, () => ({
-            type: "pointerMove" as const,
-            duration: 50,
-            origin: "pointer" as const,
-            x: Math.round(xOffset / steps),
-            y: Math.round(yOffset / steps),
-          })),
+          { type: "pointerMove", duration: 200, origin: "pointer", x: xOffset, y: yOffset },
           { type: "pointerUp", origin: "pointer", button: 0, duration: 20 },
           { type: "pause", duration: 150 },
         ],

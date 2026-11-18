@@ -6,7 +6,6 @@
 @use "@cloudscape-design/component-toolkit/internal/focus-visible" as focus-visible;
 
 $base-size: 10px;
-$focus-ring-width: 2px;
 $font-family-base: cs.$font-family-base;
 $font-weight-normal: 400;
 
@@ -40,7 +39,7 @@ $font-weight-normal: 400;
     inline-size: calc(100% + 2 * #{$gutter});
     block-size: calc(100% + 2 * #{$gutter});
     border-radius: $border-radius;
-    border: $focus-ring-width solid cs.$color-border-item-focused;
+    border: 2px solid cs.$color-border-item-focused;
   }
 }
 

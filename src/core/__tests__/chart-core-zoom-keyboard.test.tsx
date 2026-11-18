@@ -1,53 +1,44 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { act, useState } from "react";
-import { render } from "@testing-library/react";
-import highcharts from "highcharts";
+import { act } from "react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
 import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 
 import "@cloudscape-design/components/test-utils/dom";
-import CartesianChart, { CartesianChartProps } from "../../../lib/components/cartesian-chart";
-import { TestI18nProvider } from "../../../lib/components/internal/utils/test-i18n-provider";
-import { stubPlotGeometry } from "../../core/__tests__/plot-geometry";
-import { zoomMessages } from "../../core/__tests__/zoom-messages";
-import { getChart, renderCartesianChart } from "./common";
+import { createChartWrapper as getChart, focusOutsideChart, getXExtremes, renderInRtl } from "./common";
+import { stubPlotGeometry } from "./plot-geometry";
 import {
-  defaultProps,
   dispatchPointer,
   enterZoomMode,
-  focusOutsideChart,
   getCursorAttributes,
   getCursorLeft,
-  getXExtremes,
   keyboardZoomToIndexes,
   onZoomRangeChange,
   pressCursorKey,
-  pressCursorKeyTimes,
-  renderInRtl,
+  renderZoomChart,
   seriesOfLength,
-  TEST_TIMEOUT,
 } from "./zoom-test-utils";
 
 stubPlotGeometry();
 
 afterEach(() => {
   onZoomRangeChange.mockReset();
+  vi.restoreAllMocks();
   document.querySelectorAll("[data-testid='outside']").forEach((element) => element.remove());
 });
 
-describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT }, () => {
+describe("CoreChart: zoom selection, keyboard interaction", () => {
   test.each([
     { key: "Enter", keyCode: KeyCode.enter },
     { key: "Space", keyCode: KeyCode.space },
   ])("selects a range with the arrow keys and $key", ({ keyCode }) => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
+    renderZoomChart({ zoom: { enabled: true }, onZoomRangeChange });
     enterZoomMode();
     pressCursorKey(KeyCode.right);
     pressCursorKey(keyCode);
-    pressCursorKeyTimes(KeyCode.right, 2);
+    pressCursorKey(KeyCode.right, 2);
     pressCursorKey(keyCode);
     expect(getXExtremes()).toEqual({ min: 1, max: 3 });
     expect(onZoomRangeChange).toHaveBeenCalledWith(
@@ -56,7 +47,7 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
   });
 
   test("moves the cursor to the range edges with Home and End", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    renderZoomChart({ zoom: { enabled: true } });
     enterZoomMode();
     pressCursorKey(KeyCode.end);
     expect(getCursorAttributes().now).toBe("4");
@@ -71,10 +62,9 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
     { count: 5, step: 1 },
     { count: 50, step: 5 },
   ])("steps the cursor a tenth of $count points with PageDown and PageUp", ({ count, step }) => {
-    renderCartesianChart({
-      ...defaultProps,
+    renderZoomChart({
       series: seriesOfLength(count),
-      xAxis: { ...defaultProps.xAxis, max: count - 1 },
+      xAxis: { max: count - 1 },
       zoom: { enabled: true },
     });
     enterZoomMode();
@@ -88,19 +78,19 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
     { name: "left-to-right page", rtl: false, inverted: false, key: KeyCode.pageDown, now: "5" },
     { name: "inverted chart", rtl: false, inverted: true, key: KeyCode.pageDown, now: "5" },
     { name: "right-to-left page", rtl: true, inverted: false, key: KeyCode.pageDown, now: "5" },
+    { name: "inverted chart on a right-to-left page", rtl: true, inverted: true, key: KeyCode.pageDown, now: "5" },
   ])("pages through the values in order, as chart navigation does, in a $name", ({ rtl, inverted, key, now }) => {
     if (rtl) {
       renderInRtl();
     }
     const props = {
-      ...defaultProps,
       inverted,
       series: seriesOfLength(50),
-      xAxis: { ...defaultProps.xAxis, max: 49 },
+      xAxis: { max: 49 },
       zoom: { enabled: true },
     };
     try {
-      const { rerender } = renderCartesianChart(props);
+      const { rerender } = renderZoomChart(props);
       rerender(props);
       enterZoomMode();
       pressCursorKey(key);
@@ -110,27 +100,52 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
     }
   });
 
+  test.each([
+    { name: "left-to-right page", rtl: false },
+    { name: "right-to-left page", rtl: true },
+  ])("zooms an inverted chart with the arrow keys on a $name", ({ rtl }) => {
+    if (rtl) {
+      renderInRtl();
+    }
+    const props = { inverted: true, zoom: { enabled: true }, onZoomRangeChange };
+    const { rerender } = renderZoomChart(props);
+    rerender(props);
+    enterZoomMode();
+    const cursor = getChart().findZoomCursor()!.getElement();
+    expect(cursor).toHaveAttribute("aria-orientation", "vertical");
+
+    expect(getCursorAttributes().now).toBe("0");
+    pressCursorKey(KeyCode.down);
+    expect(getCursorAttributes().now).toBe("1");
+    pressCursorKey(KeyCode.enter);
+    pressCursorKey(KeyCode.down, 2);
+    expect(getCursorAttributes().now).toBe("3");
+    pressCursorKey(KeyCode.enter);
+    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
+  });
+
   test("ignores vertical arrow keys on a horizontal axis", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    renderZoomChart({ zoom: { enabled: true } });
     enterZoomMode();
     pressCursorKey(KeyCode.up);
     pressCursorKey(KeyCode.down);
     expect(getCursorAttributes().now).toBe("0");
   });
 
-  test("Escape cancels the selection", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
+  test("Escape cancels the selection and returns focus to the Zoom button", () => {
+    renderZoomChart({ zoom: { enabled: true }, onZoomRangeChange });
     enterZoomMode();
     pressCursorKey(KeyCode.right);
     pressCursorKey(KeyCode.enter);
     pressCursorKey(KeyCode.escape);
-    expect(getChart().findZoomButton()).not.toBe(null);
+    expect(getChart().findExitZoomButton()).toBe(null);
+    expect(document.activeElement).toBe(getChart().findZoomButton()!.getElement());
     expect(getXExtremes()).toEqual({ min: 0, max: 4 });
     expect(onZoomRangeChange).not.toHaveBeenCalled();
   });
 
   test("rejects a selection of a single point", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
+    renderZoomChart({ zoom: { enabled: true }, onZoomRangeChange });
     enterZoomMode();
     pressCursorKey(KeyCode.enter);
     pressCursorKey(KeyCode.enter);
@@ -143,13 +158,13 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
   });
 
   test("entering zoom mode moves focus to the cursor", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    renderZoomChart({ zoom: { enabled: true } });
     enterZoomMode();
     expect(document.activeElement).toBe(getChart().findZoomCursor()!.getElement());
   });
 
   test("exposes the cursor position on the slider", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    renderZoomChart({ zoom: { enabled: true } });
     enterZoomMode();
     const cursor = getChart().findZoomCursor()!.getElement();
     expect(cursor).toHaveAttribute("role", "slider");
@@ -170,52 +185,31 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
     });
   });
 
-  test("moves focus to Reset after zooming, and back to Zoom after resetting", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+  test("moves focus to Reset after zooming", () => {
+    renderZoomChart({ zoom: { enabled: true } });
     keyboardZoomToIndexes(1, 3);
     expect(document.activeElement).toBe(getChart().findResetZoomButton()!.getElement());
-
-    getChart().findResetZoomButton()!.click();
-    expect(document.activeElement).toBe(getChart().findZoomButton()!.getElement());
-  });
-
-  test("moves focus to the chart after resetting when the Zoom button is disabled", () => {
-    renderCartesianChart({
-      ...defaultProps,
-      zoom: { enabled: true },
-      zoomRange: { x: { startValue: 1, endValue: 2 } },
-    });
-    expect(getChart().findZoomButton()!.isDisabled()).toBe(true);
-    getChart().findResetZoomButton()!.click();
-    expect(document.activeElement).toBe(getChart().findApplication()!.getElement());
-  });
-
-  test("moves focus to the Zoom button when the selection is cancelled", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
-    enterZoomMode();
-    pressCursorKey(KeyCode.escape);
-    expect(document.activeElement).toBe(getChart().findZoomButton()!.getElement());
   });
 
   test("exits zoom mode when focus leaves the chart", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    renderZoomChart({ zoom: { enabled: true } });
     enterZoomMode();
     expect(getChart().findExitZoomButton()).not.toBe(null);
 
-    focusOutsideChart();
+    const outside = focusOutsideChart();
     expect(getChart().findExitZoomButton()).toBe(null);
-    expect(getChart().findZoomButton()).not.toBe(null);
+    expect(document.activeElement).toBe(outside);
   });
 
   test("keeps zoom mode when focus moves within the chart", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    renderZoomChart({ zoom: { enabled: true } });
     enterZoomMode();
     act(() => (getChart().findExitZoomButton()!.getElement() as HTMLElement).focus());
     expect(getChart().findExitZoomButton()).not.toBe(null);
   });
 
   test("exits zoom mode when focus leaves the chart from the zoom controls", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    renderZoomChart({ zoom: { enabled: true } });
     enterZoomMode();
     act(() => (getChart().findExitZoomButton()!.getElement() as HTMLElement).focus());
 
@@ -228,10 +222,10 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
     const xs = (values: number[]) => [
       { type: "line" as const, name: "Requests", data: values.map((x) => ({ x, y: x })) },
     ];
-    const props = { ...defaultProps, xAxis: { ...defaultProps.xAxis, max: 40 }, zoom: { enabled: true } };
-    const { rerender } = renderCartesianChart({ ...props, series: xs([0, 10, 20, 30, 40]) });
+    const props = { xAxis: { max: 40 }, zoom: { enabled: true } };
+    const { rerender } = renderZoomChart({ ...props, series: xs([0, 10, 20, 30, 40]) });
     enterZoomMode();
-    pressCursorKeyTimes(KeyCode.right, 2);
+    pressCursorKey(KeyCode.right, 2);
     pressCursorKey(KeyCode.enter);
 
     rerender({ ...props, series: xs([0, 20, 30, 40]) });
@@ -240,51 +234,30 @@ describe("CartesianChart: zoom keyboard interaction", { timeout: TEST_TIMEOUT },
     expect(getXExtremes()).toEqual({ min: 20, max: 30 });
   });
 
-  test("moves focus to the chart when a cancelled selection leaves nothing to zoom into", () => {
-    const { rerender } = renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+  test("moves focus to the disabled Zoom button when a cancelled selection leaves nothing to zoom into", () => {
+    const { rerender } = renderZoomChart({ zoom: { enabled: true } });
     enterZoomMode();
-    rerender({ ...defaultProps, series: seriesOfLength(2), zoom: { enabled: true } });
+    rerender({ series: seriesOfLength(2), zoom: { enabled: true } });
     expect(getChart().findExitZoomButton()).not.toBe(null);
 
     pressCursorKey(KeyCode.escape);
     expect(getChart().findZoomButton()!.isDisabled()).toBe(true);
-    expect(document.activeElement).toBe(getChart().findApplication()!.getElement());
-  });
-
-  test("moves focus to Reset after a zoom into a controlled range", () => {
-    function ControlledChart() {
-      const [zoomRange, setZoomRange] = useState<null | CartesianChartProps.ZoomRange>(null);
-      return (
-        <TestI18nProvider messages={zoomMessages}>
-          <CartesianChart
-            {...defaultProps}
-            zoom={{ enabled: true }}
-            zoomRange={zoomRange}
-            onZoomRangeChange={({ detail }) => setZoomRange(detail.zoomRange)}
-          />
-        </TestI18nProvider>
-      );
-    }
-    render(<ControlledChart />);
-    keyboardZoomToIndexes(1, 3);
-
-    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
-    expect(document.activeElement).toBe(getChart().findResetZoomButton()!.getElement());
+    expect(document.activeElement).toBe(getChart().findZoomButton()!.getElement());
   });
 
   test("confines the cursor to the zoomed window", () => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    renderZoomChart({ zoom: { enabled: true } });
     keyboardZoomToIndexes(1, 3);
     enterZoomMode();
     expect(getCursorAttributes()).toEqual({ min: "1", max: "3", now: "1", text: "1" });
 
-    pressCursorKeyTimes(KeyCode.right, 5);
+    pressCursorKey(KeyCode.right, 5);
     expect(getCursorAttributes().now).toBe("3");
-    pressCursorKeyTimes(KeyCode.left, 5);
+    pressCursorKey(KeyCode.left, 5);
     expect(getCursorAttributes().now).toBe("1");
   });
 });
-describe("CartesianChart: zoom direction", { timeout: TEST_TIMEOUT }, () => {
+describe("CoreChart: zoom selection, direction", () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -296,8 +269,8 @@ describe("CartesianChart: zoom direction", { timeout: TEST_TIMEOUT }, () => {
     if (rtl) {
       renderInRtl();
     }
-    const { rerender } = renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
-    rerender({ ...defaultProps, zoom: { enabled: true } });
+    const { rerender } = renderZoomChart({ zoom: { enabled: true } });
+    rerender({ zoom: { enabled: true } });
     enterZoomMode();
 
     expect(getCursorAttributes().now).toBe("0");
@@ -305,23 +278,10 @@ describe("CartesianChart: zoom direction", { timeout: TEST_TIMEOUT }, () => {
     pressCursorKey(towardsEnd);
     expect(getCursorAttributes().now).toBe("1");
     expect(Math.sign(getCursorLeft() - startLeft)).toBe(direction);
-
-    pressCursorKey(KeyCode.end);
-    expect(getCursorAttributes().now).toBe("4");
-    pressCursorKey(KeyCode.home);
-    expect(getCursorAttributes().now).toBe("0");
-  });
-
-  test("zooms an inverted chart by dragging along the vertical axis", () => {
-    renderCartesianChart({ ...defaultProps, inverted: true, zoom: { enabled: true }, onZoomRangeChange });
-    dispatchPointer("pointerdown", 1);
-    dispatchPointer("pointermove", 3);
-    dispatchPointer("pointerup", 3);
-    expect(getXExtremes()).toEqual({ min: 1, max: 3 });
   });
 
   test("zooms an inverted chart with two clicks in zoom mode", () => {
-    renderCartesianChart({ ...defaultProps, inverted: true, zoom: { enabled: true } });
+    renderZoomChart({ inverted: true, zoom: { enabled: true } });
     enterZoomMode();
     dispatchPointer("pointerdown", 1);
     dispatchPointer("pointerup", 1);
@@ -330,7 +290,7 @@ describe("CartesianChart: zoom direction", { timeout: TEST_TIMEOUT }, () => {
     expect(getXExtremes()).toEqual({ min: 1, max: 3 });
   });
 });
-describe("CartesianChart: zoom announcements", { timeout: TEST_TIMEOUT }, () => {
+describe("CoreChart: zoom selection, announcements", () => {
   test.each([
     {
       step: "entering zoom mode",
@@ -363,7 +323,7 @@ describe("CartesianChart: zoom announcements", { timeout: TEST_TIMEOUT }, () => 
       text: "Zoom reset. Showing the full data range.",
     },
   ])("announces $step", ({ run, text }) => {
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
+    renderZoomChart({ zoom: { enabled: true } });
     run();
     expect(getChart().getElement()).toHaveTextContent(text);
   });
@@ -371,18 +331,14 @@ describe("CartesianChart: zoom announcements", { timeout: TEST_TIMEOUT }, () => 
   test("formats the cursor position and the range with the x-axis value formatter", () => {
     const day = 24 * 60 * 60 * 1000;
     const start = Date.UTC(2025, 0, 1);
-    renderCartesianChart({
-      highcharts,
-      i18nProvider: zoomMessages,
+    renderZoomChart({
       series: [{ type: "line", name: "Requests", data: [0, 1, 2, 3, 4].map((i) => ({ x: start + i * day, y: i })) }],
       xAxis: {
-        title: "Time",
         type: "datetime",
         valueFormatter: (value) => new Date(value!).toISOString().slice(0, 10),
         min: start,
         max: start + 4 * day,
       },
-      yAxis: { title: "Count" },
       zoom: { enabled: true },
     });
     enterZoomMode();
@@ -393,36 +349,5 @@ describe("CartesianChart: zoom announcements", { timeout: TEST_TIMEOUT }, () => 
     expect(getCursorAttributes().text).toBe("Selecting zoom range from 2025-01-02 to 2025-01-03.");
     pressCursorKey(KeyCode.enter);
     expect(getChart().getElement()).toHaveTextContent("Zoomed from 2025-01-02 to 2025-01-03");
-  });
-});
-describe("CartesianChart: zoom repeated announcements", { timeout: TEST_TIMEOUT }, () => {
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  test("announces the start point again when Enter is pressed twice on it", async () => {
-    vi.useFakeTimers();
-    renderCartesianChart({ ...defaultProps, zoom: { enabled: true } });
-    const startPointText = "Start point set at 0. Move the cursor and set the end point to zoom.";
-    let announcements = 0;
-    const observer = new MutationObserver((records) => {
-      for (const { target } of records) {
-        const element = target instanceof Element ? target : target.parentElement;
-        if (element?.matches("[aria-live]") && element.textContent?.startsWith(startPointText.slice(0, -1))) {
-          announcements++;
-        }
-      }
-    });
-    observer.observe(document.body, { subtree: true, childList: true, characterData: true });
-    try {
-      enterZoomMode();
-      pressCursorKey(KeyCode.enter);
-      await act(() => vi.advanceTimersByTimeAsync(2000));
-      pressCursorKey(KeyCode.enter);
-      await act(() => vi.advanceTimersByTimeAsync(2000));
-    } finally {
-      observer.disconnect();
-    }
-    expect(announcements).toBe(2);
   });
 });

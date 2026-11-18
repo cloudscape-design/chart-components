@@ -4,13 +4,10 @@
 import { describe, expect, test } from "vitest";
 
 import {
-  getOverlayView,
-  getPress,
-  IDLE_ZOOM_STATE,
-  isInteracting,
-  isZooming,
-  ZoomEffect,
+  INACTIVE_ZOOM_STATE,
   ZoomEvent,
+  ZoomMode,
+  ZoomPress,
   zoomReducer,
   ZoomState,
 } from "../../../../lib/components/core/chart-zoom/zoom-state-machine";
@@ -18,111 +15,76 @@ import { createStopMapper } from "../../../../lib/components/core/chart-zoom/zoo
 
 const COUNT = 10;
 
-const SELECTION = { cursorIndex: 3, anchorIndex: null };
-const SELECTING: ZoomState = { type: "selecting", selection: SELECTION };
-const STARTED = { cursorIndex: 5, anchorIndex: 2 };
-const PRESS = { pointerId: 1, clientX: 100, clientY: 100, startIndex: 4, currentIndex: 4 };
-const OTHER_PRESS = { pointerId: 2, clientX: 200, clientY: 200, startIndex: 7, currentIndex: 7 };
-const PRESSED: ZoomState = { type: "pressed", press: PRESS, resume: null };
-const PRESSED_IN_ZOOM: ZoomState = { type: "pressed", press: PRESS, resume: STARTED };
-const DRAGGING: ZoomState = { type: "dragging", press: { ...PRESS, currentIndex: 8 }, resume: null };
-const DRAGGING_IN_ZOOM: ZoomState = { type: "dragging", press: { ...PRESS, currentIndex: 8 }, resume: STARTED };
+const FIRST_MODE: ZoomMode = { type: "pendingFirstInput", cursorIndex: 3 };
+const SECOND_MODE: ZoomMode = { type: "pendingSecondInput", startIndex: 2, cursorIndex: 5 };
 
-const ENTER: ZoomEvent = { type: "enterZoomMode", startIndex: 0 };
-const EXIT: ZoomEvent = { type: "exitZoomMode", moveFocus: true };
-const RESET: ZoomEvent = { type: "resetZoom", zoomed: true, isApiCall: false };
-const RESET_UNZOOMED: ZoomEvent = { type: "resetZoom", zoomed: false, isApiCall: false };
-const STEP: ZoomEvent = { type: "stepCursor", offset: 1 };
-const TO_EDGE: ZoomEvent = { type: "moveCursorToEdge", edge: "last" };
-const COMMIT: ZoomEvent = { type: "commitPoint" };
-const DOWN: ZoomEvent = { type: "pointerDown", press: OTHER_PRESS };
-const DRAG_MOVE: ZoomEvent = { type: "pointerMove", pointerId: 1, index: 8, passedThreshold: true, insidePlot: true };
-const SMALL_MOVE: ZoomEvent = { type: "pointerMove", pointerId: 1, index: 8, passedThreshold: false, insidePlot: true };
-const UP: ZoomEvent = { type: "pointerUp", pointerId: 1 };
-const CANCEL: ZoomEvent = { type: "pointerCancel", pointerId: 1 };
-const RENDERED: ZoomEvent = {
-  type: "chartRendered",
-  stopMapper: { nearest: (index) => index, exact: (index) => index },
-};
+const FIRST = state(FIRST_MODE);
+const SECOND = state(SECOND_MODE);
 
-const FRESH: ZoomState = { type: "selecting", selection: { cursorIndex: 0, anchorIndex: null } };
-const ENTERED = ["clearHighlight", "announce", "focus"];
-const EXITED = ["announce", "focus"];
-const RESETTED = ["resetZoom"];
-const ZOOMED = ["applyZoom", "focus"];
+const PRESS: ZoomPress = { pointerType: "mouse", clientX: 100, clientY: 50, startIndex: 4, currentIndex: 4, dragging: false }; // prettier-ignore
+const DRAG: ZoomPress = { ...PRESS, currentIndex: 7, dragging: true };
+
+const ENTER: ZoomEvent = { type: "enter" };
+const CANCEL: ZoomEvent = { type: "cancel", reason: "escape" };
+const BLUR: ZoomEvent = { type: "cancel", reason: "blur" };
+const MOVE: ZoomEvent = { type: "move", index: 8 };
+const COMMIT: ZoomEvent = { type: "commit" };
+const RENDERED: ZoomEvent = { type: "rendered", stopMapper: { nearest: (index) => index, exact: (index) => index } };
+const PRESS_START: ZoomEvent = { type: "pressStart", pointerType: "mouse", clientX: 100, clientY: 50, index: 4 };
+const PRESS_NUDGE: ZoomEvent = { type: "pressMove", clientX: 105, clientY: 50, index: 4 };
+const PRESS_DRAG: ZoomEvent = { type: "pressMove", clientX: 160, clientY: 50, index: 7 };
+const PRESS_END: ZoomEvent = { type: "pressEnd", index: 7 };
+const PRESS_END_ON_START: ZoomEvent = { type: "pressEnd", index: 4 };
+const PRESS_CANCEL: ZoomEvent = { type: "pressCancel" };
 
 const SAME = "same";
 
 const TRANSITIONS: [name: string, from: ZoomState, event: ZoomEvent, to: ZoomState | typeof SAME, effects: string[]][] =
   [
-    ["idle + enterZoomMode", IDLE_ZOOM_STATE, ENTER, FRESH, ENTERED],
-    ["idle + exitZoomMode", IDLE_ZOOM_STATE, EXIT, SAME, []],
-    ["idle + resetZoom", IDLE_ZOOM_STATE, RESET, IDLE_ZOOM_STATE, RESETTED],
-    ["idle + resetZoom, not zoomed", IDLE_ZOOM_STATE, RESET_UNZOOMED, IDLE_ZOOM_STATE, []],
-    ["idle + stepCursor", IDLE_ZOOM_STATE, STEP, SAME, []],
-    ["idle + moveCursorToEdge", IDLE_ZOOM_STATE, TO_EDGE, SAME, []],
-    ["idle + commitPoint", IDLE_ZOOM_STATE, COMMIT, SAME, []],
-    ["idle + pointerDown", IDLE_ZOOM_STATE, DOWN, { type: "pressed", press: OTHER_PRESS, resume: null }, []],
-    ["idle + pointerMove", IDLE_ZOOM_STATE, DRAG_MOVE, SAME, []],
-    ["idle + pointerUp", IDLE_ZOOM_STATE, UP, SAME, []],
-    ["idle + pointerCancel", IDLE_ZOOM_STATE, CANCEL, SAME, []],
-    ["idle + chartRendered", IDLE_ZOOM_STATE, RENDERED, SAME, []],
+    ["inactive + enter", INACTIVE_ZOOM_STATE, ENTER, state({ type: "pendingFirstInput", cursorIndex: 0 }), ["announce", "focus"]], // prettier-ignore
+    ["inactive + cancel", INACTIVE_ZOOM_STATE, CANCEL, SAME, []],
+    ["inactive + move", INACTIVE_ZOOM_STATE, MOVE, SAME, []],
+    ["inactive + commit", INACTIVE_ZOOM_STATE, COMMIT, SAME, []],
+    ["inactive + rendered", INACTIVE_ZOOM_STATE, RENDERED, SAME, []],
 
-    ["selecting + enterZoomMode", SELECTING, ENTER, FRESH, ENTERED],
-    ["selecting + exitZoomMode", SELECTING, EXIT, IDLE_ZOOM_STATE, EXITED],
-    ["selecting + resetZoom", SELECTING, RESET, IDLE_ZOOM_STATE, RESETTED],
-    ["selecting + stepCursor", SELECTING, STEP, { type: "selecting", selection: { cursorIndex: 4, anchorIndex: null } }, []], // prettier-ignore
-    ["selecting + moveCursorToEdge", SELECTING, TO_EDGE, { type: "selecting", selection: { cursorIndex: 9, anchorIndex: null } }, []], // prettier-ignore
-    ["selecting + commitPoint", SELECTING, COMMIT, { type: "selecting", selection: { cursorIndex: 3, anchorIndex: 3 } }, ["announce"]], // prettier-ignore
-    ["selecting + pointerDown", SELECTING, DOWN, { type: "pressed", press: OTHER_PRESS, resume: SELECTION }, []], // prettier-ignore
-    ["selecting + pointerMove", SELECTING, DRAG_MOVE, { type: "selecting", selection: { cursorIndex: 8, anchorIndex: null } }, []], // prettier-ignore
-    ["selecting + pointerMove outside the plot", SELECTING, { ...DRAG_MOVE, insidePlot: false }, SAME, []],
-    ["selecting + pointerUp", SELECTING, UP, SAME, []],
-    ["selecting + pointerCancel", SELECTING, CANCEL, SAME, []],
-    ["selecting + chartRendered", SELECTING, RENDERED, SELECTING, []],
+    ["first input + enter", FIRST, ENTER, SAME, []],
+    ["first input + cancel", FIRST, CANCEL, INACTIVE_ZOOM_STATE, ["announce", "focus"]],
+    ["first input + cancel by blur", FIRST, BLUR, INACTIVE_ZOOM_STATE, ["announce"]],
+    ["first input + move", FIRST, MOVE, state({ type: "pendingFirstInput", cursorIndex: 8 }), []],
+    ["first input + commit", FIRST, COMMIT, state({ type: "pendingSecondInput", startIndex: 3, cursorIndex: 3 }), ["announce"]], // prettier-ignore
+    ["first input + rendered", FIRST, RENDERED, FIRST, []],
 
-    ["pressed + enterZoomMode", PRESSED, ENTER, FRESH, ENTERED],
-    ["pressed + exitZoomMode", PRESSED, EXIT, SAME, []],
-    ["pressed + resetZoom", PRESSED, RESET, IDLE_ZOOM_STATE, RESETTED],
-    ["pressed + stepCursor", PRESSED, STEP, SAME, []],
-    ["pressed + moveCursorToEdge", PRESSED, TO_EDGE, SAME, []],
-    ["pressed + commitPoint", PRESSED, COMMIT, SAME, []],
-    ["pressed + pointerDown", PRESSED, DOWN, { type: "pressed", press: OTHER_PRESS, resume: null }, []],
-    ["pressed + pointerMove past the threshold", PRESSED, DRAG_MOVE, DRAGGING, ["clearHighlight"]],
-    ["pressed + pointerMove short of it", PRESSED, SMALL_MOVE, SAME, []],
-    ["pressed + pointerMove of another pointer", PRESSED, { ...DRAG_MOVE, pointerId: 2 }, SAME, []],
-    ["pressed + pointerUp", PRESSED, UP, IDLE_ZOOM_STATE, []],
-    ["pressed + pointerUp of another pointer", PRESSED, { ...UP, pointerId: 2 }, SAME, []],
-    ["pressed + pointerCancel", PRESSED, CANCEL, IDLE_ZOOM_STATE, []],
-    ["pressed + chartRendered", PRESSED, RENDERED, PRESSED, []],
+    ["second input + enter", SECOND, ENTER, SAME, []],
+    ["second input + cancel", SECOND, CANCEL, INACTIVE_ZOOM_STATE, ["announce", "focus"]],
+    ["second input + move", SECOND, MOVE, state({ type: "pendingSecondInput", startIndex: 2, cursorIndex: 8 }), []],
+    ["second input + commit", SECOND, COMMIT, INACTIVE_ZOOM_STATE, ["applyZoom", "focus"]],
+    ["second input + rendered", SECOND, RENDERED, SECOND, []],
 
-    ["pressed in zoom mode + exitZoomMode", PRESSED_IN_ZOOM, EXIT, IDLE_ZOOM_STATE, EXITED],
-    ["pressed in zoom mode + pointerMove past the threshold", PRESSED_IN_ZOOM, DRAG_MOVE, DRAGGING_IN_ZOOM, ["clearHighlight"]], // prettier-ignore
-    ["pressed in zoom mode + pointerUp", PRESSED_IN_ZOOM, UP, IDLE_ZOOM_STATE, ZOOMED],
-    ["pressed in zoom mode + pointerCancel", PRESSED_IN_ZOOM, CANCEL, { type: "selecting", selection: STARTED }, []],
-    ["pressed in zoom mode + pointerDown", PRESSED_IN_ZOOM, DOWN, { type: "pressed", press: OTHER_PRESS, resume: STARTED }, []], // prettier-ignore
+    ["inactive + press start", INACTIVE_ZOOM_STATE, PRESS_START, state(INACTIVE_ZOOM_STATE.mode, PRESS), []],
+    ["press + move under the drag threshold", state(INACTIVE_ZOOM_STATE.mode, PRESS), PRESS_NUDGE, SAME, []],
+    ["press + move past the drag threshold", state(INACTIVE_ZOOM_STATE.mode, PRESS), PRESS_DRAG, state(INACTIVE_ZOOM_STATE.mode, DRAG), ["dragStart"]], // prettier-ignore
+    ["drag + move", state(INACTIVE_ZOOM_STATE.mode, DRAG), { ...PRESS_DRAG, index: 8 }, state(INACTIVE_ZOOM_STATE.mode, { ...DRAG, currentIndex: 8 }), []], // prettier-ignore
+    ["drag + move to the same point", state(INACTIVE_ZOOM_STATE.mode, DRAG), PRESS_DRAG, SAME, []],
+    ["drag + press end", state(INACTIVE_ZOOM_STATE.mode, DRAG), PRESS_END, INACTIVE_ZOOM_STATE, ["applyZoom"]],
+    ["drag + press end on a single point", state(INACTIVE_ZOOM_STATE.mode, DRAG), PRESS_END_ON_START, INACTIVE_ZOOM_STATE, []], // prettier-ignore
+    ["drag in zoom mode + press end", state(FIRST_MODE, DRAG), PRESS_END, INACTIVE_ZOOM_STATE, ["applyZoom", "focus"]],
+    ["press + press end", state(INACTIVE_ZOOM_STATE.mode, PRESS), PRESS_END, INACTIVE_ZOOM_STATE, []],
+    ["press in first input + press end", state(FIRST_MODE, PRESS), PRESS_END, state({ type: "pendingSecondInput", startIndex: 4, cursorIndex: 4 }), ["announce"]], // prettier-ignore
+    ["press in second input + press end", state(SECOND_MODE, PRESS), PRESS_END, INACTIVE_ZOOM_STATE, ["applyZoom", "focus"]], // prettier-ignore
+    ["drag + press cancel", state(INACTIVE_ZOOM_STATE.mode, DRAG), PRESS_CANCEL, INACTIVE_ZOOM_STATE, []],
+    ["inactive + press move", INACTIVE_ZOOM_STATE, PRESS_DRAG, SAME, []],
+    ["inactive + press end", INACTIVE_ZOOM_STATE, PRESS_END, SAME, []],
+    ["inactive + press cancel", INACTIVE_ZOOM_STATE, PRESS_CANCEL, SAME, []],
 
-    ["dragging + enterZoomMode", DRAGGING, ENTER, FRESH, ENTERED],
-    ["dragging + exitZoomMode", DRAGGING, EXIT, IDLE_ZOOM_STATE, EXITED],
-    ["dragging + resetZoom", DRAGGING, RESET, IDLE_ZOOM_STATE, RESETTED],
-    ["dragging + stepCursor", DRAGGING, STEP, SAME, []],
-    ["dragging + moveCursorToEdge", DRAGGING, TO_EDGE, SAME, []],
-    ["dragging + commitPoint", DRAGGING, COMMIT, SAME, []],
-    ["dragging + pointerDown", DRAGGING, DOWN, { type: "pressed", press: OTHER_PRESS, resume: null }, []],
-    ["dragging + pointerMove", DRAGGING, { ...DRAG_MOVE, index: 6 }, { type: "dragging", press: { ...PRESS, currentIndex: 6 }, resume: null }, []], // prettier-ignore
-    ["dragging + pointerMove onto the same stop", DRAGGING, DRAG_MOVE, SAME, []],
-    ["dragging + pointerMove of another pointer", DRAGGING, { ...DRAG_MOVE, pointerId: 2, index: 6 }, SAME, []],
-    ["dragging + pointerUp", DRAGGING, UP, IDLE_ZOOM_STATE, ["applyZoom"]],
-    ["dragging in zoom mode + pointerUp", DRAGGING_IN_ZOOM, UP, IDLE_ZOOM_STATE, ZOOMED],
-    ["dragging + pointerUp of another pointer", DRAGGING, { ...UP, pointerId: 2 }, SAME, []],
-    ["dragging + pointerCancel", DRAGGING, CANCEL, IDLE_ZOOM_STATE, []],
-    ["dragging in zoom mode + pointerCancel", DRAGGING_IN_ZOOM, CANCEL, { type: "selecting", selection: STARTED }, []],
-    ["dragging + chartRendered", DRAGGING, RENDERED, DRAGGING, []],
+    ["drag in zoom mode + move", state(FIRST_MODE, DRAG), MOVE, SAME, []],
+    ["drag in zoom mode + commit", state(FIRST_MODE, DRAG), COMMIT, SAME, []],
+    ["drag in zoom mode + cancel", state(FIRST_MODE, DRAG), CANCEL, INACTIVE_ZOOM_STATE, ["announce", "focus"]],
+    ["drag in zoom mode + cancel by blur", state(FIRST_MODE, DRAG), BLUR, state(INACTIVE_ZOOM_STATE.mode, DRAG), ["announce"]], // prettier-ignore
   ];
 
 describe("zoomReducer", () => {
   test.each(TRANSITIONS)("%s", (_name, from, event, to, effects) => {
-    const transition = zoomReducer(from, event, { valuesCount: COUNT });
+    const transition = reduce(from, event);
 
     expect(transition.state).toEqual(to === SAME ? from : to);
     expect(transition.effects.map((effect) => effect.type)).toEqual(effects);
@@ -131,172 +93,50 @@ describe("zoomReducer", () => {
     }
   });
 
-  test("zooms with the keyboard, a stop at a time", () => {
-    const entered = reduce(IDLE_ZOOM_STATE, ENTER);
-    expect(effectTypes(entered)).toEqual(ENTERED);
-
-    const stepped = reduce(entered.state, { type: "stepCursor", offset: 2 });
-    const started = reduce(stepped.state, COMMIT);
-    expect(started.effects).toEqual([{ type: "announce", announcement: { type: "startPointSet", index: 2 } }]);
-
-    const steppedAgain = reduce(started.state, { type: "stepCursor", offset: 3 });
-    expect(getOverlayView(steppedAgain.state)).toEqual({ type: "cursor", cursorIndex: 5, anchorIndex: 2 });
-
-    const zoomed = reduce(steppedAgain.state, COMMIT);
-    expect(zoomed.state).toEqual(IDLE_ZOOM_STATE);
-    expect(zoomed.effects).toEqual([
-      { type: "applyZoom", fromIndex: 2, toIndex: 5 },
-      { type: "focus", target: "resetButton" },
-    ]);
-  });
-
-  test("zooms with two clicks, which set the boundaries where they land", () => {
-    const selecting = reduce(IDLE_ZOOM_STATE, ENTER).state;
-    const pressed = reduce(selecting, { type: "pointerDown", press: PRESS }).state;
-    const started = reduce(pressed, UP);
-
-    expect(started.state).toEqual({ type: "selecting", selection: { cursorIndex: 4, anchorIndex: 4 } });
-    expect(started.effects).toEqual([{ type: "announce", announcement: { type: "startPointSet", index: 4 } }]);
-
-    const secondPress = { ...PRESS, startIndex: 8, currentIndex: 8 };
-    const pressedAgain = reduce(started.state, { type: "pointerDown", press: secondPress });
-    const zoomed = reduce(pressedAgain.state, UP);
-
-    expect(zoomed.state).toEqual(IDLE_ZOOM_STATE);
-    expect(zoomed.effects).toEqual([
-      { type: "applyZoom", fromIndex: 4, toIndex: 8 },
-      { type: "focus", target: "resetButton" },
-    ]);
-  });
-
-  test("zooms by dragging across the plot", () => {
-    const pressed = reduce(IDLE_ZOOM_STATE, { type: "pointerDown", press: PRESS }).state;
-    expect(isInteracting(pressed)).toBe(false);
-    expect(getOverlayView(pressed)).toEqual({ type: "hidden" });
-
-    const dragging = reduce(pressed, { ...DRAG_MOVE, index: 7 }).state;
-
-    expect(isZooming(dragging)).toBe(false);
-    expect(isInteracting(dragging)).toBe(true);
-    expect(getOverlayView(dragging)).toEqual({ type: "range", fromIndex: 4, toIndex: 7 });
-
-    const zoomed = reduce(dragging, UP);
-
-    expect(zoomed.state).toEqual(IDLE_ZOOM_STATE);
-    expect(zoomed.effects).toEqual([{ type: "applyZoom", fromIndex: 4, toIndex: 7 }]);
-  });
-
-  test("keeps the start point when the range would be a single stop", () => {
-    const selection = { cursorIndex: 4, anchorIndex: 4 };
-    const { state, effects } = reduce({ type: "selecting", selection }, COMMIT);
-
-    expect(state).toEqual({ type: "selecting", selection });
-    expect(effects).toEqual([{ type: "announce", announcement: { type: "startPointSet", index: 4 } }]);
-  });
-
-  test("discards a drag that is too narrow to zoom into", () => {
-    const narrow: ZoomState = { type: "dragging", press: PRESS, resume: STARTED };
-
-    expect(reduce(narrow, UP)).toEqual({ state: { type: "selecting", selection: STARTED }, effects: [] });
-    expect(reduce({ ...narrow, resume: null }, UP)).toEqual({ state: IDLE_ZOOM_STATE, effects: [] });
-  });
-
   test("cannot enter zoom mode when there is no narrower range left", () => {
     for (const valuesCount of [0, 1, 2]) {
-      const transition = zoomReducer(IDLE_ZOOM_STATE, ENTER, { valuesCount });
+      const transition = zoomReducer(INACTIVE_ZOOM_STATE, ENTER, { valuesCount });
 
-      expect(transition.state).toBe(IDLE_ZOOM_STATE);
+      expect(transition.state).toBe(INACTIVE_ZOOM_STATE);
       expect(transition.effects).toEqual([]);
     }
   });
 
-  test("keeps the cursor within the stops the chart shows", () => {
-    const forward = reduce(SELECTING, { type: "stepCursor", offset: 100 });
-    expect(forward.state).toEqual({ type: "selecting", selection: { cursorIndex: 9, anchorIndex: null } });
-
-    const back = reduce(SELECTING, { type: "stepCursor", offset: -100 });
-    expect(back.state).toEqual({ type: "selecting", selection: { cursorIndex: 0, anchorIndex: null } });
-
-    expect(reduce(back.state, { type: "stepCursor", offset: -1 }).state).toBe(back.state);
-  });
-
-  test("brings the selection back within the stops after a render", () => {
-    const previous = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-    const current = [0, 1, 2, 3, 4];
+  test("goes back to the first input after a render removed the start point", () => {
     const { state } = zoomReducer(
-      { type: "selecting", selection: { cursorIndex: 8, anchorIndex: 7 } },
-      { type: "chartRendered", stopMapper: createStopMapper(previous, current) },
-      { valuesCount: current.length },
+      { mode: { type: "pendingSecondInput", startIndex: 7, cursorIndex: 8 }, press: null },
+      { type: "rendered", stopMapper: createStopMapper([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [0, 1, 2, 3, 4]) },
+      { valuesCount: 5 },
     );
 
-    expect(state).toEqual({ type: "selecting", selection: { cursorIndex: 4, anchorIndex: null } });
+    expect(state).toEqual({ mode: { type: "pendingFirstInput", cursorIndex: 4 }, press: null });
   });
 
-  test("keeps the boundaries on their values when the stops change", () => {
-    const stopMapper = createStopMapper([0, 10, 20, 30, 40], [0, 20, 30, 40]);
-    const selecting = zoomReducer(
-      { type: "selecting", selection: { cursorIndex: 3, anchorIndex: 2 } },
-      { type: "chartRendered", stopMapper },
-      { valuesCount: 4 },
-    );
-    const dragging = zoomReducer(
-      { type: "dragging", press: { ...PRESS, startIndex: 2, currentIndex: 4 }, resume: null },
-      { type: "chartRendered", stopMapper },
-      { valuesCount: 4 },
+  test("moves a drag to the nearest points after a render", () => {
+    const { state } = zoomReducer(
+      { mode: { type: "inactive" }, press: { ...DRAG, startIndex: 2, currentIndex: 8 } },
+      { type: "rendered", stopMapper: createStopMapper([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [0, 4, 8]) },
+      { valuesCount: 3 },
     );
 
-    expect(selecting.state).toEqual({ type: "selecting", selection: { cursorIndex: 2, anchorIndex: 1 } });
-    expect(dragging.state).toEqual({
-      type: "dragging",
-      press: { ...PRESS, startIndex: 1, currentIndex: 3 },
-      resume: null,
-    });
+    expect(state.press).toEqual({ ...DRAG, startIndex: 0, currentIndex: 2 });
   });
 
-  test("leaves zoom mode after a render that left no stops to select", () => {
-    for (const state of [SELECTING, PRESSED_IN_ZOOM]) {
-      const transition = zoomReducer(state, RENDERED, { valuesCount: 0 });
+  test("drops a drag when a render leaves no points", () => {
+    const { state } = zoomReducer(
+      { mode: { type: "inactive" }, press: DRAG },
+      { type: "rendered", stopMapper: createStopMapper([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], []) },
+      { valuesCount: 0 },
+    );
 
-      expect(transition.state).toEqual(IDLE_ZOOM_STATE);
-      expect(transition.effects).toEqual([
-        { type: "announce", announcement: { type: "zoomModeExited" } },
-        { type: "focus", target: "zoomButton" },
-      ]);
-    }
-    expect(zoomReducer(DRAGGING, RENDERED, { valuesCount: 0 }).effects).toEqual([
-      { type: "announce", announcement: { type: "zoomModeExited" } },
-    ]);
-
-    expect(zoomReducer(PRESSED, RENDERED, { valuesCount: 0 }).state).toBe(PRESSED);
-  });
-
-  test("only moves the focus when asked to", () => {
-    expect(effectTypes(reduce(SELECTING, { type: "exitZoomMode", moveFocus: false }))).toEqual(["announce"]);
+    expect(state).toEqual(INACTIVE_ZOOM_STATE);
   });
 });
 
-describe("zoom state projections", () => {
-  test.each([
-    [IDLE_ZOOM_STATE, false, false, { type: "hidden" }, null],
-    [SELECTING, true, true, { type: "cursor", cursorIndex: 3, anchorIndex: null }, null],
-    [PRESSED, false, false, { type: "hidden" }, PRESS],
-    [PRESSED_IN_ZOOM, true, true, { type: "cursor", ...STARTED }, PRESS],
-    [DRAGGING, false, true, { type: "range", fromIndex: 4, toIndex: 8 }, { ...PRESS, currentIndex: 8 }],
-  ])(
-    "describes the %# state to React, to the overlay, and to the pointer handlers",
-    (state, zooming, interacting, view, press) => {
-      expect(isZooming(state)).toBe(zooming);
-      expect(isInteracting(state)).toBe(interacting);
-      expect(getOverlayView(state)).toEqual(view);
-      expect(getPress(state)).toEqual(press);
-    },
-  );
-});
-
-function reduce(state: ZoomState, event: ZoomEvent) {
-  return zoomReducer(state, event, { valuesCount: COUNT });
+function state(mode: ZoomMode, press: null | ZoomPress = null): ZoomState {
+  return { mode, press };
 }
 
-function effectTypes({ effects }: { effects: readonly ZoomEffect[] }) {
-  return effects.map((effect) => effect.type);
+function reduce(from: ZoomState, event: ZoomEvent) {
+  return zoomReducer(from, event, { valuesCount: COUNT });
 }

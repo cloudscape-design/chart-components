@@ -3,67 +3,62 @@
 
 import { MIN_ZOOM_POINTS } from "./zoom-utils";
 
-export interface ZoomSelection {
-  cursorIndex: number;
-  anchorIndex: null | number;
+interface InactiveMode {
+  type: "inactive";
 }
 
+interface PendingFirstInputMode {
+  type: "pendingFirstInput";
+  cursorIndex: number;
+}
+
+interface PendingSecondInputMode {
+  type: "pendingSecondInput";
+  startIndex: number;
+  cursorIndex: number;
+}
+
+export type ZoomMode = InactiveMode | PendingFirstInputMode | PendingSecondInputMode;
+
+type ActiveZoomMode = PendingFirstInputMode | PendingSecondInputMode;
+
 export interface ZoomPress {
-  pointerId: number;
+  pointerType: string;
   clientX: number;
   clientY: number;
   startIndex: number;
   currentIndex: number;
+  dragging: boolean;
 }
 
-interface IdleState {
-  type: "idle";
+export interface ZoomState {
+  mode: ZoomMode;
+  press: null | ZoomPress;
 }
 
-interface SelectingState {
-  type: "selecting";
-  selection: ZoomSelection;
-}
+const INACTIVE_MODE: ZoomMode = { type: "inactive" };
 
-interface PressedState {
-  type: "pressed";
-  press: ZoomPress;
-  resume: null | ZoomSelection;
-}
+export const INACTIVE_ZOOM_STATE: ZoomState = { mode: INACTIVE_MODE, press: null };
 
-interface DraggingState {
-  type: "dragging";
-  press: ZoomPress;
-  resume: null | ZoomSelection;
-}
-
-export type ZoomState = IdleState | SelectingState | PressedState | DraggingState;
-
-export const IDLE_ZOOM_STATE: ZoomState = { type: "idle" };
+export const DRAG_THRESHOLD_PX = 10;
 
 export type ZoomEvent =
-  | { type: "enterZoomMode"; startIndex: number }
-  | { type: "exitZoomMode"; moveFocus: boolean }
-  | { type: "resetZoom"; zoomed: boolean; isApiCall: boolean }
-  | { type: "stepCursor"; offset: number }
-  | { type: "moveCursorToEdge"; edge: "first" | "last" }
-  | { type: "commitPoint" }
-  | { type: "pointerDown"; press: ZoomPress }
-  | {
-      type: "pointerMove";
-      pointerId: number;
-      index: number;
-      passedThreshold: boolean;
-      insidePlot: boolean;
-    }
-  | { type: "pointerUp"; pointerId: number }
-  | { type: "pointerCancel"; pointerId: number }
-  | { type: "chartRendered"; stopMapper: ZoomStopMapper };
+  | { type: "enter" }
+  | { type: "cancel"; reason: ZoomCancelReason }
+  | { type: "move"; index: number }
+  | { type: "commit" }
+  | { type: "pressStart"; pointerType: string; clientX: number; clientY: number; index: number }
+  | { type: "pressMove"; clientX: number; clientY: number; index: number }
+  | { type: "pressEnd"; index: number }
+  | { type: "pressCancel" }
+  | { type: "rendered"; stopMapper: ZoomStopMapper };
 
 export interface ZoomStopMapper {
   nearest(index: number): number;
   exact(index: number): null | number;
 }
+
+export type ZoomCancelReason = "escape" | "toggle" | "blur" | "noStops";
 
 export type ZoomFocusTarget = "cursor" | "zoomButton" | "resetButton";
 
@@ -73,11 +68,10 @@ export type ZoomAnnouncement =
   | { type: "zoomModeExited" };
 
 export type ZoomEffect =
-  | { type: "clearHighlight" }
   | { type: "announce"; announcement: ZoomAnnouncement }
   | { type: "focus"; target: ZoomFocusTarget }
   | { type: "applyZoom"; fromIndex: number; toIndex: number }
-  | { type: "resetZoom"; isApiCall: boolean };
+  | { type: "dragStart" };
 
 export interface ZoomTransition {
   state: ZoomState;
@@ -88,276 +82,182 @@ export interface ZoomContext {
   valuesCount: number;
 }
 
-export function zoomReducer(state: ZoomState, event: ZoomEvent, context: ZoomContext): ZoomTransition {
-  switch (state.type) {
-    case "idle":
-      return fromIdle(state, event, context);
-    case "selecting":
-      return fromSelecting(state, event, context);
-    case "pressed":
-      return fromPressed(state, event, context);
-    case "dragging":
-      return fromDragging(state, event, context);
-  }
+interface ModeTransition {
+  mode: ZoomMode;
+  effects: readonly ZoomEffect[];
 }
 
-function fromIdle(state: IdleState, event: ZoomEvent, context: ZoomContext): ZoomTransition {
+export function zoomReducer(state: ZoomState, event: ZoomEvent, { valuesCount }: ZoomContext): ZoomTransition {
   switch (event.type) {
-    case "enterZoomMode":
-      return enterZoomMode(state, event.startIndex, context);
-    case "resetZoom":
-      return resetZoom(event);
-    case "pointerDown":
-      return stay({ type: "pressed", press: event.press, resume: null });
-    default:
-      return stay(state);
-  }
-}
-
-function fromSelecting(state: SelectingState, event: ZoomEvent, context: ZoomContext): ZoomTransition {
-  const { valuesCount } = context;
-  switch (event.type) {
-    case "enterZoomMode":
-      return enterZoomMode(state, event.startIndex, context);
-    case "exitZoomMode":
-      return exitZoomMode(event.moveFocus);
-    case "resetZoom":
-      return resetZoom(event);
-    case "stepCursor":
-      return moveCursor(state, state.selection.cursorIndex + event.offset, valuesCount);
-    case "moveCursorToEdge":
-      return moveCursor(state, event.edge === "first" ? 0 : valuesCount - 1, valuesCount);
-    case "commitPoint":
-      return commitPoint(state.selection, context);
-    case "pointerDown":
-      return stay({ type: "pressed", press: event.press, resume: state.selection });
-    case "pointerMove":
-      return event.insidePlot ? moveCursor(state, event.index, valuesCount) : stay(state);
-    case "chartRendered":
-      return reconcile(state, event.stopMapper, context);
-    default:
-      return stay(state);
-  }
-}
-
-function fromPressed(state: PressedState, event: ZoomEvent, context: ZoomContext): ZoomTransition {
-  const { press, resume } = state;
-  switch (event.type) {
-    case "pointerMove":
-      if (event.pointerId !== press.pointerId || !event.passedThreshold) {
-        return stay(state);
-      }
-      return transition({ type: "dragging", press: { ...press, currentIndex: event.index }, resume }, [
-        { type: "clearHighlight" },
-      ]);
-    case "pointerUp": {
-      if (event.pointerId !== press.pointerId) {
-        return stay(state);
-      }
-      if (!resume) {
-        return stay(IDLE_ZOOM_STATE);
-      }
-      const cursorIndex = clampIndex(press.startIndex, context.valuesCount);
-      return commitPoint({ cursorIndex, anchorIndex: resume.anchorIndex }, context);
-    }
-    case "pointerCancel":
-      return event.pointerId === press.pointerId ? stay(resumeState(resume)) : stay(state);
-    case "pointerDown":
-      return stay({ type: "pressed", press: event.press, resume });
-    case "enterZoomMode":
-      return enterZoomMode(state, event.startIndex, context);
-    case "exitZoomMode":
-      return resume ? exitZoomMode(event.moveFocus) : stay(state);
-    case "resetZoom":
-      return resetZoom(event);
-    case "chartRendered":
-      return reconcile(state, event.stopMapper, context);
-    default:
-      return stay(state);
-  }
-}
-
-function fromDragging(state: DraggingState, event: ZoomEvent, context: ZoomContext): ZoomTransition {
-  const { press, resume } = state;
-  switch (event.type) {
-    case "pointerMove":
-      if (event.pointerId !== press.pointerId || event.index === press.currentIndex) {
-        return stay(state);
-      }
-      return stay({ type: "dragging", press: { ...press, currentIndex: event.index }, resume });
-    case "pointerUp": {
-      if (event.pointerId !== press.pointerId) {
-        return stay(state);
-      }
-      if (!isZoomableRange(press.startIndex, press.currentIndex)) {
-        return stay(resumeState(resume));
-      }
-      const effects: ZoomEffect[] = [{ type: "applyZoom", fromIndex: press.startIndex, toIndex: press.currentIndex }];
-      if (resume) {
-        effects.push({ type: "focus", target: "resetButton" });
-      }
-      return transition(IDLE_ZOOM_STATE, effects);
-    }
-    case "pointerCancel":
-      return event.pointerId === press.pointerId ? stay(resumeState(resume)) : stay(state);
-    case "pointerDown":
-      return stay({ type: "pressed", press: event.press, resume });
-    case "enterZoomMode":
-      return enterZoomMode(state, event.startIndex, context);
-    case "exitZoomMode":
-      return exitZoomMode(event.moveFocus);
-    case "resetZoom":
-      return resetZoom(event);
-    case "chartRendered":
-      return reconcile(state, event.stopMapper, context);
-    default:
-      return stay(state);
-  }
-}
-
-function enterZoomMode(state: ZoomState, startIndex: number, { valuesCount }: ZoomContext): ZoomTransition {
-  if (!canZoomInto(valuesCount)) {
-    return stay(state);
-  }
-  const cursorIndex = clampIndex(startIndex, valuesCount);
-  return transition({ type: "selecting", selection: { cursorIndex, anchorIndex: null } }, [
-    { type: "clearHighlight" },
-    { type: "announce", announcement: { type: "zoomModeEntered", index: cursorIndex } },
-    { type: "focus", target: "cursor" },
-  ]);
-}
-
-function exitZoomMode(moveFocus: boolean): ZoomTransition {
-  const effects: ZoomEffect[] = [{ type: "announce", announcement: { type: "zoomModeExited" } }];
-  if (moveFocus) {
-    effects.push({ type: "focus", target: "zoomButton" });
-  }
-  return transition(IDLE_ZOOM_STATE, effects);
-}
-
-function resetZoom({ zoomed, isApiCall }: { zoomed: boolean; isApiCall: boolean }): ZoomTransition {
-  return zoomed ? transition(IDLE_ZOOM_STATE, [{ type: "resetZoom", isApiCall }]) : stay(IDLE_ZOOM_STATE);
-}
-
-function commitPoint(selection: ZoomSelection, { valuesCount }: ZoomContext): ZoomTransition {
-  const selecting: ZoomState = { type: "selecting", selection };
-  if (valuesCount === 0) {
-    return stay(selecting);
-  }
-  const { cursorIndex, anchorIndex } = selection;
-  if (anchorIndex === null) {
-    return transition({ type: "selecting", selection: { cursorIndex, anchorIndex: cursorIndex } }, [
-      { type: "announce", announcement: { type: "startPointSet", index: cursorIndex } },
-    ]);
-  }
-  if (!isZoomableRange(anchorIndex, cursorIndex)) {
-    return transition(selecting, [{ type: "announce", announcement: { type: "startPointSet", index: anchorIndex } }]);
-  }
-  return transition(IDLE_ZOOM_STATE, [
-    { type: "applyZoom", fromIndex: anchorIndex, toIndex: cursorIndex },
-    { type: "focus", target: "resetButton" },
-  ]);
-}
-
-function reconcile(state: ZoomState, stopMapper: ZoomStopMapper, { valuesCount }: ZoomContext): ZoomTransition {
-  if (valuesCount === 0) {
-    if (state.type === "idle" || !isInteracting(state)) {
-      return stay(state);
-    }
-    return exitZoomMode(state.type === "selecting" || state.resume !== null);
-  }
-  switch (state.type) {
-    case "idle":
-      return stay(state);
-    case "selecting":
-      return stay({ type: "selecting", selection: remapSelection(state.selection, stopMapper) });
-    case "pressed":
-    case "dragging":
-      return stay({
-        ...state,
-        press: {
-          ...state.press,
-          startIndex: stopMapper.nearest(state.press.startIndex),
-          currentIndex: stopMapper.nearest(state.press.currentIndex),
-        },
-        resume: state.resume && remapSelection(state.resume, stopMapper),
+    case "enter":
+      return state.mode.type === "inactive" ? update(state, enter(state.mode, valuesCount), null) : unchanged(state);
+    case "cancel":
+      return state.mode.type === "inactive"
+        ? unchanged(state)
+        : update(state, cancel(event.reason), event.reason === "blur" ? state.press : null);
+    case "move":
+      return state.mode.type === "inactive" || state.press
+        ? unchanged(state)
+        : update(state, move(state.mode, event.index, valuesCount));
+    case "commit":
+      return state.mode.type === "inactive" || state.press ? unchanged(state) : update(state, commit(state.mode));
+    case "pressStart":
+      return update(state, modeOnly(state.mode), {
+        pointerType: event.pointerType,
+        clientX: event.clientX,
+        clientY: event.clientY,
+        startIndex: event.index,
+        currentIndex: event.index,
+        dragging: false,
       });
+    case "pressMove":
+      return pressMove(state, event.clientX, event.clientY, event.index);
+    case "pressEnd":
+      return pressEnd(state, event.index, valuesCount);
+    case "pressCancel":
+      return state.press ? update(state, modeOnly(state.mode), null) : unchanged(state);
+    case "rendered":
+      return rendered(state, event.stopMapper, valuesCount);
   }
 }
 
-function moveCursor(state: SelectingState, index: number, valuesCount: number): ZoomTransition {
-  if (valuesCount === 0) {
-    return stay(state);
+function enter(mode: InactiveMode, valuesCount: number): ModeTransition {
+  if (!canZoomInto(valuesCount)) {
+    return modeOnly(mode);
   }
-  const cursorIndex = clampIndex(index, valuesCount);
-  return stay(
-    cursorIndex === state.selection.cursorIndex
-      ? state
-      : { type: "selecting", selection: { ...state.selection, cursorIndex } },
-  );
-}
-
-function stay(state: ZoomState): ZoomTransition {
-  return { state, effects: NO_EFFECTS };
-}
-
-function transition(state: ZoomState, effects: readonly ZoomEffect[]): ZoomTransition {
-  return { state, effects };
-}
-
-const NO_EFFECTS: readonly ZoomEffect[] = [];
-
-function resumeState(resume: null | ZoomSelection): ZoomState {
-  return resume ? { type: "selecting", selection: resume } : IDLE_ZOOM_STATE;
-}
-
-function remapSelection(selection: ZoomSelection, stopMapper: ZoomStopMapper): ZoomSelection {
   return {
-    cursorIndex: stopMapper.nearest(selection.cursorIndex),
-    anchorIndex: selection.anchorIndex === null ? null : stopMapper.exact(selection.anchorIndex),
+    mode: { type: "pendingFirstInput", cursorIndex: 0 },
+    effects: [
+      { type: "announce", announcement: { type: "zoomModeEntered", index: 0 } },
+      { type: "focus", target: "cursor" },
+    ],
   };
 }
 
-function clampIndex(index: number, valuesCount: number): number {
-  return Math.min(Math.max(index, 0), Math.max(0, valuesCount - 1));
+// Focus returns to the Zoom button, unless the user left zoom mode by moving the focus away.
+function cancel(reason: ZoomCancelReason): ModeTransition {
+  const effects: ZoomEffect[] = [{ type: "announce", announcement: { type: "zoomModeExited" } }];
+  if (reason !== "blur") {
+    effects.push({ type: "focus", target: "zoomButton" });
+  }
+  return { mode: INACTIVE_MODE, effects };
+}
+
+function move(mode: ActiveZoomMode, index: number, valuesCount: number): ModeTransition {
+  const cursorIndex = Math.min(Math.max(index, 0), valuesCount - 1);
+  return modeOnly(cursorIndex === mode.cursorIndex ? mode : { ...mode, cursorIndex });
+}
+
+function commit(mode: ActiveZoomMode): ModeTransition {
+  if (mode.type === "pendingFirstInput") {
+    return {
+      mode: { type: "pendingSecondInput", startIndex: mode.cursorIndex, cursorIndex: mode.cursorIndex },
+      effects: [{ type: "announce", announcement: { type: "startPointSet", index: mode.cursorIndex } }],
+    };
+  }
+  if (!isZoomableRange(mode.startIndex, mode.cursorIndex)) {
+    return { mode, effects: [{ type: "announce", announcement: { type: "startPointSet", index: mode.startIndex } }] };
+  }
+  return {
+    mode: INACTIVE_MODE,
+    effects: [
+      { type: "applyZoom", fromIndex: mode.startIndex, toIndex: mode.cursorIndex },
+      { type: "focus", target: "resetButton" },
+    ],
+  };
+}
+
+function select(mode: ZoomMode, fromIndex: number, toIndex: number): ModeTransition {
+  if (!isZoomableRange(fromIndex, toIndex)) {
+    return modeOnly(mode);
+  }
+  const effects: ZoomEffect[] = [{ type: "applyZoom", fromIndex, toIndex }];
+  if (mode.type !== "inactive") {
+    effects.push({ type: "focus", target: "resetButton" });
+  }
+  return { mode: INACTIVE_MODE, effects };
+}
+
+function pressMove(state: ZoomState, clientX: number, clientY: number, index: number): ZoomTransition {
+  const press = state.press;
+  if (!press) {
+    return unchanged(state);
+  }
+  if (!press.dragging && Math.hypot(clientX - press.clientX, clientY - press.clientY) < DRAG_THRESHOLD_PX) {
+    return unchanged(state);
+  }
+  if (press.dragging && press.currentIndex === index) {
+    return unchanged(state);
+  }
+  const effects: readonly ZoomEffect[] = press.dragging ? NO_EFFECTS : [{ type: "dragStart" }];
+  return update(state, { mode: state.mode, effects }, { ...press, currentIndex: index, dragging: true });
+}
+
+function pressEnd(state: ZoomState, index: number, valuesCount: number): ZoomTransition {
+  const press = state.press;
+  if (!press) {
+    return unchanged(state);
+  }
+  if (press.dragging) {
+    return update(state, select(state.mode, press.startIndex, index), null);
+  }
+  if (state.mode.type === "inactive") {
+    return update(state, modeOnly(state.mode), null);
+  }
+  const moved = move(state.mode, press.startIndex, valuesCount);
+  const committed = commit(moved.mode as ActiveZoomMode);
+  return update(state, { mode: committed.mode, effects: [...moved.effects, ...committed.effects] }, null);
+}
+
+function rendered(state: ZoomState, stopMapper: ZoomStopMapper, valuesCount: number): ZoomTransition {
+  const press =
+    state.press && valuesCount > 0
+      ? {
+          ...state.press,
+          startIndex: stopMapper.nearest(state.press.startIndex),
+          currentIndex: stopMapper.nearest(state.press.currentIndex),
+        }
+      : null;
+  if (state.mode.type === "inactive") {
+    return state.press ? update(state, modeOnly(state.mode), press) : unchanged(state);
+  }
+  if (valuesCount === 0) {
+    return update(state, cancel("noStops"), null);
+  }
+  const cursorIndex = stopMapper.nearest(state.mode.cursorIndex);
+  const startIndex = state.mode.type === "pendingSecondInput" ? stopMapper.exact(state.mode.startIndex) : null;
+  const mode: ZoomMode =
+    startIndex === null
+      ? { type: "pendingFirstInput", cursorIndex }
+      : { type: "pendingSecondInput", startIndex, cursorIndex };
+  return update(state, modeOnly(mode), press);
 }
 
 function isZoomableRange(fromIndex: number, toIndex: number): boolean {
   return Math.abs(toIndex - fromIndex) + 1 >= MIN_ZOOM_POINTS;
 }
 
+function modeOnly(mode: ZoomMode): ModeTransition {
+  return { mode, effects: NO_EFFECTS };
+}
+
+function update(state: ZoomState, next: ModeTransition, nextPress = state.press): ZoomTransition {
+  if (next.mode === state.mode && nextPress === state.press) {
+    return { state, effects: next.effects };
+  }
+  return { state: { mode: next.mode, press: nextPress }, effects: next.effects };
+}
+
+function unchanged(state: ZoomState): ZoomTransition {
+  return { state, effects: NO_EFFECTS };
+}
+
+const NO_EFFECTS: readonly ZoomEffect[] = [];
+
 export function canZoomInto(valuesCount: number): boolean {
   return valuesCount > MIN_ZOOM_POINTS;
 }
 
 export function isZooming(state: ZoomState): boolean {
-  return state.type === "selecting" || (state.type === "pressed" && !!state.resume);
-}
-
-export function isInteracting(state: ZoomState): boolean {
-  return isZooming(state) || state.type === "dragging";
-}
-
-export type ZoomOverlayView =
-  | { type: "hidden" }
-  | { type: "cursor"; cursorIndex: number; anchorIndex: null | number }
-  | { type: "range"; fromIndex: number; toIndex: number };
-
-export function getOverlayView(state: ZoomState): ZoomOverlayView {
-  switch (state.type) {
-    case "idle":
-      return HIDDEN_VIEW;
-    case "selecting":
-      return { type: "cursor", ...state.selection };
-    case "pressed":
-      return state.resume ? { type: "cursor", ...state.resume } : HIDDEN_VIEW;
-    case "dragging":
-      return { type: "range", fromIndex: state.press.startIndex, toIndex: state.press.currentIndex };
-  }
-}
-
-const HIDDEN_VIEW: ZoomOverlayView = { type: "hidden" };
-
-export function getPress(state: ZoomState): null | ZoomPress {
-  return state.type === "pressed" || state.type === "dragging" ? state.press : null;
+  return state.mode.type !== "inactive";
 }

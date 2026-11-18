@@ -15,24 +15,18 @@ export interface ChartLabels {
   chartSegmentLabel?: string;
   itemMarkerLabel?: (status?: ChartSeriesMarkerStatus) => string | undefined;
   enterZoomModeButtonText?: string;
+  zoomButtonDisabledReason?: string;
   resetZoomButtonText?: string;
   resetZoomButtonAriaLabel?: string;
   zoomControlsAriaLabel?: string;
   zoomCursorAriaLabel?: string;
   zoomModeEnteredAnnouncementText?: (value: string) => string;
-  zoomCursorPositionAnnouncementText?: (value: string) => string;
   zoomStartPointAnnouncementText?: (value: string) => string;
   zoomRangeChangeAnnouncementText?: (startValue: string, endValue: string) => string;
   zoomSelectionAnnouncementText?: (startValue: string, endValue: string) => string;
   zoomModeExitedAnnouncementText?: string;
   zoomResetAnnouncementText?: string;
 }
-
-type ZoomFormatFunction = <T>(
-  key: string,
-  provided: T,
-  handler?: (format: (args: Record<string, string>) => string) => T,
-) => T;
 
 export function useChartI18n({
   ariaLabel,
@@ -45,12 +39,14 @@ export function useChartI18n({
 }): ChartLabels {
   const i18n = useInternalI18n("[charts]");
   const i18nPie = useInternalI18n("pie-chart");
-  // The zoom messages are not part of the typed "[charts]" namespace of the components package yet.
-  const i18nZoom = i18n as unknown as ZoomFormatFunction;
-  const zoomValueText = (key: string, provided?: (value: string) => string) =>
-    i18nZoom(`i18nStrings.${key}`, provided, (format) => (value) => format({ value }));
-  const zoomRangeText = (key: string, provided?: (startValue: string, endValue: string) => string) =>
-    i18nZoom(`i18nStrings.${key}`, provided, (format) => (startValue, endValue) => format({ startValue, endValue }));
+  // The disabled reason is not part of the typed "[charts]" namespace of the components package yet.
+  const i18nUntyped = i18n as unknown as (key: string, provided: undefined) => undefined | string;
+  const valueText = (
+    key: "i18nStrings.zoomModeEnteredAnnouncementText" | "i18nStrings.zoomStartPointAnnouncementText",
+  ) => i18n(key, undefined, (format) => (value: string) => format({ value }));
+  const rangeText = (
+    key: "i18nStrings.zoomRangeChangeAnnouncementText" | "i18nStrings.zoomSelectionAnnouncementText",
+  ) => i18n(key, undefined, (format) => (startValue: string, endValue: string) => format({ startValue, endValue }));
   return {
     chartLabel: ariaLabel,
     chartDescription: ariaDescription,
@@ -60,38 +56,18 @@ export function useChartI18n({
     chartXAxisLabel: i18n("i18nStrings.xAxisAriaRoleDescription", i18nStrings?.xAxisRoleDescription),
     chartYAxisLabel: i18n("i18nStrings.yAxisAriaRoleDescription", i18nStrings?.yAxisRoleDescription),
     chartSegmentLabel: i18nPie("i18nStrings.segmentAriaRoleDescription", i18nStrings?.segmentRoleDescription),
-    enterZoomModeButtonText: i18nZoom("i18nStrings.enterZoomModeButtonText", i18nStrings?.enterZoomModeButtonText),
-    resetZoomButtonText: i18nZoom("i18nStrings.resetZoomButtonText", i18nStrings?.resetZoomButtonText),
-    resetZoomButtonAriaLabel: i18nZoom("i18nStrings.resetZoomButtonAriaLabel", i18nStrings?.resetZoomButtonAriaLabel),
-    zoomControlsAriaLabel: i18nZoom("i18nStrings.zoomControlsAriaLabel", i18nStrings?.zoomControlsAriaLabel),
-    zoomCursorAriaLabel: i18nZoom("i18nStrings.zoomCursorAriaLabel", i18nStrings?.zoomCursorAriaLabel),
-    zoomModeEnteredAnnouncementText: zoomValueText(
-      "zoomModeEnteredAnnouncementText",
-      i18nStrings?.zoomModeEnteredAnnouncementText,
-    ),
-    zoomCursorPositionAnnouncementText:
-      zoomValueText("zoomCursorPositionAnnouncementText", i18nStrings?.zoomCursorPositionAnnouncementText) ??
-      ((value) => value),
-    zoomStartPointAnnouncementText: zoomValueText(
-      "zoomStartPointAnnouncementText",
-      i18nStrings?.zoomStartPointAnnouncementText,
-    ),
-    zoomRangeChangeAnnouncementText: zoomRangeText(
-      "zoomRangeChangeAnnouncementText",
-      i18nStrings?.zoomRangeChangeAnnouncementText,
-    ),
-    zoomSelectionAnnouncementText: zoomRangeText(
-      "zoomSelectionAnnouncementText",
-      i18nStrings?.zoomSelectionAnnouncementText,
-    ),
-    zoomModeExitedAnnouncementText: i18nZoom(
-      "i18nStrings.zoomModeExitedAnnouncementText",
-      i18nStrings?.zoomModeExitedAnnouncementText,
-    ),
-    zoomResetAnnouncementText: i18nZoom(
-      "i18nStrings.zoomResetAnnouncementText",
-      i18nStrings?.zoomResetAnnouncementText,
-    ),
+    enterZoomModeButtonText: i18n("i18nStrings.enterZoomModeButtonText", undefined),
+    zoomButtonDisabledReason: i18nUntyped("i18nStrings.zoomButtonDisabledReason", undefined),
+    resetZoomButtonText: i18n("i18nStrings.resetZoomButtonText", undefined),
+    resetZoomButtonAriaLabel: i18n("i18nStrings.resetZoomButtonAriaLabel", undefined),
+    zoomControlsAriaLabel: i18n("i18nStrings.zoomControlsAriaLabel", undefined),
+    zoomCursorAriaLabel: i18n("i18nStrings.zoomCursorAriaLabel", undefined),
+    zoomModeEnteredAnnouncementText: valueText("i18nStrings.zoomModeEnteredAnnouncementText"),
+    zoomStartPointAnnouncementText: valueText("i18nStrings.zoomStartPointAnnouncementText"),
+    zoomRangeChangeAnnouncementText: rangeText("i18nStrings.zoomRangeChangeAnnouncementText"),
+    zoomSelectionAnnouncementText: rangeText("i18nStrings.zoomSelectionAnnouncementText"),
+    zoomModeExitedAnnouncementText: i18n("i18nStrings.zoomModeExitedAnnouncementText", undefined),
+    zoomResetAnnouncementText: i18n("i18nStrings.zoomResetAnnouncementText", undefined),
     itemMarkerLabel: (status = "default") => {
       switch (status) {
         case "warning":

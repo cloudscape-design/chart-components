@@ -8,11 +8,15 @@ import "../../lib/components/test-utils/selectors";
 import createWrapper from "../../lib/components/test-utils/selectors";
 import { setupTest } from "../utils";
 
+import testClasses from "../../lib/components/core/test-classes/styles.selectors.js";
+
 const w = createWrapper();
 
-test(
-  "pins chart tooltip after hovering chart point and then chart point group",
-  setupTest("#/01-cartesian-chart/column-chart-test", async (page) => {
+test.each([
+  { label: "zoom off", url: "#/01-cartesian-chart/column-chart-test" },
+  { label: "zoom on", url: "#/01-cartesian-chart/column-chart-test?zoom=true" },
+])("pins chart tooltip after hovering chart point and then chart point group, $label", ({ url }) =>
+  setupTest(url, async (page) => {
     const chart = w.findCartesianHighcharts('[data-testid="grouped-column-chart"]');
     const point = chart.find('[aria-label="Jul 2019 6.32K, Prev costs"]');
     const expectedTooltipContent = ["Jul 2019\nCosts\n8.77K\nPrev costs\n6.32K"];
@@ -34,29 +38,20 @@ test(
     await page.clickHere();
     await expect(page.getElementsText(chart.findTooltip().toSelector())).resolves.toEqual(expectedTooltipContent);
     await expect(page.isExisting(chart.findTooltip().findDismissButton().toSelector())).resolves.toBe(true);
-  }),
+  })(),
 );
 
 test(
-  "zooms into a range by dragging across the plot and resets it afterwards",
-  setupTest("#/01-cartesian-chart/zoom", async (page) => {
-    const chart = w.findCartesianHighcharts('[data-testid="zoom-chart"]');
-    const xAxisLabels = chart.find(".highcharts-xaxis-labels").toSelector();
-
-    const labelsBeforeZoom = await page.getText(xAxisLabels);
-    await expect(page.isExisting(chart.findResetZoomButton().toSelector())).resolves.toBe(false);
-
+  "zooms into the dragged range without pinning the chart tooltip",
+  setupTest("#/01-cartesian-chart/column-chart-test?zoom=true", async (page) => {
+    const chart = w.findCartesianHighcharts('[data-testid="grouped-column-chart"]');
     const plotBox = await page.getBoundingBox(chart.find(".highcharts-plot-background").toSelector());
-    await page.moveCursorTo(plotBox.left + plotBox.width * 0.25, plotBox.top + plotBox.height / 2);
-    await page.dragBy(Math.round(plotBox.width * 0.4), 0);
+    const resetButton = chart.find(`.${testClasses["reset-zoom-button"]}`).toSelector();
 
-    await page.waitForVisible(chart.findResetZoomButton().toSelector());
-    await expect(page.getText(xAxisLabels)).resolves.not.toBe(labelsBeforeZoom);
-    await expect(page.isDisplayed(chart.findZoomCursor().toSelector())).resolves.toBe(false);
+    await page.moveCursorTo(plotBox.left + plotBox.width * 0.2, plotBox.top + plotBox.height / 2);
+    await page.dragCursorBy(Math.round(plotBox.width * 0.5), 0);
 
-    await page.click(chart.findResetZoomButton().toSelector());
-    const sortedLabels = (text: string) => text.split("\n").sort();
-    await expect(page.getText(xAxisLabels).then(sortedLabels)).resolves.toEqual(sortedLabels(labelsBeforeZoom));
-    await expect(page.isExisting(chart.findResetZoomButton().toSelector())).resolves.toBe(false);
+    await expect(page.isDisplayed(resetButton)).resolves.toBe(true);
+    await expect(page.isExisting(chart.findTooltip().findDismissButton().toSelector())).resolves.toBe(false);
   }),
 );

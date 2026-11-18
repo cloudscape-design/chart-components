@@ -1,10 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useEffect } from "react";
-
 import Button from "@cloudscape-design/components/button";
-import SpaceBetween from "@cloudscape-design/components/space-between";
 import ToggleButton from "@cloudscape-design/components/toggle-button";
 
 import { useSelector } from "../../internal/utils/async-store";
@@ -19,43 +16,52 @@ export function ChartZoomControls({ api, labels }: { api: ChartAPI; labels: Char
   const zoomed = useSelector(api.zoomStore, (s) => s.zoomed);
   const canZoom = useSelector(api.zoomStore, (s) => s.canZoom);
 
-  useEffect(() => {
-    api.onZoomControlsUpdate();
-  });
-
   return (
     <div
       ref={api.setZoomControls}
       role="region"
       aria-label={labels.zoomControlsAriaLabel}
       className={styles["chart-zoom-controls"]}
-      onBlur={api.onZoomControlsBlur}
+      onBlur={api.onZoomBlur}
     >
-      <SpaceBetween size="s" direction="horizontal">
-        {zoomed && !zooming && (
-          <Button
-            ref={api.setResetZoomButton}
-            variant="link"
-            formAction="none"
-            onClick={() => api.resetZoom({ isApiCall: false, withFocus: true })}
-            ariaLabel={labels.resetZoomButtonAriaLabel}
-            className={testClasses["reset-zoom-button"]}
-          >
-            {labels.resetZoomButtonText}
-          </Button>
-        )}
-        <ToggleButton
-          ref={api.setZoomButton}
-          pressed={zooming}
-          iconName="zoom-in"
-          pressedIconSvg={zoomModeIcon}
-          disabled={!canZoom && !zooming}
-          onChange={({ detail }) => (detail.pressed ? api.enterZoomMode() : api.exitZoomMode({ withFocus: true }))}
-          className={zooming ? testClasses["exit-zoom-button"] : testClasses["zoom-button"]}
+      {/* The Reset button is shown before it takes the focus, as the helper focuses it before the zoomed state renders. */}
+      <div hidden={!zoomed || zooming}>
+        <Button
+          nativeButtonAttributes={{
+            ref: (button) => {
+              if (button) {
+                api.setResetZoomButton({
+                  focus: () => {
+                    button.parentElement!.hidden = false;
+                    button.focus();
+                  },
+                });
+              } else {
+                api.setResetZoomButton(null);
+              }
+            },
+          }}
+          variant="link"
+          formAction="none"
+          onClick={api.resetZoom}
+          ariaLabel={labels.resetZoomButtonAriaLabel}
+          className={testClasses["reset-zoom-button"]}
         >
-          {labels.enterZoomModeButtonText}
-        </ToggleButton>
-      </SpaceBetween>
+          {labels.resetZoomButtonText}
+        </Button>
+      </div>
+      <ToggleButton
+        ref={api.setZoomButton}
+        pressed={zooming}
+        iconName="zoom-in"
+        pressedIconSvg={zoomModeIcon}
+        disabled={!canZoom && !zooming}
+        disabledReason={labels.zoomButtonDisabledReason}
+        onChange={({ detail }) => (detail.pressed ? api.enterZoomMode() : api.exitZoomMode())}
+        className={zooming ? testClasses["exit-zoom-button"] : testClasses["zoom-button"]}
+      >
+        {labels.enterZoomModeButtonText}
+      </ToggleButton>
     </div>
   );
 }

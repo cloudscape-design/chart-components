@@ -8,6 +8,7 @@ import { vi } from "vitest";
 import "highcharts/highcharts-more";
 import { renderChart } from "./common";
 import { HighchartsTestHelper } from "./highcharts-utils";
+import { describeWithAndWithoutZoom } from "./zoom-variants";
 
 const hc = new HighchartsTestHelper(highcharts);
 
@@ -19,7 +20,7 @@ afterAll(() => {
   vi.useRealTimers();
 });
 
-describe("CoreChart: highlight", () => {
+describeWithAndWithoutZoom("CoreChart: highlight", () => {
   test("highlights linked errorbar when target series is highlighted", async () => {
     renderChart({
       highcharts,
@@ -107,4 +108,29 @@ describe("CoreChart: highlight", () => {
       expect(hc.getChartPoint(1, 1).state).toBe("");
     },
   );
+
+  test("forces column point state updates only on the first highlight after render", () => {
+    const options = (offset: number) => ({
+      series: [
+        { type: "column" as const, name: "C1", data: [1 + offset, 2 + offset, 3 + offset] },
+        { type: "column" as const, name: "C2", data: [4 + offset, 5 + offset, 6 + offset] },
+      ],
+    });
+    const setStateSpy = vi.spyOn(highcharts.Point.prototype, "setState");
+    const hoverAndGetMoveArgs = (s: number, i: number) => {
+      setStateSpy.mockClear();
+      act(() => hc.highlightChartPoint(s, i));
+      return new Set(setStateSpy.mock.calls.map(([, move]) => move));
+    };
+    const { rerender } = renderChart({ highcharts, options: options(0) });
+
+    expect(hoverAndGetMoveArgs(0, 2)).toEqual(new Set([true]));
+    expect(hoverAndGetMoveArgs(0, 0)).toEqual(new Set([false]));
+
+    rerender({ highcharts, options: options(10) });
+
+    expect(hoverAndGetMoveArgs(0, 1)).toEqual(new Set([true]));
+    expect(hoverAndGetMoveArgs(1, 1)).toEqual(new Set([false]));
+    setStateSpy.mockRestore();
+  });
 });

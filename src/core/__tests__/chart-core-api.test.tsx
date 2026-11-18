@@ -8,6 +8,7 @@ import { vi } from "vitest";
 import { CoreChartProps } from "../../../lib/components/core/interfaces";
 import { renderChart, selectLegendItem } from "./common";
 import { HighchartsTestHelper } from "./highcharts-utils";
+import { describeWithAndWithoutZoom } from "./zoom-variants";
 
 const hc = new HighchartsTestHelper(highcharts);
 
@@ -42,7 +43,7 @@ afterAll(() => {
   vi.useRealTimers();
 });
 
-describe("CoreChart: API tests", () => {
+describeWithAndWithoutZoom("CoreChart: API tests", () => {
   test("passes isApiCall=false to onHighlight when triggered by an user interaction", () => {
     const onHighlight = vi.fn();
     renderChart({ highcharts, onHighlight, options: { series } });
