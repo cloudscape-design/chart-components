@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { act } from "react";
 import highcharts from "highcharts";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
@@ -9,12 +10,11 @@ import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 import "@cloudscape-design/components/test-utils/dom";
 import "highcharts/highcharts-more";
 import { CartesianChartProps } from "../../../lib/components/cartesian-chart";
-import { InternalZoomProps } from "../../../lib/components/core/internal-interfaces";
-import { createChartWrapper as getChart, getXExtremes } from "../../core/__tests__/common";
+import { getXExtremes } from "../../core/__tests__/common";
 import { stubPlotGeometry } from "../../core/__tests__/plot-geometry";
 import { zoomMessages } from "../../core/__tests__/zoom-messages";
 import { enterZoomMode, getCursorAttributes, pressCursorKey } from "../../core/__tests__/zoom-test-utils";
-import { renderCartesianChart } from "./common";
+import { getChart, ref, renderCartesianChart } from "./common";
 
 const series: CartesianChartProps.SeriesOptions[] = [
   {
@@ -40,11 +40,10 @@ const defaultProps = {
 
 const onZoomRangeChange = vi.fn();
 
-type ZoomTestProps = Partial<CartesianChartProps> &
-  InternalZoomProps & {
-    highcharts: typeof highcharts;
-    i18nProvider?: Record<string, Record<string, string>>;
-  };
+type ZoomTestProps = Partial<CartesianChartProps> & {
+  highcharts: typeof highcharts;
+  i18nProvider?: Record<string, Record<string, string>>;
+};
 
 function renderZoomChart(props: ZoomTestProps) {
   const { rerender } = renderCartesianChart(props);
@@ -173,5 +172,44 @@ describe("CartesianChart: zoom selection, with other series types", () => {
 
     rerender({ ...defaultProps, zoom: { enabled: true, hideZoomControls: true } });
     expect(getChart().findZoomButton()).toBe(null);
+  });
+});
+
+describe("CartesianChart: zoom API", () => {
+  test("zooms and resets through the ref", () => {
+    renderZoomChart({ ...defaultProps, zoom: { enabled: true, hideZoomControls: true }, onZoomRangeChange });
+    act(() => ref.current!.enterZoomMode());
+    expect(document.activeElement).toBe(getChart().findZoomCursor()!.getElement());
+    pressCursorKey(KeyCode.enter);
+    pressCursorKey(KeyCode.right, 2);
+    pressCursorKey(KeyCode.enter);
+    expect(getXExtremes()).toEqual({ min: 0, max: 2 });
+
+    act(() => ref.current!.resetZoom());
+    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
+    expect(onZoomRangeChange).toHaveBeenLastCalledWith(expect.objectContaining({ detail: { zoomRange: null } }));
+  });
+
+  test("exits zoom mode through the ref without zooming", () => {
+    renderZoomChart({ ...defaultProps, zoom: { enabled: true }, onZoomRangeChange });
+    act(() => ref.current!.enterZoomMode());
+    pressCursorKey(KeyCode.enter);
+    expect(getChart().findExitZoomButton()).not.toBe(null);
+    act(() => ref.current!.exitZoomMode());
+    expect(getChart().findExitZoomButton()).toBe(null);
+    expect(getChart().findZoomButton()).not.toBe(null);
+    expect(getXExtremes()).toEqual({ min: 0, max: 4 });
+    expect(onZoomRangeChange).not.toHaveBeenCalled();
+  });
+
+  test("uses the zoom labels from i18nStrings", () => {
+    renderZoomChart({
+      ...defaultProps,
+      zoom: { enabled: true },
+      zoomRange: { x: { startValue: 1, endValue: 3 } },
+      i18nStrings: { enterZoomModeButtonText: "Zoom in", resetZoomButtonText: "Show all" },
+    });
+    expect(getChart().findZoomButton()!.getElement()).toHaveTextContent("Zoom in");
+    expect(getChart().findResetZoomButton()!.getElement()).toHaveTextContent("Show all");
   });
 });

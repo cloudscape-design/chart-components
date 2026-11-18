@@ -285,6 +285,9 @@ export class ChartAPI {
       highlightChartPoint: (point: Highcharts.Point) => this.highlightChartPoint(point, { isApiCall: true }),
       highlightChartGroup: (group: readonly Highcharts.Point[]) => this.highlightChartGroup(group, { isApiCall: true }),
       clearChartHighlight: () => this.clearChartHighlight({ isApiCall: true }),
+      enterZoomMode: () => this.enterZoomMode(),
+      exitZoomMode: () => this.exitZoomMode(),
+      resetZoom: () => this.resetZoom(),
     };
   }
 
