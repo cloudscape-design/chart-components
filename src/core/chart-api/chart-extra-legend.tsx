@@ -17,6 +17,8 @@ import { ChartExtraContext } from "./chart-extra-context";
 // The reactive state is used to propagate changes in legend items to the core legend React component.
 export interface ReactiveLegendState {
   items: readonly CoreChartProps.LegendItem[];
+  previewItemIds: readonly string[];
+  previewDimmed: boolean;
 }
 
 // Chart helper that implements custom legend behaviors.
@@ -25,7 +27,7 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
   private visibilityMode: "internal" | "external" = "external";
 
   constructor(context: ChartExtraContext) {
-    super({ items: [] });
+    super({ items: [], previewItemIds: [], previewDimmed: false });
     this.context = context;
   }
 
@@ -74,13 +76,40 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
   public onHighlightItems = (highlightedItems: readonly string[]) => {
     const currentItems = this.get().items;
     const updatedItems = currentItems.map(({ ...i }) => ({ ...i, highlighted: highlightedItems.includes(i.id) }));
+    this.onCancelPreview();
     this.updateLegendItems(updatedItems);
   };
 
   // Clears legend highlight state.
   public onClearHighlight = () => {
     const nextItems = this.get().items.map(({ ...item }) => ({ ...item, highlighted: false }));
+    this.onCancelPreview();
     this.updateLegendItems(nextItems);
+  };
+
+  public onPreviewPoint = (point: Highcharts.Point, dimmed: boolean) => {
+    const itemIds = point.series.type === "pie" ? [getPointId(point)] : [getSeriesId(getMasterSeries(point))];
+    this.onPreviewItems(itemIds, dimmed);
+  };
+
+  public onPreviewGroup = (group: readonly Highcharts.Point[], dimmed: boolean) => {
+    this.onPreviewItems(
+      group.map((point) => getSeriesId(getMasterSeries(point))),
+      dimmed,
+    );
+  };
+
+  public onPreviewItems = (itemIds: readonly string[], dimmed: boolean) => {
+    const state = this.get();
+    if (!isEqualArrays(state.previewItemIds, itemIds, (a, b) => a === b) || state.previewDimmed !== dimmed) {
+      this.set((state) => ({ ...state, previewItemIds: itemIds, previewDimmed: dimmed }));
+    }
+  };
+
+  public onCancelPreview = () => {
+    if (this.get().previewItemIds.length > 0) {
+      this.set((state) => ({ ...state, previewItemIds: [], previewDimmed: false }));
+    }
   };
 
   private initLegend = () => {
@@ -111,7 +140,7 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
       );
     }
     if (!isEqualArrays(this.get().items, nextItems, isLegendItemsEqual)) {
-      this.set(() => ({ items: nextItems }));
+      this.set((state) => ({ ...state, items: nextItems }));
     }
   };
 

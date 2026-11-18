@@ -39,8 +39,11 @@ export function getChartSeries(chart: SafeChart): SafeSeries[] {
  * Returns point series or series it is linked to.
  */
 export function getMasterSeries(point: Point): SafeSeries {
-  const masterSeries = point.series.linkedParent ?? point.series;
-  return masterSeries;
+  return getMasterSeriesOf(point.series);
+}
+
+export function getMasterSeriesOf(series: SafeSeries): SafeSeries {
+  return series.linkedParent ?? series;
 }
 
 /**

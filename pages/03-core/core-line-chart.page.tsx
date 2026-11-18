@@ -101,6 +101,7 @@ export default function () {
             "tooltipSeriesSorting",
             "zoom",
             "hideZoomControls",
+            "hoverDebounce",
           ]}
         />
       }

@@ -35,11 +35,13 @@ import { ChartZoomLiveRegion } from "./components/core-zoom-live-region";
 import { getFormatter } from "./formatters";
 import { useChartI18n } from "./i18n-utils";
 import { CoreChartProps } from "./interfaces";
-import { InternalZoomProps } from "./internal-interfaces";
+import { InternalHoverProps, InternalZoomProps } from "./internal-interfaces";
 import { getLegendsProps, getPointAccessibleDescription } from "./utils";
 
 import styles from "./styles.css.js";
 import testClasses from "./test-classes/styles.css.js";
+
+const DEFAULT_HOVER_DEBOUNCE = 150;
 
 /**
  * CoreChart is the core internal abstraction that accepts the entire set of Highcharts options along
@@ -59,6 +61,7 @@ export function InternalCoreChart({
   zoom: zoomOptions,
   zoomRange,
   onZoomRangeChange,
+  hoverDebounce,
   legend: legendOptions,
   fallback = <Spinner />,
   callback,
@@ -78,11 +81,18 @@ export function InternalCoreChart({
   __internalRootRef,
   getItemOptions,
   ...rest
-}: CoreChartProps & InternalBaseComponentProps & InternalZoomProps) {
+}: CoreChartProps & InternalBaseComponentProps & InternalZoomProps & InternalHoverProps) {
   const highcharts = rest.highcharts as null | typeof Highcharts;
   const labels = useChartI18n({ ariaLabel, ariaDescription, i18nStrings });
   // The zoom applies to the first x-axis, and is ignored when the chart does not define one.
   const zoomEnabled = !!zoomOptions?.enabled && (castArray(options.xAxis)?.length ?? 0) > 0;
+  const hoverDelay =
+    hoverDebounce === true
+      ? DEFAULT_HOVER_DEBOUNCE
+      : typeof hoverDebounce === "number" && hoverDebounce > 0
+        ? hoverDebounce
+        : -1;
+  const hoverDebounceEnabled = hoverDebounce !== undefined && hoverDebounce !== false;
   const context: ChartExtraContext["settings"] = {
     chartId: useUniqueId(),
     noDataEnabled: !!noDataOptions,
@@ -92,6 +102,8 @@ export function InternalCoreChart({
     labels,
     getItemOptions: getItemOptions ?? (() => ({})),
     zoomEnabled,
+    hoverDelay,
+    hoverDebounceEnabled,
   };
   const handlers = { onHighlight, onClearHighlight, onVisibleItemsChange, onZoomRangeChange };
   const state = { visibleItems, zoomRange };
@@ -107,6 +119,8 @@ export function InternalCoreChart({
     i18nStrings,
     onItemHighlight: onLegendItemHighlight,
     getLegendTooltipContent: rest.getLegendTooltipContent,
+    tooltipShowDelay: hoverDebounceEnabled ? Math.max(hoverDelay, 0) : undefined,
+    delayScrollIntoView: hoverDebounceEnabled,
   };
   const containerProps = {
     fitHeight,
@@ -130,10 +144,13 @@ export function InternalCoreChart({
         return;
       }
 
-      if (event.keyCode === KeyCode.escape && context.tooltipEnabled) {
-        const tooltipState = api.tooltipStore.get();
-        if (tooltipState.visible && !tooltipState.pinned) {
-          api.hideTooltip();
+      if (event.keyCode === KeyCode.escape) {
+        api.cancelPendingHovers();
+        if (context.tooltipEnabled) {
+          const tooltipState = api.tooltipStore.get();
+          if (tooltipState.visible && !tooltipState.pinned) {
+            api.hideTooltip();
+          }
         }
       }
     };
@@ -415,6 +432,9 @@ export function InternalCoreChart({
       {context.tooltipEnabled && (
         <ChartTooltip
           {...tooltipOptions}
+          // tooltip.debounce is superseded by hoverDebounce and is ignored while hoverDebounce is set
+          // (see InternalHoverProps).
+          debounce={hoverDebounceEnabled ? false : tooltipOptions?.debounce}
           i18nStrings={i18nStrings}
           getTooltipContent={rest.getTooltipContent}
           sizeAxis={castArray(rest.sizeAxis as CoreChartProps.SizeAxisOptions[])}
