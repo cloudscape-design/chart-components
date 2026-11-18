@@ -71,6 +71,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   private controlsElement: null | HTMLElement = null;
   private zoomButton: null | FocusableControl = null;
   private resetButton: null | FocusableControl = null;
+  private entryFocus: null | HTMLElement = null;
   private rangeBand = new SVGRendererSingle();
   private rangeBorders = new SVGRendererSingle();
   private selectionBand = new SVGRendererSingle();
@@ -159,6 +160,7 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     if (!this.enabled) {
       this.localExtremes = null;
       this.interaction = INACTIVE_ZOOM_STATE;
+      this.entryFocus = null;
       this.pressClickPending = false;
       this.hideOverlay();
       this.setCommon({ zooming: false });
@@ -174,7 +176,15 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
   };
 
   public enterZoomMode = () => {
+    if (!this.enabled || isZooming(this.interaction)) {
+      return;
+    }
+    const activeElement = this.container?.ownerDocument.activeElement;
+    this.entryFocus = activeElement instanceof HTMLElement ? activeElement : null;
     this.dispatch({ type: "enter" });
+    if (!isZooming(this.interaction)) {
+      this.entryFocus = null;
+    }
   };
 
   public exitZoomMode = (reason: ZoomCancelReason) => {
@@ -344,6 +354,10 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
       return;
     }
     this.interaction = state;
+    const entryFocus = this.entryFocus;
+    if (!isZooming(state)) {
+      this.entryFocus = null;
+    }
     if (isZooming(state) !== isZooming(previous)) {
       this.setCommon({ zooming: isZooming(state) });
       if (isZooming(state)) {
@@ -357,21 +371,21 @@ export class ChartExtraZoom extends AsyncStore<ReactiveZoomState> {
     // The focus moves last, once the overlay shows the cursor at its position.
     for (const effect of effects) {
       if (effect.type === "focus") {
-        this.moveFocus(effect.target);
+        this.moveFocus(effect.target, entryFocus);
       }
     }
   }
 
-  private moveFocus(target: ZoomFocusTarget) {
+  private moveFocus(target: ZoomFocusTarget, fallback: null | HTMLElement = null) {
     switch (target) {
       case "cursor":
         this.cursorElement?.focus();
         break;
       case "zoomButton":
-        this.zoomButton?.focus();
+        (this.zoomButton ?? fallback)?.focus();
         break;
       case "resetButton":
-        this.resetButton?.focus();
+        (this.resetButton ?? fallback)?.focus();
         break;
     }
   }

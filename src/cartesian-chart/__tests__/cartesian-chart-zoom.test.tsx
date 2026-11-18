@@ -10,7 +10,8 @@ import { KeyCode } from "@cloudscape-design/component-toolkit/internal";
 import "@cloudscape-design/components/test-utils/dom";
 import "highcharts/highcharts-more";
 import { CartesianChartProps } from "../../../lib/components/cartesian-chart";
-import { getXExtremes } from "../../core/__tests__/common";
+import { getSeriesData } from "../../../lib/components/internal/utils/highcharts";
+import { getCurrentChart, getXExtremes } from "../../core/__tests__/common";
 import { stubPlotGeometry } from "../../core/__tests__/plot-geometry";
 import { zoomMessages } from "../../core/__tests__/zoom-messages";
 import { enterZoomMode, getCursorAttributes, pressCursorKey } from "../../core/__tests__/zoom-test-utils";
@@ -200,6 +201,34 @@ describe("CartesianChart: zoom API", () => {
     expect(getChart().findZoomButton()).not.toBe(null);
     expect(getXExtremes()).toEqual({ min: 0, max: 4 });
     expect(onZoomRangeChange).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    { name: "a range is selected", keys: [KeyCode.enter, KeyCode.right, KeyCode.right, KeyCode.enter] },
+    { name: "zoom mode is cancelled", keys: [KeyCode.escape] },
+  ])("returns the focus to the custom control when $name with the zoom controls hidden", ({ keys }) => {
+    renderZoomChart({ ...defaultProps, zoom: { enabled: true, hideZoomControls: true } });
+    const customButton = document.createElement("button");
+    customButton.dataset.testid = "outside";
+    document.body.appendChild(customButton);
+    customButton.focus();
+    act(() => ref.current!.enterZoomMode());
+    keys.forEach((key) => pressCursorKey(key));
+    expect(document.activeElement).toBe(customButton);
+  });
+
+  test("ignores enterZoomMode once zoom is disabled", async () => {
+    const { rerender } = renderZoomChart({ ...defaultProps, zoom: { enabled: true } });
+    rerender({ ...defaultProps, zoom: { enabled: false } });
+    act(() => ref.current!.enterZoomMode());
+    vi.useFakeTimers();
+    try {
+      act(() => getSeriesData(getCurrentChart().series[0])[2].onMouseOver());
+      await act(() => vi.advanceTimersByTimeAsync(500));
+      expect(getChart().findTooltip()).not.toBe(null);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   test("uses the zoom labels from i18nStrings", () => {
