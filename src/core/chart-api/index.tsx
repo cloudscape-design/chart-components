@@ -7,7 +7,7 @@ import type Highcharts from "highcharts";
 import { fireNonCancelableEvent } from "../../internal/events";
 import { ReadonlyAsyncStore } from "../../internal/utils/async-store";
 import { getChartSeries, getSeriesData } from "../../internal/utils/highcharts";
-import { Writeable } from "../../internal/utils/utils";
+import { DebouncedCall, isEqualArrays, Writeable } from "../../internal/utils/utils";
 import { CoreChartProps } from "../interfaces";
 import {
   getChartAccessibleDescription,
@@ -21,9 +21,19 @@ import { ChartExtraHighlight } from "./chart-extra-highlight";
 import { ChartExtraLegend, ReactiveLegendState } from "./chart-extra-legend";
 import { ChartExtraNavigation, ChartExtraNavigationHandlers } from "./chart-extra-navigation";
 import { ChartExtraNodata, ReactiveNodataState } from "./chart-extra-nodata";
-import { ChartExtraPointer, ChartExtraPointerHandlers } from "./chart-extra-pointer";
+import {
+  ChartExtraPointer,
+  ChartExtraPointerHandlers,
+  isSameHoverTarget,
+  PointerHoverTarget,
+} from "./chart-extra-pointer";
 import { ChartExtraTooltip, ReactiveTooltipState } from "./chart-extra-tooltip";
 import { ChartExtraZoom, ChartExtraZoomHandlers, ReactiveZoomState } from "./chart-extra-zoom";
+
+interface HighlightTarget {
+  point: null | Highcharts.Point;
+  group: readonly Highcharts.Point[];
+}
 
 // The API helper injects Cloudscape custom behaviors, and returns the API instance that comes with
 // reactive state and handlers to be assigned as Highcharts options, used by Cloudscape components
@@ -95,6 +105,12 @@ export class ChartAPI {
   private chartExtraNodata = new ChartExtraNodata(this.context);
   private chartExtraAxisTitles = new ChartExtraAxisTitles(this.context);
   private chartExtraZoom = new ChartExtraZoom(this.context, this.zoomHandlers);
+  private legendItemHighlight = new DebouncedCall<string>();
+  private apiHighlight = new DebouncedCall<string | PointerHoverTarget>((a, b) =>
+    typeof a === "string" || typeof b === "string" ? a === b : isSameHoverTarget(a, b),
+  );
+  private appliedHighlight: null | HighlightTarget = null;
+  private notifiedHighlight: null | HighlightTarget = null;
 
   constructor(
     settings: ChartExtraContext.Settings,
@@ -157,6 +173,8 @@ export class ChartAPI {
   // There is no cleanup or destroy event in Highcharts options, so we define a custom one
   // to be used when the React component unmounts.
   public onChartDestroy = () => {
+    this.legendItemHighlight.cancelPending();
+    this.apiHighlight.cancelPending();
     this.chartExtraNavigation.onChartDestroy();
     this.chartExtraPointer.onChartDestroy();
     this.chartExtraTooltip.onChartDestroy();
@@ -232,36 +250,52 @@ export class ChartAPI {
   public updateItemsVisibility = this.chartExtraLegend.updateItemsVisibility.bind(this.chartExtraLegend);
 
   // A callback used by the legend and filter components when series/segments visibility changes.
-  public onItemVisibilityChange = (items: readonly string[], detail: CoreChartProps.InteractionKind) =>
-    this.chartExtraLegend.onItemVisibilityChange(items, detail);
+  public onItemVisibilityChange = (items: readonly string[], detail: CoreChartProps.InteractionKind) => {
+    this.changeItemsVisibility(items, detail);
+  };
 
   // Callbacks used by the legend component when items highlight state changes.
-  public onHighlightChartItems = (itemIds: readonly string[]) => {
-    if (!this.isTooltipPinned) {
-      this.chartExtraHighlight.highlightChartItems(itemIds);
-      this.chartExtraLegend.onHighlightItems(itemIds);
+  public onHighlightChartItems = (itemIds: readonly string[]) => this.highlightChartItems(itemIds);
+  public onEnterLegendItem = (itemId: string, highlight: () => void) => {
+    this.scheduleHighlight(
+      "legend",
+      this.legendItemHighlight,
+      itemId,
+      () => {
+        if (this.chartExtraLegend.get().items.some((item) => item.id === itemId && item.visible)) {
+          highlight();
+        }
+      },
+      () => this.previewItems([itemId]),
+    );
+  };
+  public onLeaveLegendItem = () => {
+    if (this.legendItemHighlight.cancelPending()) {
+      this.restorePreview({ notify: false });
     }
   };
   public onClearChartItemsHighlight = () => {
+    this.cancelPendingHovers({ notify: false });
     if (!this.isTooltipPinned) {
       this.chartExtraHighlight.clearChartItemsHighlight();
       this.chartExtraLegend.onClearHighlight();
+      this.notifiedHighlight = null;
 
       // Notify the consumer that a clear-highlight action was made.
       fireNonCancelableEvent(this.context.handlers.onClearHighlight, { isApiCall: false });
     }
   };
 
-  // Callbacks used for hover and keyboard navigation, and also exposed to the public API to give the ability
-  // to highlight and show tooltip for the given point or group manually.
+  // Callbacks used for hover and keyboard navigation.
   public highlightChartItems = (itemIds: readonly string[]) => {
+    this.cancelPendingHovers({ notify: false });
     if (!this.isTooltipPinned) {
       this.chartExtraHighlight.highlightChartItems(itemIds);
       this.chartExtraLegend.onHighlightItems(itemIds);
     }
   };
   public setItemsVisible = (visibleItemsIds: readonly string[]) => {
-    this.chartExtraLegend.onItemVisibilityChange(visibleItemsIds, { interactionType: "api" });
+    this.changeItemsVisibility(visibleItemsIds, { interactionType: "api" });
   };
   public highlightChartPoint = (point: Highcharts.Point, { isApiCall }: { isApiCall: boolean }) => {
     if (!this.isTooltipPinned) {
@@ -273,17 +307,17 @@ export class ChartAPI {
       this.highlightActions(group as Writeable<Highcharts.Point[]>, { isApiCall });
     }
   };
-  public clearChartHighlight = ({ isApiCall }: { isApiCall: boolean }) => {
+  public clearChartHighlight = ({ isApiCall, keepLegendHover }: { isApiCall: boolean; keepLegendHover?: boolean }) => {
     if (!this.isTooltipPinned) {
-      this.clearHighlightActions({ isApiCall });
+      this.clearHighlightActions({ isApiCall, keepLegendHover });
     }
   };
   public get publicApi() {
     return {
-      highlightItems: (itemIds: readonly string[]) => this.highlightChartItems(itemIds),
+      highlightItems: (itemIds: readonly string[]) => this.highlightItemsFromApi(itemIds),
       setItemsVisible: (visibleItemIds: readonly string[]) => this.setItemsVisible(visibleItemIds),
-      highlightChartPoint: (point: Highcharts.Point) => this.highlightChartPoint(point, { isApiCall: true }),
-      highlightChartGroup: (group: readonly Highcharts.Point[]) => this.highlightChartGroup(group, { isApiCall: true }),
+      highlightChartPoint: (point: Highcharts.Point) => this.highlightTargetFromApi(point),
+      highlightChartGroup: (group: readonly Highcharts.Point[]) => this.highlightTargetFromApi([...group]),
       clearChartHighlight: () => this.clearChartHighlight({ isApiCall: true }),
     };
   }
@@ -299,6 +333,7 @@ export class ChartAPI {
         // Dismiss any visible non-pinned tooltip when ESC is pressed.
         // Returns true if a tooltip was dismissed, false otherwise.
         // Used by ESC handlers at group/point level to decide whether to also navigate.
+        this.cancelPendingHovers();
         const tooltipState = this.chartExtraTooltip.get();
         if (tooltipState.visible && !tooltipState.pinned) {
           this.clearChartHighlight({ isApiCall: false });
@@ -350,7 +385,16 @@ export class ChartAPI {
         this.highlightChartGroup(group, { isApiCall: false });
       },
       onHoverLost: () => {
-        this.clearChartHighlight({ isApiCall: false });
+        this.clearChartHighlight({ isApiCall: false, keepLegendHover: true });
+      },
+      onHoverPreview: (target) => {
+        this.cancelPendingHovers({ pointer: false, notify: false });
+        if (!this.isTooltipPinned) {
+          this.showPreview(target);
+        }
+      },
+      onHoverPreviewCancel: () => {
+        this.restorePreview({ notify: true });
       },
       onPointClick: (point) => {
         this.pinTooltipOnPoint(point);
@@ -452,8 +496,8 @@ export class ChartAPI {
     target: Highcharts.Point | Highcharts.Point[],
     { isApiCall, overrideTooltipLock }: { isApiCall: boolean; overrideTooltipLock?: boolean },
   ) {
-    const point = Array.isArray(target) ? null : target;
-    const group = Array.isArray(target) ? target : this.context.derived.getPointsByX(target.x);
+    this.cancelPendingHovers({ notify: false });
+    const { point, group } = this.getHighlightTarget(target);
 
     if (!this.isTooltipPinned) {
       // Update Highcharts elements state.
@@ -473,11 +517,134 @@ export class ChartAPI {
       }
 
       // Notify the consumer that a highlight action was made.
-      fireNonCancelableEvent(this.context.handlers.onHighlight, { point, group, isApiCall });
+      this.appliedHighlight = { point, group };
+      this.notifyHighlight(point, group, isApiCall);
     }
   }
 
-  private clearHighlightActions = ({ isApiCall }: { isApiCall: boolean }) => {
+  public cancelPendingHovers = ({ pointer = true, legend = true, api = true, notify = true } = {}) => {
+    const hadPointerHover = pointer && this.chartExtraPointer.cancelPendingHover();
+    const hadLegendHighlight = legend && this.legendItemHighlight.cancelPending();
+    const hadApiHighlight = api && this.apiHighlight.cancelPending();
+    if (hadPointerHover || hadLegendHighlight || hadApiHighlight) {
+      this.restorePreview({ notify, legendPreviewed: hadLegendHighlight });
+    }
+  };
+
+  public getLegendScrollDelay = () => {
+    const delay = this.context.settings.hoverDelay;
+    return delay > 0 ? Math.max(0, this.chartExtraPointer.getLastPointerMoveAt() + delay - Date.now()) : 0;
+  };
+
+  public get hoverDebounceEnabled() {
+    return this.context.settings.hoverDebounceEnabled;
+  }
+
+  private notifyHighlight(point: null | Highcharts.Point, group: readonly Highcharts.Point[], isApiCall: boolean) {
+    const notified = this.notifiedHighlight;
+    if (
+      this.hoverDebounceEnabled &&
+      !isApiCall &&
+      notified &&
+      notified.point === point &&
+      isEqualArrays(notified.group, group, (a, b) => a === b)
+    ) {
+      return;
+    }
+    this.notifiedHighlight = { point, group };
+    fireNonCancelableEvent(this.context.handlers.onHighlight, { point, group, isApiCall });
+  }
+
+  private showPreview(target: PointerHoverTarget, { notify = true } = {}) {
+    const { point, group } = this.getHighlightTarget(target);
+    this.chartExtraTooltip.showCursor(point, group);
+    if (!this.hoverDebounceEnabled) {
+      return;
+    }
+    if (point) {
+      this.chartExtraLegend.onPreviewPoint(point, this.chartExtraHighlight.previewChartPoint(point));
+    } else {
+      this.chartExtraLegend.onPreviewGroup(group, this.chartExtraHighlight.previewChartGroup(group));
+    }
+    if (notify) {
+      this.notifyHighlight(point, group, false);
+    }
+  }
+
+  private get isApiHighlightDelayed() {
+    return this.hoverDebounceEnabled && this.context.settings.hoverDelay > 0 && !this.isTooltipPinned;
+  }
+
+  private highlightItemsFromApi(itemIds: readonly string[]) {
+    const apply = () => this.highlightChartItems(itemIds);
+    if (this.isApiHighlightDelayed) {
+      this.scheduleHighlight("api", this.apiHighlight, itemIds.join("\u0000"), apply, () => this.previewItems(itemIds));
+    } else {
+      apply();
+    }
+  }
+
+  private highlightTargetFromApi(target: PointerHoverTarget) {
+    const apply = () => this.highlightActions(target, { isApiCall: true });
+    if (this.isApiHighlightDelayed) {
+      this.scheduleHighlight("api", this.apiHighlight, target, apply, () =>
+        this.showPreview(target, { notify: false }),
+      );
+    } else {
+      apply();
+    }
+  }
+
+  private scheduleHighlight<Key>(
+    source: "legend" | "api",
+    call: DebouncedCall<Key>,
+    key: Key,
+    apply: () => void,
+    preview: () => void,
+  ) {
+    this.cancelPendingHovers({ [source]: false, notify: false });
+    if (call.call(apply, this.context.settings.hoverDelay, key) && !this.isTooltipPinned) {
+      preview();
+    }
+  }
+
+  private previewItems(itemIds: readonly string[]) {
+    this.chartExtraLegend.onPreviewItems(itemIds, this.chartExtraHighlight.previewChartItems(itemIds));
+  }
+
+  private changeItemsVisibility(itemIds: readonly string[], detail: CoreChartProps.InteractionKind) {
+    this.cancelPendingHovers();
+    this.chartExtraLegend.onItemVisibilityChange(itemIds, detail);
+  }
+
+  private restorePreview({ notify, legendPreviewed = false }: { notify: boolean; legendPreviewed?: boolean }) {
+    this.chartExtraTooltip.restoreCursor();
+    this.chartExtraHighlight.cancelPreview();
+    this.chartExtraLegend.onCancelPreview();
+    if (notify && !this.isTooltipPinned && this.hoverDebounceEnabled) {
+      if (this.appliedHighlight) {
+        this.notifyHighlight(this.appliedHighlight.point, this.appliedHighlight.group, false);
+      } else if (this.notifiedHighlight || legendPreviewed) {
+        this.notifiedHighlight = null;
+        fireNonCancelableEvent(this.context.handlers.onClearHighlight, { isApiCall: false });
+      }
+    }
+  }
+
+  private getHighlightTarget(target: PointerHoverTarget) {
+    const point = Array.isArray(target) ? null : target;
+    const group = Array.isArray(target) ? target : this.context.derived.getPointsByX(target.x);
+    return { point, group };
+  }
+
+  private clearHighlightActions = ({
+    isApiCall,
+    keepLegendHover,
+  }: {
+    isApiCall: boolean;
+    keepLegendHover?: boolean;
+  }) => {
+    this.cancelPendingHovers({ legend: !keepLegendHover, notify: false });
     if (!this.isTooltipPinned) {
       // Update Highcharts elements state.
       this.chartExtraHighlight.clearChartItemsHighlight();
@@ -485,6 +652,8 @@ export class ChartAPI {
       // Update tooltip and legend state.
       this.chartExtraTooltip.hideTooltip();
       this.chartExtraLegend.onClearHighlight();
+      this.appliedHighlight = null;
+      this.notifiedHighlight = null;
 
       // Notify the consumer that a clear-highlight action was made.
       fireNonCancelableEvent(this.context.handlers.onClearHighlight, { isApiCall });
