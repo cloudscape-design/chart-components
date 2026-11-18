@@ -11,7 +11,7 @@ import SpaceBetween from "@cloudscape-design/components/space-between";
 
 import { CartesianChart, CartesianChartProps } from "../../lib/components";
 import { moneyFormatter, numberFormatter } from "../common/formatters";
-import { PageSettings, useChartSettings } from "../common/page-settings";
+import { PageSettings, PageSettingsForm, useChartSettings } from "../common/page-settings";
 import { Page, PageSection } from "../common/templates";
 import pseudoRandom from "../utils/pseudo-random";
 
@@ -107,6 +107,7 @@ export default function () {
       title="Error bars"
       settings={
         <SpaceBetween size="m">
+          <PageSettingsForm selectedSettings={["zoom", "hideZoomControls"]} />
           <Checkbox
             checked={chartProps.customTooltipContent}
             onChange={({ detail }) => setSettings({ customTooltipContent: detail.checked })}

@@ -71,6 +71,7 @@ export function getOverlay() {
   return {
     band: findZoomSvg("zoom-selection"),
     startDivider: findZoomSvg("zoom-selection-start"),
+    endDivider: findZoomSvg("zoom-selection-end"),
     cursor,
   };
 }

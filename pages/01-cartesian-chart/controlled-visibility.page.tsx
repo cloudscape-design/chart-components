@@ -56,6 +56,8 @@ export default function () {
         <PageSettingsForm
           selectedSettings={[
             "showLegend",
+            "zoom",
+            "hideZoomControls",
             {
               content: (
                 <Checkbox

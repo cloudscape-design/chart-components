@@ -12,7 +12,7 @@ export default function () {
     <Page
       title="Large series"
       subtitle="This demonstrates how component handles large series"
-      settings={<PageSettingsForm selectedSettings={["showLegend"]} />}
+      settings={<PageSettingsForm selectedSettings={["showLegend", "zoom", "hideZoomControls"]} />}
     >
       <Component />
     </Page>
