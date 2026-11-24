@@ -9,6 +9,7 @@ import { ChartLabels } from "../i18n-utils";
 import { CoreChartProps, Rect } from "../interfaces";
 import { ZoomChangeDetail, ZoomRange } from "../internal-interfaces";
 import { getGroupRect, isSeriesStacked } from "../utils";
+import { HighlightScheduler } from "./highlight-scheduler";
 
 // Chart API context is used for dependency injection for chart utilities.
 // It is initialized on chart render, and includes the chart instance, consumer
@@ -20,6 +21,7 @@ export interface ChartExtraContext {
   handlers: ChartExtraContext.Handlers;
   state: ChartExtraContext.State;
   derived: ChartExtraContext.DerivedState;
+  scheduler: HighlightScheduler;
   chartOrNull: null | SafeChart;
   chart: () => SafeChart;
 }
@@ -34,6 +36,7 @@ export namespace ChartExtraContext {
     labels: ChartLabels;
     getItemOptions?: CoreChartProps.GetItemOptions;
     zoomEnabled: boolean;
+    hoverDelay: null | number;
   }
 
   export interface Handlers {
@@ -59,7 +62,7 @@ export namespace ChartExtraContext {
 // The context is created when the chart component is rendered for the first time.
 // On every subsequent render the settings and state are updated directly in the context object.
 export function createChartContext(): ChartExtraContext {
-  return {
+  const context: ChartExtraContext = {
     settings: {
       chartId: "",
       noDataEnabled: false,
@@ -68,6 +71,7 @@ export function createChartContext(): ChartExtraContext {
       keyboardNavigationEnabled: false,
       labels: {},
       zoomEnabled: false,
+      hoverDelay: null,
     },
     handlers: {},
     state: {},
@@ -79,7 +83,9 @@ export function createChartContext(): ChartExtraContext {
     },
     chartOrNull: null,
     derived: { allX: [], getPointsByX: () => [], getSeriesPoints: () => [], groupRects: [] },
+    scheduler: new HighlightScheduler(() => context.settings.hoverDelay),
   };
+  return context;
 }
 
 // The update method is called on every chart render, before any other initialization code.

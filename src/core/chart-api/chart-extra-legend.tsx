@@ -17,6 +17,11 @@ import { ChartExtraContext } from "./chart-extra-context";
 // The reactive state is used to propagate changes in legend items to the core legend React component.
 export interface ReactiveLegendState {
   items: readonly CoreChartProps.LegendItem[];
+  preview: null | { itemIds: readonly string[]; dimmed: boolean };
+}
+
+interface LegendPreview {
+  dimmed: boolean;
 }
 
 // Chart helper that implements custom legend behaviors.
@@ -25,8 +30,9 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
   private visibilityMode: "internal" | "external" = "external";
 
   constructor(context: ChartExtraContext) {
-    super({ items: [] });
+    super({ items: [], preview: null });
     this.context = context;
+    context.scheduler.onCancel(() => this.setPreview(null));
   }
 
   public onChartRender = () => {
@@ -47,6 +53,7 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
 
   // A callback to be called when items visibility changes from the outside or from the legend.
   public onItemVisibilityChange = (visibleItems: readonly string[], detail: CoreChartProps.InteractionKind) => {
+    this.context.scheduler.cancel();
     const currentItems = this.get().items;
     const updatedItems = currentItems.map((i) => ({ ...i, visible: visibleItems.includes(i.id) }));
     if (this.visibilityMode === "internal") {
@@ -57,30 +64,49 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
   };
 
   // Updates legend highlight state when chart's point is highlighted.
-  public onHighlightPoint = (point: Highcharts.Point) => {
+  public onHighlightPoint = (point: Highcharts.Point, preview?: LegendPreview) => {
     const masterSeries = getMasterSeries(point);
     const visibleItems = point.series.type === "pie" ? [getPointId(point)] : [getSeriesId(masterSeries)];
-    this.onHighlightItems(visibleItems);
+    this.onHighlightItems(visibleItems, preview);
   };
 
   // Updates legend highlight state when chart's group of points is highlighted.
-  public onHighlightGroup = (group: readonly Highcharts.Point[]) => {
+  public onHighlightGroup = (group: readonly Highcharts.Point[], preview?: LegendPreview) => {
     const visibleItems = group.map((point) => getSeriesId(getMasterSeries(point)));
-    this.onHighlightItems(visibleItems);
+    this.onHighlightItems(visibleItems, preview);
   };
 
   // Updates legend highlight state given an explicit list of item IDs. This is used to update state
   // when a legend item gets hovered or focused.
-  public onHighlightItems = (highlightedItems: readonly string[]) => {
-    const currentItems = this.get().items;
-    const updatedItems = currentItems.map(({ ...i }) => ({ ...i, highlighted: highlightedItems.includes(i.id) }));
-    this.updateLegendItems(updatedItems);
+  public onHighlightItems = (highlightedItems: readonly string[], preview?: LegendPreview) => {
+    this.setPreview(preview && highlightedItems.length > 0 ? { itemIds: highlightedItems, ...preview } : null);
+    if (!preview) {
+      const currentItems = this.get().items;
+      const updatedItems = currentItems.map(({ ...i }) => ({ ...i, highlighted: highlightedItems.includes(i.id) }));
+      this.updateLegendItems(updatedItems);
+    }
   };
 
   // Clears legend highlight state.
-  public onClearHighlight = () => {
+  public onClearHighlight = ({ keepPreview = false } = {}) => {
     const nextItems = this.get().items.map(({ ...item }) => ({ ...item, highlighted: false }));
+    if (!keepPreview) {
+      this.setPreview(null);
+    }
     this.updateLegendItems(nextItems);
+  };
+
+  private setPreview = (preview: ReactiveLegendState["preview"]) => {
+    const current = this.get().preview;
+    const isSame =
+      current === preview ||
+      (!!current &&
+        !!preview &&
+        current.dimmed === preview.dimmed &&
+        isEqualArrays(current.itemIds, preview.itemIds, (a, b) => a === b));
+    if (!isSame) {
+      this.set((state) => ({ ...state, preview }));
+    }
   };
 
   private initLegend = () => {
@@ -111,7 +137,7 @@ export class ChartExtraLegend extends AsyncStore<ReactiveLegendState> {
       );
     }
     if (!isEqualArrays(this.get().items, nextItems, isLegendItemsEqual)) {
-      this.set(() => ({ items: nextItems }));
+      this.set((state) => ({ ...state, items: nextItems }));
     }
   };
 

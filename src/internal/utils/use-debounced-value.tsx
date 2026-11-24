@@ -22,7 +22,7 @@ export function useDebouncedValue<T>(value: T, duration: number) {
       setShouldRender(true);
     }, duration);
 
-    return () => current.cancelPrevious();
+    return () => current.cancelPending();
   }, [value, duration]);
 
   if (duration <= 0) {
