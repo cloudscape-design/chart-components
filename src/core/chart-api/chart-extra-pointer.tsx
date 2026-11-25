@@ -7,8 +7,11 @@ import { getChartSeries, isPointVisible, SafeChart } from "../../internal/utils/
 import { DebouncedCall } from "../../internal/utils/utils";
 import { isInsidePlot } from "../utils";
 import { ChartExtraContext } from "./chart-extra-context";
+import { isSameHighlightKey } from "./highlight-scheduler";
 
 const HOVER_LOST_DELAY = 25;
+
+export type PointerHoverTarget = Highcharts.Point | Highcharts.Point[];
 
 export interface ChartExtraPointerHandlers {
   onPointHover(point: Highcharts.Point): void;
@@ -27,6 +30,8 @@ export class ChartExtraPointer {
   private hoveredGroup: null | Highcharts.Point[] = null;
   private tooltipHovered = false;
   private hoverLostCall = new DebouncedCall();
+  private pointerMoveDocument: null | Document = null;
+  private lastPointerMoveAt = 0;
 
   constructor(context: ChartExtraContext, handlers: ChartExtraPointerHandlers) {
     this.context = context;
@@ -34,11 +39,33 @@ export class ChartExtraPointer {
   }
 
   public onChartLoad = (chart: SafeChart) => {
+    this.trackPointerMoves(chart.container.ownerDocument);
     chart.container.addEventListener("mousemove", this.onChartMousemove);
     chart.container.addEventListener("mouseout", this.onChartMouseout);
   };
 
+  public isHovered = (target: PointerHoverTarget) => {
+    const current = this.hoveredPoint ?? this.hoveredGroup;
+    return !!current && isSameHighlightKey(current, target);
+  };
+
+  public getPointerRestDelay = () => {
+    const delay = this.context.settings.hoverDelay;
+    return delay ? Math.max(0, this.lastPointerMoveAt + delay - Date.now()) : 0;
+  };
+
+  private trackPointerMoves(document: null | Document) {
+    this.pointerMoveDocument?.removeEventListener("mousemove", this.onDocumentMousemove, { capture: true });
+    this.pointerMoveDocument = document;
+    this.pointerMoveDocument?.addEventListener("mousemove", this.onDocumentMousemove, { capture: true, passive: true });
+  }
+
+  private onDocumentMousemove = () => {
+    this.lastPointerMoveAt = Date.now();
+  };
+
   public onChartDestroy = () => {
+    this.trackPointerMoves(null);
     this.context.chartOrNull?.container?.removeEventListener("mousemove", this.onChartMousemove);
     this.context.chartOrNull?.container?.removeEventListener("mouseout", this.onChartMouseout);
   };
@@ -67,6 +94,7 @@ export class ChartExtraPointer {
     this.tooltipHovered = true;
     this.hoveredPoint = null;
     this.hoveredGroup = null;
+    this.context.scheduler.cancel();
   };
 
   // When the pointer leaves the tooltip it can hover another point or group. If that does not happen,
@@ -150,6 +178,7 @@ export class ChartExtraPointer {
     if (this.handlers.isLocked()) {
       return false;
     }
+    this.context.scheduler.flush();
     const targetPoint = point ?? (this.hoveredPoint && isPointVisible(this.hoveredPoint) ? this.hoveredPoint : null);
     if (targetPoint) {
       this.handlers.onPointClick(targetPoint);

@@ -16,7 +16,7 @@ import Select from "@cloudscape-design/components/select";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 
 import { CartesianChartProps, PieChartProps } from "../../lib/components";
-import { InternalZoomProps } from "../../lib/components/core/internal-interfaces";
+import { InternalHoverProps, InternalZoomProps } from "../../lib/components/core/internal-interfaces";
 import { CoreChartProps } from "../../src/core/interfaces";
 import { useHighcharts } from "./use-highcharts";
 
@@ -47,6 +47,7 @@ export interface PageSettings {
   useFallback: boolean;
   zoom: boolean;
   hideZoomControls: boolean;
+  hoverDebounce: number;
 }
 
 const DEFAULT_SETTINGS: PageSettings = {
@@ -75,6 +76,7 @@ const DEFAULT_SETTINGS: PageSettings = {
   zoom: false,
   hideZoomControls: false,
   tooltipSeriesSorting: "as-added",
+  hoverDebounce: 0,
 };
 
 export const PageSettingsContext = createContext<PageSettings>(DEFAULT_SETTINGS);
@@ -92,7 +94,7 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
   chartProps: {
     cartesian: Omit<CartesianChartProps, "series"> & InternalZoomProps & { ref: React.Ref<CartesianChartProps.Ref> };
     pie: Omit<PieChartProps, "series"> & { ref: React.Ref<PieChartProps.Ref> };
-    core: Omit<CoreChartProps, "series" | "options"> & InternalZoomProps;
+    core: Omit<CoreChartProps, "series" | "options"> & InternalZoomProps & InternalHoverProps;
   };
   isEmpty: boolean;
 } {
@@ -119,6 +121,7 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
     useFallback: parseBoolean(defaultSettings.useFallback, urlParams.useFallback),
     zoom: parseBoolean(defaultSettings.zoom, urlParams.zoom),
     hideZoomControls: parseBoolean(defaultSettings.hideZoomControls, urlParams.hideZoomControls),
+    hoverDebounce: parseNumber(defaultSettings.hoverDebounce, urlParams.hoverDebounce),
   } as PageSettings as SettingsType;
   const setSettings = (partial: Partial<SettingsType>) => {
     setUrlParams(partial as Partial<AppUrlParams & Partial<SettingsType>>);
@@ -206,6 +209,7 @@ export function useChartSettings<SettingsType extends PageSettings = PageSetting
         emphasizeBaseline: settings.emphasizeBaseline,
         verticalAxisTitlePlacement: settings.verticalAxisTitlePlacement,
         zoom,
+        hoverDebounce: settings.hoverDebounce > 0 ? settings.hoverDebounce : undefined,
       },
     },
     isEmpty: settings.emptySeries || settings.seriesLoading || settings.seriesError,
@@ -516,6 +520,16 @@ export function PageSettingsForm({
                 >
                   Hide zoom controls
                 </Checkbox>
+              );
+            case "hoverDebounce":
+              return (
+                <FormField label="Hover debounce (ms)" description="0 disables the delay.">
+                  <Input
+                    type="number"
+                    value={settings.hoverDebounce.toString()}
+                    onChange={({ detail }) => setSettings({ hoverDebounce: detail.value ? parseInt(detail.value) : 0 })}
+                  />
+                </FormField>
               );
             case "useFallback":
               return (

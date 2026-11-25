@@ -46,7 +46,7 @@ export class DebouncedCall {
 
   public call(callback: () => void, delay = -1) {
     if (!this.locked) {
-      this.cancelPrevious();
+      this.cancelPending();
       if (delay === -1) {
         callback();
       } else {
@@ -55,7 +55,7 @@ export class DebouncedCall {
     }
   }
 
-  public cancelPrevious() {
+  public cancelPending() {
     clearTimeout(this.timeoutRef);
   }
 

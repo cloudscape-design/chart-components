@@ -22,6 +22,7 @@ export function ChartLegend({
   getLegendTooltipContent,
   enableHorizontalScroll,
   horizontalAlignment = "start",
+  hoverDelay,
 }: {
   api: ChartAPI;
   axisId?: string;
@@ -35,6 +36,7 @@ export function ChartLegend({
   i18nStrings?: CoreI18nStrings;
   onItemHighlight?: NonCancelableEventHandler<CoreChartProps.LegendItemHighlightDetail>;
   getLegendTooltipContent?: CoreChartProps.GetLegendTooltipContent;
+  hoverDelay: null | number;
 }) {
   const i18n = useInternalI18n("[charts]");
   const legendAriaLabel = i18n("i18nStrings.legendAriaLabel", i18nStrings?.legendAriaLabel);
@@ -44,7 +46,8 @@ export function ChartLegend({
   const ariaLabel = isSecondary ? secondaryLegendAriaLabel : legendAriaLabel;
 
   const legendItems = useSelector(api.legendStore, (s) => s.items);
-  const someHighlighted = legendItems.some((item) => item.highlighted);
+  const preview = useSelector(api.legendStore, (s) => s.preview);
+  const someHighlighted = legendItems.some((item) => item.highlighted) || !!preview?.dimmed;
   const isChartTooltipPinned = useSelector(api.tooltipStore, (s) => s.pinned);
   const filteredItems = isSecondary
     ? legendItems.filter((item) => item.isSecondary)
@@ -87,17 +90,28 @@ export function ChartLegend({
       ariaLabel={ariaLabel}
       className={className}
       legendTitle={title}
-      items={filteredItems}
+      items={
+        preview
+          ? filteredItems.map((item) => ({ ...item, highlighted: preview.itemIds.includes(item.id) }))
+          : filteredItems
+      }
       someHighlighted={someHighlighted}
       horizontalAlignment={horizontalAlignment}
       enableHorizontalScroll={enableHorizontalScroll}
+      tooltipShowDelay={hoverDelay ?? undefined}
+      getScrollIntoViewDelay={hoverDelay !== null ? api.getLegendScrollDelay : undefined}
       actions={actions}
       alignment={alignment}
       onToggleItem={onToggleItem}
       onSelectItem={onSelectItem}
       onItemHighlightExit={api.onClearChartItemsHighlight}
-      onItemHighlightEnter={(item) => {
-        api.onHighlightChartItems([item.id]);
+      onItemHoverLeave={api.onLeaveLegendItem}
+      onItemHighlightEnter={(item, detail) => {
+        if (detail.pointer) {
+          api.onEnterLegendItem(item.id, () => api.onHighlightChartItems([item.id]));
+        } else {
+          api.onHighlightChartItems([item.id]);
+        }
         fireNonCancelableEvent(onItemHighlight, { item });
       }}
       getTooltipContent={(props) => {

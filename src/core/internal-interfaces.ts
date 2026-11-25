@@ -25,3 +25,11 @@ export interface InternalZoomProps {
   zoomRange?: ZoomRange | null;
   onZoomRangeChange?: NonCancelableEventHandler<ZoomChangeDetail>;
 }
+
+// Highlights the hovered series and legend item immediately, and delays dimming the other series and legend items,
+// the tooltip, and legend scroll-into-view until the pointer settles on a target. It supersedes tooltip.debounce,
+// which only delays the tooltip: tooltip.debounce is ignored while hoverDebounce is set, and is planned for removal
+// once consumers have moved to hoverDebounce.
+export interface InternalHoverProps {
+  hoverDebounce?: number | boolean;
+}

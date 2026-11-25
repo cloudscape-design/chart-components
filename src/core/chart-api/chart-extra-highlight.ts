@@ -18,6 +18,25 @@ import { ChartExtraContext } from "./chart-extra-context";
 const SET_STATE_LOCK = Symbol("awsui-set-state-lock");
 
 type SeriesSetStateWithLock = SafeSeries["setState"] & { [SET_STATE_LOCK]: boolean };
+
+type HighlightState = "" | Highcharts.SeriesStateValue;
+
+interface HighlightStore {
+  series: Map<string, HighlightState>;
+  points: Map<string, Map<string, HighlightState>>;
+}
+
+function createHighlightStore(): HighlightStore {
+  return { series: new Map(), points: new Map() };
+}
+
+interface HighlightTargetStates {
+  getSeriesState: (series: SafeSeries) => null | HighlightState;
+  getPointState: (point: Highcharts.Point) => null | HighlightState;
+  pointSeriesTypes: readonly string[];
+  isPlotLineActive: (lineId: string) => boolean;
+  dimsAtOnce: boolean;
+}
 type PointSetStateWithLock = Highcharts.Point["setState"] & { [SET_STATE_LOCK]: boolean };
 
 // Chart helper that mutes Highcharts default highlighting behavior and offers custom methods
@@ -26,13 +45,18 @@ export class ChartExtraHighlight {
   private context: ChartExtraContext;
   constructor(context: ChartExtraContext) {
     this.context = context;
+    context.scheduler.onCancel(() => {
+      const previewed = this.preview;
+      this.preview = createHighlightStore();
+      this.applyStates(previewed, this.applied);
+    });
   }
 
   // We keep track of the previously highlighted series and points to recover highlight state if needed.
   // The recover is necessary if the chart was re-rendered while the highlighting is set. For example,
   // when triggered a state update from the consumer-provided tooltip footer action.
-  private seriesState = new Map<string, "" | Highcharts.SeriesStateValue>();
-  private pointState = new Map<string, Map<string, "" | Highcharts.PointStateValue>>();
+  private applied = createHighlightStore();
+  private preview = createHighlightStore();
   private columnStatesSynced = false;
 
   public onChartRender() {
@@ -42,82 +66,75 @@ export class ChartExtraHighlight {
   }
 
   // The method highlights specified series or points (by id). It is used when hovering over the legend items.
-  public highlightChartItems = (itemIds: readonly string[]) => {
+  public highlightChartItems = (itemIds: readonly string[], { preview = false } = {}) => {
     const itemIdsSet = new Set(itemIds);
-    for (const s of getChartSeries(this.context.chart())) {
-      // In pie charts it is the points, not series, that are shown in the legend, and can be highlighted.
-      if (s.type === "pie") {
-        for (const p of getSeriesData(s)) {
-          if (itemIdsSet.has(getPointId(p))) {
-            this.setPointState(p, "hover");
-          }
-        }
-      } else {
-        const seriesActive = itemIdsSet.has(getSeriesId(s));
-        const masterSeriesActive = s.linkedParent ? itemIdsSet.has(getSeriesId(s.linkedParent)) : false;
-        this.setSeriesState(s, seriesActive || masterSeriesActive ? "" : "inactive");
-      }
-    }
-    setPlotLinesState(this.context.chart(), (lineId) => itemIdsSet.has(lineId));
+    const isItemActive = (s: SafeSeries) =>
+      itemIdsSet.has(getSeriesId(s)) || (!!s.linkedParent && itemIdsSet.has(getSeriesId(s.linkedParent)));
+    const activeState = this.context.settings.hoverDelay !== null ? "hover" : "";
+    return this.setHighlight(
+      {
+        // In pie charts it is the points, not series, that are shown in the legend, and can be highlighted.
+        getSeriesState: (s) => (s.type === "pie" ? null : isItemActive(s) ? activeState : "inactive"),
+        getPointState: (p) => (itemIdsSet.has(getPointId(p)) ? "hover" : null),
+        pointSeriesTypes: ["pie"],
+        isPlotLineActive: (lineId) => itemIdsSet.has(lineId),
+        dimsAtOnce: getChartSeries(this.context.chart()).some((s) => s.type === "column" && isItemActive(s)),
+      },
+      preview,
+    );
   };
 
   // This method is similar to the above, but it takes a group of points. The cartesian chart points
   // do not have IDs, so we match points and series by their references instead. This is used to control
   // highlight state when chart elements are hovered or focused.
-  public highlightChartGroup = (points: readonly Highcharts.Point[]) => {
-    const includedPoints = new Set<Highcharts.Point>();
+  public highlightChartGroup = (points: readonly Highcharts.Point[], { preview = false } = {}) => {
+    const includedPoints = new Set<Highcharts.Point>(points);
     const includedSeries = new Set<SafeSeries>();
     const includedSeriesIds = new Set<string>();
     points.forEach((point) => {
-      includedPoints.add(point);
       getLinkedSeries(point).forEach((s) => {
         includedSeries.add(s);
         includedSeriesIds.add(getSeriesId(s));
       });
     });
-    for (const s of getChartSeries(this.context.chart())) {
-      this.setSeriesState(s, includedSeries.has(s) ? "" : "inactive");
-      // For column series we ensure only one group/stack that matches selected X is highlighted.
-      // See: https://github.com/highcharts/highcharts/issues/23076.
-      if (s.type === "column") {
-        for (const d of getSeriesData(s)) {
-          this.setPointState(d, includedPoints.has(d) ? "" : "inactive", !this.columnStatesSynced);
-        }
-      }
-    }
-    this.columnStatesSynced = true;
-    setPlotLinesState(this.context.chart(), (lineId) => includedSeriesIds.has(lineId));
+    return this.setHighlight(
+      {
+        getSeriesState: (s) => (includedSeries.has(s) ? "" : "inactive"),
+        // For column series we ensure only one group/stack that matches selected X is highlighted.
+        // See: https://github.com/highcharts/highcharts/issues/23076.
+        getPointState: (p) => (includedPoints.has(p) ? "" : "inactive"),
+        pointSeriesTypes: ["column"],
+        isPlotLineActive: (lineId) => includedSeriesIds.has(lineId),
+        dimsAtOnce: points.some((p) => p.series.type === "column"),
+      },
+      preview,
+    );
   };
 
   // This method is similar to the above, but it takes a single point. This is used for point highlighting
   // in cartesian charts, and for pie chart segments.
-  public highlightChartPoint = (point: Highcharts.Point) => {
+  public highlightChartPoint = (point: Highcharts.Point, { preview = false } = {}) => {
     const masterSeries = getMasterSeries(point);
     const linkedSeries = new Set(getLinkedSeries(point));
-    for (const s of getChartSeries(this.context.chart())) {
-      // For pie charts it is important that the hover actions comes last, as otherwise the segment's highlight "halo"
-      // is removed whenever any segment is made inactive.
-      this.setSeriesState(s, linkedSeries.has(s) ? "hover" : "inactive");
-      if (s.type === "pie") {
-        for (const d of getSeriesData(s)) {
-          this.setPointState(d, "inactive");
-        }
-        this.setPointState(point, "hover");
-      }
-      // For column series we ensure only one group/stack that matches selected X is highlighted.
-      else if (s.type === "column") {
-        for (const d of getSeriesData(s)) {
-          this.setPointState(d, d === point ? "hover" : "inactive", !this.columnStatesSynced);
-        }
-      }
-    }
-    this.columnStatesSynced = true;
-    // Highlight threshold series plot lines.
-    setPlotLinesState(this.context.chart(), (lineId) => lineId === getSeriesId(masterSeries));
+    return this.setHighlight(
+      {
+        getSeriesState: (s) => (linkedSeries.has(s) ? "hover" : "inactive"),
+        // For column series we ensure only one group/stack that matches selected X is highlighted.
+        getPointState: (p) => (p === point ? "hover" : "inactive"),
+        pointSeriesTypes: ["pie", "column"],
+        // Highlight threshold series plot lines.
+        isPlotLineActive: (lineId) => lineId === getSeriesId(masterSeries),
+        dimsAtOnce: point.series.type === "column",
+      },
+      preview,
+    );
   };
 
   // Removes dimmed state from all series and points.
-  public clearChartItemsHighlight = () => {
+  public clearChartItemsHighlight = ({ keepPreview = false } = {}) => {
+    if (!keepPreview) {
+      this.preview = createHighlightStore();
+    }
     for (const s of getChartSeries(this.context.chart())) {
       this.setSeriesState(s, "");
       for (const p of getSeriesData(s)) {
@@ -125,53 +142,133 @@ export class ChartExtraHighlight {
       }
     }
     setPlotLinesState(this.context.chart(), () => true);
+    this.applyStates(this.preview);
   };
 
+  private setHighlight(
+    { getSeriesState, getPointState, pointSeriesTypes, isPlotLineActive, dimsAtOnce }: HighlightTargetStates,
+    preview: boolean,
+  ) {
+    if (!preview) {
+      this.preview = createHighlightStore();
+    }
+    const store = preview ? this.preview : this.applied;
+    const dimmed = preview && (dimsAtOnce || this.isDimmed());
+    const resolve = (target: null | HighlightState, applied: HighlightState): null | HighlightState => {
+      if (!preview || (target !== null && target !== "inactive")) {
+        return target;
+      }
+      return dimmed ? "inactive" : applied === "hover" ? "" : applied;
+    };
+    // For pie charts it is important that the hover actions comes last, as otherwise the segment's highlight "halo"
+    // is removed whenever any segment is made inactive.
+    const hoveredPoints: Highcharts.Point[] = [];
+    let columnsUpdated = false;
+    for (const s of getChartSeries(this.context.chart())) {
+      const seriesState =
+        preview && s.type === "pie" ? null : resolve(getSeriesState(s), this.applied.series.get(getSeriesId(s)) ?? "");
+      if (seriesState !== null) {
+        this.setSeriesState(s, seriesState, store);
+      }
+      if (pointSeriesTypes.includes(s.type)) {
+        for (const p of getSeriesData(s)) {
+          const pointState = resolve(getPointState(p), this.getStoredPointState(this.applied, p) ?? "");
+          if (pointState === "hover") {
+            hoveredPoints.push(p);
+          } else if (pointState !== null) {
+            this.setPointState(p, pointState, store);
+          }
+        }
+        columnsUpdated = columnsUpdated || s.type === "column";
+      }
+    }
+    hoveredPoints.forEach((p) => this.setPointState(p, "hover", store));
+    if (!preview) {
+      this.columnStatesSynced = this.columnStatesSynced || columnsUpdated;
+      setPlotLinesState(this.context.chart(), isPlotLineActive);
+    }
+    return dimmed;
+  }
+
+  private isDimmed() {
+    return (
+      [...this.applied.series.values()].includes("inactive") ||
+      [...this.applied.points.values()].some((states) => [...states.values()].includes("inactive"))
+    );
+  }
+
   // Makes the specified series active or dimmed.
-  private setSeriesState(series: SafeSeries, state: "" | Highcharts.SeriesStateValue) {
-    (series.setState as SeriesSetStateWithLock)[SET_STATE_LOCK] = false;
-    series.setState(state, false);
-    this.updateStoredSeriesState(series, state);
-    (series.setState as SeriesSetStateWithLock)[SET_STATE_LOCK] = true;
+  private setSeriesState(series: SafeSeries, state: HighlightState, store = this.applied) {
+    this.applySeriesState(series, state);
+    store.series.set(getSeriesId(series), state);
   }
 
   // Makes the specified point active or dimmed.
-  private setPointState(point: Highcharts.Point, state: "" | Highcharts.PointStateValue, move = true) {
+  private setPointState(point: Highcharts.Point, state: HighlightState, store = this.applied) {
+    this.applyPointState(point, state);
+    const pointStateInSeries = store.points.get(getSeriesId(point.series)) ?? new Map();
+    pointStateInSeries.set(this.getPointKey(point), state);
+    store.points.set(getSeriesId(point.series), pointStateInSeries);
+  }
+
+  private applyStates(store: HighlightStore, fallback?: HighlightStore) {
+    const hoveredPoints: Highcharts.Point[] = [];
+    for (const s of getChartSeries(this.context.chart())) {
+      const seriesState = store.series.get(getSeriesId(s));
+      if (seriesState !== undefined) {
+        this.applySeriesState(s, fallback ? (fallback.series.get(getSeriesId(s)) ?? "") : seriesState);
+      }
+      for (const p of store.points.has(getSeriesId(s)) ? getSeriesData(s) : []) {
+        const pointState = this.getStoredPointState(store, p);
+        if (pointState !== undefined) {
+          const state = fallback ? (this.getStoredPointState(fallback, p) ?? "") : pointState;
+          if (state === "hover") {
+            hoveredPoints.push(p);
+          } else {
+            this.applyPointState(p, state);
+          }
+        }
+      }
+    }
+    hoveredPoints.forEach((p) => this.applyPointState(p, "hover"));
+  }
+
+  private applySeriesState(series: SafeSeries, state: HighlightState) {
+    (series.setState as SeriesSetStateWithLock)[SET_STATE_LOCK] = false;
+    this.withInstantUndim(series, state, () => series.setState(state, false));
+    (series.setState as SeriesSetStateWithLock)[SET_STATE_LOCK] = true;
+  }
+
+  private applyPointState(point: Highcharts.Point, state: HighlightState) {
+    const move = point.series.type !== "column" || !this.columnStatesSynced;
     (point.setState as PointSetStateWithLock)[SET_STATE_LOCK] = false;
-    point.setState(state, move);
-    this.updateStoredPointState(point, state);
+    this.withInstantUndim(point.series, state, () => point.setState(state, move));
     (point.setState as PointSetStateWithLock)[SET_STATE_LOCK] = true;
+  }
+
+  private withInstantUndim(series: { options: object }, state: string, setState: () => void) {
+    if (this.context.settings.hoverDelay !== null) {
+      applyWithInstantUndim(series, state, setState);
+    } else {
+      setState();
+    }
   }
 
   // Restores series and points highlight state after chart's re-render.
   private restoreHighlightState() {
     const inactiveSeriesIds = new Set<string>();
-    for (const s of getChartSeries(this.context.chart())) {
-      const prevState = this.seriesState.get(getSeriesId(s));
-      if (prevState) {
-        this.setSeriesState(s, prevState);
-      }
-      if (prevState === "inactive") {
-        inactiveSeriesIds.add(getSeriesId(s));
-      }
-      for (const p of getSeriesData(s)) {
-        const prevState = this.pointState.get(getSeriesId(s))?.get(this.getPointKey(p));
-        if (prevState) {
-          this.setPointState(p, prevState);
-        }
+    for (const [seriesId, state] of this.applied.series) {
+      if (state === "inactive") {
+        inactiveSeriesIds.add(seriesId);
       }
     }
+    this.applyStates(this.applied);
     setPlotLinesState(this.context.chart(), (lineId) => !inactiveSeriesIds.has(lineId));
+    this.applyStates(this.preview);
   }
 
-  private updateStoredSeriesState(series: SafeSeries, state: "" | Highcharts.SeriesStateValue) {
-    this.seriesState.set(getSeriesId(series), state);
-  }
-
-  private updateStoredPointState(point: Highcharts.Point, state: "" | Highcharts.PointStateValue) {
-    const pointStateInSeries = this.pointState.get(getSeriesId(point.series)) ?? new Map();
-    pointStateInSeries.set(this.getPointKey(point), state);
-    this.pointState.set(getSeriesId(point.series), pointStateInSeries);
+  private getStoredPointState(store: HighlightStore, point: Highcharts.Point) {
+    return store.points.get(getSeriesId(point.series))?.get(this.getPointKey(point));
   }
 
   // The points normally don't have ID's or names. In that case, the points are identified by
@@ -235,4 +332,18 @@ function iteratePlotLines(chart: SafeChart, cb: (lineId: string, line: Highchart
       });
     }
   });
+}
+
+function applyWithInstantUndim(series: { options: object }, state: string, setState: () => void) {
+  const states = (series.options as { states?: Record<string, undefined | { animation?: unknown }> }).states;
+  if (state === "inactive" || !states) {
+    setState();
+    return;
+  }
+  const key = state || "normal";
+  const stateOptions = states[key] ?? (states[key] = {});
+  const animation = stateOptions.animation;
+  stateOptions.animation = { duration: 1 };
+  setState();
+  stateOptions.animation = animation;
 }

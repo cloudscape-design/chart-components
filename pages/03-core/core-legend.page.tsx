@@ -3,7 +3,6 @@
 
 import { useRef, useState } from "react";
 import Highcharts from "highcharts";
-import { omit } from "lodash";
 
 import Link from "@cloudscape-design/components/link";
 import SpaceBetween from "@cloudscape-design/components/space-between";
@@ -190,7 +189,7 @@ export default function () {
     <Page
       title="Core Legend demo"
       subtitle="The page demonstrates the use of the core legend."
-      settings={<PageSettingsForm selectedSettings={["showLegendTitle", "showLegendActions"]} />}
+      settings={<PageSettingsForm selectedSettings={["showLegendTitle", "showLegendActions", "hoverDebounce"]} />}
     >
       <SpaceBetween direction="vertical" size="m">
         <CoreLegend
@@ -237,7 +236,7 @@ export default function () {
           })}
         />
         <CoreChart
-          {...omit(chartProps.pie, "ref")}
+          {...chartProps.core}
           highcharts={Highcharts}
           chartHeight={400}
           legend={{ enabled: false }}
@@ -276,7 +275,7 @@ export default function () {
           }}
         />
         <CoreChart
-          {...omit(chartProps.cartesian, "ref")}
+          {...chartProps.core}
           highcharts={Highcharts}
           chartHeight={300}
           legend={{ enabled: false }}
