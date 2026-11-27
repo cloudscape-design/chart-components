@@ -25,7 +25,13 @@ export default defineConfig({
     },
     outDir: "lib/dev-pages/bundle",
     rollupOptions: {
-      external: [/(?:\.\.\/)+?lib\/components/, /^@cloudscape-design\/(?!build-tools)/, /^highcharts(^|\/)/, "react"],
+      external: [
+        /(?:\.\.\/)+?lib\/components/,
+        /^@cloudscape-design\/(?!build-tools)/,
+        /^highcharts($|\/)/,
+        /^react($|\/)/,
+        /^react-dom($|\/)/,
+      ],
     },
   },
 });
