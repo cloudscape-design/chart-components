@@ -105,7 +105,15 @@ export function Page({
       onSplitPanelToggle={onSplitPanelToggle}
       splitPanelPreferences={splitPanelPreferences}
       splitPanel={splitPanel}
-      content={iframe ? <IframeWrapper {...iframe} AppComponent={() => content} /> : content}
+      content={
+        iframe ? (
+          <ScreenshotArea>
+            <IframeWrapper {...iframe} AppComponent={() => content} />
+          </ScreenshotArea>
+        ) : (
+          content
+        )
+      }
     />
   );
 }

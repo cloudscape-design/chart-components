@@ -18,12 +18,7 @@ function pageUrl(page: string, params?: Record<string, string>) {
   return `/#${page}?${urlParams.toString()}`;
 }
 
-const ignoredPages = new Set([
-  "/03-core/debugger-module",
-  "/03-core/simple-zooming",
-  "/03-core/in-iframe",
-  "/06-visual-tests/in-iframe",
-]);
+const ignoredPages = new Set(["/03-core/debugger-module", "/03-core/simple-zooming", "/03-core/in-iframe"]);
 const pagesMap = import.meta.glob("../pages/**/*.page.tsx", { as: "raw" });
 const allStaticPages = Object.keys(pagesMap)
   .map((page) => page.replace(/\.page\.tsx$/, ""))
